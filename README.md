@@ -34,7 +34,7 @@ Initialiser la base de données `manotest`:
 
 ```bash
 # Directement depuis le dossier mano
-yarn && yarn test:init-db
+npm i && npm run test:init-db
 ```
 
 ### Lancer les tests en local
@@ -47,8 +47,8 @@ Pour aller plus vite à la création de tests, on utilise le recorder de Playwri
 
 ```bash
 # Directement depuis le dossier mano
-yarn test:start-api-for-record
-yarn test:start-dashboard-for-record
+npm run test:start-api-for-record
+npm run test:start-dashboard-for-record
 ```
 
 Ensuite lancer la commande `Record new` depuis VSCode. Pour chaque test, on peut utiliser un des 12 admins.

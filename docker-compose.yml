@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  website:
+    build: ./website
+    volumes:
+      - ./website:/app
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - VIRTUAL_HOST=website-mano.localhost,mano.test.fabrique.social.gouv.fr,mano.sesan.fr
+
+  dashboard:
+    build: ./dashboard
+    volumes:
+      - ./dashboard:/app
+    environment:
+      - NODE_ENV=production
+      - VIRTUAL_HOST=espace-mano.localhost,espace-mano.test.fabrique.social.gouv.fr,espace-mano.sesan.fr
+
+  api:
+    build: ./api
+    volumes:
+      - ./api:/app
+    environment:
+      - NODE_ENV=production
+      - DEPLOY_KEY=${DEPLOY_KEY}
+      - VIRTUAL_HOST=api-mano.localhost,api-mano.test.fabrique.social.gouv.fr,api-mano.sesan.fr
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  metabase:
+    image: metabase/metabase
+    environment:
+      - VIRTUAL_HOST=metabase-mano.localhost,metabase-mano.test.fabrique.social.gouv.fr,metabase-mano.sesan.fr
+    volumes:
+      - ./metabase:/metabase-data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro

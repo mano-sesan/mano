@@ -4,9 +4,7 @@
   "mobileAppVersion": "2.37.5",
   "private": true,
   "engines": {
-    "npm": "please-use-yarn",
-    "yarn": ">=1.22.17",
-    "node": ">=14"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "next dev",
@@ -28,6 +26,5 @@
     "eslint-config-next": "13.5.6",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.0.7"
-  },
-  "packageManager": "yarn@4.0.2"
+  }
 }
