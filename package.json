@@ -15,7 +15,8 @@
     "test:start-dashboard-for-record": "cd ./dashboard && REACT_APP_HOST=127.0.0.1:8091 REACT_APP_SCHEME=http REACT_APP_TEST=true REACT_APP_TEST_PLAYWRIGHT=true PORT=8090 npm run dev",
     "test:start-api-for-record": "cd ./api && PORT=8091 NODE_ENV=test PGDATABASE=manotest npm run start:test",
     "test:init-db": "PGDATABASE=manotest node ./e2e/scripts/init-db.js",
-    "postinstall": "is-ci || husky install"
+    "postinstall": "is-ci || husky install",
+    "node-talisman": "node-talisman"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
