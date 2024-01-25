@@ -13,6 +13,4 @@ jobs:
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
         run: |
-          echo "lol"
-          echo $DEPLOY_KEY
           curl -X POST -H "Content-Type: application/json" -d '{"deploy-key":"'"$DEPLOY_KEY"'"}' https://api-mano.test.fabrique.social.gouv.fr/api/deploy
