@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - mano-sesan
 
 jobs:
   deploy:
