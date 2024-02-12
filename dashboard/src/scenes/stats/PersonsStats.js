@@ -74,7 +74,6 @@ export default function PersonStats({
   return (
     <>
       {!evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>
       <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
       {evolutivesStatsActivated ? (
         <>
@@ -185,6 +184,7 @@ export default function PersonStats({
             return (
               <details
                 key={section.name}
+                className="print:tw-break-before-page"
                 open={
                   process.env.REACT_APP_TEST_PLAYWRIGHT === 'true' ||
                   window.localStorage.getItem(`person-stats-${section.name.replace(' ', '-').toLocaleLowerCase()}-open`) === 'true'
@@ -213,6 +213,7 @@ export default function PersonStats({
           })}
         </>
       )}
+      {/* <div className="print:tw-h-96" /> */}
       <SelectedPersonsModal
         open={personsModalOpened}
         onClose={() => {

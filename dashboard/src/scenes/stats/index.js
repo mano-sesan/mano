@@ -591,7 +591,7 @@ const Stats = () => {
         onClick={(tabCaption) => setActiveTab(tabCaption)}
         activeTabIndex={availableTabs.findIndex((tab) => tab === activeTab)}
       />
-      <div className="tw-pb-[75vh] print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
+      <div className="tw-pb-[75vh] print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4 print:tw-pb-0">
         {activeTab === 'Général' && (
           <GeneralStats
             personsCreated={personsCreated}
