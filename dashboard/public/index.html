@@ -23,6 +23,10 @@
       (function () {
         if (checkIEFromUserAgent()) window.location.href = '/ie.html';
       })();
+
+      if (!window.localStorage.getItem('by-pass-redirect')) {
+        window.location.href = '/not-available.html';
+      }
     </script>
     <div id="root"></div>
   </body>
