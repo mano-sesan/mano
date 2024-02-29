@@ -57,35 +57,35 @@ registerLocale('fr', fr);
 
 const history = createBrowserHistory();
 
-// if (ENV === 'production') {
-Sentry.init({
-  dsn: 'https://1bab2dc91a5ed9ddde3e4273fe5438a5@o4506615228596224.ingest.sentry.io/4506829687554048',
-  environment: 'dashboard',
-  release: VERSION,
-  integrations: [
-    new BrowserTracing({
-      routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
-    }),
-  ],
+if (ENV === 'production') {
+  Sentry.init({
+    dsn: 'https://2e784fe581bff74181600b4460c01955@o4506615228596224.ingest.sentry.io/4506672157229056',
+    environment: 'dashboard',
+    release: VERSION,
+    integrations: [
+      new BrowserTracing({
+        routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
+      }),
+    ],
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 0.05,
-  ignoreErrors: [
-    'Network request failed',
-    'Failed to fetch',
-    'NetworkError',
-    // ???
-    'withrealtime/messaging',
-    // This error seems to happen only in firefox and to be ignorable.
-    // The "fetch" failed because user has navigated.
-    // Since other browsers don't have this problem, we don't care about it,
-    // it may be a false positive.
-    'AbortError: The operation was aborted',
-  ],
-});
-// }
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 0.05,
+    ignoreErrors: [
+      'Network request failed',
+      'Failed to fetch',
+      'NetworkError',
+      // ???
+      'withrealtime/messaging',
+      // This error seems to happen only in firefox and to be ignorable.
+      // The "fetch" failed because user has navigated.
+      // Since other browsers don't have this problem, we don't care about it,
+      // it may be a false positive.
+      'AbortError: The operation was aborted',
+    ],
+  });
+}
 
 const App = ({ resetRecoil }) => {
   const authToken = useRecoilValue(authTokenState);
