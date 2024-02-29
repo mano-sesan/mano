@@ -99,8 +99,6 @@ export const itemsGroupedByPersonSelector = selector({
     const rencontres = get(rencontresState);
     const groups = get(groupsState);
 
-    console.log(JSON.stringify(comments, null, 2));
-
     for (const group of groups) {
       for (const person of group.persons) {
         if (!personsObject[person]) continue;

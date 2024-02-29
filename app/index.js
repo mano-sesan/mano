@@ -16,14 +16,12 @@ dayjs.extend(relativeTime);
 dayjs.extend(isBetween);
 
 import * as Sentry from '@sentry/react-native';
-import { SENTRY_XXX } from './src/config';
 
-console.log({ SENTRY_XXX });
 Sentry.init({
   dsn: 'https://1bab2dc91a5ed9ddde3e4273fe5438a5@o4506615228596224.ingest.sentry.io/4506829687554048',
   environment: 'app',
-  tracesSampleRate: 1.0,
-  release: version,
+  // tracesSampleRate: 1.0,
+  // release: version,
   // ignoreErrors: [
   //   'Network request failed',
   //   'Failed to fetch',
