@@ -107,7 +107,7 @@ function WaitForManoReady() {
     checkManoReady();
     const interval = setInterval(() => {
       checkManoReady();
-    }, 5000);
+    }, 60000);
     return () => clearInterval(interval);
   }, []);
 
