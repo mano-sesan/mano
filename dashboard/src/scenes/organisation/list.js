@@ -232,7 +232,7 @@ const Create = ({ onChange, open, setOpen }) => {
                   <Col md={6}>
                     <FormGroup>
                       <Label htmlFor="orgName">
-                        Identifiant interne <small>(non modifiable par les utilisateurs)</small>
+                        Identifiant interne <small>(non modifiable)</small>
                       </Label>
                       <Input name="orgId" id="orgId" value={values.orgId} onChange={handleChange} />
                       {touched.orgId && errors.orgId && <span className="tw-text-xs tw-text-red-500">{errors.orgId}</span>}
