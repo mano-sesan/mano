@@ -8,9 +8,7 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = async (address, subject, text, html) => {
   if (process.env.NODE_ENV === "test") return;
-  if (process.env.NODE_ENV === "development") {
-    address = process.env.EMAIL_DEV || "arnaud@ambroselli.io";
-  }
+  if (process.env.NODE_ENV === "development") return;
 
   // send mail with defined transport object
   const info = await transporter.sendMail({
