@@ -84,6 +84,8 @@ if (ENV === 'production') {
       // Since other browsers don't have this problem, we don't care about it,
       // it may be a false positive.
       'AbortError: The operation was aborted',
+      // This error seems to happen only in firefox when people runs mano from local file system.
+      'SecurityError: The operation is insecure',
     ],
   });
 }
