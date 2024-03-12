@@ -325,7 +325,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
   return (
     <>
       <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setOpen(false)}>Créer un administrateur pour {organisation.orgId}</ModalHeader>
+        <ModalHeader toggle={() => setOpen(false)}>Créer un utilisateur pour {organisation.orgId}</ModalHeader>
         <ModalBody>
           <Formik
             initialValues={{ name: '', email: '', phone: '', team, healthcareProfessional: false }}
