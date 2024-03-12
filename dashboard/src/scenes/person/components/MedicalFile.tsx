@@ -17,6 +17,7 @@ import CommentsMedical from "./CommentsMedical";
 import type { PersonPopulated } from "../../../types/person";
 import type { MedicalFileInstance } from "../../../types/medicalFile";
 import type { CustomField } from "../../../types/field";
+import Constantes from "./Constantes";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -111,6 +112,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
               </div>
             </div>
           </div>
+          <Constantes person={person} />
           <div className="noprint tw-mt-4 tw-flex tw-justify-end tw-gap-2">
             <MergeTwoPersons person={person} />
             <OutOfActiveList person={person} />
