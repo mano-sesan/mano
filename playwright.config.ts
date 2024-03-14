@@ -122,10 +122,10 @@ const config: PlaywrightTestConfig = {
       reuseExistingServer: !process.env.CI,
       env: {
         PORT: "8090",
-        REACT_APP_HOST: "127.0.0.1:8091",
-        REACT_APP_SCHEME: "http",
-        REACT_APP_TEST: "true",
-        REACT_APP_TEST_PLAYWRIGHT: "true",
+        VITE_HOST: "127.0.0.1:8091",
+        VITE_SCHEME: "http",
+        VITE_TEST: "true",
+        VITE_TEST_PLAYWRIGHT: "true",
       },
     },
     {
