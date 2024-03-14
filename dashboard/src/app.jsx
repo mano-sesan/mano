@@ -124,9 +124,9 @@ const App = ({ resetRecoil }) => {
 
   return (
     <div className="main-container">
-      <ToastContainer transition={import.meta.env.TEST_PLAYWRIGHT !== 'true' ? Bounce : ToastifyFastTransition} />
+      <ToastContainer transition={import.meta.env.VITE_TEST_PLAYWRIGHT !== 'true' ? Bounce : ToastifyFastTransition} />
       <VersionOutdatedAlert />
-      {import.meta.env.TEST_PLAYWRIGHT === 'true' && <DuplicatedReportsTestChecker />}
+      {import.meta.env.VITE_TEST_PLAYWRIGHT === 'true' && <DuplicatedReportsTestChecker />}
       <Router history={history}>
         <ScrollToTop />
         <Switch>
