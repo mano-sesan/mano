@@ -116,7 +116,7 @@ const config: PlaywrightTestConfig = {
 
   webServer: [
     {
-      command: "yarn --cwd ./dashboard dev",
+      command: "yarn --cwd ./dashboard dev-test",
       port: 8090,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
