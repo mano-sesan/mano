@@ -27,6 +27,15 @@ export const customFieldsObsSelector = selector({
   },
 });
 
+export const groupedCustomFieldsObsSelector = selector({
+  key: "groupedCustomFieldsObsSelector",
+  get: ({ get }) => {
+    const organisation = get(organisationState);
+    if (Array.isArray(organisation.groupedCustomFieldsObs)) return organisation.groupedCustomFieldsObs;
+    return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
+  },
+});
+
 export const defaultCustomFields = [
   {
     name: "personsMale",
@@ -92,7 +101,7 @@ const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
 export const prepareObsForEncryption =
   (customFields) =>
   (obs, { checkRequiredFields = true } = {}) => {
-    if (!!checkRequiredFields) {
+    if (checkRequiredFields) {
       try {
         if (!looseUuidRegex.test(obs.territory)) {
           throw new Error("Observation is missing territory");
