@@ -22,7 +22,7 @@ export const customFieldsObsSelector = selector({
   key: "customFieldsObsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
-    if (Array.isArray(organisation.customFieldsObs)) return organisation.customFieldsObs;
+    if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
     return defaultCustomFields;
   },
 });
@@ -31,7 +31,7 @@ export const groupedCustomFieldsObsSelector = selector({
   key: "groupedCustomFieldsObsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
-    if (Array.isArray(organisation.groupedCustomFieldsObs)) return organisation.groupedCustomFieldsObs;
+    if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
     return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
   },
 });
