@@ -6,7 +6,7 @@ const { catchErrors } = require("../errors");
 const { TerritoryObservation, Organisation, Person, Consultation, MedicalFile, sequelize } = require("../db/sequelize");
 const { capture } = require("../sentry");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex, customFieldSchema } = require("../utils");
+const { looseUuidRegex, customFieldSchema, customFieldGroupSchema } = require("../utils");
 const { serializeOrganisation } = require("../utils/data-serializer");
 
 router.post(
@@ -34,25 +34,11 @@ router.post(
     }
     try {
       z.object({
-        customFieldsObs: z.optional(z.array(customFieldSchema)),
+        customFieldsObs: z.optional(z.array(customFieldGroupSchema)),
         fieldsPersonsCustomizableOptions: z.optional(z.array(customFieldSchema)),
         customFieldsMedicalFile: z.optional(z.array(customFieldSchema)),
-        customFieldsPersons: z.optional(
-          z.array(
-            z.object({
-              name: z.string().min(1),
-              fields: z.array(customFieldSchema),
-            })
-          )
-        ),
-        consultations: z.optional(
-          z.array(
-            z.object({
-              name: z.string().min(1),
-              fields: z.array(customFieldSchema),
-            })
-          )
-        ),
+        customFieldsPersons: z.optional(z.array(customFieldGroupSchema)),
+        consultations: z.optional(z.array(customFieldGroupSchema)),
       }).parse(req.body.customFields);
     } catch (e) {
       const error = new Error(`Invalid request in customFields put in custom-field: ${e}`);

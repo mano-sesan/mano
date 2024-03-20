@@ -262,13 +262,15 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
     setIsEditingField(false);
     const updatedObservations = replaceOldChoiceByNewChoice(observations, oldChoice, newChoice, field);
 
+    const newCustomFieldsObsFlat = newCustomFieldsObs.reduce((acc, type) => [...acc, ...type.fields], []);
+
     const response = await API.post({
       path: "/custom-field",
       body: {
         customFields: {
           customFieldsObs: newCustomFieldsObs,
         },
-        observations: await Promise.all(updatedObservations.map(prepareObsForEncryption(newCustomFieldsObs)).map(encryptItem)),
+        observations: await Promise.all(updatedObservations.map(prepareObsForEncryption(newCustomFieldsObsFlat)).map(encryptItem)),
       },
     });
     if (response.ok) {
