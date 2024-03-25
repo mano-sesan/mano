@@ -138,10 +138,12 @@ export const evolutiveStatsPersonSelector = selectorFamily({
   get:
     ({
       startDate,
+      endDate,
       persons,
       evolutiveStatsIndicators,
     }: {
       startDate: string | null;
+      endDate: string | null;
       persons: Array<PersonInstance>;
       evolutiveStatsIndicators: IndicatorsSelection;
     }) =>
@@ -170,8 +172,8 @@ export const evolutiveStatsPersonSelector = selectorFamily({
       const dates: Record<EvolutiveStatDateYYYYMMDD, number> = {};
       const minimumDateForEvolutiveStats = dayjsInstance(startDate ?? startHistoryFeatureDate).format("YYYYMMDD");
       let date = minimumDateForEvolutiveStats;
-      const today = dayjsInstance().format("YYYYMMDD");
-      while (date <= today) {
+      const lastDate = dayjsInstance(endDate).format("YYYYMMDD");
+      while (date <= lastDate) {
         dates[date] = 0;
         date = dayjsInstance(date).add(1, "day").format("YYYYMMDD");
       }
@@ -200,7 +202,7 @@ export const evolutiveStatsPersonSelector = selectorFamily({
       for (const person of persons) {
         const followedSince = dayjsInstance(person.followedSince || person.createdAt).format("YYYYMMDD");
         const minimumDate = followedSince < minimumDateForEvolutiveStats ? minimumDateForEvolutiveStats : followedSince;
-        let currentDate = today;
+        let currentDate = lastDate;
         let currentPerson = structuredClone(person);
         for (const field of indicatorsBase) {
           const rawValue = getValueByField(field.name, fieldsMap, currentPerson[field.name]);
