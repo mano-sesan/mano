@@ -105,7 +105,6 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       extra: {
         evolutiveStatsIndicators,
         period,
-        persons,
       },
     });
   }

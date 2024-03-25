@@ -114,7 +114,6 @@ function getPersonSnapshotAtDate({
       if (JSON.stringify(historyNewValue) !== JSON.stringify(currentPersonValue)) {
         capture(new Error("Incoherent snapshot history"), {
           extra: {
-            snapshot,
             historyItem,
             historyChangeField,
             oldValue,
@@ -218,7 +217,7 @@ export const evolutiveStatsPersonSelector = selectorFamily({
               }
               personsFieldsInHistoryObject[field.name][value][currentDate]++;
             } catch (error) {
-              capture(error, { extra: { person, field, value, currentDate } });
+              capture(error, { extra: { field, value, currentDate } });
             }
           }
         }
@@ -243,7 +242,7 @@ export const evolutiveStatsPersonSelector = selectorFamily({
                     }
                     personsFieldsInHistoryObject[field.name][value][currentDate]++;
                   } catch (error) {
-                    capture(error, { extra: { person, field, value, currentDate } });
+                    capture(error, { extra: { field, value, currentDate } });
                   }
                 }
               }
@@ -255,8 +254,6 @@ export const evolutiveStatsPersonSelector = selectorFamily({
               if (JSON.stringify(historyNewValue) !== JSON.stringify(currentPersonValue)) {
                 capture(new Error("Incoherent history"), {
                   extra: {
-                    person,
-                    currentPerson,
                     historyItem,
                     historyChangeField,
                     oldValue,
@@ -289,7 +286,7 @@ export const evolutiveStatsPersonSelector = selectorFamily({
                 }
                 personsFieldsInHistoryObject[field.name][value][currentDate]++;
               } catch (error) {
-                capture(error, { extra: { person, field, value, currentDate } });
+                capture(error, { extra: { field, value, currentDate } });
               }
             }
           }
