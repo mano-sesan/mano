@@ -263,7 +263,7 @@ const TerritoryObservation = ({ route, navigation }) => {
           ) : (
             <CreatedAt>{new Date(date).getLocaleDateAndTime('fr')}</CreatedAt>
           )}
-          <View key={currentGroup.name} className={currentGroup.name !== activeTab ? 'hidden' : ''}>
+          <View key={currentGroup.name}>
             {currentGroup.fields
               .filter((f) => f)
               .filter((f) => f.enabled || (f.enabledTeams || []).includes(currentTeam._id))
