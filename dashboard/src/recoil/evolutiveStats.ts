@@ -132,7 +132,7 @@ function getPersonSnapshotAtDate({
   return snapshot;
 }
 
-function computeEvolutivStatsForPersons({
+export function computeEvolutivStatsForPersons({
   startDate,
   endDate,
   persons,
@@ -143,8 +143,9 @@ function computeEvolutivStatsForPersons({
   endDate: string | null;
   persons: Array<PersonInstance>;
   evolutiveStatsIndicators: IndicatorsSelection;
-  evolutiveStatsIndicatorsBase: Array<string>;
+  evolutiveStatsIndicatorsBase: Array<CustomOrPredefinedField>;
 }) {
+  console.log("computeEvolutivStatsForPersons", { startDate, endDate, persons, evolutiveStatsIndicators, evolutiveStatsIndicatorsBase });
   const indicatorsBase = evolutiveStatsIndicatorsBase.filter((f) => {
     if (evolutiveStatsIndicators.find((i) => i.fieldName === f.name)) return true;
     return false;

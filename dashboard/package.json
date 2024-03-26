@@ -83,7 +83,7 @@
     "vite-tsconfig-paths": "^4.3.2"
   },
   "scripts": {
-    "dev": "tsc && vite --port 8083",
+    "dev": "vite --port 8083",
     "dev-test": "vite --port 8090",
     "test": "jest",
     "start": "serve -s build -l 8083",
