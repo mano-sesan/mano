@@ -1,5 +1,5 @@
 import { useRecoilValue } from "recoil";
-import { evolutiveStatsIndicatorsBaseSelector, evolutiveStatsPersonSelector, startHistoryFeatureDate } from "../recoil/evolutiveStats";
+import { evolutiveStatsIndicatorsBaseSelector, evolutiveStatsForPersonsSelector, startHistoryFeatureDate } from "../recoil/evolutiveStats";
 import type { PersonPopulated } from "../types/person";
 import type { IndicatorsSelection } from "../types/evolutivesStats";
 import { dayjsInstance } from "../services/date";
@@ -22,7 +22,7 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
     const endDate = period.endDate;
     const indicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
     const evolutiveStatsPerson = useRecoilValue(
-      evolutiveStatsPersonSelector({
+      evolutiveStatsForPersonsSelector({
         persons,
         startDate: period.startDate ? dayjsInstance(period.startDate).format("YYYY-MM-DD") : null,
         endDate: period.endDate ? dayjsInstance(period.endDate).format("YYYY-MM-DD") : dayjsInstance().format("YYYY-MM-DD"),
