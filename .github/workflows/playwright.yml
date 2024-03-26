@@ -35,6 +35,9 @@ jobs:
       - name: Install dashboard dependencies
         run: yarn --cwd ./dashboard
 
+      - name: Run Dashboard Jest tests
+        run: yarn test --cwd ./dashboard
+
       - name: Install api dependencies
         run: yarn --cwd ./api
 
@@ -53,9 +56,6 @@ jobs:
           PGPORT: 5432
           PGUSER: postgres
           PGPASSWORD: postgres
-
-      - name: Run Dashboard Jest tests
-        run: yarn test --cwd ./dashboard
 
       - uses: actions/upload-artifact@v3
         if: always()
