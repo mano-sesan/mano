@@ -2,10 +2,11 @@ import { selector, selectorFamily } from "recoil";
 import { capture } from "../services/sentry";
 import type { PersonInstance } from "../types/person";
 import type { CustomOrPredefinedField } from "../types/field";
-import type { IndicatorsSelection } from "../types/evolutivesStats";
+import type { Indicator, IndicatorsSelection } from "../types/evolutivesStats";
 import type { EvolutiveStatsPersonFields, EvolutiveStatOption, EvolutiveStatDateYYYYMMDD } from "../types/evolutivesStats";
 import { dayjsInstance } from "../services/date";
 import { personFieldsIncludingCustomFieldsSelector } from "./persons";
+import type { Dayjs } from "dayjs";
 
 export const evolutiveStatsIndicatorsBaseSelector = selector({
   key: "evolutiveStatsIndicatorsBaseSelector",
@@ -132,7 +133,18 @@ function getPersonSnapshotAtDate({
   return snapshot;
 }
 
-export function computeEvolutivStatsForPersons({
+type EvolutiveStatRenderData = {
+  fieldData: Record<EvolutiveStatOption, Record<EvolutiveStatDateYYYYMMDD, number>>;
+  countStart: number;
+  countEnd: number;
+  fieldLabel: CustomOrPredefinedField["label"];
+  valueStart: EvolutiveStatOption;
+  valueEnd: EvolutiveStatOption;
+  startDateConsolidated: Dayjs;
+  endDateConsolidated: Dayjs;
+};
+
+export function computeEvolutiveStatsForPersons({
   startDate,
   endDate,
   persons,
@@ -144,8 +156,37 @@ export function computeEvolutivStatsForPersons({
   persons: Array<PersonInstance>;
   evolutiveStatsIndicators: IndicatorsSelection;
   evolutiveStatsIndicatorsBase: Array<CustomOrPredefinedField>;
-}) {
-  console.log("computeEvolutivStatsForPersons", { startDate, endDate, persons, evolutiveStatsIndicators, evolutiveStatsIndicatorsBase });
+}): EvolutiveStatRenderData | null {
+  // concepts:
+  // we select "indicators" (for now only one by one is possible) that are fields of the person
+  // we want to see the evolution of the number of persons for each value of each indicator
+  // one indicator is: one `field`, one `fromValue` and one `toValue`
+  // if only `field` is defined, we present a chart with the evolution of number of persons for each value of the field
+  // if `fromValue` is defined, we present the same chart filtere with the persons that have this value for the field at the beginning of the history
+  // if `toValue` is defined, we also filter the persons that have this value for the field at the end of the history, so that we present two numbers only
+  // how do we calculate ?
+  // we start by the most recent version of the person, and we go back in time, day by day, to the beginning of the history
+
+  const startDateConsolidated = startDate ? dayjsInstance(dayjsInstance(startDate).format("YYYY-MM-DD")) : dayjsInstance(startHistoryFeatureDate);
+  const endDateConsolidated = endDate ? dayjsInstance(dayjsInstance(endDate).format("YYYY-MM-DD")) : dayjsInstance();
+  if (startDateConsolidated.isSame(endDateConsolidated)) return null;
+
+  // we create an object with all the dates between the start and the end
+  const dates: Record<EvolutiveStatDateYYYYMMDD, number> = {};
+  const minimumDateForEvolutiveStats = startDateConsolidated.format("YYYYMMDD");
+  let date = minimumDateForEvolutiveStats;
+  const lastDate = endDateConsolidated.format("YYYYMMDD");
+  while (date <= lastDate) {
+    dates[date] = 0;
+    date = dayjsInstance(date).add(1, "day").format("YYYYMMDD");
+  }
+
+  // for now we only support one indicator
+  // we filter the persons that have the `fromValue` for the `field` at the start date
+  const indicator = evolutiveStatsIndicators[0];
+  const indicatorFieldName = indicator?.fieldName;
+  const fieldLabel = evolutiveStatsIndicatorsBase.find((f) => f.name === indicatorFieldName)?.label;
+
   const indicatorsBase = evolutiveStatsIndicatorsBase.filter((f) => {
     if (evolutiveStatsIndicators.find((i) => i.fieldName === f.name)) return true;
     return false;
@@ -154,17 +195,17 @@ export function computeEvolutivStatsForPersons({
     acc[field.name] = field;
     return acc;
   }, {} as FieldsMap);
-  const personsFieldsInHistoryObject: EvolutiveStatsPersonFields = {};
 
-  // we take the years since the history began, let's say early 2023
-  const dates: Record<EvolutiveStatDateYYYYMMDD, number> = {};
-  const minimumDateForEvolutiveStats = dayjsInstance(startDate ?? startHistoryFeatureDate).format("YYYYMMDD");
-  let date = minimumDateForEvolutiveStats;
-  const lastDate = dayjsInstance(endDate).format("YYYYMMDD");
-  while (date <= lastDate) {
-    dates[date] = 0;
-    date = dayjsInstance(date).add(1, "day").format("YYYYMMDD");
+  if (typeof indicatorFieldName === "string" && indicator?.fromValue) {
+    persons = persons.filter((p) => {
+      const snapshot = getPersonSnapshotAtDate({ person: p, snapshotDate: minimumDateForEvolutiveStats, fieldsMap });
+      if (!snapshot) return false;
+      const isGood = getValueByField(indicatorFieldName, fieldsMap, snapshot[indicatorFieldName]).includes(indicator.fromValue);
+      return isGood;
+    });
   }
+
+  const personsFieldsInHistoryObject: EvolutiveStatsPersonFields = {};
 
   for (const field of indicatorsBase) {
     const options = getValuesOptionsByField(field, fieldsMap);
@@ -174,17 +215,6 @@ export function computeEvolutivStatsForPersons({
         ...dates,
       };
     }
-  }
-
-  const indicator = evolutiveStatsIndicators[0];
-  const indicatorFieldName = indicator?.fieldName;
-  if (typeof indicatorFieldName === "string" && indicator?.fromValue) {
-    persons = persons.filter((p) => {
-      const snapshot = getPersonSnapshotAtDate({ person: p, snapshotDate: minimumDateForEvolutiveStats, fieldsMap });
-      if (!snapshot) return false;
-      const isGood = getValueByField(indicatorFieldName, fieldsMap, snapshot[indicatorFieldName]).includes(indicator.fromValue);
-      return isGood;
-    });
   }
 
   for (const person of persons) {
@@ -281,7 +311,25 @@ export function computeEvolutivStatsForPersons({
       }
     }
   }
-  return personsFieldsInHistoryObject;
+
+  const valueStart = indicator?.fromValue;
+  const valueEnd = indicator?.toValue;
+
+  const startDateFormatted = dayjsInstance(startDate ?? startHistoryFeatureDate);
+  const endDateFormatted = endDate ? dayjsInstance(endDate) : dayjsInstance();
+
+  const fieldData = personsFieldsInHistoryObject[indicatorFieldName ?? ""] ?? {};
+
+  return {
+    fieldData,
+    fieldLabel,
+    countStart: fieldData?.[valueStart]?.[startDateFormatted.format("YYYYMMDD")] ?? 0,
+    countEnd: fieldData?.[valueEnd]?.[endDateFormatted.format("YYYYMMDD")] ?? 0,
+    valueStart,
+    valueEnd,
+    startDateConsolidated,
+    endDateConsolidated,
+  };
 }
 
 export const evolutiveStatsForPersonsSelector = selectorFamily({
@@ -299,19 +347,9 @@ export const evolutiveStatsForPersonsSelector = selectorFamily({
       evolutiveStatsIndicators: IndicatorsSelection;
     }) =>
     ({ get }) => {
-      // concepts:
-      // we select "indicators" (for now only one by one is possible) that are fields of the person
-      // we want to see the evolution of the number of persons for each value of each indicator
-      // one indicator is: one `field`, one `fromValue` and one `toValue`
-      // if only `field` is defined, we present a chart with the evolution of number of persons for each value of the field
-      // if `fromValue` is defined, we present the same chart filtere with the persons that have this value for the field at the beginning of the history
-      // if `toValue` is defined, we also filter the persons that have this value for the field at the end of the history, so that we present two numbers only
-      // how do we calculate ?
-      // we start by the most recent version of the person, and we go back in time, day by day, to the beginning of the history
-
       const evolutiveStatsIndicatorsBase = get(evolutiveStatsIndicatorsBaseSelector);
 
-      return computeEvolutivStatsForPersons({
+      return computeEvolutiveStatsForPersons({
         startDate,
         endDate,
         persons,
