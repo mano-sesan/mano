@@ -37,7 +37,7 @@ const ObservationsSettings = () => {
   const onAddGroup = async (name) => {
     const res = await API.put({
       path: `/organisation/${organisation._id}`,
-      body: { customFieldsObs: [...groupedCustomFieldsObs, { name, fields: [] }] },
+      body: { groupedCustomFieldsObs: [...groupedCustomFieldsObs, { name, fields: [] }] },
     });
     if (res.ok) {
       toast.success("Groupe ajouté", { autoclose: 2000 });
@@ -60,10 +60,9 @@ const ObservationsSettings = () => {
     });
 
     const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, customFieldsObs: newCustomFieldsObs }); // optimistic UI
     const response = await API.put({
       path: `/organisation/${organisation._id}`,
-      body: { customFieldsObs: newCustomFieldsObs },
+      body: { groupedCustomFieldsObs: newCustomFieldsObs },
     });
     if (response.ok) {
       refresh();
@@ -79,11 +78,10 @@ const ObservationsSettings = () => {
     const newCustomFieldsObs = groupedCustomFieldsObs.filter((type) => type.name !== name);
 
     const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, customFieldsObs: newCustomFieldsObs }); // optimistic UI
 
     const response = await API.put({
       path: `/organisation/${organisation._id}`,
-      body: { customFieldsObs: newCustomFieldsObs },
+      body: { groupedCustomFieldsObs: newCustomFieldsObs },
     });
     if (response.ok) {
       toast.success("Groupe d'observations de territoire supprimé", { autoclose: 2000 });
@@ -102,7 +100,7 @@ const ObservationsSettings = () => {
       }));
       const res = await API.put({
         path: `/organisation/${organisation._id}`,
-        body: { customFieldsObs: newCustomFieldsObs },
+        body: { groupedCustomFieldsObs: newCustomFieldsObs },
       });
       if (res.ok) {
         setOrganisation(res.data);
@@ -111,8 +109,6 @@ const ObservationsSettings = () => {
     },
     [flatCustomFieldsObs, organisation._id, refresh, setOrganisation]
   );
-
-  console.log(flatCustomFieldsObs, groupedCustomFieldsObs);
 
   return (
     <DragAndDropSettings
@@ -152,7 +148,7 @@ const AddField = ({ groupTitle: typeName }) => {
       });
       const response = await API.put({
         path: `/organisation/${organisation._id}`,
-        body: { customFieldsObs: newCustomFieldsObs },
+        body: { groupedCustomFieldsObs: newCustomFieldsObs },
       });
       if (response.ok) {
         toast.success("Mise à jour !");
@@ -230,7 +226,7 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
       });
       const response = await API.put({
         path: `/organisation/${organisation._id}`,
-        body: { customFieldsObs: newCustomFieldsObs },
+        body: { groupedCustomFieldsObs: newCustomFieldsObs },
       });
       if (response.ok) {
         toast.success("Mise à jour !");
@@ -268,7 +264,7 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
       path: "/custom-field",
       body: {
         customFields: {
-          customFieldsObs: newCustomFieldsObs,
+          groupedCustomFieldsObs: newCustomFieldsObs,
         },
         observations: await Promise.all(updatedObservations.map(prepareObsForEncryption(newCustomFieldsObsFlat)).map(encryptItem)),
       },
@@ -291,7 +287,7 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
       });
       const response = await API.put({
         path: `/organisation/${organisation._id}`,
-        body: { customFieldsObs: newCustomFieldsObs },
+        body: { groupedCustomFieldsObs: newCustomFieldsObs },
       });
       if (response.ok) {
         toast.success("Mise à jour !");
