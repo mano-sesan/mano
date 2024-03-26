@@ -33,6 +33,8 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
     const indicator = evolutiveStatsIndicators[0];
     if (!indicator.fieldName) return null;
 
+    console.log({ evolutiveStatsPerson });
+
     const startDateFormatted = dayjsInstance(startDate ?? startHistoryFeatureDate);
     const endDateFormatted = endDate ? dayjsInstance(endDate) : dayjsInstance();
 
