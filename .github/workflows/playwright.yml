@@ -36,7 +36,7 @@ jobs:
         run: yarn --cwd ./dashboard
 
       - name: Run Dashboard Jest tests
-        run: yarn test --cwd ./dashboard
+        run: yarn --cwd ./dashboard test
 
       - name: Install api dependencies
         run: yarn --cwd ./api
