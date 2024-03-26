@@ -101,14 +101,8 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
   );
 }
 
-function StreamChart({
-  // indicator,
-  fieldData,
-  startDateConsolidated,
-  endDateConsolidated,
-}: any) {
+function StreamChart({ fieldData, startDateConsolidated, endDateConsolidated }: any) {
   const chartData = useMemo(() => {
-    // if (!indicator.fieldName) return { data: [], legend: [], keys: [] };
     const data = [];
     const legend = [];
     const daysDiff = endDateConsolidated.diff(startDateConsolidated, "days");
@@ -135,12 +129,7 @@ function StreamChart({
       .sort((a, b) => b[1] - a[1])
       .map((entry) => entry[0]);
     return { data, legend, keys };
-  }, [
-    startDateConsolidated,
-    endDateConsolidated,
-    fieldData,
-    // indicator.fieldName
-  ]);
+  }, [startDateConsolidated, endDateConsolidated, fieldData]);
 
   return (
     <div>
