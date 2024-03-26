@@ -1,4 +1,6 @@
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { computeEvolutiveStatsForPersons } from "../src/recoil/evolutiveStats";
 import { mockedEvolutiveStatsIndicatorsBase, personBase } from "./evolutives-stats-for-persons/mocks";
 import * as SentryService from "../src/services/sentry";
@@ -46,8 +48,8 @@ describe("Stats evolutives", () => {
     expect(computed.countStart).toBe(0);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(1);
-    expect(computed.startDateConsolidated.toISOString()).toBe("2023-12-31T23:00:00.000Z");
-    expect(computed.endDateConsolidated.toISOString()).toBe("2024-03-31T22:00:00.000Z");
+    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2023-12-31T23:00:00.000Z");
+    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-03-31T22:00:00.000Z");
   });
 
   test("should call capture with the correct errors when history is incoherent", () => {
@@ -86,8 +88,8 @@ describe("Stats evolutives", () => {
     expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(0);
-    expect(computed.startDateConsolidated.toISOString()).toBe("2023-12-31T23:00:00.000Z");
-    expect(computed.endDateConsolidated.toISOString()).toBe("2024-03-31T22:00:00.000Z");
+    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2023-12-31T23:00:00.000Z");
+    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-03-31T22:00:00.000Z");
 
     // Verify capture was called with "Incoherent snapshot history"
     const incoherentSnapshotHistoryCall = mockedCapture.mock.calls.find((call) => call[0].message === "Incoherent snapshot history");
@@ -157,7 +159,7 @@ describe("Stats evolutives", () => {
     expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(1);
-    expect(computed.startDateConsolidated.toISOString()).toBe("2023-12-31T23:00:00.000Z");
-    expect(computed.endDateConsolidated.toISOString()).toBe("2024-03-31T22:00:00.000Z");
+    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2023-12-31T23:00:00.000Z");
+    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-03-31T22:00:00.000Z");
   });
 });
