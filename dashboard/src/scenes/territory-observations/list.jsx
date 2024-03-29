@@ -67,6 +67,7 @@ const List = ({ territory = {} }) => {
       <Table
         data={observations}
         rowKey={"_id"}
+        noData={`Pas encore d'observations pour ce territoire`}
         onRowClick={(obs) => {
           setObservation(obs);
           setOpenObservationModale((k) => k + 1);
