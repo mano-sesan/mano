@@ -3,7 +3,6 @@ import styled from "styled-components";
 import { toast } from "react-toastify";
 
 import ButtonCustom from "../../components/ButtonCustom";
-import Observation from "./view";
 import CreateObservation from "../../components/CreateObservation";
 import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
 import { useRecoilState, useRecoilValue } from "recoil";
