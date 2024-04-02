@@ -17,7 +17,6 @@ interface EvolutiveStatsViewerProps {
 
 export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period, persons }: EvolutiveStatsViewerProps) {
   try {
-    console.log({ period });
     const evolutiveStatsPerson = useRecoilValue(
       evolutiveStatsForPersonsSelector({
         persons,
