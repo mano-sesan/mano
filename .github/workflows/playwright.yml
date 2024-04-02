@@ -29,8 +29,6 @@ jobs:
           # cache-dependency-path: "**/yarn.lock"
       - name: Install dependencies
         run: yarn
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
 
       - name: Install dashboard dependencies
         run: yarn --cwd ./dashboard
@@ -40,6 +38,9 @@ jobs:
 
       - name: Install api dependencies
         run: yarn --cwd ./api
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
 
       - name: Init DB
         run: yarn test:init-db

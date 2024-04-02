@@ -2,14 +2,12 @@ import "dayjs/locale/fr";
 import relativeTime from "dayjs/plugin/relativeTime";
 import isBetween from "dayjs/plugin/isBetween";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import utc from "dayjs/plugin/utc";
 import dayjs from "dayjs";
 
 dayjs.locale("fr");
 dayjs.extend(relativeTime);
 dayjs.extend(isBetween);
 dayjs.extend(customParseFormat);
-dayjs.extend(utc);
 
 /** FORMAT DATES **/
 

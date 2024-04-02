@@ -51,8 +51,6 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       );
     }
 
-    console.log({ startDateConsolidated });
-
     return (
       <div className="tw-flex tw-w-full tw-justify-around">
         <div className="tw-flex tw-shrink-0 tw-basis-1/4 tw-flex-col tw-items-center tw-justify-end tw-gap-y-4">
