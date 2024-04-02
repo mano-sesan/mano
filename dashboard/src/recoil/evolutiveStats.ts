@@ -167,8 +167,11 @@ export function computeEvolutiveStatsForPersons({
   // how do we calculate ?
   // we start by the most recent version of the person, and we go back in time, day by day, to the beginning of the history
 
-  const startDateConsolidated = startDate ? dayjsInstance(dayjsInstance(startDate).format("YYYY-MM-DD")) : dayjsInstance(startHistoryFeatureDate);
-  const endDateConsolidated = endDate ? dayjsInstance(dayjsInstance(endDate).format("YYYY-MM-DD")) : dayjsInstance();
+  const startDateConsolidated = startDate
+    ? dayjsInstance(dayjsInstance(startDate).startOf("day").format("YYYY-MM-DD"))
+    : dayjsInstance(startHistoryFeatureDate);
+
+  const endDateConsolidated = endDate ? dayjsInstance(dayjsInstance(endDate).endOf("day").format("YYYY-MM-DD")) : dayjsInstance();
   if (startDateConsolidated.isSame(endDateConsolidated)) return null;
 
   // we create an object with all the dates between the start and the end

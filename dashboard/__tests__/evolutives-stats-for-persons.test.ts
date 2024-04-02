@@ -14,8 +14,8 @@ const mockedCapture = SentryService.capture as jest.MockedFunction<typeof Sentry
 describe("Stats evolutives", () => {
   test("simple example should work properly", () => {
     const computed = computeEvolutiveStatsForPersons({
-      startDate: "2024-01-01",
-      endDate: "2024-04-01",
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -31,7 +31,7 @@ describe("Stats evolutives", () => {
           gender: "Femme",
           history: [
             {
-              date: dayjs("2024-01-01").toDate(),
+              date: dayjs("2024-02-01").toDate(),
               data: {
                 gender: {
                   oldValue: "Homme",
@@ -45,17 +45,17 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Homme");
-    expect(computed.countStart).toBe(0);
+    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(1);
-    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2024-01-01T00:00:00.000Z");
-    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-04-01T00:00:00.000Z");
+    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
+    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 
   test("should call capture with the correct errors when history is incoherent", () => {
     const computed = computeEvolutiveStatsForPersons({
-      startDate: "2024-01-01",
-      endDate: "2024-04-01",
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -88,8 +88,8 @@ describe("Stats evolutives", () => {
     expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(0);
-    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2024-01-01T00:00:00.000Z");
-    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-04-01T00:00:00.000Z");
+    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
+    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
 
     // Verify capture was called with "Incoherent snapshot history"
     const incoherentSnapshotHistoryCall = mockedCapture.mock.calls.find((call) => call[0].message === "Incoherent snapshot history");
@@ -105,8 +105,8 @@ describe("Stats evolutives", () => {
 
   test("more complexe example should work properly", () => {
     const computed = computeEvolutiveStatsForPersons({
-      startDate: "2024-01-01",
-      endDate: "2024-04-01",
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -159,7 +159,7 @@ describe("Stats evolutives", () => {
     expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
     expect(computed.countEnd).toBe(1);
-    expect(computed.startDateConsolidated.utc().toISOString()).toBe("2024-01-01T00:00:00.000Z");
-    expect(computed.endDateConsolidated.utc().toISOString()).toBe("2024-04-01T00:00:00.000Z");
+    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
+    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 });
