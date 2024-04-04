@@ -347,13 +347,15 @@ const TerritoryObservation = ({ route, navigation }) => {
                       <PersonName person={person} />
                     </View>
                     {!rencontre._id ? (
-                      <TouchableOpacity
-                        className="bg-red-700 px-2 pt-1 rounded"
-                        onPress={() => {
-                          setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
-                        }}>
-                        <Text className="text-white font-bold">Retirer</Text>
-                      </TouchableOpacity>
+                      <View className="shrink-0 !w-16 items-center flex">
+                        <TouchableOpacity
+                          className="bg-red-700 px-2 py-1 rounded"
+                          onPress={() => {
+                            setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
+                          }}>
+                          <Text className="text-white font-bold">Retirer</Text>
+                        </TouchableOpacity>
+                      </View>
                     ) : null}
                   </View>
                 );
