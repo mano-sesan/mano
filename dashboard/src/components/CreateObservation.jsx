@@ -192,7 +192,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                           .filter(Boolean)
                           .join(" ")}
                       >
-                        Rencontres
+                        Rencontres {currentRencontres?.length > 0 ? `(${currentRencontres.length})` : ""}
                       </button>
                     </li>
                   </ul>
