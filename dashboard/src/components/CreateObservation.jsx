@@ -150,6 +150,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
               if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
               else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
             }
+            setRencontresInProgress([]);
           }
         }}
       >
