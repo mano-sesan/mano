@@ -234,9 +234,6 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                       <Table
                         className="Table"
                         noData="Aucune rencontre n'est associée à cette observation"
-                        onRowClick={() => {
-                          // todo
-                        }}
                         data={currentRencontres}
                         rowKey={"_id"}
                         columns={[

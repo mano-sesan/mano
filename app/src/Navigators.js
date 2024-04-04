@@ -359,17 +359,10 @@ const App = () => {
     onLogout();
   }, [isLoggedIn]);
 
-  const onNavigationStateChange = async () => {
-    if (!navigationRef.current) return;
-    const state = navigationRef.current.getRootState();
-    // console.log(JSON.stringify(state, null, 2));
-  };
-
   return (
     <ActionSheetProvider>
       <NavigationContainer
         ref={navigationRef}
-        onStateChange={onNavigationStateChange}
         onReady={() => {
           API.navigation = navigationRef;
         }}>

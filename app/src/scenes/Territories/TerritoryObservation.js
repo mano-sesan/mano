@@ -30,7 +30,6 @@ const cleanValue = (value) => {
 };
 
 const TerritoryObservation = ({ route, navigation }) => {
-  // const [selectedPersons, setSelectedPersons] = useState([]);
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const organisation = useRecoilValue(organisationState);
