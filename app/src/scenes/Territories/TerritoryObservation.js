@@ -317,10 +317,13 @@ const TerritoryObservation = ({ route, navigation }) => {
           {activeTab === 'rencontres' ? (
             <View key="rencontres" className="mb-4">
               {!currentRencontres.length ? (
-                <Text className="pb-4">
-                  Aucune rencontre enregistrée pour le moment, vous pouvez cliquer sur le bouton pour ajouter des rencontres qui seront associées à
-                  l'observation et donc au territoire (n'oubliez pas de sauvegarder l'observation à la fin)
-                </Text>
+                <View className="pb-6">
+                  <Text className="font-semibold">Aucune rencontre enregistrée pour le moment.</Text>
+                  <Text className="mt-1 text-gray-700">
+                    Vous pouvez cliquer sur le bouton pour ajouter des rencontres qui seront associées à l'observation et donc au territoire
+                    (n'oubliez pas de sauvegarder l'observation à la fin)
+                  </Text>
+                </View>
               ) : null}
               <View className="mb-2">
                 <Button

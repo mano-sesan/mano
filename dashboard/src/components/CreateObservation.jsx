@@ -291,6 +291,25 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                             dataKey: "team",
                             render: (rencontre) => <TagTeam teamId={rencontre?.team} />,
                           },
+                          {
+                            title: "Actions",
+                            dataKey: "actions",
+                            small: true,
+                            render: (rencontre) => {
+                              return !rencontre._id ? (
+                                <button
+                                  onClick={() => {
+                                    setRencontresInProgress((rencontresInProgress) =>
+                                      rencontresInProgress.filter((r) => r.person !== rencontre.person)
+                                    );
+                                  }}
+                                  className="button-destructive"
+                                >
+                                  Retirer
+                                </button>
+                              ) : null;
+                            },
+                          },
                         ]}
                       />
                     </div>
