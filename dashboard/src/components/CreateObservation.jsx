@@ -235,6 +235,20 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                       <Table
                         className="Table"
                         noData="Aucune rencontre n'est associée à cette observation"
+                        onRowClick={(rencontre) => {
+                          if (!rencontre._id) {
+                            // Si c'est une nouvelle rencontre (pas encore sauvegardée), on fait croire que c'est
+                            // comme quand on ajoute une rencontre à la volée quand on l'édite. C'est tordu, mais
+                            // ça me fait gagner du temps.
+                            setRencontre({
+                              ...rencontre,
+                              person: undefined,
+                              persons: [rencontre.person],
+                            });
+                          } else {
+                            setRencontre(rencontre);
+                          }
+                        }}
                         data={currentRencontres}
                         rowKey={"_id"}
                         columns={[
@@ -296,7 +310,8 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                             render: (rencontre) => {
                               return !rencontre._id ? (
                                 <button
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setRencontresInProgress((rencontresInProgress) =>
                                       rencontresInProgress.filter((r) => r.person !== rencontre.person)
                                     );
@@ -390,25 +405,33 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
           </ModalContainer>
         )}
       </Formik>
-      {rencontre?.persons ? (
-        <Rencontre
-          rencontre={rencontre}
-          onFinished={() => {
-            setRencontre(undefined);
-            setSelectedPersons([]);
-          }}
-          onSave={(rencontres) => {
-            setRencontresInProgress((rencontresInProgress) => [...rencontresInProgress, ...rencontres]);
-          }}
-        />
-      ) : (
-        <Rencontre
-          rencontre={rencontre}
-          onFinished={() => {
-            setRencontre(undefined);
-          }}
-        />
-      )}
+      {
+        // On traite de deux manières différentes la modale de rencontre, en fonction de :
+        // - si on est en train d'ajouter une rencontre pour des personnes dans l'observation (les rencontres en devenir)
+        // - si on édite une rencontre déjà existante (une rencontre déjà enregistrée)
+        rencontre?.persons ? (
+          <Rencontre
+            rencontre={rencontre}
+            onFinished={() => {
+              setRencontre(undefined);
+              setSelectedPersons([]);
+            }}
+            onSave={(rencontres) => {
+              setRencontresInProgress((rencontresInProgress) => [
+                ...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)),
+                ...rencontres,
+              ]);
+            }}
+          />
+        ) : (
+          <Rencontre
+            rencontre={rencontre}
+            onFinished={() => {
+              setRencontre(undefined);
+            }}
+          />
+        )
+      }
     </CreateStyle>
   );
 };
