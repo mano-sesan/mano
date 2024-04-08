@@ -30,9 +30,11 @@ export default function NewIndex() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white flex gap-8 p-2 w-full border-b border-gray-300 items-center shadow mb-8">
-        <img src="/logo.svg" alt="Logo" className="w-12 h-12" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} />
-        <div className="text-2xl">Mano</div>
+      <header className="sticky top-0 z-50 bg-white flex gap-6 xl:gap-8 p-2 w-full border-b border-gray-300 items-center shadow mb-8">
+        <img src="/logo.svg" alt="Logo" className="w-12 h-12 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} />
+        <div className="text-2xl md:hidden block cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          Mano
+        </div>
         <div className="hidden md:block grow lg:text-base text-sm">
           <ul className="md:flex flex-row gap-8 hidden">
             <li className={`hover:underline decoration-mano underline-offset-2 cursor-pointer`}>
@@ -164,7 +166,7 @@ export default function NewIndex() {
                   Île-de-France, Hauts-de-France, Auvergne&nbsp;Rhone&nbsp;Alpes, Grand&nbsp;Est, Normandie, Bretagne, Guadeloupe et Martinique
                 </div>
               </div>
-              <div className="py-4">
+              <div className="pt-4">
                 <a
                   target="_blank"
                   className="flex my-4 bg-sky-600 text-white px-4 py-2 rounded shadow text-sm max-w-72 mx-auto"
@@ -195,7 +197,7 @@ export default function NewIndex() {
                   Réunion
                 </div>
               </div>
-              <div className="py-4">
+              <div className="pt-4">
                 <a
                   target="_blank"
                   className="flex my-4 bg-sky-600 text-white px-4 py-2 rounded shadow text-sm max-w-72 mx-auto"
