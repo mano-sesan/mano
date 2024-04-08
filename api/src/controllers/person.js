@@ -234,13 +234,14 @@ router.get(
         page: z.optional(z.string().regex(positiveIntegerRegex)),
         after: z.optional(z.string().regex(positiveIntegerRegex)),
         withDeleted: z.optional(z.enum(["true", "false"])),
+        onlyDeleted: z.optional(z.enum(["true", "false"])),
       }).parse(req.query);
     } catch (e) {
       const error = new Error(`Invalid request in person get: ${e}`);
       error.status = 400;
       return next(error);
     }
-    const { limit, page, after, withDeleted } = req.query;
+    const { limit, page, after, withDeleted, onlyDeleted } = req.query;
 
     const query = {
       where: { organisation: req.user.organisation },
@@ -251,6 +252,7 @@ router.get(
     if (limit) query.limit = Number(limit);
     if (page) query.offset = Number(page) * limit;
     if (withDeleted === "true") query.paranoid = false;
+    if (onlyDeleted === "true") query.where.deletedAt = { [Op.ne]: null };
     if (after && !isNaN(Number(after)) && withDeleted === "true") {
       query.where[Op.or] = [{ updatedAt: { [Op.gte]: new Date(Number(after)) } }, { deletedAt: { [Op.gte]: new Date(Number(after)) } }];
     } else if (after && !isNaN(Number(after))) {

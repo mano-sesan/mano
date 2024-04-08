@@ -31,6 +31,7 @@ import ConsultationsSettings from "./ConsultationsSettings";
 import MedicalFileSettings from "./MedicalFileSettings";
 import PersonCustomFieldsSettings from "./PersonCustomFieldsSettings";
 import StructuresCategoriesSettings from "./StructuresCategoriesSettings";
+import Poubelle from "./Poubelle";
 
 const getSettingTitle = (tabId) => {
   if (tabId === "infos") return "Informations";
@@ -132,6 +133,10 @@ const View = () => {
             <MenuButton selected={tab === "import"} text="Import de personnes suivies" onClick={() => setTab("import")} />
             <MenuButton selected={tab === "import-configuration"} text="Import de configuration" onClick={() => setTab("import-configuration")} />
             <MenuButton selected={tab === "export"} text="Export des données" onClick={() => setTab("export")} />
+          </div>
+          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Maintenance</div>
+          <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
+            <MenuButton selected={tab === "poubelle"} text="Données supprimées" onClick={() => setTab("poubelle")} />
           </div>
         </div>
         <div ref={scrollContainer} className="tw-basis-full tw-overflow-auto tw-px-6 tw-py-4">
@@ -420,6 +425,15 @@ const View = () => {
                       <TabTitle>Importer une configuration</TabTitle>
                       <div>
                         <ImportConfig scrollContainer={scrollContainer} />
+                      </div>
+                    </>
+                  );
+                case "poubelle":
+                  return (
+                    <>
+                      <TabTitle>Personnes supprimées</TabTitle>
+                      <div>
+                        <Poubelle />
                       </div>
                     </>
                   );

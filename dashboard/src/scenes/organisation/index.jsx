@@ -10,6 +10,7 @@ const Router = () => {
     <Switch>
       <SentryRoute path="/organisation/:id/user" component={OrganisationUsers} />
       <SentryRoute path="/organisation/:id" component={View} />
+      <SentryRoute path="/organisation/:id/poubelle" component={View} />
       <SentryRoute path="/" component={List} />
     </Switch>
   );
