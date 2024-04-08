@@ -103,6 +103,7 @@ export const itemsGroupedByPersonSelector = selector({
         // https://github.com/SocialGouv/mano/blob/34a86a3e6900b852e0b3fe828a03e6721d200973/dashboard/src/scenes/person/OutOfActiveList.js#L22
         // This was causing a bug in the "person suivies" stats, where people who were not out of active list were counted as out of active list.
         outOfActiveListDate: person.outOfActiveList ? person.outOfActiveListDate : null,
+        medicalFile: {},
       };
       if (!person.history?.length) continue;
       for (const historyEntry of person.history) {
@@ -250,10 +251,10 @@ export const itemsGroupedByPersonSelector = selector({
     }
     for (const medicalFile of medicalFiles) {
       if (!personsObject[medicalFile.person]) continue;
-      if (personsObject[medicalFile.person].medicalFile) {
+      const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
+      if (existingMedicalFile) {
         const nextDocuments = {};
         const nextComments = {};
-        const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
         for (const document of medicalFile.documents || []) {
           nextDocuments[document._id] = document;
         }
@@ -355,31 +356,8 @@ export const arrayOfitemsGroupedByPersonSelector = selector({
   key: "arrayOfitemsGroupedByPersonSelector",
   get: ({ get }) => {
     const itemsGroupedByPerson = get(itemsGroupedByPersonSelector);
-    return Object.values(itemsGroupedByPerson);
-  },
-});
-
-export const personsWithMedicalFileMergedSelector = selector({
-  key: "personsWithMedicalFileMergedSelector",
-  get: ({ get }) => {
-    const user = get(userState);
-    const persons = get(arrayOfitemsGroupedByPersonSelector);
-    if (!user.healthcareProfessional) return persons;
-    return persons.map((p) => ({
-      ...(p.medicalFile || {}),
-      ...p,
-    }));
-  },
-});
-
-export const personsForStatsSelector = selector({
-  key: "personsForStatsSelector",
-  get: ({ get }) => {
-    const persons = get(arrayOfitemsGroupedByPersonSelector);
-    return persons.map((p) => ({
-      ...(p.medicalFile || {}),
-      ...p,
-    }));
+    const personArray = Object.values(itemsGroupedByPerson);
+    return personArray;
   },
 });
 
@@ -492,7 +470,8 @@ export const onlyFilledObservationsTerritories = selector({
       observationsKeyLabels[field.name] = field.label;
     }
 
-    return territoryObservations.map((obs) => {
+    const onlyFilledObs = [];
+    for (const obs of territoryObservations) {
       const obsWithOnlyFilledFields = {};
       for (let key of Object.keys(obs)) {
         if (observationsKeyLabels[key]) {
@@ -501,9 +480,9 @@ export const onlyFilledObservationsTerritories = selector({
           obsWithOnlyFilledFields[key] = obs[key];
         }
       }
-      const nextObs = { _id: obs._id, territory: obs.territory, ...obsWithOnlyFilledFields };
-      return nextObs;
-    });
+      onlyFilledObs.push({ _id: obs._id, territory: obs.territory, ...obsWithOnlyFilledFields });
+    }
+    return onlyFilledObs;
   },
 });
 

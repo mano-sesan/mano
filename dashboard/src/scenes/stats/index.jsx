@@ -13,7 +13,7 @@ import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } f
 import { reportsState } from "../../recoil/reports";
 import { territoriesState } from "../../recoil/territory";
 import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
-import { personsForStatsSelector, populatedPassagesSelector } from "../../recoil/selectors";
+import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../recoil/selectors";
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../components/DataLoader";
@@ -102,7 +102,7 @@ const itemsForStatsSelector = selectorFamily({
       const filtersExceptOutOfActiveList = activeFilters.filter((f) => f.field !== "outOfActiveList");
       const outOfActiveListFilter = activeFilters.find((f) => f.field === "outOfActiveList")?.value;
 
-      const allPersons = get(personsForStatsSelector);
+      const allPersons = get(arrayOfitemsGroupedByPersonSelector);
 
       const personsCreated = [];
       const personsUpdated = [];

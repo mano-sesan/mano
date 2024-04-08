@@ -17,7 +17,7 @@ import {
 import TagTeam from "../../components/TagTeam";
 import Filters, { filterData } from "../../components/Filters";
 import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
-import { personsWithMedicalFileMergedSelector } from "../../recoil/selectors";
+import { arrayOfitemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "../search/utils";
@@ -35,7 +35,7 @@ const personsFilteredSelector = selectorFamily({
   get:
     ({ viewAllOrganisationData, filters, alertness }) =>
     ({ get }) => {
-      const personWithBirthDate = get(personsWithMedicalFileMergedSelector);
+      const personWithBirthDate = get(arrayOfitemsGroupedByPersonSelector);
       const currentTeam = get(currentTeamState);
       let pFiltered = personWithBirthDate;
       if (!!filters?.filter((f) => Boolean(f?.value)).length) pFiltered = filterData(pFiltered, filters);
