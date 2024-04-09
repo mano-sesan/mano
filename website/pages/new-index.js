@@ -30,7 +30,7 @@ export default function NewIndex() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white flex gap-6 xl:gap-8 p-2 w-full border-b border-gray-300 items-center shadow mb-8">
+      <header className="text-gray-700 sticky top-0 z-50 bg-white flex gap-6 xl:gap-8 p-2 w-full border-b border-gray-300 items-center shadow mb-8">
         <img src="/logo.svg" alt="Logo" className="w-12 h-12 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} />
         <div className="text-2xl md:hidden block cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           Mano
@@ -142,8 +142,12 @@ export default function NewIndex() {
             Mano, l’outil numérique pour les professionnels accompagnant des publics précaires. Un service gratuit, sécurisé, personnalisable, pensé
             par et pour le terrain.
           </div>
-          <img src="https://placehold.co/300x200/png" alt="Screenshot" className="mx-auto" />
+          <img src="/mano-tel.png" alt="Screenshot" className="mx-auto w-[600px]" />
         </div>
+        {/* <div className="flex flex-col items-center justify-center border pt-8 pb-16">
+          <img src="/mano-tel.png" alt="Screenshot" className="mx-auto w-[600px] border" />
+          <div className="w-full text-center mx-auto -mt-32 h-32 bg-red-500 -z-10">frfr</div>
+      </div> */}
         <div className="bg-slate-100 py-8">
           <h2 className="text-2xl text-center mx-4">Vous souhaitez en savoir plus&nbsp;? Contactez nous&nbsp;!</h2>
           <div className="grid sm:grid-cols-2 gap-8 max-w-[800px] mx-auto my-8">
@@ -251,7 +255,7 @@ export default function NewIndex() {
                 </FaqBox>
               </div>
               <div>
-                <img src="https://placehold.co/300x200/png" alt="Screenshot" className="mx-auto" />
+                <img src="/mano-epaule.svg" alt="Screenshot" className="mx-auto bg-white rounded" />
               </div>
             </div>
           </div>
@@ -264,7 +268,7 @@ export default function NewIndex() {
           <div className="bg-slate-100 py-8">
             <div className="grid sm:grid-cols-3 items-center max-w-[1000px] mx-auto gap-8">
               <div>
-                <img src="https://placehold.co/300x200/png" alt="Screenshot" className="mx-auto" />
+                <img src="/mano-secu.svg" alt="Screenshot" className="mx-auto max-h-56" />
               </div>
               <div className="px-4 sm:px-0 sm:col-span-2 self-start">
                 <FaqBox title="Hébergement certifié HDS">
@@ -321,8 +325,14 @@ export default function NewIndex() {
           </div>
           <div className="bg-slate-100 py-8">
             <div className="grid sm:grid-cols-2 gap-8 max-w-[800px] sm:px-0 px-2 mx-auto items-center justify-center">
-              <img src="https://placehold.co/500x300/png" alt="Screenshot" />
-              <img src="https://placehold.co/500x300/png" alt="Screenshot" />
+              <div className="flex flex-col items-center justify-center">
+                <div className="py-3 text-lg">Présence sur le territoire</div>
+                <img src="/mano-villes.jpg" alt="Screenshot" className="max-h-60 rounded shadow" />
+              </div>
+              <div className="flex flex-col items-center justify-center">
+                <div className="py-3 text-lg">Plus de 130 associations utilisatrices</div>
+                <img src="/assos.png" alt="Screenshot" className="max-h-60 rounded shadow" />
+              </div>
             </div>
             <Carousel />
           </div>
@@ -410,27 +420,27 @@ export default function NewIndex() {
       <footer className="w-full bg-mano mt-16 border text-white p-8">
         <ul className="flex md:flex-row flex-col gap-4">
           <li>
-            <a href={"/legal.pdf"} target="_blank" className="hover:underline">
+            <a href={"https://espace-mano.sesan.fr/legal.pdf"} target="_blank" className="hover:underline">
               Accessibilité : non conforme
             </a>
           </li>
           <li>
-            <a href={"/legal.pdf"} target="_blank" className="hover:underline">
+            <a href={"https://espace-mano.sesan.fr/legal.pdf"} target="_blank" className="hover:underline">
               Mentions légales
             </a>
           </li>
           <li>
-            <a href={"/cgu.pdf"} target="_blank" className="hover:underline">
+            <a href={"https://espace-mano.sesan.fr/cgu.pdf"} target="_blank" className="hover:underline">
               Conditions générales d'utilisation
             </a>
           </li>
           <li>
-            <a href={"/new-stats.pdf"} className="hover:underline">
+            <a href={"/new-stats"} className="hover:underline">
               Statistiques
             </a>
           </li>
           <li>
-            <a href={"/privacy.pdf"} target="_blank" className="hover:underline">
+            <a href={"https://espace-mano.sesan.fr/privacy.pdf"} target="_blank" className="hover:underline">
               Politique de confidentialité
             </a>
           </li>
