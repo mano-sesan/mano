@@ -23,13 +23,14 @@ export default function Poubelle() {
   const [data, setData] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {
       setData(data);
       setPersons(data.persons);
     });
-  }, [organisation._id]);
+  }, [organisation._id, refreshKey]);
 
   const getAssociatedData = (id) => {
     const associatedData = {
@@ -102,8 +103,7 @@ export default function Poubelle() {
         if (res.ok) {
           refresh().then(() => {
             toast.success("La personne a été supprimée définitivement avec succès, ainsi que ses données associées !");
-            // On redirige ailleurs pour que le user ne remarque pas que la liste n'a pas été refresh (allez, ça passe)
-            history.push(`/person`);
+            setRefreshKey(refreshKey + 1);
           });
         } else {
           toast.error("Impossible de supprimer définitivement la personne");
