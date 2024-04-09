@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
-import type { CustomOrPredefinedField } from "../../src/types/field";
-import type { PersonInstance } from "../../src/types/person";
+import type { CustomOrPredefinedField } from "../src/types/field";
+import type { PersonInstance } from "../src/types/person";
 
 export const personBase: PersonInstance = {
   _id: "1",
@@ -16,15 +16,6 @@ export const personBase: PersonInstance = {
   birthdate: dayjs("1990-01-01").toDate(),
   description: "Description",
 };
-
-const evolutiveStatsIndicators = [
-  {
-    fieldName: "custom-2023-06-16T08-50-52-737Z",
-    fromValue: "Française",
-    toValue: "Hors UE",
-    type: "enum",
-  },
-];
 
 export const mockedEvolutiveStatsIndicatorsBase: Array<CustomOrPredefinedField> = [
   {

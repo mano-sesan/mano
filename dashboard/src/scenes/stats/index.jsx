@@ -122,6 +122,7 @@ const itemsForStatsSelector = selectorFamily({
         isoEndDate: period.endDate ? dayjs(period.endDate).startOf("day").add(1, "day").toISOString() : null,
       };
       for (let person of allPersons) {
+        console.log("person", person.forTeamFiltering);
         // get the persons concerned by filters
         if (!filterItem(filtersExceptOutOfActiveList)(person)) continue;
         if (outOfActiveListFilter === "Oui" && !person.outOfActiveList) continue;
