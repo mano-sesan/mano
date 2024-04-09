@@ -279,8 +279,15 @@ const execute = async ({
       }
       if (skipDecrypt) {
         return res;
+      } else if (decryptDeleted) {
+        res.decryptedData = {};
+        for (const [key, value] of Object.entries(res.data)) {
+          const decryptedEntries = await Promise.all(value.map((item) => decryptDBItem(item, { path, encryptedVerificationKey, decryptDeleted })));
+          res.decryptedData[key] = decryptedEntries;
+        }
+        return res;
       } else if (!!res.data && Array.isArray(res.data)) {
-        const decryptedData = await Promise.all(res.data.map((item) => decryptDBItem(item, { path, encryptedVerificationKey, decryptDeleted })));
+        const decryptedData = await Promise.all(res.data.map((item) => decryptDBItem(item, { path, encryptedVerificationKey })));
         res.decryptedData = decryptedData;
         return res;
       } else if (res.data) {

@@ -1,36 +1,111 @@
 import { useEffect, useState } from "react";
+import { useRecoilValue } from "recoil";
+import { toast } from "react-toastify";
+import { useHistory } from "react-router-dom";
 import API from "../../services/api";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
 import { organisationState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
 import TagTeam from "../../components/TagTeam";
+import { useDataLoader } from "../../components/DataLoader";
 
-async function fetchPersons() {
-  const query = {
-    // limit: String(10000),
-    withDeleted: true,
-    onlyDeleted: true,
-  };
-
-  const res = await API.get({ path: "/person", query: { ...query }, decryptDeleted: true });
+async function fetchPersons(organisationId) {
+  const res = await API.get({ path: "/organisation/" + organisationId + "/deleted-data", query: {}, decryptDeleted: true });
   return res.decryptedData;
 }
 
 export default function Poubelle() {
+  const { refresh } = useDataLoader();
+  const history = useHistory();
   const organisation = useRecoilValue(organisationState);
   const [persons, setPersons] = useState([]);
+  const [data, setData] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
 
   useEffect(() => {
-    fetchPersons().then((data) => {
-      console.log(data);
-      setPersons(data);
+    fetchPersons(organisation._id).then((data) => {
+      setData(data);
+      setPersons(data.persons);
     });
-  }, []);
+  }, [organisation._id]);
+
+  const getAssociatedData = (id) => {
+    const associatedData = {
+      actions: data.actions.filter((c) => c.person === id).map((c) => c._id),
+      comments: data.comments.filter((c) => c.person === id).map((c) => c._id),
+      relsPersonPlaces: data.relsPersonPlace.filter((c) => c.person === id).map((c) => c._id),
+      passages: data.passages.filter((c) => c.person === id).map((c) => c._id),
+      rencontres: data.rencontres.filter((c) => c.person === id).map((c) => c._id),
+      consultations: data.consultations.filter((c) => c.person === id).map((c) => c._id),
+      treatments: data.treatments.filter((c) => c.person === id).map((c) => c._id),
+      medicalFiles: data.medicalFiles.filter((c) => c.person === id).map((c) => c._id),
+      groups: data.groups.filter((c) => c.persons.includes(id)).map((c) => c._id),
+    };
+    return associatedData;
+  };
+
+  const getAssociatedDataAsText = (associatedData) => {
+    const associatedDataAsText = [
+      associatedData.actions.length + " actions",
+      associatedData.comments.length + " commentaires",
+      associatedData.relsPersonPlaces.length + " lieux fréquentés",
+      associatedData.passages.length + " passages",
+      associatedData.rencontres.length + " rencontres",
+      associatedData.consultations.length + " consultations",
+      associatedData.treatments.length + " traitements",
+      associatedData.medicalFiles.length + " dossiers médicaux",
+      associatedData.groups.length + " groupes",
+    ];
+    return associatedDataAsText;
+  };
+
+  const restorePerson = async (id) => {
+    const associatedData = getAssociatedData(id);
+    const associatedDataAsText = getAssociatedDataAsText(associatedData);
+
+    if (confirm("Voulez-vous restaurer cette personne ? Les données associées seront également restaurées :\n" + associatedDataAsText.join(", "))) {
+      API.post({
+        path: "/organisation/" + organisation._id + "/restore-deleted-data",
+        body: { ...associatedData, persons: [id] },
+      }).then((res) => {
+        if (res.ok) {
+          refresh().then(() => {
+            toast.success("La personne a été restaurée avec succès, ainsi que ses données associées !");
+            history.push(`/person/${id}`);
+          });
+        } else {
+          toast.error("Impossible de restaurer la personne");
+        }
+      });
+    }
+  };
+
+  const permanentDeletePerson = async (id) => {
+    const associatedData = getAssociatedData(id);
+    const associatedDataAsText = getAssociatedDataAsText(associatedData);
+
+    if (
+      confirm(
+        "Voulez-vous supprimer DÉFINITIVEMENT cette personne ? L'équipe de Mano sera INCAPABLE DE RÉCUPÉRER LES DONNÉES. Les données associées seront également supprimées :\n" +
+          associatedDataAsText.join(", ")
+      )
+    ) {
+      API.delete({
+        path: "/organisation/" + organisation._id + "/permanent-delete-data",
+        body: { ...associatedData, persons: [id] },
+      }).then((res) => {
+        if (res.ok) {
+          refresh().then(() => {
+            toast.success("La personne a été supprimée définitivement avec succès, ainsi que ses données associées !");
+          });
+        } else {
+          toast.error("Impossible de supprimer définitivement la personne");
+        }
+      });
+    }
+  };
 
   return (
     <div>
@@ -43,7 +118,7 @@ export default function Poubelle() {
         <Table
           data={persons}
           rowKey={"_id"}
-          onRowClick={(p) => history.push(`/person/${p._id}`)}
+          noData="Aucune personne supprimée"
           columns={[
             {
               title: "",
@@ -135,22 +210,26 @@ export default function Poubelle() {
             },
             {
               title: "Restaurer",
-              dataKey: "action",
-              render: () => {
+              dataKey: "action-restore",
+              render: (p) => {
                 return (
                   <>
-                    <button className="button-classic ml-0">Restaurer</button>
+                    <button className="button-classic ml-0" onClick={() => restorePerson(p._id)}>
+                      Restaurer
+                    </button>
                   </>
                 );
               },
             },
             {
               title: "Supprimer",
-              dataKey: "action",
-              render: () => {
+              dataKey: "action-delete",
+              render: (p) => {
                 return (
                   <>
-                    <button className="button-destructive ml-0">Suppr. définitivement</button>
+                    <button onClick={() => permanentDeletePerson(p._id)} className="button-destructive ml-0">
+                      Suppr.&nbsp;définitivement
+                    </button>
                   </>
                 );
               },
