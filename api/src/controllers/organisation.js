@@ -424,7 +424,6 @@ router.get(
     const query = { where: { deletedAt: { [Op.ne]: null }, organisation: req.user.organisation }, paranoid: false };
     const defaultAttributes = ["_id", "encrypted", "encryptedEntityKey", "organisation", "createdAt", "updatedAt", "deletedAt"];
 
-    console.log(query);
     const places = await Place.findAll(query, defaultAttributes);
     const relsPersonPlace = await RelPersonPlace.findAll(query, defaultAttributes);
     const actions = await Action.findAll(query, defaultAttributes);
