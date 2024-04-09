@@ -43,6 +43,9 @@ export default function Poubelle() {
       medicalFiles: data.medicalFiles.filter((c) => c.person === id).map((c) => c._id),
       groups: data.groups.filter((c) => c.persons.includes(id)).map((c) => c._id),
     };
+    associatedData.comments = associatedData.comments.concat(
+      data.comments.filter((c) => associatedData.actions.includes(c.action)).map((c) => c._id)
+    );
     return associatedData;
   };
 
@@ -99,6 +102,8 @@ export default function Poubelle() {
         if (res.ok) {
           refresh().then(() => {
             toast.success("La personne a été supprimée définitivement avec succès, ainsi que ses données associées !");
+            // On redirige ailleurs pour que le user ne remarque pas que la liste n'a pas été refresh (allez, ça passe)
+            history.push(`/person`);
           });
         } else {
           toast.error("Impossible de supprimer définitivement la personne");

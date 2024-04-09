@@ -402,6 +402,7 @@ router.get(
   })
 );
 
+// Récupère la liste complète des données supprimée pour une organisation
 router.get(
   "/:id/deleted-data",
   passport.authenticate("user", { session: false }),
@@ -455,6 +456,7 @@ router.get(
   })
 );
 
+// Restaure des données arbitraires dans une organisation (pas de vérification de cohérence)
 router.post(
   "/:id/restore-deleted-data",
   passport.authenticate("user", { session: false }),
@@ -589,6 +591,7 @@ router.post(
   })
 );
 
+// SUpprime définitivement des données arbitraires dans une organisation (pas de vérification de cohérence)
 router.delete(
   "/:id/permanent-delete-data",
   passport.authenticate("user", { session: false }),
