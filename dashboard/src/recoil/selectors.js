@@ -109,7 +109,6 @@ export const itemsGroupedByPersonSelector = selector({
         // https://github.com/SocialGouv/mano/blob/34a86a3e6900b852e0b3fe828a03e6721d200973/dashboard/src/scenes/person/OutOfActiveList.js#L22
         // This was causing a bug in the "person suivies" stats, where people who were not out of active list were counted as out of active list.
         outOfActiveListDate: person.outOfActiveList ? person.outOfActiveListDate : null,
-        medicalFile: {},
         forTeamFiltering: [latestTeamFilteringItem],
       };
       if (person.history?.length) {
@@ -275,10 +274,10 @@ export const itemsGroupedByPersonSelector = selector({
     }
     for (const medicalFile of medicalFiles) {
       if (!personsObject[medicalFile.person]) continue;
-      const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
-      if (existingMedicalFile) {
+      if (personsObject[medicalFile.person].medicalFile) {
         const nextDocuments = {};
         const nextComments = {};
+        const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
         for (const document of medicalFile.documents || []) {
           nextDocuments[document._id] = document;
         }
@@ -380,8 +379,31 @@ export const arrayOfitemsGroupedByPersonSelector = selector({
   key: "arrayOfitemsGroupedByPersonSelector",
   get: ({ get }) => {
     const itemsGroupedByPerson = get(itemsGroupedByPersonSelector);
-    const personArray = Object.values(itemsGroupedByPerson);
-    return personArray;
+    return Object.values(itemsGroupedByPerson);
+  },
+});
+
+export const personsWithMedicalFileMergedSelector = selector({
+  key: "personsWithMedicalFileMergedSelector",
+  get: ({ get }) => {
+    const user = get(userState);
+    const persons = get(arrayOfitemsGroupedByPersonSelector);
+    if (!user.healthcareProfessional) return persons;
+    return persons.map((p) => ({
+      ...(p.medicalFile || {}),
+      ...p,
+    }));
+  },
+});
+
+export const personsForStatsSelector = selector({
+  key: "personsForStatsSelector",
+  get: ({ get }) => {
+    const persons = get(arrayOfitemsGroupedByPersonSelector);
+    return persons.map((p) => ({
+      ...(p.medicalFile || {}),
+      ...p,
+    }));
   },
 });
 
@@ -494,8 +516,7 @@ export const onlyFilledObservationsTerritories = selector({
       observationsKeyLabels[field.name] = field.label;
     }
 
-    const onlyFilledObs = [];
-    for (const obs of territoryObservations) {
+    return territoryObservations.map((obs) => {
       const obsWithOnlyFilledFields = {};
       for (let key of Object.keys(obs)) {
         if (observationsKeyLabels[key]) {
@@ -504,9 +525,9 @@ export const onlyFilledObservationsTerritories = selector({
           obsWithOnlyFilledFields[key] = obs[key];
         }
       }
-      onlyFilledObs.push({ _id: obs._id, territory: obs.territory, ...obsWithOnlyFilledFields });
-    }
-    return onlyFilledObs;
+      const nextObs = { _id: obs._id, territory: obs.territory, ...obsWithOnlyFilledFields };
+      return nextObs;
+    });
   },
 });
 
@@ -515,15 +536,15 @@ export const populatedPassagesSelector = selector({
   get: ({ get }) => {
     const passages = get(passagesState);
     const allPersonsAsObject = get(itemsGroupedByPersonSelector);
-    let populatedPassages = [];
-    for (const passage of passages) {
-      if (!!passage.person && !allPersonsAsObject[passage.person]) continue;
-      populatedPassages.push({
-        ...passage,
-        type: !!passage.person ? "Non-anonyme" : "Anonyme",
-        gender: !passage.person ? null : allPersonsAsObject[passage.person].gender || "Non renseigné",
-      });
-    }
-    return populatedPassages;
+    return passages
+      .map((passage) => {
+        if (!!passage.person && !allPersonsAsObject[passage.person]) return null;
+        return {
+          ...passage,
+          type: !!passage.person ? "Non-anonyme" : "Anonyme",
+          gender: !passage.person ? null : allPersonsAsObject[passage.person].gender || "Non renseigné",
+        };
+      })
+      .filter(Boolean);
   },
 });

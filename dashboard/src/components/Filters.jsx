@@ -3,18 +3,10 @@ import SelectCustom from "./SelectCustom";
 import { components } from "react-select";
 import { dayjsInstance, isOnSameDay } from "../services/date";
 import DatePicker from "./DatePicker";
-import type { FilterableField } from "../types/field";
-
-type Filter = {
-  field?: string;
-  value?: any;
-  type?: string;
-};
 
 export const filterItem =
-  (filters: Array<Filter>, debug = false) =>
-  (item: { [x: string]: any }) => {
-    // @ts-ignore
+  (filters, debug = false) =>
+  (item) => {
     // for now an item needs to fulfill ALL items to be displayed
     if (!filters?.filter((f) => Boolean(f?.value)).length) return item;
     for (let filter of filters) {
@@ -124,31 +116,20 @@ export const filterItem =
     return item;
   };
 
-export const filterData = (data: any[], filters: Array<Filter>) => {
+export const filterData = (data, filters) => {
+  console.log({ filters });
   data = data.map(filterItem(filters)).filter(Boolean);
   return data;
 };
 
-const Filters = ({
-  onChange,
-  base,
-  filters,
-  title = "Filtres :",
-  saveInURLParams = false,
-}: {
-  onChange: (filters: Array<Filter>, saveInURLParams: boolean) => void;
-  base: Array<FilterableField>;
-  filters: Array<Filter>;
-  title?: string;
-  saveInURLParams?: boolean;
-}) => {
+const Filters = ({ onChange, base, filters, title = "Filtres :", saveInURLParams = false }) => {
   filters = !!filters.length ? filters : [{ field: null, type: null, value: null }];
   const onAddFilter = () => onChange([...filters, {}], saveInURLParams);
-  const filterableFields: Array<FilterableField> = base.filter((filterableField: any) => filterableField.field !== "alertness");
+  const filterFields = base.filter((_filter) => _filter.field !== "alertness").map((f) => ({ label: f.label, field: f.field, type: f.type }));
 
-  function getFilterOptionsByField(fieldName: FilterableField["field"], base: Array<FilterableField>, index: number): Array<string> {
-    if (!fieldName) return [];
-    const current = base.find((filter) => filter.field === fieldName);
+  function getFilterOptionsByField(field, base, index) {
+    if (!field) return [];
+    const current = base.find((filter) => filter.field === field);
     if (!current) {
       onChange(
         filters.filter((_f, i) => i !== index),
@@ -163,7 +144,7 @@ const Filters = ({
     return ["Non renseigné"];
   }
 
-  function getFilterValue(filterValue: Filter["value"]) {
+  function getFilterValue(filterValue) {
     if (typeof filterValue === "object") {
       if (filterValue?.date != null) {
         if (filterValue.comparator === "unfilled") return "Non renseigné";
@@ -189,9 +170,9 @@ const Filters = ({
       <div className="printonly tw-flex tw-gap-2">
         <p>{title}</p>
         <ul>
-          {filters.map((filter: Filter, index: number) => {
+          {filters.map((filter, index) => {
             if (!filter?.field) return null;
-            const current = base.find((filterableField) => filterableField.field === filter.field);
+            const current = base.find((_filter) => _filter.field === filter.field);
             if (!current) return null;
             const filterValue = getFilterValue(filter.value);
             if (!filterValue) return null;
@@ -210,24 +191,24 @@ const Filters = ({
           </div>
         </div>
         <div className="tw-w-full">
-          {filters.map((filter: Filter, index: number) => {
+          {filters.map((filter, index) => {
             // filter: field, value, type
             const filterValues = getFilterOptionsByField(filter.field, base, index);
-            const onChangeField = (newField: FilterableField) => {
+            const onChangeField = (newField) => {
               onChange(
                 filters.map((_filter, i) => (i === index ? { field: newField?.field, value: null, type: newField?.type } : _filter)),
                 saveInURLParams
               );
             };
-            const onChangeValue = (newValue: Filter["value"]) => {
+            const onChangeValue = (newValue) => {
               onChange(
-                filters.map((f: Filter, i: number) => (i === index ? { field: filter.field, value: newValue, type: filter.type } : f)),
+                filters.map((f, i) => (i === index ? { field: filter.field, value: newValue, type: filter.type } : f)),
                 saveInURLParams
               );
             };
             const onRemoveFilter = () => {
               onChange(
-                filters.filter((_f: Filter, i: number) => i !== index),
+                filters.filter((_f, i) => i !== index),
                 saveInURLParams
               );
             };
@@ -239,10 +220,10 @@ const Filters = ({
                 </div>
                 <div className="tw-w-96 tw-min-w-[384px]">
                   <SelectCustom
-                    options={filterableFields}
+                    options={filterFields}
                     value={filter.field ? filter : null}
                     onChange={onChangeField}
-                    getOptionLabel={(_option) => filterableFields.find((filterableField) => filterableField.field === _option.field)?.label}
+                    getOptionLabel={(_option) => filterFields.find((_filter) => _filter.field === _option.field)?.label}
                     getOptionValue={(_option) => _option.field}
                     isClearable={true}
                     isMulti={false}
@@ -252,7 +233,7 @@ const Filters = ({
                   <ValueSelector field={filter.field} filterValues={filterValues} value={filter.value} base={base} onChangeValue={onChangeValue} />
                 </div>
                 <div className="tw-shrink-0">
-                  {!!filters.filter((_filter: Filter) => Boolean(_filter.field)).length && (
+                  {!!filters.filter((_filter) => Boolean(_filter.field)).length && (
                     <button
                       type="button"
                       className="tw-h-full tw-w-full tw-rounded tw-border tw-border-gray-300 tw-bg-white tw-px-2.5 tw-py-2 tw-text-sm tw-text-red-500 hover:tw-bg-red-100"
@@ -272,7 +253,7 @@ const Filters = ({
             type="button"
             className="tw-h-full tw-rounded tw-text-main disabled:tw-opacity-20"
             onClick={onAddFilter}
-            disabled={!!filters.find((f) => !f.field)}
+            disabled={filters.find((f) => !f.field)}
           >
             + Ajouter un filtre
           </button>
@@ -454,8 +435,8 @@ const ValueSelector = ({ field, filterValues, value, onChangeValue, base }) => {
     try {
       return (
         <SelectCustom
-          options={filterValues.map((_value: any) => ({ label: _value, value: _value }))}
-          value={value?.map((_value: any) => ({ label: _value, value: _value })) || []}
+          options={filterValues.map((_value) => ({ label: _value, value: _value }))}
+          value={value?.map((_value) => ({ label: _value, value: _value })) || []}
           getOptionLabel={(f) => f.label}
           getOptionValue={(f) => f.value}
           onChange={(newValue) => onChangeValue(newValue?.map((option) => option.value))}
@@ -463,7 +444,7 @@ const ValueSelector = ({ field, filterValues, value, onChangeValue, base }) => {
           isMulti
           components={{
             MultiValueContainer: (props) => {
-              if (props.selectProps?.value?.length <= 1) {
+              if (props.selectProps?.values?.length <= 1) {
                 return <components.MultiValueContainer {...props} />;
               }
               const lastValue = props.selectProps?.value?.[props.selectProps?.value?.length - 1]?.value;
