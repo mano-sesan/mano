@@ -3,14 +3,7 @@ import OutsideClickHandler from "react-outside-click-handler";
 import { dayjsInstance, dateForDatePicker } from "../services/date";
 import DatePicker from "react-datepicker";
 import type { Dayjs, ManipulateType } from "dayjs";
-
-export type Period = { startDate: Dayjs | null; endDate: Dayjs | null };
-export type PeriodISODate = { isoStartDate: string | null; isoEndDate: string | null };
-
-export type Preset = {
-  label: string;
-  period: Period;
-};
+import type { Period, Preset } from "../types/date";
 
 const getOffsetFromToday = (value: number, unit: ManipulateType, end = false): Dayjs => {
   const a = dayjsInstance();

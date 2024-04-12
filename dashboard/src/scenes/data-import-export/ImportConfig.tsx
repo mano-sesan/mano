@@ -262,8 +262,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                                     </div>
                                   ))
                                 : value
-                                ? String(value)
-                                : ""}
+                                  ? String(value)
+                                  : ""}
                               {errors.some((error) => error.line === i && error.col === j) && (
                                 <div className="tw-italic tw-text-red-600">
                                   {errors.find((error) => error.line === i && error.col === j)?.message}
@@ -309,7 +309,7 @@ const typeOptionsLabels = [
   "Choix multiple dans une liste",
   "Case à cocher",
 ] as const;
-type TypeOptionLabel = typeof typeOptionsLabels[number];
+type TypeOptionLabel = (typeof typeOptionsLabels)[number];
 
 function isTypeOptionLabel(type: string): type is TypeOptionLabel {
   return typeOptionsLabels.includes(type as any);
@@ -332,7 +332,7 @@ const sheetNames = [
   "Liste des services",
   "Catégories d action",
 ] as const;
-type SheetName = typeof sheetNames[number];
+type SheetName = (typeof sheetNames)[number];
 
 const workbookColumns: Record<SheetName, string[]> = {
   "Infos social et médical": ["Rubrique", "Intitulé du champ", "Type de champ", "Choix"],
@@ -551,33 +551,39 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
       if (customFields.length) updatedOrganisation.customFieldsObs = customFields;
     }
     if (sheetName === "Liste des services") {
-      const services = sheetData.data.reduce((acc, curr) => {
-        const service = curr.service as string;
-        const groupe = curr.groupe as string;
-        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const services = sheetData.data.reduce(
+        (acc, curr) => {
+          const service = curr.service as string;
+          const groupe = curr.groupe as string;
+          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
-        if (groupeIndex === -1) {
-          acc.push({ groupTitle: groupe, services: [service] });
-        } else {
-          acc[groupeIndex].services.push(service);
-        }
-        return acc;
-      }, [] as { groupTitle: string; services: string[] }[]);
+          if (groupeIndex === -1) {
+            acc.push({ groupTitle: groupe, services: [service] });
+          } else {
+            acc[groupeIndex].services.push(service);
+          }
+          return acc;
+        },
+        [] as { groupTitle: string; services: string[] }[]
+      );
       if (services.length) updatedOrganisation.groupedServices = services;
     }
     if (sheetName === "Catégories d action") {
-      const categories = sheetData.data.reduce((acc, curr) => {
-        const categorie = curr.categorie as string;
-        const groupe = curr.groupe as string;
-        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const categories = sheetData.data.reduce(
+        (acc, curr) => {
+          const categorie = curr.categorie as string;
+          const groupe = curr.groupe as string;
+          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
-        if (groupeIndex === -1) {
-          acc.push({ groupTitle: groupe, categories: [categorie] });
-        } else {
-          acc[groupeIndex].categories.push(categorie);
-        }
-        return acc;
-      }, [] as { groupTitle: string; categories: string[] }[]);
+          if (groupeIndex === -1) {
+            acc.push({ groupTitle: groupe, categories: [categorie] });
+          } else {
+            acc[groupeIndex].categories.push(categorie);
+          }
+          return acc;
+        },
+        [] as { groupTitle: string; categories: string[] }[]
+      );
       if (categories.length) updatedOrganisation.actionsGroupedCategories = categories;
     }
   }

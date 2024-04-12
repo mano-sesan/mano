@@ -47,6 +47,13 @@ export interface PersonInstance extends PersonInstanceBase {
   [key: CustomField["name"]]: any;
 }
 
+export type ForTeamFilteringType = Array<{
+  date: string;
+  assignedTeams: UUIDV4[];
+  outOfActiveList: boolean;
+  def: "today" | "change-teams" | "created";
+}>;
+
 export interface PersonPopulated extends PersonInstance {
   userPopulated: UserInstance;
   formattedBirthDate: string;
@@ -55,12 +62,7 @@ export interface PersonPopulated extends PersonInstance {
   interactions: Date[];
   lastUpdateCheckForGDPR: Date;
   group?: GroupInstance;
-  forTeamFiltering: Array<{
-    date: string;
-    assignedTeams: UUIDV4[];
-    outOfActiveList: boolean;
-    def: "today" | "change-teams" | "created";
-  }>;
+  forTeamFiltering: ForTeamFilteringType;
   documentsForModule?: DocumentWithLinkedItem[];
   groupDocuments?: DocumentWithLinkedItem[];
   actions?: any[];
