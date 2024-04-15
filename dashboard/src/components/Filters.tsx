@@ -15,10 +15,9 @@ type Filter = {
 export const filterItem =
   (filters: Array<Filter>, debug = false) =>
   (item: { [x: string]: any }) => {
-    // @ts-ignore
     // for now an item needs to fulfill ALL items to be displayed
     if (!filters?.filter((f) => Boolean(f?.value)).length) return item;
-    for (let filter of filters) {
+    for (const filter of filters) {
       if (debug) console.log("filter", filter);
       if (!filter.field || !filter.value) continue;
       const itemValue = item[filter.field];
@@ -145,18 +144,7 @@ const Filters = ({
 }) => {
   filters = !!filters.length ? filters : [{ field: null, type: null, value: null }];
   const onAddFilter = () => onChange([...filters, {}], saveInURLParams);
-  const filterableFields: Array<Filter> = base
-    .filter((filterableField: any) => filterableField.field !== "alertness")
-    // we can't let the `options` field in the URL
-    .map((field) => ({
-      field: field.field,
-      name: field.field,
-      label: field.label,
-      type: field.type,
-      // we need to remove the `options` field because it clashes with how react-select works internally
-      // it would creat "sub-options" in the select component - we don't want that
-      // options: field.options ?? [],
-    }));
+  const filterFields = base.filter((_filter) => _filter.field !== "alertness").map((f) => ({ label: f.label, field: f.field, type: f.type }));
 
   function getFilterOptionsByField(fieldName: FilterableField["field"], base: Array<FilterableField>, index: number): Array<string> {
     if (!fieldName) return [];
@@ -171,7 +159,7 @@ const Filters = ({
     if (["yes-no"].includes(current.type)) return ["Oui", "Non", "Non renseigné"];
     if (["boolean"].includes(current.type)) return ["Oui", "Non"];
     if (current?.field === "outOfActiveList") return current.options;
-    if (current?.options?.length) return [...current?.options, "Non renseigné"];
+    if (current?.options?.length) return [...(current?.options || []), "Non renseigné"];
     return ["Non renseigné"];
   }
 
@@ -251,10 +239,10 @@ const Filters = ({
                 </div>
                 <div className="tw-w-96 tw-min-w-[384px]">
                   <SelectCustom
-                    options={filterableFields}
+                    options={filterFields}
                     value={filter.field ? filter : null}
                     onChange={onChangeField}
-                    getOptionLabel={(_option) => _option.label}
+                    getOptionLabel={(_option) => filterFields.find((_filter) => _filter.field === _option.field)?.label}
                     getOptionValue={(_option) => _option.field}
                     isClearable={true}
                     isMulti={false}
