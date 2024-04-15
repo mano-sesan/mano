@@ -1,31 +1,8 @@
 import dayjs from "dayjs";
 import type { ForTeamFilteringType } from "../src/types/person";
-import type { TeamInstance } from "../src/types/team";
 import { filterPersonByAssignedTeam } from "../src/utils/filter-person";
-import type { Dayjs } from "dayjs";
 
 type TeamId = "TEAM_ID_A" | "TEAM_ID_B" | "TEAM_ID_C";
-
-const teams: Array<TeamInstance> = [
-  {
-    _id: "TEAM_ID_A",
-    name: "Team A",
-    organisation: "xxx",
-    nightSession: true,
-  },
-  {
-    _id: "TEAM_ID_B",
-    name: "Team B",
-    organisation: "xxx",
-    nightSession: false,
-  },
-  {
-    _id: "TEAM_ID_C",
-    name: "Team C",
-    organisation: "xxx",
-    nightSession: false,
-  },
-];
 
 function addToDate(date: string, numberToAdd: number = 0, type: "day" | "month" | "year" = "day"): string {
   return dayjs(date).add(numberToAdd, type).startOf("day").toISOString();
@@ -323,6 +300,36 @@ describe("Filter person by assigned teams within a period - Jan 2023 until dec 2
       expect(filterPersonByAssignedTeam(viewAllOrganisationData, selectedTeamsObjectWithOwnPeriod, assignedTeams, forTeamFiltering)).toBe(true);
     });
   });
+  describe("period doesn't matter (isoStartDate === null and isoEndDate === null) and assigned team has been included in history IS included", () => {
+    const selectedTeamsObjectWithOwnPeriodEmpty: Partial<Record<TeamId, typeof period>> = {
+      TEAM_ID_A: { isoStartDate: null, isoEndDate: null },
+    };
+    test("person's creation is after the end of the selected period", () => {
+      const forTeamFiltering: ForTeamFilteringType = [
+        {
+          date: dayjs().add(20, "year").toISOString(), // random date
+          assignedTeams: ["TEAM_ID_A"],
+          outOfActiveList: false,
+          def: "created",
+        },
+        {
+          date: dayjs().add(21, "year").toISOString(), // random date
+          assignedTeams: ["TEAM_ID_B"],
+          outOfActiveList: false,
+          def: "change-teams",
+        },
+        {
+          date: dayjs().add(22, "year").toISOString(), // random date
+          assignedTeams: ["TEAM_ID_C"],
+          outOfActiveList: false,
+          def: "change-teams",
+        },
+      ];
+      // assignedTeams should be the last line of the history above
+      const assignedTeams = forTeamFiltering.slice(-1)[0].assignedTeams;
+      expect(filterPersonByAssignedTeam(viewAllOrganisationData, selectedTeamsObjectWithOwnPeriodEmpty, assignedTeams, forTeamFiltering)).toBe(true);
+    });
+  });
   describe("assigned team period is before the start date of the selected period IS NOT included", () => {
     test("person removed one assigned team since creation before the start of the selected period", () => {
       const forTeamFiltering: ForTeamFilteringType = [
@@ -418,6 +425,30 @@ describe("Filter person by assigned teams within a period - Jan 2023 until dec 2
           assignedTeams: ["TEAM_ID_A"],
           outOfActiveList: false,
           def: "created",
+        },
+      ];
+      // assignedTeams should be the last line of the history above
+      const assignedTeams = forTeamFiltering.slice(-1)[0].assignedTeams;
+      expect(filterPersonByAssignedTeam(viewAllOrganisationData, selectedTeamsObjectWithOwnPeriodEmpty, assignedTeams, forTeamFiltering)).toBe(false);
+    });
+  });
+  describe("period doesn't matter (isoStartDate === null and isoEndDate === null) and assigned team has NOT been included in history IS NOT included", () => {
+    const selectedTeamsObjectWithOwnPeriodEmpty: Partial<Record<TeamId, typeof period>> = {
+      TEAM_ID_A: { isoStartDate: null, isoEndDate: null },
+    };
+    test("person's creation is after the end of the selected period", () => {
+      const forTeamFiltering: ForTeamFilteringType = [
+        {
+          date: dayjs().add(21, "year").toISOString(), // random date
+          assignedTeams: ["TEAM_ID_B"],
+          outOfActiveList: false,
+          def: "created",
+        },
+        {
+          date: dayjs().add(22, "year").toISOString(), // random date
+          assignedTeams: ["TEAM_ID_C"],
+          outOfActiveList: false,
+          def: "change-teams",
         },
       ];
       // assignedTeams should be the last line of the history above
