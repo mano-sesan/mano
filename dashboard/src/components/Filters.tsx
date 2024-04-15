@@ -9,6 +9,7 @@ type Filter = {
   field?: string;
   value?: any;
   type?: string;
+  label?: string;
 };
 
 export const filterItem =
@@ -144,7 +145,18 @@ const Filters = ({
 }) => {
   filters = !!filters.length ? filters : [{ field: null, type: null, value: null }];
   const onAddFilter = () => onChange([...filters, {}], saveInURLParams);
-  const filterableFields: Array<FilterableField> = base.filter((filterableField: any) => filterableField.field !== "alertness");
+  const filterableFields: Array<Filter> = base
+    .filter((filterableField: any) => filterableField.field !== "alertness")
+    // we can't let the `options` field in the URL
+    .map((field) => ({
+      field: field.field,
+      name: field.field,
+      label: field.label,
+      type: field.type,
+      // we need to remove the `options` field because it clashes with how react-select works internally
+      // it would creat "sub-options" in the select component - we don't want that
+      // options: field.options ?? [],
+    }));
 
   function getFilterOptionsByField(fieldName: FilterableField["field"], base: Array<FilterableField>, index: number): Array<string> {
     if (!fieldName) return [];
@@ -242,7 +254,7 @@ const Filters = ({
                     options={filterableFields}
                     value={filter.field ? filter : null}
                     onChange={onChangeField}
-                    getOptionLabel={(_option) => filterableFields.find((filterableField) => filterableField.field === _option.field)?.label}
+                    getOptionLabel={(_option) => _option.label}
                     getOptionValue={(_option) => _option.field}
                     isClearable={true}
                     isMulti={false}
