@@ -121,6 +121,8 @@ export const CustomResponsiveBar = ({
     onItemClick(id);
   };
 
+  console.log(chartData, title);
+
   return (
     <div className="tw-mx-0 tw-my-4 tw-flex tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-p-4  print:tw-break-before-all print:tw-break-inside-avoid print:tw-flex-col">
       <div className="tw-relative tw-mb-12 tw-mt-4 tw-flex tw-basis-full tw-justify-center print:tw-basis-0">
@@ -203,7 +205,7 @@ export const CustomResponsiveBar = ({
           }}
           axisLeft={{
             tickSize: 5,
-            format: (e) => (e ? Math.floor(e) === e && e : ""),
+            format: (e) => (e ? (Math.floor(e) === e ? e : "") : ""),
             tickPadding: 5,
             tickRotation: 0,
             legend: axisTitleY,
