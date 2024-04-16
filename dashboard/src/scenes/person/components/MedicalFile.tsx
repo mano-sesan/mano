@@ -38,7 +38,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
   // These custom fields are displayed by default, because they where displayed before they became custom fields
   // Maybe we should reconsider this legacy in 2024-2025.
   const groupedCustomFieldsMedicalFileWithLegacyFields: CustomFieldsGroup[] = useMemo(() => {
-    const c = [...groupedCustomFieldsMedicalFile];
+    const c = structuredClone(groupedCustomFieldsMedicalFile);
     if (flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical")) {
       const structureMedicalField: CustomField = {
         name: "structureMedical",
@@ -48,7 +48,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
         required: false,
         showInStats: true,
       };
-      c[0].fields.unshift(structureMedicalField);
+      c[0].fields = [structureMedicalField, ...c[0].fields];
     }
     if (flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances")) {
       const healthInsurancesField: CustomField = {
@@ -59,7 +59,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
         showInStats: true,
         required: true,
       };
-      c[0].fields.unshift(healthInsurancesField);
+      c[0].fields = [healthInsurancesField, ...c[0].fields];
     }
     return c;
   }, [groupedCustomFieldsMedicalFile, flattenedCustomFieldsPersons]);

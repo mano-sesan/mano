@@ -41,11 +41,15 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   const medicalFile = person.medicalFile;
 
   const groupedCustomFieldsMedicalFileWithLegacyFields = useMemo(() => {
-    const c = [...groupedCustomFieldsMedicalFile];
+    const c = structuredClone(groupedCustomFieldsMedicalFile);
     const structureMedical = flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical");
-    if (structureMedical) c[0].fields.unshift(structureMedical);
+    if (structureMedical) {
+      c[0].fields = [structureMedical, ...c[0].fields];
+    }
     const healthInsurances = flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances");
-    if (healthInsurances) c[0].fields.unshift(healthInsurances);
+    if (healthInsurances) {
+      c[0].fields = [healthInsurances, ...c[0].fields];
+    }
     return c;
   }, [groupedCustomFieldsMedicalFile, flattenedCustomFieldsPersons]);
 
