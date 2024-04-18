@@ -337,7 +337,9 @@ export const itemsGroupedByPersonSelector = selector({
       }
     }
 
-    // Cette zone sert à récupérer les territoires liés au rencontres (par rebonds)
+    // Cette zone sert à récupérer les territoires liés au rencontres (par rebonds via l'observation)
+    // On pourra se débarasser de ça quand on aura des territoires directement liés aux observations,
+    // autrement dit, en créant un objet enrichi d'observations avec leur territoires.
     const rencontresObject = {};
     const rencontresByObservations = {};
     for (const rencontre of rencontres) {
