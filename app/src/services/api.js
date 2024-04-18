@@ -28,6 +28,8 @@ import {
 } from 'react-native-device-info';
 import { Alert, Linking } from 'react-native';
 
+const fetchWithFetchRetry = fetchRetry(fetch);
+
 class ApiService {
   getUrl = (path, query = {}) => {
     return new URI().scheme(SCHEME).host(HOST).path(path).setSearch(query).toString();
@@ -79,7 +81,7 @@ class ApiService {
       // console.log({ url });
       const response =
         method === 'GET'
-          ? await fetchRetry(fetch)(url, {
+          ? await fetchWithFetchRetry(url, {
               ...options,
               retries: 10,
               retryDelay: 2000,

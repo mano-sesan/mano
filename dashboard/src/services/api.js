@@ -10,6 +10,8 @@ import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVe
 import { AppSentry, capture } from "./sentry";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 
+const fetchWithFetchRetry = fetchRetry(fetch);
+
 const getUrl = (path, query = {}) => {
   return new URI().scheme(SCHEME).host(HOST).path(path).query(query).toString();
 };
@@ -243,7 +245,7 @@ const execute = async ({
     const url = getUrl(path, query);
     const response =
       method === "GET"
-        ? await fetchRetry(fetch)(url, {
+        ? await fetchWithFetchRetry(url, {
             ...options,
             retries: 10,
             retryDelay: 2000,
