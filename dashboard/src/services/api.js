@@ -241,8 +241,10 @@ const execute = async ({
       };
     }
 
-    options.retries = 10;
-    options.retryDelay = 2000;
+    if (method === "GET") {
+      options.retries = 10;
+      options.retryDelay = 2000;
+    }
 
     const url = getUrl(path, query);
     const response = await fetch(url, options);

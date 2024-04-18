@@ -74,8 +74,10 @@ class ApiService {
         };
       }
 
-      options.retries = 3;
-      options.retryDelay = 1000;
+      if (method === 'GET') {
+        options.retries = 10;
+        options.retryDelay = 2000;
+      }
 
       const url = this.getUrl(path, query);
       // console.log({ url });
