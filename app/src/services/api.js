@@ -4,6 +4,7 @@ import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVe
 import { capture } from './sentry';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 const RNFS = require('react-native-fs');
+import fetchRetry from 'fetch-retry';
 import {
   getApiLevel,
   getBrand,
@@ -74,14 +75,17 @@ class ApiService {
         };
       }
 
-      if (method === 'GET') {
-        options.retries = 10;
-        options.retryDelay = 2000;
-      }
-
       const url = this.getUrl(path, query);
       // console.log({ url });
-      const response = await this.fetch(url, options);
+      const response =
+        method === 'GET'
+          ? await fetchRetry(fetch)(url, {
+              ...options,
+              retries: 10,
+              retryDelay: 2000,
+            })
+          : await fetch(url, options);
+
       if (!response.ok && response.status === 401) {
         if (this.logout) this.logout('401');
         if (this.handleLogoutError) this.handleLogoutError();
