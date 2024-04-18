@@ -213,7 +213,7 @@ function PassagesTable({ personPassages, users }) {
               }}
             >
               <td>
-                <div className="tw-flex tw-text-black50 tw-capitalize tw-mb-1">
+                <div className="tw-flex tw-text-black50 tw-capitalize tw-mb-1 tw-text-xs tw-items-center">
                   <div>{formatDateTimeWithNameOfDay(passage.date || passage.createdAt)}</div>
                 </div>
                 {passage.comment ? (
@@ -225,7 +225,7 @@ function PassagesTable({ personPassages, users }) {
                     ))}
                   </div>
                 ) : null}
-                <div className="tw-flex tw-mt-1">
+                <div className="tw-flex tw-mt-1 tw-text-xs tw-items-center">
                   <div className="tw-grow tw-text-black50">Créé par {users.find((e) => e._id === passage.user)?.name}</div>
                   <div className="tw-max-w-fit">
                     <TagTeam teamId={passage.team} />
@@ -254,7 +254,7 @@ function RencontresTable({ personRencontres, users }) {
               }}
             >
               <td>
-                <div className="tw-flex tw-text-black50 tw-capitalize tw-mb-1">
+                <div className="tw-flex tw-text-black50 tw-capitalize tw-mb-1 tw-text-xs tw-items-center">
                   <div className="tw-grow">{formatDateTimeWithNameOfDay(rencontre.date || rencontre.createdAt)}</div>
                   {rencontre.territoryObject ? (
                     <div>
@@ -273,7 +273,7 @@ function RencontresTable({ personRencontres, users }) {
                     ))}
                   </div>
                 ) : null}
-                <div className="tw-flex tw-mt-1">
+                <div className="tw-flex tw-mt-1 tw-text-xs tw-items-center">
                   <div className="tw-grow tw-text-black50">Créé par {users.find((e) => e._id === rencontre.user)?.name}</div>
                   <div className="tw-max-w-fit">
                     <TagTeam teamId={rencontre.team} />
