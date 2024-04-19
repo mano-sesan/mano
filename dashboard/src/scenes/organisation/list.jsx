@@ -26,7 +26,7 @@ const List = () => {
   const [updateKey, setUpdateKey] = useState(null);
   const [sortBy, setSortBy] = useState("countersTotal");
   const [sortOrder, setSortOrder] = useState("DESC");
-  const [refresh, setRefresh] = useState(false);
+  const [refresh, setRefresh] = useState(true);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openCreateUserModal, setOpenCreateUserModal] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
