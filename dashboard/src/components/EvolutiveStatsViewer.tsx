@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { capture } from "../services/sentry";
 import type { Dayjs } from "dayjs";
 import type { FilterableField } from "../types/field";
+import type { EvolutiveStatsPersonFields, EvolutiveStatOption, EvolutiveStatDateYYYYMMDD } from "../types/evolutivesStats";
 import { filterData } from "./Filters";
 import { SelectedPersonsModal } from "../scenes/stats/PersonsStats";
 
@@ -22,8 +23,6 @@ interface EvolutiveStatsViewerProps {
 
 export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period, persons, filterBase }: EvolutiveStatsViewerProps) {
   try {
-    console.log({ filterBase });
-
     const evolutiveStatsPerson = useRecoilValue(
       evolutiveStatsForPersonsSelector({
         persons,
@@ -42,7 +41,8 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       countStart,
       countEnd,
       fieldData, // structure example for field gender: { 'Homme': { 20240101: 1, 20240102: 2, 20240103: 3 }, 'Femme': { 20240101: 4, 20240102: 5, 20240103: 6 } }
-      personsForStats,
+      personsAtStartByValue,
+      personsAtEndByValue,
     } = evolutiveStatsPerson;
 
     if (valueStart == null) return null;
@@ -54,7 +54,8 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
           </h4>
 
           <StreamChart
-            personsForStats={personsForStats}
+            personsAtStartByValue={personsAtStartByValue}
+            personsAtEndByValue={personsAtEndByValue}
             startDateConsolidated={startDateConsolidated}
             endDateConsolidated={endDateConsolidated}
             fieldData={fieldData}
@@ -119,13 +120,15 @@ function StreamChart({
   fieldData,
   startDateConsolidated,
   endDateConsolidated,
-  personsForStats,
+  personsAtStartByValue,
+  personsAtEndByValue,
   field,
 }: {
   fieldData: Record<string, Record<string, number>>;
   startDateConsolidated: Dayjs;
   endDateConsolidated: Dayjs;
-  personsForStats: Array<PersonPopulated>;
+  personsAtStartByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
+  personsAtEndByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
   field: FilterableField;
 }) {
   const chartData = useMemo(() => {
@@ -234,7 +237,8 @@ function StreamChart({
         chartData={chartData}
         startDateConsolidated={startDateConsolidated}
         endDateConsolidated={endDateConsolidated}
-        personsForStats={personsForStats}
+        personsAtStartByValue={personsAtStartByValue}
+        personsAtEndByValue={personsAtEndByValue}
         field={field}
       />
     </div>
@@ -242,13 +246,15 @@ function StreamChart({
 }
 
 function EvolutiveStatsTable({
-  personsForStats,
+  personsAtStartByValue,
+  personsAtEndByValue,
   chartData,
   startDateConsolidated,
   endDateConsolidated,
   field,
 }: {
-  personsForStats: Array<PersonPopulated>;
+  personsAtStartByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
+  personsAtEndByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
   chartData: {
     data: Array<Record<string, number>>;
     keys: Array<string>;
@@ -259,17 +265,16 @@ function EvolutiveStatsTable({
   field: FilterableField;
 }) {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
+  const [sliceDate, setSliceDate] = useState(null);
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
 
-  const onLineClick = (option: any) => {
+  const onLineClick = (date: string, option: string, personsByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>) => {
+    setSliceDate(date);
     setSliceField(field);
     setSliceValue(option);
-    const slicedData =
-      field.type === "boolean"
-        ? personsForStats.filter((p) => (option === "Non" ? !p[field.name] : !!p[field.name]))
-        : filterData(personsForStats, [{ ...field, value: option, type: field.name === "outOfActiveList" ? "boolean" : field.name }]);
+    const slicedData = personsByValue[option];
     setSlicedData(slicedData);
     setPersonsModalOpened(true);
   };
@@ -301,13 +306,20 @@ function EvolutiveStatsTable({
                   <td className="tw-cursor-default tw-border tw-border-zinc-400 tw-p-1">{option}</td>
                   <td
                     onClick={() => {
-                      onLineClick(option);
+                      onLineClick(startDateConsolidated.format("DD/MM/YYYY"), option, personsAtStartByValue);
                     }}
                     className="tw-border tw-border-zinc-400 tw-p-1 tw-text-center"
                   >
                     {startValue}
                   </td>
-                  <td className="tw-cursor-default tw-border tw-border-zinc-400 tw-p-1 tw-text-center">{endValue}</td>
+                  <td
+                    onClick={() => {
+                      onLineClick(endDateConsolidated.format("DD/MM/YYYY"), option, personsAtEndByValue);
+                    }}
+                    className="tw-border tw-border-zinc-400 tw-p-1 tw-text-center"
+                  >
+                    {endValue}
+                  </td>
                   <td className="tw-cursor-default tw-border tw-border-zinc-400 tw-p-1 tw-text-center">{diff === 0 ? "" : `${sign}${diff}`}</td>
                   <td className="tw-cursor-default tw-border tw-border-zinc-400 tw-p-1 tw-text-center">
                     {percentDiff === 0 ? "" : `${sign}${percentDiff}%`}
@@ -326,13 +338,14 @@ function EvolutiveStatsTable({
         persons={slicedData}
         sliceField={sliceField}
         onAfterLeave={() => {
+          setSliceDate(null);
           setSliceField(null);
           setSliceValue(null);
           setSlicedData([]);
         }}
         title={
           <p className="tw-basis-1/2">
-            {`${sliceField?.label} : ${sliceValue} (${slicedData.length})`}
+            {`${sliceField?.label} au ${sliceDate}: ${sliceValue} (${slicedData.length})`}
             <br />
             <br />
             <small className="tw-text-gray-500 tw-block tw-text-xs">
