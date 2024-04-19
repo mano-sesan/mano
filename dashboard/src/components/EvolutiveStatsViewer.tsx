@@ -349,8 +349,8 @@ function EvolutiveStatsTable({
             <br />
             <br />
             <small className="tw-text-gray-500 tw-block tw-text-xs">
-              Attention: cette liste affiche les personnes <strong>telles qu'elles sont aujourd'hui</strong>, et non pas telles qu'elles sont dans la
-              période d'analyse.
+              Attention: cette liste affiche les personnes <strong>telles qu'elles sont aujourd'hui</strong>, et non pas telles qu'elles sont au{" "}
+              {sliceDate}.
               <br /> Pour en savoir plus sur l'évolution de chaque personne, cliquez dessus et consultez son historique.
             </small>
           </p>

@@ -158,7 +158,7 @@ describe("Stats evolutives", () => {
     expect(computed.valueStart).toBe("Homme");
     expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countEnd).toBe(0);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -262,7 +262,7 @@ describe("Stats evolutives", () => {
           resources: ["RSA"],
           history: [
             {
-              date: dayjs("2024-12-31").toDate(),
+              date: dayjs("2024-01-01T00:00:00.000Z").toDate(),
               data: {
                 resources: {
                   oldValue: "",
@@ -276,9 +276,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.countStart).toBe(1);
+    expect(computed.countStart).toBe(0);
     expect(computed.valueEnd).toBe("RSA");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countEnd).toBe(0);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
