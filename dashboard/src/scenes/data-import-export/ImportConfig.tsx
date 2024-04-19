@@ -211,25 +211,29 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
             bon, cliquez sur le bouton "Valider l'import" en bas (pas de retour arrière possible).
           </div>
           {Object.entries(workbookData).map(([sheetName, { data, globalErrors, errors }]) => (
-            <div key={sheetName}>
-              <h4 className="tw-mb-4 tw-mt-10 tw-flex tw-justify-between tw-text-lg tw-font-bold">{sheetName}</h4>
-              {!globalErrors.length && !errors.length && data.length > 0 && (
-                <div className="tw-mb-8 tw-border-l-4 tw-border-green-500 tw-bg-green-100 tw-p-4 tw-text-green-700" role="alert">
-                  Bonne nouvelle, aucune erreur n'a été trouvée ; relisez quand même !
+            <details key={sheetName} open={globalErrors.length > 0 || errors.length > 0} className="tw-mt-10 ">
+              <summary className="marker:!tw-hidden marker:tw-opacity-0 tw-list-none before:tw-content-['+'] before:tw-absolute before:tw-top-0 tw-relative tw-mb-8 before:-tw-left-4">
+                <div className="tw-inline-block">
+                  <h4 className="tw-mb-4 tw-flex tw-justify-between tw-text-lg tw-font-bold">{sheetName}</h4>
+                  {!globalErrors.length && !errors.length && data.length > 0 && (
+                    <div className="tw-border-l-4 tw-border-green-500 tw-bg-green-100 tw-p-4 tw-text-green-700" role="alert">
+                      Bonne nouvelle, aucune erreur n'a été trouvée ; relisez quand même !
+                    </div>
+                  )}
+                  {!globalErrors.length && errors.length > 0 && data.length > 0 && (
+                    <div className="tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
+                      Plusieurs erreurs ont été trouvées, relisez attentivement les lignes suivantes.
+                    </div>
+                  )}
+                  {globalErrors.length > 0 && (
+                    <div className="tw-border-l-4 tw-border-red-500 tw-bg-red-100 tw-p-4 tw-text-red-700" role="alert">
+                      {globalErrors.map((error, i) => (
+                        <div key={i}>{error}</div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-              {!globalErrors.length && errors.length > 0 && data.length > 0 && (
-                <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
-                  Plusieurs erreurs ont été trouvées, relisez attentivement les lignes suivantes.
-                </div>
-              )}
-              {globalErrors.length > 0 && (
-                <div className="tw-mb-8 tw-border-l-4 tw-border-red-500 tw-bg-red-100 tw-p-4 tw-text-red-700" role="alert">
-                  {globalErrors.map((error, i) => (
-                    <div key={i}>{error}</div>
-                  ))}
-                </div>
-              )}
+              </summary>
               {data.length > 0 ? (
                 <div className="tw-my-8">
                   <table className="tw-w-full">
@@ -262,8 +266,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                                     </div>
                                   ))
                                 : value
-                                ? String(value)
-                                : ""}
+                                  ? String(value)
+                                  : ""}
                               {errors.some((error) => error.line === i && error.col === j) && (
                                 <div className="tw-italic tw-text-red-600">
                                   {errors.find((error) => error.line === i && error.col === j)?.message}
@@ -283,7 +287,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                   </div>
                 )
               )}
-            </div>
+            </details>
           ))}
           <div className="tw-mt-8 tw-flex tw-justify-end tw-gap-4">
             {!workbookHasErrors ? (
@@ -309,7 +313,7 @@ const typeOptionsLabels = [
   "Choix multiple dans une liste",
   "Case à cocher",
 ] as const;
-type TypeOptionLabel = typeof typeOptionsLabels[number];
+type TypeOptionLabel = (typeof typeOptionsLabels)[number];
 
 function isTypeOptionLabel(type: string): type is TypeOptionLabel {
   return typeOptionsLabels.includes(type as any);
@@ -332,7 +336,7 @@ const sheetNames = [
   "Liste des services",
   "Catégories d action",
 ] as const;
-type SheetName = typeof sheetNames[number];
+type SheetName = (typeof sheetNames)[number];
 
 const workbookColumns: Record<SheetName, string[]> = {
   "Infos social et médical": ["Rubrique", "Intitulé du champ", "Type de champ", "Choix"],
@@ -551,33 +555,39 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
       if (customFields.length) updatedOrganisation.customFieldsObs = customFields;
     }
     if (sheetName === "Liste des services") {
-      const services = sheetData.data.reduce((acc, curr) => {
-        const service = curr.service as string;
-        const groupe = curr.groupe as string;
-        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const services = sheetData.data.reduce(
+        (acc, curr) => {
+          const service = curr.service as string;
+          const groupe = curr.groupe as string;
+          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
-        if (groupeIndex === -1) {
-          acc.push({ groupTitle: groupe, services: [service] });
-        } else {
-          acc[groupeIndex].services.push(service);
-        }
-        return acc;
-      }, [] as { groupTitle: string; services: string[] }[]);
+          if (groupeIndex === -1) {
+            acc.push({ groupTitle: groupe, services: [service] });
+          } else {
+            acc[groupeIndex].services.push(service);
+          }
+          return acc;
+        },
+        [] as { groupTitle: string; services: string[] }[]
+      );
       if (services.length) updatedOrganisation.groupedServices = services;
     }
     if (sheetName === "Catégories d action") {
-      const categories = sheetData.data.reduce((acc, curr) => {
-        const categorie = curr.categorie as string;
-        const groupe = curr.groupe as string;
-        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const categories = sheetData.data.reduce(
+        (acc, curr) => {
+          const categorie = curr.categorie as string;
+          const groupe = curr.groupe as string;
+          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
-        if (groupeIndex === -1) {
-          acc.push({ groupTitle: groupe, categories: [categorie] });
-        } else {
-          acc[groupeIndex].categories.push(categorie);
-        }
-        return acc;
-      }, [] as { groupTitle: string; categories: string[] }[]);
+          if (groupeIndex === -1) {
+            acc.push({ groupTitle: groupe, categories: [categorie] });
+          } else {
+            acc[groupeIndex].categories.push(categorie);
+          }
+          return acc;
+        },
+        [] as { groupTitle: string; categories: string[] }[]
+      );
       if (categories.length) updatedOrganisation.actionsGroupedCategories = categories;
     }
   }
