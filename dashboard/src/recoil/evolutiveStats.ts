@@ -1,6 +1,6 @@
 import { selector, selectorFamily } from "recoil";
 import { capture } from "../services/sentry";
-import type { PersonInstance } from "../types/person";
+import type { PersonPopulated } from "../types/person";
 import type { CustomOrPredefinedField } from "../types/field";
 import type { Indicator, IndicatorsSelection } from "../types/evolutivesStats";
 import type { EvolutiveStatsPersonFields, EvolutiveStatOption, EvolutiveStatDateYYYYMMDD } from "../types/evolutivesStats";
@@ -95,10 +95,10 @@ function getPersonSnapshotAtDate({
   snapshotDate,
   fieldsMap,
 }: {
-  person: PersonInstance;
+  person: PersonPopulated;
   fieldsMap: FieldsMap;
   snapshotDate: string; // YYYYMMDD
-}): PersonInstance | null {
+}): PersonPopulated | null {
   let snapshot = structuredClone(person);
   const followedSince = dayjsInstance(snapshot.followedSince || snapshot.createdAt).format("YYYYMMDD");
   if (followedSince > snapshotDate) return null;
@@ -147,6 +147,7 @@ type EvolutiveStatRenderData = {
   valueEnd: EvolutiveStatOption;
   startDateConsolidated: Dayjs;
   endDateConsolidated: Dayjs;
+  personsForStats: Array<PersonPopulated>;
 };
 
 export function computeEvolutiveStatsForPersons({
@@ -158,7 +159,7 @@ export function computeEvolutiveStatsForPersons({
 }: {
   startDate: string | null;
   endDate: string | null;
-  persons: Array<PersonInstance>;
+  persons: Array<PersonPopulated>;
   evolutiveStatsIndicators: IndicatorsSelection;
   evolutiveStatsIndicatorsBase: Array<CustomOrPredefinedField>;
 }): EvolutiveStatRenderData | null {
@@ -339,6 +340,7 @@ export function computeEvolutiveStatsForPersons({
     valueEnd,
     startDateConsolidated,
     endDateConsolidated,
+    personsForStats: persons,
   };
 }
 
@@ -353,7 +355,7 @@ export const evolutiveStatsForPersonsSelector = selectorFamily({
     }: {
       startDate: string | null;
       endDate: string | null;
-      persons: Array<PersonInstance>;
+      persons: Array<PersonPopulated>;
       evolutiveStatsIndicators: IndicatorsSelection;
     }) =>
     ({ get }) => {

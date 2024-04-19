@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 import { computeEvolutiveStatsForPersons } from "../src/recoil/evolutiveStats";
-import { mockedEvolutiveStatsIndicatorsBase, personBase } from "./mocks";
+import { mockedEvolutiveStatsIndicatorsBase, personPopulated } from "./mocks";
 import * as SentryService from "../src/services/sentry";
 
 // Mock the capture function from Sentry service
@@ -27,7 +27,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           gender: "Femme",
           history: [
             {
@@ -67,7 +67,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           gender: "Homme",
           history: [
             {
@@ -118,7 +118,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           gender: "Femme",
           history: [
             {
@@ -178,7 +178,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           gender: "Femme",
           history: [
             {
@@ -218,7 +218,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           gender: "Femme",
           history: [
             {
@@ -258,7 +258,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           resources: ["RSA"],
           history: [
             {
@@ -298,7 +298,7 @@ describe("Stats evolutives", () => {
       ],
       persons: [
         {
-          ...personBase,
+          ...personPopulated,
           resources: ["RSA"],
           history: [
             {
