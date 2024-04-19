@@ -332,4 +332,44 @@ describe("Stats evolutives", () => {
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
+
+  test("If the end of the period is in the future, it should work", () => {
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: dayjs().add(10, "days").toISOString(),
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Non renseigné",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [
+        {
+          ...personPopulated,
+          gender: "Femme",
+          history: [
+            {
+              date: dayjs().toDate(),
+              data: {
+                gender: {
+                  oldValue: "",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+          ],
+        },
+      ],
+    });
+    expect(computed.valueStart).toBe("Non renseigné");
+    expect(computed.countStart).toBe(1);
+    expect(computed.valueEnd).toBe("Femme");
+    expect(computed.countEnd).toBe(1);
+    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
+    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe(dayjs().add(10, "days").format("YYYY-MM-DD"));
+  });
 });
