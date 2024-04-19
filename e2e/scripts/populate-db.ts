@@ -47,8 +47,8 @@ async function createUsersAndOrgas() {
         services,
         "receptionEnabled",
         collaborations,
-        "fieldsPersonsCustomizableOptions"
-        city,
+        "fieldsPersonsCustomizableOptions",
+        city
       ) VALUES (
         $1,
         $3,
