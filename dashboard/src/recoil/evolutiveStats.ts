@@ -188,7 +188,8 @@ export function computeEvolutiveStatsForPersons({
   const dates: Record<EvolutiveStatDateYYYYMMDD, number> = {};
   const minimumDateForEvolutiveStats = startDateConsolidated.format("YYYYMMDD");
   let date = minimumDateForEvolutiveStats;
-  const lastDate = dayjsInstance().format("YYYYMMDD");
+  const tonight = dayjsInstance().endOf("day").format("YYYYMMDD");
+  const lastDate = endDateFormatted > tonight ? endDateFormatted : tonight;
   while (date <= lastDate) {
     dates[date] = 0;
     date = dayjsInstance(date).add(1, "day").format("YYYYMMDD");
