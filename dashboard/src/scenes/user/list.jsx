@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
-import { teamsState, userState } from "../../recoil/auth";
+import { teamsState, usersState, userState } from "../../recoil/auth";
 import API from "../../services/api";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
@@ -45,14 +45,19 @@ const sortUsers = (sortBy, sortOrder) => (a, b) => {
 };
 
 const List = () => {
-  const [users, setUsers] = useState([]);
-  const history = useHistory();
-  const [refresh, setRefresh] = useState(true);
-  const user = useRecoilValue(userState);
   useTitle("Utilisateurs");
+
+  const [users, setUsers] = useState([]);
+  const user = useRecoilValue(userState);
+
+  const history = useHistory();
+
+  const [refresh, setRefresh] = useState(true);
 
   const [sortBy, setSortBy] = useLocalStorage("users-sortBy", "createdAt");
   const [sortOrder, setSortOrder] = useLocalStorage("users-sortOrder", "ASC");
+
+  console.log("users", users);
 
   const data = useMemo(
     () =>
