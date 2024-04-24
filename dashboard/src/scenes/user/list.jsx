@@ -15,6 +15,7 @@ import Table from "../../components/table";
 import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
 import { emailRegex } from "../../utils";
+import dayjs from "dayjs";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -53,7 +54,18 @@ const List = () => {
   const [sortBy, setSortBy] = useLocalStorage("users-sortBy", "createdAt");
   const [sortOrder, setSortOrder] = useLocalStorage("users-sortOrder", "ASC");
 
-  const data = useMemo(() => users.sort(sortUsers(sortBy, sortOrder)), [users, sortBy, sortOrder]);
+  const data = useMemo(
+    () =>
+      users
+        .map((user) => {
+          return {
+            ...user,
+            style: dayjs().diff(user.lastLoginAt ?? user.createdAt, "months") > 6 ? { color: "red", fontWeight: 800 } : {},
+          };
+        })
+        .sort(sortUsers(sortBy, sortOrder)),
+    [users, sortBy, sortOrder]
+  );
 
   useEffect(() => {
     API.get({ path: "/user" }).then((response) => {
@@ -110,8 +122,8 @@ const List = () => {
             render: (user) => {
               return (
                 <>
-                  <div>{user.role}</div>
-                  {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
+                  <span>{user.role}</span>
+                  {user.healthcareProfessional ? <span>🧑‍⚕️&nbsp;pro.&nbsp;de&nbsp;santé</span> : ""}
                 </>
               );
             },
@@ -146,7 +158,10 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            render: (i) => (i.lastLoginAt ? formatDateWithFullMonth(i.lastLoginAt) : null),
+            render: (i) => {
+              if (!i.lastLoginAt) return "Jamais connecté";
+              return formatDateWithFullMonth(i.lastLoginAt);
+            },
           },
         ]}
       />
