@@ -243,6 +243,8 @@ export const itemsGroupedByPersonSelector = selector({
       personsObject[consultation.person].consultations = personsObject[consultation.person].consultations || [];
       personsObject[consultation.person].consultations.push(consultation);
       personsObject[consultation.person].hasAtLeastOneConsultation = true;
+      if (!personsObject[consultation.person].numberOfConsultations) personsObject[consultation.person].numberOfConsultations = 0;
+      personsObject[consultation.person].numberOfConsultations++;
       personsObject[consultation.person].interactions.push(consultation.dueAt);
       personsObject[consultation.person].interactions.push(consultation.createdAt);
       personsObject[consultation.person].interactions.push(consultation.completedAt);
