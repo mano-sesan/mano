@@ -1,4 +1,4 @@
-const excludeFields = new Set([
+export const excludeFields = new Set([
   "_id",
   "encryptedEntityKey",
   "entityKey",
