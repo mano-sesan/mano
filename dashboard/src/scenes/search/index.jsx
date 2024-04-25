@@ -211,8 +211,6 @@ const View = () => {
 
   const observations = useRecoilValue(observationsBySearchSelector({ search }));
 
-  console.log({ comments });
-
   const renderContent = () => {
     if (!search) return "Pas de recherche, pas de résultat !";
     if (search.length < 3) return "Recherche trop courte (moins de 3 caractères), pas de résultat !";
