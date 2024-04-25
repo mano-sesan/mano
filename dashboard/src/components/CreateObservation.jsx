@@ -22,7 +22,7 @@ import API from "../services/api";
 import useCreateReportAtDateIfNotExist from "../services/useCreateReportAtDateIfNotExist";
 import DatePicker from "./DatePicker";
 import { ModalBody, ModalContainer, ModalHeader, ModalFooter } from "./tailwind/Modal";
-import SelectAndCreatePerson from "../scenes/reception/SelectAndCreatePerson";
+import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import Rencontre from "./Rencontre";
 import { prepareRencontreForEncryption, rencontresState } from "../recoil/rencontres";
 import { useLocalStorage } from "../services/useLocalStorage";
@@ -215,6 +215,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                           <SelectAndCreatePerson
                             value={selectedPersons}
                             onChange={onSelectPerson}
+                            accessToFolder={false}
                             inputId="person-select-and-create-reception"
                             classNamePrefix="person-select-and-create-reception"
                           />

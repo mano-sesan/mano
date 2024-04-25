@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { SmallHeader } from "../../components/header";
 import { formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
 import { currentTeamReportsSelector } from "../../recoil/selectors";
-import SelectAndCreatePerson from "./SelectAndCreatePerson";
+import SelectAndCreatePerson from "../../components/SelectAndCreatePerson";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";

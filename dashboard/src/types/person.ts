@@ -7,6 +7,15 @@ import type { ConsultationInstance } from "./consultation";
 import type { MedicalFileInstance } from "./medicalFile";
 import type { CustomField } from "./field";
 
+export interface PersonNew {
+  organisation: UUIDV4;
+  user: UUIDV4;
+  name: string;
+  assignedTeams: UUIDV4[];
+  followedSince: Date;
+  entityKey?: string;
+}
+
 interface PersonInstanceBase {
   outOfActiveList: boolean;
   user: UUIDV4;

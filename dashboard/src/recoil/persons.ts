@@ -3,7 +3,7 @@ import { atom, selector, useRecoilValue } from "recoil";
 import { organisationState } from "./auth";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
-import type { PersonInstance } from "../types/person";
+import type { PersonInstance, PersonNew } from "../types/person";
 import type { PredefinedField, CustomField, CustomOrPredefinedField, Filter } from "../types/field";
 
 const collectionName = "person";
@@ -177,7 +177,7 @@ export const usePreparePersonForEncryption = () => {
   const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
   const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
   const personFields = useRecoilValue(personFieldsSelector) as PredefinedField[];
-  const preparePersonForEncryption = (person: PersonInstance, { checkRequiredFields = true } = {}) => {
+  const preparePersonForEncryption = (person: PersonInstance | PersonNew, { checkRequiredFields = true } = {}) => {
     if (checkRequiredFields) {
       try {
         if (!person.name) {
@@ -201,14 +201,20 @@ export const usePreparePersonForEncryption = () => {
     for (const field of encryptedFieldsIncludingCustom) {
       decrypted[field] = person[field] as never;
     }
+    if ((person as PersonInstance)._id) {
+      person = person as PersonInstance;
+      return {
+        _id: person._id,
+        organisation: person.organisation,
+        createdAt: person.createdAt,
+        updatedAt: person.updatedAt,
+        deletedAt: person.deletedAt,
+        ...decrypted,
+        entityKey: person.entityKey,
+      };
+    }
     return {
-      _id: person._id,
       organisation: person.organisation,
-      createdAt: person.createdAt,
-      updatedAt: person.updatedAt,
-      deletedAt: person.deletedAt,
-      outOfActiveList: person.outOfActiveList,
-
       decrypted,
       entityKey: person.entityKey,
     };

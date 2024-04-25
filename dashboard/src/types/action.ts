@@ -20,5 +20,6 @@ export interface ActionInstance {
   createdAt: Date;
   updatedAt: Date;
   completedAt: Date | undefined;
+  dueAt: Date | undefined;
   isConsultation?: boolean;
 }

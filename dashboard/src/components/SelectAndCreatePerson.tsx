@@ -1,22 +1,23 @@
 import React, { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { personsState, usePreparePersonForEncryption } from "../recoil/persons";
 import { selector, useRecoilState, useRecoilValue } from "recoil";
-import AsyncSelect from "react-select/async-creatable";
-import API from "../../services/api";
-import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
-import { TODO, actionsState } from "../../recoil/actions";
-import { passagesState } from "../../recoil/passages";
-import { rencontresState } from "../../recoil/rencontres";
+import AsyncCreatable from "react-select/async-creatable";
 import { useHistory } from "react-router-dom";
-import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
-import { theme } from "../../config";
-import useCreateReportAtDateIfNotExist from "../../services/useCreateReportAtDateIfNotExist";
 import dayjs from "dayjs";
+import API from "../services/api";
+import { formatBirthDate, formatCalendarDate, isToday } from "../services/date";
+import { TODO, actionsState } from "../recoil/actions";
+import { passagesState } from "../recoil/passages";
+import { rencontresState } from "../recoil/rencontres";
+import ButtonCustom from "./ButtonCustom";
+import { currentTeamState, organisationState, userState } from "../recoil/auth";
+import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
+import { theme } from "../config";
+import useCreateReportAtDateIfNotExist from "../services/useCreateReportAtDateIfNotExist";
+import type { ActionInstance } from "../types/action";
 
-function removeDiatricsAndAccents(str) {
+function removeDiatricsAndAccents(str: string): string {
   return (str || "")
     .toLowerCase()
     .normalize("NFD")
@@ -51,8 +52,8 @@ const searchablePersonsSelector = selector({
 });
 
 // This function is used to filter persons by search string. It ignores diacritics and accents.
-const filterEasySearch = (search, items = []) => {
-  const searchNormalized = removeDiatricsAndAccents((search || "").toLocaleLowerCase());
+const filterEasySearch = (search: string, items = []) => {
+  const searchNormalized: string = removeDiatricsAndAccents((search || "").toLocaleLowerCase());
   const searchTerms = searchNormalized.split(" ");
   // Items that have exact match in the beginning of the search string are first.
   const firstItems = items.filter((item) => item.searchString.startsWith(searchNormalized));
@@ -68,7 +69,7 @@ const filterEasySearch = (search, items = []) => {
   return [...firstItems, ...secondItems];
 };
 
-const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) => {
+const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, accessToFolder = true }) => {
   const [persons, setPersons] = useRecoilState(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
   const actions = useRecoilValue(actionsState);
@@ -86,7 +87,7 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) =>
 
   const lastActions = useMemo(() => {
     return Object.values(
-      actions.reduce((acc, action) => {
+      actions.reduce((acc: Record<ActionInstance["person"], Partial<ActionInstance>>, action: ActionInstance) => {
         if (!acc[action.person] || action.dueAt > acc[action.person].dueAt) {
           acc[action.person] = {
             name: action.name,
@@ -151,7 +152,7 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) =>
   }, [actions]);
 
   return (
-    <AsyncSelect
+    <AsyncCreatable
       loadOptions={(inputValue) => {
         const options = personsToOptions(
           filterEasySearch(inputValue, searchablePersons),
@@ -174,7 +175,13 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) =>
         const existingPerson = persons.find((p) => p.name === name);
         if (existingPerson) return toast.error("Un utilisateur existe déjà à ce nom");
         setIsDisabled(true);
-        const newPerson = { name, assignedTeams: [currentTeam._id], followedSince: dayjs(), user: user._id };
+        const newPerson = {
+          name,
+          organisation: organisation._id,
+          assignedTeams: [currentTeam._id],
+          followedSince: dayjs().toDate(),
+          user: user._id,
+        };
         const currentValue = value || [];
         onChange([...currentValue, { ...newPerson, __isNew__: true }]);
         const personResponse = await API.post({
@@ -193,13 +200,11 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) =>
       formatOptionLabel={(person, options) => {
         if (options.context === "menu") {
           if (person.__isNew__) return <span>Créer "{person.value}"</span>;
-          return <Person person={person} />;
+          return <Person person={person} accessToFolder={accessToFolder} />;
         }
         if (person.__isNew__) return <span>Création de {person.name}...</span>;
-        return <PersonSelected person={person} />;
+        return <PersonSelected person={person} accessToFolder={accessToFolder} />;
       }}
-      format
-      creatable
       onKeyDown={(e) => {
         // prevent create Person on Enter press
         if (e.key === "Enter" && !optionsExist.current) e.preventDefault();
@@ -210,7 +215,7 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix }) =>
   );
 };
 
-const PersonSelected = ({ person }) => {
+const PersonSelected = ({ person, accessToFolder }) => {
   const history = useHistory();
   const onClick = (e) => {
     e.stopPropagation();
@@ -225,20 +230,22 @@ const PersonSelected = ({ person }) => {
           {formatBirthDate(person.birthdate)}
         </small>
       ) : null}
-      <button
-        onMouseUp={onClick}
-        // onTouchEnd required to work on tablet
-        // see https://github.com/JedWatson/react-select/issues/3117#issuecomment-1286232693 for similar issue
-        onTouchEnd={onClick}
-        className="noprint tw-ml-2 tw-p-0 tw-text-sm tw-font-semibold tw-text-main hover:tw-underline"
-      >
-        Accéder au dossier
-      </button>
+      {accessToFolder && (
+        <button
+          onMouseUp={onClick}
+          // onTouchEnd required to work on tablet
+          // see https://github.com/JedWatson/react-select/issues/3117#issuecomment-1286232693 for similar issue
+          onTouchEnd={onClick}
+          className="noprint tw-ml-2 tw-p-0 tw-text-sm tw-font-semibold tw-text-main hover:tw-underline"
+        >
+          Accéder au dossier
+        </button>
+      )}
     </div>
   );
 };
 
-const Person = ({ person }) => {
+const Person = ({ person, accessToFolder }) => {
   const history = useHistory();
   const user = useRecoilValue(userState);
   return (
@@ -255,15 +262,17 @@ const Person = ({ person }) => {
             />
           )}
         </div>
-        <ButtonCustom
-          onClick={(e) => {
-            e.stopPropagation();
-            history.push(`/person/${person._id}`);
-          }}
-          color="link"
-          title="Accéder au dossier"
-          padding="0px"
-        />
+        {accessToFolder && (
+          <ButtonCustom
+            onClick={(e) => {
+              e.stopPropagation();
+              history.push(`/person/${person._id}`);
+            }}
+            color="link"
+            title="Accéder au dossier"
+            padding="0px"
+          />
+        )}
       </div>
       {person.outOfActiveList && (
         <div className="tw-flex tw-gap-1 tw-text-xs">
