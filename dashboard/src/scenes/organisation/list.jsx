@@ -18,10 +18,9 @@ import { userState } from "../../recoil/auth";
 import { emailRegex } from "../../utils";
 import SelectRole from "../../components/SelectRole";
 import SelectCustom from "../../components/SelectCustom";
-import { useHistory } from "react-router-dom";
+import OrganisationSuperadminSettings from "./OrganisationSuperadminSettings";
 
 const List = () => {
-  const history = useHistory();
   const [organisations, setOrganisations] = useState(null);
   const user = useRecoilValue(userState);
   const [updateKey, setUpdateKey] = useState(null);
@@ -29,10 +28,10 @@ const List = () => {
   const [sortOrder, setSortOrder] = useState("DESC");
   const [refresh, setRefresh] = useState(true);
   const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openOrgSettingsModal, setOpenOrgSettingsModal] = useState(false);
   const [openCreateUserModal, setOpenCreateUserModal] = useState(false);
   const [openUserListModal, setOpenUserListModal] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
-  const [open, setOpen] = useState(false);
 
   useTitle("Organisations");
 
@@ -66,6 +65,23 @@ const List = () => {
         setOpen={setOpenUserListModal}
         setOpenCreateUserModal={setOpenCreateUserModal}
         openCreateUserModal={openCreateUserModal}
+      />
+      <OrganisationSuperadminSettings
+        key={selectedOrganisation?._id}
+        organisation={selectedOrganisation}
+        open={openOrgSettingsModal}
+        setOpen={setOpenOrgSettingsModal}
+        updateOrganisation={(nextOrg) => {
+          setOrganisations(
+            organisations.map((orga) => {
+              if (orga._id !== nextOrg._id) return orga;
+              return {
+                ...orga,
+                ...nextOrg,
+              };
+            })
+          );
+        }}
       />
       <CreateUser onChange={() => setRefresh(true)} open={openCreateUserModal} setOpen={setOpenCreateUserModal} organisation={selectedOrganisation} />
       <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
@@ -184,6 +200,18 @@ const List = () => {
               render: (organisation) => {
                 return (
                   <div className="tw-flex-col tw-flex tw-gap-y-2">
+                    <div>
+                      <button
+                        className="button-classic"
+                        type="button"
+                        onClick={() => {
+                          setSelectedOrganisation(organisation);
+                          setOpenOrgSettingsModal(true);
+                        }}
+                      >
+                        Modifier l'organisation
+                      </button>
+                    </div>
                     <div>
                       <button
                         className="button-classic"
