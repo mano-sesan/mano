@@ -192,6 +192,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                   workbook,
                   utils.aoa_to_sheet([
                     ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+                    // @ts-ignore
                     ...groupedCustomFieldsObs.reduce((acc, curr) => {
                       return [
                         ...acc,
