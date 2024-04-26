@@ -4,7 +4,6 @@ import { Formik } from "formik";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import Table from "../../components/table";
-import ButtonCustom from "../../components/ButtonCustom";
 
 import OrganisationUsers from "./OrganisationUsers";
 import Loading from "../../components/loading";
@@ -15,10 +14,11 @@ import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirm
 import { capture } from "../../services/sentry";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/auth";
-import { emailRegex } from "../../utils";
+import { download, emailRegex } from "../../utils";
 import SelectRole from "../../components/SelectRole";
 import SelectCustom from "../../components/SelectCustom";
 import OrganisationSuperadminSettings from "./OrganisationSuperadminSettings";
+import { getUmapGeoJSONFromOrgs } from "./utils";
 
 const List = () => {
   const [organisations, setOrganisations] = useState(null);
@@ -86,7 +86,23 @@ const List = () => {
       <CreateUser onChange={() => setRefresh(true)} open={openCreateUserModal} setOpen={setOpenCreateUserModal} organisation={selectedOrganisation} />
       <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
         <h2 className="tw-text-2xl">Organisations utilisant Mano ({total})</h2>
-        <ButtonCustom onClick={() => setOpenCreateModal(true)} color="primary" title="Créer une nouvelle organisation" />
+        <div>
+          <button
+            className="button-classic"
+            type="button"
+            onClick={() => {
+              const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(organisations), null, 2);
+              // download
+              const blob = new Blob([geoJson], { type: "application/json" });
+              download(blob, "villes-utilisatrices-de-mano_umap.geojson");
+            }}
+          >
+            Exporter les villes vers umap
+          </button>
+          <button className="button-submit" type="button" onClick={() => setOpenCreateModal(true)}>
+            Créer une nouvelle organisation
+          </button>
+        </div>
       </div>
       {!organisations?.length ? (
         refresh ? (
@@ -110,7 +126,7 @@ const List = () => {
                   <br />
                   <small className="tw-text-gray-500">ID: {o.orgId}</small>
                   <br />
-                  <small className="tw-text-gray-500">Ville: {o.city}</small>
+                  <small className="tw-text-gray-500">Ville: {o.city?.split?.(" - ")?.[0]}</small>
                 </div>
               ),
             },

@@ -7,13 +7,14 @@ import { toast } from "react-toastify";
 import AsyncSelect from "react-select/async";
 
 type GeoApiResponse = {
+  codeDepartement: string;
+  centre: {
+    type: string;
+    coordinates: [number, number];
+  };
   nom: string;
   code: string;
   _score: number;
-  departement: {
-    code: string;
-    nom: string;
-  };
 };
 
 export default function OrganisationSuperadminSettings({
@@ -52,11 +53,12 @@ export default function OrganisationSuperadminSettings({
 
   async function loadOptions(inputValue: string) {
     const response: Array<GeoApiResponse> = await fetch(
-      `https://geo.api.gouv.fr/communes?nom=${inputValue}&fields=departement&boost=population&limit=5`
+      `https://geo.api.gouv.fr/communes?nom=${inputValue}&fields=codeDepartement,centre&boost=population&limit=5`
     ).then((res) => res.json());
-    const options = response.map((item: any) => {
-      const cityAndDepartment = `${item.nom} (${item.departement.code})`;
-      return { value: cityAndDepartment, label: cityAndDepartment };
+    console.log({ response });
+    const options = response.map((city) => {
+      const cityAndDepartment = `${city.nom} (${city.codeDepartement})`;
+      return { value: `${cityAndDepartment} - ${JSON.stringify(city.centre.coordinates)}`, label: cityAndDepartment };
     });
     return options;
   }
@@ -92,12 +94,12 @@ export default function OrganisationSuperadminSettings({
                   theme={setTheme}
                   instanceId="organisation-city"
                   inputId="organisation-city"
-                  value={{ value: data.city, label: data.city }}
+                  value={{ value: data.city, label: data?.city?.split?.(" - ")[0] }}
                   onChange={(e) => {
                     setData({ ...data, city: e?.value });
                   }}
                   classNamePrefix="organisation-city"
-                  loadOptions={loadOptions} // Inject the loadOptions prop to AsyncCreatableSelect
+                  loadOptions={loadOptions}
                 />
               </div>
             </div>
