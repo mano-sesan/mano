@@ -300,7 +300,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
             }}
           >
             {activeTab === "Informations" && (
-              <div className={["tw-flex tw-w-full tw-flex-wrap tw-p-4"].filter(Boolean).join(" ")}>
+              <div className="tw-flex tw-w-full tw-flex-wrap tw-p-4">
                 <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
                   <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-team">
                     Personne suivie
@@ -465,11 +465,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
               </div>
             )}
             {activeTab === "Constantes" ? (
-              <div
-                className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Constantes" && "tw-hidden"]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
+              <div className="tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto">
                 <div className="tw-m-2">
                   <div className="tw-mx-auto tw-max-w-2xl tw-border-l-4 tw-border-blue-500 tw-bg-blue-100 tw-p-4 tw-text-blue-700" role="alert">
                     Notez les constantes pour observer leur évolution sous forme de graphiques dans le dossier médical de la personne.
