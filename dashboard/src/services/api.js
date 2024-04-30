@@ -325,7 +325,14 @@ const execute = async ({
     try {
       if (window?.debugApi?.length) window.debugApi.push("start big try");
       // J'ai parfois une erreur ici.
-      const res = await response.json();
+      let res;
+      try {
+        res = await response.json();
+      } catch (errorParsingJson) {
+        if (window?.debugApi?.length) window.debugApi.push("errorParsingJson");
+        if (window?.debugApi?.length) window.debugApi.push(errorParsingJson.toString());
+        throw errorParsingJson;
+      }
       if (window?.debugApi?.length) window.debugApi.push("JSON parsed");
       if (!response.ok) {
         if (window?.debugApi?.length) window.debugApi.push("response not ok");
