@@ -299,380 +299,369 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
               handleSubmit({ closeOnSubmit: true });
             }}
           >
-            <div className={["tw-flex tw-w-full tw-flex-wrap tw-p-4", activeTab !== "Informations" && "tw-hidden"].filter(Boolean).join(" ")}>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-team">
-                  Personne suivie
-                </label>
-                {isEditing ? (
-                  <SelectPerson noLabel value={data.person} onChange={handleChange} isMulti={false} inputId="create-consultation-person-select" />
-                ) : (
-                  <PersonName item={data} />
-                )}
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-team">
-                  Équipe(s) en charge
-                </label>
-                {isEditing ? (
-                  <SelectTeamMultiple
-                    onChange={(teamIds) => setData({ ...data, teams: teamIds })}
-                    value={data.teams}
-                    colored
-                    inputId="create-consultation-team-select"
-                    classNamePrefix="create-consultation-team-select"
-                  />
-                ) : (
-                  <div className="tw-flex tw-flex-col">
-                    {data.teams.map((teamId) => (
-                      <TagTeam key={teamId} teamId={teamId} />
-                    ))}
-                  </div>
-                )}
-              </div>
+            {activeTab === "Informations" && (
+              <div className={["tw-flex tw-w-full tw-flex-wrap tw-p-4"].filter(Boolean).join(" ")}>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-team">
+                    Personne suivie
+                  </label>
+                  {isEditing ? (
+                    <SelectPerson noLabel value={data.person} onChange={handleChange} isMulti={false} inputId="create-consultation-person-select" />
+                  ) : (
+                    <PersonName item={data} />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-team">
+                    Équipe(s) en charge
+                  </label>
+                  {isEditing ? (
+                    <SelectTeamMultiple
+                      onChange={(teamIds) => setData({ ...data, teams: teamIds })}
+                      value={data.teams}
+                      colored
+                      inputId="create-consultation-team-select"
+                      classNamePrefix="create-consultation-team-select"
+                    />
+                  ) : (
+                    <div className="tw-flex tw-flex-col">
+                      {data.teams.map((teamId) => (
+                        <TagTeam key={teamId} teamId={teamId} />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-name">
-                  Nom (facultatif)
-                </label>
-                {isEditing ? (
-                  <input className="tailwindui" id="create-consultation-name" name="name" value={data.name} onChange={handleChange} />
-                ) : (
-                  <CustomFieldDisplay type="text" value={data.name} />
-                )}
-              </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-name">
+                    Nom (facultatif)
+                  </label>
+                  {isEditing ? (
+                    <input className="tailwindui" id="create-consultation-name" name="name" value={data.name} onChange={handleChange} />
+                  ) : (
+                    <CustomFieldDisplay type="text" value={data.name} />
+                  )}
+                </div>
 
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="type">
-                  Type
-                </label>
-                {isEditing ? (
-                  <SelectAsInput
-                    id="type"
-                    name="type"
-                    inputId="consultation-modal-type"
-                    classNamePrefix="consultation-modal-type"
-                    value={data.type}
-                    onChange={handleChange}
-                    placeholder="-- Type de consultation --"
-                    options={organisation.consultations.map((e) => e.name)}
-                  />
-                ) : (
-                  <CustomFieldDisplay type="text" value={data.type} />
-                )}
-              </div>
-              {organisation.consultations
-                .find((e) => e.name === data.type)
-                ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-                .map((field) => {
-                  if (!isEditing) {
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="type">
+                    Type
+                  </label>
+                  {isEditing ? (
+                    <SelectAsInput
+                      id="type"
+                      name="type"
+                      inputId="consultation-modal-type"
+                      classNamePrefix="consultation-modal-type"
+                      value={data.type}
+                      onChange={handleChange}
+                      placeholder="-- Type de consultation --"
+                      options={organisation.consultations.map((e) => e.name)}
+                    />
+                  ) : (
+                    <CustomFieldDisplay type="text" value={data.type} />
+                  )}
+                </div>
+                {organisation.consultations
+                  .find((e) => e.name === data.type)
+                  ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
+                  .map((field) => {
+                    if (!isEditing) {
+                      return (
+                        <div data-test-id={field.label} key={field.name} className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                          <label className="tw-text-sm tw-font-semibold tw-text-blue-900" htmlFor="type">
+                            {field.label}
+                          </label>
+                          <CustomFieldDisplay key={field.name} type={field.type} value={data[field.name]} />
+                        </div>
+                      );
+                    }
                     return (
-                      <div data-test-id={field.label} key={field.name} className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                        <label className="tw-text-sm tw-font-semibold tw-text-blue-900" htmlFor="type">
-                          {field.label}
-                        </label>
-                        <CustomFieldDisplay key={field.name} type={field.type} value={data[field.name]} />
-                      </div>
+                      <CustomFieldInput
+                        colWidth={field.type === "textarea" ? 12 : 6}
+                        model="person"
+                        values={data}
+                        handleChange={handleChange}
+                        field={field}
+                        key={field.name}
+                      />
                     );
-                  }
-                  return (
-                    <CustomFieldInput
-                      colWidth={field.type === "textarea" ? 12 : 6}
-                      model="person"
-                      values={data}
-                      handleChange={handleChange}
-                      field={field}
-                      key={field.name}
-                    />
-                  );
-                })}
-              {data.user === user._id && (
-                <>
-                  <hr className="tw-basis-full" />
-                  <div className="tw-basis-full tw-px-4 tw-pt-2">
-                    <label htmlFor="create-consultation-onlyme">
-                      <input
-                        type="checkbox"
-                        id="create-consultation-onlyme"
-                        style={{ marginRight: "0.5rem" }}
-                        name="onlyVisibleByCreator"
-                        checked={data.onlyVisibleBy?.includes(user._id)}
-                        onChange={() => {
-                          setData({ ...data, onlyVisibleBy: data.onlyVisibleBy?.includes(user._id) ? [] : [user._id] });
-                        }}
-                      />
-                      Seulement visible par moi
-                    </label>
-                  </div>
-                </>
-              )}
-              <hr className="tw-basis-full" />
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="new-consultation-select-status">
-                  Statut
-                </label>
-                {canEdit ? (
-                  <SelectStatus
-                    name="status"
-                    value={data.status || ""}
-                    onChange={handleChange}
-                    inputId="new-consultation-select-status"
-                    classNamePrefix="new-consultation-select-status"
-                  />
-                ) : (
-                  <CustomFieldDisplay type="text" value={data.status} />
+                  })}
+                {data.user === user._id && (
+                  <>
+                    <hr className="tw-basis-full" />
+                    <div className="tw-basis-full tw-px-4 tw-pt-2">
+                      <label htmlFor="create-consultation-onlyme">
+                        <input
+                          type="checkbox"
+                          id="create-consultation-onlyme"
+                          style={{ marginRight: "0.5rem" }}
+                          name="onlyVisibleByCreator"
+                          checked={data.onlyVisibleBy?.includes(user._id)}
+                          onChange={() => {
+                            setData({ ...data, onlyVisibleBy: data.onlyVisibleBy?.includes(user._id) ? [] : [user._id] });
+                          }}
+                        />
+                        Seulement visible par moi
+                      </label>
+                    </div>
+                  </>
                 )}
-              </div>
-              <div className="tw-basis-1/2 tw-px-4 tw-py-2">
-                <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-dueat">
-                  Date prévue
-                </label>
-                <div>
+                <hr className="tw-basis-full" />
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="new-consultation-select-status">
+                    Statut
+                  </label>
                   {canEdit ? (
-                    <DatePicker
-                      withTime
-                      id="create-consultation-dueat"
-                      name="dueAt"
-                      defaultValue={data.dueAt ?? new Date()}
+                    <SelectStatus
+                      name="status"
+                      value={data.status || ""}
                       onChange={handleChange}
+                      inputId="new-consultation-select-status"
+                      classNamePrefix="new-consultation-select-status"
                     />
                   ) : (
-                    <CustomFieldDisplay type="date-with-time" value={data.dueAt} />
+                    <CustomFieldDisplay type="text" value={data.status} />
                   )}
                 </div>
-              </div>
-
-              <div className={["tw-basis-1/2 tw-px-4 tw-py-2", [DONE, CANCEL].includes(data.status) ? "tw-visible" : "tw-invisible"].join(" ")} />
-              <div className={["tw-basis-1/2 tw-px-4 tw-py-2", [DONE, CANCEL].includes(data.status) ? "tw-visible" : "tw-invisible"].join(" ")}>
-                <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-completedAt">
-                  Date réalisée
-                </label>
-                <div>
-                  {canEdit ? (
-                    <DatePicker
-                      withTime
-                      id="create-consultation-completedAt"
-                      name="completedAt"
-                      defaultValue={data.completedAt ?? new Date()}
-                      onChange={handleChange}
-                    />
-                  ) : (
-                    <CustomFieldDisplay type="date-with-time" value={data.completedAt} />
-                  )}
-                </div>
-              </div>
-            </div>
-            <div
-              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Constantes" && "tw-hidden"]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              <div className="tw-m-2">
-                <div className="tw-mx-auto tw-max-w-2xl tw-border-l-4 tw-border-blue-500 tw-bg-blue-100 tw-p-4 tw-text-blue-700" role="alert">
-                  Notez les constantes pour observer leur évolution sous forme de graphiques dans le dossier médical de la personne.
-                </div>
-              </div>
-              <div className="tw-grid tw-grid-cols-4 tw-gap-4 tw-p-4">
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-poids">
-                    Poids (kg)
+                <div className="tw-basis-1/2 tw-px-4 tw-py-2">
+                  <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-dueat">
+                    Date prévue
                   </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-poids"]} />
-                    </div>
-                  ) : (
-                    <input
-                      className="tailwindui"
-                      value={data["constantes-poids"]}
-                      onChange={handleChange}
-                      type="number"
-                      min="1"
-                      max="400"
-                      name="constantes-poids"
-                      placeholder="100"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-taille">
-                    Taille (cm)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-taille"]} />
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-taille"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="20"
-                      max="280"
-                      name="constantes-taille"
-                      placeholder="160"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-frequence-cardiaque">
-                    Fréquence cardiaque (bpm)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-frequence-cardiaque"]} />
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-frequence-cardiaque"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="20"
-                      max="240"
-                      name="constantes-frequence-cardiaque"
-                      placeholder="60"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-frequence-respiratoire">
-                    Fréq. respiratoire (mvts/min)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-frequence-respiratoire"]} />{" "}
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-frequence-respiratoire"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="1"
-                      max="90"
-                      name="constantes-frequence-respiratoire"
-                      placeholder="15"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-saturation-o2">
-                    Saturation en oxygène (%)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-saturation-o2"]} />{" "}
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-saturation-o2"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="50"
-                      max="150"
-                      name="constantes-saturation-o2"
-                      placeholder="95"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-glycemie-capillaire">
-                    Glycémie capillaire (g/L)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-glycemie-capillaire"]} />
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-glycemie-capillaire"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="0"
-                      max="4"
-                      step="0.1"
-                      name="constantes-glycemie-capillaire"
-                      placeholder="1"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-temperature">
-                    Température (°C)
-                  </label>
-                  {!isEditing ? (
-                    <div>
-                      <CustomFieldDisplay type="number" value={data["constantes-temperature"]} />{" "}
-                    </div>
-                  ) : (
-                    <input
-                      value={data["constantes-temperature"]}
-                      onChange={handleChange}
-                      className="tailwindui"
-                      type="number"
-                      min="35"
-                      max="43"
-                      step="0.1"
-                      name="constantes-temperature"
-                      placeholder="38"
-                    />
-                  )}
-                </div>
-                <div>
-                  <label
-                    className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"}
-                    htmlFor="constantes-tension-arterielle-systolique"
-                  >
-                    Tension artérielle (mmHg)
-                  </label>
-                  <div className="tw-grid tw-grid-cols-2 tw-gap-1">
-                    {!isEditing ? (
-                      <CustomFieldDisplay
-                        type="text"
-                        value={
-                          data["constantes-tension-arterielle-systolique"] ? `${data["constantes-tension-arterielle-systolique"]} syst.` : undefined
-                        }
+                  <div>
+                    {canEdit ? (
+                      <DatePicker
+                        withTime
+                        id="create-consultation-dueat"
+                        name="dueAt"
+                        defaultValue={data.dueAt ?? new Date()}
+                        onChange={handleChange}
                       />
                     ) : (
-                      <input
-                        value={data["constantes-tension-arterielle-systolique"]}
-                        onChange={handleChange}
-                        className="tailwindui"
-                        type="number"
-                        min="10"
-                        max="200"
-                        name="constantes-tension-arterielle-systolique"
-                        placeholder="Systolique"
-                      />
+                      <CustomFieldDisplay type="date-with-time" value={data.dueAt} />
                     )}
-                    {!isEditing ? (
-                      <CustomFieldDisplay
-                        type="text"
-                        value={
-                          data["constantes-tension-arterielle-diastolique"] ? `${data["constantes-tension-arterielle-diastolique"]} dias.` : undefined
-                        }
+                  </div>
+                </div>
+
+                <div className={["tw-basis-1/2 tw-px-4 tw-py-2", [DONE, CANCEL].includes(data.status) ? "tw-visible" : "tw-invisible"].join(" ")} />
+                <div className={["tw-basis-1/2 tw-px-4 tw-py-2", [DONE, CANCEL].includes(data.status) ? "tw-visible" : "tw-invisible"].join(" ")}>
+                  <label className={canEdit ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="create-consultation-completedAt">
+                    Date réalisée
+                  </label>
+                  <div>
+                    {canEdit ? (
+                      <DatePicker
+                        withTime
+                        id="create-consultation-completedAt"
+                        name="completedAt"
+                        defaultValue={data.completedAt ?? new Date()}
+                        onChange={handleChange}
                       />
                     ) : (
-                      <input
-                        value={data["constantes-tension-arterielle-diastolique"]}
-                        onChange={handleChange}
-                        className="tailwindui"
-                        type="number"
-                        min="10"
-                        max="200"
-                        name="constantes-tension-arterielle-diastolique"
-                        placeholder="Diastolique"
-                      />
+                      <CustomFieldDisplay type="date-with-time" value={data.completedAt} />
                     )}
                   </div>
                 </div>
               </div>
-            </div>
+            )}
+            {activeTab === "Constantes" ? (
+              <div
+                className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Constantes" && "tw-hidden"]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <div className="tw-m-2">
+                  <div className="tw-mx-auto tw-max-w-2xl tw-border-l-4 tw-border-blue-500 tw-bg-blue-100 tw-p-4 tw-text-blue-700" role="alert">
+                    Notez les constantes pour observer leur évolution sous forme de graphiques dans le dossier médical de la personne.
+                  </div>
+                </div>
+                <div className="tw-grid tw-grid-cols-4 tw-gap-4 tw-p-4">
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-poids">
+                      Poids (kg)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-poids"]} />
+                      </div>
+                    ) : (
+                      <input
+                        className="tailwindui"
+                        value={data["constantes-poids"]}
+                        onChange={handleChange}
+                        step="0.001"
+                        type="number"
+                        name="constantes-poids"
+                        placeholder="100"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-taille">
+                      Taille (cm)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-taille"]} />
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-taille"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        name="constantes-taille"
+                        placeholder="160"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-frequence-cardiaque">
+                      Fréquence cardiaque (bpm)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-frequence-cardiaque"]} />
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-frequence-cardiaque"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        name="constantes-frequence-cardiaque"
+                        placeholder="60"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-frequence-respiratoire">
+                      Fréq. respiratoire (mvts/min)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-frequence-respiratoire"]} />{" "}
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-frequence-respiratoire"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        name="constantes-frequence-respiratoire"
+                        placeholder="15"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-saturation-o2">
+                      Saturation en oxygène (%)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-saturation-o2"]} />{" "}
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-saturation-o2"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        name="constantes-saturation-o2"
+                        placeholder="95"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-glycemie-capillaire">
+                      Glycémie capillaire (g/L)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-glycemie-capillaire"]} />
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-glycemie-capillaire"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        step="0.1"
+                        name="constantes-glycemie-capillaire"
+                        placeholder="1"
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="constantes-temperature">
+                      Température (°C)
+                    </label>
+                    {!isEditing ? (
+                      <div>
+                        <CustomFieldDisplay type="number" value={data["constantes-temperature"]} />{" "}
+                      </div>
+                    ) : (
+                      <input
+                        value={data["constantes-temperature"]}
+                        onChange={handleChange}
+                        className="tailwindui"
+                        type="number"
+                        step="0.1"
+                        name="constantes-temperature"
+                        placeholder="38"
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <label
+                      className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"}
+                      htmlFor="constantes-tension-arterielle-systolique"
+                    >
+                      Tension artérielle (mmHg)
+                    </label>
+                    <div className="tw-grid tw-grid-cols-2 tw-gap-1">
+                      {!isEditing ? (
+                        <CustomFieldDisplay
+                          type="text"
+                          value={
+                            data["constantes-tension-arterielle-systolique"] ? `${data["constantes-tension-arterielle-systolique"]} syst.` : undefined
+                          }
+                        />
+                      ) : (
+                        <input
+                          value={data["constantes-tension-arterielle-systolique"]}
+                          onChange={handleChange}
+                          className="tailwindui"
+                          type="number"
+                          name="constantes-tension-arterielle-systolique"
+                          placeholder="Systolique"
+                        />
+                      )}
+                      {!isEditing ? (
+                        <CustomFieldDisplay
+                          type="text"
+                          value={
+                            data["constantes-tension-arterielle-diastolique"]
+                              ? `${data["constantes-tension-arterielle-diastolique"]} dias.`
+                              : undefined
+                          }
+                        />
+                      ) : (
+                        <input
+                          value={data["constantes-tension-arterielle-diastolique"]}
+                          onChange={handleChange}
+                          className="tailwindui"
+                          type="number"
+                          name="constantes-tension-arterielle-diastolique"
+                          placeholder="Diastolique"
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </form>
           <div
             className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Documents" && "tw-hidden"]
