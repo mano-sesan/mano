@@ -748,4 +748,88 @@ router.delete(
   })
 );
 
+router.post(
+  "/merge",
+  passport.authenticate("user", { session: false }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        mainId: z.string().regex(looseUuidRegex),
+        secondaryId: z.string().regex(looseUuidRegex),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation merge`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const { mainId, secondaryId } = req.body;
+    await sequelize.transaction(async (t) => {
+      await sequelize.query(`UPDATE "mano"."Action" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Consultation" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Group" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."MedicalFile" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Passage" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Person" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Place" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."RelPersonPlace" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Report" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Rencontre" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Territory" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."TerritoryObservation" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Treatment" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."User" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`DELETE FROM "mano"."Organisation" WHERE "_id" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+    });
+
+    res.status(200).send({ ok: true });
+  })
+);
+
 module.exports = router;
