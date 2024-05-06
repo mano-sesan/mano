@@ -829,6 +829,156 @@ router.post(
         replacements: { mainId, secondaryId },
         transaction: t,
       });
+
+      // Start merging organisation configuration
+
+      // Merge organisation configuration
+      const mainOrg = await Organisation.findOne({ where: { _id: mainId } });
+      const secondaryOrg = await Organisation.findOne({ where: { _id: secondaryId } });
+
+      // actionsGroupedCategories
+      const mainActionsGroupedCategories = mainOrg.actionsGroupedCategories || [];
+      const secondaryActionsGroupedCategories = secondaryOrg.actionsGroupedCategories || [];
+      for (const mainGroup of mainActionsGroupedCategories) {
+        const secondaryGroup = secondaryActionsGroupedCategories.find((g) => g.groupTitle === mainGroup.groupTitle);
+        if (!secondaryGroup) continue;
+        mainGroup.categories = Array.from(new Set([...mainGroup.categories, ...secondaryGroup.categories]));
+      }
+      // merge remaining secondary groups
+      for (const secondaryGroup of secondaryActionsGroupedCategories) {
+        const mainGroup = mainActionsGroupedCategories.find((g) => g.groupTitle === secondaryGroup.groupTitle);
+        if (!mainGroup) mainActionsGroupedCategories.push(secondaryGroup);
+      }
+
+      // structuresGroupedCategories
+      const mainStructuresGroupedCategories = mainOrg.structuresGroupedCategories || [];
+      const secondaryStructuresGroupedCategories = secondaryOrg.structuresGroupedCategories || [];
+      for (const mainGroup of mainStructuresGroupedCategories) {
+        const secondaryGroup = secondaryStructuresGroupedCategories.find((g) => g.groupTitle === mainGroup.groupTitle);
+        if (!secondaryGroup) continue;
+        mainGroup.categories = Array.from(new Set([...mainGroup.categories, ...secondaryGroup.categories]));
+      }
+      // merge remaining secondary groups
+      for (const secondaryGroup of secondaryStructuresGroupedCategories) {
+        const mainGroup = mainStructuresGroupedCategories.find((g) => g.groupTitle === secondaryGroup.groupTitle);
+        if (!mainGroup) mainStructuresGroupedCategories.push(secondaryGroup);
+      }
+
+      // groupedServices
+      const mainGroupedServices = mainOrg.groupedServices || [];
+      const secondaryGroupedServices = secondaryOrg.groupedServices || [];
+      for (const mainGroup of mainGroupedServices) {
+        const secondaryGroup = secondaryGroupedServices.find((g) => g.groupedServices === mainGroup.groupedServices);
+        if (!secondaryGroup) continue;
+        mainGroup.services = Array.from(new Set([...mainGroup.services, ...secondaryGroup.services]));
+      }
+      // merge remaining secondary groups
+      for (const secondaryGroup of secondaryGroupedServices) {
+        const mainGroup = mainGroupedServices.find((g) => g.groupedServices === secondaryGroup.groupedServices);
+        if (!mainGroup) mainGroupedServices.push(secondaryGroup);
+      }
+
+      // consultations
+      const mainConsultations = mainOrg.consultations || [];
+      const secondaryConsultations = secondaryOrg.consultations || [];
+      for (const mainConsultation of mainConsultations) {
+        const secondaryConsultation = secondaryConsultations.find((c) => c.name === mainConsultation.name);
+        if (!secondaryConsultation) continue;
+        for (const field of secondaryConsultation.fields) {
+          if (!mainConsultation.fields.find((f) => f.name === field.name))
+            mainConsultation.fields.push({
+              ...field,
+              label: `${field.label} (fusion ${secondaryConsultation.name})`,
+            });
+          // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
+          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+        }
+      }
+      // merge remaining secondary consultations
+      for (const secondaryConsultation of secondaryConsultations) {
+        if (!mainConsultations.find((c) => c.name === secondaryConsultation.name)) mainConsultations.push(secondaryConsultation);
+      }
+
+      // customFieldsPersons
+      const mainCustomFieldsPersons = mainOrg.customFieldsPersons || [];
+      const secondaryCustomFieldsPersons = secondaryOrg.customFieldsPersons || [];
+      for (const mainCustomField of mainCustomFieldsPersons) {
+        const secondaryCustomField = secondaryCustomFieldsPersons.find((c) => c.name === mainCustomField.name);
+        if (!secondaryCustomField) continue;
+        for (const field of secondaryCustomField.fields) {
+          if (!mainCustomField.fields.find((f) => f.name === field.name))
+            mainCustomField.fields.push({
+              ...field,
+              label: `${field.label} (fusion ${secondaryCustomField.name})`,
+            });
+          // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
+          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+        }
+      }
+      // merge remaining secondary customFieldsPersons
+      for (const secondaryCustomField of secondaryCustomFieldsPersons) {
+        if (!mainCustomFieldsPersons.find((c) => c.name === secondaryCustomField.name)) mainCustomFieldsPersons.push(secondaryCustomField);
+      }
+
+      // groupedCustomFieldsObs
+      const mainGroupedCustomFieldsObs = mainOrg.groupedCustomFieldsObs || [];
+      const secondaryGroupedCustomFieldsObs = secondaryOrg.groupedCustomFieldsObs || [];
+      for (const mainGroup of mainGroupedCustomFieldsObs) {
+        const secondaryGroup = secondaryGroupedCustomFieldsObs.find((g) => g.name === mainGroup.name);
+        if (!secondaryGroup) continue;
+        for (const field of secondaryGroup.fields) {
+          if (!mainGroup.fields.find((f) => f.name === field.name))
+            mainGroup.fields.push({
+              ...field,
+              label: `${field.label} (fusion ${secondaryGroup.name})`,
+            });
+          // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
+          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+        }
+      }
+      // merge remaining secondary groupedCustomFieldsObs
+      for (const secondaryGroup of secondaryGroupedCustomFieldsObs) {
+        if (!mainGroupedCustomFieldsObs.find((g) => g.name === secondaryGroup.name)) mainGroupedCustomFieldsObs.push(secondaryGroup);
+      }
+
+      // groupedCustomFieldsMedicalFile
+      const mainGroupedCustomFieldsMedicalFile = mainOrg.groupedCustomFieldsMedicalFile || [];
+      const secondaryGroupedCustomFieldsMedicalFile = secondaryOrg.groupedCustomFieldsMedicalFile || [];
+      for (const mainGroup of mainGroupedCustomFieldsMedicalFile) {
+        const secondaryGroup = secondaryGroupedCustomFieldsMedicalFile.find((g) => g.name === mainGroup.name);
+        if (!secondaryGroup) continue;
+        for (const field of secondaryGroup.fields) {
+          if (!mainGroup.fields.find((f) => f.name === field.name))
+            mainGroup.fields.push({
+              ...field,
+              label: `${field.label} (fusion ${secondaryGroup.name})`,
+            });
+          // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
+          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+        }
+      }
+      // merge remaining secondary groupedCustomFieldsMedicalFile
+      for (const secondaryGroup of secondaryGroupedCustomFieldsMedicalFile) {
+        if (!mainGroupedCustomFieldsMedicalFile.find((g) => g.name === secondaryGroup.name)) mainGroupedCustomFieldsMedicalFile.push(secondaryGroup);
+      }
+
+      // collaborations
+      const mainCollaborations = mainOrg.collaborations || [];
+      const secondaryCollaborations = secondaryOrg.collaborations || [];
+      mainOrg.collaborations = Array.from(new Set([...mainCollaborations, ...secondaryCollaborations]));
+
+      await mainOrg.update({
+        actionsGroupedCategories: mainActionsGroupedCategories,
+        structuresGroupedCategories: mainStructuresGroupedCategories,
+        groupedServices: mainGroupedServices,
+        consultations: mainConsultations,
+        customFieldsPersons: mainCustomFieldsPersons,
+        groupedCustomFieldsObs: mainGroupedCustomFieldsObs,
+        groupedCustomFieldsMedicalFile: mainGroupedCustomFieldsMedicalFile,
+        collaborations: mainCollaborations,
+      });
+
+      // End merging organisation configuration
     });
 
     const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
