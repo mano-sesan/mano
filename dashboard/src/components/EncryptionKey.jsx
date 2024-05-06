@@ -63,7 +63,6 @@ const EncryptionKey = ({ isMain }) => {
       if (!lockedForEncryptionResponse?.ok) {
         return toast.error("Désolé une erreur est survenue, veuillez réessayer ou contacter l'équipe de support");
       }
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // IDK, just to make sure we don'tmiss any data down there
 
       // eslint-disable-next-line no-inner-declarations
       async function recrypt(path, callback = null) {
