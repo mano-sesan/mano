@@ -773,6 +773,11 @@ router.post(
         replacements: { mainId, secondaryId },
         transaction: t,
       });
+      await sequelize.query(`UPDATE "mano"."Comment" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+
       await sequelize.query(`UPDATE "mano"."Consultation" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
@@ -801,11 +806,27 @@ router.post(
         replacements: { mainId, secondaryId },
         transaction: t,
       });
-      await sequelize.query(`UPDATE "mano"."Report" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+      await sequelize.query(`UPDATE "mano"."RelUserTeam" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
       });
       await sequelize.query(`UPDATE "mano"."Rencontre" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Report" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Service" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Structure" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."Team" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
       });
@@ -822,6 +843,10 @@ router.post(
         transaction: t,
       });
       await sequelize.query(`UPDATE "mano"."User" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
+      await sequelize.query(`UPDATE "mano"."UserLog" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
       });
