@@ -1,5 +1,7 @@
 /* eslint-disable no-prototype-builtins */
 const express = require("express");
+const fs = require("fs");
+const path = require("path");
 const router = express.Router();
 const passport = require("passport");
 const { Op, fn } = require("sequelize");
@@ -33,6 +35,7 @@ const { looseUuidRegex, customFieldSchema, positiveIntegerRegex, customFieldGrou
 const { serializeOrganisation } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
+const { STORAGE_DIRECTORY } = require("../config");
 
 router.get(
   "/stats",
@@ -825,6 +828,15 @@ router.post(
       await sequelize.query(`DELETE FROM "mano"."Organisation" WHERE "_id" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
+      });
+    });
+
+    const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+    const mainDir = path.join(basedir, mainId);
+    const secondaryDir = path.join(basedir, secondaryId);
+    await fs.promises.readdir(secondaryDir).then((files) => {
+      files.forEach(async (file) => {
+        await fs.promises.rename(path.join(secondaryDir, file), path.join(mainDir, file));
       });
     });
 
