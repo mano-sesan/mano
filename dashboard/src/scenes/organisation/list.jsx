@@ -516,9 +516,6 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
               path: `/organisation/merge`,
               body: { mainId: selectedOrganisationMain._id, secondaryId: selectedOrganisationSecondary._id },
             });
-            // TODO:
-            // - Merger la configuration de l'organisation (tous les champs persos, tant bien que mal).
-            // - Bug sur les documents au téléchargement, dû au chemin, il faut bouger les documents.
             setSelectedOrganisationMain(null);
             setSelectedOrganisationSecondary(null);
             setLoading(false);
