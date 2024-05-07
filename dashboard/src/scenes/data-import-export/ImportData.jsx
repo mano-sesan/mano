@@ -138,7 +138,6 @@ const ImportData = () => {
 
       const encryptedPersons = await Promise.all(persons.map(preparePersonForEncryption).map(encryptItem));
       setPersonsToImport(encryptedPersons);
-      console.log({ medicalFiles });
       const encryptedMedicalFiles = await Promise.all(medicalFiles.map(prepareMedicalFileForEncryption(customFieldsMedicalFile)).map(encryptItem));
       setMedicalFilesToImport(encryptedMedicalFiles);
       setShowImportSummary(true);
@@ -151,10 +150,6 @@ const ImportData = () => {
 
   const onImportData = async () => {
     if (window.confirm(`Voulez-vous vraiment importer ${personsToImport.length} personnes dans Mano ? Cette opération est irréversible.`)) {
-      console.log({
-        personsToImport,
-        medicalFilesToImport,
-      });
       const response = await API.post({ path: "/person/import", body: { personsToImport, medicalFilesToImport } });
       if (response.ok) toast.success("Importation réussie !");
       refresh();
