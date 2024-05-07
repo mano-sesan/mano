@@ -523,7 +523,7 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
             setLoading(false);
             setOpen(false);
             if (res.ok) {
-              toast.success("Fusion réussie, vous avez eu de la chance");
+              toast.success("Fusion réussie, vérifiez quand même que tout est ok");
               onChange();
             } else {
               toast.error("Catastrophe, la fusion d'organisation a échoué, appelez les devs");

@@ -912,7 +912,7 @@ router.post(
               label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
-          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+          // (ce sont surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
         }
       }
       // merge remaining secondary consultations
@@ -933,7 +933,7 @@ router.post(
               label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
-          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+          // (ce sont surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
         }
       }
       // merge remaining secondary customFieldsPersons
@@ -954,7 +954,7 @@ router.post(
               label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
-          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+          // (ce sont surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
         }
       }
       // merge remaining secondary groupedCustomFieldsObs
@@ -975,7 +975,7 @@ router.post(
               label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
-          // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
+          // (ce sont surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
         }
       }
       // merge remaining secondary groupedCustomFieldsMedicalFile
