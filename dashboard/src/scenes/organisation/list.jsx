@@ -434,7 +434,8 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
             }}
             value={selectedOrganisationMain}
             getOptionValue={(org) => org._id}
-            getOptionLabel={(org) => (
+            getOptionLabel={(i) => i?.name}
+            formatOptionLabel={(org) => (
               <>
                 {org.name} <span className="tw-text-sm tw-text-gray-600">{"(Id: " + org.orgId + ")"}</span>
               </>
