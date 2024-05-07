@@ -850,20 +850,16 @@ router.post(
         replacements: { mainId, secondaryId },
         transaction: t,
       });
-      await sequelize.query(`DELETE FROM "mano"."Organisation" WHERE "_id" = :secondaryId;`, {
-        replacements: { mainId, secondaryId },
-        transaction: t,
-      });
 
       // Start merging organisation configuration
 
       // Merge organisation configuration
-      const mainOrg = await Organisation.findOne({ where: { _id: mainId } });
-      const secondaryOrg = await Organisation.findOne({ where: { _id: secondaryId } });
+      const mainOrg = await Organisation.findOne({ where: { _id: mainId }, transaction: t });
+      const secondaryOrg = await Organisation.findOne({ where: { _id: secondaryId }, transaction: t });
 
       // actionsGroupedCategories
-      const mainActionsGroupedCategories = mainOrg.actionsGroupedCategories || [];
-      const secondaryActionsGroupedCategories = secondaryOrg.actionsGroupedCategories || [];
+      const mainActionsGroupedCategories = structuredClone(mainOrg.actionsGroupedCategories) || [];
+      const secondaryActionsGroupedCategories = structuredClone(secondaryOrg.actionsGroupedCategories) || [];
       for (const mainGroup of mainActionsGroupedCategories) {
         const secondaryGroup = secondaryActionsGroupedCategories.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
@@ -876,8 +872,8 @@ router.post(
       }
 
       // structuresGroupedCategories
-      const mainStructuresGroupedCategories = mainOrg.structuresGroupedCategories || [];
-      const secondaryStructuresGroupedCategories = secondaryOrg.structuresGroupedCategories || [];
+      const mainStructuresGroupedCategories = structuredClone(mainOrg.structuresGroupedCategories) || [];
+      const secondaryStructuresGroupedCategories = structuredClone(secondaryOrg.structuresGroupedCategories) || [];
       for (const mainGroup of mainStructuresGroupedCategories) {
         const secondaryGroup = secondaryStructuresGroupedCategories.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
@@ -890,22 +886,22 @@ router.post(
       }
 
       // groupedServices
-      const mainGroupedServices = mainOrg.groupedServices || [];
-      const secondaryGroupedServices = secondaryOrg.groupedServices || [];
+      const mainGroupedServices = structuredClone(mainOrg.groupedServices) || [];
+      const secondaryGroupedServices = structuredClone(secondaryOrg.groupedServices) || [];
       for (const mainGroup of mainGroupedServices) {
-        const secondaryGroup = secondaryGroupedServices.find((g) => g.groupedServices === mainGroup.groupedServices);
+        const secondaryGroup = secondaryGroupedServices.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
         mainGroup.services = Array.from(new Set([...mainGroup.services, ...secondaryGroup.services]));
       }
       // merge remaining secondary groups
       for (const secondaryGroup of secondaryGroupedServices) {
-        const mainGroup = mainGroupedServices.find((g) => g.groupedServices === secondaryGroup.groupedServices);
+        const mainGroup = mainGroupedServices.find((g) => g.groupTitle === secondaryGroup.groupTitle);
         if (!mainGroup) mainGroupedServices.push(secondaryGroup);
       }
 
       // consultations
-      const mainConsultations = mainOrg.consultations || [];
-      const secondaryConsultations = secondaryOrg.consultations || [];
+      const mainConsultations = structuredClone(mainOrg.consultations) || [];
+      const secondaryConsultations = structuredClone(secondaryOrg.consultations) || [];
       for (const mainConsultation of mainConsultations) {
         const secondaryConsultation = secondaryConsultations.find((c) => c.name === mainConsultation.name);
         if (!secondaryConsultation) continue;
@@ -913,7 +909,7 @@ router.post(
           if (!mainConsultation.fields.find((f) => f.name === field.name))
             mainConsultation.fields.push({
               ...field,
-              label: `${field.label} (fusion ${secondaryConsultation.name})`,
+              label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
           // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
@@ -925,8 +921,8 @@ router.post(
       }
 
       // customFieldsPersons
-      const mainCustomFieldsPersons = mainOrg.customFieldsPersons || [];
-      const secondaryCustomFieldsPersons = secondaryOrg.customFieldsPersons || [];
+      const mainCustomFieldsPersons = structuredClone(mainOrg.customFieldsPersons) || [];
+      const secondaryCustomFieldsPersons = structuredClone(secondaryOrg.customFieldsPersons) || [];
       for (const mainCustomField of mainCustomFieldsPersons) {
         const secondaryCustomField = secondaryCustomFieldsPersons.find((c) => c.name === mainCustomField.name);
         if (!secondaryCustomField) continue;
@@ -934,7 +930,7 @@ router.post(
           if (!mainCustomField.fields.find((f) => f.name === field.name))
             mainCustomField.fields.push({
               ...field,
-              label: `${field.label} (fusion ${secondaryCustomField.name})`,
+              label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
           // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
@@ -946,8 +942,8 @@ router.post(
       }
 
       // groupedCustomFieldsObs
-      const mainGroupedCustomFieldsObs = mainOrg.groupedCustomFieldsObs || [];
-      const secondaryGroupedCustomFieldsObs = secondaryOrg.groupedCustomFieldsObs || [];
+      const mainGroupedCustomFieldsObs = structuredClone(mainOrg.groupedCustomFieldsObs) || [];
+      const secondaryGroupedCustomFieldsObs = structuredClone(secondaryOrg.groupedCustomFieldsObs) || [];
       for (const mainGroup of mainGroupedCustomFieldsObs) {
         const secondaryGroup = secondaryGroupedCustomFieldsObs.find((g) => g.name === mainGroup.name);
         if (!secondaryGroup) continue;
@@ -955,7 +951,7 @@ router.post(
           if (!mainGroup.fields.find((f) => f.name === field.name))
             mainGroup.fields.push({
               ...field,
-              label: `${field.label} (fusion ${secondaryGroup.name})`,
+              label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
           // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
@@ -967,8 +963,8 @@ router.post(
       }
 
       // groupedCustomFieldsMedicalFile
-      const mainGroupedCustomFieldsMedicalFile = mainOrg.groupedCustomFieldsMedicalFile || [];
-      const secondaryGroupedCustomFieldsMedicalFile = secondaryOrg.groupedCustomFieldsMedicalFile || [];
+      const mainGroupedCustomFieldsMedicalFile = structuredClone(mainOrg.groupedCustomFieldsMedicalFile) || [];
+      const secondaryGroupedCustomFieldsMedicalFile = structuredClone(secondaryOrg.groupedCustomFieldsMedicalFile) || [];
       for (const mainGroup of mainGroupedCustomFieldsMedicalFile) {
         const secondaryGroup = secondaryGroupedCustomFieldsMedicalFile.find((g) => g.name === mainGroup.name);
         if (!secondaryGroup) continue;
@@ -976,7 +972,7 @@ router.post(
           if (!mainGroup.fields.find((f) => f.name === field.name))
             mainGroup.fields.push({
               ...field,
-              label: `${field.label} (fusion ${secondaryGroup.name})`,
+              label: `${field.label} (fusion ${secondaryOrg.name})`,
             });
           // Si deux champs on le même nom, on va considérer qu'on ne fait rien, on garde celui du "main"
           // (c'est surement des champs par défaut, sinon ils s'appellent custom-date-xyz)
@@ -988,32 +984,45 @@ router.post(
       }
 
       // collaborations
-      const mainCollaborations = mainOrg.collaborations || [];
-      const secondaryCollaborations = secondaryOrg.collaborations || [];
+      const mainCollaborations = structuredClone(mainOrg.collaborations) || [];
+      const secondaryCollaborations = structuredClone(secondaryOrg.collaborations) || [];
       mainOrg.collaborations = Array.from(new Set([...mainCollaborations, ...secondaryCollaborations]));
 
-      await mainOrg.update({
-        actionsGroupedCategories: mainActionsGroupedCategories,
-        structuresGroupedCategories: mainStructuresGroupedCategories,
-        groupedServices: mainGroupedServices,
-        consultations: mainConsultations,
-        customFieldsPersons: mainCustomFieldsPersons,
-        groupedCustomFieldsObs: mainGroupedCustomFieldsObs,
-        groupedCustomFieldsMedicalFile: mainGroupedCustomFieldsMedicalFile,
-        collaborations: mainCollaborations,
-      });
-
+      await mainOrg.update(
+        {
+          actionsGroupedCategories: mainActionsGroupedCategories,
+          structuresGroupedCategories: mainStructuresGroupedCategories,
+          groupedServices: mainGroupedServices,
+          consultations: mainConsultations,
+          customFieldsPersons: mainCustomFieldsPersons,
+          groupedCustomFieldsObs: mainGroupedCustomFieldsObs,
+          groupedCustomFieldsMedicalFile: mainGroupedCustomFieldsMedicalFile,
+          collaborations: mainCollaborations,
+        },
+        { transaction: t }
+      );
       // End merging organisation configuration
+
+      // Last step: delete secondary organisation
+      await sequelize.query(`DELETE FROM "mano"."Organisation" WHERE "_id" = :secondaryId;`, {
+        replacements: { mainId, secondaryId },
+        transaction: t,
+      });
     });
 
     const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-    const mainDir = path.join(basedir, mainId);
-    const secondaryDir = path.join(basedir, secondaryId);
-    await fs.promises.readdir(secondaryDir).then((files) => {
-      files.forEach(async (file) => {
-        await fs.promises.rename(path.join(secondaryDir, file), path.join(mainDir, file));
+    const mainDir = path.join(basedir, mainId, "persons");
+    const secondaryDir = path.join(basedir, secondaryId, "persons");
+    await fs.promises
+      .readdir(secondaryDir)
+      .then((files) => {
+        for (const file of files) {
+          fs.promises.rename(path.join(secondaryDir, file), path.join(mainDir, file));
+        }
+      })
+      .catch(() => {
+        console.log("No secondary directory");
       });
-    });
 
     res.status(200).send({ ok: true });
   })
