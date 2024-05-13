@@ -437,7 +437,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   async function resetLoaderOnError() {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
-    await clearCache();
+    await clearCache("resetLoaderOnError");
     setLastLoad(0);
     toast.error("Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer", {
       onClose: () => window.location.replace("/auth"),
@@ -447,7 +447,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   }
 
   async function resetCache() {
-    await clearCache();
+    await clearCache("resetCache");
     setLastLoad(0);
     setPersons([]);
     setGroups([]);
