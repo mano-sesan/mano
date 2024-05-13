@@ -5,7 +5,7 @@ export const dashboardCurrentCacheKey = "mano_last_refresh_2022_01_11";
 export const manoDB = "mano-dashboard";
 
 let customStore: any = null;
-if (import.meta.env.VITE_TEST_PLAYWRIGHT !== "true") {
+if (!import.meta.env.VITE_TEST_PLAYWRIGHT) {
   customStore = createStore(manoDB, dashboardCurrentCacheKey);
 }
 
