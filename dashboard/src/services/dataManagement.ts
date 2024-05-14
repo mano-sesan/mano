@@ -8,7 +8,7 @@ let customStore: any = null;
 
 customStore = createStore(manoDB, dashboardCurrentCacheKey);
 
-export async function clearCache(calledFrom: string) {
+export async function clearCache() {
   if (customStore) clear(customStore);
   window.localStorage?.clear();
   window.sessionStorage?.clear();
