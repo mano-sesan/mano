@@ -154,7 +154,8 @@ test("test", async ({ page }) => {
     const input = element as HTMLInputElement;
     return input.validationMessage;
   });
-  expect(validationMessage).toContain("Please fill in this field.");
+  expect(validationMessage).toContain("Please fill out this field.");
+
   await page.getByPlaceholder("Amoxicilline").click();
   await page.getByPlaceholder("Amoxicilline").fill("hdeyygdeygde");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
