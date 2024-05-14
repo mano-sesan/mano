@@ -125,7 +125,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
       title={`Documents médicaux de ${person.name} (${allMedicalDocuments.length})`}
       personId={person._id}
       onDeleteDocument={async (documentOrFolder) => {
-        // Il semblerait que ce soit toujours un document et non un documentOrFolder.
+        // FIXME Il semblerait que ce soit toujours un document et non un documentOrFolder.
         // Il y a une fonction onDeleteFolder qui est utilisée dans PersonDocuments.tsx
         if (documentOrFolder.type === "document") {
           const document = documentOrFolder as DocumentWithLinkedItem;
