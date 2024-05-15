@@ -35,5 +35,5 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes suivies", { exact: true })).toBeVisible();
   await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes créées", { exact: true })).toBeVisible();
 
-  await logOut(page, "User Restricted Test - 8");
+  await logOut(page, "User Stats Only Test - 8");
 });
