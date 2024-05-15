@@ -5,14 +5,17 @@ import CustomFieldsStats from "./CustomFieldsStats";
 import Filters, { filterData } from "../../components/Filters";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import { capture } from "../../services/sentry";
+import { userState } from "../../recoil/auth";
 
 const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, personsForStats, customFieldsMedicalFile, personFields, title }) => {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
+  const user = useRecoilValue(userState);
 
   const onSliceClick = (newSlice, fieldName, personConcerned = personsForStats) => {
+    if (["stats-only"].includes(user.role)) return;
     const newSlicefield = filterBase.find((f) => f.field === fieldName);
     if (!newSlicefield) {
       capture("newSlicefield not found", { fieldName, filterBase });

@@ -178,7 +178,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
     <>
       {!!user && <TopBar />}
       <div className="main">
-        {!!user && !["superadmin"].includes(user.role) && <Drawer />}
+        {!!user && !["superadmin", "stats-only"].includes(user.role) && <Drawer />}
         {/*
          height: auto;
     margin-left: 0 !important;

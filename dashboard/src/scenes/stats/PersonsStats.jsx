@@ -11,7 +11,7 @@ import { capture } from "../../services/sentry";
 import { Block } from "./Blocks";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { organisationState, teamsState } from "../../recoil/auth";
+import { organisationState, teamsState, userState } from "../../recoil/auth";
 import { customFieldsPersonsSelector, personFieldsIncludingCustomFieldsSelector, sortPersons } from "../../recoil/persons";
 import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
@@ -36,6 +36,7 @@ export default function PersonStats({
 }) {
   const allGroups = useRecoilValue(groupsState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const user = useRecoilValue(userState);
 
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
@@ -53,6 +54,7 @@ export default function PersonStats({
   }, [personsForStats, allGroups]);
 
   const onSliceClick = (newSlice, fieldName, personConcerned = personsForStats) => {
+    if (["stats-only"].includes(user.role)) return;
     const newSlicefield = filterBase.find((f) => f.field === fieldName);
     if (!newSlicefield) {
       capture("newSlicefield not found", { fieldName, filterBase });
