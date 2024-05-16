@@ -25,13 +25,6 @@ async function deleteDB() {
     DBDeleteRequest.onerror = (event) => {
       capture(event); // just to monitor, rejecting would block the process, maybe we can remove this capture
       resolve(false);
-<<<<<<< HEAD
-=======
-    };
-    DBDeleteRequest.onblocked = (event) => {
-      capture(event); // just to monitor, rejecting would block the process, maybe we can remove this capture
-      resolve(false);
->>>>>>> 90ba6ed9 (fixed !)
     };
     DBDeleteRequest.onblocked = () => {
       resolve(false);
@@ -73,7 +66,6 @@ export async function getCacheItemDefaultValue(key: string, defaultValue: any) {
   return storedValue || defaultValue;
 }
 
-
 interface EncryptedItem {
   _id: UUIDV4;
   organisation: UUIDV4;
@@ -100,4 +92,3 @@ export async function getDecryptedCache(key: CollectionsNames) {
   const decryptedCache = await Promise.all(cryptedCache.map((item: EncryptedItem) => decryptDBItem(item, { path: `${key}-cache` })));
   return decryptedCache;
 }
-
