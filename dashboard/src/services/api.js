@@ -75,15 +75,13 @@ export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, new
   return item;
 }
 
-const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
+export const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
   if (!enableEncrypt) return item;
   if (!item.encrypted) return item;
   if (item.deletedAt && !decryptDeleted) return item;
   if (!item.encryptedEntityKey) return item;
   try {
     const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, hashedOrgEncryptionKey);
-
-    delete item.encrypted;
 
     try {
       JSON.parse(content);
@@ -95,6 +93,7 @@ const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
     const decryptedItem = {
       ...item,
       ...JSON.parse(content),
+      encrypted: undefined,
       entityKey,
     };
     return decryptedItem;

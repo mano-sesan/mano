@@ -19,7 +19,14 @@ import { consultationsState, formatConsultation } from "../recoil/consultations"
 import { commentsState } from "../recoil/comments";
 import { organisationState, userState } from "../recoil/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import {
+  cachedCollectionsNames,
+  clearCache,
+  dashboardCurrentCacheKey,
+  getCacheItemDefaultValue,
+  getDecryptedCache,
+  setCacheItem,
+} from "../services/dataManagement";
 import API from "../services/api";
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
@@ -93,7 +100,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setOrganisation = useSetRecoilState(organisationState);
   const { migrateData } = useDataMigrator();
 
-  const [persons, setPersons] = useRecoilState(personsState);
+  let [persons, setPersons] = useRecoilState(personsState);
   const [groups, setGroups] = useRecoilState(groupsState);
   const [reports, setReports] = useRecoilState(reportsState);
   const [passages, setPassages] = useRecoilState(passagesState);
@@ -209,21 +216,35 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       withDeleted: true,
     };
 
+    if (isStartingInitialLoad) {
+      // decrypt cached and encrypted data
+      persons = await getDecryptedCache(cachedCollectionsNames.person, []);
+      if (!stats.persons) {
+        // if is starting initial load without any new data from server,
+        // we can just use the cache as initial person's recoil state
+        setPersons(persons);
+      }
+    }
     if (stats.persons > 0) {
       let newItems = [];
+      let newCryptedItems = [];
+      let cryptedItems = await getCacheItemDefaultValue("cryptedPersons", []);
       setLoadingText("Chargement des personnes");
       async function loadPersons(page = 0) {
         const res = await API.get({ path: "/person", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
         setProgress((p) => p + res.data.length);
         newItems.push(...res.decryptedData);
+        newCryptedItems.push(...res.data);
         if (res.hasMore) return loadPersons(page + 1);
         setPersons(mergeItems(persons, newItems));
+        setCacheItem(cachedCollectionsNames.person, mergeItems(cryptedItems, newCryptedItems));
         return true;
       }
       const personSuccess = await loadPersons(0);
       if (!personSuccess) return false;
     }
+
     if (stats.groups > 0) {
       let newItems = [];
       setLoadingText("Chargement des familles");

@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { selector, useRecoilState, useRecoilValue } from "recoil";
+import { selector, useRecoilValue } from "recoil";
 import AsyncSelect from "react-select/async-creatable";
 import API from "../../services/api";
 import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
@@ -70,7 +70,7 @@ const filterEasySearch = (search, items = []) => {
 
 const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
   const { refresh } = useDataLoader();
-  const [persons] = useRecoilState(personsState);
+  const persons = useRecoilValue(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
   const actions = useRecoilValue(actionsState);
   const currentTeam = useRecoilValue(currentTeamState);

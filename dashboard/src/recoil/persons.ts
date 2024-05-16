@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { cachedCollectionsNames } from "../services/dataManagement";
 import { atom, selector, useRecoilValue } from "recoil";
 import { organisationState } from "./auth";
 import { toast } from "react-toastify";
@@ -6,17 +6,12 @@ import { capture } from "../services/sentry";
 import type { PersonInstance } from "../types/person";
 import type { PredefinedField, CustomField, CustomOrPredefinedField, Filter } from "../types/field";
 
-const collectionName = "person";
 export const personsState = atom<PersonInstance[]>({
-  key: collectionName,
-  default: selector({
-    key: "person/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("person", []);
-      return cache;
-    },
-  }),
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+  key: cachedCollectionsNames.person,
+  // we don't take the value from indexedDB in here
+  // because this indexedDB value is encrypted and
+  // at the time of recoil's state initialization, we don't have the encryption key yet
+  default: [],
 });
 
 /*

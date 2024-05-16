@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Col, Button, Row, Modal, ModalBody, ModalHeader } from "reactstrap";
 import styled from "styled-components";
 import { Formik } from "formik";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import ButtonCustom from "../../components/ButtonCustom";
@@ -64,7 +64,7 @@ const fieldIsEmpty = (value) => {
 
 const MergeTwoPersons = ({ person }) => {
   const [open, setOpen] = useState(false);
-  const [persons, setPersons] = useRecoilState(personsState);
+  const persons = useRecoilValue(personsState);
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
@@ -344,9 +344,6 @@ const MergeTwoPersons = ({ person }) => {
                   return;
                 }
                 toast.success("Fusion réussie !");
-
-                setPersons((persons) => persons.filter((p) => p._id !== personToMergeAndDelete._id));
-
                 refresh();
 
                 setOpen(false);

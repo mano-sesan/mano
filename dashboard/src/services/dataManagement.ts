@@ -3,7 +3,7 @@ import { capture } from "./sentry";
 import type { UUIDV4 } from "../types/uuid";
 import { decryptDBItem } from "./api";
 
-export const dashboardCurrentCacheKey = "mano_last_refresh_2022_01_11";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2024_05_28";
 export const manoDB = "mano-dashboard";
 
 let customStore: UseStore | null = null;

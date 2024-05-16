@@ -12,7 +12,7 @@ import {
 import { outOfBoundariesDate } from "../../../services/date";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import { currentTeamState, userState } from "../../../recoil/auth";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue } from "recoil";
 import CustomFieldInput from "../../../components/CustomFieldInput";
 import { useMemo, useState } from "react";
 import ButtonCustom from "../../../components/ButtonCustom";
@@ -36,7 +36,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
   const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
   const team = useRecoilValue(currentTeamState);
-  const [persons] = useRecoilState(personsState);
+  const persons = useRecoilValue(personsState);
   const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
   const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
   const medicalFile = person.medicalFile;
