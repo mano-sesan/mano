@@ -1,34 +1,32 @@
-import { set, get, clear, createStore } from "idb-keyval";
+import { type UseStore, set, get, createStore } from "idb-keyval";
 import { capture } from "./sentry";
 
-export const dashboardCurrentCacheKey = "mano_last_refresh_2024_05_16";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2022_01_11";
 export const manoDB = "mano-dashboard";
 
-let customStore: any = null;
+let customStore: UseStore | null = null;
 const savedCacheKey = window.localStorage.getItem("mano-currentCacheKey");
 if (savedCacheKey !== dashboardCurrentCacheKey) {
-  console.log("Clearing cache", { savedCacheKey, dashboardCurrentCacheKey });
-  clearCache().then(() => {
-    console.log("setting new cache key", dashboardCurrentCacheKey);
-    setupDB();
-  });
+  clearCache().then(() => setupDB());
 } else {
-  console.log("Cache key is the same, setting up DB");
   setupDB();
 }
 
-async function setupDB() {
-  console.log("Setting up DB");
+function setupDB() {
   window.localStorage.setItem("mano-currentCacheKey", dashboardCurrentCacheKey);
   customStore = createStore(manoDB, dashboardCurrentCacheKey);
-  console.log("DB setup done");
 }
 
 async function deleteDB() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const DBDeleteRequest = window.indexedDB.deleteDatabase(manoDB);
     DBDeleteRequest.onerror = (event) => {
-      reject(event);
+      capture(event); // just to monitor, rejecting would block the process, maybe we can remove this capture
+      resolve(false);
+    };
+    DBDeleteRequest.onblocked = (event) => {
+      capture(event); // just to monitor, rejecting would block the process, maybe we can remove this capture
+      resolve(false);
     };
     DBDeleteRequest.onsuccess = (event) => {
       resolve(true);
@@ -37,10 +35,10 @@ async function deleteDB() {
 }
 
 export async function clearCache() {
-  await deleteDB();
+  await deleteDB().then(console.log).catch(capture);
   window.localStorage?.clear();
   window.sessionStorage?.clear();
-  console.log("Cache cleared");
+  return true;
 }
 
 export async function setCacheItem(key: string, value: any) {
