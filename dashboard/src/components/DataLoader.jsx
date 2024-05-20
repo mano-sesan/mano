@@ -472,7 +472,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setLoadingText("Chargement des traitements");
       async function loadTreatments(page = 0) {
         try {
-          const res = await api.get("/passage", { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue });
+          const res = await api.get("/treatment", { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue });
           const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
           setProgress((p) => p + res.data.length);
           newItems.push(...decryptedData);

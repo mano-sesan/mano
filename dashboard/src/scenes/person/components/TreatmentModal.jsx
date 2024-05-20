@@ -175,6 +175,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
     const treatmentResponse = isNewTreatment
       ? await api.post("/treatment", await encryptTreatment(body))
       : await api.put(`/treatment/${data._id}`, await encryptTreatment({ ...body, user: data.user || user._id }));
+    debugger;
     if (!treatmentResponse.ok) {
       toast.error("Impossible d'enregistrer le traitement. Notez toutes les informations et contactez le support.");
       return false;
