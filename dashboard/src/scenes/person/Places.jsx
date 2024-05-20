@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { encryptRelPersonPlace, relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import QuestionMarkButton from "../../components/QuestionMarkButton";
 import api from "../../services/apiv2";
+import { decryptItem } from "../../services/encryption";
 
 const PersonPlaces = ({ person }) => {
   const user = useRecoilValue(userState);
@@ -164,12 +165,20 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
     }
     setUpdating(true);
     const response = await api.post("/place", await encryptPlace({ name, user: me._id }));
+    const decryptedData = await decryptItem(response.data);
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
       return;
     }
-    refresh();
+
+    setPlaces((places) =>
+      [decryptedData, ...places].sort((p1, p2) =>
+        p1?.name?.toLocaleLowerCase().localeCompare(p2.name?.toLocaleLowerCase(), "fr", { ignorPunctuation: true, sensitivity: "base" })
+      )
+    );
+    setPlaceId(decryptedData._id);
+    await refresh();
     setPlaceId(response.data._id);
   };
 
@@ -199,7 +208,7 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       return;
     }
     toast.success(`Le lieu a été ${isNew ? "ajouté" : "modifié"}`);
-    refresh();
+    await refresh();
     setOpen(null);
   };
 
@@ -298,10 +307,7 @@ const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
       return;
     }
     setUpdating(true);
-    const response = await api.put(
-      `/place/${placeToEdit._id}`,
-      preparePlaceForEncryption({ ...placeToEdit, user: placeToEdit.user || user._id, name })
-    );
+    const response = await api.put(`/place/${placeToEdit._id}`, await encryptPlace({ ...placeToEdit, user: placeToEdit.user || user._id, name }));
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
