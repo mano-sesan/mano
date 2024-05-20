@@ -75,7 +75,9 @@ const PersonFamily = ({ person }) => {
       relations: [...groupToEdit.relations, ...nextRelations],
     };
     const isNew = !groupToEdit?._id;
-    const response = isNew ? await api.post("/group", encryptGroup(nextGroup)) : await api.put(`/group/${groupToEdit._id}`, encryptGroup(nextGroup));
+    const response = isNew
+      ? await api.post("/group", await encryptGroup(nextGroup))
+      : await api.put(`/group/${groupToEdit._id}`, await encryptGroup(nextGroup));
     if (response.ok) {
       refresh();
       setNewRelationModalOpen(false);
@@ -92,7 +94,7 @@ const PersonFamily = ({ person }) => {
         relation._id === _id ? { ...relation, description, updatedAt: dayjs(), user: user._id } : relation
       ),
     };
-    const response = await api.put(`/group/${personGroup._id}`, encryptGroup(nextGroup));
+    const response = await api.put(`/group/${personGroup._id}`, await encryptGroup(nextGroup));
     if (response.ok) {
       refresh();
       setRelationToEdit(null);
@@ -126,7 +128,7 @@ const PersonFamily = ({ person }) => {
       persons: [...new Set(nextRelations.reduce((_personIds, relation) => [..._personIds, ...relation.persons], []))],
       relations: nextRelations,
     };
-    const response = await api.put(`/group/${personGroup._id}`, encryptGroup(nextGroup));
+    const response = await api.put(`/group/${personGroup._id}`, await encryptGroup(nextGroup));
     if (response.ok) {
       refresh();
       setRelationToEdit(null);

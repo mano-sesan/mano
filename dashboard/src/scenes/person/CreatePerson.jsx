@@ -46,7 +46,7 @@ const CreatePerson = ({ refreshable }) => {
               if (existingPerson) return toast.error("Une personne existe déjà à ce nom");
               body.followedSince = dayjs();
               body.user = user._id;
-              const response = await api.post("/person", encryptPerson(body));
+              const response = await api.post("/person", await encryptPerson(body));
               if (response.ok) {
                 refresh();
                 toast.success("Création réussie !");

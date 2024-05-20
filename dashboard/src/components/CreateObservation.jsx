@@ -64,7 +64,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   }, [forceOpen]);
 
   const addTerritoryObs = async (obs) => {
-    const res = await api.post("/territory-observation", encryptObs(customFieldsObs)(obs));
+    const res = await api.post("/territory-observation", await encryptObs(customFieldsObs)(obs));
     if (res.ok) {
       refresh();
     }
@@ -72,7 +72,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   };
 
   const updateTerritoryObs = async (obs) => {
-    const res = await api.put(`/territory-observation/${obs._id}`, encryptObs(customFieldsObs)(obs));
+    const res = await api.put(`/territory-observation/${obs._id}`, await encryptObs(customFieldsObs)(obs));
     if (res.ok) {
       refresh();
     }
@@ -126,7 +126,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
             if (res.data._id && rencontresInProgress.length > 0) {
               let rencontreSuccess = true;
               for (const rencontre of rencontresInProgress) {
-                const response = await api.post("/rencontre", encryptRencontre({ ...rencontre, observation: res.data._id }));
+                const response = await api.post("/rencontre", await encryptRencontre({ ...rencontre, observation: res.data._id }));
                 if (!response.ok) {
                   rencontreSuccess = false;
                 }

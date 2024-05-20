@@ -86,13 +86,13 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
                 } else {
                   if (showMultiSelect) {
                     for (const person of body.persons) {
-                      const response = await api.post("/rencontre", encryptRencontre({ ...newRencontre, person }));
+                      const response = await api.post("/rencontre", await encryptRencontre({ ...newRencontre, person }));
                       if (response.ok) {
                         refresh();
                       }
                     }
                   } else {
-                    const response = await api.post("/rencontre", encryptRencontre({ ...newRencontre, person: body.person }));
+                    const response = await api.post("/rencontre", await encryptRencontre({ ...newRencontre, person: body.person }));
                     if (response.ok) {
                       refresh();
                     }
@@ -105,7 +105,7 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
                 actions.setSubmitting(false);
                 return;
               }
-              const response = await api.put(`/rencontre/${rencontre._id}`, encryptRencontre(body));
+              const response = await api.put(`/rencontre/${rencontre._id}`, await encryptRencontre(body));
               if (!response.ok) return;
               refresh();
               setOpen(false);

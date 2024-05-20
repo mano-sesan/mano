@@ -155,7 +155,7 @@ const Reception = () => {
     };
     // optimistic UI
     setPassages((passages) => [newPassage, ...passages]);
-    const response = await api.post("/passage", encryptPassage(newPassage));
+    const response = await api.post("/passage", await encryptPassage(newPassage));
     if (response.ok) {
       refresh();
     }
@@ -178,7 +178,7 @@ const Reception = () => {
       // optimistic UI
       setPassages((passages) => [...newPassages, ...passages]);
       for (const [index, passage] of Object.entries(newPassages)) {
-        const response = await api.post("/passage", encryptPassage(passage));
+        const response = await api.post("/passage", await encryptPassage(passage));
         if (response.ok) {
           refresh();
         }

@@ -179,7 +179,7 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, show
         const newPerson = { name, assignedTeams: [currentTeam._id], followedSince: dayjs(), user: user._id };
         const currentValue = value || [];
         onChange([...currentValue, { ...newPerson, __isNew__: true }]);
-        const personResponse = await api.post("/person", encryptPerson(newPerson));
+        const personResponse = await api.post("/person", await encryptPerson(newPerson));
         setIsDisabled(false);
         if (personResponse.ok) {
           refresh();

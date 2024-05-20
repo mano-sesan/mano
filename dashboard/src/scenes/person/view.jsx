@@ -60,7 +60,7 @@ export default function View() {
             wrapper={() => "Créée par "}
             canAddUser
             handleChange={async (newUser) => {
-              const response = await api.put(`/person/${person._id}`, encryptPerson({ ...person, user: newUser }));
+              const response = await api.put(`/person/${person._id}`, await encryptPerson({ ...person, user: newUser }));
               if (response.ok) {
                 toast.success("Personne mise à jour (créée par)");
                 refresh();

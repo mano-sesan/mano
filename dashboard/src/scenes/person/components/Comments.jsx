@@ -40,7 +40,7 @@ export default function Comments({ person }) {
         }}
         onSubmitComment={async (comment, isNewComment) => {
           if (isNewComment) {
-            const response = await api.post("/comment", encryptComment(comment));
+            const response = await api.post("/comment", await encryptComment(comment));
             if (response.ok) {
               toast.success("Commentaire enregistré");
               refresh();
@@ -48,7 +48,7 @@ export default function Comments({ person }) {
               toast.error(response.error);
             }
           } else {
-            const response = await api.put(`/comment/${comment._id}`, encryptComment(comment));
+            const response = await api.put(`/comment/${comment._id}`, await encryptComment(comment));
             if (response.ok) {
               toast.success("Commentaire enregistré");
               refresh();

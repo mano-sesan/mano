@@ -165,8 +165,8 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
     }
 
     const consultationResponse = isNewConsultation
-      ? await api.post("/consultation", encryptConsultation(organisation.consultations)(body))
-      : await api.put(`/consultation/${data._id}`, encryptConsultation(organisation.consultations)(body));
+      ? await api.post("/consultation", await encryptConsultation(organisation.consultations)(body))
+      : await api.put(`/consultation/${data._id}`, await encryptConsultation(organisation.consultations)(body));
     if (!consultationResponse.ok) return false;
     const decrypted = await decryptItem(consultationResponse.data);
     setData(decrypted);

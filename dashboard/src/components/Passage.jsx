@@ -77,20 +77,20 @@ const Passage = ({ passage, personId, onFinished }) => {
 
                 if (body.anonymous) {
                   for (let i = 0; i < body.anonymousNumberOfPassages; i++) {
-                    const response = await api.post("/passage", encryptPassage(newPassage));
+                    const response = await api.post("/passage", await encryptPassage(newPassage));
                     if (response.ok) {
                       refresh();
                     }
                   }
                 } else if (showMultiSelect) {
                   for (const person of body.persons) {
-                    const response = await api.post("/passage", encryptPassage({ ...newPassage, person }));
+                    const response = await api.post("/passage", await encryptPassage({ ...newPassage, person }));
                     if (response.ok) {
                       refresh();
                     }
                   }
                 } else {
-                  const response = await api.post("/passage", encryptPassage({ ...newPassage, person: body.person }));
+                  const response = await api.post("/passage", await encryptPassage({ ...newPassage, person: body.person }));
                   if (response.ok) {
                     refresh();
                   }
@@ -102,7 +102,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                 actions.setSubmitting(false);
                 return;
               }
-              const response = await api.put(`/passage/${passage._id}`, encryptPassage(body));
+              const response = await api.put(`/passage/${passage._id}`, await encryptPassage(body));
               if (response.ok) {
                 refresh();
               }

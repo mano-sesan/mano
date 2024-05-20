@@ -182,7 +182,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 return toast.error(errorMessage(e));
               }
             } else {
-              const res = await api.put(`/territory/${territory._id}`, encryptTerritory({ ...body, user: body.user || user._id }));
+              const res = await api.put(`/territory/${territory._id}`, await encryptTerritory({ ...body, user: body.user || user._id }));
               if (res.ok) {
                 refresh();
                 actions.setSubmitting(false);

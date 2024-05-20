@@ -7,6 +7,7 @@ import SelectAndCreateCollaboration from "../SelectAndCreateCollaboration";
 import { dayjsInstance } from "../../../services/date";
 import { useSetRecoilState } from "recoil";
 import api from "../../../services/apiv2";
+import { useDataLoader } from "../../../components/DataLoader";
 
 export default function Transmissions({ period, selectedTeamsObject, reports }) {
   const days = useMemo(() => {
@@ -111,6 +112,7 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
   const [isEditingTransmission, setIsEditingTransmission] = useState(false);
   const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
   const setReports = useSetRecoilState(reportsState);
+  const { refresh } = useDataLoader();
 
   async function onEditTransmission(event) {
     event.preventDefault();
@@ -126,7 +128,9 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
   }
 
   const onSaveReport = async (body) => {
-    const response = report?._id ? await api.put(`report/${report._id}`, encryptReport(body)) : await api.post("report", encryptReport(body));
+    const response = report?._id
+      ? await api.put(`report/${report._id}`, await encryptReport(body))
+      : await api.post("report", await encryptReport(body));
     if (!response.ok) {
       toast.error(response.errorMessage);
       return;

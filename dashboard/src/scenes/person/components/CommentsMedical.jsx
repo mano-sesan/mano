@@ -38,7 +38,7 @@ const CommentsMedical = ({ person }) => {
               return newMedicalFile;
             });
           });
-          const response = await api.put(`/medical-file/${medicalFile._id}`, encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
+          const response = await api.put(`/medical-file/${medicalFile._id}`, await encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
           if (!response.ok) return;
           toast.success("Commentaire supprimé");
           refresh();
@@ -62,7 +62,7 @@ const CommentsMedical = ({ person }) => {
               return newMedicalFile;
             });
           });
-          const response = await api.put(`/medical-file/${medicalFile._id}`, encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
+          const response = await api.put(`/medical-file/${medicalFile._id}`, await encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
           if (!response.ok) return;
           toast.success("Commentaire enregistré");
           refresh();

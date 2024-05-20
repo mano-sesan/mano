@@ -62,7 +62,7 @@ const OutOfActiveList = ({ person }) => {
     };
 
     updatedPerson.history = [...(cleanHistory(person.history) || []), historyEntry];
-    const response = await api.put(`/person/${person._id}`, encryptPerson(updatedPerson));
+    const response = await api.put(`/person/${person._id}`, await encryptPerson(updatedPerson));
     if (response.ok) {
       refresh();
       toast.success(person.name + " est hors de la file active");

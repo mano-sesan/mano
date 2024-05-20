@@ -109,7 +109,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
               if (body[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: body[key] };
             }
             if (Object.keys(historyEntry.data).length) body.history = [...cleanHistory(person.history || []), historyEntry];
-            const response = await api.put(`/person/${person._id}`, encryptPerson(body));
+            const response = await api.put(`/person/${person._id}`, await encryptPerson(body));
             if (response.ok) {
               refresh();
 
@@ -377,7 +377,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                 }
                 if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
 
-                const personResponse = await api.put(`/person/${person._id}`, encryptPerson(bodySocial));
+                const personResponse = await api.put(`/person/${person._id}`, await encryptPerson(bodySocial));
                 if (personResponse.ok) {
                   refresh();
                 } else {

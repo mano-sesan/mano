@@ -164,7 +164,7 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       return;
     }
     setUpdating(true);
-    const response = await api.post("/place", encryptPlace({ name, user: me._id }));
+    const response = await api.post("/place", await encryptPlace({ name, user: me._id }));
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
@@ -188,8 +188,11 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
     setUpdating(true);
     const isNew = !relPersonPlaceModal?._id;
     const response = isNew
-      ? await api.post("/relPersonPlace", encryptRelPersonPlace({ place: placeId, person: person._id, user: userId }))
-      : await api.put(`/relPersonPlace/${relPersonPlaceModal._id}`, encryptRelPersonPlace({ place: placeId, person: person._id, user: userId }));
+      ? await api.post("/relPersonPlace", await encryptRelPersonPlace({ place: placeId, person: person._id, user: userId }))
+      : await api.put(
+          `/relPersonPlace/${relPersonPlaceModal._id}`,
+          await encryptRelPersonPlace({ place: placeId, person: person._id, user: userId })
+        );
 
     setUpdating(false);
     if (response.error) {

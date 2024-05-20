@@ -181,7 +181,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       }
       if (Object.keys(historyEntry.data).length) body.history = [...(action.history || []), historyEntry];
 
-      const actionResponse = await api.put(`/action/${data._id}`, encryptAction(body));
+      const actionResponse = await api.put(`/action/${data._id}`, await encryptAction(body));
 
       if (!actionResponse.ok) {
         toast.error("Erreur lors de la mise à jour de l'action, les données n'ont pas été sauvegardées.");
@@ -220,7 +220,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             team: c.team || currentTeam._id,
             organisation: c.organisation,
           };
-          const res = await api.post("/comment", encryptComment(body));
+          const res = await api.post("/comment", await encryptComment(body));
           if (!res.ok) {
             toast.error("Erreur lors de la duplication des commentaires de l'action, les données n'ont pas été sauvegardées.");
             capture("error duplicating comments", { extra: { actionId: action._id, newActionId: response.data._id } });
@@ -254,7 +254,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         }
         actionsId = actionResponse.data.map((a) => a._id);
       } else {
-        const actionResponse = await api.post("/action", encryptAction(body));
+        const actionResponse = await api.post("/action", await encryptAction(body));
         if (!actionResponse.ok) {
           toast.error("Erreur lors de la création de l'action, les données n'ont pas été sauvegardées.");
           capture("error creating single action", { extra: { actionResponse } });
@@ -266,7 +266,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       for (const actionId of actionsId) {
         if (body.comments?.length) {
           for (const comment of body.comments) {
-            const commentResponse = await api.post("/comment", encryptComment({ ...comment, action: actionId }));
+            const commentResponse = await api.post("/comment", await encryptComment({ ...comment, action: actionId }));
             if (!commentResponse.ok) {
               toast.error("Erreur lors de la création du commentaire, l'action a été sauvegardée mais pas les commentaires.");
               capture("error creating comment", { extra: { actionId } });
@@ -653,14 +653,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                 if (isNewAction) return;
 
                 if (isNewComment) {
-                  const response = await api.post("/comment", encryptComment(comment));
+                  const response = await api.post("/comment", await encryptComment(comment));
                   if (!response.ok) {
                     toast.error("Erreur lors de l'ajout du commentaire");
                     return;
                   }
                   toast.success("Commentaire ajouté !");
                 } else {
-                  const response = await api.put(`/comment/${comment._id}`, encryptComment(comment));
+                  const response = await api.put(`/comment/${comment._id}`, await encryptComment(comment));
                   if (!response.ok) {
                     toast.error("Erreur lors de l'ajout du commentaire");
                     return;
