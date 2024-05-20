@@ -79,7 +79,7 @@ const MergeTwoPersons = ({ person }) => {
   const medicalFiles = useRecoilValue(medicalFileState);
   const treatments = useRecoilValue(treatmentsState);
   const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { preparePersonForEncryption } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
 
