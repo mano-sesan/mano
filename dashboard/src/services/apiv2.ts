@@ -143,7 +143,15 @@ class Api {
     const formData = new FormData();
     formData.append("file", encryptedFile);
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus() }), {
-      ...this.fetchParams(),
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        ...(this.token ? { Authorization: `JWT ${this.token}` } : {}),
+        Accept: "application/json",
+        platform: "dashboard",
+        version: "2.0.0",
+      },
+
       method: "POST",
       body: formData,
     });
