@@ -230,7 +230,7 @@ const EncryptionKey = ({ isMain }) => {
           <ButtonCustom
             color="secondary"
             onClick={async () => {
-              return api.post("/logout", {}).then(() => {
+              return api.post("/user/logout", {}).then(() => {
                 api.reset({ redirect: true });
               });
             }}

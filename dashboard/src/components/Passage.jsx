@@ -78,21 +78,25 @@ const Passage = ({ passage, personId, onFinished }) => {
                   for (let i = 0; i < body.anonymousNumberOfPassages; i++) {
                     const response = await api.post("/passage", await encryptPassage(newPassage));
                     if (response.ok) {
-                      await refresh();
+                      // FIXME
                     }
                   }
+                  await refresh();
                 } else if (showMultiSelect) {
                   for (const person of body.persons) {
                     const response = await api.post("/passage", await encryptPassage({ ...newPassage, person }));
                     if (response.ok) {
-                      await refresh();
+                      // FIXME
                     }
                   }
+
+                  await refresh();
                 } else {
                   const response = await api.post("/passage", await encryptPassage({ ...newPassage, person: body.person }));
                   if (response.ok) {
-                    await refresh();
+                    // FIXME
                   }
+                  await refresh();
                 }
 
                 setOpen(false);

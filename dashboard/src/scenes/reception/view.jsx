@@ -153,8 +153,6 @@ const Reception = () => {
       date: new Date(),
       optimisticId,
     };
-    // optimistic UI
-    setPassages((passages) => [newPassage, ...passages]);
     const response = await api.post("/passage", await encryptPassage(newPassage));
     if (response.ok) {
       await refresh();
@@ -175,8 +173,6 @@ const Reception = () => {
           optimisticId: index,
         });
       }
-      // optimistic UI
-      setPassages((passages) => [...newPassages, ...passages]);
       for (const [, passage] of Object.entries(newPassages)) {
         const response = await api.post("/passage", await encryptPassage(passage));
         if (response.ok) {

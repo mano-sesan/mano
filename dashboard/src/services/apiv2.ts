@@ -81,7 +81,7 @@ class Api {
     }
   }
 
-  async post(path: string, body: unknown, query: Record<string, string | Date | boolean> = {}) {
+  async post(path: string, body: unknown = {}, query: Record<string, string | Date | boolean> = {}) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "POST",

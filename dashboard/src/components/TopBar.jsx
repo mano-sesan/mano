@@ -101,7 +101,7 @@ const TopBar = () => {
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
-                  api.post("/logout").then(() => {
+                  api.post("/user/logout").then(() => {
                     api.reset({ redirect: true });
                   });
                 }}
@@ -111,7 +111,7 @@ const TopBar = () => {
               <DropdownItem
                 onClick={() => {
                   resetCache().then(() => {
-                    api.post("/logout").then(() => {
+                    api.post("/user/logout").then(() => {
                       api.reset({ redirect: true });
                     });
                   });

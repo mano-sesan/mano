@@ -32,7 +32,7 @@ export default function UnBugButton() {
                   className={"tw-text-blue-500 tw-underline"}
                   onClick={() => {
                     resetCache().then(() => {
-                      api.post("/logout").then(() => {
+                      api.post("/user/logout").then(() => {
                         api.reset({ redirect: true });
                       });
                     });

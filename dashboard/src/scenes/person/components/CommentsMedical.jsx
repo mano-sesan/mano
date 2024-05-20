@@ -31,12 +31,14 @@ const CommentsMedical = ({ person }) => {
             comments: medicalFile.comments.filter((c) => c._id !== comment._id),
           };
           // optimistic UI
+          /*
           setAllMedicalFiles((medicalFiles) => {
             return medicalFiles.map((_medicalFile) => {
               if (_medicalFile._id !== medicalFile._id) return _medicalFile;
               return newMedicalFile;
             });
           });
+          */
           const response = await api.put(`/medical-file/${medicalFile._id}`, await encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
           if (!response.ok) return;
           toast.success("Commentaire supprimé");
@@ -55,12 +57,13 @@ const CommentsMedical = ({ person }) => {
                 }),
           };
           // optimistic UI
+          /*
           setAllMedicalFiles((medicalFiles) => {
             return medicalFiles.map((_medicalFile) => {
               if (_medicalFile._id !== medicalFile._id) return _medicalFile;
               return newMedicalFile;
             });
-          });
+          });*/
           const response = await api.put(`/medical-file/${medicalFile._id}`, await encryptMedicalFile(customFieldsMedicalFile)(newMedicalFile));
           if (!response.ok) return;
           toast.success("Commentaire enregistré");
