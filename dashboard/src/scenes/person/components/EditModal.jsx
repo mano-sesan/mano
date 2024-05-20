@@ -18,7 +18,6 @@ import { useMemo, useState } from "react";
 import ButtonCustom from "../../../components/ButtonCustom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import API from "../../../services/api";
 import { cleanHistory } from "./PersonHistory";
 import DatePicker from "../../../components/DatePicker";
 import {
@@ -348,7 +347,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
 
               const mfResponse = await api.put(
                 `/medical-file/${medicalFile._id}`,
-                encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile })
+                await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile })
               );
               let success = mfResponse.ok;
               if (success) {

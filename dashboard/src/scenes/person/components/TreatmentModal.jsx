@@ -5,7 +5,6 @@ import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { organisationState, userState } from "../../../recoil/auth";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
-import API from "../../../services/api";
 import { allowedTreatmentFieldsInHistory, encryptTreatment, prepareTreatmentForEncryption, treatmentsState } from "../../../recoil/treatments";
 import DatePicker from "../../../components/DatePicker";
 import { CommentsModule } from "../../../components/CommentsGeneric";
@@ -183,7 +182,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
     const decrypted = decryptItem(treatmentResponse.data);
     setData(decrypted);
     if (closeOnSubmit) onClose();
-    refresh();
+    await refresh();
     return true;
   }
 

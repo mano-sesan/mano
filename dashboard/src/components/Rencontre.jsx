@@ -88,13 +88,13 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
                     for (const person of body.persons) {
                       const response = await api.post("/rencontre", await encryptRencontre({ ...newRencontre, person }));
                       if (response.ok) {
-                        refresh();
+                        await refresh();
                       }
                     }
                   } else {
                     const response = await api.post("/rencontre", await encryptRencontre({ ...newRencontre, person: body.person }));
                     if (response.ok) {
-                      refresh();
+                      await refresh();
                     }
                   }
                 }
@@ -107,7 +107,7 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
               }
               const response = await api.put(`/rencontre/${rencontre._id}`, await encryptRencontre(body));
               if (!response.ok) return;
-              refresh();
+              await refresh();
               setOpen(false);
               onFinished();
               toast.success("Rencontre mise à jour");

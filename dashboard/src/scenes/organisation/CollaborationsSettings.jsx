@@ -27,7 +27,7 @@ function CollaborationsSettings() {
       const res = await api.put(`/organisation/${organisation._id}`, { collaborations: newGroups[0].items });
       if (res.ok) {
         setOrganisation(res.data);
-        refresh();
+        await refresh();
       }
     },
     [organisation._id, refresh, setOrganisation]
@@ -139,7 +139,7 @@ const Collaboration = ({ item: collaboration }) => {
       collaborations: newCollaborations,
     });
     if (response.ok) {
-      refresh();
+      await refresh();
       setIsEditingCollaboration(false);
       setOrganisation(response.data);
       toast.success("Co-intervention supprimée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");

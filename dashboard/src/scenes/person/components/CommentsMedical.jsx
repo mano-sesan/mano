@@ -3,7 +3,6 @@ import { useSetRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { customFieldsMedicalFileSelector, encryptMedicalFile, medicalFileState, prepareMedicalFileForEncryption } from "../../../recoil/medicalFiles";
 import { CommentsModule } from "../../../components/CommentsGeneric";
-import API from "../../../services/api";
 import { toast } from "react-toastify";
 import api from "../../../services/apiv2";
 import { useDataLoader } from "../../../components/DataLoader";

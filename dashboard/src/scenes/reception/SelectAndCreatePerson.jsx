@@ -182,7 +182,7 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, show
         const personResponse = await api.post("/person", await encryptPerson(newPerson));
         setIsDisabled(false);
         if (personResponse.ok) {
-          refresh();
+          await refresh();
           toast.success("Nouvelle personne ajoutée !");
           const decrypted = decryptItem(personResponse.data);
           onChange([...currentValue, decrypted]);

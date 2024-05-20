@@ -194,7 +194,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         const { name, person, dueAt, withTime, description, categories, urgent, teams } = data;
         const response = await api.post(
           "/action",
-          encryptAction({
+          await encryptAction({
             name,
             person,
             teams,
@@ -278,7 +278,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       toast.success("Création réussie !");
     }
     if (closeOnSubmit) onClose();
-    refresh();
+    await refresh();
     return true;
   }
   const canSave = useMemo(() => {
@@ -641,7 +641,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                   const res = await api.delete(`/comment/${comment._id}`);
                   if (!res.ok) return false;
                   toast.success("Suppression réussie");
-                  refresh();
+                  await refresh();
                   return true;
                 }
               }}
@@ -706,7 +706,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                   return;
                 }
               }
-              refresh();
+              await refresh();
               toast.success("Suppression réussie");
               onClose();
             }}

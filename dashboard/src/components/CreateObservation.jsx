@@ -66,7 +66,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const addTerritoryObs = async (obs) => {
     const res = await api.post("/territory-observation", await encryptObs(customFieldsObs)(obs));
     if (res.ok) {
-      refresh();
+      await refresh();
     }
     return res;
   };
@@ -74,7 +74,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const updateTerritoryObs = async (obs) => {
     const res = await api.put(`/territory-observation/${obs._id}`, await encryptObs(customFieldsObs)(obs));
     if (res.ok) {
-      refresh();
+      await refresh();
     }
     return res;
   };
@@ -131,7 +131,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                   rencontreSuccess = false;
                 }
               }
-              refresh();
+              await refresh();
               if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
               else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
             }

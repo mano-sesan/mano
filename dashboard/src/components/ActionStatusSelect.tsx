@@ -53,7 +53,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
           const consultation = action;
           const consultationResponse = await api.put(
             `/consultation/${consultation._id}`,
-            encryptConsultation(organisation.consultations)({
+            await encryptConsultation(organisation.consultations)({
               ...consultation,
               status,
               completedAt,
@@ -65,13 +65,13 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
             toast.error("Erreur lors de la mise à jour de la consultation");
             return;
           }
-          refresh();
+          await refresh();
           toast.success("Le statut de la consultation a été mis à jour");
           return;
         } else {
           const actionResponse = await api.put(
             `/action/${action._id}`,
-            encryptAction({
+            await encryptAction({
               ...action,
               status,
               completedAt,
@@ -83,7 +83,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
             toast.error("Erreur lors de la mise à jour de l'action");
             return;
           }
-          refresh();
+          await refresh();
           toast.success("Le statut de l'action a été mis à jour");
         }
       }}

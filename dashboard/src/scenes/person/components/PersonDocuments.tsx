@@ -4,7 +4,6 @@ import { useRecoilValue } from "recoil";
 import type { RecoilValueReadOnly } from "recoil";
 import { organisationAuthentifiedState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
-import API from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import { groupsState } from "../../../recoil/groups";
@@ -88,7 +87,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         const personNextDocuments = nextDocuments.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
         const personResponse = await api.put(
           `/person/${person._id}`,
-          encryptPerson({
+          await encryptPerson({
             ...person,
             documents: [
               ...personNextDocuments,
@@ -121,7 +120,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
           const actionResponse = await api.put(
             `/action/${actionId}`,
-            encryptAction({
+            await encryptAction({
               ...action,
               documents: actionNextDocuments.filter((d) => d.linkedItem._id === actionId),
             })
@@ -134,7 +133,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         }
 
         toast.success("Documents mis à jour");
-        refresh();
+        await refresh();
         return true;
       }}
       personId={person._id}
@@ -147,7 +146,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         const _person = persons[folder.linkedItem._id];
         const personResponse = await api.put(
           `/person/${_person._id}`,
-          encryptPerson({
+          await encryptPerson({
             ..._person,
             // If there are no document yet and default documents are present,
             // we save the default documents since they are modified by the user.
@@ -177,7 +176,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
           const actionResponse = await api.put(
             `/action/${action._id}`,
-            encryptAction({
+            await encryptAction({
               ...action,
               documents: action.documents.map((d) => {
                 if (d._id === actionDocument._id) return { ...d, parentId: "actions" }; // On remet dans le dossier "actions" par défaut
@@ -192,7 +191,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
         }
         toast.success("Dossier supprimé");
-        refresh();
+        await refresh();
         return true;
       }}
       onDeleteDocument={async (document) => {
@@ -209,7 +208,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
           const actionResponse = await api.put(
             `/action/${action._id}`,
-            encryptAction({
+            await encryptAction({
               ...action,
               documents: action.documents.filter((d) => d._id !== document._id),
             })
@@ -222,7 +221,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         } else {
           const personResponse = await api.put(
             `/person/${_person._id}`,
-            encryptPerson({
+            await encryptPerson({
               ..._person,
               // If there are no document yet and default documents are present,
               // we save the default documents since they are modified by the user.
@@ -237,7 +236,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         }
 
         toast.success("Document supprimé");
-        refresh();
+        await refresh();
         return true;
       }}
       onSubmitDocument={async (documentOrFolder) => {
@@ -250,7 +249,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
           const actionResponse = await api.put(
             `/action/${action._id}`,
-            encryptAction({
+            await encryptAction({
               ...action,
               documents: action.documents.map((d) => {
                 if (d._id === documentOrFolder._id) return documentOrFolder;
@@ -269,7 +268,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           const _person = persons[documentOrFolder.linkedItem._id];
           const personResponse = await api.put(
             `/person/${_person._id}`,
-            encryptPerson({
+            await encryptPerson({
               ..._person,
               // If there are no document yet and default documents are present,
               // we save the default documents since they are modified by the user.
@@ -286,12 +285,12 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           }
         }
         toast.success(documentOrFolder.type === "document" ? "Document mis à jour" : "Dossier mis à jour");
-        refresh();
+        await refresh();
       }}
       onAddDocuments={async (newDocuments) => {
         const personResponse = await api.put(
           `/person/${person._id}`,
-          encryptPerson({
+          await encryptPerson({
             ...person,
             // If there are no document yet and default documents are present,
             // we save the default documents since they are modified by the user.
@@ -305,7 +304,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         }
         if (newDocuments.filter((d) => d.type === "document").length > 1) toast.success("Documents enregistrés !");
         if (newDocuments.filter((d) => d.type === "folder").length > 0) toast.success("Dossier créé !");
-        refresh();
+        await refresh();
       }}
     />
   );

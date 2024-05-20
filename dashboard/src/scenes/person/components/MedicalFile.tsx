@@ -19,7 +19,6 @@ import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";
 import { MedicalFilePrint } from "./MedicalFilePrint";
-import API from "../../../services/api";
 import CommentsMedical from "./CommentsMedical";
 import type { PersonPopulated } from "../../../types/person";
 import type { MedicalFileInstance } from "../../../types/medicalFile";
@@ -72,21 +71,23 @@ export default function MedicalFile({ person }: MedicalFileProps) {
   const medicalFile = person.medicalFile;
 
   useEffect(() => {
-    if (!medicalFile) {
-      api
-        .post(
-          "/medical-file",
-          encryptMedicalFile(flatCustomFieldsMedicalFile)({
-            person: person._id,
-            documents: [],
-            organisation: organisation._id,
-          })
-        )
-        .then((response) => {
-          if (!response.ok) return;
-          refresh();
-        });
-    }
+    (async () => {
+      if (!medicalFile) {
+        api
+          .post(
+            "/medical-file",
+            await encryptMedicalFile(flatCustomFieldsMedicalFile)({
+              person: person._id,
+              documents: [],
+              organisation: organisation._id,
+            })
+          )
+          .then((response) => {
+            if (!response.ok) return;
+            return refresh();
+          });
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalFile]);
   return (

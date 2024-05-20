@@ -153,7 +153,7 @@ const ImportData = () => {
     if (window.confirm(`Voulez-vous vraiment importer ${personsToImport.length} personnes dans Mano ? Cette opération est irréversible.`)) {
       const response = await api.post("/person/import", { personsToImport, medicalFilesToImport });
       if (response.ok) toast.success("Importation réussie !");
-      refresh();
+      await refresh();
       setShowImportSummary(false);
     }
   };

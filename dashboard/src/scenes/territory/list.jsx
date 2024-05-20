@@ -174,7 +174,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 const response = await api.post("/territory", await encryptTerritory({ ...body, user: user._id }));
                 if (!response.ok) throw new Error("Erreur lors de la création du territoire");
                 toast.success("Création réussie !");
-                refresh();
+                await refresh();
                 setOpen(false);
                 actions.setSubmitting(false);
                 history.push(`/territory/${response.data._id}`);
@@ -184,7 +184,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
             } else {
               const res = await api.put(`/territory/${territory._id}`, await encryptTerritory({ ...body, user: body.user || user._id }));
               if (res.ok) {
-                refresh();
+                await refresh();
                 actions.setSubmitting(false);
                 toast.success("Mis à jour !");
                 setOpen(false);

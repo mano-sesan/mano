@@ -137,13 +137,13 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!treatment) return false;
           const treatmentResponse = await api.put(
             `/treatment/${treatment._id}`,
-            encryptTreatment({
+            await encryptTreatment({
               ...treatment,
               documents: treatment.documents.filter((d) => d._id !== documentOrFolder._id),
             })
           );
           if (treatmentResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document supprimé");
             return true;
           } else {
@@ -156,13 +156,13 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!consultation) return false;
           const consultationResponse = await api.put(
             `/consultation/${consultation._id}`,
-            encryptConsultation(organisation.consultations)({
+            await encryptConsultation(organisation.consultations)({
               ...consultation,
               documents: consultation.documents.filter((d) => d._id !== documentOrFolder._id),
             })
           );
           if (consultationResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document supprimé");
             return true;
           } else {
@@ -174,13 +174,13 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!medicalFile?._id) return false;
           const medicalFileResponse = await api.put(
             `/medical-file/${medicalFile._id}`,
-            encryptMedicalFile(customFieldsMedicalFile)({
+            await encryptMedicalFile(customFieldsMedicalFile)({
               ...medicalFile,
               documents: medicalFile.documents.filter((d) => d._id !== documentOrFolder._id),
             })
           );
           if (medicalFileResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document supprimé");
             return true;
           } else {
@@ -196,7 +196,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!treatment) return;
           const treatmentResponse = await api.put(
             `/treatment/${treatment._id}`,
-            encryptTreatment({
+            await encryptTreatment({
               ...treatment,
               documents: treatment.documents.map((d) => {
                 if (d._id === documentOrFolder._id) {
@@ -210,7 +210,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
             })
           );
           if (treatmentResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document mis à jour");
           } else {
             toast.error("Erreur lors de la mise à jour du document, vous pouvez contactez le support");
@@ -222,7 +222,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!consultation) return;
           const consultationResponse = await api.put(
             `/consultation/${consultation._id}`,
-            encryptConsultation(organisation.consultations)({
+            await encryptConsultation(organisation.consultations)({
               ...consultation,
               documents: consultation.documents.map((d) => {
                 if (d._id === documentOrFolder._id) {
@@ -236,7 +236,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
             })
           );
           if (consultationResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document mis à jour");
           } else {
             toast.error("Erreur lors de la mise à jour du document, vous pouvez contactez le support");
@@ -247,7 +247,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           if (!medicalFile?._id) return;
           const medicalFileResponse = await api.put(
             `/medical-file/${medicalFile._id}`,
-            encryptMedicalFile(customFieldsMedicalFile)({
+            await encryptMedicalFile(customFieldsMedicalFile)({
               ...medicalFile,
               documents: medicalFile.documents.map((d) => {
                 if (d._id === documentOrFolder._id) {
@@ -261,7 +261,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
             })
           );
           if (medicalFileResponse.ok) {
-            refresh();
+            await refresh();
             toast.success("Document mis à jour");
           } else {
             toast.error("Erreur lors de la mise à jour du document, vous pouvez contactez le support");
@@ -316,7 +316,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           });
           if (medicalDocumentsResponse.ok) {
             toast.success("Documents mis à jour");
-            refresh();
+            await refresh();
             return true;
           } else {
             toast.error("Erreur lors de la mise à jour des documents, vous pouvez contactez le support");
@@ -333,7 +333,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
         if (!medicalFile?._id) return;
         const medicalFileResponse = await api.put(
           `/medical-file/${medicalFile._id}`,
-          encryptMedicalFile(customFieldsMedicalFile)({
+          await encryptMedicalFile(customFieldsMedicalFile)({
             ...medicalFile,
             documents: [...(medicalFile.documents || []), ...nextDocuments],
           })
@@ -341,7 +341,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
         if (medicalFileResponse.ok) {
           if (nextDocuments.filter((d) => d.type === "document").length > 1) toast.success("Documents enregistrés !");
           if (nextDocuments.filter((d) => d.type === "folder").length > 0) toast.success("Dossier créé !");
-          refresh();
+          await refresh();
         }
       }}
     />

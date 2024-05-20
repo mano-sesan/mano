@@ -171,7 +171,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
     const decrypted = await decryptItem(consultationResponse.data);
     setData(decrypted);
     if (closeOnSubmit) onClose();
-    refresh();
+    await refresh();
     return true;
   }
 

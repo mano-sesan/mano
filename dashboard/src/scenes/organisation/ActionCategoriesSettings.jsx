@@ -29,7 +29,7 @@ const ActionCategoriesSettings = () => {
       toast.success("Groupe ajouté", { autoclose: 2000 });
       setOrganisation(res.data);
     }
-    refresh();
+    await refresh();
   };
 
   const onGroupTitleChange = async (oldGroupTitle, newGroupTitle) => {
@@ -48,7 +48,7 @@ const ActionCategoriesSettings = () => {
       actionsGroupedCategories: newActionsGroupedCategories,
     });
     if (response.ok) {
-      refresh();
+      await refresh();
       setOrganisation(response.data);
       toast.success("Groupe mis à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
@@ -66,7 +66,7 @@ const ActionCategoriesSettings = () => {
       actionsGroupedCategories: newActionsGroupedCategories,
     });
     if (response.ok) {
-      refresh();
+      await refresh();
       setOrganisation(response.data);
       toast.success("Catégorie supprimée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
@@ -80,7 +80,7 @@ const ActionCategoriesSettings = () => {
       const res = await api.put(`/organisation/${organisation._id}`, { actionsGroupedCategories: newGroups });
       if (res.ok) {
         setOrganisation(res.data);
-        refresh();
+        await refresh();
       }
     },
     [organisation._id, refresh, setOrganisation]
@@ -197,7 +197,7 @@ const Category = ({ item: category, groupTitle }) => {
       actions: encryptedActions,
     });
     if (response.ok) {
-      refresh();
+      await refresh();
       setOrganisation(response.data);
       setIsEditingCategory(false);
       toast.success("Catégorie mise à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
@@ -220,7 +220,7 @@ const Category = ({ item: category, groupTitle }) => {
 
     const response = await api.put(`/category`, { actionsGroupedCategories: newActionsGroupedCategories });
     if (response.ok) {
-      refresh();
+      await refresh();
       setIsEditingCategory(false);
       setOrganisation(response.data);
       toast.success("Catégorie supprimée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");

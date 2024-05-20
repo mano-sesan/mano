@@ -48,7 +48,7 @@ const CreatePerson = ({ refreshable }) => {
               body.user = user._id;
               const response = await api.post("/person", await encryptPerson(body));
               if (response.ok) {
-                refresh();
+                await refresh();
                 toast.success("Création réussie !");
                 setOpen(false);
                 actions.setSubmitting(false);

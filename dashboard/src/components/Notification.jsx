@@ -173,10 +173,10 @@ const Actions = ({ setShowModal, actions, setSortOrder, setSortBy, sortBy, sortO
                     e.stopPropagation();
                     const actionResponse = await api.put(
                       `/action/${action._id}`,
-                      encryptAction({ ...action, urgent: false, user: action.user || user._id })
+                      await encryptAction({ ...action, urgent: false, user: action.user || user._id })
                     );
                     if (actionResponse.ok) {
-                      refresh();
+                      await refresh();
                     }
                   }}
                 >
@@ -302,7 +302,7 @@ const Comments = ({ setShowModal, comments }) => {
                     e.stopPropagation();
                     const commentResponse = await api.put(
                       `/comment/${comment._id}`,
-                      encryptComment({
+                      await encryptComment({
                         ...comment,
                         user: comment.user || user._id,
                         team: comment.team || currentTeam._id,
@@ -310,7 +310,7 @@ const Comments = ({ setShowModal, comments }) => {
                       })
                     );
                     if (commentResponse.ok) {
-                      refresh();
+                      await refresh();
                     }
                   }}
                 >

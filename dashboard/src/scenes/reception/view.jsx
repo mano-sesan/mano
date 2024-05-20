@@ -157,7 +157,7 @@ const Reception = () => {
     setPassages((passages) => [newPassage, ...passages]);
     const response = await api.post("/passage", await encryptPassage(newPassage));
     if (response.ok) {
-      refresh();
+      await refresh();
     }
   };
 
@@ -180,7 +180,7 @@ const Reception = () => {
       for (const [index, passage] of Object.entries(newPassages)) {
         const response = await api.post("/passage", await encryptPassage(passage));
         if (response.ok) {
-          refresh();
+          await refresh();
         }
       }
       setAddingPassage(false);

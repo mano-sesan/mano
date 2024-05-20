@@ -37,7 +37,7 @@ const ConsultationsSettings = () => {
       toast.success("Type de consultation ajouté", { autoclose: 2000 });
       setOrganisation(res.data);
     }
-    refresh();
+    await refresh();
   };
 
   const onConsultationTypeChange = async (oldName, newName) => {
@@ -88,7 +88,7 @@ const ConsultationsSettings = () => {
     if (response.ok) {
       toast.success("Type de consultation supprimé", { autoclose: 2000 });
       setOrganisation(response.data);
-      refresh();
+      await refresh();
     } else {
       setOrganisation(oldOrganisation);
     }

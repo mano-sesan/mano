@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { organisationState } from "../../../recoil/auth";
 import { useRecoilValue } from "recoil";
 import IncrementorSmall from "../../../components/IncrementorSmall";
-import API from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
 import { servicesSelector } from "../../../recoil/reports";
 import dayjs from "dayjs";

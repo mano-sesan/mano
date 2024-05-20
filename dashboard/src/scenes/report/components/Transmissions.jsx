@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { encryptReport, prepareReportForEncryption, reportsState } from "../../../recoil/reports";
-import API from "../../../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
 import SelectAndCreateCollaboration from "../SelectAndCreateCollaboration";
 import { dayjsInstance } from "../../../services/date";
@@ -135,7 +134,7 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
       toast.error(response.errorMessage);
       return;
     }
-    refresh();
+    await refresh();
     setIsEditingTransmission(false);
   };
 

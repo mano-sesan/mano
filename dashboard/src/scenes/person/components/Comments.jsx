@@ -3,7 +3,6 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { toast } from "react-toastify";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { commentsState, encryptComment, prepareCommentForEncryption } from "../../../recoil/comments";
-import API from "../../../services/api";
 import { organisationState } from "../../../recoil/auth";
 import { groupsState } from "../../../recoil/groups";
 import api from "../../../services/apiv2";
