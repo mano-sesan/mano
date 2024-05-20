@@ -2,9 +2,8 @@ import React from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
-import { actionsState, prepareActionForEncryption } from "../../../recoil/actions";
-import API, { encryptItem } from "../../../services/api";
-import { commentsState, prepareCommentForEncryption } from "../../../recoil/comments";
+import { actionsState, encryptAction } from "../../../recoil/actions";
+import { commentsState, encryptComment } from "../../../recoil/comments";
 import { passagesState } from "../../../recoil/passages";
 import { rencontresState } from "../../../recoil/rencontres";
 import DeleteButtonAndConfirmModal from "../../../components/DeleteButtonAndConfirmModal";
@@ -14,7 +13,7 @@ import { consultationsState } from "../../../recoil/consultations";
 import { treatmentsState } from "../../../recoil/treatments";
 import { userState } from "../../../recoil/auth";
 import { useDataLoader } from "../../../components/DataLoader";
-import { prepareGroupForEncryption } from "../../../recoil/groups";
+import { encryptGroup } from "../../../recoil/groups";
 import api from "../../../services/apiv2";
 
 const DeletePersonButton = ({ person }) => {
@@ -76,21 +75,19 @@ const DeletePersonButton = ({ person }) => {
           if (updatedGroup.relations.length === 0) {
             body.groupIdToDelete = person.group._id;
           } else {
-            body.groupToUpdate = await encryptItem(prepareGroupForEncryption(updatedGroup));
+            body.groupToUpdate = await encryptGroup(updatedGroup);
           }
           if (personTransferId) {
             body.actionsToTransfer = await Promise.all(
               actions
                 .filter((a) => a.person === person._id && a.group === true)
-                .map((action) => prepareActionForEncryption({ ...action, person: personTransferId, user: action.user || user._id }))
-                .map(encryptItem)
+                .map((action) => encryptAction({ ...action, person: personTransferId, user: action.user || user._id }))
             );
 
             body.commentsToTransfer = await Promise.all(
               comments
                 .filter((c) => c.person === person._id && c.group === true)
-                .map((comment) => prepareCommentForEncryption({ ...comment, person: personTransferId }))
-                .map(encryptItem)
+                .map((comment) => encryptComment({ ...comment, person: personTransferId }))
             );
           }
         }

@@ -26,7 +26,6 @@ import Reception from "./scenes/reception";
 import ActionModal from "./components/ActionModal";
 import Charte from "./scenes/auth/charte";
 import { organisationState, userState } from "./recoil/auth";
-import API, { recoilResetKeyState, authTokenState } from "./services/api";
 import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
 import VersionOutdatedAlert from "./components/VersionOutdatedAlert";
@@ -41,7 +40,7 @@ import ConsultationModal from "./components/ConsultationModal";
 import TreatmentModal from "./scenes/person/components/TreatmentModal";
 import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
-import api from "./services/apiv2";
+import api, { recoilResetKeyState } from "./services/apiv2";
 import { capture } from "./services/sentry";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
@@ -89,7 +88,6 @@ if (ENV === "production") {
 }
 
 const App = ({ resetRecoil }) => {
-  const authToken = useRecoilValue(authTokenState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const initialLoadIsDone = useRecoilValue(initialLoadIsDoneState);
@@ -104,7 +102,7 @@ const App = ({ resetRecoil }) => {
 
   useEffect(() => {
     const onWindowFocus = (e) => {
-      if (authToken && e.newState === "active") {
+      if (api.getToken() && e.newState === "active") {
         api
           .get("/check-auth") // will force logout if session is expired
           .then(() => {
@@ -123,7 +121,7 @@ const App = ({ resetRecoil }) => {
     return () => {
       lifecycle.removeEventListener("statechange", onWindowFocus);
     };
-  }, [authToken, refresh, initialLoadIsDone]);
+  }, [refresh, initialLoadIsDone]);
 
   // Force logout when one user has been logged in multiple tabs to different organisations.
   if (

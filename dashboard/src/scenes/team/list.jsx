@@ -10,7 +10,6 @@ import ButtonCustom from "../../components/ButtonCustom";
 import Table from "../../components/table";
 import NightSessionModale from "../../components/NightSessionModale";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import API from "../../services/api";
 import OnboardingEndModal from "../../components/OnboardingEndModal";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";

@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.scss";
 import App from "./app";
 import "./services/sentry";
-import "./services/api";
+import "./services/apiv2";
 
 const root = createRoot(document.getElementById("root"));
 root.render(<App />);

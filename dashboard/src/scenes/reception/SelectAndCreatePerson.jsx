@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
 import { selector, useRecoilState, useRecoilValue } from "recoil";
 import AsyncSelect from "react-select/async-creatable";
-import API from "../../services/api";
 import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
 import { TODO, actionsState } from "../../recoil/actions";
 import { passagesState } from "../../recoil/passages";

@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { CustomResponsivePie } from "./charts";
 import { useRecoilValue } from "recoil";
-import API from "../../services/api";
 import { toast } from "react-toastify";
 import { dayjsInstance } from "../../services/date";
 import { useLocalStorage } from "../../services/useLocalStorage";

@@ -10,7 +10,6 @@ import Loading from "../../components/loading";
 import ButtonCustom from "../../components/ButtonCustom";
 import NightSessionModale from "../../components/NightSessionModale";
 import { currentTeamState, teamsState } from "../../recoil/auth";
-import API from "../../services/api";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";

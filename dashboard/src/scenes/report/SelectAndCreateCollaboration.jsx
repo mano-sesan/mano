@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import { useRecoilState } from "recoil";
 import SelectCustom from "../../components/SelectCustom";
 import { organisationState } from "../../recoil/auth";
-import API from "../../services/api";
 import api from "../../services/apiv2";
 
 const NoOptionsMessage = () => (

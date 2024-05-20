@@ -3,8 +3,10 @@ import { HOST, SCHEME } from "../config";
 import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 import { resetOrgEncryptionKey, setEnableEncrypt } from "./encryption";
-import { recoilResetKeyState } from "./api";
 import { AppSentry } from "./sentry";
+import { atom } from "recoil";
+
+export const recoilResetKeyState = atom({ key: "recoilResetKeyState", default: 0 });
 
 class Api {
   protected token: string | null = null;
@@ -67,6 +69,10 @@ class Api {
 
   setToken(token: string | null) {
     this.token = token;
+  }
+
+  getToken() {
+    return this.token;
   }
 
   reset({ redirect = false }: { redirect?: boolean } = {}) {

@@ -12,7 +12,6 @@ import ButtonCustom from "../../components/ButtonCustom";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
 import { organisationState, userState } from "../../recoil/auth";
-import API from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { emailRegex } from "../../utils";
