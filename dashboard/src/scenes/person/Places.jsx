@@ -8,11 +8,12 @@ import API from "../../services/api";
 import { useDataLoader } from "../../components/DataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
-import { placesState, preparePlaceForEncryption } from "../../recoil/places";
+import { encryptPlace, placesState, preparePlaceForEncryption } from "../../recoil/places";
 import SelectUser from "../../components/SelectUser";
 import { toast } from "react-toastify";
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { encryptRelPersonPlace, prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import QuestionMarkButton from "../../components/QuestionMarkButton";
+import api from "../../services/apiv2";
 
 const PersonPlaces = ({ person }) => {
   const user = useRecoilValue(userState);
@@ -28,7 +29,7 @@ const PersonPlaces = ({ person }) => {
   const onDeleteRelPersonPlace = async (relPersonPlace) => {
     if (!window.confirm("Voulez-vous vraiment supprimer ce lieu fréquenté ?")) return;
     setDeleting(true);
-    const response = await API.delete({ path: `/relPersonPlace/${relPersonPlace?._id}` });
+    const response = await api.delete(`/relPersonPlace/${relPersonPlace?._id}`);
     setDeleting(false);
     if (!response.ok) return toast.error(response.error);
     setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel._id !== relPersonPlace?._id));
@@ -163,18 +164,14 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       return;
     }
     setUpdating(true);
-    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: me._id }) });
+    const response = await api.post("/place", encryptPlace({ name, user: me._id }));
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
       return;
     }
-    setPlaces((places) =>
-      [response.decryptedData, ...places].sort((p1, p2) =>
-        p1?.name?.toLocaleLowerCase().localeCompare(p2.name?.toLocaleLowerCase(), "fr", { ignorPunctuation: true, sensitivity: "base" })
-      )
-    );
-    setPlaceId(response.decryptedData._id);
+    refresh();
+    setPlaceId(response.data._id);
   };
 
   const onEditPlace = async (e) => {
@@ -191,14 +188,8 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
     setUpdating(true);
     const isNew = !relPersonPlaceModal?._id;
     const response = isNew
-      ? await API.post({
-          path: "/relPersonPlace",
-          body: prepareRelPersonPlaceForEncryption({ place: placeId, person: person._id, user: userId }),
-        })
-      : await API.put({
-          path: `/relPersonPlace/${relPersonPlaceModal._id}`,
-          body: prepareRelPersonPlaceForEncryption({ place: placeId, person: person._id, user: userId }),
-        });
+      ? await api.post("/relPersonPlace", encryptRelPersonPlace({ place: placeId, person: person._id, user: userId }))
+      : await api.put(`/relPersonPlace/${relPersonPlaceModal._id}`, encryptRelPersonPlace({ place: placeId, person: person._id, user: userId }));
 
     setUpdating(false);
     if (response.error) {
@@ -206,11 +197,6 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       return;
     }
     toast.success(`Le lieu a été ${isNew ? "ajouté" : "modifié"}`);
-    if (isNew) {
-      setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
-    } else {
-      setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.map((r) => (r._id === relPersonPlaceModal._id ? response.decryptedData : r)));
-    }
     refresh();
     setOpen(null);
   };
@@ -310,17 +296,16 @@ const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
       return;
     }
     setUpdating(true);
-    const response = await API.put({
-      path: `/place/${placeToEdit._id}`,
-      body: preparePlaceForEncryption({ ...placeToEdit, user: placeToEdit.user || user._id, name }),
-    });
+    const response = await api.put(
+      `/place/${placeToEdit._id}`,
+      preparePlaceForEncryption({ ...placeToEdit, user: placeToEdit.user || user._id, name })
+    );
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
       return;
     }
     toast.success(`Le nom du lieu a été modifié`);
-    setPlaces((places) => places.map((p) => (p._id === placeToEdit._id ? response.decryptedData : p)));
     refresh();
     setOpen(null);
   };
@@ -334,7 +319,7 @@ const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
       return;
     }
     setUpdating(true);
-    const response = await API.delete({ path: `/place/${placeToEdit._id}` });
+    const response = await api.delete(`/place/${placeToEdit._id}`);
     setUpdating(false);
     if (response.error) {
       toast.error(response.error);
@@ -342,7 +327,7 @@ const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
     }
     setPlaces((places) => places.filter((p) => p._id !== placeToEdit._id));
     for (let relPersonPlace of relsPersonPlace.filter((rel) => rel.place === placeToEdit._id)) {
-      await API.delete({ path: `/relPersonPlace/${relPersonPlace._id}` });
+      await api.delete(`/relPersonPlace/${relPersonPlace._id}`);
     }
     setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel.place !== placeToEdit._id));
     toast.success("Lieu supprimé !");

@@ -2,6 +2,7 @@ import React from "react";
 import { useDataLoader } from "./DataLoader";
 import API from "../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
+import api from "../services/apiv2";
 
 export default function UnBugButton() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -32,7 +33,9 @@ export default function UnBugButton() {
                   className={"tw-text-blue-500 tw-underline"}
                   onClick={() => {
                     resetCache().then(() => {
-                      return API.logout();
+                      api.post("/logout").then(() => {
+                        api.reset({ redirect: true });
+                      });
                     });
                   }}
                 >
@@ -47,8 +50,9 @@ export default function UnBugButton() {
               <li>
                 Si le problème persiste, contactez votre chargé de déploiement&nbsp;:
                 <ul className="tw-list-disc">
-                  <li>Yoann - yoann.kittery@sesan.fr (07&nbsp;45&nbsp;16&nbsp;40&nbsp;04)
-                  <span className="tw-text-xs tw-text-white tw-bg-red-700 tw-rounded tw-px-1 tw-pb-0.5 tw-ml-2">nouveau</span>
+                  <li>
+                    Yoann - yoann.kittery@sesan.fr (07&nbsp;45&nbsp;16&nbsp;40&nbsp;04)
+                    <span className="tw-text-xs tw-text-white tw-bg-red-700 tw-rounded tw-px-1 tw-pb-0.5 tw-ml-2">nouveau</span>
                   </li>
                   <li>
                     Melissa - melissa.saiter@sesan.fr (07&nbsp;49&nbsp;08&nbsp;27&nbsp;10)

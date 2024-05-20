@@ -9,10 +9,11 @@ import { useHistory } from "react-router-dom";
 import ButtonCustom from "./ButtonCustom";
 import { theme } from "../config";
 import { organisationState, teamsState, userState } from "../recoil/auth";
-import { encryptVerificationKey } from "../services/encryption";
+import { encryptVerificationKey, getHashedOrgEncryptionKey, setOrgEncryptionKey } from "../services/encryption";
 import { capture } from "../services/sentry";
-import API, { setOrgEncryptionKey, getHashedOrgEncryptionKey, decryptAndEncryptItem } from "../services/api";
+import API, { decryptAndEncryptItem } from "../services/api";
 import { useDataLoader } from "./DataLoader";
+import api from "../services/apiv2";
 
 const EncryptionKey = ({ isMain }) => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -54,12 +55,7 @@ const EncryptionKey = ({ isMain }) => {
       const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim());
       setEncryptingStatus("Chiffrement des données...");
       const encryptedVerificationKey = await encryptVerificationKey(hashedOrgEncryptionKey);
-      const lockedForEncryptionResponse = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: {
-          lockedForEncryption: true,
-        },
-      });
+      const lockedForEncryptionResponse = await api.put(`/organisation/${organisation._id}`, { lockedForEncryption: true });
       if (!lockedForEncryptionResponse?.ok) {
         return toast.error("Désolé une erreur est survenue, veuillez réessayer ou contacter l'équipe de support");
       }
@@ -67,16 +63,12 @@ const EncryptionKey = ({ isMain }) => {
       // eslint-disable-next-line no-inner-declarations
       async function recrypt(path, callback = null) {
         setEncryptingStatus(`Chiffrement des données : (${path.replace("/", "")}s)`);
-        const cryptedItems = await API.get({
-          skipDecrypt: true,
-          path,
-          query: {
-            organisation: organisation._id,
-            limit: String(Number.MAX_SAFE_INTEGER),
-            page: String(0),
-            after: String(0),
-            withDeleted: true,
-          },
+        const cryptedItems = await api.get(path, {
+          organisation: organisation._id,
+          limit: String(Number.MAX_SAFE_INTEGER),
+          page: String(0),
+          after: String(0),
+          withDeleted: true,
         });
         const encryptedItems = [];
         for (const item of cryptedItems.data) {
@@ -93,6 +85,7 @@ const EncryptionKey = ({ isMain }) => {
         return encryptedItems;
       }
 
+      // FIXME: pas sûr que ça marche encore
       const encryptedPersons = await recrypt("/person", async (decryptedData, item) =>
         recryptPersonRelatedDocuments(decryptedData, item._id, previousKey.current, hashedOrgEncryptionKey)
       );
@@ -142,9 +135,9 @@ const EncryptionKey = ({ isMain }) => {
         setEncryptingProgress((p) => p + updateStatusBarInterval);
       }, updateStatusBarInterval * 1000);
       setOrganisation({ ...organisation, encryptionEnabled: true });
-      const res = await API.post({
-        path: "/encrypt",
-        body: {
+      const res = await api.post(
+        "/encrypt",
+        {
           persons: encryptedPersons,
           groups: encryptedGroups,
           actions: encryptedActions,
@@ -161,12 +154,12 @@ const EncryptionKey = ({ isMain }) => {
           reports: encryptedReports,
           encryptedVerificationKey,
         },
-        query: {
+        {
           encryptionLastUpdateAt: organisation.encryptionLastUpdateAt,
           encryptionEnabled: true,
           changeMasterKey: true,
-        },
-      });
+        }
+      );
 
       clearInterval(elpasedBarInterval);
       if (res.ok) {
@@ -189,12 +182,7 @@ const EncryptionKey = ({ isMain }) => {
       setEncryptionDone(false);
       await setOrgEncryptionKey(previousKey.current, { needDerivation: false });
       setEncryptingStatus("Erreur lors du chiffrement, veuillez contacter l'administrateur");
-      API.put({
-        path: `/organisation/${organisation._id}`,
-        body: {
-          lockedForEncryption: false,
-        },
-      });
+      api.put(`/organisation/${organisation._id}`, { lockedForEncryption: false });
     }
   };
 
@@ -242,7 +230,9 @@ const EncryptionKey = ({ isMain }) => {
           <ButtonCustom
             color="secondary"
             onClick={async () => {
-              return API.logout();
+              return api.post("/logout", {}).then(() => {
+                api.reset({ redirect: true });
+              });
             }}
             title={"Se déconnecter"}
           />

@@ -15,6 +15,7 @@ import API from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";
+import api from "../../services/apiv2";
 
 const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HTMLDivElement> }) => {
   const fileDialogRef = useRef<HTMLInputElement>(null);
@@ -60,7 +61,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
     // Update organisation
     const updatedOrganisation = getUpdatedOrganisationFromWorkbookData(organisation, workbookData);
     try {
-      const response = await API.put({ path: `/organisation/${organisation._id}`, body: updatedOrganisation });
+      const response = await api.put(`/organisation/${organisation._id}`, updatedOrganisation);
       if (response.ok) {
         toast.success("L'organisation a été mise à jour !");
         setWorkbookData(null);
@@ -68,7 +69,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
       }
     } catch (orgUpdateError) {
       console.log("error in updating organisation", orgUpdateError);
-      toast.error((orgUpdateError as any)?.message || "Erreur lors de l'import");
+      toast.error(orgUpdateError?.message || "Erreur lors de l'import");
     }
   }
 

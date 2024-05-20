@@ -13,6 +13,7 @@ import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
 import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
 import { useDataLoader } from "../../components/DataLoader";
+import api from "../../services/apiv2";
 
 const ImportData = () => {
   const user = useRecoilValue(userState);
@@ -150,7 +151,7 @@ const ImportData = () => {
 
   const onImportData = async () => {
     if (window.confirm(`Voulez-vous vraiment importer ${personsToImport.length} personnes dans Mano ? Cette opération est irréversible.`)) {
-      const response = await API.post({ path: "/person/import", body: { personsToImport, medicalFilesToImport } });
+      const response = await api.post("/person/import", { personsToImport, medicalFilesToImport });
       if (response.ok) toast.success("Importation réussie !");
       refresh();
       setShowImportSummary(false);

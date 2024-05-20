@@ -10,6 +10,7 @@ import {
   consultationsFieldsIncludingCustomFieldsSelector,
   consultationsState,
   defaultConsultationFields,
+  encryptConsultation,
   prepareConsultationForEncryption,
 } from "../recoil/consultations";
 import API from "../services/api";
@@ -30,6 +31,8 @@ import { itemsGroupedByConsultationSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
 import { useDataLoader } from "./DataLoader";
+import api from "../services/apiv2";
+import { decryptItem } from "../services/encryption";
 
 export default function ConsultationModal() {
   const consultationsObjects = useRecoilValue(itemsGroupedByConsultationSelector);
@@ -162,29 +165,11 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
     }
 
     const consultationResponse = isNewConsultation
-      ? await API.post({
-          path: "/consultation",
-          body: prepareConsultationForEncryption(organisation.consultations)(body),
-        })
-      : await API.put({
-          path: `/consultation/${data._id}`,
-          body: prepareConsultationForEncryption(organisation.consultations)(body),
-        });
+      ? await api.post("/consultation", encryptConsultation(organisation.consultations)(body))
+      : await api.put(`/consultation/${data._id}`, encryptConsultation(organisation.consultations)(body));
     if (!consultationResponse.ok) return false;
-    setData(consultationResponse.decryptedData);
-    const consult = { ...consultationResponse.decryptedData, ...defaultConsultationFields };
-    if (isNewConsultation) {
-      setAllConsultations((all) => [...all, consult].sort((a, b) => new Date(b.dueAt) - new Date(a.dueAt)));
-    } else {
-      setAllConsultations((all) =>
-        all
-          .map((c) => {
-            if (c._id === body._id) return consult;
-            return c;
-          })
-          .sort((a, b) => new Date(b.dueAt) - new Date(a.dueAt))
-      );
-    }
+    const decrypted = await decryptItem(consultationResponse.data);
+    setData(decrypted);
     if (closeOnSubmit) onClose();
     refresh();
     return true;
@@ -767,7 +752,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
             onClick={async (e) => {
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer cette consultation ?")) return;
-              const response = await API.delete({ path: `/consultation/${consultation._id}` });
+              const response = await api.delete(`/consultation/${consultation._id}`);
               if (!response.ok) return;
               setAllConsultations((all) => all.filter((t) => t._id !== consultation._id));
               toast.success("Consultation supprimée !");

@@ -10,10 +10,17 @@ import { organisationState } from "../../recoil/auth";
 import TagTeam from "../../components/TagTeam";
 import { useDataLoader } from "../../components/DataLoader";
 import Loading from "../../components/loading";
+import api from "../../services/apiv2";
+import { decryptItem } from "../../services/encryption";
 
 async function fetchPersons(organisationId) {
-  const res = await API.get({ path: "/organisation/" + organisationId + "/deleted-data", query: {}, decryptDeleted: true });
-  return res.decryptedData;
+  const res = await api.get("/organisation/" + organisationId + "/deleted-data");
+  let decryptedData = {};
+  for (const [key, value] of Object.entries(res.data)) {
+    const decryptedEntries = await Promise.all(value.map((d) => decryptItem(d, { decryptDeleted: true })));
+    decryptedData[key] = decryptedEntries;
+  }
+  return decryptedData;
 }
 
 export default function Poubelle() {
@@ -71,10 +78,7 @@ export default function Poubelle() {
     const associatedDataAsText = getAssociatedDataAsText(associatedData);
 
     if (confirm("Voulez-vous restaurer cette personne ? Les données associées seront également restaurées :\n" + associatedDataAsText.join(", "))) {
-      API.post({
-        path: "/organisation/" + organisation._id + "/restore-deleted-data",
-        body: { ...associatedData, persons: [id] },
-      }).then((res) => {
+      api.post("/organisation/" + organisation._id + "/restore-deleted-data", { ...associatedData, persons: [id] }).then((res) => {
         if (res.ok) {
           refresh().then(() => {
             toast.success("La personne a été restaurée avec succès, ainsi que ses données associées !");
@@ -97,10 +101,7 @@ export default function Poubelle() {
           associatedDataAsText.join(", ")
       )
     ) {
-      API.delete({
-        path: "/organisation/" + organisation._id + "/permanent-delete-data",
-        body: { ...associatedData, persons: [id] },
-      }).then((res) => {
+      api.delete("/organisation/" + organisation._id + "/permanent-delete-data", { ...associatedData, persons: [id] }).then((res) => {
         if (res.ok) {
           refresh().then(() => {
             toast.success("La personne a été supprimée définitivement avec succès, ainsi que ses données associées !");

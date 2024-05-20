@@ -14,6 +14,7 @@ import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/auth";
 import { flattenedStructuresCategoriesSelector } from "../../recoil/structures";
 import { filterBySearch } from "../search/utils";
+import api from "../../services/apiv2";
 
 const List = () => {
   const [structures, setStructures] = useState([]);
@@ -30,7 +31,7 @@ const List = () => {
   useTitle("Structures");
 
   const getStructures = async () => {
-    const response = await API.get({ path: "/structure" });
+    const response = await api.get("/structure");
     if (response.ok) {
       setStructures(response.data);
     }
@@ -157,9 +158,7 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
     try {
       if (!structure.name) throw new Error("Le nom de la structure est obligatoire");
       const isNew = !initStructure?._id;
-      const res = !isNew
-        ? await API.put({ path: `/structure/${initStructure._id}`, body: structure })
-        : await API.post({ path: "/structure", body: structure });
+      const res = !isNew ? await api.put(`/structure/${initStructure._id}`, { ...structure }) : await api.post("/structure", { ...structure });
       setDisabled(false);
       if (!res.ok) return;
       toast.success(!isNew ? "Structure mise à jour !" : "Structure créée !");
@@ -173,7 +172,7 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
 
   const onDeleteStructure = async () => {
     if (window.confirm("Voulez-vous vraiment supprimer cette structure ? Cette action est irréversible.")) {
-      const res = await API.delete({ path: `/structure/${structure._id}` });
+      const res = await api.delete(`/structure/${structure._id}`);
       if (!res.ok) return;
       toast.success("Structure supprimée !");
       onSuccess();

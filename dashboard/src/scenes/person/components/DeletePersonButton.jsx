@@ -15,6 +15,7 @@ import { treatmentsState } from "../../../recoil/treatments";
 import { userState } from "../../../recoil/auth";
 import { useDataLoader } from "../../../components/DataLoader";
 import { prepareGroupForEncryption } from "../../../recoil/groups";
+import api from "../../../services/apiv2";
 
 const DeletePersonButton = ({ person }) => {
   const actions = useRecoilValue(actionsState);
@@ -111,7 +112,7 @@ const DeletePersonButton = ({ person }) => {
         body.treatmentIdsToDelete = treatments.filter((c) => c.person === person._id).map((c) => c._id);
         body.medicalFileIdsToDelete = medicalFiles.filter((c) => c.person === person._id).map((c) => c._id);
 
-        const personRes = await API.delete({ path: `/person/${person._id}`, body });
+        const personRes = await api.delete(`/person/${person._id}`, body);
         if (personRes?.ok) {
           toast.success("Suppression réussie");
           refresh();

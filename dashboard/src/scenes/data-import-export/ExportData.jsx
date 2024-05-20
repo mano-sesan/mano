@@ -18,6 +18,7 @@ import { customFieldsMedicalFileSelector, medicalFileState } from "../../recoil/
 import { treatmentsState } from "../../recoil/treatments";
 import API from "../../services/api";
 import { toast } from "react-toastify";
+import api from "../../services/apiv2";
 
 const createSheet = (data) => {
   /*
@@ -98,7 +99,7 @@ const ExportData = () => {
     // just to trigger the loading state, sorry Raph :)
     await new Promise((res) => setTimeout(res));
 
-    const allServices = await API.get({ path: `/service/all` }).then((res) => {
+    const allServices = await api.get(`/service/all`).then((res) => {
       if (!res.ok) {
         toast.error("Erreur lors du chargement des services de l'accueil");
         return [];

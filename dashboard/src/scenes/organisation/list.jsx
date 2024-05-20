@@ -19,6 +19,7 @@ import OrganisationSuperadminSettings from "./OrganisationSuperadminSettings";
 import { getUmapGeoJSONFromOrgs } from "./utils";
 import CitySelect from "../../components/CitySelect";
 import { checkEncryptedVerificationKey, derivedMasterKey } from "../../services/encryption";
+import api from "../../services/apiv2";
 
 const List = () => {
   const [organisations, setOrganisations] = useState(null);
@@ -39,7 +40,7 @@ const List = () => {
   useEffect(() => {
     (async () => {
       if (!refresh) return;
-      const { data } = await API.get({ path: "/organisation", query: { withCounters: true } });
+      const { data } = await api.get("/organisation", { withCounters: true });
       const sortedDataAscendant = data?.sort((org1, org2) => (org1[sortBy] > org2[sortBy] ? 1 : -1));
       setOrganisations(sortOrder === "ASC" ? sortedDataAscendant : [...(sortedDataAscendant || [])].reverse());
       setUpdateKey((k) => k + 1);
@@ -275,7 +276,7 @@ const List = () => {
                         textToConfirm={organisation.name}
                         onConfirm={async () => {
                           try {
-                            const res = await API.delete({ path: `/organisation/${organisation._id}` });
+                            const res = await api.delete(`/organisation/${organisation._id}`);
                             if (res.ok) {
                               toast.success("Organisation supprimée");
                               setRefresh(true);
@@ -327,7 +328,7 @@ const Create = ({ onChange, open, setOpen }) => {
           }}
           onSubmit={async (body, actions) => {
             try {
-              const orgRes = await API.post({ path: "/organisation", body });
+              const orgRes = await api.post("/organisation", { ...body });
               actions.setSubmitting(false);
               if (!orgRes.ok) return;
               toast.success("Création réussie !");
@@ -510,9 +511,9 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
               return toast.error("La clé de l'organisation secondaire n'est pas valide");
             }
 
-            const res = await API.post({
-              path: `/organisation/merge`,
-              body: { mainId: selectedOrganisationMain._id, secondaryId: selectedOrganisationSecondary._id },
+            const res = await api.post(`/organisation/merge`, {
+              mainId: selectedOrganisationMain._id,
+              secondaryId: selectedOrganisationSecondary._id,
             });
             setSelectedOrganisationMain(null);
             setSelectedOrganisationSecondary(null);
@@ -538,7 +539,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
   useEffect(() => {
     if (!organisation?._id) return;
     (async () => {
-      const { data } = await API.get({ path: `organisation/${organisation._id}/teams` });
+      const { data } = await api.get(`organisation/${organisation._id}/teams`);
       setTeam(data);
     })();
   }, [organisation?._id]);
@@ -557,7 +558,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
               if (!body.role) return toast.error("Le rôle est obligatoire");
 
               body.organisation = organisation._id;
-              const { ok } = await API.post({ path: "/user", body });
+              const { ok } = await api.post("/user", { ...body });
               if (!ok) {
                 return false;
               }

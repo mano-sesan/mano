@@ -7,6 +7,7 @@ import { organisationAuthentifiedState } from "../../recoil/auth";
 import API from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";
+import api from "../../services/apiv2";
 
 export default function DefaultPersonFolders() {
   const organisation = useRecoilValue(organisationAuthentifiedState);
@@ -16,11 +17,10 @@ export default function DefaultPersonFolders() {
   useEffect(() => {
     // FIXME: trouver une meilleure méthode de comparaison
     if (JSON.stringify(organisation.defaultPersonsFolders) !== JSON.stringify(items)) {
-      API.put({ path: `/organisation/${organisation._id}`, body: { defaultPersonsFolders: items } })
+      api
+        .put(`/organisation/${organisation._id}`, { defaultPersonsFolders: items })
         .then((res) => {
-          if (!res.ok) {
-            toast.error("Erreur lors de la mise à jour des dossiers par défaut des personnes");
-          }
+          if (!res.ok) throw new Error("Erreur lors de la mise à jour des dossiers par défaut des personnes");
         })
         .catch((error) => {
           toast.error("Erreur lors de la mise à jour des dossiers par défaut des personnes");

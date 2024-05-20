@@ -18,6 +18,7 @@ import { groupSelector } from "../../recoil/groups";
 import TabsNav from "../../components/tailwind/TabsNav";
 import { useDataLoader } from "../../components/DataLoader";
 import SearchInPerson from "./components/SearchInPerson";
+import api from "../../services/apiv2";
 
 export default function View() {
   const { personId } = useParams();
@@ -37,7 +38,7 @@ export default function View() {
     history.push(`?${searchParams.toString()}`);
   };
 
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { encryptPerson } = usePreparePersonForEncryption();
 
   if (!person) {
     history.push("/person");
@@ -59,19 +60,10 @@ export default function View() {
             wrapper={() => "Créée par "}
             canAddUser
             handleChange={async (newUser) => {
-              const response = await API.put({
-                path: `/person/${person._id}`,
-                body: preparePersonForEncryption({ ...person, user: newUser }),
-              });
+              const response = await api.put(`/person/${person._id}`, encryptPerson({ ...person, user: newUser }));
               if (response.ok) {
                 toast.success("Personne mise à jour (créée par)");
-                const newPerson = response.decryptedData;
-                setPersons((persons) =>
-                  persons.map((p) => {
-                    if (p._id === person._id) return newPerson;
-                    return p;
-                  })
-                );
+                refresh();
               } else {
                 toast.error("Impossible de mettre à jour la personne");
               }

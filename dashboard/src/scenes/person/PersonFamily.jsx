@@ -8,12 +8,13 @@ import UserName from "../../components/UserName";
 import { userState } from "../../recoil/auth";
 import { dayjsInstance } from "../../services/date";
 import API from "../../services/api";
-import { groupSelector, groupsState, prepareGroupForEncryption } from "../../recoil/groups";
+import { encryptGroup, groupSelector, groupsState, prepareGroupForEncryption } from "../../recoil/groups";
 import SelectPerson from "../../components/SelectPerson";
 import { useDataLoader } from "../../components/DataLoader";
 import PersonName from "../../components/PersonName";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import api from "../../services/apiv2";
 
 const PersonFamily = ({ person }) => {
   const [groups, setGroups] = useRecoilState(groupsState);
@@ -74,13 +75,9 @@ const PersonFamily = ({ person }) => {
       relations: [...groupToEdit.relations, ...nextRelations],
     };
     const isNew = !groupToEdit?._id;
-    const response = isNew
-      ? await API.post({ path: "/group", body: prepareGroupForEncryption(nextGroup) })
-      : await API.put({ path: `/group/${groupToEdit._id}`, body: prepareGroupForEncryption(nextGroup) });
+    const response = isNew ? await api.post("/group", encryptGroup(nextGroup)) : await api.put(`/group/${groupToEdit._id}`, encryptGroup(nextGroup));
     if (response.ok) {
-      setGroups((groups) =>
-        isNew ? [...groups, response.decryptedData] : groups.map((group) => (group._id === groupToEdit._id ? response.decryptedData : group))
-      );
+      refresh();
       setNewRelationModalOpen(false);
       toast.success("Le lien familial a été ajouté");
     }
@@ -95,9 +92,9 @@ const PersonFamily = ({ person }) => {
         relation._id === _id ? { ...relation, description, updatedAt: dayjs(), user: user._id } : relation
       ),
     };
-    const response = await API.put({ path: `/group/${personGroup._id}`, body: prepareGroupForEncryption(nextGroup) });
+    const response = await api.put(`/group/${personGroup._id}`, encryptGroup(nextGroup));
     if (response.ok) {
-      setGroups((groups) => groups.map((group) => (group._id === personGroup._id ? response.decryptedData : group)));
+      refresh();
       setRelationToEdit(null);
       toast.success("Le lien familial a été modifié");
     }
@@ -117,7 +114,7 @@ const PersonFamily = ({ person }) => {
     }
     const nextRelations = personGroup.relations.filter((_relation) => _relation._id !== relation._id);
     if (!nextRelations.length) {
-      const deleteResponse = await API.delete({ path: `/group/${personGroup._id}` });
+      const deleteResponse = await api.delete(`/group/${personGroup._id}`);
       if (deleteResponse.ok) {
         setGroups((groups) => groups.filter((group) => group._id !== personGroup._id));
         setRelationToEdit(null);
@@ -129,9 +126,9 @@ const PersonFamily = ({ person }) => {
       persons: [...new Set(nextRelations.reduce((_personIds, relation) => [..._personIds, ...relation.persons], []))],
       relations: nextRelations,
     };
-    const response = await API.put({ path: `/group/${personGroup._id}`, body: prepareGroupForEncryption(nextGroup) });
+    const response = await api.put(`/group/${personGroup._id}`, encryptGroup(nextGroup));
     if (response.ok) {
-      setGroups((groups) => groups.map((group) => (group._id === personGroup._id ? response.decryptedData : group)));
+      refresh();
       setRelationToEdit(null);
       toast.success("Le lien familial a été supprimé");
     }

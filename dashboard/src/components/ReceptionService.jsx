@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { servicesSelector } from "../recoil/reports";
 import { useRecoilValue } from "recoil";
-import API from "../services/api";
 import { toast } from "react-toastify";
 import IncrementorSmall from "./IncrementorSmall";
 import { organisationState } from "../recoil/auth";
 import { capture } from "../services/sentry";
+import api from "../services/apiv2";
 
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
   const organisation = useRecoilValue(organisationState);
@@ -18,19 +18,25 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       if (!dateString || !team?._id || dateString === "undefined") {
         return capture("Missing params for initServices in reception", { extra: { dateString, team, report } });
       }
-      API.get({ path: `/service/team/${team._id}/date/${dateString}` }).then((res) => {
-        if (!res.ok) return toast.error(<ErrorOnGetServices />);
-        const servicesFromLegacyReport = report?.services?.length ? JSON.parse(report?.services) : {};
-        const servicesFromDatabase = res.data.reduce((acc, service) => {
-          acc[service.service] = (servicesFromLegacyReport[service.service] || 0) + service.count;
-          return acc;
-        }, {});
-        const mergedServices = Object.fromEntries(
-          // We need a sum of all keys from legacy and database services.
-          (organisation.services || []).map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
-        );
-        setServices(mergedServices);
-      });
+      api
+        .get(`/service/team/${team._id}/date/${dateString}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Error in initServices in reception");
+          const servicesFromLegacyReport = report?.services?.length ? JSON.parse(report?.services) : {};
+          const servicesFromDatabase = res.data.reduce((acc, service) => {
+            acc[service.service] = (servicesFromLegacyReport[service.service] || 0) + service.count;
+            return acc;
+          }, {});
+          const mergedServices = Object.fromEntries(
+            // We need a sum of all keys from legacy and database services.
+            (organisation.services || []).map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
+          );
+          setServices(mergedServices);
+        })
+        .catch((e) => {
+          capture(e);
+          return toast.error(<ErrorOnGetServices />);
+        });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [dateString, report, team]

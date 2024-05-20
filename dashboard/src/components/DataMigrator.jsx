@@ -3,14 +3,14 @@ import { mappedIdsToLabels, prepareActionForEncryption } from "../recoil/actions
 import { organisationState, userState } from "../recoil/auth";
 import { usePreparePersonForEncryption } from "../recoil/persons";
 import { prepareReportForEncryption } from "../recoil/reports";
-import API, { getHashedOrgEncryptionKey, decryptAndEncryptItem, encryptItem } from "../services/api";
+import API, { decryptAndEncryptItem, encryptItem } from "../services/api";
 import { dayjsInstance } from "../services/date";
 import { loadingTextState } from "./DataLoader";
 import { looseUuidRegex } from "../utils";
 import { prepareCommentForEncryption } from "../recoil/comments";
 import { prepareGroupForEncryption } from "../recoil/groups";
 import { capture } from "../services/sentry";
-import { encryptVerificationKey } from "../services/encryption";
+import { decryptItem, encryptVerificationKey } from "../services/encryption";
 import { v4 as uuidv4 } from "uuid";
 import { prepareConsultationForEncryption } from "../recoil/consultations";
 import { prepareTreatmentForEncryption } from "../recoil/treatments";
@@ -21,6 +21,7 @@ import { prepareTerritoryForEncryption } from "../recoil/territory";
 import { customFieldsObsSelector, defaultCustomFields, prepareObsForEncryption } from "../recoil/territoryObservations";
 import { preparePlaceForEncryption } from "../recoil/places";
 import { prepareRelPersonPlaceForEncryption } from "../recoil/relPersonPlace";
+import api from "../services/apiv2";
 
 const LOADING_TEXT = "Mise à jour des données de votre organisation…";
 
@@ -66,14 +67,18 @@ export default function useDataMigrator() {
       }
       // End of example of migration.
       */
+
       if (!organisation.migrations?.includes("reformat-observedAt-observations-fixed")) {
         // some observedAt are timestamp, some are date
         // it messes up the filtering by date in stats
         setLoadingText(LOADING_TEXT);
-        const observationsRes = await API.get({
-          path: "/territory-observation",
-          query: { organisation: organisationId, after: 0, withDeleted: false },
-        }).then((res) => res.decryptedData || []);
+        const observationsRes = await api
+          .get("/territory-observation", { organisation: organisationId, after: 0, withDeleted: false })
+          .then((res) => decryptItem(res.data))
+          .catch((e) => {
+            capture(e);
+            return false;
+          });
 
         const observationIdsToDelete = {}; // we create an object for the loop line 87 to be fast enough
         for (const observation of observationsRes) {
@@ -99,11 +104,11 @@ export default function useDataMigrator() {
 
         const encryptedObservations = await Promise.all(observationsWithFullData.map(prepareObsForEncryption(customFieldsObs)).map(encryptItem));
 
-        const response = await API.put({
-          path: `/migration/reformat-observedAt-observations-fixed`,
-          body: { encryptedObservations, observationIdsToDelete: Object.keys(observationIdsToDelete) },
-          query: { migrationLastUpdateAt },
-        });
+        const response = await api.put(
+          `/migration/reformat-observedAt-observations-fixed`,
+          { encryptedObservations, observationIdsToDelete: Object.keys(observationIdsToDelete) },
+          { migrationLastUpdateAt }
+        );
         if (response.ok) {
           setOrganisation(response.organisation);
           migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;

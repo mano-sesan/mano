@@ -1,12 +1,14 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { DONE, TODO, CANCEL, prepareActionForEncryption, actionsState } from "../recoil/actions";
+import { DONE, TODO, CANCEL, prepareActionForEncryption, actionsState, encryptAction } from "../recoil/actions";
 import API from "../services/api";
 import { now } from "../services/date";
 import { toast } from "react-toastify";
 import { organisationState, userState } from "../recoil/auth";
-import { consultationsState, defaultConsultationFields, prepareConsultationForEncryption } from "../recoil/consultations";
+import { consultationsState, defaultConsultationFields, encryptConsultation, prepareConsultationForEncryption } from "../recoil/consultations";
 import { ConsultationInstance } from "../types/consultation";
 import { ActionInstance } from "../types/action";
+import api from "../services/apiv2";
+import { useDataLoader } from "./DataLoader";
 
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
   return action.isConsultation !== undefined && action.isConsultation;
@@ -15,6 +17,7 @@ function isConsultation(action: ActionInstance | ConsultationInstance): action i
 export default function ActionStatusSelect({ action }: { action: ActionInstance | ConsultationInstance }) {
   const setActions = useSetRecoilState<ActionInstance[]>(actionsState);
   const setConsultations = useSetRecoilState<ConsultationInstance[]>(consultationsState);
+  const { refresh } = useDataLoader();
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
 
@@ -48,53 +51,39 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
 
         if (isConsultation(action)) {
           const consultation = action;
-          const consultationResponse = await API.put({
-            path: `/consultation/${consultation._id}`,
-            body: prepareConsultationForEncryption(organisation.consultations)({
+          const consultationResponse = await api.put(
+            `/consultation/${consultation._id}`,
+            encryptConsultation(organisation.consultations)({
               ...consultation,
               status,
               completedAt,
               user: updatedUser,
               history: updatedHistory,
-            }),
-          });
+            })
+          );
           if (!consultationResponse.ok) {
             toast.error("Erreur lors de la mise à jour de la consultation");
             return;
           }
-          const newConsultation = { ...consultationResponse.decryptedData, ...defaultConsultationFields };
-          setConsultations((consultations) =>
-            consultations
-              .map((a) => {
-                if (a._id === newConsultation._id) return newConsultation;
-                return a;
-              })
-              .sort((a, b) => new Date(b.dueAt).getTime() - new Date(a.dueAt).getTime())
-          );
+          refresh();
           toast.success("Le statut de la consultation a été mis à jour");
           return;
         } else {
-          const actionResponse = await API.put({
-            path: `/action/${action._id}`,
-            body: prepareActionForEncryption({
+          const actionResponse = await api.put(
+            `/action/${action._id}`,
+            encryptAction({
               ...action,
               status,
               completedAt,
               user: updatedUser,
               history: updatedHistory,
-            }),
-          });
+            })
+          );
           if (!actionResponse.ok) {
             toast.error("Erreur lors de la mise à jour de l'action");
             return;
           }
-          const newAction = actionResponse.decryptedData;
-          setActions((actions) =>
-            actions.map((a) => {
-              if (a._id === newAction._id) return newAction;
-              return a;
-            })
-          );
+          refresh();
           toast.success("Le statut de l'action a été mis à jour");
         }
       }}

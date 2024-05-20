@@ -7,6 +7,7 @@ import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../compo
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import { flattenedStructuresCategoriesSelector, structuresCategoriesSelector } from "../../recoil/structures";
+import api from "../../services/apiv2";
 
 const StructuresCategoriesSettings = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -23,10 +24,7 @@ const StructuresCategoriesSettings = () => {
   const onDragAndDrop = useCallback(
     async (newGroups) => {
       newGroups = newGroups.map((group) => ({ groupTitle: group.groupTitle, categories: group.items }));
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { structuresGroupedCategories: newGroups },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { structuresGroupedCategories: newGroups });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -71,11 +69,8 @@ const AddCategory = ({ groupTitle }) => {
 
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, structuresGroupedCategories: newStructuresGroupedCategories }); // optimistic UI
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: {
-        structuresGroupedCategories: newStructuresGroupedCategories,
-      },
+    const response = await api.put(`/organisation/${organisation._id}`, {
+      structuresGroupedCategories: newStructuresGroupedCategories,
     });
     if (response.ok) {
       setOrganisation(response.data);
@@ -131,13 +126,10 @@ const Category = ({ item: category, groupTitle }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, structuresGroupedCategories: newStructuresGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/structure/category`,
-      body: {
-        structuresGroupedCategories: newStructuresGroupedCategories,
-        newCategory,
-        oldCategory,
-      },
+    const response = await api.put(`/structure/category`, {
+      structuresGroupedCategories: newStructuresGroupedCategories,
+      newCategory,
+      oldCategory,
     });
     if (response.ok) {
       refresh();
@@ -161,11 +153,8 @@ const Category = ({ item: category, groupTitle }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, structuresGroupedCategories: newStructuresGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: {
-        structuresGroupedCategories: newStructuresGroupedCategories,
-      },
+    const response = await api.put(`/organisation/${organisation._id}`, {
+      structuresGroupedCategories: newStructuresGroupedCategories,
     });
     if (response.ok) {
       refresh();

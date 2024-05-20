@@ -36,6 +36,7 @@ import CollaborationsSettings from "./CollaborationsSettings";
 import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import DocumentsOrganizer from "../../components/DocumentsOrganizer";
 import DefaultPersonFolders from "./DefaultPersonFolders";
+import api from "../../services/apiv2";
 
 const getSettingTitle = (tabId) => {
   if (tabId === "infos") return "Informations";
@@ -73,7 +74,7 @@ const View = () => {
   const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
 
   const persons = useRecoilValue(personsState);
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { preparePersonForEncryption, encryptPerson } = usePreparePersonForEncryption();
   const [refreshErrorKey, setRefreshErrorKey] = useState(0);
   const { refresh } = useDataLoader();
 
@@ -92,14 +93,11 @@ const View = () => {
     async ({ oldChoice, newChoice, field, fields }) => {
       const updatedPersons = replaceOldChoiceByNewChoice(persons, oldChoice, newChoice, field);
 
-      const response = await API.post({
-        path: "/custom-field",
-        body: {
-          customFields: {
-            [customFieldsRow]: fields,
-          },
-          persons: await Promise.all(updatedPersons.map(preparePersonForEncryption).map(encryptItem)),
+      const response = await api.post("/custom-field", {
+        customFields: {
+          [customFieldsRow]: fields,
         },
+        persons: await Promise.all(updatedPersons.map(encryptPerson)),
       });
       if (response.ok) {
         toast.success("Choix mis à jour !");
@@ -158,7 +156,7 @@ const View = () => {
             enableReinitialize
             onSubmit={async (body) => {
               try {
-                const response = await API.put({ path: `/organisation/${organisation._id}`, body });
+                const response = await api.put(`/organisation/${organisation._id}`, { ...body });
                 if (response.ok) {
                   toast.success("Mise à jour !");
                   setOrganisation(response.data);
@@ -188,10 +186,10 @@ const View = () => {
                           textToConfirm={organisation.name}
                           onConfirm={async () => {
                             try {
-                              const res = await API.delete({ path: `/organisation/${organisation._id}` });
+                              const res = await api.delete(`/organisation/${organisation._id}`);
                               if (res.ok) {
                                 toast.success("Organisation supprimée");
-                                API.logout();
+                                api.reset({ redirect: true });
                               }
                             } catch (organisationDeleteError) {
                               capture(organisationDeleteError, { extra: { organisation }, user });

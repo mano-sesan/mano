@@ -14,8 +14,9 @@ import Loading from "../../components/loading";
 import Table from "../../components/table";
 import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
-import { emailRegex } from "../../utils";
+import { emailRegex, errorMessage } from "../../utils";
 import dayjs from "dayjs";
+import api from "../../services/apiv2";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -71,14 +72,17 @@ const List = () => {
   );
 
   useEffect(() => {
-    API.get({ path: "/user" }).then((response) => {
-      if (response.error) {
-        toast.error(response.error);
-        return false;
-      }
-      setUsers(response.data);
-      setRefresh(false);
-    });
+    api
+      .get("/user")
+      .then((response) => {
+        if (response.error) throw new Error(response.error);
+        setUsers(response.data);
+        setRefresh(false);
+      })
+      .catch((e) => {
+        console.log("error in fetching users", e);
+        toast.error(errorMessage(e));
+      });
   }, [refresh]);
 
   if (!users.length) return <Loading />;
@@ -220,7 +224,7 @@ const Create = ({ onChange, users }) => {
         return false;
       }
       setIsSubmitting(true);
-      const { ok } = await API.post({ path: "/user", body: data });
+      const { ok } = await api.post("/user", data);
       setIsSubmitting(false);
       if (!ok) {
         return false;

@@ -5,6 +5,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import API from "../../services/api";
 import { useRecoilValue } from "recoil";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
+import api from "../../services/apiv2";
 
 const View = () => {
   const [done, setDone] = useState(false);
@@ -29,10 +30,7 @@ const View = () => {
         return;
       }
       setIsSubmitting(true);
-      const response = await API.post({
-        path: "/user/forgot_password",
-        body: resetForm,
-      });
+      const response = await api.post("/user/forgot_password", resetForm);
       setIsSubmitting(false);
       if (response.ok) setDone(true);
     } catch (errorPasswordReset) {

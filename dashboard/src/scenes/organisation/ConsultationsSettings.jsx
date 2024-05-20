@@ -8,6 +8,7 @@ import DragAndDropSettings from "./DragAndDropSettings";
 import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
+import api from "../../services/apiv2";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -31,10 +32,7 @@ const ConsultationsSettings = () => {
   const { refresh } = useDataLoader();
 
   const onAddConsultationType = async (name) => {
-    const res = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { consultations: [...consultationFields, { name, fields: [] }] },
-    });
+    const res = await api.put(`/organisation/${organisation._id}`, { consultations: [...consultationFields, { name, fields: [] }] });
     if (res.ok) {
       toast.success("Type de consultation ajouté", { autoclose: 2000 });
       setOrganisation(res.data);
@@ -64,14 +62,11 @@ const ConsultationsSettings = () => {
         .map(prepareConsultationForEncryption(newConsultationFields))
         .map(encryptItem)
     );
-    const response = await API.post({
-      path: "/custom-field",
-      body: {
-        customFields: {
-          consultations: newConsultationFields,
-        },
-        consultations: encryptedConsultations,
+    const response = await api.post("/custom-field", {
+      customFields: {
+        consultations: newConsultationFields,
       },
+      consultations: encryptedConsultations,
     });
     if (response.ok) {
       refresh();
@@ -89,10 +84,7 @@ const ConsultationsSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, consultations: newConsultationFields }); // optimistic UI
 
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { consultations: newConsultationFields },
-    });
+    const response = await api.put(`/organisation/${organisation._id}`, { consultations: newConsultationFields });
     if (response.ok) {
       toast.success("Type de consultation supprimé", { autoclose: 2000 });
       setOrganisation(response.data);
@@ -109,10 +101,7 @@ const ConsultationsSettings = () => {
         name: group.groupTitle,
         fields: group.items.map((customFieldName) => flattenFields.find((f) => f.name === customFieldName)),
       }));
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { consultations: newConsultationFields });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -152,10 +141,7 @@ const AddField = ({ groupTitle: typeName }) => {
           fields: [...type.fields, newField].map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { consultations: newConsultationFields });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -230,10 +216,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
           fields: type.fields.map((field) => (field.name !== editedField.name ? field : editedField)).map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { consultations: newConsultationFields });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -264,14 +247,11 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
     setIsEditingField(false);
     const updatedConsultations = replaceOldChoiceByNewChoice(allConsultations, oldChoice, newChoice, field);
 
-    const response = await API.post({
-      path: "/custom-field",
-      body: {
-        customFields: {
-          consultations: newConsultationFields,
-        },
-        consultations: await Promise.all(updatedConsultations.map(prepareConsultationForEncryption(newConsultationFields)).map(encryptItem)),
+    const response = await api.post("/custom-field", {
+      customFields: {
+        consultations: newConsultationFields,
       },
+      consultations: await Promise.all(updatedConsultations.map(prepareConsultationForEncryption(newConsultationFields)).map(encryptItem)),
     });
     if (response.ok) {
       toast.success("Choix mis à jour !");
@@ -289,10 +269,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
           fields: type.fields.filter((field) => field.name !== customField.name),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { consultations: newConsultationFields });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);

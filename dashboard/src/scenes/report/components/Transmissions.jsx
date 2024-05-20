@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { toast } from "react-toastify";
-import { prepareReportForEncryption, reportsState } from "../../../recoil/reports";
+import { encryptReport, prepareReportForEncryption, reportsState } from "../../../recoil/reports";
 import API from "../../../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
 import SelectAndCreateCollaboration from "../SelectAndCreateCollaboration";
 import { dayjsInstance } from "../../../services/date";
 import { useSetRecoilState } from "recoil";
+import api from "../../../services/apiv2";
 
 export default function Transmissions({ period, selectedTeamsObject, reports }) {
   const days = useMemo(() => {
@@ -125,14 +126,12 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
   }
 
   const onSaveReport = async (body) => {
-    const response = report?._id
-      ? await API.put({ path: `report/${report._id}`, body: prepareReportForEncryption(body) })
-      : await API.post({ path: "report", body: prepareReportForEncryption(body) });
+    const response = report?._id ? await api.put(`report/${report._id}`, encryptReport(body)) : await api.post("report", encryptReport(body));
     if (!response.ok) {
       toast.error(response.errorMessage);
       return;
     }
-    setReports((reports) => [response.decryptedData, ...reports.filter((_report) => _report._id !== response.decryptedData._id)]);
+    refresh();
     setIsEditingTransmission(false);
   };
 

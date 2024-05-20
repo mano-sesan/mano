@@ -4,6 +4,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { userState } from "../../recoil/auth";
 import API from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
+import api from "../../services/apiv2";
 
 const CGUs = () => {
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ const CGUs = () => {
   const onSigninValidated = async () => {
     setLoading(true);
     const cgusAccepted = Date.now();
-    const response = await API.put({ path: "/user", body: { cgusAccepted } });
+    const response = await api.put("/user", cgusAccepted);
     if (!response.ok) return;
     setUser({ ...user, cgusAccepted });
   };

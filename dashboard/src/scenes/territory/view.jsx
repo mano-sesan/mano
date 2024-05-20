@@ -14,6 +14,7 @@ import { userState } from "../../recoil/auth";
 import BackButton from "../../components/backButton";
 import { TerritoryModal } from "./list";
 import { useLocalStorage } from "../../services/useLocalStorage";
+import api from "../../services/apiv2";
 
 const View = () => {
   const { id } = useParams();
@@ -74,11 +75,11 @@ const View = () => {
                 title={`Voulez-vous vraiment supprimer le territoire ${territory.name}`}
                 textToConfirm={territory.name}
                 onConfirm={async () => {
-                  const res = await API.delete({ path: `/territory/${id}` });
+                  const res = await api.delete(`/territory/${id}`);
                   if (res.ok) {
                     setTerritories((territories) => territories.filter((t) => t._id !== id));
                     for (let obs of territoryObservations.filter((o) => o.territory === id)) {
-                      const res = await API.delete({ path: `/territory-observation/${obs._id}` });
+                      const res = await api.delete(`/territory-observation/${obs._id}`);
                       if (res.ok) {
                         setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== obs._id));
                       }

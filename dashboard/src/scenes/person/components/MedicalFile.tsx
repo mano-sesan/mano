@@ -10,6 +10,7 @@ import MergeTwoPersons from "../MergeTwoPersons";
 import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
 import {
   customFieldsMedicalFileSelector,
+  encryptMedicalFile,
   groupedCustomFieldsMedicalFileSelector,
   medicalFileState,
   prepareMedicalFileForEncryption,
@@ -24,6 +25,8 @@ import type { PersonPopulated } from "../../../types/person";
 import type { MedicalFileInstance } from "../../../types/medicalFile";
 import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
+import api from "../../../services/apiv2";
+import { useDataLoader } from "../../../components/DataLoader";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -35,6 +38,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
   const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
   const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
   const organisation = useRecoilValue(organisationAuthentifiedState);
+  const { refresh } = useDataLoader();
   // These custom fields are displayed by default, because they where displayed before they became custom fields
   // Maybe we should reconsider this legacy in 2024-2025.
   const groupedCustomFieldsMedicalFileWithLegacyFields: CustomFieldsGroup[] = useMemo(() => {
@@ -69,18 +73,19 @@ export default function MedicalFile({ person }: MedicalFileProps) {
 
   useEffect(() => {
     if (!medicalFile) {
-      API.post({
-        path: "/medical-file",
-        body: prepareMedicalFileForEncryption(flatCustomFieldsMedicalFile)({
-          person: person._id,
-          documents: [],
-          organisation: organisation._id,
-        }),
-      }).then((response) => {
-        if (!response.ok) return;
-        const newMedicalFile = response.decryptedData as MedicalFileInstance;
-        setAllMedicalFiles((medicalFiles: MedicalFileInstance[]) => [...medicalFiles, newMedicalFile]);
-      });
+      api
+        .post(
+          "/medical-file",
+          encryptMedicalFile(flatCustomFieldsMedicalFile)({
+            person: person._id,
+            documents: [],
+            organisation: organisation._id,
+          })
+        )
+        .then((response) => {
+          if (!response.ok) return;
+          refresh();
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalFile]);

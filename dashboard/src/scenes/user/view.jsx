@@ -17,6 +17,7 @@ import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { emailRegex } from "../../utils";
 import { capture } from "../../services/sentry";
+import api from "../../services/apiv2";
 
 const View = () => {
   const [localUser, setLocalUser] = useState(null);
@@ -28,9 +29,8 @@ const View = () => {
   useTitle(`Utilisateur ${user?.name}`);
 
   const getUserData = useCallback(async () => {
-    const { data } = await API.get({ path: `/user/${id}` });
+    const { data } = await api.get(`/user/${id}`);
     setLocalUser(data);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -68,10 +68,10 @@ const View = () => {
             if (body.email && !emailRegex.test(body.email)) return toast.error("Email invalide");
             if (!body.name) return toast.error("Le nom doit faire au moins un caractère");
             body.organisation = organisation._id;
-            const res = await API.put({ path: `/user/${id}`, body });
+            const res = await api.put(`/user/${id}`, body);
             if (!res.ok) return actions.setSubmitting(false);
             if (user._id === id) {
-              const { data } = await API.get({ path: `/user/${id}` });
+              const { data } = await api.get(`/user/${id}`);
               setUser(data);
             }
             actions.setSubmitting(false);
@@ -152,7 +152,7 @@ const View = () => {
                   title={`Voulez-vous vraiment supprimer l'utilisateur ${values.name}`}
                   textToConfirm={values.name}
                   onConfirm={async () => {
-                    const res = await API.delete({ path: `/user/${id}` });
+                    const res = await api.delete(`/user/${id}`);
                     if (!res.ok) return;
                     toast.success("Suppression réussie");
                     history.goBack();

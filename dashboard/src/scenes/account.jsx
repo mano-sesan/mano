@@ -10,6 +10,7 @@ import ButtonCustom from "../components/ButtonCustom";
 import ChangePassword from "../components/ChangePassword";
 import { userState } from "../recoil/auth";
 import API from "../services/api";
+import api from "../services/apiv2";
 
 const Account = () => {
   const [user, setUser] = useRecoilState(userState);
@@ -23,10 +24,10 @@ const Account = () => {
         initialValues={user}
         onSubmit={async (body) => {
           try {
-            const response = await API.put({ path: "/user", body });
+            const response = await api.put("/user", body);
             if (response.ok) {
               toast.success("Mis à jour !");
-              const { user } = await API.get({ path: "/user/me" });
+              const { user } = await api.get("/user/me");
               setUser(user);
             }
           } catch (userUpdateError) {
@@ -82,11 +83,7 @@ const LinkToChangePassword = () => {
       <Modal isOpen={open} toggle={() => setOpen(false)} className="change-password" backdrop="static">
         <ModalHeader>Modifier son mot de passe</ModalHeader>
         <ModalBody>
-          <ChangePassword
-            onSubmit={(body) => API.post({ path: `/user/reset_password`, body })}
-            onFinished={() => setOpen(false)}
-            withCurrentPassword
-          />
+          <ChangePassword onSubmit={(body) => api.post(`/user/reset_password`, body)} onFinished={() => setOpen(false)} withCurrentPassword />
         </ModalBody>
       </Modal>
     </>

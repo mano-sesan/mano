@@ -21,6 +21,7 @@ import { territoryObservationsState } from "../../recoil/territoryObservations";
 import { personsState } from "../../recoil/persons";
 import { passagesState } from "../../recoil/passages";
 import { rencontresState } from "../../recoil/rencontres";
+import api from "../../services/apiv2";
 
 const View = () => {
   const [team, setTeam] = useState(null);
@@ -59,7 +60,7 @@ const View = () => {
   const [teams, setTeams] = useRecoilState(teamsState);
 
   const getTeam = async () => {
-    const { data } = await API.get({ path: `/team/${id}` });
+    const { data } = await api.get(`/team/${id}`);
     setTeam(data);
   };
 
@@ -78,7 +79,7 @@ const View = () => {
         enableReinitialize
         onSubmit={async (body) => {
           try {
-            const response = await API.put({ path: `/team/${team._id}`, body });
+            const response = await api.put(`/team/${team._id}`, body);
             if (response.ok) {
               toast.success("Mise à jour !");
               setTeams(
@@ -133,7 +134,7 @@ const View = () => {
                   // disabled={teams.length === 1}
                   // disabledTitle="Vous ne pouvez pas supprimer la dernière équipe"
                   onConfirm={async () => {
-                    const res = await API.delete({ path: `/team/${id}` });
+                    const res = await api.delete(`/team/${id}`);
                     if (!res.ok) return;
                     setTeams(teams.filter((t) => t._id !== id));
                     toast.success("Suppression réussie");

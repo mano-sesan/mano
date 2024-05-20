@@ -7,6 +7,9 @@ import { dayjsInstance } from "../../services/date";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
 import { servicesSelector } from "../../recoil/reports";
+import api from "../../services/apiv2";
+import { errorMessage } from "../../utils";
+import { capture } from "../../services/sentry";
 
 const ServicesStats = ({ period, teamIds }) => {
   const groupedServices = useRecoilValue(servicesSelector);
@@ -25,16 +28,20 @@ const ServicesStats = ({ period, teamIds }) => {
         setServicesFromDatabase({});
         return;
       }
-      API.get({ path: `/service/team/${teamIds.join(",")}/stats`, query: startDate ? { from: startDate, to: endDate || startDate } : {} }).then(
-        (res) => {
-          if (!res.ok) return toast.error("Erreur lors du chargement des statistiques des services de l'accueil");
+      api
+        .get(`/service/team/${teamIds.join(",")}/stats`, startDate ? { from: startDate, to: endDate || startDate } : {})
+        .then((res) => {
+          if (!res.ok) throw new Error("Erreur lors du chargement des statistiques des services de l'accueil");
           const servicesObj = {};
           for (const service of allServices) {
             servicesObj[service] = Number(res.data.find((s) => s.service === service)?.count || 0);
           }
           setServicesFromDatabase(servicesObj);
-        }
-      );
+        })
+        .catch((e) => {
+          capture(e);
+          toast.error(errorMessage(e));
+        });
     },
     [teamIds, startDate, endDate, allServices]
   );

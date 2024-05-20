@@ -14,6 +14,9 @@ import { currentTeamState, organisationState, userState } from "../../recoil/aut
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { theme } from "../../config";
 import dayjs from "dayjs";
+import api from "../../services/apiv2";
+import { useDataLoader } from "../../components/DataLoader";
+import { decryptItem } from "../../services/encryption";
 
 function removeDiatricsAndAccents(str) {
   return (str || "")
@@ -76,9 +79,10 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, show
   const organisation = useRecoilValue(organisationState);
   const passages = useRecoilValue(passagesState);
   const rencontres = useRecoilValue(rencontresState);
+  const { refresh } = useDataLoader();
 
   const optionsExist = useRef(null);
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { encryptPerson } = usePreparePersonForEncryption();
 
   const searchablePersons = useRecoilValue(searchablePersonsSelector);
 
@@ -175,15 +179,13 @@ const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, show
         const newPerson = { name, assignedTeams: [currentTeam._id], followedSince: dayjs(), user: user._id };
         const currentValue = value || [];
         onChange([...currentValue, { ...newPerson, __isNew__: true }]);
-        const personResponse = await API.post({
-          path: "/person",
-          body: preparePersonForEncryption(newPerson),
-        });
+        const personResponse = await api.post("/person", encryptPerson(newPerson));
         setIsDisabled(false);
         if (personResponse.ok) {
-          setPersons((persons) => [personResponse.decryptedData, ...persons].sort((p1, p2) => (p1?.name || "").localeCompare(p2?.name || "")));
+          refresh();
           toast.success("Nouvelle personne ajoutée !");
-          onChange([...currentValue, personResponse.decryptedData]);
+          const decrypted = decryptItem(personResponse.data);
+          onChange([...currentValue, decrypted]);
         }
       }}
       value={value}

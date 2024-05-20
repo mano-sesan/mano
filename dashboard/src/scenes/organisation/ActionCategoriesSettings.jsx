@@ -7,6 +7,7 @@ import API, { encryptItem } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
+import api from "../../services/apiv2";
 
 const ActionCategoriesSettings = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -21,9 +22,8 @@ const ActionCategoriesSettings = () => {
   const { refresh } = useDataLoader();
 
   const onAddGroup = async (groupTitle) => {
-    const res = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { actionsGroupedCategories: [...actionsGroupedCategories, { groupTitle, categories: [] }] },
+    const res = await api.put(`/organisation/${organisation._id}`, {
+      actionsGroupedCategories: [...actionsGroupedCategories, { groupTitle, categories: [] }],
     });
     if (res.ok) {
       toast.success("Groupe ajouté", { autoclose: 2000 });
@@ -44,11 +44,8 @@ const ActionCategoriesSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/category`,
-      body: {
-        actionsGroupedCategories: newActionsGroupedCategories,
-      },
+    const response = await api.put(`/category`, {
+      actionsGroupedCategories: newActionsGroupedCategories,
     });
     if (response.ok) {
       refresh();
@@ -65,11 +62,8 @@ const ActionCategoriesSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/category`,
-      body: {
-        actionsGroupedCategories: newActionsGroupedCategories,
-      },
+    const response = await api.put(`/category`, {
+      actionsGroupedCategories: newActionsGroupedCategories,
     });
     if (response.ok) {
       refresh();
@@ -83,10 +77,7 @@ const ActionCategoriesSettings = () => {
   const onDragAndDrop = useCallback(
     async (newGroups) => {
       newGroups = newGroups.map((group) => ({ groupTitle: group.groupTitle, categories: group.items }));
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { actionsGroupedCategories: newGroups },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { actionsGroupedCategories: newGroups });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -135,12 +126,7 @@ const AddCategory = ({ groupTitle }) => {
 
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
-    const response = await API.put({
-      path: `/category`,
-      body: {
-        actionsGroupedCategories: newActionsGroupedCategories,
-      },
-    });
+    const response = await api.put(`/category`, { actionsGroupedCategories: newActionsGroupedCategories });
     if (response.ok) {
       setOrganisation(response.data);
       toast.success("Catégorie ajoutée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
@@ -206,12 +192,9 @@ const Category = ({ item: category, groupTitle }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/category`,
-      body: {
-        actionsGroupedCategories: newActionsGroupedCategories,
-        actions: encryptedActions,
-      },
+    const response = await api.put(`/category`, {
+      actionsGroupedCategories: newActionsGroupedCategories,
+      actions: encryptedActions,
     });
     if (response.ok) {
       refresh();
@@ -235,12 +218,7 @@ const Category = ({ item: category, groupTitle }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
 
-    const response = await API.put({
-      path: `/category`,
-      body: {
-        actionsGroupedCategories: newActionsGroupedCategories,
-      },
-    });
+    const response = await api.put(`/category`, { actionsGroupedCategories: newActionsGroupedCategories });
     if (response.ok) {
       refresh();
       setIsEditingCategory(false);

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import API from "../services/api";
 import { capture } from "../services/sentry";
+import api from "../services/apiv2";
 
 export default function IncrementorSmall({ service, team, date, count: initialValue, onUpdated, dataTestId, disabled = false, className = "" }) {
   const debounced = useDebouncedCallback(
@@ -10,7 +11,7 @@ export default function IncrementorSmall({ service, team, date, count: initialVa
       if (!date || !team || date === "undefined") {
         return capture("Missing params for initServices in IncrementorSmall", { extra: { date, team, service, initialValue } });
       }
-      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: value, service } }).then((res) => {
+      api.post(`/service/team/${team}/date/${date}`, { count: value, service }).then((res) => {
         if (res.ok) onUpdated(res.data.count);
       });
     },

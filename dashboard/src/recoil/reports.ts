@@ -4,9 +4,10 @@ import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
-import API from "../services/api";
 import type { ReportInstance, ReadyToEncryptReportInstance } from "../types/report";
 import { keepOnlyOneReportAndReturnReportToDelete } from "../utils/delete-duplicated-reports";
+import api from "../services/apiv2";
+import { encryptItem } from "../services/encryption";
 
 const collectionName = "report";
 export const reportsState = atom({
@@ -36,7 +37,7 @@ export const reportsState = atom({
           for (const [key, reportsByDate] of duplicateReports) {
             const reportsToDelete = keepOnlyOneReportAndReturnReportToDelete(reportsByDate);
             for (const reportToDelete of reportsToDelete) {
-              await API.delete({ path: `report/${reportToDelete._id}` });
+              await api.delete(`report/${reportToDelete._id}`);
             }
             capture("Duplicated reports " + key, {
               extra: {
@@ -125,4 +126,8 @@ export function prepareReportForEncryption(report: ReportInstance, { checkRequir
     decrypted,
     entityKey: report.entityKey,
   };
+}
+
+export async function encryptReport(report: ReportInstance, { checkRequiredFields = true } = {}) {
+  return encryptItem(prepareReportForEncryption(report, { checkRequiredFields }));
 }

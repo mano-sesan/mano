@@ -12,6 +12,7 @@ import SelectDraggableAndEditable from "./SelectDraggableAndEditable";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { newCustomField, typeOptions } from "../utils";
 import SelectTeamMultiple from "./SelectTeamMultiple";
+import api from "../services/apiv2";
 
 const getValueFromType = (type) => typeOptions.find((opt) => opt.value === type);
 
@@ -72,10 +73,7 @@ const TableCustomFields = ({
     newData = newData.map(sanitizeFields);
     setIsSubmitting(true);
     try {
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { [customFields]: mergeData ? mergeData(newData) : newData },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { [customFields]: mergeData ? mergeData(newData) : newData });
       if (response.ok) {
         toast.success("Mise à jour !");
         setMutableData(extractData ? extractData(response.data[customFields]) : response.data[customFields]);
@@ -93,10 +91,7 @@ const TableCustomFields = ({
     setIsSubmitting(true);
     try {
       const dataForApi = keys.map((key) => mutableData.find((field) => field.name === key));
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { [customFields]: mergeData ? mergeData(dataForApi) : dataForApi },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { [customFields]: mergeData ? mergeData(dataForApi) : dataForApi });
       if (response.ok) {
         toast.success("Mise à jour !");
         setMutableData(extractData ? extractData(response.data[customFields]) : response.data[customFields]);

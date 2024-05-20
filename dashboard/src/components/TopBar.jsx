@@ -12,6 +12,7 @@ import { useDataLoader } from "./DataLoader";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import ColorHeaderBand from "./ColorHeaderBand";
 import UnBugButton from "./UnBugButton";
+import api from "../services/apiv2";
 
 const TopBar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -101,7 +102,9 @@ const TopBar = () => {
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
-                  API.logout();
+                  api.post("/logout").then(() => {
+                    api.reset({ redirect: true });
+                  });
                 }}
               >
                 Se déconnecter
@@ -109,7 +112,9 @@ const TopBar = () => {
               <DropdownItem
                 onClick={() => {
                   resetCache().then(() => {
-                    return API.logout();
+                    api.post("/logout").then(() => {
+                      api.reset({ redirect: true });
+                    });
                   });
                 }}
               >

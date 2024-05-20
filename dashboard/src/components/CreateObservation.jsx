@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 
 import {
   customFieldsObsSelector,
+  encryptObs,
   groupedCustomFieldsObsSelector,
   prepareObsForEncryption,
   territoryObservationsState,
@@ -23,18 +24,21 @@ import DatePicker from "./DatePicker";
 import { ModalBody, ModalContainer, ModalHeader, ModalFooter } from "./tailwind/Modal";
 import SelectAndCreatePerson from "../scenes/reception/SelectAndCreatePerson";
 import Rencontre from "./Rencontre";
-import { prepareRencontreForEncryption, rencontresState } from "../recoil/rencontres";
+import { encryptRencontre, prepareRencontreForEncryption, rencontresState } from "../recoil/rencontres";
 import { useLocalStorage } from "../services/useLocalStorage";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import PersonName from "./PersonName";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import Table from "./table";
+import api from "../services/apiv2";
+import { useDataLoader } from "./DataLoader";
 
 const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const [selectedPersons, setSelectedPersons] = useState([]);
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
+  const { refresh } = useDataLoader();
   const team = useRecoilValue(currentTeamState);
   const territories = useRecoilValue(territoriesState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
@@ -60,26 +64,17 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   }, [forceOpen]);
 
   const addTerritoryObs = async (obs) => {
-    const res = await API.post({ path: "/territory-observation", body: prepareObsForEncryption(customFieldsObs)(obs) });
+    const res = await api.post("/territory-observation", encryptObs(customFieldsObs)(obs));
     if (res.ok) {
-      setTerritoryObservations((territoryObservations) =>
-        [res.decryptedData, ...territoryObservations].sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt))
-      );
+      refresh();
     }
     return res;
   };
 
   const updateTerritoryObs = async (obs) => {
-    const res = await API.put({ path: `/territory-observation/${obs._id}`, body: prepareObsForEncryption(customFieldsObs)(obs) });
+    const res = await api.put(`/territory-observation/${obs._id}`, encryptObs(customFieldsObs)(obs));
     if (res.ok) {
-      setTerritoryObservations((territoryObservations) =>
-        territoryObservations
-          .map((a) => {
-            if (a._id === obs._id) return res.decryptedData;
-            return a;
-          })
-          .sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt))
-      );
+      refresh();
     }
     return res;
   };
@@ -87,7 +82,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const onDelete = async (id) => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
-      const res = await API.delete({ path: `/territory-observation/${id}` });
+      const res = await api.delete(`/territory-observation/${id}`);
       if (res.ok) {
         setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== id));
       }
@@ -131,16 +126,12 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
             if (res.data._id && rencontresInProgress.length > 0) {
               let rencontreSuccess = true;
               for (const rencontre of rencontresInProgress) {
-                const response = await API.post({
-                  path: "/rencontre",
-                  body: prepareRencontreForEncryption({ ...rencontre, observation: res.data._id }),
-                });
-                if (response.ok) {
-                  setRencontres((rencontres) => [response.decryptedData, ...rencontres]);
-                } else {
+                const response = await api.post("/rencontre", encryptRencontre({ ...rencontre, observation: res.data._id }));
+                if (!response.ok) {
                   rencontreSuccess = false;
                 }
               }
+              refresh();
               if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
               else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
             }

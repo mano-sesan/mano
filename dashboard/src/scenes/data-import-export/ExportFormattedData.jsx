@@ -9,6 +9,7 @@ import API from "../../services/api";
 import { customFieldsObsSelector } from "../../recoil/territoryObservations";
 import { territoriesState } from "../../recoil/territory";
 import { consultationFieldsSelector } from "../../recoil/consultations";
+import api from "../../services/apiv2";
 
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
@@ -23,7 +24,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
 
   async function fetchUsers() {
     if (users.length) return users;
-    const response = await API.get({ path: "/user" });
+    const response = await api.get("/user");
     if (response.data) {
       setUsers(response.data);
       return response.data;

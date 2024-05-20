@@ -25,14 +25,14 @@ import Drawer from "./components/drawer";
 import Reception from "./scenes/reception";
 import ActionModal from "./components/ActionModal";
 import Charte from "./scenes/auth/charte";
-import { userState } from "./recoil/auth";
+import { organisationState, userState } from "./recoil/auth";
 import API, { recoilResetKeyState, authTokenState } from "./services/api";
 import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
 import VersionOutdatedAlert from "./components/VersionOutdatedAlert";
 import ModalConfirm from "./components/ModalConfirm";
 import DataLoader, { initialLoadIsDoneState, useDataLoader } from "./components/DataLoader";
-import { Bounce, cssTransition, ToastContainer } from "react-toastify";
+import { Bounce, cssTransition, toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SentryRoute from "./components/Sentryroute";
 import { ENV, VERSION } from "./config";
@@ -41,6 +41,8 @@ import ConsultationModal from "./components/ConsultationModal";
 import TreatmentModal from "./scenes/person/components/TreatmentModal";
 import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
+import api from "./services/apiv2";
+import { capture } from "./services/sentry";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -89,11 +91,11 @@ if (ENV === "production") {
 const App = ({ resetRecoil }) => {
   const authToken = useRecoilValue(authTokenState);
   const user = useRecoilValue(userState);
+  const organisation = useRecoilValue(organisationState);
   const initialLoadIsDone = useRecoilValue(initialLoadIsDoneState);
-
   const recoilResetKey = useRecoilValue(recoilResetKeyState);
   useEffect(() => {
-    if (!!recoilResetKey) {
+    if (recoilResetKey) {
       resetRecoil();
     }
   }, [recoilResetKey, resetRecoil]);
@@ -103,15 +105,17 @@ const App = ({ resetRecoil }) => {
   useEffect(() => {
     const onWindowFocus = (e) => {
       if (authToken && e.newState === "active") {
-        API.get({ path: "/check-auth" }) // will force logout if session is expired
+        api
+          .get("/check-auth") // will force logout if session is expired
           .then(() => {
             if (initialLoadIsDone) {
               // if the app is already loaded
               // will refresh data if session is still valid
               refresh();
-            } else {
-              console.log("initial load not done");
             }
+          })
+          .catch(() => {
+            toast.error("Impossible de vérifier votre session. Vous avez été déconnecté.");
           });
       }
     };
@@ -120,6 +124,27 @@ const App = ({ resetRecoil }) => {
       lifecycle.removeEventListener("statechange", onWindowFocus);
     };
   }, [authToken, refresh, initialLoadIsDone]);
+
+  // Force logout when one user has been logged in multiple tabs to different organisations.
+  if (
+    organisation?._id &&
+    window.localStorage.getItem("mano-organisationId") &&
+    organisation?._id !== window.localStorage.getItem("mano-organisationId")
+  ) {
+    toast.error(
+      "Veuillez vous reconnecter. Il semble que des connexions à plusieurs organisations soient actives dans un même navigateur (par exemple dans un autre onglet). Cela peut poser des problèmes de cache.",
+      { autoClose: 8000 }
+    );
+    api
+      .post("/user/logout")
+      .then(() => {
+        api.reset({ redirect: true });
+      })
+      .catch((e) => {
+        capture(e);
+        api.reset({ redirect: true });
+      });
+  }
 
   return (
     <div className="main-container">

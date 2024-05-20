@@ -29,6 +29,7 @@ import { prepareTreatmentForEncryption, treatmentsState } from "../../recoil/tre
 import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
 import { useDataLoader } from "../../components/DataLoader";
 import { formatAge } from "../../services/date";
+import api from "../../services/apiv2";
 
 const getRawValue = (field, value) => {
   try {
@@ -321,21 +322,18 @@ const MergeTwoPersons = ({ person }) => {
                   return {};
                 })();
 
-                const response = await API.post({
-                  path: "/merge/persons",
-                  body: {
-                    mergedPerson: await encryptItem(mergedPerson),
-                    mergedActions: await Promise.all(mergedActions.map(encryptItem)),
-                    mergedComments: await Promise.all(mergedComments.map(encryptItem)),
-                    mergedRelsPersonPlace: await Promise.all(mergedRelsPersonPlace.map(encryptItem)),
-                    mergedPassages: await Promise.all(mergedPassages.map(encryptItem)),
-                    mergedRencontres: await Promise.all(mergedRencontres.map(encryptItem)),
-                    mergedConsultations: await Promise.all(mergedConsultations.map(encryptItem)),
-                    mergedTreatments: await Promise.all(mergedTreatments.map(encryptItem)),
-                    mergedMedicalFile: mergedMedicalFile ? await encryptItem(mergedMedicalFile) : undefined,
-                    personToDeleteId: personToMergeAndDelete._id,
-                    medicalFileToDeleteId,
-                  },
+                const response = await api.post("/merge/persons", {
+                  mergedPerson: await encryptItem(mergedPerson),
+                  mergedActions: await Promise.all(mergedActions.map(encryptItem)),
+                  mergedComments: await Promise.all(mergedComments.map(encryptItem)),
+                  mergedRelsPersonPlace: await Promise.all(mergedRelsPersonPlace.map(encryptItem)),
+                  mergedPassages: await Promise.all(mergedPassages.map(encryptItem)),
+                  mergedRencontres: await Promise.all(mergedRencontres.map(encryptItem)),
+                  mergedConsultations: await Promise.all(mergedConsultations.map(encryptItem)),
+                  mergedTreatments: await Promise.all(mergedTreatments.map(encryptItem)),
+                  mergedMedicalFile: mergedMedicalFile ? await encryptItem(mergedMedicalFile) : undefined,
+                  personToDeleteId: personToMergeAndDelete._id,
+                  medicalFileToDeleteId,
                 });
 
                 if (!response.ok) {

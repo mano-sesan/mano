@@ -11,11 +11,13 @@ import { outOfBoundariesDate } from "../../services/date";
 import SelectCustom from "../../components/SelectCustom";
 import { cleanHistory } from "./components/PersonHistory";
 import DatePicker from "../../components/DatePicker";
+import api from "../../services/apiv2";
+import { useDataLoader } from "../../components/DataLoader";
 
 const OutOfActiveList = ({ person }) => {
   const [open, setOpen] = useState(false);
-
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { refresh } = useDataLoader();
+  const { encryptPerson } = usePreparePersonForEncryption();
   const user = useRecoilValue(userState);
 
   const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
@@ -33,18 +35,12 @@ const OutOfActiveList = ({ person }) => {
     };
 
     const history = [...(cleanHistory(person.history) || []), historyEntry];
-    const response = await API.put({
-      path: `/person/${person._id}`,
-      body: preparePersonForEncryption({ ...person, outOfActiveList: false, outOfActiveListReasons: [], outOfActiveListDate: null, history }),
-    });
+    const response = await api.put(
+      `/person/${person._id}`,
+      encryptPerson({ ...person, outOfActiveList: false, outOfActiveListReasons: [], outOfActiveListDate: null, history })
+    );
     if (response.ok) {
-      const newPerson = response.decryptedData;
-      setPersons((persons) =>
-        persons.map((p) => {
-          if (p._id === person._id) return newPerson;
-          return p;
-        })
-      );
+      refresh();
       toast.success(person.name + " est réintégré dans la file active");
     }
   };
@@ -66,18 +62,9 @@ const OutOfActiveList = ({ person }) => {
     };
 
     updatedPerson.history = [...(cleanHistory(person.history) || []), historyEntry];
-    const response = await API.put({
-      path: `/person/${person._id}`,
-      body: preparePersonForEncryption(updatedPerson),
-    });
+    const response = await api.put(`/person/${person._id}`, encryptPerson(updatedPerson));
     if (response.ok) {
-      const newPerson = response.decryptedData;
-      setPersons((persons) =>
-        persons.map((p) => {
-          if (p._id === person._id) return newPerson;
-          return p;
-        })
-      );
+      refresh();
       toast.success(person.name + " est hors de la file active");
     }
     setOpen(false);

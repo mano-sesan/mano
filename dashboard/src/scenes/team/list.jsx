@@ -15,6 +15,7 @@ import OnboardingEndModal from "../../components/OnboardingEndModal";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { useLocalStorage } from "../../services/useLocalStorage";
+import api from "../../services/apiv2";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -119,19 +120,17 @@ const Create = () => {
                 actions.setSubmitting(false);
                 return;
               }
-              const newTeamRes = await API.post({
-                path: "/team",
-                body: { name: values.name, organisation: organisation._id, nightSession: values.nightSession === "true" },
+              const newTeamRes = await api.post("/team", {
+                name: values.name,
+                organisation: organisation._id,
+                nightSession: values.nightSession === "true",
               });
               if (!newTeamRes.ok) return actions.setSubmitting(false);
-              const userPutRes = await API.put({
-                path: `/user/${user._id}`,
-                body: {
-                  team: [...(user.teams || []).map((team) => team._id), newTeamRes.data._id],
-                },
+              const userPutRes = await api.put(`/user/${user._id}`, {
+                team: [...(user.teams || []).map((team) => team._id), newTeamRes.data._id],
               });
               if (!userPutRes.ok) return actions.setSubmitting(false);
-              const meResponse = await API.get({ path: "/user/me" });
+              const meResponse = await api.get("/user/me");
               setUser(meResponse.user);
               setCurrentTeam(meResponse.user.teams[0]);
               if (onboardingForTeams) {
@@ -141,7 +140,7 @@ const Create = () => {
                 toast.success("Création réussie !");
               }
               actions.setSubmitting(false);
-              const { data: teams } = await API.get({ path: "/team" });
+              const { data: teams } = await api.get("/team");
               setTeams(teams);
               setOpen(false);
             }}

@@ -10,6 +10,8 @@ import { servicesSelector } from "../../../recoil/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
+import api from "../../../services/apiv2";
+import { capture } from "../../../services/sentry";
 
 const ErrorOnGetServices = () => (
   <div>
@@ -51,19 +53,21 @@ export default function ServicesReport({ period, selectedTeamsObject }) {
     // `services` value contains an object with `team` as key, and an object with `service` as key and `count` as value.
     // { `team-id-xxx`: { `service-name`: 1, ... }, ... }
     function initServices() {
-      API.get({
-        path: `/service/for-reports`,
-        query: {
+      api
+        .get(`/service/for-reports`, {
           teamIds: Object.keys(selectedTeamsObject).join(","),
           startDate: dayjs(period.startDate).format("YYYY-MM-DD"),
           endDate: dayjs(period.endDate).format("YYYY-MM-DD"),
-        },
-      }).then((res) => {
-        if (!res.ok) return toast.error(<ErrorOnGetServices />);
-        setServices(res.data);
-      });
+        })
+        .then((res) => {
+          if (!res.ok) throw new Error("Erreur lors du chargement des services pour les rapports");
+          setServices(res.data);
+        })
+        .catch((e) => {
+          capture(e);
+          toast.error(<ErrorOnGetServices />);
+        });
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [period, selectedTeamsObject]
   );
 

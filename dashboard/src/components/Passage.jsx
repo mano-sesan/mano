@@ -7,17 +7,20 @@ import SelectUser from "./SelectUser";
 import { teamsState, userState } from "../recoil/auth";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import API from "../services/api";
-import { passagesState, preparePassageForEncryption } from "../recoil/passages";
+import { encryptPassage, passagesState, preparePassageForEncryption } from "../recoil/passages";
 import SelectTeam from "./SelectTeam";
 import SelectPerson from "./SelectPerson";
 import DatePicker from "./DatePicker";
 import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
+import api from "../services/apiv2";
+import { useDataLoader } from "./DataLoader";
 
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
   const [open, setOpen] = useState(false);
+  const { refresh } = useDataLoader();
 
   const setPassages = useSetRecoilState(passagesState);
 
@@ -33,7 +36,7 @@ const Passage = ({ passage, personId, onFinished }) => {
   const onDeletePassage = async () => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
-      const passageRes = await API.delete({ path: `/passage/${passage._id}` });
+      const passageRes = await api.delete(`/passage/${passage._id}`);
       if (passageRes.ok) {
         toast.success("Suppression réussie");
         setOpen(false);
@@ -74,31 +77,22 @@ const Passage = ({ passage, personId, onFinished }) => {
 
                 if (body.anonymous) {
                   for (let i = 0; i < body.anonymousNumberOfPassages; i++) {
-                    const response = await API.post({
-                      path: "/passage",
-                      body: preparePassageForEncryption(newPassage),
-                    });
+                    const response = await api.post("/passage", encryptPassage(newPassage));
                     if (response.ok) {
-                      setPassages((passages) => [response.decryptedData, ...passages]);
+                      refresh();
                     }
                   }
                 } else if (showMultiSelect) {
                   for (const person of body.persons) {
-                    const response = await API.post({
-                      path: "/passage",
-                      body: preparePassageForEncryption({ ...newPassage, person }),
-                    });
+                    const response = await api.post("/passage", encryptPassage({ ...newPassage, person }));
                     if (response.ok) {
-                      setPassages((passages) => [response.decryptedData, ...passages]);
+                      refresh();
                     }
                   }
                 } else {
-                  const response = await API.post({
-                    path: "/passage",
-                    body: preparePassageForEncryption({ ...newPassage, person: body.person }),
-                  });
+                  const response = await api.post("/passage", encryptPassage({ ...newPassage, person: body.person }));
                   if (response.ok) {
-                    setPassages((passages) => [response.decryptedData, ...passages]);
+                    refresh();
                   }
                 }
 
@@ -108,17 +102,9 @@ const Passage = ({ passage, personId, onFinished }) => {
                 actions.setSubmitting(false);
                 return;
               }
-              const response = await API.put({
-                path: `/passage/${passage._id}`,
-                body: preparePassageForEncryption(body),
-              });
+              const response = await api.put(`/passage/${passage._id}`, encryptPassage(body));
               if (response.ok) {
-                setPassages((passages) =>
-                  passages.map((p) => {
-                    if (p._id === passage._id) return response.decryptedData;
-                    return p;
-                  })
-                );
+                refresh();
               }
               if (!response.ok) return;
               setOpen(false);

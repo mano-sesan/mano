@@ -6,9 +6,20 @@ import fetchRetry from "fetch-retry";
 import packageInfo from "../../package.json";
 import { HOST, SCHEME } from "../config";
 import { organisationState } from "../recoil/auth";
-import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
+import {
+  decrypt,
+  encrypt,
+  generateEntityKey,
+  encryptFile,
+  decryptFile,
+  getEnableEncrypt,
+  setEnableEncrypt,
+  resetOrgEncryptionKey,
+  getHashedOrgEncryptionKey,
+} from "./encryption";
 import { AppSentry, capture } from "./sentry";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
+import api from "./apiv2";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -16,40 +27,15 @@ const getUrl = (path, query = {}) => {
   return new URI().scheme(SCHEME).host(HOST).path(path).query(query).toString();
 };
 
-/* encryption */
-let hashedOrgEncryptionKey = null;
-let enableEncrypt = false;
-
 /* auth */
 export const authTokenState = atom({ key: "authTokenState", default: null });
-
-/* methods */
-export const setOrgEncryptionKey = async (orgEncryptionKey, { encryptedVerificationKey = null, needDerivation = true } = {}) => {
-  const newHashedOrgEncryptionKey = needDerivation ? await derivedMasterKey(orgEncryptionKey) : orgEncryptionKey;
-  if (encryptedVerificationKey) {
-    const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, newHashedOrgEncryptionKey);
-    if (!encryptionKeyIsValid) {
-      toast.error(
-        "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
-      );
-      return false;
-    }
-  }
-  hashedOrgEncryptionKey = newHashedOrgEncryptionKey;
-  enableEncrypt = true;
-  return newHashedOrgEncryptionKey;
-};
-
-export function getHashedOrgEncryptionKey() {
-  return hashedOrgEncryptionKey;
-}
 
 export const encryptItem = async (item, debugApi) => {
   if (item.decrypted) {
     if (debugApi?.length) debugApi.push("encryptItem");
     if (!item.entityKey) item.entityKey = await generateEntityKey();
     if (debugApi?.length) debugApi.push("start encrypt");
-    const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, hashedOrgEncryptionKey);
+    const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, getHashedOrgEncryptionKey());
     if (debugApi?.length) debugApi.push("end encrypt");
     item.encrypted = encryptedContent;
     item.encryptedEntityKey = encryptedEntityKey;
@@ -76,12 +62,12 @@ export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, new
 }
 
 const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
-  if (!enableEncrypt) return item;
+  if (!getEnableEncrypt()) return item;
   if (!item.encrypted) return item;
   if (item.deletedAt && !decryptDeleted) return item;
   if (!item.encryptedEntityKey) return item;
   try {
-    const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, hashedOrgEncryptionKey);
+    const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, getHashedOrgEncryptionKey());
 
     delete item.encrypted;
 
@@ -116,8 +102,8 @@ const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
 export const recoilResetKeyState = atom({ key: "recoilResetKeyState", default: 0 });
 
 const reset = () => {
-  hashedOrgEncryptionKey = null;
-  enableEncrypt = false;
+  resetOrgEncryptionKey();
+  setEnableEncrypt(false);
   setRecoil(authTokenState, null);
   setRecoil(recoilResetKeyState, Date.now());
   AppSentry.setUser({});
@@ -127,6 +113,7 @@ const reset = () => {
 const logout = async (reloadAfterLogout = true) => {
   await post({ path: "/user/logout" });
   reset();
+  api.setToken(null);
   if (reloadAfterLogout) window.location.reload();
 };
 
@@ -134,7 +121,7 @@ const logout = async (reloadAfterLogout = true) => {
 const upload = async ({ file, path }, forceKey) => {
   // Prepare file.
   const tokenCached = getRecoil(authTokenState);
-  const { encryptedEntityKey, encryptedFile } = await encryptFile(file, forceKey || hashedOrgEncryptionKey);
+  const { encryptedEntityKey, encryptedFile } = await encryptFile(file, forceKey || getHashedOrgEncryptionKey());
   const formData = new FormData();
   formData.append("file", encryptedFile);
 
@@ -163,7 +150,7 @@ const download = async ({ path, encryptedEntityKey }, forceKey) => {
   const url = getUrl(path);
   const response = await fetch(url, options);
   const blob = await response.blob();
-  const decrypted = await decryptFile(blob, encryptedEntityKey, forceKey || hashedOrgEncryptionKey);
+  const decrypted = await decryptFile(blob, encryptedEntityKey, forceKey || getHashedOrgEncryptionKey());
   return decrypted;
 };
 
@@ -196,21 +183,6 @@ const execute = async ({
   const { encryptionLastUpdateAt, encryptionEnabled, migrationLastUpdateAt } = organisation;
   try {
     if (debugApi?.length) debugApi.push("start execute");
-    // Force logout when one user has been logged in multiple tabs to different organisations.
-    if (
-      path !== "/user/logout" &&
-      organisation._id &&
-      window.localStorage.getItem("mano-organisationId") &&
-      organisation._id !== window.localStorage.getItem("mano-organisationId")
-    ) {
-      if (debugApi?.length) debugApi.push("start force logout");
-      toast.error(
-        "Veuillez vous reconnecter. Il semble que des connexions à plusieurs organisations soient actives dans un même navigateur (par exemple dans un autre onglet). Cela peut poser des problèmes de cache.",
-        { autoClose: 8000 }
-      );
-      logout();
-      if (debugApi?.length) debugApi.push("end force logout");
-    }
     if (debugApi?.length) debugApi.push("before options");
     if (tokenCached) headers.Authorization = `JWT ${tokenCached}`;
     const options = {
@@ -227,7 +199,7 @@ const execute = async ({
       if (debugApi?.length) debugApi.push("body built");
     }
 
-    if (["PUT", "POST", "DELETE"].includes(method) && enableEncrypt) {
+    if (["PUT", "POST", "DELETE"].includes(method) && getEnableEncrypt()) {
       if (debugApi?.length) debugApi.push("start put post delete");
       query = {
         encryptionLastUpdateAt,
@@ -303,6 +275,7 @@ const execute = async ({
         // On ne poste pas sur logout car le user est déjà refusé via passeport (donc session finie).
         // Si on le fait (en appelant la fonction logout) on re-rentre dans tout le processus pour rien
         reset();
+        api.setToken(null);
         window.location.reload();
       }
       return response;

@@ -7,18 +7,21 @@ import SelectUser from "./SelectUser";
 import { currentTeamState, teamsState, userState } from "../recoil/auth";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import API from "../services/api";
-import { rencontresState, prepareRencontreForEncryption } from "../recoil/rencontres";
+import { rencontresState, prepareRencontreForEncryption, encryptRencontre } from "../recoil/rencontres";
 import SelectTeam from "./SelectTeam";
 import SelectPerson from "./SelectPerson";
 import DatePicker from "./DatePicker";
 import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
+import api from "../services/apiv2";
+import { useDataLoader } from "./DataLoader";
 
 const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPerson = false }) => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
   const [open, setOpen] = useState(false);
   const currentTeam = useRecoilValue(currentTeamState);
+  const { refresh } = useDataLoader();
 
   const setRencontres = useSetRecoilState(rencontresState);
 
@@ -34,7 +37,7 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
   const onDeleteRencontre = async () => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
-      const rencontreRes = await API.delete({ path: `/rencontre/${rencontre._id}` });
+      const rencontreRes = await api.delete(`/rencontre/${rencontre._id}`);
       if (rencontreRes.ok) {
         toast.success("Suppression réussie");
         setOpen(false);
@@ -83,21 +86,15 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
                 } else {
                   if (showMultiSelect) {
                     for (const person of body.persons) {
-                      const response = await API.post({
-                        path: "/rencontre",
-                        body: prepareRencontreForEncryption({ ...newRencontre, person }),
-                      });
+                      const response = await api.post("/rencontre", encryptRencontre({ ...newRencontre, person }));
                       if (response.ok) {
-                        setRencontres((rencontres) => [response.decryptedData, ...rencontres]);
+                        refresh();
                       }
                     }
                   } else {
-                    const response = await API.post({
-                      path: "/rencontre",
-                      body: prepareRencontreForEncryption({ ...newRencontre, person: body.person }),
-                    });
+                    const response = await api.post("/rencontre", encryptRencontre({ ...newRencontre, person: body.person }));
                     if (response.ok) {
-                      setRencontres((rencontres) => [response.decryptedData, ...rencontres]);
+                      refresh();
                     }
                   }
                 }
@@ -108,17 +105,9 @@ const Rencontre = ({ rencontre, personId, onFinished, onSave, disableAccessToPer
                 actions.setSubmitting(false);
                 return;
               }
-              const response = await API.put({
-                path: `/rencontre/${rencontre._id}`,
-                body: prepareRencontreForEncryption(body),
-              });
+              const response = await api.put(`/rencontre/${rencontre._id}`, encryptRencontre(body));
               if (!response.ok) return;
-              setRencontres((rencontres) =>
-                rencontres.map((p) => {
-                  if (p._id === rencontre._id) return response.decryptedData;
-                  return p;
-                })
-              );
+              refresh();
               setOpen(false);
               onFinished();
               toast.success("Rencontre mise à jour");

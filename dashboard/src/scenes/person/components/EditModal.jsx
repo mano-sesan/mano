@@ -23,10 +23,13 @@ import { cleanHistory } from "./PersonHistory";
 import DatePicker from "../../../components/DatePicker";
 import {
   customFieldsMedicalFileSelector,
+  encryptMedicalFile,
   groupedCustomFieldsMedicalFileSelector,
   medicalFileState,
   prepareMedicalFileForEncryption,
 } from "../../../recoil/medicalFiles";
+import api from "../../../services/apiv2";
+import { useDataLoader } from "../../../components/DataLoader";
 
 export default function EditModal({ person, selectedPanel, onClose, isMedicalFile = false }) {
   const [openPanels, setOpenPanels] = useState([selectedPanel]);
@@ -39,6 +42,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
   const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
   const setAllMedicalFiles = useSetRecoilState(medicalFileState);
+  const { refresh } = useDataLoader();
   const medicalFile = person.medicalFile;
 
   const groupedCustomFieldsMedicalFileWithLegacyFields = useMemo(() => {
@@ -54,7 +58,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     return c;
   }, [groupedCustomFieldsMedicalFile, flattenedCustomFieldsPersons]);
 
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { encryptPerson } = usePreparePersonForEncryption();
   const personFields = useRecoilValue(personFieldsSelector);
 
   return (
@@ -105,18 +109,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
               if (body[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: body[key] };
             }
             if (Object.keys(historyEntry.data).length) body.history = [...cleanHistory(person.history || []), historyEntry];
-            const response = await API.put({
-              path: `/person/${person._id}`,
-              body: preparePersonForEncryption(body),
-            });
+            const response = await api.put(`/person/${person._id}`, encryptPerson(body));
             if (response.ok) {
-              const newPerson = response.decryptedData;
-              setPersons((persons) =>
-                persons.map((p) => {
-                  if (p._id === person._id) return newPerson;
-                  return p;
-                })
-              );
+              refresh();
 
               toast.success("Mis à jour !");
               onClose();
@@ -351,18 +346,13 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                 bodyMedicalFile.history = [...(medicalFile.history || []), historyEntry];
               }
 
-              const mfResponse = await API.put({
-                path: `/medical-file/${medicalFile._id}`,
-                body: prepareMedicalFileForEncryption(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
-              });
+              const mfResponse = await api.put(
+                `/medical-file/${medicalFile._id}`,
+                encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile })
+              );
               let success = mfResponse.ok;
               if (success) {
-                setAllMedicalFiles((medicalFiles) =>
-                  medicalFiles.map((m) => {
-                    if (m._id === medicalFile._id) return mfResponse.decryptedData;
-                    return m;
-                  })
-                );
+                refresh();
               }
 
               // We have to save legacy fields in person
@@ -387,18 +377,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                 }
                 if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
 
-                const personResponse = await API.put({
-                  path: `/person/${person._id}`,
-                  body: preparePersonForEncryption(bodySocial),
-                });
+                const personResponse = await api.put(`/person/${person._id}`, encryptPerson(bodySocial));
                 if (personResponse.ok) {
-                  const newPerson = personResponse.decryptedData;
-                  setPersons((persons) =>
-                    persons.map((p) => {
-                      if (p._id === person._id) return newPerson;
-                      return p;
-                    })
-                  );
+                  refresh();
                 } else {
                   success = false;
                 }

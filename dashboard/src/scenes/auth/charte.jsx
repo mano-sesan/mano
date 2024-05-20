@@ -4,6 +4,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { userState } from "../../recoil/auth";
 import API from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
+import api from "../../services/apiv2";
 
 const Charte = () => {
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ const Charte = () => {
   const onSigninValidated = async () => {
     setLoading(true);
     const termsAccepted = Date.now();
-    const response = await API.put({ path: "/user", body: { termsAccepted } });
+    const response = await api.put("/user", termsAccepted);
     if (!response.ok) return;
     setUser({ ...user, termsAccepted });
   };

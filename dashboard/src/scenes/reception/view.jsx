@@ -15,7 +15,7 @@ import { personsState } from "../../recoil/persons";
 import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import API from "../../services/api";
 import dayjs from "dayjs";
-import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
+import { encryptPassage, passagesState, preparePassageForEncryption } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
 import { capture } from "../../services/sentry";
 import { consultationsState } from "../../recoil/consultations";
@@ -25,6 +25,8 @@ import Table from "../../components/table";
 import Passage from "../../components/Passage";
 import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
+import api from "../../services/apiv2";
+import { useDataLoader } from "../../components/DataLoader";
 
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
@@ -106,6 +108,7 @@ const Reception = () => {
   const consultationsByStatus = useRecoilValue(consultationsByStatusSelector({ status }));
   const [services, setServices] = useState(null);
   const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
+  const { refresh } = useDataLoader();
 
   const dataConsolidated = useMemo(
     () => [...actionsByStatus, ...consultationsByStatus].sort((a, b) => new Date(b.completedAt || b.dueAt) - new Date(a.completedAt || a.dueAt)),
@@ -152,9 +155,9 @@ const Reception = () => {
     };
     // optimistic UI
     setPassages((passages) => [newPassage, ...passages]);
-    const response = await API.post({ path: "/passage", body: preparePassageForEncryption(newPassage) });
+    const response = await api.post("/passage", encryptPassage(newPassage));
     if (response.ok) {
-      setPassages((passages) => [response.decryptedData, ...passages.filter((p) => p.optimisticId !== optimisticId)]);
+      refresh();
     }
   };
 
@@ -175,9 +178,9 @@ const Reception = () => {
       // optimistic UI
       setPassages((passages) => [...newPassages, ...passages]);
       for (const [index, passage] of Object.entries(newPassages)) {
-        const response = await API.post({ path: "/passage", body: preparePassageForEncryption(passage) });
+        const response = await api.post("/passage", encryptPassage(passage));
         if (response.ok) {
-          setPassages((passages) => [response.decryptedData, ...passages.filter((p) => p.optimisticId !== index)]);
+          refresh();
         }
       }
       setAddingPassage(false);

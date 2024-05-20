@@ -4,6 +4,7 @@ import ChangePassword from "../../components/ChangePassword";
 import API from "../../services/api";
 import { useRecoilValue } from "recoil";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
+import api from "../../services/apiv2";
 
 const Reset = () => {
   const [redirect, setRedirect] = useState(false);
@@ -31,8 +32,8 @@ const Reset = () => {
       )}
       <ChangePassword
         onSubmit={({ newPassword }) => {
-          API.logout(false);
-          return API.post({
+          api.reset();
+          return api.post({
             path: "/user/forgot_password_reset",
             body: {
               token,

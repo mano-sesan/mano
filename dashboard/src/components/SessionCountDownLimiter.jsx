@@ -7,7 +7,10 @@ import PasswordInput from "./PasswordInput";
 import validator from "validator";
 import { useRecoilValue } from "recoil";
 import { organisationState, sessionInitialDateTimestamp } from "../recoil/auth";
-import API, { setOrgEncryptionKey } from "../services/api";
+import API from "../services/api";
+import { checkEncryptedVerificationKey, setOrgEncryptionKey } from "../services/encryption";
+import { toast } from "react-toastify";
+import api from "../services/apiv2";
 
 dayjs.extend(utc);
 dayjs.extend(duration);
@@ -46,7 +49,9 @@ const SessionCountDownLimiter = () => {
   const remainingTimeBeforeDeconnection = maxCookieAge - cookieSession;
 
   if (remainingTimeBeforeDeconnection < 1) {
-    API.logout();
+    api.post("/auth/logout").then(() => {
+      api.reset({ redirect: true });
+    });
   }
 
   return (
@@ -105,8 +110,18 @@ const ReloadModal = ({ open, onSuccess }) => {
           className="tw-flex tw-flex-col tw-gap-4 tw-px-8 tw-py-4"
           onSubmit={async (e) => {
             e.preventDefault();
-            const encryptionIsValid = await setOrgEncryptionKey(encryptionKey.trim(), organisation);
-            if (!encryptionIsValid) return setEncryptionKey("");
+            const hashedOrgEncryptionKey = await setOrgEncryptionKey(encryptionKey.trim());
+            if (organisation.encryptedVerificationKey) {
+              const encryptionKeyIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
+              if (!encryptionKeyIsValid) {
+                toast.error(
+                  "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
+                );
+                return onSuccess(false);
+              }
+            }
+
+            if (!hashedOrgEncryptionKey) return setEncryptionKey("");
             onSuccess(false);
           }}
         >

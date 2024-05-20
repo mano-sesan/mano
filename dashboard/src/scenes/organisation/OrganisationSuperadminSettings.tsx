@@ -4,6 +4,7 @@ import { OrganisationInstance } from "../../types/organisation";
 import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import CitySelect from "../../components/CitySelect";
+import api from "../../services/apiv2";
 
 export default function OrganisationSuperadminSettings({
   organisation,
@@ -20,7 +21,7 @@ export default function OrganisationSuperadminSettings({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    API.put({ path: `/organisation/superadmin/${organisation._id}`, body: data }).then((res) => {
+    api.put(`/organisation/superadmin/${organisation._id}`, { ...data }).then((res) => {
       if (res.ok) {
         toast.success("Organisation mise à jour");
         setOpen(false);

@@ -66,4 +66,12 @@ async function viewBlobInNewWindow(url) {
   }
 }
 
-export { download, isNullOrUndefined, viewBlobInNewWindow };
+function errorMessage(e) {
+  const message = e.message || e;
+  if (message === "Failed to fetch") {
+    return "Impossible de transmettre les données. Veuillez vérifier votre connexion internet.";
+  }
+  return message;
+}
+
+export { download, isNullOrUndefined, viewBlobInNewWindow, errorMessage };

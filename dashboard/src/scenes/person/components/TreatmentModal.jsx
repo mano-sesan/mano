@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { organisationState, userState } from "../../../recoil/auth";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
 import API from "../../../services/api";
-import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption, treatmentsState } from "../../../recoil/treatments";
+import { allowedTreatmentFieldsInHistory, encryptTreatment, prepareTreatmentForEncryption, treatmentsState } from "../../../recoil/treatments";
 import DatePicker from "../../../components/DatePicker";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
@@ -18,6 +18,8 @@ import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import PersonName from "../../../components/PersonName";
 import { useDataLoader } from "../../../components/DataLoader";
+import api from "../../../services/apiv2";
+import { decryptItem } from "../../../services/encryption";
 
 export default function TreatmentModal() {
   const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
@@ -165,36 +167,21 @@ function TreatmentContent({ onClose, treatment, personId }) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
         if (body[key] !== treatment[key]) historyEntry.data[key] = { oldValue: treatment[key], newValue: body[key] };
       }
-      if (!!Object.keys(historyEntry.data).length) {
+      if (Object.keys(historyEntry.data).length) {
         const prevHistory = Array.isArray(treatment.history) ? treatment.history : [];
         body.history = [...prevHistory, historyEntry];
       }
     }
 
     const treatmentResponse = isNewTreatment
-      ? await API.post({
-          path: "/treatment",
-          body: prepareTreatmentForEncryption(body),
-        })
-      : await API.put({
-          path: `/treatment/${data._id}`,
-          body: prepareTreatmentForEncryption({ ...body, user: data.user || user._id }),
-        });
+      ? await api.post("/treatment", encryptTreatment(body))
+      : await api.put(`/treatment/${data._id}`, encryptTreatment({ ...body, user: data.user || user._id }));
     if (!treatmentResponse.ok) {
       toast.error("Impossible d'enregistrer le traitement. Notez toutes les informations et contactez le support.");
       return false;
     }
-    setData(treatmentResponse.decryptedData);
-    if (isNewTreatment) {
-      setAllTreatments((all) => [...all, treatmentResponse.decryptedData]);
-    } else {
-      setAllTreatments((all) =>
-        all.map((c) => {
-          if (c._id === data._id) return treatmentResponse.decryptedData;
-          return c;
-        })
-      );
-    }
+    const decrypted = decryptItem(treatmentResponse.data);
+    setData(decrypted);
     if (closeOnSubmit) onClose();
     refresh();
     return true;
@@ -464,7 +451,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
             onClick={async (e) => {
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer ce traitement ?")) return;
-              const response = await API.delete({ path: `/treatment/${treatment._id}` });
+              const response = await api.delete(`/treatment/${treatment._id}`);
               if (!response.ok) return;
               setAllTreatments((all) => all.filter((t) => t._id !== treatment._id));
               toast.success("Traitement supprimé !");

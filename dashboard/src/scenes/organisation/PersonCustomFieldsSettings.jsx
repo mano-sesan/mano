@@ -8,6 +8,7 @@ import DragAndDropSettings from "./DragAndDropSettings";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import api from "../../services/apiv2";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -32,10 +33,7 @@ const PersonCustomFieldsSettings = () => {
   const { refresh } = useDataLoader();
 
   const onAddGroup = async (name) => {
-    const res = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { customFieldsPersons: [...customFieldsPersons, { name, fields: [] }] },
-    });
+    const res = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: [...customFieldsPersons, { name, fields: [] }] });
     if (res.ok) {
       toast.success("Groupe ajouté", { autoclose: 2000 });
       setOrganisation(res.data);
@@ -58,10 +56,7 @@ const PersonCustomFieldsSettings = () => {
 
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, customFieldsPersons: newCustomFieldsPersons }); // optimistic UI
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { customFieldsPersons: newCustomFieldsPersons },
-    });
+    const response = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
     if (response.ok) {
       refresh();
       setOrganisation(response.data);
@@ -78,10 +73,7 @@ const PersonCustomFieldsSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, customFieldsPersons: newCustomFieldsPersons }); // optimistic UI
 
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { customFieldsPersons: newCustomFieldsPersons },
-    });
+    const response = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
     if (response.ok) {
       toast.success("Groupe supprimé", { autoclose: 2000 });
       setOrganisation(response.data);
@@ -97,10 +89,7 @@ const PersonCustomFieldsSettings = () => {
         name: group.groupTitle,
         fields: group.items.map((customFieldName) => flattenedCustomFieldsPersons.find((f) => f.name === customFieldName)),
       }));
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { customFieldsPersons: newCustomFieldsPersons },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -140,10 +129,7 @@ const AddField = ({ groupTitle: typeName }) => {
           fields: [...type.fields, newField].map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { customFieldsPersons: newCustomFieldsPersons },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -206,7 +192,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const allPersons = useRecoilValue(personsState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { preparePersonForEncryption, encryptPerson } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
 
@@ -219,10 +205,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
           fields: type.fields.map((field) => (field.name !== editedField.name ? field : editedField)).map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { customFieldsPersons: newCustomFieldsPersons },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -253,14 +236,11 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
     setIsEditingField(false);
     const updatedPersons = replaceOldChoiceByNewChoice(allPersons, oldChoice, newChoice, field);
 
-    const response = await API.post({
-      path: "/custom-field",
-      body: {
-        customFields: {
-          customFieldsPersons: newCustomFieldsPersons,
-        },
-        persons: await Promise.all(updatedPersons.map(preparePersonForEncryption).map(encryptItem)),
+    const response = await api.post("/custom-field", {
+      customFields: {
+        customFieldsPersons: newCustomFieldsPersons,
       },
+      persons: await Promise.all(updatedPersons.map(encryptPerson)),
     });
     if (response.ok) {
       toast.success("Choix mis à jour !");
@@ -278,10 +258,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
           fields: type.fields.filter((field) => field.name !== customField.name),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { customFieldsPersons: newCustomFieldsPersons },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { customFieldsPersons: newCustomFieldsPersons });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);

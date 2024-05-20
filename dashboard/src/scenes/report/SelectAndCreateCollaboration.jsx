@@ -4,6 +4,7 @@ import { useRecoilState } from "recoil";
 import SelectCustom from "../../components/SelectCustom";
 import { organisationState } from "../../recoil/auth";
 import API from "../../services/api";
+import api from "../../services/apiv2";
 
 const NoOptionsMessage = () => (
   <span style={{ fontSize: 14, textAlign: "center", color: "#808080", width: "100%", display: "block" }}>
@@ -21,11 +22,8 @@ const SelectAndCreateCollaboration = ({ values, onChange, className = "", inputI
   const onCreateOption = async (collab) => {
     toast.info("Création de la nouvelle collaboration...");
     onChangeRequest([...(values || []), collab]);
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: {
-        collaborations: [...(organisation.collaborations || []), collab].filter((e) => Boolean(e.trim())),
-      },
+    const response = await api.put(`/organisation/${organisation._id}`, {
+      collaborations: [...(organisation.collaborations || []), collab].filter((e) => Boolean(e.trim())),
     });
     if (response.ok) {
       toast.dismiss();

@@ -7,6 +7,7 @@ import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../compo
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import api from "../../services/apiv2";
 
 function CollaborationsSettings() {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -23,10 +24,7 @@ function CollaborationsSettings() {
 
   const onDragAndDrop = useCallback(
     async (newGroups) => {
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { collaborations: newGroups[0].items },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { collaborations: newGroups[0].items });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -60,11 +58,8 @@ const AddCollaboration = ({ groupTitle }) => {
 
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, collaborations: newCollaborations }); // optimistic UI
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: {
-        collaborations: newCollaborations,
-      },
+    const response = await api.put(`/organisation/${organisation._id}`, {
+      collaborations: newCollaborations,
     });
 
     if (response.ok) {
@@ -120,12 +115,9 @@ const Collaboration = ({ item: collaboration }) => {
         .map(encryptItem)
     );
 
-    const response = await API.put({
-      path: `/collaboration`,
-      body: {
-        collaborations: newCollaborations,
-        reports: encryptedReports,
-      },
+    const response = await api.put(`/collaboration`, {
+      collaborations: newCollaborations,
+      reports: encryptedReports,
     });
     if (response.ok) {
       await refresh();
@@ -143,11 +135,8 @@ const Collaboration = ({ item: collaboration }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, collaborations: newCollaborations }); // optimistic UI
 
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: {
-        collaborations: newCollaborations,
-      },
+    const response = await api.put(`/organisation/${organisation._id}`, {
+      collaborations: newCollaborations,
     });
     if (response.ok) {
       refresh();

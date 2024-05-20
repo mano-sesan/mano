@@ -8,10 +8,14 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { DEFAULT_ORGANISATION_KEY } from "../../config";
 import PasswordInput from "../../components/PasswordInput";
 import { currentTeamState, organisationState, sessionInitialDateTimestamp, teamsState, usersState, userState } from "../../recoil/auth";
-import API, { setOrgEncryptionKey, authTokenState } from "../../services/api";
+import API, { authTokenState } from "../../services/api";
 import { useDataLoader } from "../../components/DataLoader";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
+import api from "../../services/apiv2";
+import { checkEncryptedVerificationKey, setOrgEncryptionKey } from "../../services/encryption";
+import { capture } from "../../services/sentry";
+import { errorMessage } from "../../utils";
 
 const SignIn = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -49,7 +53,7 @@ const SignIn = () => {
   const onSigninValidated = () => startInitialLoad();
 
   const onLogout = async () => {
-    await API.logout();
+    api.reset();
     setShowErrors(false);
     setUserName("");
     setShowSelectTeam(false);
@@ -60,7 +64,16 @@ const SignIn = () => {
 
   useEffect(() => {
     (async () => {
-      const { token, ok, user } = await API.get({ path: "/user/signin-token" });
+      let result = {};
+      try {
+        result = await api.getSigninToken();
+      } catch (e) {
+        capture(e);
+        toast.error(errorMessage(e));
+        return setLoading(false);
+      }
+      const { token, ok, user } = result;
+
       if (ok && token && user) {
         setAuthViaCookie(true);
         const { organisation } = user;
@@ -104,7 +117,20 @@ const SignIn = () => {
         body.browseros = browser.os;
       }
 
-      const { user, token, ok } = authViaCookie ? await API.get({ path: "/user/signin-token" }) : await API.post({ path: "/user/signin", body });
+      let result = {};
+      try {
+        if (authViaCookie) {
+          result = await api.getSigninToken();
+        } else {
+          result = await api.post("/user/signin", body);
+        }
+      } catch (e) {
+        capture(e);
+        toast.error(errorMessage(e));
+        return setLoading(false);
+      }
+      const { token, ok, user } = result;
+
       if (!ok) return setIsSubmitting(false);
       const { organisation } = user;
       if (organisation._id !== window.localStorage.getItem("mano-organisationId")) {
@@ -117,11 +143,21 @@ const SignIn = () => {
         return setIsSubmitting(false);
       }
       if (token) setToken(token);
+      api.setToken(token); // API v2
       setSessionInitialTimestamp(Date.now());
       window.localStorage.setItem("mano-organisationId", organisation._id);
       if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey) {
-        const encryptionIsValid = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), organisation);
-        if (!encryptionIsValid) return setIsSubmitting(false);
+        const hashedOrgEncryptionKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), organisation);
+        if (organisation.encryptedVerificationKey) {
+          const encryptionKeyIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
+          if (!encryptionKeyIsValid) {
+            toast.error(
+              "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
+            );
+            return setIsSubmitting(false);
+          }
+        }
+        if (!hashedOrgEncryptionKey) return setIsSubmitting(false);
       }
       // now login !
       // superadmin
@@ -130,9 +166,23 @@ const SignIn = () => {
         history.push("/organisation");
         return;
       }
-      const teamResponse = await API.get({ path: "/team" });
+      let teamResponse = {};
+      let usersResponse = {};
+      try {
+        teamResponse = await api.get("/team");
+      } catch (teamError) {
+        capture(teamError);
+        toast.error("Erreur lors de la récupération des équipes");
+        return setIsSubmitting(false);
+      }
       const teams = teamResponse.data;
-      const usersResponse = await API.get({ path: "/user", query: { minimal: true } });
+      try {
+        usersResponse = await api.get("/user", { minimal: true });
+      } catch (usersError) {
+        capture(usersError);
+        toast.error("Erreur lors de la récupération des utilisateurs");
+        return setIsSubmitting(false);
+      }
       const users = usersResponse.data;
       setTeams(teams);
       setUsers(users);

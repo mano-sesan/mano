@@ -7,6 +7,7 @@ import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../compo
 import { toast } from "react-toastify";
 import { servicesSelector, flattenedServicesSelector } from "../../recoil/reports";
 import DragAndDropSettings from "./DragAndDropSettings";
+import api from "../../services/apiv2";
 
 const ServicesSettings = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -24,11 +25,8 @@ const ServicesSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, groupedServices: [...groupedServices, { groupTitle, services: [] }] }); // optimistic UI
 
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: [...groupedServices, { groupTitle, services: [] }],
-      },
+    const response = await api.put(`/service/update-configuration`, {
+      groupedServices: [...groupedServices, { groupTitle, services: [] }],
     });
     if (response.ok) {
       refresh();
@@ -51,11 +49,8 @@ const ServicesSettings = () => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
 
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: newGroupedServices,
-      },
+    const response = await api.put(`/service/update-configuration`, {
+      groupedServices: newGroupedServices,
     });
     if (response.ok) {
       refresh();
@@ -73,12 +68,7 @@ const ServicesSettings = () => {
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
 
     // We don't delete the actual services to avoid user mistakes
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: newGroupedServices,
-      },
-    });
+    const response = await api.put(`/service/update-configuration`, { groupedServices: newGroupedServices });
     if (response.ok) {
       refresh();
       setOrganisation(response.data);
@@ -94,11 +84,8 @@ const ServicesSettings = () => {
       const oldOrganisation = organisation;
       setOrganisation({ ...organisation, groupedServices: newGroups }); // optimistic UI
 
-      const response = await API.put({
-        path: `/service/update-configuration`,
-        body: {
-          groupedServices: newGroups,
-        },
+      const response = await api.put(`/service/update-configuration`, {
+        groupedServices: newGroups,
       });
       if (response.ok) {
         refresh();
@@ -153,11 +140,8 @@ const AddService = ({ groupTitle, services, onDragAndDrop }) => {
 
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: newGroupedServices,
-      },
+    const response = await api.put(`/service/update-configuration`, {
+      groupedServices: newGroupedServices,
     });
     if (response.ok) {
       setOrganisation(response.data);
@@ -212,17 +196,11 @@ const Service = ({ item: service, groupTitle }) => {
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
 
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: newGroupedServices,
-      },
+    const response = await api.put(`/service/update-configuration`, {
+      groupedServices: newGroupedServices,
     });
     if (response.ok) {
-      const renamedServicesResponse = await API.put({
-        path: `/service/update-service-name`,
-        body: { oldService, newService },
-      });
+      const renamedServicesResponse = await api.put(`/service/update-service-name`, { oldService, newService });
 
       if (!renamedServicesResponse.ok) {
         toast.error("Erreur lors de la mise à jour du nom du service sur les anciens services");
@@ -251,11 +229,8 @@ const Service = ({ item: service, groupTitle }) => {
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
 
     // We don't delete the actual services to avoid user mistakes
-    const response = await API.put({
-      path: `/service/update-configuration`,
-      body: {
-        groupedServices: newGroupedServices,
-      },
+    const response = await api.put(`/service/update-configuration`, {
+      groupedServices: newGroupedServices,
     });
     if (response.ok) {
       refresh();

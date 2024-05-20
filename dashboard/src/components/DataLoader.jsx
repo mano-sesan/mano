@@ -1,3 +1,4 @@
+/* eslint-disable no-inner-declarations */
 import { useEffect } from "react";
 import { atom, selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { toast } from "react-toastify";
@@ -17,12 +18,14 @@ import { territoryObservationsState } from "../recoil/territoryObservations";
 import { consultationsState, formatConsultation } from "../recoil/consultations";
 import { commentsState } from "../recoil/comments";
 import { organisationState, userState } from "../recoil/auth";
-
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
-import API from "../services/api";
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
 import useDataMigrator from "./DataMigrator";
+import api from "../services/apiv2";
+import { capture } from "../services/sentry";
+import { decryptItem } from "../services/encryption";
+import { errorMessage } from "../utils";
 
 // Update to flush cache.
 
@@ -148,8 +151,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     Refresh organisation (and user), to get the latest organisation fields
     and the latest user roles
   */
-    const userResponse = await API.get({ path: "/user/me" });
-    if (!userResponse.ok) return resetLoaderOnError();
+    let userResponse;
+    try {
+      userResponse = await api.get("/user/me");
+      if (!userResponse.ok) throw new Error("L'utilisateur n'a pas été trouvé");
+    } catch (e) {
+      capture(e);
+      return resetLoaderOnError(e);
+    }
+
     const latestOrganisation = userResponse.user.organisation;
     const latestUser = userResponse.user;
     const organisationId = latestOrganisation._id;
@@ -160,23 +170,32 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!migrationIsSuccessful) return resetLoaderOnError();
     }
 
-    const statsResponse = await API.get({
-      path: "/organisation/stats",
-      query: {
+    let statsResponse;
+    try {
+      statsResponse = await api.get("/organisation/stats", {
         organisation: organisationId,
         after: lastLoadValue,
         withDeleted: true,
         // Medical data is never saved in cache so we always have to download all at every page reload.
         withAllMedicalData: isStartingInitialLoad,
-      },
-    });
+      });
 
-    if (!statsResponse.ok) return false;
+      if (!statsResponse.ok) throw new Error("Les statistiques n'ont pas pu être récupérées");
+    } catch (e) {
+      capture(e);
+      return resetLoaderOnError(errorMessage(e));
+    }
 
     // Get date from server just after getting all the stats
     // We'll set the `lastLoadValue` to this date after all the data is downloaded
-    const serverDateResponse = await API.get({ path: "/now" });
-    const serverDate = serverDateResponse.data;
+    let serverDate;
+    try {
+      const serverDateResponse = await api.get("/now");
+      serverDate = serverDateResponse.data;
+    } catch (e) {
+      capture(e);
+      return resetLoaderOnError(errorMessage(e));
+    }
 
     const stats = statsResponse.data;
     let itemsCount =
@@ -212,13 +231,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des personnes");
       async function loadPersons(page = 0) {
-        const res = await API.get({ path: "/person", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadPersons(page + 1);
-        setPersons(mergeItems(persons, newItems));
-        return true;
+        try {
+          const res = await api.get("/person", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadPersons(page + 1);
+          setPersons(mergeItems(persons, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const personSuccess = await loadPersons(0);
       if (!personSuccess) return false;
@@ -227,13 +251,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des familles");
       async function loadGroups(page = 0) {
-        const res = await API.get({ path: "/group", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadGroups(page + 1);
-        setGroups(mergeItems(groups, newItems));
-        return true;
+        try {
+          const res = await api.get("/group", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadGroups(page + 1);
+          setGroups(mergeItems(groups, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const groupsSuccess = await loadGroups(0);
       if (!groupsSuccess) return false;
@@ -242,13 +271,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des comptes-rendus");
       async function loadReports(page = 0) {
-        const res = await API.get({ path: "/report", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadReports(page + 1);
-        setReports(mergeItems(reports, newItems, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
-        return true;
+        try {
+          const res = await api.get("/report", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadReports(page + 1);
+          setReports(mergeItems(reports, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const reportsSuccess = await loadReports(0);
       if (!reportsSuccess) return false;
@@ -257,13 +291,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des passages");
       async function loadPassages(page = 0) {
-        const res = await API.get({ path: "/passage", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadPassages(page + 1);
-        setPassages(mergeItems(passages, newItems));
-        return true;
+        try {
+          const res = await api.get("/passage", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadPassages(page + 1);
+          setPassages(mergeItems(passages, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const passagesSuccess = await loadPassages(0);
       if (!passagesSuccess) return false;
@@ -272,13 +311,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des rencontres");
       async function loadRencontres(page = 0) {
-        const res = await API.get({ path: "/rencontre", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadRencontres(page + 1);
-        setRencontres(mergeItems(rencontres, newItems));
-        return true;
+        try {
+          const res = await api.get("/rencontre", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadRencontres(page + 1);
+          setRencontres(mergeItems(rencontres, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const rencontresSuccess = await loadRencontres(0);
       if (!rencontresSuccess) return false;
@@ -287,13 +331,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des actions");
       async function loadActions(page = 0) {
-        const res = await API.get({ path: "/action", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadActions(page + 1);
-        setActions(mergeItems(actions, newItems));
-        return true;
+        try {
+          const res = await api.get("/action", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadActions(page + 1);
+          setActions(mergeItems(actions, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const actionsSuccess = await loadActions(0);
       if (!actionsSuccess) return false;
@@ -302,13 +351,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des territoires");
       async function loadTerritories(page = 0) {
-        const res = await API.get({ path: "/territory", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadTerritories(page + 1);
-        setTerritories(mergeItems(territories, newItems));
-        return true;
+        try {
+          const res = await api.get("/territory", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadTerritories(page + 1);
+          setTerritories(mergeItems(territories, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const territoriesSuccess = await loadTerritories(0);
       if (!territoriesSuccess) return false;
@@ -317,13 +371,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des lieux");
       async function loadPlaces(page = 0) {
-        const res = await API.get({ path: "/place", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadPlaces(page + 1);
-        setPlaces(mergeItems(places, newItems));
-        return true;
+        try {
+          const res = await api.get("/place", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadPlaces(page + 1);
+          setPlaces(mergeItems(places, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const placesSuccess = await loadPlaces(0);
       if (!placesSuccess) return false;
@@ -332,13 +391,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des relations personne-lieu");
       async function loadRelPersonPlaces(page = 0) {
-        const res = await API.get({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadRelPersonPlaces(page + 1);
-        setRelsPersonPlace(mergeItems(relsPersonPlace, newItems));
-        return true;
+        try {
+          const res = await api.get("/relPersonPlace", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadRelPersonPlaces(page + 1);
+          setRelsPersonPlace(mergeItems(relsPersonPlace, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const relsPersonPlacesSuccess = await loadRelPersonPlaces(0);
       if (!relsPersonPlacesSuccess) return false;
@@ -347,13 +411,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des observations de territoire");
       async function loadObservations(page = 0) {
-        const res = await API.get({ path: "/territory-observation", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadObservations(page + 1);
-        setTerritoryObservations(mergeItems(territoryObservations, newItems));
-        return true;
+        try {
+          const res = await api.get("/territory-observation", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadObservations(page + 1);
+          setTerritoryObservations(mergeItems(territoryObservations, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const territoryObservationsSuccess = await loadObservations(0);
       if (!territoryObservationsSuccess) return false;
@@ -362,13 +431,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des commentaires");
       async function loadComments(page = 0) {
-        const res = await API.get({ path: "/comment", query: { ...query, page: String(page) } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadComments(page + 1);
-        setComments(mergeItems(comments, newItems));
-        return true;
+        try {
+          const res = await api.get("/comment", { ...query, page: String(page) });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadComments(page + 1);
+          setComments(mergeItems(comments, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const commentsSuccess = await loadComments(0);
       if (!commentsSuccess) return false;
@@ -377,16 +451,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des consultations");
       async function loadConsultations(page = 0) {
-        const res = await API.get({
-          path: "/consultation",
-          query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
-        });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadConsultations(page + 1);
-        setConsultations(mergeItems(consultations, newItems, { formatNewItemsFunction: formatConsultation }));
-        return true;
+        try {
+          const res = await api.get("/consultation", { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadConsultations(page + 1);
+          setConsultations(mergeItems(consultations, newItems, { formatNewItemsFunction: formatConsultation }));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const consultationsSuccess = await loadConsultations(0);
       if (!consultationsSuccess) return false;
@@ -395,13 +471,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des traitements");
       async function loadTreatments(page = 0) {
-        const res = await API.get({ path: "/treatment", query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue } });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadTreatments(page + 1);
-        setTreatments(mergeItems(treatments, newItems));
-        return true;
+        try {
+          const res = await api.get("/passage", { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadTreatments(page + 1);
+          setTreatments(mergeItems(treatments, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const treatmentsSuccess = await loadTreatments(0);
       if (!treatmentsSuccess) return false;
@@ -410,16 +491,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       let newItems = [];
       setLoadingText("Chargement des fichiers médicaux");
       async function loadMedicalFiles(page = 0) {
-        const res = await API.get({
-          path: "/medical-file",
-          query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
-        });
-        if (!res.ok) return resetLoaderOnError();
-        setProgress((p) => p + res.data.length);
-        newItems.push(...res.decryptedData);
-        if (res.hasMore) return loadMedicalFiles(page + 1);
-        setMedicalFiles(mergeItems(medicalFiles, newItems));
-        return true;
+        try {
+          const res = await api.get("/medical-file", { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue });
+          const decryptedData = await Promise.all(res.data.map((p) => decryptItem(p)));
+          setProgress((p) => p + res.data.length);
+          newItems.push(...decryptedData);
+          if (res.hasMore) return loadMedicalFiles(page + 1);
+          setMedicalFiles(mergeItems(medicalFiles, newItems));
+          return true;
+        } catch (e) {
+          capture(e);
+          return resetLoaderOnError();
+        }
       }
       const medicalFilesSuccess = await loadMedicalFiles(0);
       if (!medicalFilesSuccess) return false;
@@ -434,12 +517,12 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     return true;
   }
 
-  async function resetLoaderOnError() {
+  async function resetLoaderOnError(message) {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
     setLastLoad(0);
     await clearCache();
-    toast.error("Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer", {
+    toast.error(message || "Une erreur est survenue lors du chargement de vos données, veuillez réessayer", {
       onClose: () => window.location.replace("/auth"),
       autoClose: 5000,
     });

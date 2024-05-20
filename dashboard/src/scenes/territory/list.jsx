@@ -11,7 +11,7 @@ import Loading from "../../components/loading";
 import Table from "../../components/table";
 import ButtonCustom from "../../components/ButtonCustom";
 import Search from "../../components/search";
-import { territoryTypes, territoriesState, prepareTerritoryForEncryption, sortTerritories } from "../../recoil/territory";
+import { territoryTypes, territoriesState, prepareTerritoryForEncryption, sortTerritories, encryptTerritory } from "../../recoil/territory";
 import SelectCustom from "../../components/SelectCustom";
 import { onlyFilledObservationsTerritories } from "../../recoil/selectors";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
@@ -21,6 +21,8 @@ import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../components/DataLoader";
+import api from "../../services/apiv2";
+import { errorMessage } from "../../utils";
 
 const List = () => {
   const organisation = useRecoilValue(organisationState);
@@ -152,6 +154,7 @@ export const CreateTerritory = () => {
 
 export function TerritoryModal({ open, setOpen, territory = {} }) {
   const history = useHistory();
+  const { refresh } = useDataLoader();
   const setTerritories = useSetRecoilState(territoriesState);
   const user = useRecoilValue(userState);
   const isNew = !territory._id;
@@ -167,26 +170,21 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
             if (!body.name) return toast.error("Le nom est obligatoire");
 
             if (isNew) {
-              const res = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ ...body, user: user._id }) });
-              if (res.ok) {
-                setTerritories((territories) => [res.decryptedData, ...territories]);
-                actions.setSubmitting(false);
+              try {
+                const response = await api.post("/territory", await encryptTerritory({ ...body, user: user._id }));
+                if (!response.ok) throw new Error("Erreur lors de la création du territoire");
                 toast.success("Création réussie !");
+                refresh();
                 setOpen(false);
-                history.push(`/territory/${res.data._id}`);
+                actions.setSubmitting(false);
+                history.push(`/territory/${response.data._id}`);
+              } catch (e) {
+                return toast.error(errorMessage(e));
               }
             } else {
-              const res = await API.put({
-                path: `/territory/${territory._id}`,
-                body: prepareTerritoryForEncryption({ ...body, user: body.user || user._id }),
-              });
+              const res = await api.put(`/territory/${territory._id}`, encryptTerritory({ ...body, user: body.user || user._id }));
               if (res.ok) {
-                setTerritories((territories) =>
-                  territories.map((a) => {
-                    if (a._id === territory._id) return res.decryptedData;
-                    return a;
-                  })
-                );
+                refresh();
                 actions.setSubmitting(false);
                 toast.success("Mis à jour !");
                 setOpen(false);

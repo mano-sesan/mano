@@ -7,12 +7,14 @@ import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import {
   customFieldsMedicalFileSelector,
+  encryptMedicalFile,
   groupedCustomFieldsMedicalFileSelector,
   medicalFileState,
   prepareMedicalFileForEncryption,
 } from "../../recoil/medicalFiles";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { EditCustomField } from "../../components/TableCustomFields";
+import api from "../../services/apiv2";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -34,9 +36,8 @@ const MedicalFileSettings = () => {
   const { refresh } = useDataLoader();
 
   const onAddGroup = async (name) => {
-    const res = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { groupedCustomFieldsMedicalFile: [...groupedCustomFieldsMedicalFile, { name, fields: [] }] },
+    const res = await api.put(`/organisation/${organisation._id}`, {
+      groupedCustomFieldsMedicalFile: [...groupedCustomFieldsMedicalFile, { name, fields: [] }],
     });
     if (res.ok) {
       toast.success("Groupe ajouté", { autoclose: 2000 });
@@ -59,10 +60,7 @@ const MedicalFileSettings = () => {
     });
 
     const oldOrganisation = organisation;
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-    });
+    const response = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
     if (response.ok) {
       refresh();
       setOrganisation(response.data);
@@ -78,10 +76,7 @@ const MedicalFileSettings = () => {
 
     const oldOrganisation = organisation;
 
-    const response = await API.put({
-      path: `/organisation/${organisation._id}`,
-      body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-    });
+    const response = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
     if (response.ok) {
       toast.success("Groupe de champs de dossier médical supprimé", { autoclose: 2000 });
       setOrganisation(response.data);
@@ -97,10 +92,7 @@ const MedicalFileSettings = () => {
         name: group.groupTitle,
         fields: group.items.map((customFieldName) => flatCustomFieldsMedicalFile.find((f) => f.name === customFieldName)),
       }));
-      const res = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-      });
+      const res = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
       if (res.ok) {
         setOrganisation(res.data);
         refresh();
@@ -145,10 +137,7 @@ const AddField = ({ groupTitle: typeName }) => {
           fields: [...type.fields, newField].map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -223,10 +212,7 @@ const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => 
           fields: type.fields.map((field) => (field.name !== editedField.name ? field : editedField)).map(sanitizeFields),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);
@@ -259,14 +245,11 @@ const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => 
 
     const newCustomFieldsMedicalFileFlat = newCustomFieldsMedicalFile.reduce((acc, type) => [...acc, ...type.fields], []);
 
-    const response = await API.post({
-      path: "/custom-field",
-      body: {
-        customFields: {
-          groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile,
-        },
-        medicalFiles: await Promise.all(updatedMedicalFiles.map(prepareMedicalFileForEncryption(newCustomFieldsMedicalFileFlat)).map(encryptItem)),
+    const response = await api.post("/custom-field", {
+      customFields: {
+        groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile,
       },
+      medicalFiles: await Promise.all(updatedMedicalFiles.map(encryptMedicalFile(newCustomFieldsMedicalFileFlat))),
     });
     if (response.ok) {
       toast.success("Choix mis à jour !");
@@ -284,10 +267,7 @@ const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => 
           fields: type.fields.filter((field) => field.name !== customField.name),
         };
       });
-      const response = await API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile },
-      });
+      const response = await api.put(`/organisation/${organisation._id}`, { groupedCustomFieldsMedicalFile: newCustomFieldsMedicalFile });
       if (response.ok) {
         toast.success("Mise à jour !");
         setOrganisation(response.data);

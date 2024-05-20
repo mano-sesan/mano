@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useLocation, useHistory } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
-import { allowedActionFieldsInHistory, prepareActionForEncryption } from "../recoil/actions";
+import { allowedActionFieldsInHistory, prepareActionForEncryption, encryptAction } from "../recoil/actions";
 import API, { encryptItem } from "../services/api";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
 import { modalConfirmState } from "./ModalConfirm";
@@ -26,8 +26,10 @@ import { useDataLoader } from "./DataLoader";
 import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { groupsState } from "../recoil/groups";
-import { prepareCommentForEncryption } from "../recoil/comments";
+import { encryptComment, prepareCommentForEncryption } from "../recoil/comments";
 import { capture } from "../services/sentry";
+import api from "../services/apiv2";
+import { decryptItem } from "../services/encryption";
 
 export default function ActionModal() {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
@@ -179,10 +181,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       }
       if (Object.keys(historyEntry.data).length) body.history = [...(action.history || []), historyEntry];
 
-      const actionResponse = await API.put({
-        path: `/action/${data._id}`,
-        body: prepareActionForEncryption(body),
-      });
+      const actionResponse = await api.put(`/action/${data._id}`, encryptAction(body));
 
       if (!actionResponse.ok) {
         toast.error("Erreur lors de la mise à jour de l'action, les données n'ont pas été sauvegardées.");
@@ -193,9 +192,9 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       const actionCancelled = action.status !== CANCEL && body.status === CANCEL;
       if (actionCancelled && window.confirm("Cette action est annulée, voulez-vous la dupliquer ? Avec une date ultérieure par exemple")) {
         const { name, person, dueAt, withTime, description, categories, urgent, teams } = data;
-        const response = await API.post({
-          path: "/action",
-          body: prepareActionForEncryption({
+        const response = await api.post(
+          "/action",
+          encryptAction({
             name,
             person,
             teams,
@@ -206,8 +205,8 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             description,
             categories,
             urgent,
-          }),
-        });
+          })
+        );
         if (!response.ok) {
           toast.error("Erreur lors de la duplication de l'action, les données n'ont pas été sauvegardées.");
           capture("error duplicating action", { extra: { actionId: action._id } });
@@ -216,20 +215,20 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         for (let c of action.comments.filter((c) => c.action === action._id)) {
           const body = {
             comment: c.comment,
-            action: response.decryptedData._id,
+            action: response.data._id,
             user: c.user || user._id,
             team: c.team || currentTeam._id,
             organisation: c.organisation,
           };
-          const res = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+          const res = await api.post("/comment", encryptComment(body));
           if (!res.ok) {
             toast.error("Erreur lors de la duplication des commentaires de l'action, les données n'ont pas été sauvegardées.");
-            capture("error duplicating comments", { extra: { actionId: action._id, newActionId: response.decryptedData._id } });
+            capture("error duplicating comments", { extra: { actionId: action._id, newActionId: response.data._id } });
             return;
           }
         }
         const searchParams = new URLSearchParams(history.location.search);
-        searchParams.set("actionId", response.decryptedData._id);
+        searchParams.set("actionId", response.data._id);
         history.replace(`?${searchParams.toString()}`);
       }
 
@@ -237,45 +236,37 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
     } else {
       let actionsId = [];
       if (Array.isArray(body.person)) {
-        const actionResponse = await API.post({
-          path: "/action/multiple",
-          body: await Promise.all(
-            body.person
-              .map((personId) =>
-                prepareActionForEncryption({
-                  ...body,
-                  person: personId,
-                })
-              )
-              .map(encryptItem)
-          ),
-        });
+        const actionResponse = await api.post(
+          "/action/multiple",
+          await Promise.all(
+            body.person.map((personId) =>
+              encryptAction({
+                ...body,
+                person: personId,
+              })
+            )
+          )
+        );
         if (!actionResponse.ok) {
           toast.error("Erreur lors de la création des action, les données n'ont pas été sauvegardées.");
           capture("error creating multiple actions", { extra: { actionResponse } });
           return false;
         }
-        actionsId = actionResponse.decryptedData.map((a) => a._id);
+        actionsId = actionResponse.data.map((a) => a._id);
       } else {
-        const actionResponse = await API.post({
-          path: "/action",
-          body: prepareActionForEncryption(body),
-        });
+        const actionResponse = await api.post("/action", encryptAction(body));
         if (!actionResponse.ok) {
           toast.error("Erreur lors de la création de l'action, les données n'ont pas été sauvegardées.");
           capture("error creating single action", { extra: { actionResponse } });
           return false;
         }
-        actionsId.push(actionResponse.decryptedData._id);
+        actionsId.push(actionResponse.data._id);
       }
       // Creer les commentaires.
       for (const actionId of actionsId) {
         if (body.comments?.length) {
           for (const comment of body.comments) {
-            const commentResponse = await API.post({
-              path: "/comment",
-              body: prepareCommentForEncryption({ ...comment, action: actionId }),
-            });
+            const commentResponse = await api.post("/comment", encryptComment({ ...comment, action: actionId }));
             if (!commentResponse.ok) {
               toast.error("Erreur lors de la création du commentaire, l'action a été sauvegardée mais pas les commentaires.");
               capture("error creating comment", { extra: { actionId } });
@@ -647,7 +638,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                 const newData = { ...data, comments: data.comments.filter((c) => c._id !== comment._id) };
                 setData(newData);
                 if (isNewAction) {
-                  const res = await API.delete({ path: `/comment/${comment._id}` });
+                  const res = await api.delete(`/comment/${comment._id}`);
                   if (!res.ok) return false;
                   toast.success("Suppression réussie");
                   refresh();
@@ -662,17 +653,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                 if (isNewAction) return;
 
                 if (isNewComment) {
-                  const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(comment) });
+                  const response = await api.post("/comment", encryptComment(comment));
                   if (!response.ok) {
                     toast.error("Erreur lors de l'ajout du commentaire");
                     return;
                   }
                   toast.success("Commentaire ajouté !");
                 } else {
-                  const response = await API.put({
-                    path: `/comment/${comment._id}`,
-                    body: prepareCommentForEncryption(comment),
-                  });
+                  const response = await api.put(`/comment/${comment._id}`, encryptComment(comment));
                   if (!response.ok) {
                     toast.error("Erreur lors de l'ajout du commentaire");
                     return;
@@ -705,14 +693,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             onClick={async (e) => {
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer cette action ?")) return;
-              const response = await API.delete({ path: `/action/${action._id}` });
+              const response = await api.delete(`/action/${action._id}`);
               if (!response.ok) {
                 toast.error("Erreur lors de la suppression de l'action");
                 return;
               }
               for (let comment of action.comments) {
                 if (!comment._id) continue;
-                const commentRes = await API.delete({ path: `/comment/${comment._id}` });
+                const commentRes = await api.delete(`/comment/${comment._id}`);
                 if (!commentRes.ok) {
                   toast.error("Erreur lors de la suppression des commentaires liés à l'action");
                   return;

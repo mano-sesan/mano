@@ -5,6 +5,7 @@ import { TeamInstance } from "../../types/team";
 import { OrganisationInstance } from "../../types/organisation";
 import { formatDateWithFullMonth } from "../../services/date";
 import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../components/tailwind/Modal";
+import api from "../../services/apiv2";
 
 export default function OrganisationUsers({
   organisation,
@@ -30,7 +31,7 @@ export default function OrganisationUsers({
   useEffect(() => {
     if (organisation?._id && open) {
       if (!openCreateUserModal) {
-        API.get({ path: `/user`, query: { organisation: organisation._id } }).then((response) => {
+        api.get(`/user`, { organisation: organisation._id }).then((response) => {
           if (response.ok) {
             setUsers(response.data);
           }
@@ -77,7 +78,7 @@ export default function OrganisationUsers({
                             setIsGeneratingLinkForUser(user._id);
                             setGeneratedLink(undefined);
                             (async () => {
-                              const { data } = await API.post({ path: `/user/generate-link`, body: { _id: user._id } });
+                              const { data } = await api.post(`/user/generate-link`, { _id: user._id });
                               setGeneratedLink([user._id, data.link]);
                               setIsGeneratingLinkForUser(false);
                             })();
