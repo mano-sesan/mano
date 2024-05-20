@@ -36,10 +36,10 @@ const OutOfActiveList = ({ person }) => {
     const history = [...(cleanHistory(person.history) || []), historyEntry];
     const response = await api.put(
       `/person/${person._id}`,
-      encryptPerson({ ...person, outOfActiveList: false, outOfActiveListReasons: [], outOfActiveListDate: null, history })
+      await encryptPerson({ ...person, outOfActiveList: false, outOfActiveListReasons: [], outOfActiveListDate: null, history })
     );
     if (response.ok) {
-      refresh();
+      await refresh();
       toast.success(person.name + " est réintégré dans la file active");
     }
   };
