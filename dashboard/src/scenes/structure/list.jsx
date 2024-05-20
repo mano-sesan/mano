@@ -159,7 +159,10 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
       const isNew = !initStructure?._id;
       const res = !isNew ? await api.put(`/structure/${initStructure._id}`, { ...structure }) : await api.post("/structure", { ...structure });
       setDisabled(false);
-      if (!res.ok) return;
+      if (!res.ok) {
+        if (res.error) toast.error(res.error);
+        return;
+      }
       toast.success(!isNew ? "Structure mise à jour !" : "Structure créée !");
       onSuccess();
       onResetAndClose();
