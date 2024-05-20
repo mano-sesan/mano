@@ -133,6 +133,32 @@ class Api {
     return response.json();
   }
 
+  async upload(path, encryptedFile) {
+    const formData = new FormData();
+    formData.append("file", encryptedFile);
+    const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus() }), {
+      ...this.fetchParams(),
+      method: "POST",
+      body: formData,
+    });
+    this.updateDeploymentStatus(response);
+    if (this.needAuthRedirection(response)) {
+      this.reset({ redirect: true });
+      return;
+    }
+    return response.json();
+  }
+
+  async download(path: string, query?: Record<string, string | Date | boolean>) {
+    const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
+    this.updateDeploymentStatus(response);
+    if (this.needAuthRedirection(response)) {
+      this.reset({ redirect: true });
+      return;
+    }
+    return response.blob();
+  }
+
   async getSigninToken() {
     const response = await fetch(this.getUrl("/user/signin-token"), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);

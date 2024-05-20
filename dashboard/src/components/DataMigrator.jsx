@@ -1,26 +1,10 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import { mappedIdsToLabels, prepareActionForEncryption } from "../recoil/actions";
 import { organisationState, userState } from "../recoil/auth";
-import { usePreparePersonForEncryption } from "../recoil/persons";
-import { prepareReportForEncryption } from "../recoil/reports";
-import API, { decryptAndEncryptItem, encryptItem } from "../services/api";
 import { dayjsInstance } from "../services/date";
 import { loadingTextState } from "./DataLoader";
-import { looseUuidRegex } from "../utils";
-import { prepareCommentForEncryption } from "../recoil/comments";
-import { prepareGroupForEncryption } from "../recoil/groups";
 import { capture } from "../services/sentry";
-import { decryptItem, encryptVerificationKey } from "../services/encryption";
-import { v4 as uuidv4 } from "uuid";
-import { prepareConsultationForEncryption } from "../recoil/consultations";
-import { prepareTreatmentForEncryption } from "../recoil/treatments";
-import { prepareMedicalFileForEncryption } from "../recoil/medicalFiles";
-import { preparePassageForEncryption } from "../recoil/passages";
-import { prepareRencontreForEncryption } from "../recoil/rencontres";
-import { prepareTerritoryForEncryption } from "../recoil/territory";
-import { customFieldsObsSelector, defaultCustomFields, prepareObsForEncryption } from "../recoil/territoryObservations";
-import { preparePlaceForEncryption } from "../recoil/places";
-import { prepareRelPersonPlaceForEncryption } from "../recoil/relPersonPlace";
+import { decryptItem } from "../services/encryption";
+import { defaultCustomFields, encryptObs } from "../recoil/territoryObservations";
 import api from "../services/apiv2";
 
 const LOADING_TEXT = "Mise à jour des données de votre organisation…";
@@ -30,8 +14,6 @@ export default function useDataMigrator() {
   const setLoadingText = useSetRecoilState(loadingTextState);
   const user = useRecoilValue(userState);
   const setOrganisation = useSetRecoilState(organisationState);
-
-  const preparePersonForEncryption = usePreparePersonForEncryption();
 
   return {
     // One "if" for each migration.
@@ -69,6 +51,7 @@ export default function useDataMigrator() {
       */
 
       if (!organisation.migrations?.includes("reformat-observedAt-observations-fixed")) {
+        // FIXME: vérifier que ça marche
         // some observedAt are timestamp, some are date
         // it messes up the filtering by date in stats
         setLoadingText(LOADING_TEXT);
@@ -102,7 +85,7 @@ export default function useDataMigrator() {
 
         const customFieldsObs = Array.isArray(organisation.customFieldsObs) ? organisation.customFieldsObs : defaultCustomFields;
 
-        const encryptedObservations = await Promise.all(observationsWithFullData.map(prepareObsForEncryption(customFieldsObs)).map(encryptItem));
+        const encryptedObservations = await Promise.all(observationsWithFullData.map(encryptObs(customFieldsObs)));
 
         const response = await api.put(
           `/migration/reformat-observedAt-observations-fixed`,

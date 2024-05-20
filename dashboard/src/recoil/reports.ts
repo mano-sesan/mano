@@ -37,7 +37,7 @@ export const reportsState = atom({
           for (const [key, reportsByDate] of duplicateReports) {
             const reportsToDelete = keepOnlyOneReportAndReturnReportToDelete(reportsByDate);
             for (const reportToDelete of reportsToDelete) {
-              await api.delete(`report/${reportToDelete._id}`);
+              await api.delete(`/report/${reportToDelete._id}`);
             }
             capture("Duplicated reports " + key, {
               extra: {

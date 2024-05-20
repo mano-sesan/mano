@@ -127,9 +127,10 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
   }
 
   const onSaveReport = async (body) => {
+    alert("l");
     const response = report?._id
-      ? await api.put(`report/${report._id}`, await encryptReport(body))
-      : await api.post("report", await encryptReport(body));
+      ? await api.put(`/report/${report._id}`, await encryptReport(body))
+      : await api.post("/report", await encryptReport(body));
     if (!response.ok) {
       toast.error(response.errorMessage);
       return;

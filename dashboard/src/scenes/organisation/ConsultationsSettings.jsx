@@ -2,10 +2,9 @@ import React, { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../components/DataLoader";
 import { organisationState } from "../../recoil/auth";
-import API, { encryptItem } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
+import { consultationsState, encryptConsultation } from "../../recoil/consultations";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import api from "../../services/apiv2";
@@ -59,8 +58,7 @@ const ConsultationsSettings = () => {
       allConsultations
         .filter((consultation) => consultation.type === oldName)
         .map((consultation) => ({ ...consultation, type: newName }))
-        .map(prepareConsultationForEncryption(newConsultationFields))
-        .map(encryptItem)
+        .map(encryptConsultation(newConsultationFields))
     );
     const response = await api.post("/custom-field", {
       customFields: {
@@ -251,7 +249,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
       customFields: {
         consultations: newConsultationFields,
       },
-      consultations: await Promise.all(updatedConsultations.map(prepareConsultationForEncryption(newConsultationFields)).map(encryptItem)),
+      consultations: await Promise.all(updatedConsultations.map(encryptConsultation(newConsultationFields))),
     });
     if (response.ok) {
       toast.success("Choix mis à jour !");

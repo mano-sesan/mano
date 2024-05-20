@@ -45,22 +45,6 @@ export const encryptItem = async (item, debugApi) => {
   return item;
 };
 
-export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, newHashedOrgEncryptionKey, updateContentCallback = null) {
-  // Some old (mostly deleted) items don't have encrypted content. We ignore them forever to avoid crash.
-  if (!item.encrypted) return null;
-  // Decrypt items
-  let { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, oldHashedOrgEncryptionKey);
-  // If we need to alterate the content, we do it here.
-  if (updateContentCallback) {
-    // No try/catch here: if something is not decryptable, it should crash and stop the process.
-    content = JSON.stringify(await updateContentCallback(JSON.parse(content), item));
-  }
-  const { encryptedContent, encryptedEntityKey } = await encrypt(content, entityKey, newHashedOrgEncryptionKey);
-  item.encrypted = encryptedContent;
-  item.encryptedEntityKey = encryptedEntityKey;
-  return item;
-}
-
 const decryptDBItem = async (item, { path, decryptDeleted = false } = {}) => {
   if (!getEnableEncrypt()) return item;
   if (!item.encrypted) return item;

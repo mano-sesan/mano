@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import API from "../../services/api";
 import { UserInstance } from "../../types/user";
 import { TeamInstance } from "../../types/team";
 import { OrganisationInstance } from "../../types/organisation";

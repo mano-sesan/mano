@@ -9,7 +9,6 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
 import { useRecoilState, useRecoilValue } from "recoil";
-import API from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import dayjs from "dayjs";
 import api from "../../services/apiv2";

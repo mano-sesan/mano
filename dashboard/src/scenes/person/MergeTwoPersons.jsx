@@ -18,7 +18,6 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import UserName from "../../components/UserName";
 import Table from "../../components/table";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import API, { encryptItem } from "../../services/api";
 import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
 import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
 import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
@@ -30,6 +29,7 @@ import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileFo
 import { useDataLoader } from "../../components/DataLoader";
 import { formatAge } from "../../services/date";
 import api from "../../services/apiv2";
+import { encryptItem } from "../../services/encryption";
 
 const getRawValue = (field, value) => {
   try {

@@ -4,14 +4,13 @@ import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
 import { userState } from "../../recoil/auth";
 import { dayjsInstance } from "../../services/date";
-import API from "../../services/api";
 import { useDataLoader } from "../../components/DataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 import { encryptPlace, placesState, preparePlaceForEncryption } from "../../recoil/places";
 import SelectUser from "../../components/SelectUser";
 import { toast } from "react-toastify";
-import { encryptRelPersonPlace, prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { encryptRelPersonPlace, relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import QuestionMarkButton from "../../components/QuestionMarkButton";
 import api from "../../services/apiv2";
 

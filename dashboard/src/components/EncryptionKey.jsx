@@ -9,9 +9,15 @@ import { useHistory } from "react-router-dom";
 import ButtonCustom from "./ButtonCustom";
 import { theme } from "../config";
 import { organisationState, teamsState, userState } from "../recoil/auth";
-import { encryptVerificationKey, getHashedOrgEncryptionKey, setOrgEncryptionKey } from "../services/encryption";
+import {
+  decryptAndEncryptItem,
+  decryptFile,
+  encryptFile,
+  encryptVerificationKey,
+  getHashedOrgEncryptionKey,
+  setOrgEncryptionKey,
+} from "../services/encryption";
 import { capture } from "../services/sentry";
-import API, { decryptAndEncryptItem } from "../services/api";
 import { useDataLoader } from "./DataLoader";
 import api from "../services/apiv2";
 
@@ -345,21 +351,12 @@ const EncryptionKey = ({ isMain }) => {
 };
 
 const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
-  const content = await API.download(
-    {
-      path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`,
-      encryptedEntityKey: doc.encryptedEntityKey,
-    },
-    fromKey
-  );
-  const docResult = await API.upload(
-    {
-      path: `/person/${personId}/document`,
-      file: new File([content], doc.file.originalname, { type: doc.file.mimetype }),
-    },
-    toKey
-  );
-  const { data: file, encryptedEntityKey } = docResult;
+  const blob = await api.download(doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`);
+  const content = await decryptFile(blob, doc.encryptedEntityKey, fromKey);
+  const { encryptedEntityKey, encryptedFile } = await encryptFile(new File([content], doc.file.originalname, { type: doc.file.mimetype }), toKey);
+
+  const docResult = await api.upload(`/person/${personId}/document`, encryptedFile);
+  const { data: file } = docResult;
   return {
     _id: file.filename,
     name: doc.file.originalname,

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import API from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";

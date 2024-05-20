@@ -8,7 +8,6 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { DEFAULT_ORGANISATION_KEY } from "../../config";
 import PasswordInput from "../../components/PasswordInput";
 import { currentTeamState, organisationState, sessionInitialDateTimestamp, teamsState, usersState, userState } from "../../recoil/auth";
-import API, { authTokenState } from "../../services/api";
 import { useDataLoader } from "../../components/DataLoader";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
@@ -33,7 +32,6 @@ const SignIn = () => {
   const [loading, setLoading] = useState(true);
   const [authViaCookie, setAuthViaCookie] = useState(false);
   const { startInitialLoad, isLoading, resetCache } = useDataLoader();
-  const setToken = useSetRecoilState(authTokenState);
   const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
 
   const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
@@ -142,8 +140,7 @@ const SignIn = () => {
         setShowEncryption(true);
         return setIsSubmitting(false);
       }
-      if (token) setToken(token);
-      api.setToken(token); // API v2
+      api.setToken(token);
       setSessionInitialTimestamp(Date.now());
       window.localStorage.setItem("mano-organisationId", organisation._id);
       if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey) {

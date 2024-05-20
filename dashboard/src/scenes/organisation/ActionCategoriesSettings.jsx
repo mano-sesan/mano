@@ -1,9 +1,8 @@
 import React, { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../components/DataLoader";
-import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, prepareActionForEncryption } from "../../recoil/actions";
+import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, encryptAction } from "../../recoil/actions";
 import { organisationState, userState } from "../../recoil/auth";
-import API, { encryptItem } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
@@ -179,8 +178,7 @@ const Category = ({ item: category, groupTitle }) => {
           ...action,
           categories: [...new Set(action.categories.map((cat) => (cat === oldCategory ? newCategory.trim() : cat)))],
         }))
-        .map((action) => prepareActionForEncryption({ ...action, user: action.user || user._id }))
-        .map(encryptItem)
+        .map((action) => encryptAction({ ...action, user: action.user || user._id }))
     );
     const newActionsGroupedCategories = actionsGroupedCategories.map((group) => {
       if (group.groupTitle !== groupTitle) return group;

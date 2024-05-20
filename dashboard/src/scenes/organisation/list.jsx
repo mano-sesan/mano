@@ -538,7 +538,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
   useEffect(() => {
     if (!organisation?._id) return;
     (async () => {
-      const { data } = await api.get(`organisation/${organisation._id}/teams`);
+      const { data } = await api.get(`/organisation/${organisation._id}/teams`);
       setTeam(data);
     })();
   }, [organisation?._id]);

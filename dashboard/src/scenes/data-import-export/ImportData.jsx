@@ -1,17 +1,16 @@
 import React, { useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { personFieldsIncludingCustomFieldsSelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption } from "../../recoil/persons";
 import { teamsState, userState } from "../../recoil/auth";
 import { isNullOrUndefined } from "../../utils";
-import API, { encryptItem } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../recoil/medicalFiles";
 import { useDataLoader } from "../../components/DataLoader";
 import api from "../../services/apiv2";
 
@@ -23,7 +22,7 @@ const ImportData = () => {
   const { refresh } = useDataLoader();
   const teams = useRecoilValue(teamsState);
 
-  const preparePersonForEncryption = usePreparePersonForEncryption();
+  const { encryptPerson } = usePreparePersonForEncryption();
 
   const [showImportSummary, setShowImportSummary] = useState(false);
   const [personsToImport, setPersonsToImport] = useState([]);
@@ -137,9 +136,9 @@ const ImportData = () => {
         }
       }
 
-      const encryptedPersons = await Promise.all(persons.map(preparePersonForEncryption).map(encryptItem));
+      const encryptedPersons = await Promise.all(persons.map(encryptPerson));
       setPersonsToImport(encryptedPersons);
-      const encryptedMedicalFiles = await Promise.all(medicalFiles.map(prepareMedicalFileForEncryption(customFieldsMedicalFile)).map(encryptItem));
+      const encryptedMedicalFiles = await Promise.all(medicalFiles.map(encryptMedicalFile(customFieldsMedicalFile)));
       setMedicalFilesToImport(encryptedMedicalFiles);
       setShowImportSummary(true);
     } catch (e) {

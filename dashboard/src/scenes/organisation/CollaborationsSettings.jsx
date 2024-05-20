@@ -2,11 +2,10 @@ import React, { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../components/DataLoader";
 import { organisationState } from "../../recoil/auth";
-import API, { encryptItem } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import { encryptReport, prepareReportForEncryption, reportsState } from "../../recoil/reports";
 import api from "../../services/apiv2";
 
 function CollaborationsSettings() {
@@ -45,7 +44,7 @@ function CollaborationsSettings() {
   );
 }
 
-const AddCollaboration = ({ groupTitle }) => {
+const AddCollaboration = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
 
   const onAddCategory = async (e) => {
@@ -57,7 +56,6 @@ const AddCollaboration = ({ groupTitle }) => {
     const newCollaborations = [...organisation.collaborations, newCollaboration];
 
     const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, collaborations: newCollaborations }); // optimistic UI
     const response = await api.put(`/organisation/${organisation._id}`, {
       collaborations: newCollaborations,
     });
@@ -105,14 +103,12 @@ const Collaboration = ({ item: collaboration }) => {
     const newCollaborations = organisation.collaborations.map((cat) => (cat === oldCollaboration ? newCollaboration : cat));
 
     const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, collaborations: newCollaborations }); // optimistic UI
 
     const encryptedReports = await Promise.all(
       reports
         .filter((report) => report.collaborations?.includes(oldCollaboration))
         .map((report) => ({ ...report, collaborations: report.collaborations.map((cat) => (cat === oldCollaboration ? newCollaboration : cat)) }))
-        .map(prepareReportForEncryption)
-        .map(encryptItem)
+        .map(encryptReport)
     );
 
     const response = await api.put(`/collaboration`, {

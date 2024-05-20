@@ -6,7 +6,6 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userState } from "../../recoil/auth";
 import ButtonCustom from "../../components/ButtonCustom";
 import { fieldsPersonsCustomizableOptionsSelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import API from "../../services/api";
 import { outOfBoundariesDate } from "../../services/date";
 import SelectCustom from "../../components/SelectCustom";
 import { cleanHistory } from "./components/PersonHistory";
