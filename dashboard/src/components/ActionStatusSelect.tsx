@@ -1,6 +1,5 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { DONE, TODO, CANCEL, prepareActionForEncryption, actionsState, encryptAction } from "../recoil/actions";
-import API from "../services/api";
 import { now } from "../services/date";
 import { toast } from "react-toastify";
 import { organisationState, userState } from "../recoil/auth";

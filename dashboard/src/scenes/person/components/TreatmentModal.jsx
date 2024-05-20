@@ -179,7 +179,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
       toast.error("Impossible d'enregistrer le traitement. Notez toutes les informations et contactez le support.");
       return false;
     }
-    const decrypted = decryptItem(treatmentResponse.data);
+    const decrypted = await decryptItem(treatmentResponse.data);
     setData(decrypted);
     if (closeOnSubmit) onClose();
     await refresh();

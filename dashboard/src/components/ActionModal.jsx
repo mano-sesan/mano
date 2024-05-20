@@ -7,7 +7,6 @@ import { useLocation, useHistory } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, prepareActionForEncryption, encryptAction } from "../recoil/actions";
-import API, { encryptItem } from "../services/api";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
 import { modalConfirmState } from "./ModalConfirm";
 import SelectStatus from "./SelectStatus";

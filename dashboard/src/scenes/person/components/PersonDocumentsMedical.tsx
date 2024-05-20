@@ -5,7 +5,6 @@ import { organisationAuthentifiedState, userAuthentifiedState } from "../../../r
 import { consultationsState, encryptConsultation, prepareConsultationForEncryption } from "../../../recoil/consultations";
 import { customFieldsMedicalFileSelector, encryptMedicalFile, medicalFileState, prepareMedicalFileForEncryption } from "../../../recoil/medicalFiles";
 import { encryptTreatment, prepareTreatmentForEncryption, treatmentsState } from "../../../recoil/treatments";
-import API, { encryptItem } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import type { PersonPopulated } from "../../../types/person";

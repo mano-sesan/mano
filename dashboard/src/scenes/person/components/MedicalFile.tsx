@@ -13,7 +13,6 @@ import {
   encryptMedicalFile,
   groupedCustomFieldsMedicalFileSelector,
   medicalFileState,
-  prepareMedicalFileForEncryption,
 } from "../../../recoil/medicalFiles";
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";

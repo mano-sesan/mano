@@ -1,6 +1,5 @@
 import React from "react";
 import { useDataLoader } from "./DataLoader";
-import API from "../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import api from "../services/apiv2";
 

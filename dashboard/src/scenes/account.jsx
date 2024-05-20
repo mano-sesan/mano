@@ -9,7 +9,6 @@ import Loading from "../components/loading";
 import ButtonCustom from "../components/ButtonCustom";
 import ChangePassword from "../components/ChangePassword";
 import { userState } from "../recoil/auth";
-import API from "../services/api";
 import api from "../services/apiv2";
 
 const Account = () => {

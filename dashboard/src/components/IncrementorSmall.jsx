@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import API from "../services/api";
 import { capture } from "../services/sentry";
 import api from "../services/apiv2";
 

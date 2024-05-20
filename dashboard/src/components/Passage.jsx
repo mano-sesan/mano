@@ -6,7 +6,6 @@ import ButtonCustom from "./ButtonCustom";
 import SelectUser from "./SelectUser";
 import { teamsState, userState } from "../recoil/auth";
 import { useRecoilValue, useSetRecoilState } from "recoil";
-import API from "../services/api";
 import { encryptPassage, passagesState, preparePassageForEncryption } from "../recoil/passages";
 import SelectTeam from "./SelectTeam";
 import SelectPerson from "./SelectPerson";

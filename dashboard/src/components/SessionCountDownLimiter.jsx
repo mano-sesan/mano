@@ -7,7 +7,6 @@ import PasswordInput from "./PasswordInput";
 import validator from "validator";
 import { useRecoilValue } from "recoil";
 import { organisationState, sessionInitialDateTimestamp } from "../recoil/auth";
-import API from "../services/api";
 import { checkEncryptedVerificationKey, setOrgEncryptionKey } from "../services/encryption";
 import { toast } from "react-toastify";
 import api from "../services/apiv2";

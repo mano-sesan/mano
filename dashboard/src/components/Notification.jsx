@@ -12,7 +12,6 @@ import ButtonCustom from "./ButtonCustom";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import Table from "./table";
 import UserName from "./UserName";
-import API from "../services/api";
 import { ModalContainer, ModalBody, ModalFooter } from "./tailwind/Modal";
 import PersonName from "./PersonName";
 import BellIconWithNotifications from "../assets/icons/BellIconWithNotifications";

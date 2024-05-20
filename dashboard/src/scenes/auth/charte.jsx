@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useRecoilState } from "recoil";
 import ButtonCustom from "../../components/ButtonCustom";
 import { userState } from "../../recoil/auth";
-import API from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
 import api from "../../services/apiv2";
 

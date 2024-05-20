@@ -5,7 +5,6 @@ import logo from "../assets/logo-green-creux-plus-petit.png";
 import SelectTeam from "./SelectTeam";
 
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
-import API from "../services/api";
 import { useRecoilState, useRecoilValue } from "recoil";
 import Notification from "./Notification";
 import { useDataLoader } from "./DataLoader";

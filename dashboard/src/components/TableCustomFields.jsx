@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRecoilState } from "recoil";
 import { organisationState } from "../recoil/auth";
-import API from "../services/api";
 import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";
 import Table from "./table";

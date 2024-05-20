@@ -5,7 +5,6 @@ import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../r
 import { utils, writeFile } from "@e965/xlsx";
 import { dayjsInstance } from "../../services/date";
 import { teamsState, userState } from "../../recoil/auth";
-import API from "../../services/api";
 import { customFieldsObsSelector } from "../../recoil/territoryObservations";
 import { territoriesState } from "../../recoil/territory";
 import { consultationFieldsSelector } from "../../recoil/consultations";

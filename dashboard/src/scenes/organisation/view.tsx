@@ -14,7 +14,6 @@ import {
 } from "../../recoil/persons";
 import TableCustomFields from "../../components/TableCustomFields";
 import { organisationState, userState } from "../../recoil/auth";
-import API, { encryptItem } from "../../services/api";
 import ExportData from "../data-import-export/ExportData";
 import ImportData from "../data-import-export/ImportData";
 import ImportConfig from "../data-import-export/ImportConfig";

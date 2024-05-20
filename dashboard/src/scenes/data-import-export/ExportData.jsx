@@ -16,7 +16,6 @@ import { rencontresState } from "../../recoil/rencontres";
 import { consultationsState } from "../../recoil/consultations";
 import { customFieldsMedicalFileSelector, medicalFileState } from "../../recoil/medicalFiles";
 import { treatmentsState } from "../../recoil/treatments";
-import API from "../../services/api";
 import { toast } from "react-toastify";
 import api from "../../services/apiv2";
 

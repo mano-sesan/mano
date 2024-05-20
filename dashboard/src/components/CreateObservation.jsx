@@ -19,7 +19,6 @@ import { currentTeamState, teamsState, userState } from "../recoil/auth";
 import { territoriesState } from "../recoil/territory";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
-import API from "../services/api";
 import DatePicker from "./DatePicker";
 import { ModalBody, ModalContainer, ModalHeader, ModalFooter } from "./tailwind/Modal";
 import SelectAndCreatePerson from "../scenes/reception/SelectAndCreatePerson";

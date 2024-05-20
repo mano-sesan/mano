@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import validator from "validator";
 import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
-import API from "../../services/api";
 import { useRecoilValue } from "recoil";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
 import api from "../../services/apiv2";

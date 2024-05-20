@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Redirect, useLocation } from "react-router-dom";
 import ChangePassword from "../../components/ChangePassword";
-import API from "../../services/api";
 import { useRecoilValue } from "recoil";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
 import api from "../../services/apiv2";

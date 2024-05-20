@@ -4,7 +4,6 @@ import { Folder } from "../../types/document";
 import { FolderModal } from "../../components/DocumentsGeneric";
 import { useRecoilValue } from "recoil";
 import { organisationAuthentifiedState } from "../../recoil/auth";
-import API from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";
 import api from "../../services/apiv2";

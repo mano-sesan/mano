@@ -177,12 +177,13 @@ const Reception = () => {
       }
       // optimistic UI
       setPassages((passages) => [...newPassages, ...passages]);
-      for (const [index, passage] of Object.entries(newPassages)) {
+      for (const [, passage] of Object.entries(newPassages)) {
         const response = await api.post("/passage", await encryptPassage(passage));
         if (response.ok) {
-          await refresh();
+          //FIXME.
         }
       }
+      await refresh();
       setAddingPassage(false);
     } catch (e) {
       capture(e, { extra: { selectedPersons: selectedPersons.map((p) => p._id), currentTeam }, user });

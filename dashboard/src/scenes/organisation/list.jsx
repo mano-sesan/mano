@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import Table from "../../components/table";
 import OrganisationUsers from "./OrganisationUsers";
 import Loading from "../../components/loading";
-import API from "../../services/api";
 import { formatAge, formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";

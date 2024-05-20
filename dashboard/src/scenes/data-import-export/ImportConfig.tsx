@@ -11,7 +11,6 @@ import { organisationState, teamsState } from "../../recoil/auth";
 import { groupedCustomFieldsObsSelector } from "../../recoil/territoryObservations";
 import { servicesSelector } from "../../recoil/reports";
 import { actionsCategoriesSelector } from "../../recoil/actions";
-import API from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";

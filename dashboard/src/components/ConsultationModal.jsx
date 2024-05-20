@@ -13,7 +13,6 @@ import {
   encryptConsultation,
   prepareConsultationForEncryption,
 } from "../recoil/consultations";
-import API from "../services/api";
 import { dayjsInstance } from "../services/date";
 import CustomFieldInput from "./CustomFieldInput";
 import { modalConfirmState } from "./ModalConfirm";
