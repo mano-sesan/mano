@@ -127,9 +127,14 @@ const SignIn = () => {
         toast.error(errorMessage(e));
         return setLoading(false);
       }
-      const { token, ok, user } = result;
+      const { token, ok, user, error } = result;
 
-      if (!ok) return setIsSubmitting(false);
+      if (!ok) {
+        if (error) {
+          toast?.error(error, { autoClose: import.meta.env.VITE_TEST_PLAYWRIGHT !== "true" });
+        }
+        return setIsSubmitting(false);
+      }
       const { organisation } = user;
       if (organisation._id !== window.localStorage.getItem("mano-organisationId")) {
         await resetCache();
