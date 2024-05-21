@@ -15,6 +15,7 @@ export const setOrgEncryptionKey = async (orgEncryptionKey, { needDerivation = t
   enableEncrypt = true;
   return newHashedOrgEncryptionKey;
 };
+
 export const resetOrgEncryptionKey = () => {
   hashedOrgEncryptionKey = null;
 };

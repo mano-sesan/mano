@@ -110,17 +110,13 @@ const ReloadModal = ({ open, onSuccess }) => {
           onSubmit={async (e) => {
             e.preventDefault();
             const hashedOrgEncryptionKey = await setOrgEncryptionKey(encryptionKey.trim());
-            if (organisation.encryptedVerificationKey) {
-              const encryptionKeyIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
-              if (!encryptionKeyIsValid) {
-                toast.error(
-                  "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
-                );
-                return onSuccess(false);
-              }
+            const encryptionKeyIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
+            if (!encryptionKeyIsValid) {
+              toast.error(
+                "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
+              );
+              return setEncryptionKey("");
             }
-
-            if (!hashedOrgEncryptionKey) return setEncryptionKey("");
             onSuccess(false);
           }}
         >
