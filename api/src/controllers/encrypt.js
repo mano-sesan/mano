@@ -86,6 +86,7 @@ router.post(
 
     let organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
     if (organisation.encrypting) {
+      // FIXME: afficher les erreurs coté client
       return res.status(403).send({ ok: false, error: "L'organisation est déjà en cours de chiffrement" });
     }
     organisation.set({ encrypting: true });

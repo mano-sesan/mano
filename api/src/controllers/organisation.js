@@ -127,6 +127,7 @@ router.post(
     }
     const { orgName, name, email, orgId, city } = req.body;
     const user = await User.findOne({ where: { email } });
+    // FIXME: erreur a afficher en front
     if (user) return res.status(400).send({ ok: false, error: "Cet email existe déjà dans une autre organisation" });
 
     const organisation = await Organisation.create(
