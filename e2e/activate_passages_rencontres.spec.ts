@@ -111,7 +111,7 @@ test("test", async ({ page }) => {
   /* ***** personnes suivies ***** */
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByRole("button", { name: "Créer une nouvelle personne" }).click();
+  await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").click();
   await page.getByLabel("Nom").fill("testrencontres");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
@@ -189,7 +189,7 @@ test("test", async ({ page }) => {
 
   /* ***** personnes suivies ***** */
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByRole("button", { name: "Créer une nouvelle personne" }).click();
+  await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").click();
   await page.getByLabel("Nom").fill("testrencontrepassage");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
@@ -226,7 +226,7 @@ test("test", async ({ page }) => {
   /* ***** Personne suivies ***** */
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByRole("button", { name: "Créer une nouvelle personne" }).click();
+  await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").click();
   await page.getByLabel("Nom").fill("testrencontrepassage");
   await page.getByRole("button", { name: "Sauvegarder" }).click();

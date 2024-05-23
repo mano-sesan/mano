@@ -105,7 +105,7 @@ const Create = () => {
       <ButtonCustom color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
       <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
         <ModalHeader close={onboardingForTeams ? <></> : null} toggle={() => setOpen(false)}>
-          {onboardingForTeams ? "Dernière étape !" : "Créer une nouvelle équipe"}
+          {onboardingForTeams ? "Dernière étape !" : "Créer une équipe"}
         </ModalHeader>
         <ModalBody>
           {Boolean(onboardingForTeams) && (

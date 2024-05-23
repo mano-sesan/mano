@@ -241,7 +241,7 @@ const Create = ({ onChange, users }) => {
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       <button type="button" className="button-submit" onClick={() => setOpen(true)}>
-        Créer un nouvel utilisateur
+        Créer un utilisateur
       </button>
       <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
         <ModalHeader onClose={() => setOpen(false)} title="Créer de nouveaux utilisateurs" />

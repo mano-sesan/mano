@@ -148,7 +148,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
 
   return (
     <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-      <ModalHeader toggle={() => setOpen(false)}>Créer un nouveau territoire</ModalHeader>
+      <ModalHeader toggle={() => setOpen(false)}>Créer un territoire</ModalHeader>
       <ModalBody>
         <Formik
           initialValues={initialValues}
