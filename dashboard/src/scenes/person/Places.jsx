@@ -142,7 +142,7 @@ const PersonPlaces = ({ person }) => {
 };
 
 const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPlaceToEdit }) => {
-  const [places, setPlaces] = useRecoilState(placesState);
+  const [places] = useRecoilState(placesState);
   const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
   const me = useRecoilValue(userState);
   const [placeId, setPlaceId] = useState(relPersonPlaceModal?.place);
@@ -169,12 +169,8 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       toast.error(response.error);
       return;
     }
-    setPlaces((places) =>
-      [response.decryptedData, ...places].sort((p1, p2) =>
-        p1?.name?.toLocaleLowerCase().localeCompare(p2.name?.toLocaleLowerCase(), "fr", { ignorPunctuation: true, sensitivity: "base" })
-      )
-    );
-    setPlaceId(response.decryptedData._id);
+    await refresh();
+    setPlaceId(response.data._id);
   };
 
   const onEditPlace = async (e) => {
@@ -206,12 +202,7 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       return;
     }
     toast.success(`Le lieu a été ${isNew ? "ajouté" : "modifié"}`);
-    if (isNew) {
-      setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
-    } else {
-      setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.map((r) => (r._id === relPersonPlaceModal._id ? response.decryptedData : r)));
-    }
-    refresh();
+    await refresh();
     setOpen(null);
   };
 
@@ -320,8 +311,7 @@ const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
       return;
     }
     toast.success(`Le nom du lieu a été modifié`);
-    setPlaces((places) => places.map((p) => (p._id === placeToEdit._id ? response.decryptedData : p)));
-    refresh();
+    await refresh();
     setOpen(null);
   };
 
