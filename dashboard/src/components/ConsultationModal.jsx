@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useLocation, useHistory } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
-import { consultationsFieldsIncludingCustomFieldsSelector, consultationsState, prepareConsultationForEncryption } from "../recoil/consultations";
+import { consultationsFieldsIncludingCustomFieldsSelector, prepareConsultationForEncryption } from "../recoil/consultations";
 import API from "../services/api";
 import { dayjsInstance } from "../services/date";
 import CustomFieldInput from "./CustomFieldInput";
@@ -100,7 +100,6 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
   const currentTeam = useRecoilValue(currentTeamState);
   const user = useRecoilValue(userState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const setAllConsultations = useSetRecoilState(consultationsState);
   const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
   const { refresh } = useDataLoader();
 
@@ -752,7 +751,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
               if (!window.confirm("Voulez-vous supprimer cette consultation ?")) return;
               const response = await API.delete({ path: `/consultation/${consultation._id}` });
               if (!response.ok) return;
-              setAllConsultations((all) => all.filter((t) => t._id !== consultation._id));
+              await refresh();
               toast.success("Consultation supprimée !");
               onClose();
             }}

@@ -81,7 +81,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
     if (confirm) {
       const res = await API.delete({ path: `/territory-observation/${id}` });
       if (res.ok) {
-        setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== id));
+        await refresh();
       }
       if (!res.ok) return;
       toast.success("Suppression réussie");
