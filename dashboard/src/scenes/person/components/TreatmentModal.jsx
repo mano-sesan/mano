@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { organisationState, userState } from "../../../recoil/auth";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
 import API from "../../../services/api";
-import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption, treatmentsState } from "../../../recoil/treatments";
+import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption } from "../../../recoil/treatments";
 import DatePicker from "../../../components/DatePicker";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
@@ -95,7 +95,6 @@ const newTreatmentInitialState = (user, personId, organisation) => ({
 });
 
 function TreatmentContent({ onClose, treatment, personId }) {
-  const setAllTreatments = useSetRecoilState(treatmentsState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
@@ -456,7 +455,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
               if (!window.confirm("Voulez-vous supprimer ce traitement ?")) return;
               const response = await API.delete({ path: `/treatment/${treatment._id}` });
               if (!response.ok) return;
-              setAllTreatments((all) => all.filter((t) => t._id !== treatment._id));
+              await refresh();
               toast.success("Traitement supprimé !");
               onClose();
             }}
