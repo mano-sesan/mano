@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Col, FormGroup, Row, Label } from "reactstrap";
-import styled from "styled-components";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
 
@@ -30,6 +29,7 @@ import PersonName from "./PersonName";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import Table from "./table";
+import { useDataLoader } from "./DataLoader";
 
 const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const [selectedPersons, setSelectedPersons] = useState([]);
@@ -47,6 +47,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const [rencontresInProgress, setRencontresInProgress] = useState([]);
   const setRencontres = useSetRecoilState(rencontresState);
   const rencontres = useRecoilValue(rencontresState);
+  const { refresh } = useDataLoader();
 
   const [sortBy, setSortBy] = useLocalStorage("in-observation-rencontre-sortBy", "dueAt");
   const [sortOrder, setSortOrder] = useLocalStorage("in-observation-rencontre-sortOrder", "ASC");
@@ -62,9 +63,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   const addTerritoryObs = async (obs) => {
     const res = await API.post({ path: "/territory-observation", body: prepareObsForEncryption(customFieldsObs)(obs) });
     if (res.ok) {
-      setTerritoryObservations((territoryObservations) =>
-        [res.decryptedData, ...territoryObservations].sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt))
-      );
+      await refresh();
     }
     return res;
   };
