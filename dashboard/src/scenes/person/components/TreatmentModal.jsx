@@ -104,7 +104,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
   const newTreatmentInitialStateRef = useRef(newTreatmentInitialState(user, personId, organisation));
 
   const initialState = useMemo(() => {
-    if (!!treatment) {
+    if (treatment) {
       return {
         documents: [],
         comments: [],
@@ -165,7 +165,7 @@ function TreatmentContent({ onClose, treatment, personId }) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
         if (body[key] !== treatment[key]) historyEntry.data[key] = { oldValue: treatment[key], newValue: body[key] };
       }
-      if (!!Object.keys(historyEntry.data).length) {
+      if (Object.keys(historyEntry.data).length) {
         const prevHistory = Array.isArray(treatment.history) ? treatment.history : [];
         body.history = [...prevHistory, historyEntry];
       }
@@ -185,18 +185,8 @@ function TreatmentContent({ onClose, treatment, personId }) {
       return false;
     }
     setData(treatmentResponse.decryptedData);
-    if (isNewTreatment) {
-      setAllTreatments((all) => [...all, treatmentResponse.decryptedData]);
-    } else {
-      setAllTreatments((all) =>
-        all.map((c) => {
-          if (c._id === data._id) return treatmentResponse.decryptedData;
-          return c;
-        })
-      );
-    }
+    await refresh();
     if (closeOnSubmit) onClose();
-    refresh();
     return true;
   }
 
