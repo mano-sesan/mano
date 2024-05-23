@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import { selector, selectorFamily, useRecoilValue } from "recoil";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { SmallHeader } from "../../components/header";
 import Page from "../../components/pagination";
 import Search from "../../components/search";
 import Loading from "../../components/loading";
@@ -130,27 +129,21 @@ const List = () => {
 
   return (
     <>
-      <SmallHeader
-        title={
-          <>
-            Personnes suivies par{" "}
-            {viewAllOrganisationData ? (
-              <>
-                l'organisation <b>{organisation.name}</b>
-              </>
-            ) : (
-              <>
-                l'équipe <b>{currentTeam?.name || ""}</b>
-              </>
-            )}
-          </>
-        }
-      />
-      <div className="tw-hidden tw-flex-wrap sm:tw-flex">
-        <div className="tw-relative tw-w-full tw-max-w-full tw-grow tw-basis-0">
-          <div className="tw-mb-8 tw-flex tw-w-full tw-justify-end">
-            <CreatePerson refreshable />
-          </div>
+      <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
+        <div className="tw-grow tw-text-xl">
+          Personnes suivies par{" "}
+          {viewAllOrganisationData ? (
+            <>
+              l’organisation <b>{organisation.name}</b>
+            </>
+          ) : (
+            <>
+              l’équipe <b>{currentTeam?.name || ""}</b>
+            </>
+          )}
+        </div>
+        <div>
+          <CreatePerson />
         </div>
       </div>
       <details open={isDesktop} className="[&_summary]:open:tw-opacity-10">
