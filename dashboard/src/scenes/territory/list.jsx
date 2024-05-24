@@ -140,8 +140,8 @@ export const CreateTerritory = () => {
 };
 
 export function TerritoryModal({ open, setOpen, territory = {} }) {
+  const { refresh } = useDataLoader();
   const history = useHistory();
-  const setTerritories = useSetRecoilState(territoriesState);
   const user = useRecoilValue(userState);
   const isNew = !territory._id;
   const initialValues = { name: "", types: [], perimeter: "", description: "", ...territory };
@@ -158,7 +158,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
             if (isNew) {
               const res = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ ...body, user: user._id }) });
               if (res.ok) {
-                setTerritories((territories) => [res.decryptedData, ...territories]);
+                await refresh();
                 actions.setSubmitting(false);
                 toast.success("Création réussie !");
                 setOpen(false);
@@ -170,12 +170,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 body: prepareTerritoryForEncryption({ ...body, user: body.user || user._id }),
               });
               if (res.ok) {
-                setTerritories((territories) =>
-                  territories.map((a) => {
-                    if (a._id === territory._id) return res.decryptedData;
-                    return a;
-                  })
-                );
+                await refresh();
                 actions.setSubmitting(false);
                 toast.success("Mis à jour !");
                 setOpen(false);
