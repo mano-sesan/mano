@@ -16,7 +16,6 @@ export default function Comments({ person }) {
   // On affiche les commentaires médicaux partagés par les professionnels de santés
   // à tout le monde s'ils ont coché la case "Partager avec les professionnels non-médicaux"
   const medicalCommentsVisibleByAll = useMemo(() => {
-    if (user.healthcareProfessional) return [];
     return [...(person?.commentsMedical || [])]
       .filter((e) => e.share === true)
       .map((e) => ({ ...e, isMedicalCommentShared: true }))
