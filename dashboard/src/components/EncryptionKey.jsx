@@ -13,6 +13,7 @@ import { encryptVerificationKey } from "../services/encryption";
 import { capture } from "../services/sentry";
 import API, { setOrgEncryptionKey, getHashedOrgEncryptionKey, decryptAndEncryptItem } from "../services/api";
 import { useDataLoader } from "./DataLoader";
+import { getPasswordStrengthInTime } from "../utils/passwordStrength";
 
 const EncryptionKey = ({ isMain }) => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -272,43 +273,48 @@ const EncryptionKey = ({ isMain }) => {
         Notez-la bien quelque part !
       </span>
       <Formik initialValues={{ encryptionKey: "", encryptionKeyConfirm: "" }} onSubmit={onEncrypt}>
-        {({ values, handleChange, handleSubmit, isSubmitting }) => (
-          <React.Fragment>
-            <Row style={{ justifyContent: "center" }}>
-              <Col md={3} />
-              <Col md={6}>
-                <FormGroup>
-                  <Label htmlFor="encryptionKey">Clé de chiffrement</Label>
-                  <Input id="encryptionKey" name="encryptionKey" value={values.encryptionKey} onChange={handleChange} />
-                </FormGroup>
-              </Col>
-              <Col md={3} />
-              <Col md={3} />
-              <Col md={6}>
-                <FormGroup>
-                  <Label htmlFor="encryptionKeyConfirm">Confirmez la clé de chiffrement</Label>
-                  <Input id="encryptionKeyConfirm" name="encryptionKeyConfirm" value={values.encryptionKeyConfirm} onChange={handleChange} />
-                </FormGroup>
-              </Col>
-              <Col md={3} />
-            </Row>
-            <br />
-            <Row style={{ justifyContent: "center" }}>
-              <ButtonCustom
-                color="secondary"
-                id="encrypt"
-                disabled={isLoading || isSubmitting}
-                loading={isLoading || isSubmitting}
-                type="submit"
-                onClick={() => {
-                  if (isSubmitting) return;
-                  handleSubmit();
-                }}
-                title={organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
-              />
-            </Row>
-          </React.Fragment>
-        )}
+        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+          let passwordStrength = getPasswordStrengthInTime(values.encryptionKey);
+          console.log(passwordStrength);
+          return (
+            <React.Fragment>
+              <Row style={{ justifyContent: "center" }}>
+                <Col md={3} />
+                <Col md={6}>
+                  <FormGroup>
+                    <Label htmlFor="encryptionKey">Clé de chiffrement</Label>
+                    <Input id="encryptionKey" name="encryptionKey" value={values.encryptionKey} onChange={handleChange} />
+                    <span className={["tw-text-xs tw-text-gray-400", !values.encryptionKey ? "invisible" : ""].join(" ")}>{passwordStrength}</span>
+                  </FormGroup>
+                </Col>
+                <Col md={3} />
+                <Col md={3} />
+                <Col md={6}>
+                  <FormGroup>
+                    <Label htmlFor="encryptionKeyConfirm">Confirmez la clé de chiffrement</Label>
+                    <Input id="encryptionKeyConfirm" name="encryptionKeyConfirm" value={values.encryptionKeyConfirm} onChange={handleChange} />
+                  </FormGroup>
+                </Col>
+                <Col md={3} />
+              </Row>
+              <br />
+              <Row style={{ justifyContent: "center" }}>
+                <ButtonCustom
+                  color="secondary"
+                  id="encrypt"
+                  disabled={isLoading || isSubmitting}
+                  loading={isLoading || isSubmitting}
+                  type="submit"
+                  onClick={() => {
+                    if (isSubmitting) return;
+                    handleSubmit();
+                  }}
+                  title={organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
+                />
+              </Row>
+            </React.Fragment>
+          );
+        }}
       </Formik>
     </ModalBody>
   );
