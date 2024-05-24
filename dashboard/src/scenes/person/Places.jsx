@@ -141,12 +141,11 @@ const PersonPlaces = ({ person }) => {
 };
 
 const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPlaceToEdit }) => {
-  const [places] = useRecoilState(placesState);
-  const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
+  const [places, setPlaces] = useRecoilState(placesState);
   const me = useRecoilValue(userState);
   const [placeId, setPlaceId] = useState(relPersonPlaceModal?.place);
   const [userId, setUserId] = useState(relPersonPlaceModal?.user ?? me._id);
-  const [posting, setUpdating] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
   const { refresh } = useDataLoader();
 
@@ -168,8 +167,16 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
       toast.error(response.error);
       return;
     }
-    await refresh();
+    // On doit mettre à jour les places à la main pour être sûr qu'elles sont prêtes directement
+    // Ce problème est visible dans les tests unitaires, qui peuvent parfois rater si on ne fait pas ça.
+    // Il existe peut-être une meilleure solution.
+    setPlaces((places) =>
+      [response.decryptedData, ...places].sort((p1, p2) =>
+        p1?.name?.toLocaleLowerCase().localeCompare(p2.name?.toLocaleLowerCase(), "fr", { ignorPunctuation: true, sensitivity: "base" })
+      )
+    );
     setPlaceId(response.data._id);
+    await refresh();
   };
 
   const onEditPlace = async (e) => {
@@ -223,7 +230,7 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
               name="place"
               onChange={(place) => setPlaceId(place._id)}
               isClearable={false}
-              isDisabled={posting}
+              isDisabled={updating}
               value={places.find((p) => p._id === placeId)}
               creatable
               required
@@ -279,8 +286,8 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
 };
 
 const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
-  const [places, setPlaces] = useRecoilState(placesState);
-  const [relsPersonPlace, setRelsPersonPlace] = useRecoilState(relsPersonPlaceState);
+  const [places] = useRecoilState(placesState);
+  const [relsPersonPlace] = useRecoilState(relsPersonPlaceState);
   const user = useRecoilValue(userState);
 
   const [updating, setUpdating] = useState(false);
