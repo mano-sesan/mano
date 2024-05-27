@@ -195,11 +195,14 @@ router.post(
     }
 
     if (user.nextLoginAttemptAt && user.nextLoginAttemptAt > now) {
+      const displayTime = new Date(user.nextLoginAttemptAt);
+      displayTime.setMinutes(displayTime.getMinutes() + 1);
+
       return res.status(403).send({
         ok: false,
         code:
           "Trop de tentatives de connexions infructueuses, vous pourrez vous reconnecter à partir de " +
-          user.nextLoginAttemptAt.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
+          displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
       });
     }
     const { password: expectedPassword } = await User.scope("withPassword").findOne({ where: { email }, attributes: ["password"] });
