@@ -272,6 +272,13 @@ const EncryptionKey = ({ isMain }) => {
         Si vous perdez cette clé, vos données seront perdues définitivement. <br />
         Notez-la bien quelque part !
       </span>
+      <p className="tw-text-xs tw-text-gray-500">
+        Conseil: la meilleure clé est celle qu'une intention malveillante mettra le plus de temps possible à déchiffrer. Dans ce contexte de clé de
+        chiffrement d'organisation, plus votre clé est <strong>longue</strong>, et <strong>improbable</strong> (ne mettez pas votre nom d'organisation
+        par exemple), plus elle est longue à déchiffrer.
+        <br /> Nous avons mis une indication du <strong>temps nécessaire pour parcourir tous les annagrammes</strong> d'une phrase en fonction de sa
+        longueur, par des ordniateurs surpuissants, et donc tomber à un moment donné trouver votre clé. Pensez-y !
+      </p>
       <Formik initialValues={{ encryptionKey: "", encryptionKeyConfirm: "" }} onSubmit={onEncrypt}>
         {({ values, handleChange, handleSubmit, isSubmitting }) => {
           let passwordStrength = getPasswordStrengthInTime(values.encryptionKey);

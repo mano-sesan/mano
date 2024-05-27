@@ -10,27 +10,27 @@ const convertSecondsToTime = (seconds) => {
   const months = Math.floor(days / 30);
   const years = Math.floor(days / 365);
   if (Math.floor(seconds) < 1) {
-    return "hacké instantanément";
+    return "déchiffrée instantanément";
   } else if (seconds < 60) {
-    return `${Math.floor(seconds)} second${seconds > 2 ? "s" : ""} à hacker`;
+    return `${Math.floor(seconds)} second${seconds > 2 ? "s" : ""} à déchiffrer`;
   } else if (minutes < 60) {
-    return `${Math.floor(minutes)} minute${minutes > 2 ? "s" : ""} à hacker`;
+    return `${Math.floor(minutes)} minute${minutes > 2 ? "s" : ""} à déchiffrer`;
   } else if (hours < 24) {
-    return `${Math.floor(hours)} heure${hours > 2 ? "s" : ""} à hacker`;
+    return `${Math.floor(hours)} heure${hours > 2 ? "s" : ""} à déchiffrer`;
   } else if (days < 30) {
-    return `${Math.floor(days)} jour${days > 2 ? "s" : ""} à hacker`;
+    return `${Math.floor(days)} jour${days > 2 ? "s" : ""} à déchiffrer`;
   } else if (months < 12) {
-    return `${Math.floor(months)} mois à hacker`;
+    return `${Math.floor(months)} mois à déchiffrer`;
   } else if (years < thousand) {
-    return `${Math.floor(years)} année${years > 2 ? "s" : ""} à hacker`;
+    return `${Math.floor(years)} année${years > 2 ? "s" : ""} à déchiffrer`;
   } else if (years < oneMillion) {
-    return `${Math.floor(years / thousand)} milliers d'années à hacker`;
+    return `${Math.floor(years / thousand)} milliers d'années à déchiffrer`;
   } else if (years < oneBillion) {
-    return `${Math.floor(years / oneMillion)} millions d'années à hacker`;
+    return `${Math.floor(years / oneMillion)} millions d'années à déchiffrer`;
   } else if (years < oneTrillion) {
-    return `${Math.floor(years / oneBillion)} milliards d'années à hacker`;
+    return `${Math.floor(years / oneBillion)} milliards d'années à déchiffrer`;
   } else {
-    return `${Math.floor(years / oneTrillion)} trilliards d'années à hacker`;
+    return `${Math.floor(years / oneTrillion)} trilliards d'années à déchiffrer`;
   }
 };
 
