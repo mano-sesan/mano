@@ -45,8 +45,7 @@ const EncryptionKey = ({ isMain }) => {
       await new Promise((resolve) => setTimeout(resolve, 100));
       if (!values.encryptionKey) return toast.error("La clé est obligatoire");
       if (!values.encryptionKeyConfirm) return toast.error("La validation de la clé est obligatoire");
-      if (!import.meta.env.VITE_SKIP_KEY_SECURITY) {
-        if (values.encryptionKey === "mano") return toast.error("Interdiction d'utiliser `mano`, c'est trop simple");
+      if (!import.meta.env.VITE_TEST_PLAYWRIGHT) {
         if (values.encryptionKey.length < 8) return toast.error("La clé doit faire au moins 8 caractères");
       }
       if (values.encryptionKey !== values.encryptionKeyConfirm) return toast.error("Les clés ne sont pas identiques");
