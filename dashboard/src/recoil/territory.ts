@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { dbManagement } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -11,11 +11,17 @@ export const territoriesState = atom<Array<TerritoryInstance>>({
   default: selector({
     key: "territory/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue("territory", []);
+      const cache = await dbManagement.getCacheItemDefaultValue("territory", []);
       return cache;
     },
   }),
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+  effects: [
+    ({ onSet }) =>
+      onSet(async (newValue, _, isReset) => {
+        if (isReset) return;
+        dbManagement.setCacheItem(collectionName, newValue);
+      }),
+  ],
 });
 
 const encryptedFields = ["name", "perimeter", "description", "types", "user"];

@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { dbManagement } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -10,11 +10,20 @@ export const commentsState = atom({
   default: selector({
     key: "comment/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue("comment", []);
+      console.log("get !?", "get");
+      const cache = await dbManagement.getCacheItemDefaultValue("comment", []);
       return cache;
     },
   }),
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+  effects: [
+    ({ onSet }) =>
+      onSet(async (newValue, _, isReset) => {
+        console.log("newValue", newValue);
+        console.log("isReset", isReset);
+        if (isReset) return;
+        dbManagement.setCacheItem(collectionName, newValue);
+      }),
+  ],
 });
 
 const encryptedFields = ["comment", "person", "action", "group", "team", "user", "date", "urgent"];

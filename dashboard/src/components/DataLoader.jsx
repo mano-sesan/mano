@@ -1,6 +1,6 @@
 /* eslint-disable no-inner-declarations */
 import { useEffect } from "react";
-import { atom, selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { atom, selector, useRecoilState, useRecoilValue, useSetRecoilState, useResetRecoilState } from "recoil";
 import { toast } from "react-toastify";
 
 import { personsState } from "../recoil/persons";
@@ -19,7 +19,7 @@ import { consultationsState, formatConsultation } from "../recoil/consultations"
 import { commentsState } from "../recoil/comments";
 import { organisationState, userState } from "../recoil/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { clearCache, dashboardCurrentCacheKey, dbManagement } from "../services/dataManagement";
 import API from "../services/api";
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
@@ -39,14 +39,15 @@ export const lastLoadState = atom({
   default: selector({
     key: "lastLoadState/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
+      const cache = await dbManagement.getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
       return cache;
     },
   }),
   effects: [
     ({ onSet }) => {
-      onSet(async (newValue) => {
-        await setCacheItem(dashboardCurrentCacheKey, newValue);
+      onSet(async (newValue, _, isReset) => {
+        if (isReset) return;
+        await dbManagement.setCacheItem(dashboardCurrentCacheKey, newValue);
       });
     },
   ],
@@ -107,6 +108,23 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [consultations, setConsultations] = useRecoilState(consultationsState);
   const [treatments, setTreatments] = useRecoilState(treatmentsState);
   const [medicalFiles, setMedicalFiles] = useRecoilState(medicalFileState);
+
+  // Resetter
+  const resetLastLoad = useResetRecoilState(lastLoadState);
+  const resetPersons = useResetRecoilState(personsState);
+  const resetGroups = useResetRecoilState(groupsState);
+  const resetReports = useResetRecoilState(reportsState);
+  const resetPassages = useResetRecoilState(passagesState);
+  const resetRencontres = useResetRecoilState(rencontresState);
+  const resetActions = useResetRecoilState(actionsState);
+  const resetTerritories = useResetRecoilState(territoriesState);
+  const resetPlaces = useResetRecoilState(placesState);
+  const resetRelsPersonPlace = useResetRecoilState(relsPersonPlaceState);
+  const resetTerritoryObservations = useResetRecoilState(territoryObservationsState);
+  const resetComments = useResetRecoilState(commentsState);
+  const resetConsultations = useResetRecoilState(consultationsState);
+  const resetTreatments = useResetRecoilState(treatmentsState);
+  const resetMedicalFiles = useResetRecoilState(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading) loadOrRefreshData(false);
@@ -436,6 +454,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   }
 
   async function resetLoaderOnError() {
+    console.log("resetLoaderOnError");
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
     setLastLoad(0);
@@ -448,22 +467,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   }
 
   async function resetCache() {
-    setLastLoad(0);
+    resetLastLoad();
+    resetPersons();
+    resetGroups();
+    resetReports();
+    resetPassages();
+    resetRencontres();
+    resetActions();
+    resetTerritories();
+    resetPlaces();
+    resetRelsPersonPlace();
+    resetTerritoryObservations();
+    resetComments();
+    resetConsultations();
+    resetTreatments();
+    resetMedicalFiles();
     await clearCache();
-    setPersons([]);
-    setGroups([]);
-    setReports([]);
-    setPassages([]);
-    setRencontres([]);
-    setActions([]);
-    setTerritories([]);
-    setPlaces([]);
-    setRelsPersonPlace([]);
-    setTerritoryObservations([]);
-    setComments([]);
-    setConsultations([]);
-    setTreatments([]);
-    setMedicalFiles([]);
   }
 
   return {

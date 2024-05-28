@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { dbManagement } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -10,11 +10,17 @@ export const placesState = atom({
   default: selector({
     key: "place/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue("place", []);
+      const cache = await dbManagement.getCacheItemDefaultValue("place", []);
       return cache;
     },
   }),
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+  effects: [
+    ({ onSet }) =>
+      onSet(async (newValue, _, isReset) => {
+        if (isReset) return;
+        dbManagement.setCacheItem(collectionName, newValue);
+      }),
+  ],
 });
 
 const encryptedFields = ["user", "name"];

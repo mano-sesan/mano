@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { dbManagement } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils";
@@ -11,11 +11,17 @@ export const actionsState = atom({
   default: selector({
     key: "action/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue("action", []);
+      const cache = await dbManagement.getCacheItemDefaultValue("action", []);
       return cache;
     },
   }),
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+  effects: [
+    ({ onSet }) =>
+      onSet(async (newValue, _, isReset) => {
+        if (isReset) return;
+        dbManagement.setCacheItem(collectionName, newValue);
+      }),
+  ],
 });
 
 export const actionsCategoriesSelector = selector({

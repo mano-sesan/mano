@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { dbManagement } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
@@ -14,14 +14,15 @@ export const reportsState = atom({
   default: selector({
     key: "report/default",
     get: async () => {
-      const cache = await getCacheItemDefaultValue("report", []);
+      const cache = await dbManagement.getCacheItemDefaultValue("report", []);
       return cache;
     },
   }),
   effects: [
     ({ onSet }) =>
-      onSet(async (newValue: Array<ReportInstance>) => {
-        setCacheItem(collectionName, newValue);
+      onSet(async (newValue: Array<ReportInstance>, _, isReset) => {
+        if (isReset) return;
+        dbManagement.setCacheItem(collectionName, newValue);
         /* check if duplicate reports */
         const duplicateReports = Object.entries(
           newValue.reduce<Record<string, Array<ReportInstance>>>((reportsByDate, report) => {
