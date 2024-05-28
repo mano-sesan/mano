@@ -57,7 +57,7 @@ const Account = () => {
                 textToConfirm={values.email}
                 roles={["admin", "superadmin", "normal", "restricted-access"]}
                 onConfirm={async () => {
-                  const res = await API.delete({ path: `/user/${values._id}` });
+                  const res = await API.delete({ path: `/user/me` });
                   if (!res.ok) return;
                   toast.success("Suppression réussie");
                   window.location.reload();
