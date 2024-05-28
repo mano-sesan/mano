@@ -121,7 +121,7 @@ const View = () => {
           <button type="button" onClick={() => setTab("encryption")} className="tw-font-bold tw-text-stone-800 tw-underline">
             Cliquez ici
           </button>{" "}
-          ou sur le bouton "Chiffrement" pour la modifier.
+          ou sur le bouton «&nbsp;Chiffrement&nbsp;» pour la modifier.
         </div>
       )}
       {now().diff(dayjsInstance(organisation.encryptionLastUpdateAt), "year") > 1 && (
