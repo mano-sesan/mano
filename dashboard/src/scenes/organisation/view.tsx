@@ -126,7 +126,7 @@ const View = () => {
       )}
       {now().diff(dayjsInstance(organisation.encryptionLastUpdateAt), "year") > 1 && (
         <div className="tw-z-[200] tw-rounded tw-border tw-border-orange-50 tw-bg-amber-100 tw-px-5 tw-py-3 tw-text-orange-900">
-          Votre clé de chiffrement est trop vieille 👵. Pour des raisons de sécurité, nous vous recommandons de la changer.
+          Votre clé de chiffrement n'a pas été modifiée depuis plus d'un an. Pour des raisons de sécurité, nous vous recommandons de la mettre à jour.
           <br />
           <button type="button" onClick={() => setTab("encryption")} className="tw-font-bold tw-text-stone-800 tw-underline">
             Cliquez ici
