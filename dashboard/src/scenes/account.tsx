@@ -55,7 +55,7 @@ const Account = () => {
               <DeleteButtonAndConfirmModal
                 title={`Voulez-vous vraiment supprimer l'utilisateur ${values.name}`}
                 textToConfirm={values.email}
-                roles={["admin", "superadmin", "normal", "restricted-access"]}
+                roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
                 onConfirm={async () => {
                   const res = await API.delete({ path: `/user/me` });
                   if (!res.ok) return;
