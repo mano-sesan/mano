@@ -326,7 +326,7 @@ const EncryptionKey = ({ isMain }) => {
           setEncryptingStatus("");
         }}
         size="3xl"
-        data-test-id="encryption-modal"
+        dataTestId="encryption-modal"
       >
         <ModalHeader
           title={organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
