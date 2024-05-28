@@ -125,16 +125,19 @@ const ObservationsStats = ({
       <CustomFieldsStats
         data={observations}
         customFields={customFieldsObs}
-        onSliceClick={onSliceClick}
+        onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
         dataTestId="number-observations"
         additionalCols={[
           {
             title: "Nombre d'observations de territoire",
             value: observations.length,
-            onBlockClick: () => {
-              setSlicedData(observations);
-              setObsModalOpened(true);
-            },
+            onBlockClick:
+              user.role === "stats-only"
+                ? undefined
+                : () => {
+                    setSlicedData(observations);
+                    setObsModalOpened(true);
+                  },
           },
         ]}
         help={(label) =>
