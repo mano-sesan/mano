@@ -8,7 +8,7 @@ import personIcon from "../../assets/icons/person-icon.svg";
 import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import API from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import dayjs from "dayjs";
@@ -20,7 +20,7 @@ const CreatePerson = () => {
   const currentTeam = useRecoilValue(currentTeamState);
   const user = useRecoilValue(userState);
   const history = useHistory();
-  const persons = useRecoilValue(personsState);
+  const [persons] = useRecoilState(personsState);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 
   return (

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Col, Button, Row, Modal, ModalBody, ModalHeader } from "reactstrap";
 import styled from "styled-components";
 import { Formik } from "formik";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import ButtonCustom from "../../components/ButtonCustom";
@@ -64,7 +64,7 @@ const fieldIsEmpty = (value) => {
 
 const MergeTwoPersons = ({ person }) => {
   const [open, setOpen] = useState(false);
-  const persons = useRecoilValue(personsState);
+  const [persons] = useRecoilState(personsState);
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
