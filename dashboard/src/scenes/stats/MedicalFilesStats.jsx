@@ -6,6 +6,7 @@ import Filters, { filterData } from "../../components/Filters";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import { capture } from "../../services/sentry";
 import { userState } from "../../recoil/auth";
+import { useRecoilValue } from "recoil";
 
 const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, personsForStats, customFieldsMedicalFile, personFields, title }) => {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
