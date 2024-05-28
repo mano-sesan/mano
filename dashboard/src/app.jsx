@@ -190,7 +190,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
           <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
         </main>
       </div>
-      <BottomBar />
+      {!!user && !["superadmin", "stats-only"].includes(user.role) && <BottomBar />}
     </>
   );
 };
