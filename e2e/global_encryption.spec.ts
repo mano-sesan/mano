@@ -44,7 +44,7 @@ test("test", async ({ page }) => {
     )
     .click();
   await page.getByLabel("Clé de chiffrement d'organisation").click();
-  await page.getByLabel("Clé de chiffrement d'organisation").fill("nouvelle");
+  await page.getByLabel("Clé de chiffrement d'organisation").fill("nouvelle assez longue");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.getByRole("link", { name: "Organisation" }).click();
   await page.getByRole("button", { name: "Chiffrement" }).click();
