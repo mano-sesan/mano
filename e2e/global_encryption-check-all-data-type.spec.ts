@@ -133,7 +133,7 @@ test("test", async ({ page }) => {
   await page.getByLabel("Confirmez la clé de chiffrement").fill("plaf plaf plaf");
   await page.locator('[data-test-id="encryption-modal"]').getByRole("button", { name: "Changer la clé de chiffrement" }).click();
   await page.getByText("Données chiffrées ! Veuillez noter la clé puis vous reconnecter").click();
-  await page.locator('[data-test-id="encryption-modal"]').getByRole("button", { name: "Close" }).click();
+  await page.locator('[data-test-id="encryption-modal"]').getByLabel("Fermer").first().click();
   await logOut(page, "User Admin Test - 1");
   await loginWith(page, "admin1@example.org", "secret", "plaf plaf plaf");
   await page.getByRole("link", { name: "Agenda" }).click();
@@ -179,7 +179,7 @@ test("test", async ({ page }) => {
   await page.getByLabel("Confirmez la clé de chiffrement").fill("plouf plouf plouf");
   await page.locator('[data-test-id="encryption-modal"]').getByRole("button", { name: "Changer la clé de chiffrement" }).click();
   await page.getByText("Données chiffrées ! Veuillez noter la clé puis vous reconnecter").click();
-  await page.locator('[data-test-id="encryption-modal"]').getByRole("button", { name: "Close" }).click();
+  await page.locator('[data-test-id="encryption-modal"]').getByLabel("Fermer").first().click();
   await logOut(page, "User Admin Test - 1");
   await loginWith(page, "admin1@example.org", "secret", "plouf plouf plouf");
   await page.getByRole("link", { name: "Personnes suivies" }).click();

@@ -24,7 +24,7 @@ test("test", async ({ page }) => {
   await page.getByLabel("Confirmez la clé de chiffrement").fill("nouvelle assez longue");
   await page.locator("data-test-id=encryption-modal").getByRole("button", { name: "Changer la clé de chiffrement" }).click();
   await page.getByText("Données chiffrées ! Veuillez noter la clé puis vous reconnecter").click();
-  await page.locator("data-test-id=encryption-modal").getByRole("button", { name: "Close" }).click();
+  await page.locator("data-test-id=encryption-modal").getByLabel("Fermer").first().click();
 
   await page.getByRole("button", { name: "User Admin Test - 8" }).click();
   await page.getByRole("menuitem", { name: "Se déconnecter", exact: true }).click();
