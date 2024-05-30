@@ -489,10 +489,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // this can result in data corruption, we need to reset the loader
     setLastLoad(0);
     await clearCache();
-    toast.error(errorMessage(error || "Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer"), {
-      onClose: () => window.location.replace("/auth"),
-      autoClose: 5000,
-    });
+    toast.error(errorMessage(error || "Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer"));
     return false;
   }
 
