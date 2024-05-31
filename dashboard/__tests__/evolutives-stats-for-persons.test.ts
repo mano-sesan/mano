@@ -45,9 +45,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Homme");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -85,9 +85,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Homme");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(0);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
 
@@ -96,11 +96,13 @@ describe("Stats evolutives", () => {
     expect(incoherentSnapshotHistoryCall).toBeTruthy();
 
     // Verify mockedCapture was called with "Incoherent history"
-    const incoherentHistoryCall = mockedCapture.mock.calls.find((call) => call[0].message === "Incoherent history");
-    expect(incoherentHistoryCall).toBeTruthy();
+    const incoherentHistoryCall = mockedCapture.mock.calls.find(
+      (call) => call[0].message === "Incoherent history in computeEvolutiveStatsForPersons"
+    );
+    expect(incoherentHistoryCall).toBeFalsy();
 
     // Verify total number of calls
-    expect(mockedCapture).toHaveBeenCalledTimes(2);
+    expect(mockedCapture).toHaveBeenCalledTimes(1);
   });
 
   test("multiple changes example should work properly", () => {
@@ -156,9 +158,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Homme");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(0);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -196,9 +198,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Homme");
-    expect(computed.countStart).toBe(0);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(0);
+    expect(computed.countSwitched).toBe(0);
+    expect(computed.percentSwitched).toBe(0);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -236,9 +238,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -276,9 +278,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.countStart).toBe(0);
     expect(computed.valueEnd).toBe("RSA");
-    expect(computed.countEnd).toBe(0);
+    expect(computed.countSwitched).toBe(0);
+    expect(computed.percentSwitched).toBe(0);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -326,9 +328,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("RSA");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -366,9 +368,9 @@ describe("Stats evolutives", () => {
       ],
     });
     expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.countStart).toBe(1);
     expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countEnd).toBe(1);
+    expect(computed.countSwitched).toBe(1);
+    expect(computed.percentSwitched).toBe(100);
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe(dayjs().add(10, "days").format("YYYY-MM-DD"));
   });
