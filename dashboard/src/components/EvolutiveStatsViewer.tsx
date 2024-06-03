@@ -54,6 +54,7 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
 
     const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
 
+    // TODO: dans un second temps, on pourra afficher un tableau avec les stats par valeur
     if (valueStart == null) return null;
     if (valueEnd == null) return null;
 
@@ -92,7 +93,8 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
           </div>
           <div className="tw-flex tw-items-baseline tw-gap-x-2">
             <p className="tw-text-center">
-              impactant <strong>{countPersonSwitched}</strong> personnes soit <strong>{percentSwitched}%</strong> des personnes qui avaient{" "}
+              impactant <strong>{countPersonSwitched}</strong> personnes, ce qui représente <strong>{percentSwitched}%</strong> des personnes qui
+              avaient{" "}
               <em>
                 {indicatorFieldLabel}: {valueStart}
               </em>
