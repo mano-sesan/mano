@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -17,6 +18,8 @@ const EncryptionKey = ({ isMain }) => {
   const user = useRecoilValue(userState);
   const totalDurationOnServer = useRef(1);
   const previousKey = useRef(null);
+  const [encryptionKeyInputId, setEncryptionKeyInputId] = useState(() => uuidv4()); // to counter the auto-complete
+  const [encryptionKeyConfirmInputId, setEncryptionKeyConfirmInputId] = useState(() => uuidv4()); // to counter the auto-complete
 
   const onboardingForEncryption = isMain && !organisation.encryptionEnabled;
   const onboardingForTeams = !teams.length;
@@ -32,7 +35,8 @@ const EncryptionKey = ({ isMain }) => {
 
   useEffect(() => {
     if (open) {
-      // do seomething on the next PR
+      setEncryptionKeyInputId(uuidv4());
+      setEncryptionKeyConfirmInputId(uuidv4());
     }
   }, [open]);
 
@@ -42,16 +46,18 @@ const EncryptionKey = ({ isMain }) => {
     try {
       // just for the button to show loading state, sorry Raph I couldn't find anything better
       await new Promise((resolve) => setTimeout(resolve, 100));
-      if (!values.encryptionKey) return toast.error("La clé est obligatoire");
-      if (!values.encryptionKeyConfirm) return toast.error("La validation de la clé est obligatoire");
-      if (!import.meta.env.VITE_TEST_PLAYWRIGHT) {
-        if (values.encryptionKey.length < MINIMUM_ENCRYPTION_KEY_LENGTH)
-          return toast.error(`La clé doit faire au moins ${MINIMUM_ENCRYPTION_KEY_LENGTH} caractères`);
-      }
-      if (values.encryptionKey !== values.encryptionKeyConfirm) return toast.error("Les clés ne sont pas identiques");
+      let newEncryptionKey = values[encryptionKeyInputId].trim();
+      let newEncryptionKeyConfirm = values[encryptionKeyConfirmInputId].trim();
+      if (!newEncryptionKey) return toast.error("La clé est obligatoire");
+      if (!newEncryptionKeyConfirm) return toast.error("La validation de la clé est obligatoire");
+      // if (!import.meta.env.VITE_TEST_PLAYWRIGHT) {
+      //   if (newEncryptionKey.length < MINIMUM_ENCRYPTION_KEY_LENGTH)
+      //     return toast.error(`La clé doit faire au moins ${MINIMUM_ENCRYPTION_KEY_LENGTH} caractères`);
+      // }
+      if (newEncryptionKey !== newEncryptionKeyConfirm) return toast.error("Les clés ne sont pas identiques");
       previousKey.current = getHashedOrgEncryptionKey();
-      setEncryptionKey(values.encryptionKey.trim());
-      const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim());
+      setEncryptionKey(newEncryptionKey.trim());
+      const hashedOrgEncryptionKey = await setOrgEncryptionKey(newEncryptionKey);
       setEncryptingStatus("Chiffrement des données...");
       const encryptedVerificationKey = await encryptVerificationKey(hashedOrgEncryptionKey);
       const lockedForEncryptionResponse = await API.put({
@@ -250,12 +256,12 @@ const EncryptionKey = ({ isMain }) => {
         Si vous perdez cette clé, vos données seront perdues définitivement. <br />
         Notez-la bien quelque part !
       </p>
-      <Formik initialValues={{ encryptionKey: "", encryptionKeyConfirm: "" }} onSubmit={onEncrypt}>
+      <Formik initialValues={{ encryptionKey: "", encryptionKeyConfirm: "" }} key={encryptionKeyInputId} onSubmit={onEncrypt}>
         {({ values, handleChange, handleSubmit, isSubmitting }) => (
           <React.Fragment>
             <div className="tw-flex tw-flex-col tw-items-center tw-mx-auto tw-max-w-xl tw-w-full">
               <div className="tw-flex tw-basis-full tw-w-full tw-flex-col tw-px-4 tw-py-2">
-                <label className="tailwindui" htmlFor="encryptionKey">
+                <label className="tailwindui" htmlFor={encryptionKeyInputId}>
                   Clé de chiffrement
                 </label>
                 <input
@@ -263,23 +269,23 @@ const EncryptionKey = ({ isMain }) => {
                   minLength={MINIMUM_ENCRYPTION_KEY_LENGTH}
                   required
                   className="tailwindui"
-                  id="encryptionKey"
-                  name="encryptionKey"
-                  value={values.encryptionKey}
+                  id={encryptionKeyInputId}
+                  name={encryptionKeyInputId}
+                  value={values[encryptionKeyInputId] || ""}
                   onChange={handleChange}
                 />
               </div>
               <div className="tw-flex tw-basis-full tw-w-full tw-flex-col tw-px-4 tw-py-2">
-                <label className="tailwindui" htmlFor="encryptionKeyConfirm">
+                <label className="tailwindui" htmlFor={encryptionKeyConfirmInputId}>
                   Confirmez la clé de chiffrement
                 </label>
                 <input
                   className="tailwindui"
                   minLength={MINIMUM_ENCRYPTION_KEY_LENGTH}
                   required
-                  id="encryptionKeyConfirm"
-                  name="encryptionKeyConfirm"
-                  value={values.encryptionKeyConfirm}
+                  id={encryptionKeyConfirmInputId}
+                  name={encryptionKeyConfirmInputId}
+                  value={values[encryptionKeyConfirmInputId] || ""}
                   onChange={handleChange}
                 />
               </div>
