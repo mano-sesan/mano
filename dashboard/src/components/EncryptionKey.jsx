@@ -273,6 +273,7 @@ const EncryptionKey = ({ isMain }) => {
                   name={encryptionKeyInputId}
                   value={values[encryptionKeyInputId] || ""}
                   onChange={handleChange}
+                  autoComplete="off"
                 />
               </div>
               <div className="tw-flex tw-basis-full tw-w-full tw-flex-col tw-px-4 tw-py-2">
@@ -287,6 +288,7 @@ const EncryptionKey = ({ isMain }) => {
                   name={encryptionKeyConfirmInputId}
                   value={values[encryptionKeyConfirmInputId] || ""}
                   onChange={handleChange}
+                  autoComplete="off"
                 />
               </div>
             </div>
