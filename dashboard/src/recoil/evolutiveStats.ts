@@ -168,7 +168,7 @@ export function computeEvolutiveStatsForPersons({
   persons: Array<PersonPopulated>;
   evolutiveStatsIndicators: IndicatorsSelection;
   evolutiveStatsIndicatorsBase: Array<CustomOrPredefinedField>;
-}): EvolutiveStatRenderData | null {
+}): EvolutiveStatRenderData {
   // concepts:
   // we select "indicators" (for now only one by one is possible) that are fields of the person
   // one indicator is: one `field`, one `fromValue` and one `toValue`
@@ -189,8 +189,6 @@ export function computeEvolutiveStatsForPersons({
 
   let endDateConsolidated = endDate ? dayjsInstance(dayjsInstance(endDate).endOf("day").format("YYYY-MM-DD")) : dayjsInstance();
 
-  if (startDateConsolidated.isSame(endDateConsolidated)) return null;
-
   let startDateFormatted = startDateConsolidated.format("YYYYMMDD");
   let endDateFormatted = endDateConsolidated.format("YYYYMMDD");
   let tonight = dayjsInstance().endOf("day").format("YYYYMMDD");
@@ -205,6 +203,19 @@ export function computeEvolutiveStatsForPersons({
   let valueEnd = indicator?.toValue;
 
   let personsIdsSwitchedByValue: Record<EvolutiveStatOption, Array<PersonPopulated["id"]>> = {};
+
+  if (startDateConsolidated.isSame(endDateConsolidated))
+    return {
+      countSwitched: 0,
+      countPersonSwitched: 0,
+      percentSwitched: 0,
+      indicatorFieldLabel,
+      valueStart,
+      valueEnd,
+      startDateConsolidated,
+      endDateConsolidated,
+      personsIdsSwitched: [],
+    };
 
   for (let person of persons) {
     let followedSince = dayjsInstance(person.followedSince || person.createdAt).format("YYYYMMDD");

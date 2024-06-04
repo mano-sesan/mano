@@ -24,10 +24,7 @@ interface EvolutiveStatsViewerProps {
 export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period, persons, filterBase }: EvolutiveStatsViewerProps) {
   try {
     const [personsModalOpened, setPersonsModalOpened] = useState(false);
-    const [sliceDate, setSliceDate] = useState(null);
-    const [sliceField, setSliceField] = useState(null);
-    const [sliceValue, setSliceValue] = useState(null);
-    const [slicedData, setSlicedData] = useState([]);
+    const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
 
     const evolutiveStatsPerson = useRecoilValue(
       evolutiveStatsForPersonsSelector({
@@ -37,7 +34,6 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
         evolutiveStatsIndicators,
       })
     );
-    if (!evolutiveStatsPerson) return null;
 
     const {
       startDateConsolidated,
@@ -51,11 +47,12 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       personsIdsSwitched,
     } = evolutiveStatsPerson;
 
-    const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-
     // TODO: dans un second temps, on pourra afficher un tableau avec les stats par valeur
     if (valueStart == null) return null;
     if (valueEnd == null) return null;
+    if (startDateConsolidated.isSame(endDateConsolidated)) {
+      return <p>Pour afficher des stats évolutives, veuillez sélectionner une période entre deux dates différentes</p>;
+    }
 
     return (
       <>
@@ -105,8 +102,7 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
               <br />
               <br />
               <small className="tw-text-gray-500 tw-block tw-text-xs">
-                Attention: cette liste affiche les personnes <strong>telles qu'elles sont aujourd'hui</strong>, et non pas telles qu'elles sont au{" "}
-                {sliceDate}.
+                Attention: cette liste affiche les personnes <strong>telles qu'elles sont aujourd'hui</strong>.
                 <br /> Pour en savoir plus sur l'évolution de chaque personne, cliquez dessus et consultez son historique.
               </small>
             </p>
@@ -127,79 +123,5 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       <h4>Erreur</h4>
       <p>Une erreur est survenue lors de l'affichage des statistiques évolutives. Les équipes techniques ont été prévenues</p>
     </div>
-  );
-}
-
-function EvolutiveStatsTable({
-  personsAtStartByValue,
-  personsAtEndByValue,
-  chartData,
-  startDateConsolidated,
-  endDateConsolidated,
-  field,
-}: {
-  personsAtStartByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
-  personsAtEndByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>;
-  chartData: {
-    data: Array<Record<string, number>>;
-    keys: Array<string>;
-    legend: any;
-  };
-  startDateConsolidated: Dayjs;
-  endDateConsolidated: Dayjs;
-  field: FilterableField;
-}) {
-  const [personsModalOpened, setPersonsModalOpened] = useState(false);
-  const [sliceDate, setSliceDate] = useState(null);
-  const [sliceField, setSliceField] = useState(null);
-  const [sliceValue, setSliceValue] = useState(null);
-  const [slicedData, setSlicedData] = useState([]);
-
-  const onLineClick = (date: string, option: string, personsByValue: Record<EvolutiveStatOption, Array<PersonPopulated>>) => {
-    setSliceDate(date);
-    setSliceField(field);
-    setSliceValue(option);
-    const slicedData = personsByValue[option];
-    setSlicedData(slicedData);
-    setPersonsModalOpened(true);
-  };
-
-  console.log({
-    personsModalOpened,
-    sliceDate,
-    sliceField,
-    sliceValue,
-    slicedData,
-  });
-
-  return (
-    <>
-      <SelectedPersonsModal
-        open={personsModalOpened}
-        onClose={() => {
-          setPersonsModalOpened(false);
-        }}
-        persons={slicedData}
-        sliceField={sliceField}
-        onAfterLeave={() => {
-          setSliceDate(null);
-          setSliceField(null);
-          setSliceValue(null);
-          setSlicedData([]);
-        }}
-        title={
-          <p className="tw-basis-1/2">
-            {`${sliceField?.label} au ${sliceDate}: ${sliceValue} (${slicedData.length})`}
-            <br />
-            <br />
-            <small className="tw-text-gray-500 tw-block tw-text-xs">
-              Attention: cette liste affiche les personnes <strong>telles qu'elles sont aujourd'hui</strong>, et non pas telles qu'elles sont au{" "}
-              {sliceDate}.
-              <br /> Pour en savoir plus sur l'évolution de chaque personne, cliquez dessus et consultez son historique.
-            </small>
-          </p>
-        }
-      />
-    </>
   );
 }
