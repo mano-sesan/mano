@@ -17,7 +17,7 @@ const List = ({ territory = {} }) => {
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
   const territoryObservations = useRecoilValue(territoryObservationsState);
   const team = useRecoilValue(currentTeamState);
-  const [observation, setObservation] = useState({});
+  const [observation, setObservation] = useState(undefined);
   const [openObservationModale, setOpenObservationModale] = useState(null);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
 
@@ -110,7 +110,7 @@ const List = ({ territory = {} }) => {
           },
         ]}
       />
-      <CreateObservation observation={{ ...observation, territory: observation.territory || territory?._id }} forceOpen={openObservationModale} />
+      <CreateObservation observation={{ ...observation, territory: observation?.territory || territory?._id }} forceOpen={openObservationModale} />
     </>
   );
 };

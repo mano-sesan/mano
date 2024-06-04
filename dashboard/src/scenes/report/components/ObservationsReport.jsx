@@ -56,7 +56,7 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
 };
 
 const ObservationsTable = ({ period, observations, selectedTeams }) => {
-  const [observationToEdit, setObservationToEdit] = useState({});
+  const [observationToEdit, setObservationToEdit] = useState(undefined);
   const [openObservationModaleKey, setOpenObservationModaleKey] = useState(0);
   const territories = useRecoilValue(territoriesState);
   const teams = useRecoilValue(teamsState);

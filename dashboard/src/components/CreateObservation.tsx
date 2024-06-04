@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Col, FormGroup, Row, Label } from "reactstrap";
-import { Formik } from "formik";
+import { Formik, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 
 import { customFieldsObsSelector, encryptObs, groupedCustomFieldsObsSelector } from "../recoil/territoryObservations";
@@ -8,7 +7,7 @@ import SelectTeam from "./SelectTeam";
 import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";
 import CustomFieldInput from "./CustomFieldInput";
-import { currentTeamState, teamsState, userState } from "../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { territoriesState } from "../recoil/territory";
 import { useRecoilValue } from "recoil";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
@@ -25,11 +24,19 @@ import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import Table from "./table";
 import { useDataLoader } from "./DataLoader";
+import type { TerritoryObservationInstance } from "../types/territoryObs";
+import type { PersonInstance } from "../types/person";
 
-const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
+interface CreateObservationProps {
+  observation: TerritoryObservationInstance | null;
+  forceOpen?: number;
+}
+
+const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProps) => {
   const [selectedPersons, setSelectedPersons] = useState([]);
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
+  const organisation = useRecoilValue(organisationState);
   const team = useRecoilValue(currentTeamState);
   const territories = useRecoilValue(territoriesState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
@@ -53,7 +60,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
     if (forceOpen > 0) setOpen(true);
   }, [forceOpen]);
 
-  const addTerritoryObs = async (obs) => {
+  const addTerritoryObs = async (obs: TerritoryObservationInstance) => {
     const [error, response] = await tryFetchExpectOk(async () =>
       API.post({ path: "/territory-observation", body: await encryptObs(customFieldsObs)(obs) })
     );
@@ -63,7 +70,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
     return response;
   };
 
-  const updateTerritoryObs = async (obs) => {
+  const updateTerritoryObs = async (obs: TerritoryObservationInstance) => {
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({ path: `/territory-observation/${obs._id}`, body: await encryptObs(customFieldsObs)(obs) })
     );
@@ -73,7 +80,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
     return response;
   };
 
-  const onDelete = async (id) => {
+  const onDelete = async (id: TerritoryObservationInstance["_id"]) => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
@@ -86,7 +93,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
     }
   };
 
-  const onSelectPerson = (persons) => {
+  const onSelectPerson = (persons: Array<PersonInstance["_id"]>) => {
     persons = persons?.filter(Boolean) || [];
     setSelectedPersons(persons);
   };
@@ -95,15 +102,16 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
   return (
     <div className="tw-w-full tw-flex tw-justify-end">
       <Formik
-        key={open}
         initialValues={observation}
-        onSubmit={async (values, actions) => {
+        enableReinitialize
+        onSubmit={async (values: TerritoryObservationInstance, actions: FormikHelpers<TerritoryObservationInstance>) => {
           if (!values.team) return toast.error("L'équipe est obligatoire");
           if (!values.territory) return toast.error("Le territoire est obligatoire");
           if (values.observedAt && outOfBoundariesDate(values.observedAt))
             return toast.error("La date d'observation est hors limites (entre 1900 et 2100)");
-          const body = {
-            observedAt: values.observedAt || dayjsInstance(),
+          const body: TerritoryObservationInstance = {
+            ...observation,
+            observedAt: values.observedAt || dayjsInstance().toDate(),
             team: values.team,
             user: values.user || user._id,
             territory: values.territory,
@@ -163,34 +171,36 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                         </button>
                       </li>
                     ))}
-                    <li>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab("_rencontres");
-                        }}
-                        className={[
-                          activeTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
-                          "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        Rencontres {currentRencontres?.length > 0 ? `(${currentRencontres.length})` : ""}
-                      </button>
-                    </li>
+                    {organisation.rencontresEnabled && (
+                      <li>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTab("_rencontres");
+                          }}
+                          className={[
+                            activeTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                            "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          Rencontres {currentRencontres?.length > 0 ? `(${currentRencontres.length})` : ""}
+                        </button>
+                      </li>
+                    )}
                   </ul>
                 </nav>
                 <div className="tw-p-4 tw-min-h-[30vh] tw-grow">
                   {groupedCustomFieldsObs.map((group) => (
-                    <Row key={group.name} hidden={group.name !== activeTab}>
+                    <div className="tw-flex tw-flex-row tw-flex-wrap" key={group.name} hidden={group.name !== activeTab}>
                       {group.fields
                         .filter((f) => f)
                         .filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))
                         .map((field) => (
                           <CustomFieldInput model="observation" values={values} handleChange={handleChange} field={field} key={field.name} />
                         ))}
-                    </Row>
+                    </div>
                   ))}
                   {activeTab === "_rencontres" ? (
                     <div>
@@ -265,11 +275,7 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                             sortBy,
                             sortOrder,
                             render: (rencontre) =>
-                              rencontre.person ? (
-                                <PersonName showOtherNames item={rencontre} />
-                              ) : (
-                                <span style={{ opacity: 0.3, fontStyle: "italic" }}>Anonyme</span>
-                              ),
+                              rencontre.person ? <PersonName item={rencontre} /> : <span className="tw-opacity-30 tw-italic">Anonyme</span>,
                           },
                           {
                             title: "Enregistré par",
@@ -312,44 +318,43 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                   ) : null}
                 </div>
                 <div className="tw-p-4">
-                  <Row>
-                    <Col md={12}>
+                  <div className="tw-flex tw-flex-row tw-flex-wrap">
+                    <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
                       <hr />
-                    </Col>
-                  </Row>
-                  <Row>
-                    <Col md={4}>
-                      <FormGroup>
-                        <Label htmlFor="observation-observedat">Observation faite le</Label>
+                    </div>
+                  </div>
+                  <div className="tw-flex tw-flex-row tw-flex-wrap">
+                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="observation-observedat">Observation faite le</label>
                         <div>
                           <DatePicker
                             withTime
                             id="observation-observedat"
                             name="observedAt"
-                            defaultValue={(values.observedAt || values.createdAt) ?? new Date()}
+                            defaultValue={new Date(values.observedAt || values.createdAt)}
                             onChange={handleChange}
                           />
                         </div>
-                      </FormGroup>
-                    </Col>
-                    <Col md={4}>
-                      <FormGroup>
-                        <Label htmlFor="observation-select-team">Sous l'équipe</Label>
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="observation-select-team">Sous l'équipe</label>
                         <SelectTeam
                           menuPlacement="top"
                           name="team"
                           teams={user.role === "admin" ? teams : user.teams}
                           teamId={values.team}
                           onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
-                          colored
                           inputId="observation-select-team"
                           classNamePrefix="observation-select-team"
                         />
-                      </FormGroup>
-                    </Col>
-                    <Col md={4}>
-                      <FormGroup>
-                        <Label htmlFor="observation-select-territory">Territoire</Label>
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="observation-select-territory">Territoire</label>
                         <SelectCustom
                           menuPlacement="top"
                           options={territories}
@@ -362,9 +367,9 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
                           inputId="observation-select-territory"
                           classNamePrefix="observation-select-territory"
                         />
-                      </FormGroup>
-                    </Col>
-                  </Row>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </ModalBody>
@@ -400,9 +405,9 @@ const CreateObservation = ({ observation = {}, forceOpen = 0 }) => {
               setRencontre(undefined);
               setSelectedPersons([]);
             }}
-            onSave={(rencontres) => {
+            onSave={(rencontres: any) => {
               setRencontresInProgress((rencontresInProgress) => [
-                ...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)),
+                ...rencontresInProgress.filter((r) => !rencontres.map((e: any) => e.person).includes(r.person)),
                 ...rencontres,
               ]);
             }}

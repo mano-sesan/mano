@@ -1,9 +1,21 @@
 import { useEffect } from "react";
 import SelectCustom from "./SelectCustom";
+import type { TeamInstance } from "../types/team";
+import type { SelectCustomProps } from "./SelectCustom";
+import type { GroupBase } from "react-select";
 
-const SelectTeam = ({ name, onChange = () => null, teamId = null, teams = null, style = null, inputId = "", ...rest }) => {
+interface SelectTeamProps extends SelectCustomProps<TeamInstance, false, GroupBase<TeamInstance>> {
+  name: string;
+  onChange?: (team: TeamInstance) => void;
+  teamId?: TeamInstance["_id"] | null;
+  teams?: Array<TeamInstance>;
+  style?: React.CSSProperties;
+  inputId?: string;
+}
+
+const SelectTeam = ({ name, onChange, teamId = null, teams = null, style = null, inputId = "", ...rest }: SelectTeamProps) => {
   useEffect(() => {
-    if (teams?.length === 1 && !teamId) onChange(teams[0]);
+    if (teams?.length === 1 && !teamId && onChange) onChange(teams[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teams]);
 

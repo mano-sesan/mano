@@ -183,7 +183,7 @@ const ObservationsStats = ({
 };
 
 const SelectedObsModal = ({ open, onClose, observations, territories, title, onAfterLeave, selectedTeams, period }) => {
-  const [observationToEdit, setObservationToEdit] = useState({});
+  const [observationToEdit, setObservationToEdit] = useState(undefined);
   const [openObservationModaleKey, setOpenObservationModaleKey] = useState(0);
   const teams = useRecoilValue(teamsState);
   const team = useRecoilValue(currentTeamState);
