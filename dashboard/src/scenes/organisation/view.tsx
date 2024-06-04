@@ -525,9 +525,9 @@ const View = () => {
                                 <tbody>
                                   {personFieldsIncludingCustomFields
                                     .filter((f) => f.importable)
-                                    .map((f) => {
+                                    .map((f, i) => {
                                       return (
-                                        <tr key={f.label}>
+                                        <tr key={f.label + i}>
                                           <td>{f.label}</td>
                                           <td>
                                             <ImportFieldDetails field={f} />
@@ -535,9 +535,9 @@ const View = () => {
                                         </tr>
                                       );
                                     })}
-                                  {customFieldsMedicalFile.map((f) => {
+                                  {customFieldsMedicalFile.map((f, i) => {
                                     return (
-                                      <tr key={f.label}>
+                                      <tr key={f.label + i}>
                                         <td>{f.label}</td>
                                         <td>
                                           <ImportFieldDetails field={f} />
