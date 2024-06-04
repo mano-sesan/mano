@@ -12,48 +12,8 @@ jest.mock("../src/services/sentry", () => ({
 const mockedCapture = SentryService.capture as jest.MockedFunction<typeof SentryService.capture>;
 
 describe("Stats evolutives", () => {
-  test("simple example should work properly", () => {
-    const computed = computeEvolutiveStatsForPersons({
-      startDate: "2024-01-01T00:00:00.000Z",
-      endDate: "2024-04-01T00:00:00.000Z",
-      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
-      evolutiveStatsIndicators: [
-        {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
-          type: "enum",
-        },
-      ],
-      persons: [
-        {
-          ...personPopulated,
-          gender: "Femme",
-          history: [
-            {
-              date: dayjs("2024-02-01").toDate(),
-              data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
-                },
-              },
-              user: "XXX",
-            },
-          ],
-        },
-      ],
-    });
-    expect(computed.valueStart).toBe("Homme");
-    expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countSwitched).toBe(1);
-    expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
-  });
-
   test("should call capture with the correct errors when history is incoherent", () => {
-    const computed = computeEvolutiveStatsForPersons({
+    computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
@@ -84,12 +44,6 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Homme");
-    expect(computed.valueEnd).toBe("Femme");
-    expect(computed.countSwitched).toBe(1);
-    expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
 
     // Verify capture was called with "Incoherent snapshot history"
     const incoherentSnapshotHistoryCall = mockedCapture.mock.calls.find((call) => call[0].message === "Incoherent snapshot history");
@@ -104,8 +58,111 @@ describe("Stats evolutives", () => {
     // Verify total number of calls
     expect(mockedCapture).toHaveBeenCalledTimes(1);
   });
+  test("should output proper values and dates at start and end whatever the persons are", () => {
+    // we just test those outputs once, not in all the other tests
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Homme",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [],
+    });
+    expect(computed.valueStart).toBe("Homme");
+    expect(computed.valueEnd).toBe("Femme");
+    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
+    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
+  });
+  test("person was not followed during the period should not be included in the stats", () => {
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Homme",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [
+        {
+          ...personPopulated,
+          followedSince: dayjs("2024-05-01").toDate(),
+          gender: "Femme",
+          history: [
+            // whatever
+          ],
+        },
+      ],
+    });
+    expect(computed.countSwitched).toBe(0);
+    expect(computed.percentSwitched).toBe(0);
+  });
+  test("person followed before the period or started to be following during the period has the same output", () => {
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Homme",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [
+        {
+          ...personPopulated,
+          _id: "1",
+          followedSince: dayjs("2023-01-01").toDate(),
+          gender: "Femme",
+          history: [
+            {
+              date: dayjs("2024-02-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+          ],
+        },
+        {
+          ...personPopulated,
+          _id: "2",
+          followedSince: dayjs("2024-01-15").toDate(),
+          gender: "Femme",
+          history: [
+            {
+              date: dayjs("2024-02-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+          ],
+        },
+      ],
+    });
+    expect(computed.countSwitched).toBe(2);
+    expect(computed.percentSwitched).toBe(100);
+  });
 
-  test("multiple changes example should work properly", () => {
+  test("multiple changes with one watched switch should work properly", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -157,12 +214,163 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Homme");
-    expect(computed.valueEnd).toBe("Femme");
     expect(computed.countSwitched).toBe(1);
     expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
+  });
+
+  test("multiple changes with two watched switches should output two switches and 100%", () => {
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Homme",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [
+        {
+          ...personPopulated,
+          gender: "Femme",
+          history: [
+            {
+              date: dayjs("2023-10-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme",
+                  newValue: "Femme transgenre",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2023-12-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme transgenre",
+                  newValue: "Homme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-02").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-03").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme",
+                  newValue: "Homme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-04").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+          ],
+        },
+      ],
+    });
+    expect(computed.countSwitched).toBe(2);
+    expect(computed.percentSwitched).toBe(100);
+  });
+
+  test("multiple changes with two watched switches on half of the persons should output two switches and 50%", () => {
+    const computed = computeEvolutiveStatsForPersons({
+      startDate: "2024-01-01T00:00:00.000Z",
+      endDate: "2024-04-01T00:00:00.000Z",
+      evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+      evolutiveStatsIndicators: [
+        {
+          fieldName: "gender",
+          fromValue: "Homme",
+          toValue: "Femme",
+          type: "enum",
+        },
+      ],
+      persons: [
+        {
+          ...personPopulated,
+        },
+        {
+          ...personPopulated,
+          gender: "Femme",
+          history: [
+            {
+              date: dayjs("2023-10-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme",
+                  newValue: "Femme transgenre",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2023-12-01").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme transgenre",
+                  newValue: "Homme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-02").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-03").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Femme",
+                  newValue: "Homme",
+                },
+              },
+              user: "XXX",
+            },
+            {
+              date: dayjs("2024-04-04").toDate(),
+              data: {
+                gender: {
+                  oldValue: "Homme",
+                  newValue: "Femme",
+                },
+              },
+              user: "XXX",
+            },
+          ],
+        },
+      ],
+    });
+    expect(computed.countSwitched).toBe(2);
+    expect(computed.percentSwitched).toBe(50);
   });
 
   test("checking the exact value for the `fromValue`: 'Homme' and 'Homme transgenre' is not the same", () => {
@@ -197,12 +405,8 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Homme");
-    expect(computed.valueEnd).toBe("Femme");
     expect(computed.countSwitched).toBe(0);
     expect(computed.percentSwitched).toBe(0);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 
   test("'Non renseigné' should work", () => {
@@ -237,15 +441,11 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.valueEnd).toBe("Femme");
     expect(computed.countSwitched).toBe(1);
     expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 
-  test("If a history change is the same a period start date, we ignore it", () => {
+  test("If a history change is the same a period start date, we dont ignore it", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -277,12 +477,8 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.valueEnd).toBe("RSA");
     expect(computed.countSwitched).toBe(0);
     expect(computed.percentSwitched).toBe(0);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 
   test("Multi values should work", () => {
@@ -327,12 +523,8 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.valueEnd).toBe("RSA");
     expect(computed.countSwitched).toBe(1);
     expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
 
   test("If the end of the period is in the future, it should work", () => {
@@ -367,11 +559,7 @@ describe("Stats evolutives", () => {
         },
       ],
     });
-    expect(computed.valueStart).toBe("Non renseigné");
-    expect(computed.valueEnd).toBe("Femme");
     expect(computed.countSwitched).toBe(1);
     expect(computed.percentSwitched).toBe(100);
-    expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
-    expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe(dayjs().add(10, "days").format("YYYY-MM-DD"));
   });
 });

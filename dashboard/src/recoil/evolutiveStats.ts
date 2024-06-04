@@ -62,29 +62,29 @@ function getValuesOptionsByField(field: CustomOrPredefinedField, fieldsMap: Fiel
   return ["Non renseigné"];
 }
 
-function getValueByField(fieldName: CustomOrPredefinedField["name"], fieldsMap: FieldsMap, value: any): string | Array<string> {
-  if (!fieldName) return "";
-  const current = fieldsMap[fieldName];
-  if (!current) return "";
-  if (["yes-no"].includes(current.type)) {
+function getValueByField(indicator: IndicatorsSelection[0], value: any): string | Array<string> {
+  if (!indicator) return "";
+  if (["yes-no"].includes(indicator.type)) {
     if (value === "Oui") return "Oui";
     return "Non";
   }
-  if (["boolean"].includes(current.type)) {
+  if (["boolean"].includes(indicator.type)) {
     if (value === true || value === "Oui") return "Oui";
     return "Non";
   }
-  if (current?.name === "outOfActiveList") {
+  if (indicator?.fieldName === "outOfActiveList") {
     if (value === true) return "Oui";
     return "Non";
   }
-  if (current.type === "multi-choice") {
+  if (indicator.type === "multi-choice") {
     if (Array.isArray(value)) {
-      if (value.length === 0) return ["Non renseigné"];
+      if (value.length === 0) {
+        return ["Non renseigné"];
+      }
       return value;
     }
     if (value == null || value === "") {
-      return [];
+      return ["Non renseigné"];
     }
     return [value];
   }
@@ -98,18 +98,15 @@ function getValueByField(fieldName: CustomOrPredefinedField["name"], fieldsMap: 
 function getPersonSnapshotAtDate({
   person,
   snapshotDate,
-  fieldsMap,
+  indicator,
 }: {
   person: PersonPopulated;
-  fieldsMap: FieldsMap;
+  indicator: IndicatorsSelection[0];
   snapshotDate: string; // YYYYMMDD
 }): PersonPopulated | null {
+  if (!person.history?.length) return person;
+  const reversedHistory = [...person.history].reverse();
   let snapshot = structuredClone(person);
-  const followedSince = dayjsInstance(snapshot.followedSince || snapshot.createdAt).format("YYYYMMDD");
-  if (followedSince > snapshotDate) return null;
-  const history = snapshot.history;
-  if (!history?.length) return snapshot;
-  const reversedHistory = [...history].reverse();
   for (const historyItem of reversedHistory) {
     const historyDate = dayjsInstance(historyItem.date).format("YYYYMMDD");
     // history is: before the date
@@ -119,11 +116,11 @@ function getPersonSnapshotAtDate({
     // we keep the snapshot because it's more coherent with L258-L259
     if (historyDate <= snapshotDate) return snapshot; // if snapshot's day is history's day, we return the snapshot
     for (const historyChangeField of Object.keys(historyItem.data)) {
-      const oldValue = getValueByField(historyChangeField, fieldsMap, historyItem.data[historyChangeField].oldValue);
-      const historyNewValue = getValueByField(historyChangeField, fieldsMap, historyItem.data[historyChangeField].newValue);
-      const currentPersonValue = getValueByField(historyChangeField, fieldsMap, snapshot[historyChangeField]);
+      if (historyChangeField !== indicator.fieldName) continue; // we support only one indicator for now
+      const oldValue = getValueByField(indicator, historyItem.data[historyChangeField].oldValue);
+      const historyNewValue = getValueByField(indicator, historyItem.data[historyChangeField].newValue);
+      const currentPersonValue = getValueByField(indicator, snapshot[historyChangeField]);
       if (JSON.stringify(historyNewValue) !== JSON.stringify(currentPersonValue)) {
-        console.log("Incoherent snapshot history");
         capture(new Error("Incoherent snapshot history"), {
           extra: {
             historyItem,
@@ -131,6 +128,9 @@ function getPersonSnapshotAtDate({
             oldValue,
             historyNewValue,
             currentPersonValue,
+            snapshotDate,
+            person: process.env.NODE_ENV === "development" ? person : undefined,
+            snapshot: process.env.NODE_ENV === "development" ? snapshot : undefined,
           },
         });
       }
@@ -154,7 +154,6 @@ type EvolutiveStatRenderData = {
   countPersonSwitched: number;
   percentSwitched: number;
   personsIdsSwitched: Array<PersonPopulated["id"]>;
-  initPersonsIds: Array<PersonPopulated["id"]>;
 };
 
 export function computeEvolutiveStatsForPersons({
@@ -202,61 +201,49 @@ export function computeEvolutiveStatsForPersons({
   let indicatorFieldName = indicator?.fieldName; // ex: custom-field-1
   let indicatorFieldLabel = evolutiveStatsIndicatorsBase.find((f) => f.name === indicatorFieldName)?.label; // exemple: "Ressources"
 
-  const fieldsMap: FieldsMap = evolutiveStatsIndicatorsBase
-    .filter((f) => {
-      if (evolutiveStatsIndicators.find((i) => i.fieldName === f.name)) return true;
-      return false;
-    })
-    .reduce((acc, field) => {
-      acc[field.name] = field;
-      return acc;
-    }, {} as FieldsMap);
-
   let valueStart = indicator?.fromValue;
   let valueEnd = indicator?.toValue;
 
-  // we get the persons at the
-  let initPersons = persons
-    .map((p) => {
-      const snapshot = getPersonSnapshotAtDate({ person: p, snapshotDate: startDateFormatted, fieldsMap });
-      if (!snapshot) return null;
-      let currentRawValue = getValueByField(indicatorFieldName ?? "", fieldsMap, snapshot[indicatorFieldName ?? ""]);
-      let currentValue = Array.isArray(currentRawValue) ? currentRawValue : [currentRawValue].filter(Boolean);
-      if (!currentValue.includes(valueStart)) return null;
-      return snapshot;
-    })
-    .filter(Boolean);
-
   let personsIdsSwitchedByValue: Record<EvolutiveStatOption, Array<PersonPopulated["id"]>> = {};
 
-  for (let person of initPersons) {
+  for (let person of persons) {
+    const debug = person._id === "2";
     let followedSince = dayjsInstance(person.followedSince || person.createdAt).format("YYYYMMDD");
-    let minimumDate = followedSince < startDateFormatted ? startDateFormatted : followedSince;
-
+    if (followedSince > endDateFormatted) continue;
+    let initSnapshotDate = followedSince > startDateFormatted ? followedSince : startDateFormatted;
+    let initSnapshot = getPersonSnapshotAtDate({ person, snapshotDate: initSnapshotDate, indicator });
     let countSwitchedValueDuringThePeriod = 0;
 
-    let currentPerson = structuredClone(person);
-    let currentRawValue = getValueByField(indicatorFieldName ?? "", fieldsMap, currentPerson[indicatorFieldName ?? ""]);
+    let currentRawValue = getValueByField(indicator, initSnapshot[indicatorFieldName ?? ""]);
     let currentValue = Array.isArray(currentRawValue) ? currentRawValue : [currentRawValue].filter(Boolean);
+    let currentPerson = initSnapshot;
 
     for (let historyItem of person.history ?? []) {
       const historyDate = dayjsInstance(historyItem.date).format("YYYYMMDD");
-      if (historyDate < minimumDate) continue;
+      if (historyDate < initSnapshotDate) continue;
       if (historyDate > endDateFormatted) break;
 
       let nextPerson = structuredClone(currentPerson);
       for (const historyChangeField of Object.keys(historyItem.data)) {
-        let oldValue = getValueByField(historyChangeField, fieldsMap, historyItem.data[historyChangeField].oldValue);
-        let historyNewValue = getValueByField(historyChangeField, fieldsMap, historyItem.data[historyChangeField].newValue);
-        let currentPersonValue = getValueByField(historyChangeField, fieldsMap, currentPerson[historyChangeField]);
+        if (historyChangeField !== indicatorFieldName) continue; // we support only one indicator for now
+        let oldValue = getValueByField(indicator, historyItem.data[historyChangeField].oldValue);
+        let historyNewValue = getValueByField(indicator, historyItem.data[historyChangeField].newValue);
+        let currentPersonValue = getValueByField(indicator, currentPerson[historyChangeField]);
         if (JSON.stringify(oldValue) !== JSON.stringify(currentPersonValue)) {
           capture(new Error("Incoherent history in computeEvolutiveStatsForPersons"), {
             extra: {
+              followedSince,
+              historyDate,
+              initSnapshotDate,
+              endDateFormatted,
               historyItem,
               historyChangeField,
               oldValue,
               historyNewValue,
               currentPersonValue,
+              currentPerson,
+              person,
+              initSnapshot,
             },
           });
         }
@@ -267,19 +254,21 @@ export function computeEvolutiveStatsForPersons({
           [historyChangeField]: historyNewValue,
         };
       }
-      // now we have the person at the date of the history item
-
-      let nextRawValue = getValueByField(indicatorFieldName ?? "", fieldsMap, nextPerson[indicatorFieldName ?? ""]);
+      let nextRawValue = getValueByField(indicator, nextPerson[indicatorFieldName ?? ""]);
       let nextValue = Array.isArray(nextRawValue) ? nextRawValue : [nextRawValue].filter(Boolean);
 
-      if (currentValue.includes(valueStart)) {
-        if (!nextValue.includes(valueStart)) {
-          countSwitchedValueDuringThePeriod++;
-          for (let value of nextValue) {
-            if (!personsIdsSwitchedByValue[value]) {
-              personsIdsSwitchedByValue[value] = [];
+      if (historyDate >= startDateFormatted) {
+        // now we have the person at the date of the history item
+
+        if (currentValue.includes(valueStart)) {
+          if (!nextValue.includes(valueStart)) {
+            countSwitchedValueDuringThePeriod++;
+            for (let value of nextValue) {
+              if (!personsIdsSwitchedByValue[value]) {
+                personsIdsSwitchedByValue[value] = [];
+              }
+              personsIdsSwitchedByValue[value].push(person._id);
             }
-            personsIdsSwitchedByValue[value].push(person._id);
           }
         }
       }
@@ -295,15 +284,13 @@ export function computeEvolutiveStatsForPersons({
     }
   }
 
-  // const fieldData = fieldsByOptionsAndDate[indicatorFieldName ?? ""] ?? {};
-
   let countSwitched = personsIdsSwitchedByValue[valueEnd]?.length ?? 0;
   let personsIdsSwitched = [...new Set(personsIdsSwitchedByValue[valueEnd] ?? [])];
+  // TODO FIXME: is this percentage really useful ?
   let countPersonSwitched = personsIdsSwitched.length;
-  let percentSwitched = Math.round((initPersons.length ? countSwitched / initPersons.length : 0) * 100);
+  let percentSwitched = Math.round((persons.length ? countPersonSwitched / persons.length : 0) * 100);
 
   return {
-    initPersonsIds: initPersons.map((p) => p._id),
     countSwitched,
     countPersonSwitched,
     percentSwitched,

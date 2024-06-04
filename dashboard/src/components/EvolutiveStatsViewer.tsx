@@ -48,7 +48,6 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
       countPersonSwitched,
       percentSwitched,
       indicatorFieldLabel,
-      initPersonsIds,
       personsIdsSwitched,
     } = evolutiveStatsPerson;
 
@@ -64,13 +63,6 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
           <h5>
             Entre le {startDateConsolidated.format("DD/MM/YYYY")} et le {endDateConsolidated.format("DD/MM/YYYY")}
           </h5>
-
-          <div className="tw-flex tw-items-baseline tw-gap-x-2">
-            <p className="tw-text-2xl tw-font-bold tw-text-main">{initPersonsIds.length}</p>
-            <p>
-              personnes ont eu un statut de <strong>{indicatorFieldLabel}</strong>: <strong>{valueStart}</strong>
-            </p>
-          </div>
 
           <div className="tw-flex tw-shrink-0 tw-items-center tw-justify-evenly tw-gap-y-4 tw-w-full">
             <button
@@ -93,11 +85,7 @@ export default function EvolutiveStatsViewer({ evolutiveStatsIndicators, period,
           </div>
           <div className="tw-flex tw-items-baseline tw-gap-x-2">
             <p className="tw-text-center">
-              impactant <strong>{countPersonSwitched}</strong> personnes, ce qui représente <strong>{percentSwitched}%</strong> des personnes qui
-              avaient{" "}
-              <em>
-                {indicatorFieldLabel}: {valueStart}
-              </em>
+              impactant <strong>{countPersonSwitched}</strong> personnes (<strong>{percentSwitched}%</strong>)
             </p>
           </div>
         </div>
