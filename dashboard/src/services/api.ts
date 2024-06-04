@@ -186,13 +186,23 @@ type ApiResponse = {
   data?: unknown;
   error?: string;
 };
-type ApiResponseOrBlob = ApiResponse | Blob;
 
-type FetchCallback<T extends ApiResponseOrBlob> = () => Promise<T>;
+type FetchCallback<T extends ApiResponse | Blob> = () => Promise<T>;
 
-export async function tryFetch<T extends ApiResponseOrBlob>(callback: FetchCallback<T>): Promise<[Error | undefined, T | undefined]> {
+export async function tryFetchBlob<T extends Blob>(callback: FetchCallback<T>): Promise<[Error | undefined, T | undefined]> {
   try {
     const result = await callback();
+    return [undefined, result];
+  } catch (error) {
+    capture(error);
+    return [error, undefined];
+  }
+}
+
+export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>): Promise<[Error | undefined, T | undefined]> {
+  try {
+    const result = await callback();
+    if (!result.ok) return [new Error(result.error), result];
     return [undefined, result];
   } catch (error) {
     capture(error);

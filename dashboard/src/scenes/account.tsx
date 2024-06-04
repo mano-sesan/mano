@@ -5,7 +5,7 @@ import { useRecoilState } from "recoil";
 import Loading from "../components/loading";
 import ChangePassword from "../components/ChangePassword";
 import { userState } from "../recoil/auth";
-import API, { tryFetchExpectOk } from "../services/api";
+import API, { tryFetch } from "../services/api";
 import { ModalBody, ModalContainer, ModalHeader } from "../components/tailwind/Modal";
 import DeleteButtonAndConfirmModal from "../components/DeleteButtonAndConfirmModal";
 import { errorMessage } from "../utils";
@@ -21,10 +21,10 @@ const Account = () => {
       <Formik
         initialValues={user}
         onSubmit={async (body) => {
-          const [error] = await tryFetchExpectOk(async () => API.put({ path: "/user", body }));
+          const [error] = await tryFetch(async () => API.put({ path: "/user", body }));
           if (!error) {
             toast.success("Mis à jour !");
-            const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/user/me" }));
+            const [error, response] = await tryFetch(async () => API.get({ path: "/user/me" }));
             if (error) {
               toast.error("Erreur lors de la mise à jour");
               return;
@@ -59,7 +59,7 @@ const Account = () => {
                 textToConfirm={values.email}
                 roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
                 onConfirm={async () => {
-                  const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/user/me` }));
+                  const [error] = await tryFetch(async () => API.delete({ path: "/user/me" }));
                   if (error) return;
                   toast.success("Suppression réussie");
                   window.location.reload();
@@ -92,7 +92,7 @@ const LinkToChangePassword = () => {
         <ModalBody className="tw-px-4 tw-py-2">
           <ChangePassword
             onSubmit={async (body: any) => {
-              const [error, response] = await tryFetchExpectOk(async () => API.post({ path: `/user/reset_password`, body }));
+              const [error, response] = await tryFetch(async () => API.post({ path: `/user/reset_password`, body }));
               if (error) {
                 toast.error(errorMessage(error));
               }

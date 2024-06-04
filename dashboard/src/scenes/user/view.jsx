@@ -11,7 +11,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
 import { organisationState, userState } from "../../recoil/auth";
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { emailRegex, errorMessage } from "../../utils";
@@ -28,7 +28,7 @@ const View = () => {
   useTitle(`Utilisateur ${user?.name}`);
 
   const getUserData = useCallback(async () => {
-    const [error, response] = await tryFetchExpectOk(async () => await API.get({ path: `/user/${id}` }));
+    const [error, response] = await tryFetch(() => API.get({ path: `/user/${id}` }));
     if (error) {
       toast.error(errorMessage(error));
       return;
@@ -74,13 +74,13 @@ const View = () => {
             if (body.email && !emailRegex.test(body.email)) return toast.error("Email invalide");
             if (!body.name) return toast.error("Le nom doit faire au moins un caractère");
             body.organisation = organisation._id;
-            const [error] = await tryFetchExpectOk(async () => API.put({ path: `/user/${id}`, body }));
+            const [error] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));
             if (error) {
               actions.setSubmitting(false);
               return toast.error(errorMessage(error));
             }
             if (user._id === id) {
-              const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/user/${id}` }));
+              const [error, response] = await tryFetchExpectOk(() => API.get({ path: `/user/${id}` }));
               if (error) {
                 actions.setSubmitting(false);
                 return toast.error(errorMessage(error));

@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import Table from "../../components/table";
 import OrganisationUsers from "./OrganisationUsers";
 import Loading from "../../components/loading";
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { formatAge, formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -336,7 +336,7 @@ const Create = ({ onChange, open, setOpen }) => {
             return errors;
           }}
           onSubmit={async (body, actions) => {
-            const [error, response] = await tryFetchExpectOk(async () => API.post({ path: "/organisation", body }));
+            const [error, response] = await tryFetch(async () => API.post({ path: "/organisation", body }));
             actions.setSubmitting(false);
             if (error) {
               return toast.error(errorMessage(error));
@@ -583,7 +583,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
               if (!body.role) return toast.error("Le rôle est obligatoire");
 
               body.organisation = organisation._id;
-              const [error] = await tryFetchExpectOk(async () => API.post({ path: "/user", body }));
+              const [error] = await tryFetch(async () => API.post({ path: "/user", body }));
               if (error) {
                 return false;
               }

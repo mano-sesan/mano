@@ -9,7 +9,7 @@ import Loading from "../../components/loading";
 import ButtonCustom from "../../components/ButtonCustom";
 import NightSessionModale from "../../components/NightSessionModale";
 import { currentTeamState, teamsState } from "../../recoil/auth";
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -136,7 +136,7 @@ const View = () => {
                   // disabled={teams.length === 1}
                   // disabledTitle="Vous ne pouvez pas supprimer la dernière équipe"
                   onConfirm={async () => {
-                    const [error] = await tryFetchExpectOk(async () => await API.delete({ path: `/team/${id}` }));
+                    const [error] = await tryFetch(async () => await API.delete({ path: `/team/${id}` }));
                     if (error) {
                       return toast.error(errorMessage(error));
                     }
