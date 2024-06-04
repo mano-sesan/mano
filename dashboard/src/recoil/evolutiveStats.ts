@@ -129,8 +129,8 @@ function getPersonSnapshotAtDate({
             historyNewValue,
             currentPersonValue,
             snapshotDate,
-            person: process.env.NODE_ENV === "development" ? person : undefined,
-            snapshot: process.env.NODE_ENV === "development" ? snapshot : undefined,
+            // person: process.env.NODE_ENV === "development" ? person : undefined,
+            // snapshot: process.env.NODE_ENV === "development" ? snapshot : undefined,
           },
         });
       }
@@ -207,7 +207,6 @@ export function computeEvolutiveStatsForPersons({
   let personsIdsSwitchedByValue: Record<EvolutiveStatOption, Array<PersonPopulated["id"]>> = {};
 
   for (let person of persons) {
-    const debug = person._id === "2";
     let followedSince = dayjsInstance(person.followedSince || person.createdAt).format("YYYYMMDD");
     if (followedSince > endDateFormatted) continue;
     let initSnapshotDate = followedSince > startDateFormatted ? followedSince : startDateFormatted;
@@ -220,6 +219,7 @@ export function computeEvolutiveStatsForPersons({
 
     for (let historyItem of person.history ?? []) {
       const historyDate = dayjsInstance(historyItem.date).format("YYYYMMDD");
+      if (followedSince === historyDate) continue; // we don't want to take the snapshot date (it's already done before the loop)
       if (historyDate < initSnapshotDate) continue;
       if (historyDate > endDateFormatted) break;
 
@@ -241,9 +241,9 @@ export function computeEvolutiveStatsForPersons({
               oldValue,
               historyNewValue,
               currentPersonValue,
-              currentPerson,
-              person,
-              initSnapshot,
+              // currentPerson,
+              // person,
+              // initSnapshot,
             },
           });
         }
