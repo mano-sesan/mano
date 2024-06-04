@@ -14,7 +14,7 @@ import {
   encryptFile,
 } from "../services/encryption";
 import { capture } from "../services/sentry";
-import API, { tryFetchExpectOk } from "../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
@@ -374,24 +374,35 @@ const EncryptionKey = ({ isMain }) => {
 };
 
 const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
-  // TODO: réfléchir à ce qu'on fait en cas d'erreur.
-  const blob = await API.download(
-    {
-      path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`,
-      encryptedEntityKey: doc.encryptedEntityKey,
-    },
-    fromKey
+  const [error, blob] = await tryFetch(() =>
+    API.download(
+      {
+        path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`,
+        encryptedEntityKey: doc.encryptedEntityKey,
+      },
+      fromKey
+    )
   );
+  if (error) {
+    toast.error(errorMessage(error));
+    throw new Error(error);
+  }
   const content = await decryptFile(blob, doc.encryptedEntityKey, fromKey);
   const { encryptedEntityKey, encryptedFile } = await encryptFile(new File([content], doc.file.originalname, { type: doc.file.mimetype }), toKey);
-  const docResult = await API.upload(
-    {
-      path: `/person/${personId}/document`,
-      encryptedFile,
-    },
-    toKey
+  const [docResponseError, docResponse] = await tryFetch(() =>
+    API.upload(
+      {
+        path: `/person/${personId}/document`,
+        encryptedFile,
+      },
+      toKey
+    )
   );
-  const { data: file } = docResult;
+  if (docResponseError || !docResponse.ok || !docResponse.data) {
+    toast.error(errorMessage(docResponseError || docResponse.error));
+    return;
+  }
+  const { data: file } = docResponse;
   return {
     _id: file.filename,
     name: doc.file.originalname,
