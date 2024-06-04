@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Redirect, useLocation } from "react-router-dom";
 import ChangePassword from "../../components/ChangePassword";
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch } from "../../services/api";
 import { useRecoilValue } from "recoil";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
 import { toast } from "react-toastify";
@@ -35,7 +35,7 @@ const Reset = () => {
             toast.error("Veuillez renseigner votre prénom et nom");
             return false;
           }
-          const [error, res] = await tryFetchExpectOk(async () =>
+          const [error, res] = await tryFetch(async () =>
             API.post({
               path: "/user/forgot_password_reset",
               body: {

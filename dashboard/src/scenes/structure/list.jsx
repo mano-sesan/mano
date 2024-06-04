@@ -4,7 +4,7 @@ import Table from "../../components/table";
 import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
 import Search from "../../components/search";
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
@@ -158,7 +158,7 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
     setDisabled(true);
     if (!structure.name) throw new Error("Le nom de la structure est obligatoire");
     const isNew = !initStructure?._id;
-    const [error] = await tryFetchExpectOk(async () =>
+    const [error] = await tryFetch(async () =>
       !isNew ? API.put({ path: `/structure/${initStructure._id}`, body: structure }) : API.post({ path: "/structure", body: structure })
     );
     setDisabled(false);

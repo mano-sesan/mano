@@ -14,7 +14,7 @@ import {
   encryptFile,
 } from "../services/encryption";
 import { capture } from "../services/sentry";
-import API, { tryFetch, tryFetchExpectOk } from "../services/api";
+import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
 import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
@@ -374,7 +374,7 @@ const EncryptionKey = ({ isMain }) => {
 };
 
 const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
-  const [error, blob] = await tryFetch(() =>
+  const [error, blob] = await tryFetchBlob(() =>
     API.download(
       {
         path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`,

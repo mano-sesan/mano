@@ -8,7 +8,7 @@ import { formatDateTimeWithNameOfDay } from "../services/date";
 import { FullScreenIcon } from "../assets/icons/FullScreenIcon";
 import UserName from "./UserName";
 import type { DocumentWithLinkedItem, Document, FileMetadata, FolderWithLinkedItem, Folder } from "../types/document";
-import API, { tryFetch } from "../services/api";
+import API, { tryFetch, tryFetchBlob } from "../services/api";
 import { download, errorMessage, viewBlobInNewWindow } from "../utils";
 import type { UUIDV4 } from "../types/uuid";
 import PersonName from "./PersonName";
@@ -657,7 +657,7 @@ function DocumentModal({ document, onClose, personId, onDelete, onSubmit, showAs
                 type="button"
                 className={`button-submit !tw-bg-${color}`}
                 onClick={async () => {
-                  const [error, blob] = await tryFetch(() => {
+                  const [error, blob] = await tryFetchBlob(() => {
                     return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
                   });
                   if (error) {
@@ -674,7 +674,7 @@ function DocumentModal({ document, onClose, personId, onDelete, onSubmit, showAs
                 type="button"
                 className={`button-submit tw-inline-flex tw-flex-col tw-items-center !tw-bg-${color}`}
                 onClick={async () => {
-                  const [error, blob] = await tryFetch(() => {
+                  const [error, blob] = await tryFetchBlob(() => {
                     return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
                   });
                   if (error) {
