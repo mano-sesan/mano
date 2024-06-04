@@ -155,7 +155,7 @@ const SignIn = () => {
     if (token) API.setToken(token);
     setSessionInitialTimestamp(Date.now());
     window.localStorage.setItem("mano-organisationId", organisation._id);
-    if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey) {
+    if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey && organisation.encryptionEnabled) {
       const organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true });
       const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
       if (!encryptionIsValid) {
