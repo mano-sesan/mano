@@ -175,19 +175,21 @@ export function computeEvolutiveStatsForPersons({
   // one indicator is: one `field`, one `fromValue` and one `toValue`
   // we want to see the number of switches from `fromValue` to `toValue` for the `field` of the persons - one person can have multiple switches
   // if only `field` is defined, we present nothing for now
-  // if `fromValue` is defined, we present a diagram chart with the number of switches from `fromValue` to each `toValue`
+  // if `fromValue` is defined, we present nothing from now - we will present the number of switches to any values from the `fromValue`
   // if `toValue` is defined, we present two numbers only
   // how do we calculate ?
-  // we need to know the value of the person for the field at a given date, at any date
-  // so we start by the snapshot at the initial value
-  // then we go forward in time, day by day, and when we meet an entry in the history for the field, we take the value of the field at this date
-  // we keep this value until we meet another entry in the history for the field, etc. until today
+  // we start by the snapshot at the initial value
+  // then we go forward in time, and when we meet an entry in the history for the field,
+  // if the date is beyond the start date or the end date, we skip it
+  // if the date is between the start date and the end date, we take the value of the field at this date
+  // we keep this value until we meet another entry in the history for the field, etc. until today / until the end date
 
   let startDateConsolidated = startDate
     ? dayjsInstance(dayjsInstance(startDate).startOf("day").format("YYYY-MM-DD"))
     : dayjsInstance(startHistoryFeatureDate);
 
   let endDateConsolidated = endDate ? dayjsInstance(dayjsInstance(endDate).endOf("day").format("YYYY-MM-DD")) : dayjsInstance();
+
   if (startDateConsolidated.isSame(endDateConsolidated)) return null;
 
   let startDateFormatted = startDateConsolidated.format("YYYYMMDD");
@@ -196,23 +198,24 @@ export function computeEvolutiveStatsForPersons({
   endDateFormatted = endDateFormatted > tonight ? endDateFormatted : tonight;
 
   // for now we only support one indicator
-  // we filter the persons that have the `fromValue` for the `field` at the start date
   let indicator = evolutiveStatsIndicators[0];
   let indicatorFieldName = indicator?.fieldName; // ex: custom-field-1
   let indicatorFieldLabel = evolutiveStatsIndicatorsBase.find((f) => f.name === indicatorFieldName)?.label; // exemple: "Ressources"
 
-  const indicatorsBase = evolutiveStatsIndicatorsBase.filter((f) => {
-    if (evolutiveStatsIndicators.find((i) => i.fieldName === f.name)) return true;
-    return false;
-  });
-  const fieldsMap: FieldsMap = indicatorsBase.reduce((acc, field) => {
-    acc[field.name] = field;
-    return acc;
-  }, {} as FieldsMap);
+  const fieldsMap: FieldsMap = evolutiveStatsIndicatorsBase
+    .filter((f) => {
+      if (evolutiveStatsIndicators.find((i) => i.fieldName === f.name)) return true;
+      return false;
+    })
+    .reduce((acc, field) => {
+      acc[field.name] = field;
+      return acc;
+    }, {} as FieldsMap);
 
   let valueStart = indicator?.fromValue;
   let valueEnd = indicator?.toValue;
 
+  // we get the persons at the
   let initPersons = persons
     .map((p) => {
       const snapshot = getPersonSnapshotAtDate({ person: p, snapshotDate: startDateFormatted, fieldsMap });
