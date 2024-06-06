@@ -33,7 +33,6 @@ async function deleteDB() {
 }
 
 export async function clearCache() {
-export async function clearCache() {
   await deleteDB().catch(capture);
   window.localStorage?.clear();
   window.sessionStorage?.clear();
@@ -52,7 +51,6 @@ export async function clearCache() {
     }, 100);
   });
   return cachedCleared;
-}
 }
 
 export async function setCacheItem(key: string, value: any) {
