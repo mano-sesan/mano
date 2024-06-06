@@ -33,13 +33,14 @@ async function deleteDB() {
 }
 
 export async function clearCache() {
-  const cachedCleared = await new Promise(async (resolve) => {
-    await deleteDB().catch(capture);
-    window.localStorage?.clear();
-    window.sessionStorage?.clear();
-    let localstorageClearedListener = setInterval(async () => {
+export async function clearCache() {
+  await deleteDB().catch(capture);
+  window.localStorage?.clear();
+  window.sessionStorage?.clear();
+  const cachedCleared = await new Promise((resolve) => {
+    const localstorageClearedListener = setInterval(async () => {
       // we need to make sure the cache is cleared before redirecting
-      // there is no event to listen to (https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event:  fires when a storage area has been modified in the context of _another_ document.)
+      // there is no event to listen to (https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event: fires when a storage area has been modified in the context of _another_ document.)
       // so we do our own "listener" by checking every 100ms if the cache is cleared
       const localStorageEmpty = window.localStorage.length === 0;
       const sessionStorageEmpty = window.sessionStorage.length === 0;
@@ -51,6 +52,7 @@ export async function clearCache() {
     }, 100);
   });
   return cachedCleared;
+}
 }
 
 export async function setCacheItem(key: string, value: any) {
