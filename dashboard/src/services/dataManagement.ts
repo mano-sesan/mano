@@ -46,8 +46,10 @@ export async function clearCache() {
       const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
       if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
         resolve(true);
-        clearInterval(localstorageClearedListener);
+      } else {
+        await clearCache();
       }
+      clearInterval(localstorageClearedListener);
     }, 100);
   });
   return cachedCleared;
