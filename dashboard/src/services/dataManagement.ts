@@ -1,7 +1,7 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
 import { capture } from "./sentry";
 
-export const dashboardCurrentCacheKey = "mano_last_refresh_2022_01_11";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2024_05_06";
 const legacyStoreName = "mano_last_refresh_2022_01_11";
 const legacyManoDB = "mano-dashboard";
 const manoDB = "mano";
@@ -33,10 +33,24 @@ async function deleteDB() {
 }
 
 export async function clearCache() {
-  await deleteDB().then(console.log).catch(capture);
-  window.localStorage?.clear();
-  window.sessionStorage?.clear();
-  return true;
+  const cachedCleared = await new Promise(async (resolve) => {
+    await deleteDB().catch(capture);
+    window.localStorage?.clear();
+    window.sessionStorage?.clear();
+    let localstorageClearedListener = setInterval(async () => {
+      // we need to make sure the cache is cleared before redirecting
+      // there is no event to listen to (https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event:  fires when a storage area has been modified in the context of _another_ document.)
+      // so we do our own "listener" by checking every 100ms if the cache is cleared
+      const localStorageEmpty = window.localStorage.length === 0;
+      const sessionStorageEmpty = window.sessionStorage.length === 0;
+      const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
+      if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
+        resolve(true);
+        clearInterval(localstorageClearedListener);
+      }
+    }, 100);
+  });
+  return cachedCleared;
 }
 
 export async function setCacheItem(key: string, value: any) {
