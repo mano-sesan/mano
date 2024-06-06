@@ -65,11 +65,15 @@ const SignIn = () => {
       if (ok && token && user) {
         setAuthViaCookie(true);
         const { organisation } = user;
+        console.log("SIGING TOKEN WITH", user.email);
         const storedOrganisationId = window.localStorage.getItem("mano-organisationId");
+        console.log("storedOrganisationId", storedOrganisationId, "organisation._id", organisation._id);
         if (storedOrganisationId && storedOrganisationId !== organisation._id) {
           await resetCache();
+          console.log("reset cache, now storedOrganisationId is", window.localStorage.getItem("mano-organisationId"));
         }
         window.localStorage.setItem("mano-organisationId", organisation._id);
+        console.log("set storedOrganisationId again", window.localStorage.getItem("mano-organisationId"));
         setOrganisation(organisation);
         setUserName(user.name);
         setUser(user);
@@ -107,11 +111,15 @@ const SignIn = () => {
       }
 
       const { user, token, ok } = authViaCookie ? await API.get({ path: "/user/signin-token" }) : await API.post({ path: "/user/signin", body });
+      console.log("SIGING TOCOURT WITH", user.email);
       if (!ok) return setIsSubmitting(false);
       const { organisation } = user;
       const storedOrganisationId = window.localStorage.getItem("mano-organisationId");
+      console.log("storedOrganisationId", storedOrganisationId, "organisation._id", organisation._id);
       if (storedOrganisationId && organisation._id !== storedOrganisationId) {
+        console.log("reset cache");
         await resetCache();
+        console.log("reset cache, now storedOrganisationId is", window.localStorage.getItem("mano-organisationId"));
       }
       setOrganisation(organisation);
       setUser(user);
@@ -122,6 +130,7 @@ const SignIn = () => {
       if (token) setToken(token);
       setSessionInitialTimestamp(Date.now());
       window.localStorage.setItem("mano-organisationId", organisation._id);
+      console.log("set storedOrganisationId again", window.localStorage.getItem("mano-organisationId"));
       if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey) {
         const encryptionIsValid = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), organisation);
         if (!encryptionIsValid) {
