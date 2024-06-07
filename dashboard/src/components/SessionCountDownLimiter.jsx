@@ -116,6 +116,7 @@ const ReloadModal = ({ open, onSuccess }) => {
               setEncryptionKey("");
               resetOrgEncryptionKey();
               await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
+              return;
             }
             await tryFetch(() => API.post({ path: "/user/decrypt-attempt-success" }));
             onSuccess(false);
