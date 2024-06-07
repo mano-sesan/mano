@@ -8,7 +8,7 @@ import validator from "validator";
 import { useRecoilValue } from "recoil";
 import { organisationState, sessionInitialDateTimestamp } from "../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
-import { checkEncryptedVerificationKey, setOrgEncryptionKey } from "../services/encryption";
+import { checkEncryptedVerificationKey, derivedMasterKey, resetOrgEncryptionKey } from "../services/encryption";
 import { toast } from "react-toastify";
 
 dayjs.extend(utc);
@@ -109,12 +109,13 @@ const ReloadModal = ({ open, onSuccess }) => {
           className="tw-flex tw-flex-col tw-gap-4 tw-px-8 tw-py-4"
           onSubmit={async (e) => {
             e.preventDefault();
-            const organisationKey = await setOrgEncryptionKey(encryptionKey.trim(), organisation);
+            const organisationKey = await derivedMasterKey(encryptionKey.trim());
             const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
             if (!encryptionIsValid) {
-              await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
               toast.error("Clé de chiffrement invalide");
-              return setEncryptionKey("");
+              setEncryptionKey("");
+              resetOrgEncryptionKey();
+              await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
             }
             await tryFetch(() => API.post({ path: "/user/decrypt-attempt-success" }));
             onSuccess(false);
