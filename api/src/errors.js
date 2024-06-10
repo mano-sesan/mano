@@ -33,7 +33,6 @@ const notFound = (req, res, next) => {
 // eslint-disable-next-line no-unused-vars
 const sendError = (err, req, res, next) => {
   if (err.status === 401) {
-    console.log(err);
     return res.status(401).send({ ok: false, code: "UNAUTHORIZED", error: "Vous n'êtes pas autorisé à accéder à cette ressource." });
   }
   const { body, query, user, params, route, method, originalUrl, headers } = req;
