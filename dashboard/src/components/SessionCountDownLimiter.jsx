@@ -97,6 +97,7 @@ const ReloadModal = ({ open, onSuccess }) => {
       open={open}
       size="3xl"
       blurryBackground
+      dataTestId="lock-modal"
       onAfterLeave={() => {
         setEncryptionKey("");
         setShowPassword(false);
