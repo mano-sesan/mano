@@ -118,7 +118,7 @@ const TopBar = () => {
               <DropdownItem
                 onClick={() => {
                   tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
-                    API.reset();
+                    window.location.href = "/auth";
                   });
                 }}
               >
