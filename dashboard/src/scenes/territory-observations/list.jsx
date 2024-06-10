@@ -18,7 +18,7 @@ const List = ({ territory = {} }) => {
   const territoryObservations = useRecoilValue(territoryObservationsState);
   const team = useRecoilValue(currentTeamState);
   const [observation, setObservation] = useState(undefined);
-  const [openObservationModale, setOpenObservationModale] = useState(null);
+  const [openObservationModale, setOpenObservationModale] = useState(false);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
 
   const observations = useMemo(
@@ -41,7 +41,7 @@ const List = ({ territory = {} }) => {
           <ButtonCustom
             onClick={() => {
               setObservation(undefined);
-              setOpenObservationModale((k) => k + 1);
+              setOpenObservationModale(true);
             }}
             color="primary"
             title="Nouvelle observation"
@@ -55,7 +55,7 @@ const List = ({ territory = {} }) => {
         noData={`Pas encore d'observations pour ce territoire`}
         onRowClick={(obs) => {
           setObservation(obs);
-          setOpenObservationModale((k) => k + 1);
+          setOpenObservationModale(true);
         }}
         columns={[
           {
@@ -112,8 +112,8 @@ const List = ({ territory = {} }) => {
       />
       <CreateObservation
         observation={{ ...observation, territory: observation?.territory || territory?._id }}
-        forceOpen={openObservationModale}
-        key={openObservationModale}
+        open={openObservationModale}
+        setOpen={setOpenObservationModale}
       />
     </>
   );

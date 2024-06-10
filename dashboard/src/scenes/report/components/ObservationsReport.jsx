@@ -57,7 +57,7 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
 
 const ObservationsTable = ({ period, observations, selectedTeams }) => {
   const [observationToEdit, setObservationToEdit] = useState(undefined);
-  const [openObservationModaleKey, setOpenObservationModaleKey] = useState(0);
+  const [openObservationModale, setOpenObservationModale] = useState(false);
   const territories = useRecoilValue(territoriesState);
   const teams = useRecoilValue(teamsState);
   const team = useRecoilValue(currentTeamState);
@@ -122,7 +122,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             className="button-submit"
             onClick={() => {
               setObservationToEdit(undefined);
-              setOpenObservationModaleKey((k) => k + 1);
+              setOpenObservationModale(true);
             }}
           >
             Ajouter une observation
@@ -134,7 +134,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             data={observations}
             onRowClick={(obs) => {
               setObservationToEdit(obs);
-              setOpenObservationModaleKey((k) => k + 1);
+              setOpenObservationModale(true);
             }}
             rowKey={"_id"}
             columns={[
@@ -188,7 +188,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
           />
         )}
       </div>
-      <CreateObservation observation={observationToEdit} forceOpen={openObservationModaleKey} key={openObservationModaleKey} />
+      <CreateObservation observation={observationToEdit} open={openObservationModale} setOpen={setOpenObservationModale} />
     </>
   );
 };

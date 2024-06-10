@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Formik, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 
@@ -29,10 +29,11 @@ import type { PersonInstance } from "../types/person";
 
 interface CreateObservationProps {
   observation: TerritoryObservationInstance | null;
-  forceOpen?: number;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProps) => {
+const CreateObservation = ({ observation, open, setOpen }: CreateObservationProps) => {
   const [selectedPersons, setSelectedPersons] = useState([]);
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
@@ -42,7 +43,6 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
-  const [open, setOpen] = useState(false);
   const [rencontre, setRencontre] = useState(undefined);
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
   const [rencontresInProgress, setRencontresInProgress] = useState([]);
@@ -55,10 +55,6 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
   }, [rencontres, observation]);
-
-  useEffect(() => {
-    if (forceOpen > 0) setOpen(true);
-  }, [forceOpen]);
 
   const addTerritoryObs = async (obs: TerritoryObservationInstance) => {
     const [error, response] = await tryFetchExpectOk(async () =>
@@ -104,6 +100,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
     <div className="tw-w-full tw-flex tw-justify-end">
       <Formik
         initialValues={observation}
+        key={open ? 0 : 1}
         enableReinitialize
         onSubmit={async (values: TerritoryObservationInstance, actions: FormikHelpers<TerritoryObservationInstance>) => {
           if (!values.team) return toast.error("L'équipe est obligatoire");
