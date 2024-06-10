@@ -53,7 +53,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
   const [sortOrder, setSortOrder] = useLocalStorage("in-observation-rencontre-sortOrder", "ASC");
 
   const rencontresForObs = useMemo(() => {
-    return rencontres?.filter((r) => observation._id && r.observation === observation._id) || [];
+    return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
   }, [rencontres, observation]);
 
   useEffect(() => {
@@ -99,6 +99,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
   };
 
   const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
+
   return (
     <div className="tw-w-full tw-flex tw-justify-end">
       <Formik
@@ -110,20 +111,21 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
           if (values.observedAt && outOfBoundariesDate(values.observedAt))
             return toast.error("La date d'observation est hors limites (entre 1900 et 2100)");
           const body: TerritoryObservationInstance = {
-            ...observation,
+            ...(observation ?? {}),
             observedAt: values.observedAt || dayjsInstance().toDate(),
             team: values.team,
             user: values.user || user._id,
             territory: values.territory,
-            _id: observation._id,
+            _id: observation?._id,
+            organisation: organisation._id,
           };
           for (const customField of customFieldsObs.filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))) {
             body[customField.name] = values[customField.name];
           }
-          const res = observation._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
+          const res = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
           actions.setSubmitting(false);
           if (res.ok) {
-            toast.success(observation._id ? "Observation mise à jour" : "Création réussie !");
+            toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
             setOpen(false);
             if (res.data._id && rencontresInProgress.length > 0) {
               let rencontreSuccess = true;
@@ -148,7 +150,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
       >
         {({ values, handleChange, handleSubmit, isSubmitting }) => (
           <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
-            <ModalHeader title={observation._id ? "Modifier l'observation" : "Créer une nouvelle observation"} />
+            <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} />
             <ModalBody>
               <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
                 <nav className="noprint tw-flex tw-w-full" aria-label="Tabs">
@@ -198,7 +200,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
                         .filter((f) => f)
                         .filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))
                         .map((field) => (
-                          <CustomFieldInput model="observation" values={values} handleChange={handleChange} field={field} key={field.name} />
+                          <CustomFieldInput model="observation" values={values ?? {}} handleChange={handleChange} field={field} key={field.name} />
                         ))}
                     </div>
                   ))}
@@ -332,7 +334,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
                             withTime
                             id="observation-observedat"
                             name="observedAt"
-                            defaultValue={new Date(values.observedAt || values.createdAt)}
+                            defaultValue={new Date(values?.observedAt ?? values?.createdAt)}
                             onChange={handleChange}
                           />
                         </div>
@@ -345,7 +347,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
                           menuPlacement="top"
                           name="team"
                           teams={user.role === "admin" ? teams : user.teams}
-                          teamId={values.team}
+                          teamId={values?.team}
                           onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
                           inputId="observation-select-team"
                           classNamePrefix="observation-select-team"
@@ -361,7 +363,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
                           name="place"
                           onChange={(territory) => handleChange({ currentTarget: { value: territory._id, name: "territory" } })}
                           isClearable={false}
-                          value={territories.find((i) => i._id === values.territory)}
+                          value={territories.find((i) => i._id === values?.territory)}
                           getOptionValue={(i) => i._id}
                           getOptionLabel={(i) => i.name}
                           inputId="observation-select-territory"
@@ -383,7 +385,7 @@ const CreateObservation = ({ observation, forceOpen = 0 }: CreateObservationProp
               >
                 Annuler
               </button>
-              {observation._id ? (
+              {observation?._id ? (
                 <button className="button-destructive !tw-ml-0" onClick={() => onDelete(observation._id)}>
                   Supprimer
                 </button>
