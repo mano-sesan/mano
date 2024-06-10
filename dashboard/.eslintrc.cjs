@@ -4,9 +4,24 @@ module.exports = {
     node: true,
     es2021: true,
   },
+  globals: {
+    React: true,
+    JSX: true,
+    NodeJS: true,
+    Function: true,
+    HTMLInputElement: true,
+  },
   ignorePatterns: ["build", ".eslintrc.cjs"],
   extends: ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended"],
-  overrides: [],
+  overrides: [
+    {
+      files: ["*.jsx", "*.js", "*.ts", "*.tsx"],
+      rules: {
+        "react/no-unescaped-entities": "off",
+        "react/prop-types": "off",
+      },
+    },
+  ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: "latest",
@@ -14,12 +29,12 @@ module.exports = {
   },
   plugins: ["react", "@typescript-eslint"],
   rules: {
-    "react/prop-types": "off",
+    "no-undef": "error",
+    "prefer-const": "off",
     "no-extra-boolean-cast": "warn",
-    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-explicit-any": "off",
     "react/react-in-jsx-scope": "off",
     "react/display-name": "warn",
-    "react/no-unescaped-entities": "warn",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {

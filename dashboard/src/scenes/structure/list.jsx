@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
 import { toast } from "react-toastify";
