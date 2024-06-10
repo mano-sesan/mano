@@ -2,11 +2,7 @@ import { getRecoil, setRecoil } from "recoil-nexus";
 import { HOST, SCHEME } from "../config";
 import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
-import { resetOrgEncryptionKey, setEnableEncrypt } from "./encryption";
-import { AppSentry, capture } from "./sentry";
-import { atom } from "recoil";
-
-export const recoilResetKeyState = atom({ key: "recoilResetKeyState", default: 0 });
+import { capture } from "./sentry";
 
 class Api {
   protected token: string | null = null;
@@ -75,27 +71,20 @@ class Api {
     return this.token;
   }
 
-  reset({ redirect = false }: { redirect?: boolean } = {}) {
-    this.setToken(null);
-    resetOrgEncryptionKey();
-    setEnableEncrypt(false);
-    setRecoil(recoilResetKeyState, Date.now());
-    AppSentry.setUser({});
-    AppSentry.setTag("organisationId", "");
-    if (redirect) {
-      window.location.href = "/auth";
-    }
-  }
-
   async post({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+    // const controller = new AbortController();
+    // const { signal } = controller;
+    // window.addEventListener("beforeunload", () => controller.abort());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "POST",
       body: typeof body === "string" ? body : JSON.stringify(body),
+      // signal,
     });
+    // window.removeEventListener("beforeunload", () => controller.abort());
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.json();
@@ -109,7 +98,7 @@ class Api {
     });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.json();
@@ -123,7 +112,7 @@ class Api {
     });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.json();
@@ -133,7 +122,7 @@ class Api {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.json();
@@ -157,7 +146,7 @@ class Api {
     });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.json();
@@ -167,7 +156,7 @@ class Api {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) {
-      this.reset({ redirect: true });
+      window.location.href = "/auth";
       return;
     }
     return response.blob();
