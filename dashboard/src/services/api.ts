@@ -4,6 +4,13 @@ import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 import { capture } from "./sentry";
 
+class AuthError extends Error {
+  constructor() {
+    super("Connexion expirée");
+    this.name = "AuthError";
+  }
+}
+
 class Api {
   protected token: string | null = null;
 
@@ -72,21 +79,13 @@ class Api {
   }
 
   async post({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
-    // const controller = new AbortController();
-    // const { signal } = controller;
-    // window.addEventListener("beforeunload", () => controller.abort());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "POST",
       body: typeof body === "string" ? body : JSON.stringify(body),
-      // signal,
     });
-    // window.removeEventListener("beforeunload", () => controller.abort());
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
@@ -97,10 +96,7 @@ class Api {
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
@@ -111,20 +107,14 @@ class Api {
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async get({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
@@ -145,20 +135,14 @@ class Api {
       body: formData,
     });
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async download({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
-    if (this.needAuthRedirection(response)) {
-      window.location.href = "/auth";
-      return;
-    }
+    if (this.needAuthRedirection(response)) throw new AuthError();
     return response.blob();
   }
 
@@ -183,7 +167,8 @@ export async function tryFetchBlob<T extends Blob>(callback: FetchCallback<T>): 
     const result = await callback();
     return [undefined, result];
   } catch (error) {
-    capture(error);
+    if (error instanceof AuthError) window.location.href = "/auth";
+    else capture(error);
     return [error, undefined];
   }
 }
@@ -194,7 +179,8 @@ export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>
     if (result && !result.ok) return [new Error(result.error), result];
     return [undefined, result];
   } catch (error) {
-    capture(error);
+    if (error instanceof AuthError) window.location.href = "/auth";
+    else capture(error);
     return [error, undefined];
   }
 }
@@ -208,7 +194,8 @@ export async function tryFetchExpectOk<T extends ApiResponse>(callback: FetchCal
     if (result && result?.ok === false) throw new Error(result.error);
     return [undefined, result];
   } catch (error) {
-    capture(error);
+    if (error instanceof AuthError) window.location.href = "/auth";
+    else capture(error);
     return [error, undefined];
   }
 }
