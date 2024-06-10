@@ -121,10 +121,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             type="button"
             className="button-submit"
             onClick={() => {
-              setObservationToEdit({
-                date: dayjsInstance(period.startDate),
-                observations: [],
-              });
+              setObservationToEdit(undefined);
               setOpenObservationModaleKey((k) => k + 1);
             }}
           >
@@ -191,7 +188,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
           />
         )}
       </div>
-      <CreateObservation observation={observationToEdit} forceOpen={!!openObservationModaleKey} />
+      <CreateObservation observation={observationToEdit} forceOpen={openObservationModaleKey} key={openObservationModaleKey} />
     </>
   );
 };

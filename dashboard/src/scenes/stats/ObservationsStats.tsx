@@ -320,7 +320,7 @@ const SelectedObsModal = ({ open, onClose, observations, territories, title, onA
           </button>
         </ModalFooter>
       </ModalContainer>
-      <CreateObservation observation={observationToEdit} forceOpen={openObservationModaleKey} />
+      <CreateObservation observation={observationToEdit} forceOpen={openObservationModaleKey} key={openObservationModaleKey} />
     </>
   );
 };

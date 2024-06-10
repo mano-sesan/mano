@@ -40,7 +40,7 @@ const List = ({ territory = {} }) => {
         <div>
           <ButtonCustom
             onClick={() => {
-              setObservation({});
+              setObservation(undefined);
               setOpenObservationModale((k) => k + 1);
             }}
             color="primary"
@@ -110,7 +110,11 @@ const List = ({ territory = {} }) => {
           },
         ]}
       />
-      <CreateObservation observation={{ ...observation, territory: observation?.territory || territory?._id }} forceOpen={openObservationModale} />
+      <CreateObservation
+        observation={{ ...observation, territory: observation?.territory || territory?._id }}
+        forceOpen={openObservationModale}
+        key={openObservationModale}
+      />
     </>
   );
 };
