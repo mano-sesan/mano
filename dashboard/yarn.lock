@@ -2806,16 +2806,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/pluginutils@npm:^4.2.1":
-  version: 4.2.1
-  resolution: "@rollup/pluginutils@npm:4.2.1"
-  dependencies:
-    estree-walker: "npm:^2.0.1"
-    picomatch: "npm:^2.2.2"
-  checksum: 3ee56b2c8f1ed8dfd0a92631da1af3a2dfdd0321948f089b3752b4de1b54dc5076701eadd0e5fc18bd191b77af594ac1db6279e83951238ba16bf8a414c64c48
-  languageName: node
-  linkType: hard
-
 "@rollup/rollup-android-arm-eabi@npm:4.14.0":
   version: 4.14.0
   resolution: "@rollup/rollup-android-arm-eabi@npm:4.14.0"
@@ -3534,16 +3524,6 @@ __metadata:
   version: 1.1.4
   resolution: "@types/d3-time@npm:1.1.4"
   checksum: d1dafa4605c10739de216bdf3dfe9c3953e583e849dc5586216525897c96bbbae8972c50e9c11a4c54e700c089914cf7a9764e9806d316a84838ecf9e5c52722
-  languageName: node
-  linkType: hard
-
-"@types/eslint@npm:^8.4.5":
-  version: 8.56.10
-  resolution: "@types/eslint@npm:8.56.10"
-  dependencies:
-    "@types/estree": "npm:*"
-    "@types/json-schema": "npm:*"
-  checksum: 674349d6c342c3864d70f4d5a9965f96fb253801532752c8c500ad6a1c2e8b219e01ccff5dc8791dcb58b5483012c495708bb9f3ff929f5c9322b3da126c15d3
   languageName: node
   linkType: hard
 
@@ -5534,8 +5514,8 @@ __metadata:
     dayjs: "npm:^1.10.7"
     detect-browser: "npm:^5.3.0"
     eslint: "npm:^8.57.0"
-    eslint-plugin-react: "npm:^7.34.2"
-    eslint-plugin-react-hooks: "npm:^4.6.2"
+    eslint-plugin-react: "npm:^7.34.1"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
     fake-indexeddb: "npm:^5.0.2"
     fetch-retry: "npm:^5.0.6"
     fork-ts-checker-webpack-plugin: "npm:^6.5.3"
@@ -5572,7 +5552,6 @@ __metadata:
     validator: "npm:^13.7.0"
     vite: "npm:^5.2.12"
     vite-plugin-checker: "npm:^0.6.4"
-    vite-plugin-eslint: "npm:^1.8.1"
     vite-tsconfig-paths: "npm:^4.3.2"
     web-vitals: "npm:^3.0.0"
   languageName: unknown
@@ -6294,7 +6273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^4.6.2":
+"eslint-plugin-react-hooks@npm:^4.6.0":
   version: 4.6.2
   resolution: "eslint-plugin-react-hooks@npm:4.6.2"
   peerDependencies:
@@ -6303,7 +6282,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.34.2":
+"eslint-plugin-react@npm:^7.34.1":
   version: 7.34.2
   resolution: "eslint-plugin-react@npm:7.34.2"
   dependencies:
@@ -6446,13 +6425,6 @@ __metadata:
   version: 5.3.0
   resolution: "estraverse@npm:5.3.0"
   checksum: 1ff9447b96263dec95d6d67431c5e0771eb9776427421260a3e2f0fdd5d6bd4f8e37a7338f5ad2880c9f143450c9b1e4fc2069060724570a49cf9cf0312bd107
-  languageName: node
-  linkType: hard
-
-"estree-walker@npm:^2.0.1":
-  version: 2.0.2
-  resolution: "estree-walker@npm:2.0.2"
-  checksum: 53a6c54e2019b8c914dc395890153ffdc2322781acf4bd7d1a32d7aedc1710807bdcd866ac133903d5629ec601fbb50abe8c2e5553c7f5a0afdd9b6af6c945af
   languageName: node
   linkType: hard
 
@@ -9614,7 +9586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.2, picomatch@npm:^2.2.3, picomatch@npm:^2.3.0, picomatch@npm:^2.3.1":
+"picomatch@npm:^2.0.4, picomatch@npm:^2.2.1, picomatch@npm:^2.2.3, picomatch@npm:^2.3.0, picomatch@npm:^2.3.1":
   version: 2.3.1
   resolution: "picomatch@npm:2.3.1"
   checksum: 26c02b8d06f03206fc2ab8d16f19960f2ff9e81a658f831ecb656d8f17d9edc799e8364b1f4a7873e89d9702dff96204be0fa26fe4181f6843f040f819dac4be
@@ -10607,20 +10579,6 @@ __metadata:
     hash-base: "npm:^3.0.0"
     inherits: "npm:^2.0.1"
   checksum: f6f0df78817e78287c766687aed4d5accbebc308a8e7e673fb085b9977473c1f139f0c5335d353f172a915bb288098430755d2ad3c4f30612f4dd0c901cd2c3a
-  languageName: node
-  linkType: hard
-
-"rollup@npm:^2.77.2":
-  version: 2.79.1
-  resolution: "rollup@npm:2.79.1"
-  dependencies:
-    fsevents: "npm:~2.3.2"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    rollup: dist/bin/rollup
-  checksum: 421418687f5dcd7324f4387f203c6bfc7118b7ace789e30f5da022471c43e037a76f5fd93837052754eeeae798a4fb266ac05ccee1e594406d912a59af98dde9
   languageName: node
   linkType: hard
 
@@ -11922,20 +11880,6 @@ __metadata:
     vue-tsc:
       optional: true
   checksum: ae61f01b620c458e355ad05ff632e3143312e75c67acdaaa1fe5160d679283364867a4a8d6c6a3f85838f0251033275af96a1aa9b52eed227151cdbca0c996cf
-  languageName: node
-  linkType: hard
-
-"vite-plugin-eslint@npm:^1.8.1":
-  version: 1.8.1
-  resolution: "vite-plugin-eslint@npm:1.8.1"
-  dependencies:
-    "@rollup/pluginutils": "npm:^4.2.1"
-    "@types/eslint": "npm:^8.4.5"
-    rollup: "npm:^2.77.2"
-  peerDependencies:
-    eslint: ">=7"
-    vite: ">=2"
-  checksum: 123c3dcf8229fe2104f139877e866c1a7fc21903dc09f80bebb319a29929667074b9db6d89b3c48eea4740567a07c875d13c4c863ccf7a30a6c9621c74a5c37a
   languageName: node
   linkType: hard
 
