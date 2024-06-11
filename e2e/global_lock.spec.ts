@@ -7,7 +7,7 @@ test.beforeAll(async () => {
 });
 
 test("Try to login and fail", async ({ page }) => {
-  await loginWith(page, "admin1@example.org");
+  await loginWith(page, "admin2@example.org");
   await page.getByRole("button", { name: "Verrouiller/Recharger" }).click();
   await page.getByRole("heading", { name: "Veuillez saisir votre clé de" }).click();
   await expect(page.locator('[data-test-id="lock-modal"]')).toBeVisible();
