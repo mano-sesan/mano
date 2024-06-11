@@ -70,15 +70,15 @@ router.post(
       return next(error);
     }
 
-    const territories = req.body.territoriesToImport.map((p) => {
-      const person = {
-        _id: p._id,
-        encrypted: p.encrypted,
-        encryptedEntityKey: p.encryptedEntityKey,
+    const territories = req.body.territoriesToImport.map((t) => {
+      const territory = {
+        _id: t._id,
+        encrypted: t.encrypted,
+        encryptedEntityKey: t.encryptedEntityKey,
         organisation: req.user.organisation,
         user: req.user._id,
       };
-      return person;
+      return territory;
     });
     await Territory.bulkCreate(territories);
 
