@@ -30,9 +30,8 @@ module.exports = {
   plugins: ["react", "@typescript-eslint"],
   rules: {
     "no-undef": "error",
-    "prefer-const": "off",
     "no-extra-boolean-cast": "warn",
-    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
     "react/react-in-jsx-scope": "off",
     "react/display-name": "warn",
     "@typescript-eslint/no-unused-vars": [
