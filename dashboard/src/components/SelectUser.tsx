@@ -8,16 +8,18 @@ const SelectUser = ({ value, onChange, ...props }) => {
   const allUsers = useRecoilValue(usersState);
 
   const users = search?.length
-    ? allUsers.filter((p) => {
-        if (p.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())) return true;
-        if (p.email.toLocaleLowerCase().includes(search.toLocaleLowerCase())) return true;
-        return false;
-      })
-    : allUsers;
+    ? allUsers
+        .filter((i) => i.name)
+        .filter((p) => {
+          if (p.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())) return true;
+          if (p.email.toLocaleLowerCase().includes(search.toLocaleLowerCase())) return true;
+          return false;
+        })
+    : allUsers.filter((i) => i.name);
 
   return (
     <SelectCustom
-      options={users.filter((i) => i.email || i.name)}
+      options={users}
       name="user"
       inputValue={search}
       onInputChange={setSearch}
@@ -29,7 +31,7 @@ const SelectUser = ({ value, onChange, ...props }) => {
       value={users.filter((i) => i._id === value)[0]}
       placeholder={" -- Choisir un utilisateur -- "}
       getOptionValue={(i) => i._id}
-      getOptionLabel={(i) => i?.name || i?.email}
+      getOptionLabel={(i) => i?.name}
       {...props}
     />
   );

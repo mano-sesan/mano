@@ -643,7 +643,6 @@ router.get(
       for (let user of users) {
         data.push({
           name: user.name,
-          email: user.email,
           _id: user._id,
           lastLoginAt: user.lastLoginAt,
           createdAt: user.createdAt,
