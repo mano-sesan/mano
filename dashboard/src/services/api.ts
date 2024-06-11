@@ -179,10 +179,9 @@ export async function tryFetchBlob<T extends Blob>(callback: FetchCallback<T>): 
   }
 }
 
-export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>, debug?: boolean): Promise<[Error | undefined, T | undefined]> {
+export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>): Promise<[Error | undefined, T | undefined]> {
   try {
     const result = await callback();
-    if (debug) console.log(result);
     if (result && !result.ok) return [new Error(result.error), result];
     return [undefined, result];
   } catch (error) {

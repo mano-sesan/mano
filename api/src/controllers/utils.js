@@ -12,10 +12,11 @@ router.get("/check-auth", passport.authenticate("user", { session: false, failWi
 router.get("/now", passport.authenticate("user", { session: false, failWithError: true }), async (req, res) => {
   const data = Date.now();
   const currentCacheValidationKey = req.query.currentCacheValidationKey;
-  if (currentCacheValidationKey !== "mano_last_refresh_2024_06_11") {
+  if (currentCacheValidationKey !== "mano_last_refresh_2024_06_12") {
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/205
     // The HTTP 205 Reset Content response status tells the client to reset the document view,
     // so for example to clear the content of a form, reset a canvas state, or to refresh the UI.
+    // BUT: on the front-end, we don't read the error with status 205, so we send back 200
     res.status(200).send({ ok: false, error: "Mano a besoin de se rafraichir et de recharger toutes vos données, désolé pour la gène occasionnée" });
     return;
   }
