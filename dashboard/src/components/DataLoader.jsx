@@ -186,9 +186,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     // Get date from server just after getting all the stats
     // We'll set the `lastLoadValue` to this date after all the data is downloaded
-    const [serverDateError, serverDateResponse] = await tryFetchExpectOk(() => {
+    const [serverDateError, serverDateResponse] = await tryFetch(() => {
       return API.get({ path: "/now", query: { currentCacheValidationKey: dashboardCurrentCacheKey } });
-    });
+    }, true);
+    console.log("serverDateResponse", serverDateResponse);
+    console.log("serverDateError", serverDateError);
     if (serverDateError) return resetLoaderOnError(serverDateError);
     const serverDate = serverDateResponse.data;
 
