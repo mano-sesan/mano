@@ -168,7 +168,6 @@ test("Create action with comments", async ({ page }) => {
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   await page.getByRole("button", { name: "Actions et commentaires urgents et vigilance" }).click();
-  debugger;
   await page
     .getByRole("dialog", { name: "Actions urgentes et vigilance" })
     .locator('[data-test-id="action avec commentaire"]')
