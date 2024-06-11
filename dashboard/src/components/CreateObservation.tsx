@@ -98,300 +98,301 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
 
   return (
     <div className="tw-w-full tw-flex tw-justify-end">
-      <Formik
-        initialValues={observation}
-        key={open ? 0 : 1}
-        enableReinitialize
-        onSubmit={async (values: TerritoryObservationInstance, actions: FormikHelpers<TerritoryObservationInstance>) => {
-          if (!values.team) return toast.error("L'équipe est obligatoire");
-          if (!values.territory) return toast.error("Le territoire est obligatoire");
-          if (values.observedAt && outOfBoundariesDate(values.observedAt))
-            return toast.error("La date d'observation est hors limites (entre 1900 et 2100)");
-          const body: TerritoryObservationInstance = {
-            ...(observation ?? {}),
-            observedAt: values.observedAt || dayjsInstance().toDate(),
-            team: values.team,
-            user: values.user || user._id,
-            territory: values.territory,
-            _id: observation?._id,
-            organisation: organisation._id,
-          };
-          for (const customField of customFieldsObs.filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))) {
-            body[customField.name] = values[customField.name];
-          }
-          const res = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
-          actions.setSubmitting(false);
-          if (res.ok) {
-            toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
-            setOpen(false);
-            if (res.data._id && rencontresInProgress.length > 0) {
-              let rencontreSuccess = true;
-              for (const rencontre of rencontresInProgress) {
-                const [error] = await tryFetchExpectOk(async () =>
-                  API.post({
-                    path: "/rencontre",
-                    body: await encryptRencontre({ ...rencontre, observation: res.data._id }),
-                  })
-                );
-                if (error) {
-                  rencontreSuccess = false;
-                }
-              }
-              if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
-              else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
-              await refresh();
+      <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
+        <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} />
+        <Formik
+          initialValues={observation}
+          enableReinitialize
+          onSubmit={async (values: TerritoryObservationInstance, actions: FormikHelpers<TerritoryObservationInstance>) => {
+            if (!values.team) return toast.error("L'équipe est obligatoire");
+            if (!values.territory) return toast.error("Le territoire est obligatoire");
+            if (values.observedAt && outOfBoundariesDate(values.observedAt))
+              return toast.error("La date d'observation est hors limites (entre 1900 et 2100)");
+            const body: TerritoryObservationInstance = {
+              ...(observation ?? {}),
+              observedAt: values.observedAt || dayjsInstance().toDate(),
+              team: values.team,
+              user: values.user || user._id,
+              territory: values.territory,
+              _id: observation?._id,
+              organisation: organisation._id,
+            };
+            for (const customField of customFieldsObs.filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))) {
+              body[customField.name] = values[customField.name];
             }
-            setRencontresInProgress([]);
-          }
-        }}
-      >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => (
-          <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
-            <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} />
-            <ModalBody>
-              <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
-                <nav className="noprint tw-flex tw-w-full" aria-label="Tabs">
-                  <ul className={`tw-w-full tw-list-none tw-flex tw-gap-2 tw-px-3 tw-py-2 tw-border-b tw-border-main tw-border-opacity-20`}>
-                    {fieldsGroupNames.map((name) => (
-                      <li key={name}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab(name);
-                          }}
-                          className={[
-                            activeTab === name ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
-                            "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        >
-                          {groupedCustomFieldsObs.length > 1 ? name : "Informations"}
-                        </button>
-                      </li>
+            const res = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
+            actions.setSubmitting(false);
+            if (res.ok) {
+              toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
+              setOpen(false);
+              if (res.data._id && rencontresInProgress.length > 0) {
+                let rencontreSuccess = true;
+                for (const rencontre of rencontresInProgress) {
+                  const [error] = await tryFetchExpectOk(async () =>
+                    API.post({
+                      path: "/rencontre",
+                      body: await encryptRencontre({ ...rencontre, observation: res.data._id }),
+                    })
+                  );
+                  if (error) {
+                    rencontreSuccess = false;
+                  }
+                }
+                if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
+                else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
+                await refresh();
+              }
+              setRencontresInProgress([]);
+            }
+          }}
+        >
+          {({ values, handleChange, handleSubmit, isSubmitting }) => (
+            <>
+              <ModalBody>
+                <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
+                  <nav className="noprint tw-flex tw-w-full" aria-label="Tabs">
+                    <ul className={`tw-w-full tw-list-none tw-flex tw-gap-2 tw-px-3 tw-py-2 tw-border-b tw-border-main tw-border-opacity-20`}>
+                      {fieldsGroupNames.map((name) => (
+                        <li key={name}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab(name);
+                            }}
+                            className={[
+                              activeTab === name ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                              "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                          >
+                            {groupedCustomFieldsObs.length > 1 ? name : "Informations"}
+                          </button>
+                        </li>
+                      ))}
+                      {organisation.rencontresEnabled && (
+                        <li>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveTab("_rencontres");
+                            }}
+                            className={[
+                              activeTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                              "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
+                            ]
+                              .filter(Boolean)
+                              .join(" ")}
+                          >
+                            Rencontres {currentRencontres?.length > 0 ? `(${currentRencontres.length})` : ""}
+                          </button>
+                        </li>
+                      )}
+                    </ul>
+                  </nav>
+                  <div className="tw-p-4 tw-min-h-[30vh] tw-grow">
+                    {groupedCustomFieldsObs.map((group) => (
+                      <div className="tw-flex tw-flex-row tw-flex-wrap" key={group.name} hidden={group.name !== activeTab}>
+                        {group.fields
+                          .filter((f) => f)
+                          .filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))
+                          .map((field) => (
+                            <CustomFieldInput model="observation" values={values ?? {}} handleChange={handleChange} field={field} key={field.name} />
+                          ))}
+                      </div>
                     ))}
-                    {organisation.rencontresEnabled && (
-                      <li>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab("_rencontres");
-                          }}
-                          className={[
-                            activeTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
-                            "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
-                        >
-                          Rencontres {currentRencontres?.length > 0 ? `(${currentRencontres.length})` : ""}
-                        </button>
-                      </li>
-                    )}
-                  </ul>
-                </nav>
-                <div className="tw-p-4 tw-min-h-[30vh] tw-grow">
-                  {groupedCustomFieldsObs.map((group) => (
-                    <div className="tw-flex tw-flex-row tw-flex-wrap" key={group.name} hidden={group.name !== activeTab}>
-                      {group.fields
-                        .filter((f) => f)
-                        .filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))
-                        .map((field) => (
-                          <CustomFieldInput model="observation" values={values ?? {}} handleChange={handleChange} field={field} key={field.name} />
-                        ))}
-                    </div>
-                  ))}
-                  {activeTab === "_rencontres" ? (
-                    <div>
-                      <div className="tw-flex">
-                        <div className="tw-grow">
-                          <SelectAndCreatePerson
-                            value={selectedPersons}
-                            onChange={onSelectPerson}
-                            inputId="person-select-and-create-reception"
-                            classNamePrefix="person-select-and-create-reception"
-                            showLinkToPerson={false}
-                          />
+                    {activeTab === "_rencontres" ? (
+                      <div>
+                        <div className="tw-flex">
+                          <div className="tw-grow">
+                            <SelectAndCreatePerson
+                              value={selectedPersons}
+                              onChange={onSelectPerson}
+                              inputId="person-select-and-create-reception"
+                              classNamePrefix="person-select-and-create-reception"
+                              showLinkToPerson={false}
+                            />
+                          </div>
+                          <div className="tw-flex tw-justify-end tw-w-32 tw-min-w-32">
+                            <div>
+                              <button
+                                className="button-submit"
+                                onClick={() => {
+                                  setRencontre({
+                                    persons: selectedPersons.map((p) => p._id),
+                                    user: user._id,
+                                    team: team._id,
+                                  });
+                                }}
+                              >
+                                + Rencontre
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="tw-flex tw-justify-end tw-w-32 tw-min-w-32">
+                        <Table
+                          className="Table"
+                          noData="Aucune rencontre n'est associée à cette observation"
+                          onRowClick={(rencontre) => {
+                            if (!rencontre._id) {
+                              // Si c'est une nouvelle rencontre (pas encore sauvegardée), on fait croire que c'est
+                              // comme quand on ajoute une rencontre à la volée quand on l'édite. C'est tordu, mais
+                              // ça me fait gagner du temps.
+                              setRencontre({
+                                ...rencontre,
+                                person: undefined,
+                                persons: [rencontre.person],
+                              });
+                            } else {
+                              setRencontre(rencontre);
+                            }
+                          }}
+                          data={currentRencontres}
+                          rowKey={"_id"}
+                          columns={[
+                            {
+                              title: "Date",
+                              dataKey: "date",
+                              onSortOrder: setSortOrder,
+                              onSortBy: setSortBy,
+                              sortBy,
+                              sortOrder,
+                              render: (rencontre) => {
+                                return (
+                                  <>
+                                    <DateBloc date={rencontre.date} />
+                                    <TimeBlock time={rencontre.date} />
+                                  </>
+                                );
+                              },
+                            },
+                            {
+                              title: "Personne suivie",
+                              dataKey: "person",
+                              onSortOrder: setSortOrder,
+                              onSortBy: setSortBy,
+                              sortBy,
+                              sortOrder,
+                              render: (rencontre) =>
+                                rencontre.person ? <PersonName item={rencontre} /> : <span className="tw-opacity-30 tw-italic">Anonyme</span>,
+                            },
+                            {
+                              title: "Enregistré par",
+                              dataKey: "user",
+                              onSortOrder: setSortOrder,
+                              onSortBy: setSortBy,
+                              sortBy,
+                              sortOrder,
+                              render: (rencontre) => (rencontre.user ? <UserName id={rencontre.user} /> : null),
+                            },
+                            { title: "Commentaire", dataKey: "comment", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
+                            {
+                              title: "Équipe en charge",
+                              dataKey: "team",
+                              render: (rencontre) => <TagTeam teamId={rencontre?.team} />,
+                            },
+                            {
+                              title: "Actions",
+                              dataKey: "actions",
+                              small: true,
+                              render: (rencontre) => {
+                                return !rencontre._id ? (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setRencontresInProgress((rencontresInProgress) =>
+                                        rencontresInProgress.filter((r) => r.person !== rencontre.person)
+                                      );
+                                    }}
+                                    className="button-destructive"
+                                  >
+                                    Retirer
+                                  </button>
+                                ) : null;
+                              },
+                            },
+                          ]}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="tw-p-4">
+                    <div className="tw-flex tw-flex-row tw-flex-wrap">
+                      <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
+                        <hr />
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-flex-row tw-flex-wrap">
+                      <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                        <div className="tw-mb-4">
+                          <label htmlFor="observation-observedat">Observation faite le</label>
                           <div>
-                            <button
-                              className="button-submit"
-                              onClick={() => {
-                                setRencontre({
-                                  persons: selectedPersons.map((p) => p._id),
-                                  user: user._id,
-                                  team: team._id,
-                                });
-                              }}
-                            >
-                              + Rencontre
-                            </button>
+                            <DatePicker
+                              withTime
+                              id="observation-observedat"
+                              name="observedAt"
+                              defaultValue={new Date(values?.observedAt ?? values?.createdAt)}
+                              onChange={handleChange}
+                            />
                           </div>
                         </div>
                       </div>
-                      <Table
-                        className="Table"
-                        noData="Aucune rencontre n'est associée à cette observation"
-                        onRowClick={(rencontre) => {
-                          if (!rencontre._id) {
-                            // Si c'est une nouvelle rencontre (pas encore sauvegardée), on fait croire que c'est
-                            // comme quand on ajoute une rencontre à la volée quand on l'édite. C'est tordu, mais
-                            // ça me fait gagner du temps.
-                            setRencontre({
-                              ...rencontre,
-                              person: undefined,
-                              persons: [rencontre.person],
-                            });
-                          } else {
-                            setRencontre(rencontre);
-                          }
-                        }}
-                        data={currentRencontres}
-                        rowKey={"_id"}
-                        columns={[
-                          {
-                            title: "Date",
-                            dataKey: "date",
-                            onSortOrder: setSortOrder,
-                            onSortBy: setSortBy,
-                            sortBy,
-                            sortOrder,
-                            render: (rencontre) => {
-                              return (
-                                <>
-                                  <DateBloc date={rencontre.date} />
-                                  <TimeBlock time={rencontre.date} />
-                                </>
-                              );
-                            },
-                          },
-                          {
-                            title: "Personne suivie",
-                            dataKey: "person",
-                            onSortOrder: setSortOrder,
-                            onSortBy: setSortBy,
-                            sortBy,
-                            sortOrder,
-                            render: (rencontre) =>
-                              rencontre.person ? <PersonName item={rencontre} /> : <span className="tw-opacity-30 tw-italic">Anonyme</span>,
-                          },
-                          {
-                            title: "Enregistré par",
-                            dataKey: "user",
-                            onSortOrder: setSortOrder,
-                            onSortBy: setSortBy,
-                            sortBy,
-                            sortOrder,
-                            render: (rencontre) => (rencontre.user ? <UserName id={rencontre.user} /> : null),
-                          },
-                          { title: "Commentaire", dataKey: "comment", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
-                          {
-                            title: "Équipe en charge",
-                            dataKey: "team",
-                            render: (rencontre) => <TagTeam teamId={rencontre?.team} />,
-                          },
-                          {
-                            title: "Actions",
-                            dataKey: "actions",
-                            small: true,
-                            render: (rencontre) => {
-                              return !rencontre._id ? (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setRencontresInProgress((rencontresInProgress) =>
-                                      rencontresInProgress.filter((r) => r.person !== rencontre.person)
-                                    );
-                                  }}
-                                  className="button-destructive"
-                                >
-                                  Retirer
-                                </button>
-                              ) : null;
-                            },
-                          },
-                        ]}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-                <div className="tw-p-4">
-                  <div className="tw-flex tw-flex-row tw-flex-wrap">
-                    <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
-                      <hr />
-                    </div>
-                  </div>
-                  <div className="tw-flex tw-flex-row tw-flex-wrap">
-                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="observation-observedat">Observation faite le</label>
-                        <div>
-                          <DatePicker
-                            withTime
-                            id="observation-observedat"
-                            name="observedAt"
-                            defaultValue={new Date(values?.observedAt ?? values?.createdAt)}
-                            onChange={handleChange}
+                      <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                        <div className="tw-mb-4">
+                          <label htmlFor="observation-select-team">Sous l'équipe</label>
+                          <SelectTeam
+                            menuPlacement="top"
+                            name="team"
+                            teams={user.role === "admin" ? teams : user.teams}
+                            teamId={values?.team}
+                            onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
+                            inputId="observation-select-team"
+                            classNamePrefix="observation-select-team"
+                          />
+                        </div>
+                      </div>
+                      <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+                        <div className="tw-mb-4">
+                          <label htmlFor="observation-select-territory">Territoire</label>
+                          <SelectCustom
+                            menuPlacement="top"
+                            options={territories}
+                            name="place"
+                            onChange={(territory) => handleChange({ currentTarget: { value: territory._id, name: "territory" } })}
+                            isClearable={false}
+                            value={territories.find((i) => i._id === values?.territory)}
+                            getOptionValue={(i) => i._id}
+                            getOptionLabel={(i) => i.name}
+                            inputId="observation-select-territory"
+                            classNamePrefix="observation-select-territory"
                           />
                         </div>
                       </div>
                     </div>
-                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="observation-select-team">Sous l'équipe</label>
-                        <SelectTeam
-                          menuPlacement="top"
-                          name="team"
-                          teams={user.role === "admin" ? teams : user.teams}
-                          teamId={values?.team}
-                          onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
-                          inputId="observation-select-team"
-                          classNamePrefix="observation-select-team"
-                        />
-                      </div>
-                    </div>
-                    <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="observation-select-territory">Territoire</label>
-                        <SelectCustom
-                          menuPlacement="top"
-                          options={territories}
-                          name="place"
-                          onChange={(territory) => handleChange({ currentTarget: { value: territory._id, name: "territory" } })}
-                          isClearable={false}
-                          value={territories.find((i) => i._id === values?.territory)}
-                          getOptionValue={(i) => i._id}
-                          getOptionLabel={(i) => i.name}
-                          inputId="observation-select-territory"
-                          classNamePrefix="observation-select-territory"
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <button
-                className="button-cancel"
-                onClick={() => {
-                  setRencontresInProgress([]);
-                  setOpen(false);
-                }}
-              >
-                Annuler
-              </button>
-              {observation?._id ? (
-                <button className="button-destructive !tw-ml-0" onClick={() => onDelete(observation._id)}>
-                  Supprimer
+              </ModalBody>
+              <ModalFooter>
+                <button
+                  className="button-cancel"
+                  onClick={() => {
+                    setRencontresInProgress([]);
+                    setOpen(false);
+                  }}
+                >
+                  Annuler
                 </button>
-              ) : null}
-              <ButtonCustom disabled={isSubmitting} loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} title="Sauvegarder" />
-            </ModalFooter>
-          </ModalContainer>
-        )}
-      </Formik>
+                {observation?._id ? (
+                  <button className="button-destructive !tw-ml-0" onClick={() => onDelete(observation._id)}>
+                    Supprimer
+                  </button>
+                ) : null}
+                <ButtonCustom disabled={isSubmitting} loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} title="Sauvegarder" />
+              </ModalFooter>
+            </>
+          )}
+        </Formik>
+      </ModalContainer>
       {
         // On traite de deux manières différentes la modale de rencontre, en fonction de :
         // - si on est en train d'ajouter une rencontre pour des personnes dans l'observation (les rencontres en devenir)
