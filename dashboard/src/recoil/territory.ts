@@ -5,7 +5,7 @@ import { encryptItem } from "../services/encryption";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import type { TerritoryInstance, ReadyToEncryptTerritoryInstance } from "../types/territory";
-import type { PredefinedField, CustomField, CustomOrPredefinedField, Filter } from "../types/field";
+import type { PredefinedField } from "../types/field";
 
 const collectionName = "territory";
 export const territoriesState = atom<Array<TerritoryInstance>>({

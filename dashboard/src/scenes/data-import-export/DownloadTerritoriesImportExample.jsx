@@ -1,22 +1,10 @@
-import { useRecoilValue } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState } from "../../recoil/auth";
 import { territoriesFields } from "../../recoil/territory";
 
 export default function DownloadTerritoriesImportExample() {
-  const currentTeam = useRecoilValue(currentTeamState);
-
   function placeholder(f) {
     if (f.options?.length) return f.options[0];
-    if (["number"].includes(f.type)) return "3";
-    if (["date", "date-with-time", "duration"].includes(f.type)) return "2021-01-01";
-    if (["boolean", "yes-no"].includes(f.type)) {
-      return "Oui";
-    }
-    if (f.name === "assignedTeams") {
-      return currentTeam.name;
-    }
     return "test";
   }
 
