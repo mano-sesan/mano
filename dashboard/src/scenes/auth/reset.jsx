@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, Redirect, useLocation } from "react-router-dom";
 import ChangePassword from "../../components/ChangePassword";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
@@ -12,6 +12,12 @@ const Reset = () => {
   const newUser = searchParams.get("newUser") === "true";
   const [name, setName] = useState("");
   const [hasError, setHasError] = useState(false);
+
+  const renewLink = useMemo(() => {
+    let path = "/auth/forgot?newLinkRequest=true";
+    if (newUser) path += "&newUser=true";
+    return path;
+  }, [newUser]);
 
   if (!token) return <Redirect to="/" />;
 
@@ -62,7 +68,7 @@ const Reset = () => {
         centerButton
       />
       {hasError && (
-        <Link to="/auth/forgot?new-link-request=true" className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-sm">
+        <Link to={renewLink} className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-sm">
           Demander un nouveau lien de connection
         </Link>
       )}
