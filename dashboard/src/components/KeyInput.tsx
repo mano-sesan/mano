@@ -4,7 +4,6 @@ import { DEFAULT_ORGANISATION_KEY } from "../config";
 // Un faux champ password pour la clé de chiffrement.
 //
 // Limites identifiées actuellement :
-// - Les caractères ^ et ¨ ne sont pas correctement gérés (en gros, tous les caractères qui se font en 2 temps)
 // - Pas de copier/coller (on peut voir ça comme une sécurité)
 // - On ne peut pas déplacer le curseur, il est toujours à la fin.
 const KeyInput = ({
