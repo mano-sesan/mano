@@ -50,12 +50,6 @@ const View = () => {
     setResetForm((form) => ({ ...form, [e.target.name]: e.target.value }));
   };
 
-  const description = useMemo(() => {
-    if (newUser) return "le lien de première connexion";
-    if (newLinkRequest) return "le nouveau lien de réinitialisation du mot de passe";
-    return "le lien de réinitialisation du mot de passe";
-  }, [newLinkRequest, newUser]);
-
   return (
     <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
       <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">
@@ -67,12 +61,16 @@ const View = () => {
       </h1>
       {done ? (
         <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">
-          Si l'adresse de courriel que vous avez saisie correspond effectivement à un compte utilisateur(rice) MANO, alors {description} de ce compte
-          a été envoyé à l'instant à cette adresse.
+          Si l'adresse de courriel que vous avez saisie correspond effectivement à un compte utilisateur(rice) MANO, alors le{" "}
+          {newUser ? "lien de première connexion" : `${newLinkRequest ? "nouveau " : ""}lien de réinitialisation du mot de passe`} de ce compte a été
+          envoyé à l'instant à cette adresse.
         </p>
       ) : (
         <>
-          <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">Entrez votre email ci-dessous pour recevoir {description}.</p>
+          <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">
+            Entrez votre email ci-dessous pour recevoir{" "}
+            {newUser ? "lien de première connexion" : `${newLinkRequest ? "nouveau " : ""}lien de réinitialisation du mot de passe`}.
+          </p>
           <form onSubmit={handleSubmit} method="POST">
             <div className="tw-mb-6">
               <div className="tw-flex tw-flex-col-reverse">
