@@ -26,6 +26,11 @@ const KeyInput = ({
     }
   }, []);
 
+  function setCursorToEnd() {
+    document.getSelection().selectAllChildren(inputRef.current);
+    document.getSelection().collapseToEnd();
+  }
+
   return (
     <div
       id={id}
@@ -53,11 +58,22 @@ const KeyInput = ({
         e.preventDefault();
         // Toute sélection est désactivée, sauf si on a sélectionné tout le texte
         if (document.getSelection().toString().length !== inputRef.current.innerText.length) {
-          document.getSelection().selectAllChildren(inputRef.current);
-          document.getSelection().collapseToEnd();
+          setCursorToEnd();
         }
       }}
+      onCompositionEnd={(e) => {
+        // Gestion des caractères en 2 temps (similaire à l'ajout d'un caractère à la fin).
+        const innerText = (e.target as HTMLElement).innerText;
+        const newValue = value + innerText.slice(-1);
+        onChange(newValue);
+        setValue(newValue);
+        (e.target as HTMLElement).innerText = "•".repeat(newValue.length);
+        setCursorToEnd();
+      }}
       onInput={(e) => {
+        // Cas particulier: Si on est en train de faire une composition (comme ^ + i pour î par exemple), on gère à l'extérieur.
+        if ((e.nativeEvent as InputEvent).isComposing) return;
+
         const innerText = (e.target as HTMLElement).innerText;
         let newValue: string;
 
@@ -78,12 +94,15 @@ const KeyInput = ({
           newValue = "";
         }
 
+        // State interne et envoi de la clé
         onChange(newValue);
         setValue(newValue);
+
+        // Remplacement du texte par des points
         (e.target as HTMLElement).innerText = "•".repeat(newValue.length);
+
         // On déplace le curseur à la fin
-        document.getSelection().selectAllChildren(inputRef.current);
-        document.getSelection().collapseToEnd();
+        setCursorToEnd();
       }}
       autoCorrect="off"
       spellCheck="false"
