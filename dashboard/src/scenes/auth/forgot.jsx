@@ -50,68 +50,59 @@ const View = () => {
     setResetForm((form) => ({ ...form, [e.target.name]: e.target.value }));
   };
 
-  const h1 = useMemo(() => {
-    if (newUser) return "Demander un nouveau lien de première connection";
-    if (newLinkRequest) return "Demander un nouveau lien de réinitialisation du mot de passe";
-    return "Réinitialiser le mot de passe";
-  }, [newLinkRequest, newUser]);
-
   const description = useMemo(() => {
     if (newUser) return "le lien de première connexion";
     if (newLinkRequest) return "le nouveau lien de réinitialisation du mot de passe";
     return "le lien de réinitialisation du mot de passe";
   }, [newLinkRequest, newUser]);
 
-  if (done) {
-    return (
-      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
-        <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{
-          newUser
-            ? "le lien de première connexion"
-            : newLinkRequest
-            ? "le nouveau lien de réinitialisation du mot de passe"
-            : "le lien de réinitialisation du mot de passe"
-        }</h1>
+  return (
+    <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
+      <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">
+        {newUser
+          ? "Demander un nouveau lien de première connexion"
+          : newLinkRequest
+            ? "Demander un nouveau lien de réinitialisation du mot de passe"
+            : "Réinitialiser le mot de passe"}
+      </h1>
+      {done ? (
         <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">
           Si l'adresse de courriel que vous avez saisie correspond effectivement à un compte utilisateur(rice) MANO, alors {description} de ce compte
           a été envoyé à l'instant à cette adresse.
         </p>
-        <p className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-xs tw-text-gray-500">Version&nbsp;: {deploymentCommit}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
-      <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{h1}</h1>
-      <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">Entrez votre email ci-dessous pour recevoir {description}.</p>
-      <form onSubmit={handleSubmit} method="POST">
-        <div className="tw-mb-6">
-          <div className="tw-flex tw-flex-col-reverse">
-            <input
-              name="email"
-              type="email"
-              id="email"
-              className="tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-p-2.5 tw-text-black tw-outline-main tw-transition-all"
-              autoComplete="email"
-              placeholder="Cliquez ici pour entrer votre email"
-              value={resetForm.email}
-              onChange={handleChange}
+      ) : (
+        <>
+          <p className="tw-mb-8 tw-px-8 tw-text-center  tw-text-base tw-text-black50">Entrez votre email ci-dessous pour recevoir {description}.</p>
+          <form onSubmit={handleSubmit} method="POST">
+            <div className="tw-mb-6">
+              <div className="tw-flex tw-flex-col-reverse">
+                <input
+                  name="email"
+                  type="email"
+                  id="email"
+                  className="tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-p-2.5 tw-text-black tw-outline-main tw-transition-all"
+                  autoComplete="email"
+                  placeholder="Cliquez ici pour entrer votre email"
+                  value={resetForm.email}
+                  onChange={handleChange}
+                />
+                <label htmlFor="email">Email </label>
+              </div>
+              {!!showErrors && <p className="tw-text-xs tw-text-red-500">{resetFormErrors.email}</p>}
+            </div>
+            <ButtonCustom
+              loading={isSubmitting}
+              type="submit"
+              color="primary"
+              title="Envoyez un lien"
+              onClick={handleSubmit}
+              className="tw-m-auto !tw-mt-8 !tw-w-56 tw-font-[Helvetica] !tw-text-base tw-font-medium"
             />
-            <label htmlFor="email">Email </label>
-          </div>
-          {!!showErrors && <p className="tw-text-xs tw-text-red-500">{resetFormErrors.email}</p>}
-        </div>
-        <ButtonCustom
-          loading={isSubmitting}
-          type="submit"
-          color="primary"
-          title="Envoyez un lien"
-          onClick={handleSubmit}
-          className="tw-m-auto !tw-mt-8 !tw-w-56 tw-font-[Helvetica] !tw-text-base tw-font-medium"
-        />
-        <p className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-xs tw-text-gray-500">Version&nbsp;: {deploymentCommit}</p>
-      </form>
+          </form>
+        </>
+      )}
+
+      <p className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-xs tw-text-gray-500">Version&nbsp;: {deploymentCommit}</p>
     </div>
   );
 };
