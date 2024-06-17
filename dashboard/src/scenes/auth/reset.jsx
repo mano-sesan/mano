@@ -69,7 +69,7 @@ const Reset = () => {
       />
       {hasError && (
         <Link to={renewLink} className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-sm">
-          Demander un nouveau lien de connection
+          Demander un nouveau lien de connexion
         </Link>
       )}
     </div>
