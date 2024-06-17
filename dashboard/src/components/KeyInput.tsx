@@ -93,6 +93,10 @@ const KeyInput = ({
           newValue = "";
         }
 
+        // Replace non-breaking spaces by normal spaces
+        // eslint-disable-next-line no-irregular-whitespace
+        newValue = newValue.replace(/ /g, " ");
+
         // State interne et envoi de la clé
         onChange(newValue);
         setValue(newValue);
