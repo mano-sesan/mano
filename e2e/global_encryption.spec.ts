@@ -43,7 +43,7 @@ test("test", async ({ page }) => {
       "La clé de chiffrement ne semble pas être correcte, veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
     )
     .click();
-  await page.locator("#orgEncryptionKey").click();
+  await page.locator("#orgEncryptionKey").clear();
   await page.locator("#orgEncryptionKey").pressSequentially("nouvelle assez longue");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.getByRole("link", { name: "Organisation" }).click();
