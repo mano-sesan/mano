@@ -8,9 +8,11 @@ import { DEFAULT_ORGANISATION_KEY } from "../config";
 // - Pas de copier/coller (on peut voir ça comme une sécurité)
 // - On ne peut pas déplacer le curseur, il est toujours à la fin.
 const KeyInput = ({
+  id,
   onChange,
   onPressEnter,
 }: {
+  id: string;
   onChange: (value: string) => void;
   onPressEnter: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 }) => {
@@ -26,6 +28,7 @@ const KeyInput = ({
 
   return (
     <div
+      id={id}
       contentEditable
       ref={inputRef}
       onPaste={(e) => {

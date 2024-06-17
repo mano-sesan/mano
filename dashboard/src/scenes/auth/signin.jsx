@@ -297,7 +297,7 @@ const SignIn = () => {
         {!!showEncryption && (
           <div className="tw-mb-6">
             <div className="tw-flex tw-flex-col-reverse">
-              <KeyInput onChange={handleKeyChange} onPressEnter={handleSubmit} initialValue={signinForm.orgEncryptionKey} />
+              <KeyInput id="orgEncryptionKey" onChange={handleKeyChange} onPressEnter={handleSubmit} initialValue={signinForm.orgEncryptionKey} />
               <label htmlFor="orgEncryptionKey">Clé de chiffrement d'organisation</label>
             </div>
             <p className="tw-text-xs">
