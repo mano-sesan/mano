@@ -36,7 +36,7 @@ test("test", async ({ page }) => {
   await page.getByLabel("Mot de passe").fill("secret");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.locator("#orgEncryptionKey").click();
-  await page.locator("#orgEncryptionKey").fill("plouf");
+  await page.locator("#orgEncryptionKey").pressSequentially("plouf");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page
     .getByText(
@@ -44,7 +44,7 @@ test("test", async ({ page }) => {
     )
     .click();
   await page.locator("#orgEncryptionKey").click();
-  await page.locator("#orgEncryptionKey").fill("nouvelle assez longue");
+  await page.locator("#orgEncryptionKey").pressSequentially("nouvelle assez longue");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.getByRole("link", { name: "Organisation" }).click();
   await page.getByRole("button", { name: "Chiffrement" }).click();
