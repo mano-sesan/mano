@@ -30,6 +30,7 @@ export default function PersonHistory({ person }) {
     return cleanHistory([...personHistory, ...medicalFileHistory]).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [person.history, person.medicalFile?.history, user.healthcareProfessional]);
 
+  console.log("history", history);
   return (
     <div>
       <div className="tw-my-10 tw-flex tw-items-center tw-gap-2">
@@ -103,6 +104,22 @@ export default function PersonHistory({ person }) {
                       return (
                         <p className="tw-flex tw-flex-col" key={key}>
                           <span className="tw-text-main">{formatDateWithFullMonth(value.newValue)}</span>
+                        </p>
+                      );
+                    }
+                    if (key === "outOfTeamsReasons") {
+                      console.log(value);
+                      if (!Array.isArray(value)) return null;
+                      return (
+                        <p className="tw-flex tw-flex-col" key={key}>
+                          Motifs de sortie d'équipe :{" "}
+                          {value.map(({ team, reasons }) => {
+                            return (
+                              <code className="tw-text-main" key={team}>
+                                {teams.find((t) => t._id === team)?.name} : {reasons.join(", ") || "Non renseigné"}
+                              </code>
+                            );
+                          })}
                         </p>
                       );
                     }
