@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Formik, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 
@@ -7,7 +7,7 @@ import SelectTeam from "./SelectTeam";
 import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";
 import CustomFieldInput from "./CustomFieldInput";
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
+import { currentTeamAuthentifiedState, organisationAuthentifiedState, teamsState, userAuthentifiedState } from "../recoil/auth";
 import { territoriesState } from "../recoil/territory";
 import { useRecoilValue } from "recoil";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
@@ -26,6 +26,7 @@ import Table from "./table";
 import { useDataLoader } from "./DataLoader";
 import type { TerritoryObservationInstance } from "../types/territoryObs";
 import type { PersonInstance } from "../types/person";
+import type { RencontreInstance } from "../types/rencontre";
 
 interface CreateObservationProps {
   observation: TerritoryObservationInstance | null;
@@ -34,19 +35,19 @@ interface CreateObservationProps {
 }
 
 const CreateObservation = ({ observation, open, setOpen }: CreateObservationProps) => {
-  const [selectedPersons, setSelectedPersons] = useState([]);
-  const user = useRecoilValue(userState);
+  const [selectedPersons, setSelectedPersons] = useState<Array<PersonInstance>>([]);
+  const user = useRecoilValue(userAuthentifiedState);
   const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const team = useRecoilValue(currentTeamState);
+  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const team = useRecoilValue(currentTeamAuthentifiedState);
   const territories = useRecoilValue(territoriesState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
-  const [rencontre, setRencontre] = useState(undefined);
+  const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
-  const [rencontresInProgress, setRencontresInProgress] = useState([]);
-  const rencontres = useRecoilValue(rencontresState);
+  const [rencontresInProgress, setRencontresInProgress] = useState<Array<RencontreInstance>>([]);
+  const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
 
   const [sortBy, setSortBy] = useLocalStorage("in-observation-rencontre-sortBy", "dueAt");
@@ -89,19 +90,25 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
     }
   };
 
-  const onSelectPerson = (persons: Array<PersonInstance["_id"]>) => {
+  const onSelectPerson = (persons: Array<PersonInstance>) => {
     persons = persons?.filter(Boolean) || [];
     setSelectedPersons(persons);
   };
 
   const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
 
+  const initObs = {
+    user: user._id,
+    team: team._id,
+    observedAt: dayjsInstance().toDate(),
+  };
+
   return (
     <div className="tw-w-full tw-flex tw-justify-end">
       <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
         <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} />
         <Formik
-          initialValues={observation}
+          initialValues={observation ?? initObs}
           enableReinitialize
           onSubmit={async (values: TerritoryObservationInstance, actions: FormikHelpers<TerritoryObservationInstance>) => {
             if (!values.team) return toast.error("L'équipe est obligatoire");
@@ -114,7 +121,6 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
               team: values.team,
               user: values.user || user._id,
               territory: values.territory,
-              _id: observation?._id,
               organisation: organisation._id,
             };
             for (const customField of customFieldsObs.filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))) {
@@ -241,14 +247,16 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
                               setRencontre({
                                 ...rencontre,
                                 person: undefined,
-                                persons: [rencontre.person],
+                                persons: rencontre.person ? [rencontre.person] : [],
+                                user: user._id,
+                                team: team._id,
                               });
                             } else {
                               setRencontre(rencontre);
                             }
                           }}
                           data={currentRencontres}
-                          rowKey={"_id"}
+                          rowKey={"date"}
                           columns={[
                             {
                               title: "Date",
@@ -358,7 +366,7 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
                             menuPlacement="top"
                             options={territories}
                             name="place"
-                            onChange={(territory) => handleChange({ currentTarget: { value: territory._id, name: "territory" } })}
+                            onChange={(territory) => handleChange({ currentTarget: { value: territory?._id, name: "territory" } })}
                             isClearable={false}
                             value={territories.find((i) => i._id === values?.territory)}
                             getOptionValue={(i) => i._id}
@@ -405,9 +413,10 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
               setRencontre(undefined);
               setSelectedPersons([]);
             }}
-            onSave={(rencontres: any) => {
+            onSave={(rencontres: Array<RencontreInstance>) => {
+              if (!rencontres.length) return;
               setRencontresInProgress((rencontresInProgress) => [
-                ...rencontresInProgress.filter((r) => !rencontres.map((e: any) => e.person).includes(r.person)),
+                ...rencontresInProgress.filter((r) => !rencontres.map((e: RencontreInstance) => e.person).includes(r.person)),
                 ...rencontres,
               ]);
             }}
