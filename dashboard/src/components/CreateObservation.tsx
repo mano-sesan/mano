@@ -99,7 +99,7 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
 
   const initObs = {
     user: user._id,
-    team: team._id,
+    team: null,
     observedAt: dayjsInstance().toDate(),
     createdAt: dayjsInstance().toDate(),
     territory: null,
@@ -135,6 +135,7 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
               setOpen(false);
               if (res.data._id && rencontresInProgress.length > 0) {
                 let rencontreSuccess = true;
+                console.log({ rencontresInProgress });
                 for (const rencontre of rencontresInProgress) {
                   const [error] = await tryFetchExpectOk(async () =>
                     API.post({

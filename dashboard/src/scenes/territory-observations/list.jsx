@@ -6,9 +6,9 @@ import { customFieldsObsSelector, territoryObservationsState } from "../../recoi
 import { useRecoilValue } from "recoil";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { formatDateWithFullMonth } from "../../services/date";
+import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
 import UserName from "../../components/UserName";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamAuthentifiedState, userAuthentifiedState } from "../../recoil/auth";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
 
@@ -16,7 +16,8 @@ const List = ({ territory = {} }) => {
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
   const territoryObservations = useRecoilValue(territoryObservationsState);
-  const team = useRecoilValue(currentTeamState);
+  const team = useRecoilValue(currentTeamAuthentifiedState);
+  const user = useRecoilValue(userAuthentifiedState);
   const [observation, setObservation] = useState(undefined);
   const [openObservationModale, setOpenObservationModale] = useState(false);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
@@ -40,7 +41,13 @@ const List = ({ territory = {} }) => {
         <div>
           <ButtonCustom
             onClick={() => {
-              setObservation(undefined);
+              setObservation({
+                user: user._id,
+                team: null,
+                observedAt: dayjsInstance().toDate(),
+                createdAt: dayjsInstance().toDate(),
+                territory: territory?._id,
+              });
               setOpenObservationModale(true);
             }}
             color="primary"
@@ -110,11 +117,7 @@ const List = ({ territory = {} }) => {
           },
         ]}
       />
-      <CreateObservation
-        observation={{ ...observation, territory: observation?.territory || territory?._id }}
-        open={openObservationModale}
-        setOpen={setOpenObservationModale}
-      />
+      <CreateObservation observation={observation} open={openObservationModale} setOpen={setOpenObservationModale} />
     </>
   );
 };

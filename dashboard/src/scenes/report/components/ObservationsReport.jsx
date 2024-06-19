@@ -9,7 +9,7 @@ import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import CreateObservation from "../../../components/CreateObservation";
 import { territoriesState } from "../../../recoil/territory";
 import { dayjsInstance } from "../../../services/date";
-import { currentTeamState, teamsState, usersState } from "../../../recoil/auth";
+import { currentTeamAuthentifiedState, currentTeamState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
 import { customFieldsObsSelector } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 
@@ -60,7 +60,8 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
   const [openObservationModale, setOpenObservationModale] = useState(false);
   const territories = useRecoilValue(territoriesState);
   const teams = useRecoilValue(teamsState);
-  const team = useRecoilValue(currentTeamState);
+  const team = useRecoilValue(currentTeamAuthentifiedState);
+  const user = useRecoilValue(userAuthentifiedState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const users = useRecoilValue(usersState);
 
@@ -121,7 +122,13 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             type="button"
             className="button-submit"
             onClick={() => {
-              setObservationToEdit(undefined);
+              setObservationToEdit({
+                user: user._id,
+                team: null,
+                observedAt: dayjsInstance().toDate(),
+                createdAt: dayjsInstance().toDate(),
+                territory: null,
+              });
               setOpenObservationModale(true);
             }}
           >
