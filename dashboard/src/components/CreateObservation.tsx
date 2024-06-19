@@ -101,6 +101,8 @@ const CreateObservation = ({ observation, open, setOpen }: CreateObservationProp
     user: user._id,
     team: team._id,
     observedAt: dayjsInstance().toDate(),
+    createdAt: dayjsInstance().toDate(),
+    territory: null,
   };
 
   return (
