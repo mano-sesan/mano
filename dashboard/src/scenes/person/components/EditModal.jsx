@@ -25,7 +25,7 @@ import { useDataLoader } from "../../../components/DataLoader";
 import { cleanHistory } from "../../../utils/person-history";
 import { ModalContainer, ModalHeader, ModalBody } from "../../../components/tailwind/Modal";
 
-export default function EditModal({ person, selectedPanel, onClose, isMedicalFile = false }) {
+export default function EditModal({ open, person, selectedPanel, onClose, isMedicalFile = false }) {
   const { refresh } = useDataLoader();
   const [openPanels, setOpenPanels] = useState([selectedPanel]);
   const user = useRecoilValue(userState);
@@ -56,7 +56,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
 
   return (
     <>
-      <ModalContainer open={true} toggle={() => onClose()} size="4xl" backdrop="static">
+      <ModalContainer open={open} toggle={() => onClose()} size="4xl" backdrop="static">
         <ModalHeader title={`Modifier ${person.name}`} />
         <ModalBody>
           <div className="tw-p-4">
