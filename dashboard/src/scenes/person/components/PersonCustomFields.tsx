@@ -24,7 +24,7 @@ export default function PersonCustomFields({ person, sectionName, fields, colspa
   if (!enabledFields.length) return null;
   return (
     <div className="p-3 border tw-min-h-[200px] tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-      <EditModal open={Boolean(editModal)} isMedicalFile={isMedicalFile} person={person} selectedPanel={editModal} onClose={() => setEditModal("")} />
+      {Boolean(editModal) && <EditModal isMedicalFile={isMedicalFile} person={person} selectedPanel={editModal} onClose={() => setEditModal("")} />}
       <div className="tw-flex">
         <h4 className="tw-flex-1 tw-text-xl">{sectionName}</h4>
         <div>
