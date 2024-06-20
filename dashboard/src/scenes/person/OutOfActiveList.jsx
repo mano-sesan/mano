@@ -78,7 +78,7 @@ const OutOfActiveList = ({ person }) => {
       }
     } else {
       const historyEntry = {
-        date: data.outOfActiveListDate,
+        date: new Date(),
         user: user._id,
         data: {
           assignedTeams: {
@@ -89,6 +89,12 @@ const OutOfActiveList = ({ person }) => {
             {
               team: data.team._id,
               reasons: data.outOfActiveListReasons,
+              date: data.outOfActiveListDate,
+            },
+            {
+              team: data.team._id,
+              reasons: data.outOfActiveListReasons,
+              date: data.outOfActiveListDate,
             },
           ],
         },
