@@ -8,7 +8,7 @@ export function InfosMain({ person, isMedicalFile }) {
   const [editModal, setEditModal] = useState(false);
   return (
     <div>
-      <EditModal open={editModal} isMedicalFile={isMedicalFile} person={person} selectedPanel={"main"} onClose={() => setEditModal(false)} />
+      {Boolean(editModal) && <EditModal isMedicalFile={isMedicalFile} person={person} selectedPanel={"main"} onClose={() => setEditModal(false)} />}
       <div
         className={["tw-flex tw-min-h-[350px] tw-items-center !tw-rounded-lg", isMedicalFile ? "!tw-bg-blue-900" : "!tw-bg-main"].join(" ")}
         data-test-id={person._id}
