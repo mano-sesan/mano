@@ -26,6 +26,20 @@ const PersonPlaces = ({ person }) => {
   const [helpModal, setHelpModal] = useState(false);
   const { refresh } = useDataLoader();
 
+  const rencontresByTerritory = useMemo(() => {
+    const res = {};
+    if (!person.rencontres?.length) return res;
+    for (let rencontre of person.rencontres) {
+      if (rencontre.territoryObject) {
+        res[rencontre.territoryObject.name] = res[rencontre.territoryObject.name] || [];
+        res[rencontre.territoryObject.name].push(rencontre);
+      }
+    }
+    // Convert the object to an array of [territoryName, rencontresArray] pairs
+    const sortedEntries = Object.entries(res).sort((a, b) => b[1].length - a[1].length);
+    return sortedEntries;
+  }, [person.rencontres]);
+
   const onDeleteRelPersonPlace = async (relPersonPlace) => {
     if (!window.confirm("Voulez-vous vraiment supprimer ce lieu fréquenté ?")) return;
     setDeleting(true);
@@ -42,7 +56,38 @@ const PersonPlaces = ({ person }) => {
 
   return (
     <>
-      <div className="tw-my-10 tw-flex tw-items-center tw-gap-2">
+      <div className="tw-mb-16">
+        <h3 className="tw-mb-0 tw-flex tw-items-center tw-gap-5 tw-text-xl tw-font-extrabold">
+          Territoires {rencontresByTerritory?.length ? `(${rencontresByTerritory?.length})` : ""}{" "}
+        </h3>
+        {!rencontresByTerritory.length ? (
+          <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-400">
+            <p className="tw-text-lg tw-font-bold">Aucune rencontre liée à un territoire</p>
+            <p className="tw-mt-2 tw-text-sm">
+              Pour ajouter une rencontre liée à un territoire, ajoutez une <b>observation de territoire</b> et sélectionnez l'onglet <b>Rencontres</b>
+              .
+            </p>
+          </div>
+        ) : (
+          <table className="table table-striped table-bordered tw-my-8">
+            <thead className="tw-cursor-default">
+              <tr>
+                <th>Territoires</th>
+                <th>Nombre de rencontres</th>
+              </tr>
+            </thead>
+            <tbody className="small">
+              {rencontresByTerritory.map(([territory, rencontres]) => (
+                <tr key={territory} className="tw-cursor-default">
+                  <td>{territory}</td>
+                  <td className="tw-w-52 tw-text-center tw-text-main tw-font-bold">{rencontres.length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      <div className="tw-my-8 tw-flex tw-items-center tw-gap-2">
         <h3 className="tw-mb-0 tw-flex tw-items-center tw-gap-5 tw-text-xl tw-font-extrabold">
           Lieux fréquentés {person.relsPersonPlace?.length ? `(${person.relsPersonPlace?.length})` : ""}{" "}
           <QuestionMarkButton onClick={() => setHelpModal(true)} />
@@ -57,7 +102,7 @@ const PersonPlaces = ({ person }) => {
         />
       </div>
       {!person.relsPersonPlace?.length ? (
-        <div className="tw-py-10 tw-text-center tw-text-gray-300">
+        <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-400">
           <p className="tw-text-lg tw-font-bold">Cette personne n'a pas encore de lieu fréquenté</p>
           <p className="tw-mt-2 tw-text-sm">
             Pour ajouter un lieu fréquenté par {person.name}, cliquez sur le bouton <span className="tw-font-bold">Ajouter un lieu</span> ci-dessus.
