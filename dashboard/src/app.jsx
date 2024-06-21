@@ -118,9 +118,10 @@ const App = () => {
   const deploymentCommit = useRecoilValue(deploymentCommitState);
   const deploymentDate = useRecoilValue(deploymentDateState);
 
-  if (!user && showOutdateAlertBanner) {
+  if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     window.localStorage.setItem("deploymentDate", deploymentDate);
     window.localStorage.setItem("deploymentCommit", deploymentCommit);
+    window.localStorage.setItem("automaticReload", "true"); //  to prevent infinite loop
     window.location.reload(true);
     return <>Mise-à-jour de l'application</>;
   }
