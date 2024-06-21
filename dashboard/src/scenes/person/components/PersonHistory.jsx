@@ -108,7 +108,6 @@ export default function PersonHistory({ person }) {
                       );
                     }
                     if (key === "outOfTeamsReasons") {
-                      console.log(value);
                       if (!Array.isArray(value)) return null;
                       return (
                         <p className="tw-flex tw-flex-col" key={key}>
