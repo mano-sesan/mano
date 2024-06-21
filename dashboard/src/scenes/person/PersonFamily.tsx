@@ -226,24 +226,27 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
 };
 
 const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
-  const [rootPersonId, setRootPersonId] = useState(null);
+  const [newPersonId, setNewPersonId] = useState(null);
   const persons = useRecoilValue(itemsGroupedByPersonSelector);
-  const group = persons[rootPersonId]?.group as GroupInstance;
+  const newRelationExistingGroup = persons[newPersonId]?.group as GroupInstance;
+  const personExistingGroup = persons[person._id]?.group as GroupInstance;
 
-  const existingFamilyOfNewRelation = group?.persons
-    ?.filter((personId) => personId !== rootPersonId)
+  const existingFamilyOfNewRelation = newRelationExistingGroup?.persons
+    ?.filter((personId) => personId !== newPersonId)
     ?.filter((personId) => personId !== person?._id)
-    .filter((personId) => !!persons[personId]);
+    ?.filter((personId) => !personExistingGroup.persons.includes(personId));
 
-  const alreadyExistingNewRelation = group?.persons?.filter((personId) => personId === person?._id)?.length
-    ? group.relations.find((rel) => rel.persons.includes(rootPersonId) && rel.persons.includes(person._id))
+  const alreadyExistingNewRelation = newRelationExistingGroup?.persons?.filter((personId) => personId === person?._id)?.length
+    ? newRelationExistingGroup.relations.find((rel) => rel.persons.includes(newPersonId) && rel.persons.includes(person._id))
     : null;
 
   return (
     <ModalContainer open={open} size="3xl">
       <ModalHeader
         title={
-          group?.persons?.length > 0 ? `Nouveaux liens familiaux entre ${person.name} et...` : `Nouveau lien familial entre ${person.name} et...`
+          newRelationExistingGroup?.persons?.length > 0
+            ? `Nouveaux liens familiaux entre ${person.name} et...`
+            : `Nouveau lien familial entre ${person.name} et...`
         }
         onClose={() => setOpen(false)}
       />
@@ -259,8 +262,8 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
                 noLabel
                 disableAccessToPerson
                 inputId="person-family-relation"
-                value={rootPersonId}
-                onChange={(e) => setRootPersonId(e.currentTarget.value)}
+                value={newPersonId}
+                onChange={(e) => setNewPersonId(e.currentTarget.value)}
               />
             </div>
             <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
@@ -277,11 +280,11 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
               />
             </div>
           </div>
-          {rootPersonId && alreadyExistingNewRelation && (
+          {newPersonId && alreadyExistingNewRelation && (
             <>
               <hr />
               <p className="tw-text-gray-500 tw-text-sm tw-px-8 tw-m-0 tw-mt-2">
-                <span className="tw-font-bold">{persons[rootPersonId]?.name}</span> a déjà déjà un lien familial avec{" "}
+                <span className="tw-font-bold">{persons[newPersonId]?.name}</span> a déjà déjà un lien familial avec{" "}
                 <span className="tw-font-bold">{person.name}</span>:
               </p>
               <blockquote className="tw-text-gray-500 tw-text-sm tw-ml-8 tw-font-extrabold tw-border-l-2 tw-border-l-gray-200 tw-pl-4 tw-py-4 tw-my-4">
@@ -292,11 +295,11 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
               </p>
             </>
           )}
-          {rootPersonId && !alreadyExistingNewRelation && existingFamilyOfNewRelation?.length && (
+          {newPersonId && !alreadyExistingNewRelation && !!existingFamilyOfNewRelation?.length && (
             <>
               <hr />
               <p className="tw-text-gray-500 tw-text-sm tw-px-8 tw-m-0 tw-mt-2">
-                <span className="tw-font-bold">{persons[rootPersonId]?.name}</span> a déjà des liens familiaux avec d'autres personnes, veuillez aussi
+                <span className="tw-font-bold">{persons[newPersonId]?.name}</span> a déjà des liens familiaux avec d'autres personnes, veuillez aussi
                 renseigner ces relations avec <span className="tw-font-bold">{person.name}</span>
               </p>
               {existingFamilyOfNewRelation?.map((personId) => {
