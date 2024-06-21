@@ -77,7 +77,8 @@ const OutOfActiveList = ({ person }) => {
         toast.success(person.name + " est hors de la file active");
       }
     } else {
-      if (person.assignedTeams.length === 1) {
+      const nextAssignedTeams = person.assignedTeams.filter((team) => team !== data.team);
+      if (nextAssignedTeams.length < 1) {
         return toast.error("Une personne doit être suivie par au moins une équipe");
       }
       const historyEntry = {
@@ -86,7 +87,7 @@ const OutOfActiveList = ({ person }) => {
         data: {
           assignedTeams: {
             oldValue: person.assignedTeams,
-            newValue: person.assignedTeams.filter((team) => team !== data.team),
+            newValue: nextAssignedTeams,
           },
           outOfTeamsInformations: [
             {
