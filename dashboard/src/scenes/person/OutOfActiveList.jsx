@@ -182,7 +182,7 @@ const OutOfActiveList = ({ person }) => {
               </ModalBody>
               <ModalFooter>
                 <ButtonCustom title="Annuler" type="button" onClick={() => setOpen(false)} color="secondary" />
-                <ButtonCustom title="Valider" type="submit" onClick={handleSubmit} color="primary" disabled={isSubmitting} />
+                <ButtonCustom title="Sauvegarder" type="submit" onClick={handleSubmit} color="primary" disabled={isSubmitting} />
               </ModalFooter>
             </React.Fragment>
           )}
