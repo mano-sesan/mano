@@ -105,14 +105,14 @@ const OutOfActiveList = ({ person }) => {
           path: `/person/${person._id}`,
           body: await encryptPerson({
             ...person,
-            assignedTeams: person.assignedTeams.filter((team) => team !== data.team._id),
+            assignedTeams: person.assignedTeams.filter((team) => team !== data.team),
             history,
           }),
         })
       );
       if (!error) {
         await refresh();
-        toast.success(person.name + " est hors de la file active de " + data.team.name);
+        toast.success(person.name + " est hors de la file active de " + teams.find((t) => t._id === data.team)?.name);
       }
     }
 
