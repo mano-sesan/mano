@@ -280,7 +280,7 @@ const MergeTwoPersons = ({ person }) => {
                     ? existingGroups.find((group) => group.persons.includes(personToMergeAndDelete._id) && !group.persons.includes(originPerson._id))
                         ?._id
                     : undefined;
-                const mergedGroup = existingGroups
+                const mergedGroup = existingGroups?.length
                   ? prepareGroupForEncryption(
                       existingGroups.reduce(
                         (newGroup, group) => {
@@ -315,11 +315,6 @@ const MergeTwoPersons = ({ person }) => {
                     )
                   : undefined;
 
-                console.log({
-                  existingGroups,
-                  groupToDeleteId,
-                  mergedGroup,
-                });
                 const mergedConsultations = consultations
                   .filter((consultation) => consultation.person === personToMergeAndDelete._id)
                   .map((consultation) =>
