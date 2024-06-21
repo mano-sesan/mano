@@ -15,6 +15,23 @@ type HistoryEntryForOutOfTeamsInformations = {
 export default function OutOfActiveListBanner({ person }: { person: PersonInstance }) {
   const team = useRecoilValue(currentTeamState);
 
+  if (person.outOfActiveList) {
+    return (
+      <Alert color="warning" className="noprint">
+        {person?.name} est en dehors de la file active de l'organisation
+        {person.outOfActiveListReasons?.length ? (
+          <>
+            , pour {person.outOfActiveListReasons.length > 1 ? "les motifs suivants" : "le motif suivant"} :{" "}
+            <b>{person.outOfActiveListReasons.join(", ")}</b>
+          </>
+        ) : (
+          ""
+        )}{" "}
+        {person.outOfActiveListDate && ` depuis le ${formatDateWithFullMonth(person.outOfActiveListDate)}`}
+      </Alert>
+    );
+  }
+
   const isInSelectedTeam = person.assignedTeams?.some((assignedTeam) => assignedTeam === team._id);
   // On vérifie si la personne est hors de la file active de l'équipe sélectionnée
   if (!isInSelectedTeam && person.history) {
@@ -39,22 +56,5 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
         );
       }
     }
-  }
-
-  if (person.outOfActiveList) {
-    return (
-      <Alert color="warning" className="noprint">
-        {person?.name} est en dehors de la file active
-        {person.outOfActiveListReasons?.length ? (
-          <>
-            , pour {person.outOfActiveListReasons.length > 1 ? "les motifs suivants" : "le motif suivant"} :{" "}
-            <b>{person.outOfActiveListReasons.join(", ")}</b>
-          </>
-        ) : (
-          ""
-        )}{" "}
-        {person.outOfActiveListDate && ` depuis le ${formatDateWithFullMonth(person.outOfActiveListDate)}`}
-      </Alert>
-    );
   }
 }
