@@ -98,7 +98,7 @@ const OutOfActiveList = ({ person }) => {
         },
       };
 
-      const history = [...(cleanHistory(person.history) || []), historyEntry].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const history = [...(cleanHistory(person.history) || []), historyEntry];
 
       const [error] = await tryFetchExpectOk(async () =>
         API.put({
