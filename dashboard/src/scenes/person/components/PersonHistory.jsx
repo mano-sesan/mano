@@ -30,7 +30,6 @@ export default function PersonHistory({ person }) {
     return cleanHistory([...personHistory, ...medicalFileHistory]).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [person.history, person.medicalFile?.history, user.healthcareProfessional]);
 
-  console.log("history", history);
   return (
     <div>
       <div className="tw-my-10 tw-flex tw-items-center tw-gap-2">
