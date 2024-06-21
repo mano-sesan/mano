@@ -4,12 +4,12 @@ import { currentTeamState } from "../../recoil/auth";
 import { useRecoilValue } from "recoil";
 import { PersonInstance } from "../../types/person";
 
-type outOfTeamsReason = {
+type outOfTeamsInformation = {
   team: string;
   reasons: string[];
 };
-type HistoryEntryForOutOfTeamsReasons = {
-  outOfTeamsReasons: outOfTeamsReason[];
+type HistoryEntryForOutOfTeamsInformations = {
+  outOfTeamsInformations: outOfTeamsInformation[];
 };
 
 export default function OutOfActiveListBanner({ person }: { person: PersonInstance }) {
@@ -21,16 +21,16 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
     for (let i = person.history.length - 1; i >= 0; i--) {
       const history = person.history[i];
       if (history.data.assignedTeams?.oldValue?.includes(team._id) && !history.data.assignedTeams?.newValue?.includes(team._id)) {
-        const outOfTeamsReasons = (
-          ((history.data as unknown as HistoryEntryForOutOfTeamsReasons).outOfTeamsReasons || []) as outOfTeamsReason[]
+        const outOfTeamsInformations = (
+          ((history.data as unknown as HistoryEntryForOutOfTeamsInformations).outOfTeamsInformations || []) as outOfTeamsInformation[]
         ).find((reason) => reason.team === team._id);
         return (
           <Alert color="warning" className="noprint">
             {person?.name} est sortie de la file active de l'équipe <b>{team.name}</b> depuis le {formatDateWithFullMonth(history.date)}
-            {outOfTeamsReasons.reasons.length ? (
+            {outOfTeamsInformations?.reasons?.length ? (
               <>
-                , pour {outOfTeamsReasons.reasons?.length > 1 ? "les motifs suivants" : "le motif suivant"} :{" "}
-                <b>{outOfTeamsReasons.reasons?.join(", ")}</b>
+                , pour {outOfTeamsInformations.reasons?.length > 1 ? "les motifs suivants" : "le motif suivant"} :{" "}
+                <b>{outOfTeamsInformations.reasons?.join(", ")}</b>
               </>
             ) : (
               ""

@@ -77,24 +77,21 @@ const OutOfActiveList = ({ person }) => {
         toast.success(person.name + " est hors de la file active");
       }
     } else {
+      if (person.assignedTeams.length === 1) {
+        return toast.error("Une personne doit être suivie par au moins une équipe");
+      }
       const historyEntry = {
         date: new Date(),
         user: user._id,
         data: {
           assignedTeams: {
             oldValue: person.assignedTeams,
-            newValue: person.assignedTeams.filter((team) => team !== data.team._id),
+            newValue: person.assignedTeams.filter((team) => team !== data.team),
           },
-          outOfTeamsReasons: [
+          outOfTeamsInformations: [
             {
-              team: data.team._id,
+              team: data.team,
               reasons: data.outOfActiveListReasons,
-              date: data.outOfActiveListDate,
-            },
-            {
-              team: data.team._id,
-              reasons: data.outOfActiveListReasons,
-              date: data.outOfActiveListDate,
             },
           ],
         },
@@ -144,7 +141,7 @@ const OutOfActiveList = ({ person }) => {
                       <SelectCustom
                         name="team"
                         options={teamsWithAll}
-                        onChange={(value) => handleChange({ currentTarget: { value, name: "team" } })}
+                        onChange={(value) => handleChange({ currentTarget: { value: value._id, name: "team" } })}
                         value={teamsWithAll.find((t) => t._id === values.team)}
                         getOptionValue={(team) => team._id}
                         getOptionLabel={(team) => team.name}
@@ -172,7 +169,12 @@ const OutOfActiveList = ({ person }) => {
                     <div>
                       <label htmlFor="person-birthdate">Date de sortie de file active</label>
                       <div>
-                        <DatePicker id="outOfActiveListDate" defaultValue={values.outOfActiveListDate} onChange={handleChange} />
+                        <DatePicker
+                          disabled={values.team !== "all"}
+                          id="outOfActiveListDate"
+                          defaultValue={values.outOfActiveListDate}
+                          onChange={handleChange}
+                        />
                       </div>
                     </div>
                   </div>
