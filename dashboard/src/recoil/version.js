@@ -24,6 +24,7 @@ export const showOutdateAlertBannerState = selector({
   get: ({ get }) => {
     const deploymentCommit = get(deploymentCommitState);
     const deploymentDate = get(deploymentDateState);
+    if (!deploymentCommit || !deploymentDate) return false;
     return (
       dayjsInstance(deploymentDate).isAfter(dayjsInstance(window.localStorage.getItem("deploymentDate"))) &&
       deploymentCommit !== window.localStorage.getItem("deploymentCommit")

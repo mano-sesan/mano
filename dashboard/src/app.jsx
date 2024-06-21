@@ -41,6 +41,7 @@ import TreatmentModal from "./scenes/person/components/TreatmentModal";
 import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
 import { getHashedOrgEncryptionKey } from "./services/encryption";
+import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./recoil/version";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -112,6 +113,17 @@ const App = () => {
       lifecycle.removeEventListener("statechange", onWindowFocus);
     };
   }, [apiToken, refresh, initialLoadIsDone]);
+
+  const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
+  const deploymentCommit = useRecoilValue(deploymentCommitState);
+  const deploymentDate = useRecoilValue(deploymentDateState);
+
+  if (!user && showOutdateAlertBanner) {
+    window.localStorage.setItem("deploymentDate", deploymentDate);
+    window.localStorage.setItem("deploymentCommit", deploymentCommit);
+    window.location.reload(true);
+    return <>Mise-à-jour de l'application</>;
+  }
 
   return (
     <div className="main-container">
