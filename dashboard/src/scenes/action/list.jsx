@@ -6,7 +6,7 @@ import ActionsCalendar from "../../components/ActionsCalendar";
 import ActionsWeekly from "../../components/ActionsWeekly";
 import SelectCustom from "../../components/SelectCustom";
 import { mappedIdsToLabels, TODO } from "../../recoil/actions";
-import { currentTeamState, teamsState, userState } from "../../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector } from "../../recoil/selectors";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
@@ -67,7 +67,7 @@ const actionsByTeamAndStatusSelector = selectorFamily({
 const consultationsByStatusSelector = selectorFamily({
   key: "consultationsByStatusSelector",
   get:
-    ({ statuses, teamIds, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory }) =>
+    ({ statuses, teamIds, consultationTypes, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory }) =>
     ({ get }) => {
       // On retourne seulement les actions si "Actions sans catégorie" est coché
       if (actionsWithNoCategory) return [];
@@ -84,6 +84,11 @@ const consultationsByStatusSelector = selectorFamily({
         if (statuses.length) {
           if (!statuses.includes(consultation.status)) return false;
         }
+        console.log("ploum", consultationTypes, consultation.type);
+        if (consultationTypes?.length) {
+          console.log("ploum", consultationTypes, consultation.type);
+          if (!consultationTypes.includes(consultation.type)) return false;
+        }
         return true;
       });
       return consultationsByStatus;
@@ -93,16 +98,19 @@ const consultationsByStatusSelector = selectorFamily({
 const dataFilteredBySearchSelector = selectorFamily({
   key: "dataFilteredBySearchSelector",
   get:
-    ({ search, statuses, categories, teamIds, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory, showType }) =>
+    ({ search, statuses, categories, teamIds, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory, showType, consultationTypes }) =>
     ({ get }) => {
       const actions =
         showType === "Actions" || showType === "Actions et consultations"
           ? get(actionsByTeamAndStatusSelector({ statuses, categories, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory }))
           : [];
       // When we filter by category, we don't want to see all consultations.
+      console.log("dataFilteredBySearchSelector", consultationTypes);
       const consultations =
         !categories?.length && (showType === "Consultations" || showType === "Actions et consultations")
-          ? get(consultationsByStatusSelector({ statuses, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory }))
+          ? get(
+              consultationsByStatusSelector({ statuses, consultationTypes, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory })
+            )
           : [];
 
       if (!search) {
@@ -119,6 +127,7 @@ const List = () => {
   const currentTeam = useRecoilValue(currentTeamState);
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
+  const organisation = useRecoilValue(organisationState);
 
   const history = useHistory();
   const [search, setSearch] = useSearchParamState("search", "");
@@ -129,6 +138,7 @@ const List = () => {
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("action-allOrg", false);
   const [viewNoTeamData, setViewNoTeamData] = useLocalStorage("action-noTeam", false);
   const [actionsWithNoCategory, setActionsWithNoCategory] = useLocalStorage("action-noCategory", false);
+  const [consultationTypes, setConsultationTypes] = useLocalStorage("action-consultationTypes", []);
 
   const [showAs, setShowAs] = useLocalStorage("action-showAs", showAsOptions[0]); // calendar, list
   const [showType, setShowType] = useLocalStorage("action-showType", "Actions et consultations"); // actions, consultations, both
@@ -139,6 +149,7 @@ const List = () => {
       statuses,
       categories,
       showType,
+      consultationTypes,
       teamIds: selectedTeamIds,
       viewAllOrganisationData,
       viewNoTeamData,
@@ -158,6 +169,8 @@ const List = () => {
     }
     return true;
   }, [selectedTeams]);
+
+  console.log(organisation.consultations);
 
   return (
     <>
@@ -318,12 +331,13 @@ const List = () => {
                   id="action-select-categories-filter"
                   onChange={(c) => setCategories(c)}
                   values={categories}
-                  isDisabled={!!actionsWithNoCategory}
+                  isDisabled={Boolean(actionsWithNoCategory) || showType === "Consultations"}
                 />
               </div>
               <label htmlFor="actionsWithNoCategory" className="tw-flex tw-items-center tw-text-sm">
                 <input
                   id="actionsWithNoCategory"
+                  disabled={showType === "Consultations"}
                   type="checkbox"
                   className="tw-mr-2"
                   checked={actionsWithNoCategory}
@@ -337,11 +351,20 @@ const List = () => {
                 Filtrer par type de consultation
               </label>
               <div className="tw-w-full">
-                <ActionsCategorySelect
-                  id="action-select-categories-filter"
-                  onChange={(c) => setCategories(c)}
-                  values={categories}
-                  isDisabled={!!actionsWithNoCategory}
+                <SelectCustom
+                  isDisabled={!user.healthcareProfessional || showType === "Actions"}
+                  inputId="action-select-consultation-type-filter"
+                  classNamePrefix="action-select-consultation-type-filter"
+                  options={organisation.consultations.map((e) => ({ value: e.name, label: e.name }))}
+                  name="consultationTypes"
+                  onChange={(s) => setConsultationTypes(s.map((s) => s.value))}
+                  value={
+                    user.healthcareProfessional
+                      ? organisation.consultations.filter((s) => consultationTypes.includes(s.name)).map((e) => ({ value: e.name, label: e.name }))
+                      : []
+                  }
+                  isClearable
+                  isMulti
                 />
               </div>
             </div>
