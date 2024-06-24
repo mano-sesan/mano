@@ -84,9 +84,7 @@ const consultationsByStatusSelector = selectorFamily({
         if (statuses.length) {
           if (!statuses.includes(consultation.status)) return false;
         }
-        console.log("ploum", consultationTypes, consultation.type);
         if (consultationTypes?.length) {
-          console.log("ploum", consultationTypes, consultation.type);
           if (!consultationTypes.includes(consultation.type)) return false;
         }
         return true;
@@ -105,7 +103,6 @@ const dataFilteredBySearchSelector = selectorFamily({
           ? get(actionsByTeamAndStatusSelector({ statuses, categories, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory }))
           : [];
       // When we filter by category, we don't want to see all consultations.
-      console.log("dataFilteredBySearchSelector", consultationTypes);
       const consultations =
         !categories?.length && (showType === "Consultations" || showType === "Actions et consultations")
           ? get(
@@ -169,8 +166,6 @@ const List = () => {
     }
     return true;
   }, [selectedTeams]);
-
-  console.log(organisation.consultations);
 
   return (
     <>
