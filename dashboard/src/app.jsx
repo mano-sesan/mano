@@ -118,7 +118,6 @@ const App = () => {
   const deploymentCommit = useRecoilValue(deploymentCommitState);
   const deploymentDate = useRecoilValue(deploymentDateState);
 
-  console.log({ user, showOutdateAlertBanner }, window.localStorage.getItem("automaticReload"));
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     console.log("automatic force reload 🤖💪🆙");
     window.localStorage.setItem("deploymentDate", deploymentDate);
