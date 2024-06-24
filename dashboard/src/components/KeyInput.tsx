@@ -27,6 +27,7 @@ const KeyInput = ({
     }
     // Focus sur le champ
     inputRef.current.focus();
+    setCursorToEnd();
   }, []);
 
   const isAndroid = () => {
