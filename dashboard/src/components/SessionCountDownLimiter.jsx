@@ -90,6 +90,22 @@ const ReloadModal = ({ open, onSuccess }) => {
   const [encryptionKey, setEncryptionKey] = useState("");
   const organisation = useRecoilValue(organisationState);
 
+  async function handleSubmit(e) {
+    if (e) e.preventDefault();
+    const organisationKey = await setOrgEncryptionKey(encryptionKey.trim());
+    const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+    if (!encryptionIsValid) {
+      toast.error("Clé de chiffrement invalide");
+      setEncryptionKey("");
+      resetOrgEncryptionKey();
+      await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
+      return;
+    }
+
+    await tryFetch(() => API.post({ path: "/user/decrypt-attempt-success" }));
+    onSuccess(false);
+  }
+
   return (
     <ModalContainer
       open={open}
@@ -101,31 +117,13 @@ const ReloadModal = ({ open, onSuccess }) => {
     >
       <ModalHeader title="Veuillez saisir votre clé de chiffrement d'organisation" />
       <ModalBody>
-        <form
-          id="reconnect-encryption-key-form"
-          className="tw-flex tw-flex-col tw-gap-4 tw-px-8 tw-py-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const organisationKey = await setOrgEncryptionKey(encryptionKey.trim());
-            const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
-            if (!encryptionIsValid) {
-              toast.error("Clé de chiffrement invalide");
-              setEncryptionKey("");
-              resetOrgEncryptionKey();
-              await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
-              return;
-            }
-
-            await tryFetch(() => API.post({ path: "/user/decrypt-attempt-success" }));
-            onSuccess(false);
-          }}
-        >
+        <form id="reconnect-encryption-key-form" className="tw-flex tw-flex-col tw-gap-4 tw-px-8 tw-py-4" onSubmit={handleSubmit}>
           <label htmlFor="orgEncryptionKey">Clé de chiffrement d'organisation</label>
           <KeyInput
             id="orgEncryptionKey"
             onChange={setEncryptionKey}
             onPressEnter={() => {
-              document.getElementById("reconnect-encryption-key-form").dispatchEvent(new Event("submit"));
+              handleSubmit();
             }}
           />
         </form>
