@@ -218,8 +218,8 @@ const List = () => {
         </div>
       </div>
       {isDesktop && (
-        <div className="tw-flex tw-flex-wrap tw-rounded-lg -tw-mx-4 tw-mb-8">
-          <div className="tw-px-4 tw-py-8 tw-grid tw-grid-cols-3 tw-w-full tw-items-start tw-gap-4">
+        <div className="-tw-mx-4 tw-px-4 tw-pt-2 tw-pb-4 tw-rounded-lg tw-border tw-border-zinc-100 tw-shadow tw-mb-8">
+          <div className="tw-px-4 tw-grid tw-grid-cols-3 tw-w-full tw-items-start tw-gap-4">
             <div className="tw-flex tw-items-center tw-col-span-3">
               <label htmlFor="search" className="tw-w-24 tw-shrink-0 tw-m-0">
                 Recherche
