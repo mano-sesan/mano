@@ -234,11 +234,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadPersons(page + 1);
-        setPersons(mergeItems(persons, newItems));
+        setPersons(mergeItems(persons, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const personSuccess = await loadPersons(0);
       if (!personSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setPersons(persons.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.groups > 0) {
       let newItems = [];
@@ -252,11 +255,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadGroups(page + 1);
-        setGroups(mergeItems(groups, newItems));
+        setGroups(mergeItems(groups, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const groupsSuccess = await loadGroups(0);
       if (!groupsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setGroups(groups.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.reports > 0) {
       let newItems = [];
@@ -270,11 +276,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadReports(page + 1);
-        setReports(mergeItems(reports, newItems, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+        setReports(mergeItems(reports, newItems, { organisationId: latestOrganisation._id, filterNewItemsFunction: (r) => !!r.team && !!r.date }));
         return true;
       }
       const reportsSuccess = await loadReports(0);
       if (!reportsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setReports(reports.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.passages > 0) {
       let newItems = [];
@@ -288,11 +297,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadPassages(page + 1);
-        setPassages(mergeItems(passages, newItems));
+        setPassages(mergeItems(passages, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const passagesSuccess = await loadPassages(0);
       if (!passagesSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setPassages(passages.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.rencontres > 0) {
       let newItems = [];
@@ -306,11 +318,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadRencontres(page + 1);
-        setRencontres(mergeItems(rencontres, newItems));
+        setRencontres(mergeItems(rencontres, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const rencontresSuccess = await loadRencontres(0);
       if (!rencontresSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setRencontres(rencontres.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.actions > 0) {
       let newItems = [];
@@ -324,11 +339,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadActions(page + 1);
-        setActions(mergeItems(actions, newItems));
+        setActions(mergeItems(actions, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const actionsSuccess = await loadActions(0);
       if (!actionsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setActions(actions.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.territories > 0) {
       let newItems = [];
@@ -342,11 +360,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadTerritories(page + 1);
-        setTerritories(mergeItems(territories, newItems));
+        setTerritories(mergeItems(territories, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const territoriesSuccess = await loadTerritories(0);
       if (!territoriesSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setTerritories(territories.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.places > 0) {
       let newItems = [];
@@ -360,11 +381,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadPlaces(page + 1);
-        setPlaces(mergeItems(places, newItems));
+        setPlaces(mergeItems(places, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const placesSuccess = await loadPlaces(0);
       if (!placesSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setPlaces(places.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.relsPersonPlace > 0) {
       let newItems = [];
@@ -378,11 +402,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadRelPersonPlaces(page + 1);
-        setRelsPersonPlace(mergeItems(relsPersonPlace, newItems));
+        setRelsPersonPlace(mergeItems(relsPersonPlace, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const relsPersonPlacesSuccess = await loadRelPersonPlaces(0);
       if (!relsPersonPlacesSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setRelsPersonPlace(relsPersonPlace.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.territoryObservations > 0) {
       let newItems = [];
@@ -396,11 +423,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadObservations(page + 1);
-        setTerritoryObservations(mergeItems(territoryObservations, newItems));
+        setTerritoryObservations(mergeItems(territoryObservations, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const territoryObservationsSuccess = await loadObservations(0);
       if (!territoryObservationsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setTerritoryObservations(territoryObservations.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.comments > 0) {
       let newItems = [];
@@ -414,11 +444,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadComments(page + 1);
-        setComments(mergeItems(comments, newItems));
+        setComments(mergeItems(comments, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const commentsSuccess = await loadComments(0);
       if (!commentsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setComments(comments.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (stats.consultations > 0) {
       let newItems = [];
@@ -432,11 +465,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadConsultations(page + 1);
-        setConsultations(mergeItems(consultations, newItems, { formatNewItemsFunction: formatConsultation }));
+        setConsultations(mergeItems(consultations, newItems, { organisationId: latestOrganisation._id, formatNewItemsFunction: formatConsultation }));
         return true;
       }
       const consultationsSuccess = await loadConsultations(0);
       if (!consultationsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setConsultations(consultations.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (["admin", "normal"].includes(latestUser.role) && stats.treatments > 0) {
       let newItems = [];
@@ -450,11 +486,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadTreatments(page + 1);
-        setTreatments(mergeItems(treatments, newItems));
+        setTreatments(mergeItems(treatments, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const treatmentsSuccess = await loadTreatments(0);
       if (!treatmentsSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setTreatments(treatments.filter((p) => p.organisation !== latestOrganisation._id));
     }
     if (["admin", "normal"].includes(latestUser.role) && stats.medicalFiles > 0) {
       let newItems = [];
@@ -468,11 +507,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadMedicalFiles(page + 1);
-        setMedicalFiles(mergeItems(medicalFiles, newItems));
+        setMedicalFiles(mergeItems(medicalFiles, newItems, { organisationId: latestOrganisation._id }));
         return true;
       }
       const medicalFilesSuccess = await loadMedicalFiles(0);
       if (!medicalFilesSuccess) return false;
+    } else if (isStartingInitialLoad) {
+      // make sure to remove all data from any other organisation
+      setMedicalFiles(medicalFiles.filter((p) => p.organisation !== latestOrganisation._id));
     }
 
     setIsLoading(false);
@@ -524,13 +566,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   };
 }
 
-export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, filterNewItemsFunction } = {}) {
+export function mergeItems(oldItems, newItems = [], { organisationId, formatNewItemsFunction, filterNewItemsFunction } = {}) {
   const newItemsCleanedAndFormatted = [];
   const newItemIds = {};
 
   for (const newItem of newItems) {
     newItemIds[newItem._id] = true;
     if (newItem.deletedAt) continue;
+    // make sure to remove all data from any other organisation
+    if (newItem.organisation !== organisationId) continue;
     if (filterNewItemsFunction) {
       if (!filterNewItemsFunction(newItem)) continue;
     }
@@ -544,6 +588,8 @@ export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, fi
   const oldItemsPurged = [];
   for (const oldItem of oldItems) {
     if (oldItem.deletedAt) continue;
+    // make sure to remove all data from any other organisation
+    if (oldItem.organisation !== organisationId) continue;
     if (!newItemIds[oldItem._id]) {
       oldItemsPurged.push(oldItem);
     }
