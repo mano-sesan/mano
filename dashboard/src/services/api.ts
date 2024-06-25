@@ -3,6 +3,7 @@ import { HOST, SCHEME } from "../config";
 import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 import { capture } from "./sentry";
+import fetchRetry from "fetch-retry";
 
 class AuthError extends Error {
   constructor() {
@@ -112,7 +113,12 @@ class Api {
   }
 
   async get({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
-    const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
+    const response = await fetchRetry(fetch)(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
+      ...this.fetchParams(),
+      method: "GET",
+      retries: 3,
+      retryDelay: 5000,
+    });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
