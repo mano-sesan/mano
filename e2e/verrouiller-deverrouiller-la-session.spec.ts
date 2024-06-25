@@ -20,7 +20,9 @@ test("Verrouiller et déverrouiller la session", async ({ page }) => {
   await page.getByText("Clé de chiffrement invalide").click();
   // On efface la clé (todo: trouver un moyen pour qu'elle s'efface quand ça fail)
   await page.locator("#orgEncryptionKey").clear();
-  await page.locator("#orgEncryptionKey").pressSequentially("encore raté");
+  // D'après la documentation de playwright, pressSequentially ne fonctionne pas avec des caractères non US
+  // Donc on ne peut pas tester avec "é" par exemple.
+  await page.locator("#orgEncryptionKey").pressSequentially("encore rate");
   await page.getByRole("button", { name: "Se reconnecter" }).click();
   await page.getByText("Clé de chiffrement invalide").click();
   await page.locator("#orgEncryptionKey").clear();
