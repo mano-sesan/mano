@@ -46,6 +46,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
   const isNew = !rencontre?._id;
   const isForPerson = !!rencontre?.person;
   const showMultiSelect = isNew && !isForPerson;
+  const canEdit = !rencontre?.user || user._id === rencontre?.user;
 
   return (
     <>
@@ -169,6 +170,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                             value={values.comment}
                             rows={7}
                             onChange={handleChange}
+                            disabled={!canEdit}
                           />
                         </div>
                       </FormGroup>

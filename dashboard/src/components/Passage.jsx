@@ -46,6 +46,7 @@ const Passage = ({ passage, personId, onFinished }) => {
   const isNew = !passage?._id;
   const isForPerson = !!passage?.person;
   const showMultiSelect = isNew && !isForPerson;
+  const canEdit = !passage?.user || user._id === passage?.user;
 
   return (
     <>
@@ -190,6 +191,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                             value={values.comment}
                             rows={7}
                             onChange={handleChange}
+                            disabled={!canEdit}
                           />
                         </div>
                       </FormGroup>
