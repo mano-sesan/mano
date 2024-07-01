@@ -119,6 +119,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
     newActionInitialState(organisation?._id, personId, user?._id, dueAt, completedAt, teams, isMulti, personIds)
   );
   const [isEditing, setIsEditing] = useState(!action);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialState = useMemo(() => {
     if (action) {
@@ -149,13 +150,19 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
 
     body.name = body.name.trim();
 
-    if (!body.name.trim()?.length && !body.categories.length) return toast.error("L'action doit avoir au moins un nom ou une catégorie");
-    if (!body.teams?.length) return toast.error("Une action doit être associée à au moins une équipe");
-    if (!isMulti && !body.person) return toast.error("La personne suivie est obligatoire");
-    if (isMulti && !body.person?.length) return toast.error("Une personne suivie est obligatoire");
-    if (!body.dueAt) return toast.error("La date d'échéance est obligatoire");
-    if (outOfBoundariesDate(body.dueAt)) return toast.error("La date d'échéance est hors limites (entre 1900 et 2100)");
-    if (body.completedAt && outOfBoundariesDate(body.completedAt)) return toast.error("La date de complétion est hors limites (entre 1900 et 2100)");
+    try {
+      if (!body.name.trim()?.length && !body.categories.length) throw new Error("L'action doit avoir au moins un nom ou une catégorie");
+      if (!body.teams?.length) throw new Error("Une action doit être associée à au moins une équipe");
+      if (!isMulti && !body.person) throw new Error("La personne suivie est obligatoire");
+      if (isMulti && !body.person?.length) throw new Error("Une personne suivie est obligatoire");
+      if (!body.dueAt) throw new Error("La date d'échéance est obligatoire");
+      if (outOfBoundariesDate(body.dueAt)) throw new Error("La date d'échéance est hors limites (entre 1900 et 2100)");
+      if (body.completedAt && outOfBoundariesDate(body.completedAt)) throw new Error("La date de complétion est hors limites (entre 1900 et 2100)");
+    } catch (e) {
+      toast.error(e.message);
+      setIsSubmitting(false);
+      return false;
+    }
 
     if ([DONE, CANCEL].includes(body.status)) {
       body.completedAt = body.completedAt || new Date();
@@ -188,6 +195,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         })
       );
       if (actionError) {
+        setIsSubmitting(false);
         toast.error("Erreur lors de la mise à jour de l'action, les données n'ont pas été sauvegardées.");
         return false;
       }
@@ -213,6 +221,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
           })
         );
         if (actionError) {
+          setIsSubmitting(false);
           toast.error("Erreur lors de la duplication de l'action, les données n'ont pas été sauvegardées.");
           return;
         }
@@ -234,7 +243,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         searchParams.set("actionId", actionReponse.data._id);
         history.replace(`?${searchParams.toString()}`);
       }
-
+      setIsSubmitting(false);
       toast.success("Mise à jour !");
     } else {
       let actionsId = [];
@@ -253,6 +262,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
           })
         );
         if (actionError) {
+          setIsSubmitting(false);
           toast.error("Erreur lors de la création des action, les données n'ont pas été sauvegardées.");
           return false;
         }
@@ -265,6 +275,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
           })
         );
         if (actionError) {
+          setIsSubmitting(false);
           toast.error("Erreur lors de la création de l'action, les données n'ont pas été sauvegardées.");
           capture("error creating single action", { extra: { actionResponse } });
           return false;
@@ -282,12 +293,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
               })
             );
             if (actionError) {
+              setIsSubmitting(false);
               toast.error("Erreur lors de la création du commentaire, l'action a été sauvegardée mais pas les commentaires.");
               return false;
             }
           }
         }
       }
+      setIsSubmitting(false);
       toast.success("Création réussie !");
     }
     if (closeOnSubmit) onClose();
@@ -377,6 +390,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             id="add-action-form"
             onSubmit={(e) => {
               e.preventDefault();
+              setIsSubmitting(true);
               handleSubmit({ closeOnSubmit: true });
             }}
           >
@@ -741,8 +755,8 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
           </button>
         )}
         {(isEditing || canSave) && (
-          <button title="Sauvegarder cette action" type="submit" className="button-submit" form="add-action-form" disabled={!canEdit}>
-            Sauvegarder
+          <button title="Sauvegarder cette action" type="submit" className="button-submit" form="add-action-form" disabled={!canEdit || isSubmitting}>
+            {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
           </button>
         )}
         {!isEditing && (
