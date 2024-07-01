@@ -48,7 +48,13 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
 
   if (!canEdit) {
     return (
-      <ModalContainer open={!!open && !!rencontre} onClose={() => setOpen(false)} size="3xl" onAfterLeave={onFinished}>
+      <ModalContainer
+        dataTestId="modal-rencontre-read-only"
+        open={!!open && !!rencontre}
+        onClose={() => setOpen(false)}
+        size="3xl"
+        onAfterLeave={onFinished}
+      >
         <ModalHeader onClose={() => setOpen(false)} title={`Rencontre de ${personsObject[rencontre.person]?.name}`} />
         <ModalBody className="tw-px-4 tw-py-2">
           <div className="tw-flex tw-w-full tw-flex-col tw-gap-6">
@@ -95,7 +101,13 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
   }
 
   return (
-    <ModalContainer open={!!open && !!rencontre} onClose={() => setOpen(false)} size="3xl" onAfterLeave={onFinished}>
+    <ModalContainer
+      dataTestId="modal-rencontre-create-edit-delete"
+      open={!!open && !!rencontre}
+      onClose={() => setOpen(false)}
+      size="3xl"
+      onAfterLeave={onFinished}
+    >
       <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un rencontre" : "Éditer le rencontre"} />
       <Formik
         initialValues={{

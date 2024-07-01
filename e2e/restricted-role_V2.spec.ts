@@ -188,10 +188,8 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passage enregistré !").click();
   await page.getByText("passage a voir par restricted").click();
-  // poas possible de modifier un passage écrit par un autre que soi
-  // await page.getByRole("dialog").getByLabel("Commentaire", { exact: true }).fill("peut modifier le passage");
-  // await page.getByRole("button", { name: "Enregistrer" }).click();
-  // await page.getByText("Passage mis à jour").click();
+  await expect(page.locator(`[data-test-id="modal-passage-read-only"]`).getByRole("button", { name: "Modifier", exact: true })).toBeDisabled();
+  await page.locator(`[data-test-id="modal-passage-read-only"]`).getByRole("button", { name: "Fermer", exact: true }).first().click();
 
   await page.getByRole("link", { name: "Territoires" }).click();
   await page.getByRole("link", { name: "Comptes rendus" }).click();

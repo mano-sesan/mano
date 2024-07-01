@@ -47,7 +47,13 @@ const Passage = ({ passage, personId, onFinished }) => {
 
   if (!canEdit) {
     return (
-      <ModalContainer open={!!open && !!passage} onClose={() => setOpen(false)} size="3xl" onAfterLeave={onFinished}>
+      <ModalContainer
+        dataTestId="modal-passage-read-only"
+        open={!!open && !!passage}
+        onClose={() => setOpen(false)}
+        size="3xl"
+        onAfterLeave={onFinished}
+      >
         <ModalHeader onClose={() => setOpen(false)} title={`Passage de ${personsObject[passage.person]?.name}`} />
         <ModalBody className="tw-px-4 tw-py-2">
           <div className="tw-flex tw-w-full tw-flex-col tw-gap-6">
@@ -94,7 +100,13 @@ const Passage = ({ passage, personId, onFinished }) => {
   }
 
   return (
-    <ModalContainer open={!!open && !!passage} onClose={() => setOpen(false)} size="3xl" onAfterLeave={onFinished}>
+    <ModalContainer
+      dataTestId="modal-passage-create-edit-delete"
+      open={!!open && !!passage}
+      onClose={() => setOpen(false)}
+      size="3xl"
+      onAfterLeave={onFinished}
+    >
       <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
       <Formik
         initialValues={{ date: new Date(), ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
