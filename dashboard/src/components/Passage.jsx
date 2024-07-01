@@ -141,7 +141,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                             <input
                               type="checkbox"
                               id="create-anonymous-passages"
-                              style={{ marginRight: "0.5rem" }}
+                              className="tw-mr-2"
                               name="anonymous"
                               checked={values.anonymous}
                               onChange={() => handleChange({ target: { value: !values.anonymous, name: "anonymous" } })}
@@ -156,7 +156,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                       <FormGroup>
                         <Label htmlFor="date">Date</Label>
                         <div>
-                          <DatePicker withTime id="date" defaultValue={values.date} onChange={handleChange} />
+                          <DatePicker disabled={!canEdit} withTime id="date" defaultValue={values.date} onChange={handleChange} />
                         </div>
                       </FormGroup>
                     </Col>
@@ -176,7 +176,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                         ) : showMultiSelect ? (
                           <SelectPerson value={values.persons} onChange={handleChange} isClearable isMulti name="persons" />
                         ) : (
-                          <SelectPerson value={values.person} onChange={handleChange} />
+                          <SelectPerson isDisabled={!canEdit} value={values.person} onChange={handleChange} />
                         )}
                       </FormGroup>
                     </Col>
@@ -202,6 +202,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                         <SelectUser
                           inputId="update-passage-user-select"
                           value={values.user || user._id}
+                          isDisabled={!canEdit}
                           onChange={(userId) => handleChange({ target: { value: userId, name: "user" } })}
                         />
                       </FormGroup>
@@ -212,6 +213,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                         <SelectTeam
                           teams={user.role === "admin" ? teams : user.teams}
                           teamId={values.team}
+                          isDisabled={!canEdit}
                           onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
                           inputId="update-passage-team-select"
                         />
@@ -220,8 +222,8 @@ const Passage = ({ passage, personId, onFinished }) => {
                   </Row>
                   <br />
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
-                    {!isNew && <ButtonCustom title="Supprimer" type="button" color="danger" onClick={onDeletePassage} />}
-                    <ButtonCustom title="Enregistrer" loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} />
+                    {!isNew && <ButtonCustom disabled={!canEdit} title="Supprimer" type="button" color="danger" onClick={onDeletePassage} />}
+                    <ButtonCustom disabled={!canEdit} title="Enregistrer" loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} />
                   </div>
                 </React.Fragment>
               );

@@ -139,7 +139,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                       <FormGroup>
                         <Label htmlFor="date">Date</Label>
                         <div>
-                          <DatePicker withTime id="date" defaultValue={values.date} onChange={handleChange} />
+                          <DatePicker withTime id="date" disabled={!canEdit} defaultValue={values.date} onChange={handleChange} />
                         </div>
                       </FormGroup>
                     </Col>
@@ -155,7 +155,12 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                             name="persons"
                           />
                         ) : (
-                          <SelectPerson disableAccessToPerson={disableAccessToPerson} value={values.person} onChange={handleChange} />
+                          <SelectPerson
+                            isDisabled={!canEdit}
+                            disableAccessToPerson={disableAccessToPerson}
+                            value={values.person}
+                            onChange={handleChange}
+                          />
                         )}
                       </FormGroup>
                     </Col>
@@ -181,6 +186,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                         <SelectUser
                           inputId="update-rencontre-user-select"
                           value={values.user || user._id}
+                          isDisabled={!canEdit}
                           onChange={(userId) => handleChange({ target: { value: userId, name: "user" } })}
                         />
                       </FormGroup>
@@ -191,6 +197,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                         <SelectTeam
                           teams={user.role === "admin" ? teams : user.teams}
                           teamId={values.team}
+                          isDisabled={!canEdit}
                           onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
                           inputId="update-rencontre-team-select"
                         />
@@ -199,8 +206,8 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                   </Row>
                   <br />
                   <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
-                    {!isNew && <ButtonCustom title="Supprimer" type="button" color="danger" onClick={onDeleteRencontre} />}
-                    <ButtonCustom title="Enregistrer" loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} />
+                    {!isNew && <ButtonCustom disabled={!canEdit} title="Supprimer" type="button" color="danger" onClick={onDeleteRencontre} />}
+                    <ButtonCustom disabled={!canEdit} title="Enregistrer" loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} />
                   </div>
                 </React.Fragment>
               );
