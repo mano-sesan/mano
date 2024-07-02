@@ -34,7 +34,6 @@ function getPersonTeamHistory(changes: Array<PersonHistoryEntry>, creationDate: 
     for (const team of oldTeams) {
       if (!newTeams.includes(team)) {
         if (teamHistory[team] && !teamHistory[team].endDate) {
-          teamHistory[team].endDate = date;
           result.push({ team, startDate: teamHistory[team].startDate, endDate: new Date(date).toISOString() });
           delete teamHistory[team];
         }
@@ -67,7 +66,8 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
   const globalEndDate = new Date(Math.max(...data.map((item) => new Date(item.endDate).getTime())));
   const totalDuration = globalEndDate.getTime() - globalStartDate.getTime();
 
-  const calculatePosition = (startDate: Date | string, endDate: Date | string, totalWidth: number) => {
+  const calculatePosition = (startDate, endDate) => {
+    const totalWidth = 800;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const startOffset = start.getTime() - globalStartDate.getTime();
@@ -77,38 +77,43 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
     return { width, position };
   };
 
+  let hasSkipped = false;
   const groupedData = data.reduce((acc, item) => {
+    const { width, position } = calculatePosition(item.startDate, item.endDate);
+    // Ne pas afficher les éléments trop courts (10px minimum)
+    if (width < 10) {
+      hasSkipped = true;
+      return acc;
+    }
     if (!acc[item.team]) {
       acc[item.team] = [];
     }
-    acc[item.team].push(item);
+    const teamIndex = teams.findIndex((t) => t._id === item.team);
+    acc[item.team].push({
+      ...item,
+      width,
+      position,
+      backgroundColor: teamsColors[teamIndex % teamsColors.length],
+      borderColor: borderColors[teamIndex % borderColors.length],
+    });
+
     return acc;
   }, {});
 
+  const sortedGroupedData = Object.values<Array<TeamHistorySlice>>(groupedData).sort((v: Array<TeamHistorySlice>) => {
+    const oldestStartDateA = Math.min(...v.map((item) => new Date(item.startDate).getTime()));
+    const oldestStartDateB = Math.min(...v.map((item) => new Date(item.startDate).getTime()));
+    return oldestStartDateA - oldestStartDateB;
+  });
+
   const dataForDisplay = [];
   let lineIndex = 0;
-  let hasSkipped = false;
 
-  for (const teamId in groupedData) {
-    let found = false;
-    for (const item of groupedData[teamId]) {
-      const teamIndex = teams?.findIndex((t) => t._id === item.team);
-      const { width, position } = calculatePosition(item.startDate, item.endDate, 800);
-      if (width < 10) {
-        hasSkipped = true;
-        continue; // Ne pas afficher les éléments trop courts (10px minimum)
-      }
-      found = true;
-      dataForDisplay.push({
-        ...item,
-        width,
-        position,
-        top: lineIndex * 38,
-        backgroundColor: teamsColors[teamIndex % teamsColors?.length],
-        borderColor: borderColors[teamIndex % borderColors?.length],
-      });
+  for (const values of sortedGroupedData) {
+    for (const item of values) {
+      dataForDisplay.push({ ...item, top: lineIndex * 38 });
     }
-    if (found) lineIndex++;
+    lineIndex++;
   }
 
   if (dataForDisplay.length === 0) return null;
