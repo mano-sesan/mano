@@ -90,13 +90,32 @@ export const itemsGroupedByPersonSelector = selector({
     const allTeams = get(teamsState);
     const allTeamIds = allTeams.map((t) => t._id);
     const usersObject = get(usersObjectSelector);
+    const today = startOfToday().toISOString();
     for (const person of persons) {
       let latestTeamFilteringItem = {
-        date: startOfToday().toISOString(),
+        date: today,
         assignedTeams: person.assignedTeams?.length ? person.assignedTeams : allTeamIds,
         outOfActiveList: person.outOfActiveList, // organisation level
         def: "today",
       };
+      // assignedTeamsPeriods
+      // final format example, after looping the whole history: { teamIdA: [{ endDate: startDate: }, { endDate: startDate: }] }
+      // current format: { teamIdA: [{ endDate: now,  startDate: undefined }] }
+      const assignedTeamsPeriods = person.assignedTeams.reduce(
+        (acc, teamId) => {
+          acc[teamId] = [{ isoEndDate: dayjsInstance().toISOString(), isoStartDate: undefined }];
+          return acc;
+        },
+        {
+          all: [
+            {
+              isoEndDate: dayjsInstance().toISOString(),
+              isoStartDate: dayjsInstance(person.followedSince || person.createdAt),
+            },
+          ],
+        }
+      );
+      let oldestTeams = person.assignedTeams;
       personsObject[person._id] = {
         ...person,
         followedSince: person.followedSince || person.createdAt,
@@ -114,26 +133,34 @@ export const itemsGroupedByPersonSelector = selector({
         forTeamFiltering: [latestTeamFilteringItem],
       };
       if (person.history?.length) {
-        for (const historyEntry of person.history) {
+        // history is sorted by date from the oldest to the newest (ascending order)
+        // we want to loop it from the newest to the oldest (descending order)
+        for (let i = person.history.length - 1; i >= 0; i--) {
+          const historyEntry = person.history[i];
           personsObject[person._id].interactions.push(historyEntry.date);
           if (historyEntry.data.assignedTeams) {
-            let nextTeamFilteringItem = {
-              date: dayjsInstance(historyEntry.date).startOf("day").toISOString(),
-              assignedTeams: historyEntry.data.assignedTeams.newValue?.length ? historyEntry.data.assignedTeams.newValue : allTeamIds,
-              outOfActiveList: latestTeamFilteringItem.outOfActiveList,
-              def: "change-teams",
-            };
-            latestTeamFilteringItem = nextTeamFilteringItem;
-            personsObject[person._id].forTeamFiltering.push(nextTeamFilteringItem);
+            const currentTeams = historyEntry.data.assignedTeams.newValue || allTeamIds;
+            const previousTeams = historyEntry.data.assignedTeams.oldValue || allTeamIds;
+            const newlyAddedTeams = currentTeams.filter((t) => !previousTeams.includes(t));
+            const removedTeams = previousTeams.filter((t) => !currentTeams.includes(t));
+            for (const teamId of newlyAddedTeams) {
+              assignedTeamsPeriods[teamId] = assignedTeamsPeriods[teamId].map((period) => {
+                if (period.startDate) return period;
+                return { ...period, isoStartDate: dayjsInstance(historyEntry.date).toISOString() };
+              });
+            }
+            for (const teamId of removedTeams) {
+              if (!assignedTeamsPeriods[teamId]) assignedTeamsPeriods[teamId] = [];
+              assignedTeamsPeriods[teamId].unshift({ isoEndDate: dayjsInstance(historyEntry.date).toISOString() });
+            }
+            oldestTeams = previousTeams;
           }
         }
       }
-      personsObject[person._id].forTeamFiltering.push({
-        date: person.createdAt,
-        assignedTeams: latestTeamFilteringItem.assignedTeams,
-        outOfActiveList: latestTeamFilteringItem.outOfActiveList,
-        def: "created",
-      });
+      for (const teamId of oldestTeams) {
+        assignedTeamsPeriods[teamId].push({ startDate: person.followedSince || person.createdAt });
+      }
+      personsObject[person._id].assignedTeamsPeriods = assignedTeamsPeriods;
     }
     const actions = Object.values(get(actionsWithCommentsSelector));
     const comments = get(commentsState);

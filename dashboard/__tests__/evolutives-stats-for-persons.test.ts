@@ -16,6 +16,8 @@ describe("Stats evolutives", () => {
     computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -63,6 +65,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -83,6 +87,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -110,6 +116,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -166,6 +174,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -222,6 +232,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -298,6 +310,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -377,6 +391,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -413,6 +429,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -449,6 +467,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -485,6 +505,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
@@ -531,6 +553,8 @@ describe("Stats evolutives", () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: dayjs().add(10, "days").toISOString(),
+      viewAllOrganisationData: true,
+      selectedTeamsObjectWithOwnPeriod: {},
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {

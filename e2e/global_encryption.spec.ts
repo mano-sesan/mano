@@ -49,4 +49,5 @@ test("test", async ({ page }) => {
   await page.getByRole("link", { name: "Organisation" }).click();
   await page.getByRole("button", { name: "Chiffrement" }).click();
   await page.getByRole("heading", { name: "Chiffrement" }).click();
+  await page.getByRole("link", { name: "Accueil" }).click();
 });

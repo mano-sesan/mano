@@ -34,7 +34,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import dayjs from "dayjs";
 import { filterItem } from "../../components/Filters";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { filterPersonByAssignedTeam } from "../../utils/filter-person";
+import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 
 const tabs = [
@@ -131,7 +131,14 @@ const itemsForStatsSelector = selectorFamily({
         // get persons for stats for period
         const createdDate = person.followedSince || person.createdAt;
 
-        if (filterPersonByAssignedTeam(viewAllOrganisationData, selectedTeamsObjectWithOwnPeriod, person.assignedTeams, person.forTeamFiltering)) {
+        if (
+          filterPersonByAssignedTeamDuringQueryPeriod({
+            viewAllOrganisationData,
+            selectedTeamsObjectWithOwnPeriod,
+            assignedTeamsPeriods: person.assignedTeamsPeriods,
+            ...defaultIsoDates,
+          })
+        ) {
           if (noPeriodSelected) {
             personsUpdated[person._id] = person;
             personsCreated[person._id] = person;
@@ -674,6 +681,8 @@ const Stats = () => {
             period={period}
             evolutiveStatsIndicators={evolutiveStatsIndicators}
             setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
+            viewAllOrganisationData={viewAllOrganisationData}
+            selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
           />
         )}
         {activeTab === "Personnes suivies" && (
@@ -691,6 +700,8 @@ const Stats = () => {
             period={period}
             evolutiveStatsIndicators={evolutiveStatsIndicators}
             setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
+            viewAllOrganisationData={viewAllOrganisationData}
+            selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
           />
         )}
         {!!organisation.passagesEnabled && activeTab === "Passages" && (
