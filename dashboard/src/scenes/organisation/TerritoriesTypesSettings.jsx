@@ -129,11 +129,11 @@ const TerritoryType = ({ item: type, groupTitle }) => {
     const encryptedTerritories = await Promise.all(
       territories
         .filter((a) => a.types?.includes(oldType))
-        .map((action) => ({
-          ...action,
-          types: [...new Set(action.types.map((t) => (t === oldType ? newType.trim() : t)))],
+        .map((territory) => ({
+          ...territory,
+          types: [...new Set(territory.types.map((t) => (t === oldType ? newType.trim() : t)))],
         }))
-        .map((action) => encryptTerritory({ ...action, user: action.user || user._id }))
+        .map((territory) => encryptTerritory({ ...territory, user: territory.user || user._id }))
     );
     const newTerritoriesGroupedTypes = territoriesGroupedTypes.map((group) => {
       if (group.groupTitle !== groupTitle) return group;

@@ -164,10 +164,10 @@ router.put(
     const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
-    const { actions = [], territoriesGroupedTypes = [] } = req.body;
+    const { territories = [], territoriesGroupedTypes = [] } = req.body;
 
     await sequelize.transaction(async (tx) => {
-      for (let { encrypted, encryptedEntityKey, _id } of actions) {
+      for (let { encrypted, encryptedEntityKey, _id } of territories) {
         await Territory.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx });
       }
 
