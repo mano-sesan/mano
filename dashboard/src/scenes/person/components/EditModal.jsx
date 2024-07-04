@@ -86,12 +86,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                   setOpenPanels(["main"]);
                   return toast.error("La date de naissance est hors limites (entre 1900 et 2100)");
                 }
-                // Date de naissance dans le futur
                 if (body.birthdate && dayjsInstance(body.birthdate).isAfter(dayjsInstance())) {
                   setOpenPanels(["main"]);
                   return toast.error("La date de naissance ne peut pas être dans le futur");
                 }
-
                 if (body.wanderingAt && outOfBoundariesDate(body.wanderingAt)) {
                   setOpenPanels(["main"]);
                   return toast.error("La date temps passé en rue est hors limites (entre 1900 et 2100)");
