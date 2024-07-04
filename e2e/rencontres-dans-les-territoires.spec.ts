@@ -51,7 +51,7 @@ test("Création de rencontres dans les observations de territoire", async ({ pag
   await page.getByRole("button", { name: "Informations" }).click();
   await page.getByRole("button", { name: "Rencontres (1)" }).click();
   await page.getByRole("button", { name: "+ Rencontre" }).click();
-  await page.locator("#person-select-and-create-reception").click();
+  await page.locator(".person__indicator").click();
   await page.getByText("raph", { exact: true }).click();
   await page.getByRole("textbox", { name: "Commentaire" }).fill("aussi");
   await page.getByRole("button", { name: "Enregistrer" }).click();
