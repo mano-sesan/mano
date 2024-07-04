@@ -313,7 +313,7 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
                           👪
                         </span>
                       )}
-                      <div className="[overflow-wrap:anywhere]">
+                      <div className="[overflow-wrap:anywhere] tw-leading-4">
                         {(comment.comment || "").split("\n").map((e, i) => (
                           <p key={e + i} className="tw-mb-0">
                             {e}
