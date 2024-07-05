@@ -53,7 +53,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
       size="3xl"
       onAfterLeave={onFinished}
     >
-      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un rencontre" : "Éditer le rencontre"} />
+      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
       <Formik
         initialValues={{
           date: new Date(),
