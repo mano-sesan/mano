@@ -92,6 +92,7 @@ export const itemsGroupedByPersonSelector = selector({
     const usersObject = get(usersObjectSelector);
     const today = startOfToday().toISOString();
     for (const person of persons) {
+      // FIXME: replace forTeamFiltering logic with assignedTeamsPeriods logic
       let latestTeamFilteringItem = {
         date: today,
         assignedTeams: person.assignedTeams?.length ? person.assignedTeams : allTeamIds,
@@ -130,8 +131,29 @@ export const itemsGroupedByPersonSelector = selector({
         // https://github.com/SocialGouv/mano/blob/34a86a3e6900b852e0b3fe828a03e6721d200973/dashboard/src/scenes/person/OutOfActiveList.js#L22
         // This was causing a bug in the "person suivies" stats, where people who were not out of active list were counted as out of active list.
         outOfActiveListDate: person.outOfActiveList ? person.outOfActiveListDate : null,
-        forTeamFiltering: [latestTeamFilteringItem],
+        forTeamFiltering: [latestTeamFilteringItem], // FIXME: replace forTeamFiltering logic with assignedTeamsPeriods logic
       };
+      // FIXME: replace forTeamFiltering logic with assignedTeamsPeriods logic
+      if (person.history?.length) {
+        for (const historyEntry of person.history) {
+          if (historyEntry.data.assignedTeams) {
+            let nextTeamFilteringItem = {
+              date: dayjsInstance(historyEntry.date).startOf("day").toISOString(),
+              assignedTeams: historyEntry.data.assignedTeams.newValue?.length ? historyEntry.data.assignedTeams.newValue : allTeamIds,
+              outOfActiveList: latestTeamFilteringItem.outOfActiveList,
+              def: "change-teams",
+            };
+            latestTeamFilteringItem = nextTeamFilteringItem;
+            personsObject[person._id].forTeamFiltering.push(nextTeamFilteringItem);
+          }
+        }
+      }
+      personsObject[person._id].forTeamFiltering.push({
+        date: person.createdAt,
+        assignedTeams: latestTeamFilteringItem.assignedTeams,
+        outOfActiveList: latestTeamFilteringItem.outOfActiveList,
+        def: "created",
+      });
       if (person.history?.length) {
         // history is sorted by date from the oldest to the newest (ascending order)
         // we want to loop it from the newest to the oldest (descending order)
