@@ -297,9 +297,9 @@ const PassagesToday = ({ passages, isOpen, setOpen }) => {
   const [passageToEdit, setPassageToEdit] = useState(null);
 
   return (
-    <ModalContainer open={isOpen} onAfterLeave={() => setOpen(false)} size="3xl">
+    <ModalContainer open={isOpen} onAfterLeave={() => setOpen(false)} size="4xl">
       <ModalHeader onClose={() => setOpen(false)} title={`Passages du ${formatDateWithNameOfDay(now())}`} />
-      <ModalBody className="tw-pt-4">
+      <ModalBody className="tw-pt-4 tw-px-4">
         <Passage passage={passageToEdit} personId={passageToEdit?.person} onFinished={() => setPassageToEdit(null)} />
         {!!passages.length && (
           <Table
