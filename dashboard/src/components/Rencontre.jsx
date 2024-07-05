@@ -44,61 +44,6 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
   const isNew = !rencontre?._id;
   const isForPerson = !!rencontre?.person;
   const showMultiSelect = isNew && !isForPerson;
-  const canEdit = !rencontre?.user || user._id === rencontre?.user;
-
-  if (!canEdit) {
-    return (
-      <ModalContainer
-        dataTestId="modal-rencontre-read-only"
-        open={!!open && !!rencontre}
-        onClose={() => setOpen(false)}
-        size="3xl"
-        onAfterLeave={onFinished}
-      >
-        <ModalHeader onClose={() => setOpen(false)} title={`Rencontre de ${personsObject[rencontre.person]?.name}`} />
-        <ModalBody className="tw-px-4 tw-py-2">
-          <div className="tw-flex tw-w-full tw-flex-col tw-gap-6">
-            <div className="tw-my-2 tw-flex tw-gap-8">
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Date</div>
-                <div>
-                  <CustomFieldDisplay type="date-with-time" value={rencontre?.date || rencontre?.createdAt} />
-                </div>
-              </div>
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Enregistré par</div>
-                <UserName id={rencontre?.user} />
-              </div>
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Sous l'équipe</div>
-                <div>{teams.find((team) => team._id === rencontre?.team)?.name}</div>
-              </div>
-            </div>
-            <div className="tw-flex tw-flex-1 tw-flex-col">
-              <div className="tw-basis-full [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Commentaire</div>
-                <div>
-                  {rencontre?.comment ? (
-                    <CustomFieldDisplay type="textarea" value={rencontre?.comment} />
-                  ) : (
-                    <p className="tw-italic tw-text-gray-400">Pas de commentaire</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
-            Fermer
-          </button>
-          <button type="submit" className="button-submit !tw-bg-main" disabled title="Seul l'auteur/trice du rencontre peut la modifier">
-            Modifier
-          </button>
-        </ModalFooter>
-      </ModalContainer>
-    );
-  }
 
   return (
     <ModalContainer
@@ -193,7 +138,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                   <div className="tw-basis-1/2 tw-px-4 tw-py-2">
                     <label htmlFor="date">Date</label>
                     <div>
-                      <DatePicker disabled={!canEdit} withTime id="date" defaultValue={values.date} onChange={handleChange} />
+                      <DatePicker withTime id="date" defaultValue={values.date} onChange={handleChange} />
                     </div>
                   </div>
                   <div className="tw-basis-1/2 tw-px-4 tw-py-2">
@@ -207,12 +152,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                         name="persons"
                       />
                     ) : (
-                      <SelectPerson
-                        isDisabled={!canEdit}
-                        disableAccessToPerson={disableAccessToPerson}
-                        value={values.person}
-                        onChange={handleChange}
-                      />
+                      <SelectPerson disableAccessToPerson={disableAccessToPerson} value={values.person} onChange={handleChange} />
                     )}
                   </div>
                   <div className="tw-basis-full tw-px-4 tw-py-2">
@@ -225,7 +165,6 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                         value={values.comment}
                         rows={7}
                         onChange={handleChange}
-                        disabled={!canEdit}
                       />
                     </div>
                   </div>
@@ -234,7 +173,6 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                     <SelectUser
                       inputId="update-rencontre-user-select"
                       value={values.user || user._id}
-                      isDisabled={!canEdit}
                       onChange={(userId) => handleChange({ target: { value: userId, name: "user" } })}
                     />
                   </div>
@@ -243,7 +181,6 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                     <SelectTeam
                       teams={user.role === "admin" ? teams : user.teams}
                       teamId={values.team}
-                      isDisabled={!canEdit}
                       onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
                       inputId="update-rencontre-team-select"
                     />
@@ -261,7 +198,6 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                     className="button-destructive"
                     onClick={onDeleteRencontre}
                     title="Seul l'auteur/trice du rencontre peut le supprimer"
-                    disabled={!canEdit}
                   >
                     Supprimer
                   </button>
@@ -269,7 +205,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                 <button
                   type="submit"
                   className="button-submit !tw-bg-main"
-                  disabled={!canEdit || isSubmitting}
+                  disabled={isSubmitting}
                   onClick={handleSubmit}
                   title="Seul l'auteur/trice du rencontre peut le modifier"
                 >

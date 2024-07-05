@@ -13,14 +13,9 @@ import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
-import UserName from "./UserName";
-import CustomFieldDisplay from "./CustomFieldDisplay";
-import { personsObjectSelector } from "../recoil/selectors";
-
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
-  const personsObject = useRecoilValue(personsObjectSelector);
   const [open, setOpen] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -43,61 +38,6 @@ const Passage = ({ passage, personId, onFinished }) => {
   const isNew = !passage?._id;
   const isForPerson = !!passage?.person;
   const showMultiSelect = isNew && !isForPerson;
-  const canEdit = !passage?.user || user._id === passage?.user;
-
-  if (!canEdit) {
-    return (
-      <ModalContainer
-        dataTestId="modal-passage-read-only"
-        open={!!open && !!passage}
-        onClose={() => setOpen(false)}
-        size="3xl"
-        onAfterLeave={onFinished}
-      >
-        <ModalHeader onClose={() => setOpen(false)} title={`Passage de ${personsObject[passage.person]?.name}`} />
-        <ModalBody className="tw-px-4 tw-py-2">
-          <div className="tw-flex tw-w-full tw-flex-col tw-gap-6">
-            <div className="tw-my-2 tw-flex tw-gap-8">
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Date</div>
-                <div>
-                  <CustomFieldDisplay type="date-with-time" value={passage?.date || passage?.createdAt} />
-                </div>
-              </div>
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Enregistré par</div>
-                <UserName id={passage?.user} />
-              </div>
-              <div className="tw-basis-1/3 [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Sous l'équipe</div>
-                <div>{teams.find((team) => team._id === passage?.team)?.name}</div>
-              </div>
-            </div>
-            <div className="tw-flex tw-flex-1 tw-flex-col">
-              <div className="tw-basis-full [overflow-wrap:anywhere]">
-                <div className="tw-text-sm tw-font-semibold tw-text-gray-600">Commentaire</div>
-                <div>
-                  {passage?.comment ? (
-                    <CustomFieldDisplay type="textarea" value={passage?.comment} />
-                  ) : (
-                    <p className="tw-italic tw-text-gray-400">Pas de commentaire</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
-            Fermer
-          </button>
-          <button type="submit" className="button-submit !tw-bg-main" disabled title="Seul l'auteur/trice du passage peut le modifier">
-            Modifier
-          </button>
-        </ModalFooter>
-      </ModalContainer>
-    );
-  }
 
   return (
     <ModalContainer
@@ -209,7 +149,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                   <div className="tw-basis-1/2 tw-px-4 tw-py-2">
                     <label htmlFor="date">Date</label>
                     <div>
-                      <DatePicker disabled={!canEdit} withTime id="date" defaultValue={values.date} onChange={handleChange} />
+                      <DatePicker withTime id="date" defaultValue={values.date} onChange={handleChange} />
                     </div>
                   </div>
                   <div className="tw-basis-1/2 tw-px-4 tw-py-2">
@@ -227,7 +167,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                     ) : showMultiSelect ? (
                       <SelectPerson value={values.persons} onChange={handleChange} isClearable isMulti name="persons" />
                     ) : (
-                      <SelectPerson isDisabled={!canEdit} value={values.person} onChange={handleChange} />
+                      <SelectPerson value={values.person} onChange={handleChange} />
                     )}
                   </div>
                   <div className="tw-basis-full tw-px-4 tw-py-2">
@@ -240,7 +180,6 @@ const Passage = ({ passage, personId, onFinished }) => {
                         value={values.comment}
                         rows={7}
                         onChange={handleChange}
-                        disabled={!canEdit}
                       />
                     </div>
                   </div>
@@ -249,7 +188,6 @@ const Passage = ({ passage, personId, onFinished }) => {
                     <SelectUser
                       inputId="update-passage-user-select"
                       value={values.user || user._id}
-                      isDisabled={!canEdit}
                       onChange={(userId) => handleChange({ target: { value: userId, name: "user" } })}
                     />
                   </div>
@@ -258,7 +196,6 @@ const Passage = ({ passage, personId, onFinished }) => {
                     <SelectTeam
                       teams={user.role === "admin" ? teams : user.teams}
                       teamId={values.team}
-                      isDisabled={!canEdit}
                       onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
                       inputId="update-passage-team-select"
                     />
@@ -276,7 +213,6 @@ const Passage = ({ passage, personId, onFinished }) => {
                     className="button-destructive"
                     onClick={onDeletePassage}
                     title="Seul l'auteur/trice du passage peut le supprimer"
-                    disabled={!canEdit}
                   >
                     Supprimer
                   </button>
@@ -284,7 +220,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                 <button
                   type="submit"
                   className="button-submit !tw-bg-main"
-                  disabled={!canEdit || isSubmitting}
+                  disabled={isSubmitting}
                   onClick={handleSubmit}
                   title="Seul l'auteur/trice du passage peut le modifier"
                 >
