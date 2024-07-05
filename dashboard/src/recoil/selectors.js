@@ -166,7 +166,7 @@ export const itemsGroupedByPersonSelector = selector({
             const newlyAddedTeams = currentTeams.filter((t) => !previousTeams.includes(t));
             const removedTeams = previousTeams.filter((t) => !currentTeams.includes(t));
             for (const teamId of newlyAddedTeams) {
-              assignedTeamsPeriods[teamId] = assignedTeamsPeriods[teamId].map((period) => {
+              assignedTeamsPeriods[teamId] = (assignedTeamsPeriods[teamId] || []).map((period) => {
                 if (period.startDate) return period;
                 return { ...period, isoStartDate: dayjsInstance(historyEntry.date).toISOString() };
               });
