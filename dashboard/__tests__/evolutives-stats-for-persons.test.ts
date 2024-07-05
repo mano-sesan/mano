@@ -12,7 +12,7 @@ jest.mock("../src/services/sentry", () => ({
 const mockedCapture = SentryService.capture as jest.MockedFunction<typeof SentryService.capture>;
 
 describe("Stats evolutives", () => {
-  test("should call capture with the correct errors when history is incoherent", () => {
+  test("should call capture with the correct errors when history is incoherent", async () => {
     computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -60,7 +60,7 @@ describe("Stats evolutives", () => {
     // Verify total number of calls
     expect(mockedCapture).toHaveBeenCalledTimes(1);
   });
-  test("should output proper values and dates at start and end whatever the persons are", () => {
+  test("should output proper values and dates at start and end whatever the persons are", async () => {
     // we just test those outputs once, not in all the other tests
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
@@ -83,7 +83,7 @@ describe("Stats evolutives", () => {
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
-  test("person was not followed during the period should not be included in the stats", () => {
+  test("person was not followed during the period should not be included in the stats", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -112,7 +112,7 @@ describe("Stats evolutives", () => {
     expect(computed.countSwitched).toBe(0);
     expect(computed.percentSwitched).toBe(0);
   });
-  test("person followed before the period or started to be following during the period has the same output", () => {
+  test("person followed before the period or started to be following during the period has the same output", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -170,7 +170,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
-  test("multiple changes with one watched switch should work properly", () => {
+  test("multiple changes with one watched switch should work properly", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -228,7 +228,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
-  test("multiple changes with two watched switches should output two switches and 100%", () => {
+  test("multiple changes with two watched switches should output two switches and 100%", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -306,7 +306,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
-  test("multiple changes with two watched switches on half of the persons should output two switches and 50%", () => {
+  test("multiple changes with two watched switches on half of the persons should output two switches and 50%", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -387,7 +387,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(50);
   });
 
-  test("checking the exact value for the `fromValue`: 'Homme' and 'Homme transgenre' is not the same", () => {
+  test("checking the exact value for the `fromValue`: 'Homme' and 'Homme transgenre' is not the same", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -425,7 +425,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(0);
   });
 
-  test("'Non renseigné' should work", () => {
+  test("'Non renseigné' should work", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -463,7 +463,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
-  test("If a history change is the same a period start date, we dont ignore it", () => {
+  test("If a history change is the same a period start date, we dont ignore it", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -501,7 +501,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(0);
   });
 
-  test("Multi values should work", () => {
+  test("Multi values should work", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -549,7 +549,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
-  test("If the end of the period is in the future, it should work", () => {
+  test("If the end of the period is in the future, it should work", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: dayjs().add(10, "days").toISOString(),
