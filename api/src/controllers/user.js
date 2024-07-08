@@ -145,12 +145,12 @@ router.get(
   validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
     const user = await User.findOne({ where: { _id: req.user._id } });
-    const userTeams = await user.getTeams();
+    const treams = await user.getTeams();
     const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     return res.status(200).send({
       ok: true,
-      user: serializeUserWithTeamsAndOrganisation(user, userTeams, organisation, orgTeams),
+      user: serializeUserWithTeamsAndOrganisation(user, treams, organisation, orgTeams),
     });
   })
 );
