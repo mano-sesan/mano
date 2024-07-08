@@ -127,7 +127,6 @@ export const CustomResponsivePie = ({
 
 export type BarData = Array<{ name: string; [key: string]: string }>;
 
-// const getItemValue = (item) => item[item.name];
 const getItemValue = (item: { name: string; [key: string]: string }) => {
   return Number(item[item.name] || 0);
 };
