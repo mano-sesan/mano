@@ -732,7 +732,7 @@ router.put(
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
-        existingTeams.map((teamId) => ({ user: _id, team: teamId, organisation: user.organisation })),
+        existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
         { transaction: tx }
       );
     }
@@ -814,7 +814,7 @@ router.put(
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
-        existingTeams.map((teamId) => ({ user: _id, team: teamId, organisation: req.user.organisation })),
+        existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
         { transaction: tx }
       );
     }
