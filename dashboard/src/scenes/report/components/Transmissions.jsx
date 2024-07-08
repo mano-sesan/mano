@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { encryptReport } from "../../../recoil/reports";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -7,6 +7,10 @@ import SelectAndCreateCollaboration from "../SelectAndCreateCollaboration";
 import { dayjsInstance } from "../../../services/date";
 import { useDataLoader } from "../../../components/DataLoader";
 import { errorMessage } from "../../../utils";
+import { Formik } from "formik";
+import { decryptItem } from "../../../services/encryption";
+import { useSetRecoilState } from "recoil";
+import { modalConfirmState } from "../../../components/ModalConfirm";
 
 export default function Transmissions({ period, selectedTeamsObject, reports }) {
   const days = useMemo(() => {
@@ -54,7 +58,7 @@ export default function Transmissions({ period, selectedTeamsObject, reports }) 
               <h4 className="tw-inline-block tw-p-4 tw-text-base tw-capitalize">{dayjsInstance(day).format("dddd D MMM")}</h4>
               {Object.entries(selectedTeamsObject).map(([teamId, team]) => {
                 const report = reports.find((report) => report.team === teamId && report.date === day);
-                const key = team.name.replace(/[^a-zA-Z0-9]/g, "-") + day;
+                const key = team.name.replace(/[^a-zA-Z0-9]/g, "-") + day + report?.description;
                 return <TransmissionPrint report={report} team={selectedTeamsObject[teamId]} key={key} />;
               })}
             </div>
@@ -82,7 +86,7 @@ function TransmissionPrint({ report, team }) {
           ) : (
             <>
               {report?.description?.length > 0 && <h5 className="tw-text-base tw-font-medium">Transmission :</h5>}
-              <p className="tw-border-l tw-border-zinc-200 tw-pl-4">
+              <p className="tw-border-l tw-border-zinc-200 tw-pl-4 tw-leading-4">
                 {report?.description?.split("\n").map((sentence, index) => (
                   <React.Fragment key={index}>
                     {sentence}
@@ -108,22 +112,30 @@ function TransmissionPrint({ report, team }) {
 }
 
 function Transmission({ report, team, day, teamId, reactSelectInputId }) {
+  const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const [isEditingTransmission, setIsEditingTransmission] = useState(false);
   const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
   const { refresh } = useDataLoader();
+  const initDecription = useRef(report?.description);
+  const [remoteDescription, setRemoteDescription] = useState(initDecription.current);
+  const intervalRef = useRef(null);
 
-  async function onEditTransmission(event) {
-    event.preventDefault();
-    const form = event.target;
-    const formData = new FormData(form);
-    const description = formData.get("description");
-    onSaveReport({
-      ...report,
-      description,
-      team: teamId,
-      date: day,
-    });
-  }
+  useEffect(() => {
+    if (!isEditingTransmission) return () => clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(
+      () => {
+        API.get({ path: `report/${report._id}` }).then(async (response) => {
+          if (response.ok) {
+            const decryptedReport = await decryptItem(response.data);
+            console.log("has fetched remote description", decryptedReport);
+            setRemoteDescription(decryptedReport.description);
+          }
+        });
+      },
+      process.env.NODE_ENV === "development" ? 2000 : 30000
+    );
+    return () => clearInterval(intervalRef.current);
+  }, [isEditingTransmission, report?._id]);
 
   const onSaveReport = async (body) => {
     const [error] = await tryFetchExpectOk(async () =>
@@ -155,7 +167,7 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
           ) : (
             <>
               {report?.description?.length > 0 && <h5 className="tw-text-base tw-font-medium">Transmission :</h5>}
-              <p>
+              <p className="[overflow-wrap:anywhere] tw-leading-4">
                 {report?.description?.split("\n").map((sentence, index) => (
                   <React.Fragment key={index}>
                     {sentence}
@@ -196,33 +208,137 @@ function Transmission({ report, team, day, teamId, reactSelectInputId }) {
         <ModalHeader
           title={`Transmission du ${dayjsInstance(day).format("dddd D MMM")} - ${team?.nightSession ? "🌒" : "☀️ "} ${team?.name || ""}`}
         />
-        <ModalBody className="tw-py-4">
-          <form id={`edit-transmission-${day}-${teamId}`} className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditTransmission}>
-            <div>
-              <label htmlFor="description" className="tailwindui">
-                Transmission
-              </label>
-              <textarea
-                rows={27}
-                className="tailwindui"
-                autoComplete="off"
-                id="description"
-                name="description"
-                type="text"
-                placeholder="Entrez ici votre transmission de la journée"
-                defaultValue={report?.description}
-              />
-            </div>
-          </form>
-        </ModalBody>
-        <ModalFooter>
-          <button type="button" name="cancel" className="button-cancel" onClick={() => setIsEditingTransmission(false)}>
-            Annuler
-          </button>
-          <button type="submit" className="button-submit" form={`edit-transmission-${day}-${teamId}`}>
-            Enregistrer
-          </button>
-        </ModalFooter>
+        <Formik
+          initialValues={{ description: report?.description }}
+          onSubmit={async (body, actions) => {
+            const latestDescription = await API.get({ path: `report/${report._id}` }).then(async (response) => {
+              if (response.ok) {
+                const decryptedReport = await decryptItem(response.data);
+                return decryptedReport.description;
+              }
+            });
+            if (latestDescription !== initDecription.current) {
+              setModalConfirmState({
+                open: true,
+                options: {
+                  title: "Voulez-vous vraiment enregistrer votre transmission ?",
+                  size: "full",
+                  subTitle: "Comparez avec la transmission précédente avant de valider.",
+                  content: (
+                    <div className="tw-flex tw-gap-x-2 tw-p-4">
+                      <div className="tw-flex-grow tw-flex-shrink-0">
+                        <p className="tw-font-bold">Transmission précédente</p>
+                        <p className="[overflow-wrap:anywhere] tw-p-2 border tw-border-gray-500 tw-rounded-md tw-text-gray-400">
+                          {remoteDescription?.split("\n").map((sentence, index) => (
+                            <React.Fragment key={index}>
+                              {sentence}
+                              <br />
+                            </React.Fragment>
+                          ))}
+                        </p>
+                      </div>
+                      <div className="tw-flex-grow tw-flex-shrink-0">
+                        <p className="tw-font-bold">Votre transmission</p>
+                        <p className="[overflow-wrap:anywhere] tw-p-2 border tw-border-gray-500 tw-rounded-md">
+                          {body.description?.split("\n").map((sentence, index) => (
+                            <React.Fragment key={index}>
+                              {sentence}
+                              <br />
+                            </React.Fragment>
+                          ))}
+                        </p>
+                      </div>
+                    </div>
+                  ),
+                  buttons: [
+                    {
+                      text: "Non il faut que je modifie",
+                      className: "button-cancel",
+                    },
+                    {
+                      text: "Oui oui, c'est bon",
+                      className: "button-destructive",
+                      onClick: async () => {
+                        await onSaveReport({
+                          ...report,
+                          description: body.description,
+                          team: teamId,
+                          date: day,
+                        });
+                        actions.setSubmitting(false);
+                      },
+                    },
+                  ],
+                },
+              });
+            } else {
+              await onSaveReport({
+                ...report,
+                description: body.description,
+                team: teamId,
+                date: day,
+              });
+              actions.setSubmitting(false);
+            }
+          }}
+          id={`edit-transmission-${day}-${teamId}`}
+        >
+          {({ values, handleChange, handleSubmit, isSubmitting }) => (
+            <>
+              <ModalBody className="tw-py-4">
+                <div className="tw-flex tw-w-full tw-flex-col tw-px-8">
+                  {remoteDescription !== initDecription.current && (
+                    <details className="tw-italic tw-text-gray-500 tw-text-sm tw-group tw-mb-2">
+                      <summary>
+                        La transmission a été modifiée en même temps que vous.
+                        <br />
+                        Il vous appartient de l'écraser ou de la conserver.
+                        <br />
+                        <span className="group-open:tw-hidden">Cliquez ici pour afficher la dernière version.</span>
+                      </summary>
+                      <p className="[overflow-wrap:anywhere] tw-leading-4 tw-p-2 border tw-border-gray-500 tw-rounded-md tw-mt-2">
+                        {remoteDescription?.split("\n").map((sentence, index) => (
+                          <React.Fragment key={index}>
+                            {sentence}
+                            <br />
+                          </React.Fragment>
+                        ))}
+                      </p>
+                    </details>
+                  )}
+                  <label htmlFor="description" className="tailwindui">
+                    Transmission
+                  </label>
+                  <textarea
+                    rows={27}
+                    className="tailwindui"
+                    autoComplete="off"
+                    id="description"
+                    name="description"
+                    type="text"
+                    placeholder="Entrez ici votre transmission de la journée"
+                    value={values?.description}
+                    onChange={handleChange}
+                  />
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" name="cancel" className="button-cancel" onClick={() => setIsEditingTransmission(false)}>
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="button-submit"
+                  form={`edit-transmission-${day}-${teamId}`}
+                >
+                  Enregistrer
+                </button>
+              </ModalFooter>
+            </>
+          )}
+        </Formik>
       </ModalContainer>
     </>
   );

@@ -6,6 +6,7 @@ const closedState = {
   options: {
     title: "Voulez-vous enregistrer cet élément ?",
     subTitle: "",
+    content: null,
     buttons: [
       {
         text: "Enregistrer",
@@ -34,7 +35,7 @@ const ModalConfirm = () => {
   const [
     {
       open,
-      options: { title, subTitle, buttons },
+      options: { size, title, subTitle, buttons, content },
     },
     setModalConfirmState,
   ] = useRecoilState(modalConfirmState);
@@ -45,7 +46,7 @@ const ModalConfirm = () => {
     <ModalContainer
       open={open}
       onClose={close}
-      size="lg"
+      size={size || "lg"}
       onAfterLeave={() => {
         setModalConfirmState(closedState);
       }}
@@ -54,6 +55,7 @@ const ModalConfirm = () => {
       {!!subTitle && (
         <ModalBody>
           <div className="flex tw-p-4">{subTitle}</div>
+          {content ? content : null}
         </ModalBody>
       )}
       <ModalFooter>
