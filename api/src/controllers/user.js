@@ -812,6 +812,7 @@ router.put(
           organisation: req.user.organisation,
           _id: { [Op.in]: team },
         },
+        transaction: tx
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
