@@ -157,7 +157,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       return API.get({ path: "/user/me" });
     });
     if (userError || !userResponse.ok) return resetLoaderOnError(userError || userResponse.error);
-    console.log("userResponse", userResponse);
     const latestOrganisation = userResponse.user.organisation;
     const latestUser = userResponse.user;
     const latestTeams = userResponse.user.orgTeams;
