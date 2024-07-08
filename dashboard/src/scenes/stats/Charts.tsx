@@ -147,7 +147,6 @@ export const CustomResponsiveBar = ({
   data: BarData;
   categories?: string[];
   onItemClick?: (id: string) => void;
-  // axisTitleX?: string;
   axisTitleY: string;
   isMultiChoice?: boolean;
   totalForMultiChoice?: number;
