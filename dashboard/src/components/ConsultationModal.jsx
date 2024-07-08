@@ -182,7 +182,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       setModalConfirmState({
         open: true,
         options: {
-          title: "Cette action est annulée, voulez-vous la dupliquer ?",
+          title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
           subTitle: "Avec une date ultérieure par exemple",
           buttons: [
             {
