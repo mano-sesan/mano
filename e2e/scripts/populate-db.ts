@@ -22,18 +22,52 @@ async function createUsersAndOrgas() {
   await client.query(`delete from mano."User" where name like 'User Restricted Test - %'`);
   await client.query(`delete from mano."Team" where name like 'Team Test - %'`);
 
+  const passwordSecret = bcrypt.hashSync("secret", 10);
+  const city = "Rouen";
+  const date = "2021-01-01";
+
+  const superAdminId = uuidv4();
+  await client.query(
+    `INSERT INTO mano."User" (
+      _id,
+      name,
+      email,
+      password,
+      "lastLoginAt",
+      "createdAt",
+      "updatedAt",
+      role,
+      "lastChangePasswordAt",
+      "forgotPasswordResetExpires",
+      "forgotPasswordResetToken",
+      "termsAccepted",
+      "cgusAccepted",
+    ) VALUES (
+      $1,
+      'superadmin',
+      'superadmin@example.org',
+      $2,
+      $3,
+      $3,
+      $3,
+      'superadmin',
+      $3::date,
+      null,
+      null,
+      $3,
+      $3,
+    );`,
+    [superAdminId, passwordSecret, date]
+  );
+
   for (let i = 1; i < 12; i++) {
     const orgId = uuidv4();
-    const city = "Rouen";
     const adminId = uuidv4();
     const healthProfessionalId = uuidv4();
     const normalUserId = uuidv4();
     const restrictedUserId = uuidv4();
     const statsOnlyUserId = uuidv4();
     const teamId = uuidv4();
-    const passwordSecret = bcrypt.hashSync("secret", 10);
-
-    const date = "2021-01-01";
 
     await client.query(
       `INSERT INTO mano."Organisation" (
