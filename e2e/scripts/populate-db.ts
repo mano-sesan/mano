@@ -15,6 +15,7 @@ async function createUsersAndOrgas() {
   });
   await client.connect();
   await client.query(`delete from mano."Organisation" where name like 'Orga Test - %'`);
+  await client.query(`delete from mano."User" where name like 'Super Administrateur'`);
   await client.query(`delete from mano."User" where name like 'User Test - %'`);
   await client.query(`delete from mano."User" where name like 'User Admin Test - %'`);
   await client.query(`delete from mano."User" where name like 'User Health Professional Test - %'`);
@@ -41,23 +42,23 @@ async function createUsersAndOrgas() {
       "forgotPasswordResetExpires",
       "forgotPasswordResetToken",
       "termsAccepted",
-      "cgusAccepted",
+      "cgusAccepted"
     ) VALUES (
       $1,
-      'superadmin',
+      'Super Administrateur',
       'superadmin@example.org',
       $2,
       $3,
       $3,
       $3,
       'superadmin',
-      $3::date,
+      $4::date,
       null,
       null,
       $3,
-      $3,
+      $3
     );`,
-    [superAdminId, passwordSecret, date]
+    [superAdminId, passwordSecret, date, date]
   );
 
   for (let i = 1; i < 12; i++) {
