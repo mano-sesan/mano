@@ -31,6 +31,8 @@ export default function PersonHistory({ person }) {
     return cleanHistory([...personHistory, ...medicalFileHistory]).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [person.history, person.medicalFile?.history, user.healthcareProfessional]);
 
+  console.log(history);
+
   return (
     <div>
       <PersonTeamHistory person={person} history={history} teams={teams} />
