@@ -15,12 +15,7 @@ async function createUsersAndOrgas() {
   });
   await client.connect();
   await client.query(`delete from mano."Organisation" where name like 'Orga Test - %'`);
-  await client.query(`delete from mano."User" where name like 'Super Administrateur'`);
-  await client.query(`delete from mano."User" where name like 'User Test - %'`);
-  await client.query(`delete from mano."User" where name like 'User Admin Test - %'`);
-  await client.query(`delete from mano."User" where name like 'User Health Professional Test - %'`);
-  await client.query(`delete from mano."User" where name like 'User Normal Test - %'`);
-  await client.query(`delete from mano."User" where name like 'User Restricted Test - %'`);
+  await client.query(`delete from mano."User" where email like '%@example.org'`);
   await client.query(`delete from mano."Team" where name like 'Team Test - %'`);
 
   const passwordSecret = bcrypt.hashSync("secret", 10);
