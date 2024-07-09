@@ -27,40 +27,6 @@ async function createUsersAndOrgas() {
   const city = "Rouen";
   const date = "2021-01-01";
 
-  const superAdminId = uuidv4();
-  await client.query(
-    `INSERT INTO mano."User" (
-      _id,
-      name,
-      email,
-      password,
-      "lastLoginAt",
-      "createdAt",
-      "updatedAt",
-      role,
-      "lastChangePasswordAt",
-      "forgotPasswordResetExpires",
-      "forgotPasswordResetToken",
-      "termsAccepted",
-      "cgusAccepted"
-    ) VALUES (
-      $1,
-      'Super Administrateur',
-      'superadmin@example.org',
-      $2,
-      $3,
-      $3,
-      $3,
-      'superadmin',
-      $4::date,
-      null,
-      null,
-      $3,
-      $3
-    );`,
-    [superAdminId, passwordSecret, date, date]
-  );
-
   for (let i = 1; i < 12; i++) {
     const orgId = uuidv4();
     const adminId = uuidv4();
@@ -400,6 +366,47 @@ async function createUsersAndOrgas() {
       [uuidv4(), statsOnlyUserId, teamId, date, orgId]
     );
   }
+
+  // Get first organisation ID
+  const res = await client.query(`SELECT _id FROM mano."Organisation" LIMIT 1`);
+  const orgId = res.rows[0]._id;
+
+  const superAdminId = uuidv4();
+  await client.query(
+    `INSERT INTO mano."User" (
+      _id,
+      name,
+      email,
+      password,
+      organisation,
+      "lastLoginAt",
+      "createdAt",
+      "updatedAt",
+      role,
+      "lastChangePasswordAt",
+      "forgotPasswordResetExpires",
+      "forgotPasswordResetToken",
+      "termsAccepted",
+      "cgusAccepted"
+    ) VALUES (
+      $1,
+      'Super Administrateur',
+      'superadmin@example.org',
+      $2,
+      $5,
+      $3,
+      $3,
+      $3,
+      'superadmin',
+      $4::date,
+      null,
+      null,
+      $3,
+      $3
+    );`,
+    [superAdminId, passwordSecret, date, date, orgId]
+  );
+
   await client.end();
 }
 
