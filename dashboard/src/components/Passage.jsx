@@ -17,21 +17,21 @@ import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(passage?._id));
   const { refresh } = useDataLoader();
 
   useEffect(() => {
-    setOpen(!!passage);
-  }, [passage]);
+    setOpen(Boolean(passage?._id));
+  }, [passage?._id]);
 
   const onDeletePassage = async () => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/passage/${passage?._id}` }));
       if (!error) {
-        await refresh();
         toast.success("Suppression réussie");
         setOpen(false);
+        await refresh();
       }
     }
   };
