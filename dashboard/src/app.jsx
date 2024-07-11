@@ -109,7 +109,7 @@ const App = () => {
     const handleFocus = () => {
       if (apiToken) {
         // Cela déclenchera un logout si la session est expirée
-        tryFetch(() => API.get({ path: "/check-auth" })).then(() => {
+        tryFetch(() => API.getAbortable({ path: "/check-auth" })).then(() => {
           // On ne recharge que s'il y a une clé de chiffrement
           // Sinon ça met du bazar en cache (parce que ça va chercher des données chiffrées et que ça échoue)
           if (initialLoadIsDone && getHashedOrgEncryptionKey()) {
