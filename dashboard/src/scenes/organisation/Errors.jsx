@@ -88,7 +88,7 @@ export default function Errors() {
   return (
     <div>
       <Disclaimer />
-      <div className="mt-8">
+      <div className="tw-mt-8">
         <Table
           data={data}
           rowKey={"_id"}
@@ -120,7 +120,7 @@ export default function Errors() {
                 <button
                   className="button-destructive"
                   onClick={async () => {
-                    if (!confirm("Êtes-vous sûr de vouloir supprimer cette donnée ?")) return;
+                    if (!confirm("Voulez-vous vraiment de vouloir supprimer cette donnée ?")) return;
                     if (item.type === "person") {
                       await API.delete({
                         path: `/person/${item.data._id}`,
