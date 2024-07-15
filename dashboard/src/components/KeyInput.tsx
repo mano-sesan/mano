@@ -73,6 +73,8 @@ const KeyInput = ({
           // Sauf que sur android, on ne peut pas détecter la composition parce que tout est composition.
           // Mais on ne peut pas toujours détecter si c'est android ou pas.
           // Donc on ignore uniquement les caractères de composition courants en français comme ^¨`´.
+          // Sur les claviers non-français, l'accent peut se faire avec ' et " (pour le trema).
+          // Mais ça ne semble pas poser de problème car il n'est pas considéré comme composition.
           const nativeEvent = e.nativeEvent as InputEvent;
           if (nativeEvent.isComposing && /^[\^¨`´]$/.test(nativeEvent.data || "")) return;
 
