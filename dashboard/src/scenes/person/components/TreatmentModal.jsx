@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
@@ -23,119 +23,78 @@ import { decryptItem } from "../../../services/encryption";
 
 export default function TreatmentModal() {
   const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
-  const history = useHistory();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const currentTreatmentId = searchParams.get("treatmentId");
-  const newTreatment = searchParams.get("newTreatment");
-  const currentTreatment = useMemo(() => {
-    if (!currentTreatmentId) return null;
-    return treatmentsObjects[currentTreatmentId];
-  }, [currentTreatmentId, treatmentsObjects]);
-  const personId = searchParams.get("personId");
-
-  const [open, setOpen] = useState(false);
-  const consultationIdRef = useRef(currentTreatmentId);
-  const newConsultationRef = useRef(newTreatment);
-  useEffect(() => {
-    if (consultationIdRef.current !== currentTreatmentId) {
-      consultationIdRef.current = currentTreatmentId;
-      setOpen(!!currentTreatmentId);
-    }
-    if (newConsultationRef.current !== newTreatment) {
-      newConsultationRef.current = newTreatment;
-      setOpen(!!newTreatment);
-    }
-  }, [newTreatment, currentTreatmentId]);
-
-  const manualCloseRef = useRef(false);
-  const onAfterLeave = () => {
-    if (manualCloseRef.current) history.goBack();
-    manualCloseRef.current = false;
-  };
-
-  return (
-    <ModalContainer open={open} size="3xl" onAfterLeave={onAfterLeave}>
-      <TreatmentContent
-        key={open}
-        personId={personId}
-        treatment={currentTreatment}
-        onClose={() => {
-          manualCloseRef.current = true;
-          setOpen(false);
-        }}
-      />
-    </ModalContainer>
-  );
-}
-
-/**
- * @param {Object} props
- * @param {Function} props.onClose
- * @param {Boolean} props.isNewTreatment
- * @param {Object} props.treatment
- * @param {Object} props.person
- */
-
-// if we create those objects within the component,
-// it will be re-created on each dependency change
-// and intialState will be re-created on each dependency change
-const newTreatmentInitialState = (user, personId, organisation) => ({
-  _id: null,
-  startDate: new Date(),
-  endDate: null,
-  name: "",
-  dosage: "",
-  frequency: "",
-  indication: "",
-  user: user._id,
-  person: personId,
-  organisation: organisation._id,
-  documents: [],
-  comments: [],
-  history: [],
-});
-
-function TreatmentContent({ onClose, treatment, personId }) {
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
   const { refresh } = useDataLoader();
+  const history = useHistory();
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState("view"); // ou edit
+  const [status, setStatus] = useState("idle"); // ou saving ou deleting
+  const [treatmentId, setTreatmentId] = useState(null);
+  const [activeTab, setActiveTab] = useState("Informations");
+  const [treatment, setTreatment] = useState(null);
 
-  const newTreatmentInitialStateRef = useRef(newTreatmentInitialState(user, personId, organisation));
+  const searchParams = new URLSearchParams(location.search);
+  const paramTreatmentId = searchParams.get("treatmentId");
+  const paramPersonId = searchParams.get("personId");
+  const isNewTreatment = Boolean(searchParams.get("newTreatment"));
 
-  const initialState = useMemo(() => {
-    if (treatment) {
+  const initialTreatmentState = useMemo(() => {
+    if (treatmentId) {
       return {
         documents: [],
         comments: [],
         history: [],
-        ...treatment,
+        ...treatmentsObjects[treatmentId],
+      };
+    } else {
+      return {
+        _id: null,
+        startDate: new Date(),
+        endDate: null,
+        name: "",
+        dosage: "",
+        frequency: "",
+        indication: "",
+        person: paramPersonId,
+        documents: [],
+        comments: [],
+        history: [],
       };
     }
-    return newTreatmentInitialStateRef.current;
-  }, [treatment]);
+  }, [treatmentId, treatmentsObjects, paramPersonId]);
 
-  const [activeTab, setActiveTab] = useState("Informations");
-  const [data, setData] = useState(initialState);
-  const isNewTreatment = !data?._id;
-
+  // Ouverture d'un nouveau traitement
   useEffect(() => {
-    setData(initialState);
-  }, [initialState]);
+    if (isNewTreatment) {
+      setOpen(true);
+      setMode("edit");
+      setStatus("idle");
+      setTreatmentId(null);
+      setTreatment(null);
+    }
+  }, [isNewTreatment]);
 
-  const canEdit = useMemo(() => !treatment || treatment.user === user._id, [treatment, user._id]);
+  // Ouverture d'un traitement existant
+  useEffect(() => {
+    if (paramTreatmentId) {
+      setOpen(true);
+      setMode("view");
+      setStatus("idle");
+      setTreatmentId(paramTreatmentId);
+      setTreatment(null);
+    }
+  }, [paramTreatmentId]);
 
-  const [isEditing, setIsEditing] = useState(isNewTreatment);
+  // Chargement du traitement
+  useEffect(() => {
+    if (!open) return;
+    setTreatment(initialTreatmentState);
+  }, [open, initialTreatmentState]);
 
-  const handleChange = (event) => {
-    const target = event.currentTarget || event.target;
-    const { name, value } = target;
-    setData((data) => ({ ...data, [name]: value }));
-  };
-
-  async function handleSubmit({ newData = {}, closeOnSubmit = false } = {}) {
-    const body = { ...data, ...newData };
+  async function handleSubmit({ newData = {}, closeOnSubmit = false }) {
+    const body = { ...treatment, ...newData };
     if (!body.name) {
       setActiveTab("Informations");
       toast.error("Le nom est obligatoire");
@@ -155,6 +114,8 @@ function TreatmentContent({ onClose, treatment, personId }) {
       toast.error("La date de fin de traitement est hors limites (entre 1900 et 2100)");
       return false;
     }
+
+    setStatus("saving");
 
     if (!isNewTreatment && !!treatment) {
       const historyEntry = {
@@ -176,36 +137,55 @@ function TreatmentContent({ onClose, treatment, personId }) {
       isNewTreatment
         ? API.post({
             path: "/treatment",
-            body: await encryptTreatment(body),
+            body: await encryptTreatment({ ...body, user: user._id }),
           })
         : API.put({
-            path: `/treatment/${data._id}`,
-            body: await encryptTreatment({ ...body, user: data.user || user._id }),
+            path: `/treatment/${treatment._id}`,
+            body: await encryptTreatment({ ...body, user: treatment.user || user._id }),
           })
     );
     if (error) {
       toast.error(errorMessage(error));
+      setStatus("idle");
       return false;
+    }
+    if (closeOnSubmit) {
+      setOpen(false);
+      return true;
     }
     const decryptedData = await decryptItem(treatmentResponse.data);
     if (!decryptedData) {
       toast.error("Erreur lors de la récupération des données du traitement");
+      setStatus("idle");
       return false;
     }
-    setData(decryptedData);
+    setTreatment(decryptedData);
     await refresh();
-    if (closeOnSubmit) onClose();
+    setStatus("idle");
     return true;
   }
 
+  const handleChange = (event) => {
+    const target = event.currentTarget || event.target;
+    const { name, value } = target;
+    setTreatment((treatment) => ({ ...treatment, [name]: value }));
+  };
+
   return (
-    <>
+    <ModalContainer
+      open={open}
+      size="3xl"
+      onAfterLeave={() => {
+        history.goBack();
+        refresh();
+      }}
+    >
       <ModalHeader
         title={
           <>
             {isNewTreatment && "Ajouter un traitement"}
-            {!isNewTreatment && !isEditing && `Traitement: ${data?.name}`}
-            {!isNewTreatment && isEditing && `Modifier le traitement: ${data?.name}`}
+            {!isNewTreatment && mode === "view" && `Traitement: ${treatment?.name}`}
+            {!isNewTreatment && mode === "edit" && `Modifier le traitement: ${treatment?.name}`}
             {!isNewTreatment && treatment?.user && (
               <UserName
                 className="tw-block tw-text-right tw-text-base tw-font-normal tw-italic"
@@ -216,7 +196,10 @@ function TreatmentContent({ onClose, treatment, personId }) {
           </>
         }
         onClose={() => {
-          if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+          if (JSON.stringify(treatment) === JSON.stringify(initialTreatmentState)) {
+            setOpen(false);
+            return;
+          }
           setModalConfirmState({
             open: true,
             options: {
@@ -230,283 +213,293 @@ function TreatmentContent({ onClose, treatment, personId }) {
                 {
                   text: "Oui",
                   className: "button-destructive",
-                  onClick: () => onClose(),
+                  onClick: () => setOpen(false),
                 },
               ],
             },
           });
         }}
       />
-      <ModalBody>
-        <div>
-          <TabsNav
-            className="tw-px-3 tw-py-2"
-            tabs={[
-              "Informations",
-              `Documents ${data?.documents?.length ? `(${data.documents.length})` : ""}`,
-              `Commentaires ${data?.comments?.length ? `(${data.comments.length})` : ""}`,
-              "Historique",
-            ]}
-            onClick={(tab) => {
-              if (tab.includes("Informations")) setActiveTab("Informations");
-              if (tab.includes("Documents")) setActiveTab("Documents");
-              if (tab.includes("Commentaires")) setActiveTab("Commentaires");
-              if (tab.includes("Historique")) setActiveTab("Historique");
-              refresh();
-            }}
-            activeTabIndex={["Informations", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
-          />
-          <form
-            id="add-treatment-form"
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-wrap tw-overflow-y-auto tw-p-4", activeTab !== "Informations" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const ok = await handleSubmit({ closeOnSubmit: true });
-              if (ok && isNewTreatment) toast.success("Traitement créé !");
-              if (ok && !isNewTreatment) toast.success("Traitement mis à jour !");
-            }}
-          >
-            <div className="tw-flex tw-w-full tw-flex-wrap">
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="medicine-name">
-                  Nom
-                </label>
-                {isEditing ? (
-                  <input
-                    className="tailwindui"
-                    autoComplete="off"
-                    required
-                    onInvalid={() => setActiveTab("Informations")}
-                    placeholder="Amoxicilline"
-                    name="name"
-                    id="medicine-name"
-                    value={data.name}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <CustomFieldDisplay value={data.name} type="text" />
-                )}
+      {treatment ? (
+        <ModalBody>
+          <div>
+            <TabsNav
+              className="tw-px-3 tw-py-2"
+              tabs={[
+                "Informations",
+                `Documents ${treatment?.documents?.length ? `(${treatment.documents.length})` : ""}`,
+                `Commentaires ${treatment?.comments?.length ? `(${treatment.comments.length})` : ""}`,
+                "Historique",
+              ]}
+              onClick={(tab) => {
+                if (tab.includes("Informations")) setActiveTab("Informations");
+                if (tab.includes("Documents")) setActiveTab("Documents");
+                if (tab.includes("Commentaires")) setActiveTab("Commentaires");
+                if (tab.includes("Historique")) setActiveTab("Historique");
+                refresh();
+              }}
+              activeTabIndex={["Informations", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
+            />
+            <form
+              id="add-treatment-form"
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-wrap tw-overflow-y-auto tw-p-4", activeTab !== "Informations" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const ok = await handleSubmit({ closeOnSubmit: true });
+                if (ok && isNewTreatment) toast.success("Traitement créé !");
+                if (ok && !isNewTreatment) toast.success("Traitement mis à jour !");
+              }}
+            >
+              <div className="tw-flex tw-w-full tw-flex-wrap">
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="medicine-name">
+                    Nom
+                  </label>
+                  {mode === "edit" ? (
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      required
+                      onInvalid={() => setActiveTab("Informations")}
+                      placeholder="Amoxicilline"
+                      name="name"
+                      id="medicine-name"
+                      value={treatment.name}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.name} type="text" />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="dosage">
+                    Dosage
+                  </label>
+                  {mode === "edit" ? (
+                    <input className="tailwindui" placeholder="1mg" name="dosage" id="dosage" value={treatment.dosage} onChange={handleChange} />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.dosage} type="text" />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="frequency">
+                    Fréquence
+                  </label>
+                  {mode === "edit" ? (
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      placeholder="1 fois par jour"
+                      name="frequency"
+                      id="frequency"
+                      value={treatment.frequency}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.frequency} type="text" />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="indication">
+                    Indication
+                  </label>
+                  {mode === "edit" ? (
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      placeholder="Angine"
+                      name="indication"
+                      id="indication"
+                      value={treatment.indication}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.indication} type="text" />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="startDate">
+                    Date de début
+                  </label>
+                  {mode === "edit" ? (
+                    <DatePicker
+                      id="startDate"
+                      name="startDate"
+                      defaultValue={treatment.startDate}
+                      onChange={handleChange}
+                      required
+                      onInvalid={() => setActiveTab("Informations")}
+                    />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.startDate} type="date" />
+                  )}
+                </div>
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <label className={mode === "edit" ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="endDate">
+                    Date de fin
+                  </label>
+                  {mode === "edit" ? (
+                    <DatePicker
+                      id="endDate"
+                      name="endDate"
+                      defaultValue={treatment.endDate}
+                      onChange={handleChange}
+                      onInvalid={() => setActiveTab("Informations")}
+                    />
+                  ) : (
+                    <CustomFieldDisplay value={treatment.endDate} type="date" />
+                  )}
+                </div>
               </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="dosage">
-                  Dosage
-                </label>
-                {isEditing ? (
-                  <input className="tailwindui" placeholder="1mg" name="dosage" id="dosage" value={data.dosage} onChange={handleChange} />
-                ) : (
-                  <CustomFieldDisplay value={data.dosage} type="text" />
-                )}
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="frequency">
-                  Fréquence
-                </label>
-                {isEditing ? (
-                  <input
-                    className="tailwindui"
-                    autoComplete="off"
-                    placeholder="1 fois par jour"
-                    name="frequency"
-                    id="frequency"
-                    value={data.frequency}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <CustomFieldDisplay value={data.frequency} type="text" />
-                )}
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="indication">
-                  Indication
-                </label>
-                {isEditing ? (
-                  <input
-                    className="tailwindui"
-                    autoComplete="off"
-                    placeholder="Angine"
-                    name="indication"
-                    id="indication"
-                    value={data.indication}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <CustomFieldDisplay value={data.indication} type="text" />
-                )}
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="startDate">
-                  Date de début
-                </label>
-                {isEditing ? (
-                  <DatePicker
-                    id="startDate"
-                    name="startDate"
-                    defaultValue={data.startDate}
-                    onChange={handleChange}
-                    required
-                    onInvalid={() => setActiveTab("Informations")}
-                  />
-                ) : (
-                  <CustomFieldDisplay value={data.startDate} type="date" />
-                )}
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-blue-900"} htmlFor="endDate">
-                  Date de fin
-                </label>
-                {isEditing ? (
-                  <DatePicker
-                    id="endDate"
-                    name="endDate"
-                    defaultValue={data.endDate}
-                    onChange={handleChange}
-                    onInvalid={() => setActiveTab("Informations")}
-                  />
-                ) : (
-                  <CustomFieldDisplay value={data.endDate} type="date" />
-                )}
-              </div>
+            </form>
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Documents" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <DocumentsModule
+                personId={treatment.person}
+                color="blue-900"
+                showAssociatedItem={false}
+                documents={treatment.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: treatment?._id, type: "treatment" },
+                }))}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...treatment,
+                    documents: [...treatment.documents, ...nextDocuments],
+                  };
+                  setTreatment(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...treatment, documents: treatment.documents.filter((d) => d._id !== document._id) };
+                  setTreatment(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...treatment,
+                    documents: treatment.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setTreatment(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
             </div>
-          </form>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Documents" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <DocumentsModule
-              personId={data.person}
-              color="blue-900"
-              showAssociatedItem={false}
-              documents={data.documents.map((doc) => ({
-                ...doc,
-                type: doc.type ?? "document", // or 'folder'
-                linkedItem: { _id: treatment?._id, type: "treatment" },
-              }))}
-              onAddDocuments={async (nextDocuments) => {
-                const newData = {
-                  ...data,
-                  documents: [...data.documents, ...nextDocuments],
-                };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-              }}
-              onDeleteDocument={async (document) => {
-                const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document supprimé");
-                return ok;
-              }}
-              onSubmitDocument={async (document) => {
-                const newData = {
-                  ...data,
-                  documents: data.documents.map((d) => {
-                    if (d._id === document._id) return document;
-                    return d;
-                  }),
-                };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document mis à jour");
-              }}
-            />
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <CommentsModule
+                comments={treatment.comments.map((c) => ({ ...c, type: "treatment", treatment }))}
+                color="blue-900"
+                typeForNewComment="treatment"
+                canToggleShareComment
+                onDeleteComment={async (comment) => {
+                  const newData = { ...treatment, comments: treatment.comments.filter((c) => c._id !== comment._id) };
+                  setTreatment(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Commentaire supprimé");
+                }}
+                onSubmitComment={async (comment, isNewComment) => {
+                  const newData = isNewComment
+                    ? { ...treatment, comments: [{ ...comment, _id: uuidv4() }, ...treatment.comments] }
+                    : { ...treatment, comments: treatment.comments.map((c) => (c._id === comment._id ? comment : c)) };
+                  setTreatment(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Commentaire enregistré");
+                }}
+              />
+            </div>
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Historique" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <TreatmentHistory treatment={treatment} />
+            </div>
           </div>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <CommentsModule
-              comments={data.comments.map((c) => ({ ...c, type: "treatment", treatment }))}
-              color="blue-900"
-              typeForNewComment="treatment"
-              canToggleShareComment
-              onDeleteComment={async (comment) => {
-                const newData = { ...data, comments: data.comments.filter((c) => c._id !== comment._id) };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Commentaire supprimé");
-              }}
-              onSubmitComment={async (comment, isNewComment) => {
-                const newData = isNewComment
-                  ? { ...data, comments: [{ ...comment, _id: uuidv4() }, ...data.comments] }
-                  : { ...data, comments: data.comments.map((c) => (c._id === comment._id ? comment : c)) };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Commentaire enregistré");
-              }}
-            />
-          </div>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Historique" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <TreatmentHistory treatment={treatment} />
-          </div>
-        </div>
-      </ModalBody>
+        </ModalBody>
+      ) : null}
       <ModalFooter>
-        <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()}>
+        <button
+          name="Fermer"
+          type="button"
+          disabled={status !== "idle"}
+          className="button-cancel"
+          onClick={() => {
+            setOpen(false);
+          }}
+        >
           Fermer
         </button>
-        {!isNewTreatment && !!isEditing && (
+        {mode === "edit" && !isNewTreatment && (
           <button
             type="button"
             name="cancel"
+            disabled={status !== "idle"}
             className="button-destructive"
             onClick={async (e) => {
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer ce traitement ?")) return;
+              setStatus("deleting");
               const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/treatment/${treatment._id}` }));
               if (error) {
                 toast.error(errorMessage(error));
+                setStatus("idle");
                 return;
               }
-              await refresh();
               toast.success("Traitement supprimé !");
-              onClose();
+              setOpen(false);
             }}
           >
-            Supprimer
+            {status === "deleting" ? "Supression..." : "Supprimer"}
           </button>
         )}
-
-        {isEditing && (
+        {mode === "edit" && (
           <button
             title="Sauvegarder ce traitement"
             type="submit"
             className="button-submit !tw-bg-blue-900"
             form="add-treatment-form"
-            disabled={!canEdit}
+            disabled={status !== "idle"}
           >
-            Sauvegarder
+            {status === "saving" ? "Sauvegarde..." : "Sauvegarder"}
           </button>
         )}
-        {!isEditing && (
+        {mode === "view" && activeTab === "Informations" && (
           <button
             title="Modifier ce traitement - seul le créateur peut modifier un traitement"
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              setIsEditing(true);
+              setMode("edit");
             }}
-            className={["button-submit !tw-bg-blue-900", activeTab === "Informations" ? "tw-visible" : "tw-invisible"].join(" ")}
-            disabled={!canEdit}
+            className={["button-submit !tw-bg-blue-900"].join(" ")}
           >
             Modifier
           </button>
         )}
       </ModalFooter>
-    </>
+    </ModalContainer>
   );
 }
 
