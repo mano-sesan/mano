@@ -5,9 +5,10 @@ import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
+import { ActionInstance } from "../types/action";
 
 const collectionName = "action";
-export const actionsState = atom({
+export const actionsState = atom<ActionInstance>({
   key: collectionName,
   default: selector({
     key: "action/default",
@@ -36,7 +37,7 @@ export const flattenedActionsCategoriesSelector = selector({
   },
 });
 
-const encryptedFields = [
+const encryptedFields: Array<keyof ActionInstance> = [
   "category",
   "categories",
   "person",
@@ -66,7 +67,7 @@ export const allowedActionFieldsInHistory = [
   { name: "status", label: "Statut" },
 ];
 
-export const prepareActionForEncryption = (action, { checkRequiredFields = true } = {}) => {
+export const prepareActionForEncryption = (action: ActionInstance, { checkRequiredFields = true } = {}) => {
   if (checkRequiredFields) {
     try {
       if (!looseUuidRegex.test(action.person)) {
@@ -90,7 +91,7 @@ export const prepareActionForEncryption = (action, { checkRequiredFields = true 
     }
   }
   const decrypted = {};
-  for (let field of encryptedFields) {
+  for (const field of encryptedFields) {
     decrypted[field] = action[field];
   }
   return {
@@ -109,7 +110,7 @@ export const prepareActionForEncryption = (action, { checkRequiredFields = true 
   };
 };
 
-export async function encryptAction(action, { checkRequiredFields = true } = {}) {
+export async function encryptAction(action: ActionInstance, { checkRequiredFields = true } = {}) {
   return encryptItem(prepareActionForEncryption(action, { checkRequiredFields }));
 }
 
@@ -123,14 +124,14 @@ export const mappedIdsToLabels = [
   { _id: CANCEL, name: "ANNULÉE" },
 ];
 
-const sortTodo = (a, b, sortOrder) => {
+const sortTodo = (a: ActionInstance, b: ActionInstance, sortOrder: "ASC" | "DESC") => {
   if (!a.dueAt) return sortOrder === "ASC" ? 1 : -1;
   if (!b.dueAt) return sortOrder === "ASC" ? -1 : 1;
   if (a.dueAt > b.dueAt) return sortOrder === "ASC" ? 1 : -1;
   return sortOrder === "ASC" ? -1 : 1;
 };
 
-const sortDoneOrCancel = (a, b, sortOrder) => {
+const sortDoneOrCancel = (a: ActionInstance, b: ActionInstance, sortOrder: "ASC" | "DESC") => {
   if (!a.completedAt) return sortOrder === "ASC" ? -1 : 1;
   if (!b.completedAt) return sortOrder === "ASC" ? 1 : -1;
   if (a.completedAt > b.completedAt) return sortOrder === "ASC" ? -1 : 1;
@@ -145,12 +146,12 @@ export const getName = (item) => {
 };
 
 export const sortActionsOrConsultations =
-  (sortBy = "dueAt", sortOrder = "ASC") =>
+  (sortBy = "dueAt", sortOrder: "ASC" | "DESC" = "ASC") =>
   (a, b) => {
     const defaultSort = (a, b) => {
       const aDate = [DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt;
       const bDate = [DONE, CANCEL].includes(b.status) ? b.completedAt : b.dueAt;
-      return sortOrder === "ASC" ? new Date(bDate) - new Date(aDate) : new Date(aDate) - new Date(bDate);
+      return sortOrder === "ASC" ? new Date(bDate).getTime() - new Date(aDate).getTime() : new Date(aDate).getTime() - new Date(bDate).getTime();
     };
     if (sortBy === "urgentOrGroupOrConsultation") {
       if (sortOrder === "ASC") {
