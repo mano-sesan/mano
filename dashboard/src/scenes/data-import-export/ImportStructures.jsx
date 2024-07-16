@@ -88,29 +88,29 @@ export default function ImportStructures() {
 
       const structures = [];
       for (let i = 2; i <= lastRow; i++) {
-        const territory = {};
+        const structure = {};
         for (const [column, field] of headerColumnsAndField) {
           if (!structuresSheet[`${column}${i}`]) continue;
           const value = sanitizeFieldValueFromExcel(field, structuresSheet[`${column}${i}`]);
           if (!isNullOrUndefined(value)) {
-            if (importableFieldsObjectByName[field.name]) territory[field.name] = value;
+            if (importableFieldsObjectByName[field.name]) structure[field.name] = value;
             if (field.name === "assignedTeams" && value.length > 0) {
-              territory[field.name] = value.map((teamName) => teams.find((team) => team.name === teamName)?._id).filter((a) => a);
+              structure[field.name] = value.map((teamName) => teams.find((team) => team.name === teamName)?._id).filter((a) => a);
             }
           }
         }
-        if (Object.keys(territory).length) {
-          territory._id = uuidv4();
-          territory.user = user._id;
+        if (Object.keys(structure).length) {
+          structure._id = uuidv4();
+          structure.user = user._id;
         }
-        if (Object.keys(territory).length) {
-          territory.description = `Données importées le ${formatDateWithFullMonth(now())}\n\n${territory.description || ""}`;
-          if (!territory.name) {
+        if (Object.keys(structure).length) {
+          structure.description = `Données importées le ${formatDateWithFullMonth(now())}\n\n${structure.description || ""}`;
+          if (!structure.name) {
             toast.error(`La colonne "${nameField.label}" ne doit pas être vide, vérifiez la ligne ${i} du fichier.`);
             setReloadKey((k) => k + 1);
             return;
           }
-          structures.push(territory);
+          structures.push(structure);
         }
       }
 
