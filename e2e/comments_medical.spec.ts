@@ -32,8 +32,7 @@ test("test", async ({ page }) => {
   await page.getByLabel("Commentaire", { exact: true }).fill("Avec un commentaire avant d'enregistrer");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
-  await new Promise((r) => setTimeout(r, 300)); // time for dialog to close
-  await page.getByText("Avec un commentaire avant d'enregistrer").click();
+  await page.locator('[data-test-id="Manu ChaoDossier Médical"]').getByText("Avec un commentaire avant d'enregistrer").click();
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page
     .getByRole("dialog", { name: "Consultation (créée par User Admin Test - 1)" })
@@ -44,8 +43,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Commentaire enregistré").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
-  await new Promise((r) => setTimeout(r, 300)); // time for dialog to close
-  await expect(page.getByText("Avec un commentaire avant d'enregistrer modifié")).toBeVisible();
+  await expect(page.locator('[data-test-id="Manu ChaoDossier Médical"]').getByText("Avec un commentaire avant d'enregistrer modifié")).toBeVisible();
   await page.getByRole("button", { name: "Passer les consultations en plein écran" }).click();
   await page.getByRole("dialog", { name: "Consultations de Manu Chao (1)" }).getByText("Une consultation- Médicale").click();
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
@@ -84,8 +82,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Commentaire enregistré").click();
   await page.getByText("Fermer").click();
-  await new Promise((r) => setTimeout(r, 300)); // time for dialog to close
-  await page.getByRole("button", { name: "Ajouter un commentaire" }).click();
+  await page.locator('[data-test-id="Manu ChaoDossier Médical"]').getByRole("button", { name: "Ajouter un commentaire" }).click();
   await page.getByLabel("Commentaire", { exact: true }).click();
   await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire de dossier médical");
   await page.getByRole("dialog").getByText("Enregistrer").click();

@@ -40,7 +40,7 @@ export default function TreatmentModal() {
   const paramPersonId = searchParams.get("personId");
   const isNewTreatment = Boolean(searchParams.get("newTreatment"));
 
-  const initialTreatmentState = useMemo(() => {
+  const initialTreatment = useMemo(() => {
     if (treatmentId) {
       return {
         documents: [],
@@ -73,6 +73,7 @@ export default function TreatmentModal() {
       setStatus("idle");
       setTreatmentId(null);
       setTreatment(null);
+      setActiveTab("Informations");
     }
   }, [isNewTreatment]);
 
@@ -84,14 +85,15 @@ export default function TreatmentModal() {
       setStatus("idle");
       setTreatmentId(paramTreatmentId);
       setTreatment(null);
+      setActiveTab("Informations");
     }
   }, [paramTreatmentId]);
 
   // Chargement du traitement
   useEffect(() => {
     if (!open) return;
-    setTreatment(initialTreatmentState);
-  }, [open, initialTreatmentState]);
+    setTreatment(initialTreatment);
+  }, [open, initialTreatment]);
 
   async function handleSubmit({ newData = {}, closeOnSubmit = false }) {
     const body = { ...treatment, ...newData };
@@ -117,7 +119,7 @@ export default function TreatmentModal() {
 
     setStatus("saving");
 
-    if (!isNewTreatment && !!treatment) {
+    if (!isNewTreatment && !!initialTreatment) {
       const historyEntry = {
         date: new Date(),
         user: user._id,
@@ -125,10 +127,10 @@ export default function TreatmentModal() {
       };
       for (const key in body) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== treatment[key]) historyEntry.data[key] = { oldValue: treatment[key], newValue: body[key] };
+        if (body[key] !== initialTreatment[key]) historyEntry.data[key] = { oldValue: initialTreatment[key], newValue: body[key] };
       }
       if (Object.keys(historyEntry.data).length) {
-        const prevHistory = Array.isArray(treatment.history) ? treatment.history : [];
+        const prevHistory = Array.isArray(initialTreatment.history) ? initialTreatment.history : [];
         body.history = [...prevHistory, historyEntry];
       }
     }
@@ -196,7 +198,7 @@ export default function TreatmentModal() {
           </>
         }
         onClose={() => {
-          if (JSON.stringify(treatment) === JSON.stringify(initialTreatmentState)) {
+          if (JSON.stringify(treatment) === JSON.stringify(initialTreatment)) {
             setOpen(false);
             return;
           }
