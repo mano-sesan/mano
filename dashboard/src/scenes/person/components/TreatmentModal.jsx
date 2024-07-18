@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { organisationState, userState } from "../../../recoil/auth";
+import { userState } from "../../../recoil/auth";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { allowedTreatmentFieldsInHistory, encryptTreatment } from "../../../recoil/treatments";
