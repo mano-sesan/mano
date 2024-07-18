@@ -642,7 +642,7 @@ router.get(
 
     const users = await User.findAll({
       where: { organisation: organisationId },
-      include: includeTeams ? [{ model: Team, as: "teams" }] : [],
+      include: includeTeams ? [{ model: Team, as: "Teams" }] : [],
     });
 
     const data = users.map((user) => {
