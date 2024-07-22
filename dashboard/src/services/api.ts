@@ -84,52 +84,64 @@ class Api {
   }
 
   async post({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+    console.log("post", this.getUrl(path, { ...query }).toString());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "POST",
       body: typeof body === "string" ? body : JSON.stringify(body),
+      signal: this.abortController.signal,
     });
+    console.log("THIS ABORCTRONLLER", this.abortController.signal);
     this.updateDeploymentStatus(response);
+    console.log("post end", this.getUrl(path, { ...query }).toString());
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async put({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+    console.log("put", this.getUrl(path, { ...query }).toString());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "PUT",
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
     this.updateDeploymentStatus(response);
+    console.log("put end", this.getUrl(path, { ...query }).toString());
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async delete({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+    console.log("delete", this.getUrl(path, { ...query }).toString());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "DELETE",
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
     this.updateDeploymentStatus(response);
+    console.log("delete end", this.getUrl(path, { ...query }).toString());
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async get({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
+    console.log("get", this.getUrl(path, { ...query }).toString());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
+    console.log("get end", this.getUrl(path, { ...query }).toString());
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
 
   async getAbortable({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
+    console.log("getAbortable", this.getUrl(path, { ...query }).toString());
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
       ...this.fetchParams(),
       method: "GET",
       signal: this.abortController.signal,
     });
     this.updateDeploymentStatus(response);
+    console.log("getAbortable end", this.getUrl(path, { ...query }).toString());
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.json();
   }
@@ -163,8 +175,10 @@ class Api {
   }
 
   async getSigninToken() {
+    console.log("getSigninToken", this.getUrl("/user/signin-token").toString());
     const response = await fetch(this.getUrl("/user/signin-token"), { ...this.fetchParams(), method: "GET", signal: this.abortController.signal });
     this.updateDeploymentStatus(response);
+    console.log("getSigninToken end", this.getUrl("/user/signin-token").toString());
     if (response.status === 200 && response.ok) return response.json();
     return {};
   }
@@ -201,9 +215,14 @@ export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>
     if (result && !result.ok) return [new Error(result.error), result];
     return [undefined, result];
   } catch (error) {
-    if (error instanceof AuthError) window.location.href = "/auth?disconnected=1";
-    else if (error.name === "BeforeUnloadAbortError") console.error("BeforeUnloadAbortError", error);
-    else capture(error);
+    if (error instanceof AuthError) {
+      window.location.href = "/auth?disconnected=1";
+    } else if (error.name === "BeforeUnloadAbortError") {
+      console.error("BeforeUnloadAbortError", error);
+    } else {
+      console.log("ERROR NAME tryFetch", error?.name);
+      capture(error);
+    }
     return [error, undefined];
   }
 }
@@ -217,9 +236,14 @@ export async function tryFetchExpectOk<T extends ApiResponse>(callback: FetchCal
     if (result && result?.ok === false) throw new Error(result.error);
     return [undefined, result];
   } catch (error) {
-    if (error instanceof AuthError) window.location.href = "/auth?disconnected=1";
-    else if (error.name === "BeforeUnloadAbortError") console.error("BeforeUnloadAbortError", error);
-    else capture(error);
+    if (error instanceof AuthError) {
+      window.location.href = "/auth?disconnected=1";
+    } else if (error.name === "BeforeUnloadAbortError") {
+      console.error("BeforeUnloadAbortError", error);
+    } else {
+      console.log("ERROR NAME tryFetchExpectOk", error?.name);
+      capture(error);
+    }
     return [error, undefined];
   }
 }

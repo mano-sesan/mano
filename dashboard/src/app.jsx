@@ -94,6 +94,7 @@ function abortRequests() {
   try {
     API.abortController.abort(new DOMException("Aborted by navigation", "BeforeUnloadAbortError"));
   } catch (e) {
+    console.log("HEIN QUOI");
     console.error(e);
   }
 }
@@ -120,9 +121,14 @@ const App = () => {
           // On ne recharge que s'il y a une clé de chiffrement
           // Sinon ça met du bazar en cache (parce que ça va chercher des données chiffrées et que ça échoue)
           if (initialLoadIsDone && getHashedOrgEncryptionKey()) {
+            console.log("refreshing data on focus");
             refresh();
+          } else {
+            console.log("initial load not done, not refreshing data on focus");
           }
         });
+      } else {
+        console.log("no token, not refreshing data on focus");
       }
     };
     window.addEventListener("focus", handleFocus);
@@ -137,7 +143,7 @@ const App = () => {
 
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     console.log("automatic force reload 🤖💪🆙");
-    abortRequests();
+    abortRequests("automatic force reload");
     window.localStorage.setItem("deploymentDate", deploymentDate);
     window.localStorage.setItem("deploymentCommit", deploymentCommit);
     window.localStorage.setItem("automaticReload", "true"); //  to prevent infinite loop

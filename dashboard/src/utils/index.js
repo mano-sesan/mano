@@ -71,5 +71,8 @@ export function errorMessage(e) {
   if (message === "Failed to fetch" || message === "Load failed") {
     return "Impossible de transmettre les données. Veuillez vérifier votre connexion internet.";
   }
+  if (message === "Les données sont en cours de chiffrement par un administrateur. Veuillez patienter, vous reconnecter et réessayer.") {
+    return "Les données sont en cours de chiffrement par un administrateur. Veuillez patienter, vous reconnecter et réessayer.";
+  }
   return message;
 }

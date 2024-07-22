@@ -90,6 +90,7 @@ const SignIn = () => {
       if (error) {
         // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
         if (error?.name === "BeforeUnloadAbortError") return setLoading(false);
+        console.log("ERROR NAME Signin getSigninToken", error?.name);
         toast.error(errorMessage(error));
         return setLoading(false);
       }
@@ -142,6 +143,7 @@ const SignIn = () => {
       if (signinTokenError || !signinTokenResponse.ok) {
         // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
         if (signinTokenError?.name === "BeforeUnloadAbortError") return setLoading(false);
+        console.log("ERROR NAME Signin authViaCookie", error?.name);
         toast.error(errorMessage(signinTokenError || signinTokenResponse?.error));
         return setIsSubmitting(false);
       }

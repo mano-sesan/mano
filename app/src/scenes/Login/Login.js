@@ -72,6 +72,15 @@ const Login = ({ navigation }) => {
       if (!storedToken) return RNBootSplash.hide({ duration: 250 });
       API.token = storedToken;
       const { token, ok, user } = await API.get({ path: '/user/signin-token' });
+      // if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
+      //   console.log("automatic force reload 🤖💪🆙");
+      //   abortRequests("automatic force reload");
+      //   window.localStorage.setItem("deploymentDate", deploymentDate);
+      //   window.localStorage.setItem("deploymentCommit", deploymentCommit);
+      //   window.localStorage.setItem("automaticReload", "true"); //  to prevent infinite loop
+      //   window.location.reload(true);
+      //   return null;
+      // }
       if (ok && token && user) {
         setAuthViaCookie(true);
         API.onLogIn();

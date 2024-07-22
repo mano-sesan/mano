@@ -501,6 +501,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // Pas de message d'erreur si la page est en train de se fermer
     // et que l'erreur est liée à une requête annulable.
     if (error?.name === "BeforeUnloadAbortError") return false;
+    console.log("ERROR NAME resetLoaderOnError", error?.name);
     toast.error(errorMessage(error || "Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer"), {
       onClose: () => window.location.replace("/auth"),
       autoClose: 5000,

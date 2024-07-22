@@ -31,6 +31,7 @@ const ServicesStats = ({ period, teamIds }) => {
         if (error) {
           // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
           if (error?.name === "BeforeUnloadAbortError") return;
+          console.log("ERROR NAME ServicesStats", error?.name);
           return toast.error("Erreur lors du chargement des statistiques des services de l'accueil");
         }
         const servicesObj = {};
