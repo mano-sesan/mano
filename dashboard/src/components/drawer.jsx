@@ -155,7 +155,7 @@ const Drawer = () => {
                   )}
                 </NavLink>
               </li>
-              {process.env.NODE_ENV === "development" && (
+              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && (
                 <>
                   <hr />
                   <li>
