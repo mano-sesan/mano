@@ -206,7 +206,7 @@ export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>
     console.log("error in tryFetch", error);
     console.log("error.name in tryFetch", error.name);
     if (error instanceof AuthError) window.location.href = "/auth?disconnected=1";
-    else if (error.name === "BeforeUnloadAbortError") console.error("BeforeUnloadAbortError", error);
+    else if (error.name === "BeforeUnloadAbortError") console.log("BeforeUnloadAbortError", error);
     else capture(error);
     return [error, undefined];
   }
@@ -224,7 +224,7 @@ export async function tryFetchExpectOk<T extends ApiResponse>(callback: FetchCal
     console.log("error in tryFetchExpectOk", error);
     console.log("error.name in tryFetchExpectOk", error.name);
     if (error instanceof AuthError) window.location.href = "/auth?disconnected=1";
-    else if (error.name === "BeforeUnloadAbortError") console.error("BeforeUnloadAbortError", error);
+    else if (error.name === "BeforeUnloadAbortError") console.log("BeforeUnloadAbortError", error);
     else capture(error);
     return [error, undefined];
   }
