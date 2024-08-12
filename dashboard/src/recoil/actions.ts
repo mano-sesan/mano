@@ -8,7 +8,7 @@ import { encryptItem } from "../services/encryption";
 import { ActionInstance } from "../types/action";
 
 const collectionName = "action";
-export const actionsState = atom<ActionInstance>({
+export const actionsState = atom<Array<ActionInstance>>({
   key: collectionName,
   default: selector({
     key: "action/default",
