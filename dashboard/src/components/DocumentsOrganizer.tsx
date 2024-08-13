@@ -262,9 +262,11 @@ function Branch({
               >
                 <span>{open ? "📂" : "📁"}</span>
                 <span className="tw-truncate">{folder.name}</span>
-                <span className="tw-opacity-50" title="Ce dossier est configuré par défaut. Il ne peut pas être déplacé ou renommé.">
-                  {movable ? "" : " 🔒"}
-                </span>
+                {!movable ? (
+                  <span className="tw-opacity-50" title="Ce dossier est configuré par défaut. Il ne peut pas être déplacé ou renommé.">
+                    🔒
+                  </span>
+                ) : null}
                 <span>({folder.children?.length || 0})</span>
               </button>
             </div>
