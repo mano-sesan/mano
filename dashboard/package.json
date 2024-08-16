@@ -17,6 +17,7 @@
     "@sentry/react": "^7.116.0",
     "@sentry/vite-plugin": "^2.17.0",
     "@ungap/structured-clone": "^1.2.0",
+    "@zip.js/zip.js": "^2.7.48",
     "base-64": "^1.0.0",
     "base64-js": "^1.5.1",
     "bootstrap": "^4.6.1",

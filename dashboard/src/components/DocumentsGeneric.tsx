@@ -15,6 +15,7 @@ import PersonName from "./PersonName";
 import { toast } from "react-toastify";
 import DocumentsOrganizer from "./DocumentsOrganizer";
 import { decryptFile, encryptFile, getHashedOrgEncryptionKey } from "../services/encryption";
+import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
 
 interface DocumentsModuleProps<T> {
   documents: T[];
@@ -689,6 +690,55 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
             </form>
           ) : (
             <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-2">
+              <button
+                type="button"
+                className={`button-submit !tw-bg-${color}`}
+                onClick={async () => {
+                  try {
+                    // Création de l'archive ZIP
+                    const zipWriter = new ZipWriter(new BlobWriter("application/zip"));
+
+                    // Liste des documents à télécharger
+                    const documents = [
+                      { downloadPath: `/person/${personId}/document/${document.file.filename}` },
+                      { downloadPath: `/person/${personId}/document/${document.file.filename}` },
+                      // Ajoute d'autres documents ici
+                    ];
+
+                    // Boucle pour télécharger chaque document
+                    let i = 0;
+                    for (const doc of documents) {
+                      i++;
+                      const [error, blob] = await tryFetchBlob(() => {
+                        return API.download({ path: doc.downloadPath });
+                      });
+
+                      if (error) {
+                        toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document");
+                        return;
+                      }
+
+                      const file = await decryptFile(blob, document.encryptedEntityKey, getHashedOrgEncryptionKey());
+
+                      // Ajoute le fichier décrypté dans le ZIP
+                      await zipWriter.add("a" + i + name, new BlobReader(file));
+                    }
+
+                    // Ferme l'archive et génère le fichier ZIP
+                    const zipBlob = await zipWriter.close();
+
+                    // Télécharge le fichier ZIP
+                    download(new File([zipBlob], "documents.zip", { type: "application/zip" }), "documents.zip");
+
+                    onClose();
+                  } catch (err) {
+                    console.error("Une erreur est survenue", err);
+                    toast.error("Une erreur est survenue lors de la création du fichier zip.");
+                  }
+                }}
+              >
+                Télécharger en double
+              </button>
               <button
                 type="button"
                 className={`button-submit !tw-bg-${color}`}

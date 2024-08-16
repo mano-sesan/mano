@@ -3930,6 +3930,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@zip.js/zip.js@npm:^2.7.48":
+  version: 2.7.48
+  resolution: "@zip.js/zip.js@npm:2.7.48"
+  checksum: 1caad2114792b45e53f13845f45c120491b73df3e90547aa63bf40be1178b467e86b8813e8f1960e03d4c55a2f5f00013f380dfcb9a8f2407e9ba46070853f14
+  languageName: node
+  linkType: hard
+
 "abbrev@npm:^1.0.0":
   version: 1.1.1
   resolution: "abbrev@npm:1.1.1"
@@ -5495,6 +5502,7 @@ __metadata:
     "@typescript-eslint/typescript-estree": "npm:^7.3.1"
     "@ungap/structured-clone": "npm:^1.2.0"
     "@vitejs/plugin-react-swc": "npm:^3.6.0"
+    "@zip.js/zip.js": "npm:^2.7.48"
     autoprefixer: "npm:^10.4.13"
     babel-jest: "npm:^29.7.0"
     base-64: "npm:^1.0.0"
