@@ -27,13 +27,11 @@ export default function SuperadminUsersSearch({
   const [generatedLink, setGeneratedLink] = useState<[string, string] | undefined>();
 
   const onClose = useCallback(() => {
-    setIsLoading(false);
-    setSearch("");
     setOpen(false);
   }, [setOpen]);
 
   useEffect(() => {
-    if (!open || !search?.length || search.length < 3) {
+    if (!search?.length || search.length < 3) {
       setUsers([]);
       return;
     }
@@ -48,7 +46,16 @@ export default function SuperadminUsersSearch({
   }, [open, search]);
 
   return (
-    <ModalContainer open={open} onClose={onClose} size="full">
+    <ModalContainer
+      open={open}
+      onClose={onClose}
+      size="full"
+      onAfterLeave={() => {
+        setIsLoading(false);
+        setSearch("");
+        setUsers([]);
+      }}
+    >
       <ModalHeader title={"Rechercher un utilisateur"} onClose={onClose} />
       <ModalBody>
         <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-center">
