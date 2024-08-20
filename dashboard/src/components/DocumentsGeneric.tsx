@@ -340,6 +340,7 @@ function DocumentsFullScreen<T extends DocumentWithLinkedItem | FolderWithLinked
         <button type="button" name="cancel" className="button-cancel" onClick={onClose}>
           Fermer
         </button>
+        <ButtonDownloadAll documents={documents as DocumentWithLinkedItem[]} />
         <label aria-label="Ajouter des documents" className={`button-submit mb-0 !tw-bg-${color}`}>
           ＋ Ajouter des documents
           <AddDocumentInput onAddDocuments={onAddDocuments} personId={personId} />
@@ -351,6 +352,74 @@ function DocumentsFullScreen<T extends DocumentWithLinkedItem | FolderWithLinked
         )}
       </ModalFooter>
     </ModalContainer>
+  );
+}
+
+function ButtonDownloadAll({ documents }: { documents: DocumentWithLinkedItem[] }) {
+  const [isDownloading, setIsDownloading] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={isDownloading}
+      className={`button-classic`}
+      onClick={async () => {
+        // Cette fonction permet de rajouter un fullName (avec les dossiers parents) à chaque document
+        // Cela permet de respecter la hiérarchie des dossiers dans le zip.
+        function documentsWithFullName(items: DocumentWithLinkedItem[]): (DocumentWithLinkedItem & { fullName: string })[] {
+          const buildFullName = (item: DocumentWithLinkedItem, itemsMap: Record<string, DocumentWithLinkedItem>) => {
+            let path = item.name;
+            let parentId = item.parentId;
+            while (parentId !== "root") {
+              const parentItem = itemsMap[parentId];
+              if (!parentItem) break; // sécurité pour éviter les boucles infinies ou les parents manquants
+              path = `${parentItem.name}/${path}`;
+              parentId = parentItem.parentId;
+            }
+            return path;
+          };
+          const itemsMap = items.reduce((map, item) => {
+            map[item._id] = item;
+            return map;
+          }, {});
+          const documents = items
+            .filter((item) => item.type === "document")
+            .map((document) => ({
+              ...document,
+              fullName: buildFullName(document, itemsMap),
+            }));
+          return documents;
+        }
+
+        // Un gros try catch pour l'instant, on verra si on peut améliorer ça plus tard
+        try {
+          setIsDownloading(true);
+          const zipWriter = new ZipWriter(new BlobWriter("application/zip"));
+          const documentsPaths = documentsWithFullName(documents);
+
+          for (const doc of documentsPaths) {
+            const [error, blob] = await tryFetchBlob(() => {
+              return API.download({ path: doc.downloadPath });
+            });
+            if (error) {
+              toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document");
+              setIsDownloading(false);
+              return;
+            }
+            const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
+            await zipWriter.add(doc.fullName, new BlobReader(file));
+          }
+          const zipBlob = await zipWriter.close();
+          download(new File([zipBlob], "documents.zip", { type: "application/zip" }), "documents.zip");
+          setIsDownloading(false);
+        } catch (err) {
+          console.error("Une erreur est survenue", err);
+          toast.error("Une erreur est survenue lors de la création du fichier zip.");
+          setIsDownloading(false);
+        }
+      }}
+    >
+      {isDownloading ? "Téléchargement en cours..." : "Télécharger tout (.zip)"}
+    </button>
   );
 }
 
@@ -690,55 +759,6 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
             </form>
           ) : (
             <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-2">
-              <button
-                type="button"
-                className={`button-submit !tw-bg-${color}`}
-                onClick={async () => {
-                  try {
-                    // Création de l'archive ZIP
-                    const zipWriter = new ZipWriter(new BlobWriter("application/zip"));
-
-                    // Liste des documents à télécharger
-                    const documents = [
-                      { downloadPath: `/person/${personId}/document/${document.file.filename}` },
-                      { downloadPath: `/person/${personId}/document/${document.file.filename}` },
-                      // Ajoute d'autres documents ici
-                    ];
-
-                    // Boucle pour télécharger chaque document
-                    let i = 0;
-                    for (const doc of documents) {
-                      i++;
-                      const [error, blob] = await tryFetchBlob(() => {
-                        return API.download({ path: doc.downloadPath });
-                      });
-
-                      if (error) {
-                        toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document");
-                        return;
-                      }
-
-                      const file = await decryptFile(blob, document.encryptedEntityKey, getHashedOrgEncryptionKey());
-
-                      // Ajoute le fichier décrypté dans le ZIP
-                      await zipWriter.add("a" + i + name, new BlobReader(file));
-                    }
-
-                    // Ferme l'archive et génère le fichier ZIP
-                    const zipBlob = await zipWriter.close();
-
-                    // Télécharge le fichier ZIP
-                    download(new File([zipBlob], "documents.zip", { type: "application/zip" }), "documents.zip");
-
-                    onClose();
-                  } catch (err) {
-                    console.error("Une erreur est survenue", err);
-                    toast.error("Une erreur est survenue lors de la création du fichier zip.");
-                  }
-                }}
-              >
-                Télécharger en double
-              </button>
               <button
                 type="button"
                 className={`button-submit !tw-bg-${color}`}
