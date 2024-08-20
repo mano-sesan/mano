@@ -38,7 +38,7 @@ export default function Transmissions({ period, selectedTeamsObject, reports }) 
               </summary>
               {Object.entries(selectedTeamsObject).map(([teamId, team]) => {
                 const report = reports.find((report) => report.team === teamId && report.date === day);
-                const key = team.name.replace(/[^a-zA-Z0-9]/g, "-") + day + report?.description;
+                const key = team.name.replace(/[^a-zA-Z0-9]/g, "-") + day;
                 return (
                   <Transmission
                     day={day}
