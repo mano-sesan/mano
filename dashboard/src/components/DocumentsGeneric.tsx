@@ -98,7 +98,9 @@ export function DocumentsModule<T extends DocumentWithLinkedItem | FolderWithLin
             color={color}
             onDisplayDocument={setDocumentToEdit}
             onAddDocuments={onAddDocuments}
-            showAddDocumentButton={showAddDocumentButton}
+            // Already in the panel (see above)
+            // Still we want to display if no document at all.
+            showAddDocumentButton={!onlyDocuments.length}
             personId={personId}
           />
         </DocumentsDropZone>
