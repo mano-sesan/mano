@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { Menu, Transition } from "@headlessui/react";
+import { Menu, MenuButton, MenuItems, Transition } from "@headlessui/react";
 import { useRecoilValue } from "recoil";
 import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../recoil/persons";
 import { utils, writeFile } from "@e965/xlsx";
@@ -204,12 +204,12 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
     <Menu as="div" className="tw-relative tw-inline-block tw-text-left">
       <div>
         {["admin"].includes(user.role) && (
-          <Menu.Button className="tw-inline-flex tw-w-full tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-main tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white focus:tw-outline-none">
+          <MenuButton className="tw-inline-flex tw-w-full tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-main tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white focus:tw-outline-none">
             Télécharger un export
             <div className="-tw-mr-1 -tw-mt-1 tw-ml-2 tw-h-5 tw-w-5" aria-hidden="true">
               ⌄
             </div>
-          </Menu.Button>
+          </MenuButton>
         )}
       </div>
       <Transition
@@ -221,7 +221,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
         leaveTo="tw-transform tw-opacity-0 tw-scale-95"
       >
-        <Menu.Items
+        <MenuItems
           className={`tw-absolute tw-right-0 tw-z-50 tw-mt-2 ${user.healthcareProfessional ? "tw-w-72" : "tw-w-56"} tw-origin-top-right tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none`}
         >
           <div className="tw-py-1">
@@ -301,7 +301,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
               }}
             />
           </div>
-        </Menu.Items>
+        </MenuItems>
       </Transition>
     </Menu>
   );
@@ -313,7 +313,7 @@ function classNames(...classes) {
 
 function MenuItem({ text = "Account settings", onClick = () => {} }) {
   return (
-    <Menu.Item>
+    <MenuItem>
       {({ active }) => (
         <div
           onClick={onClick}
@@ -325,6 +325,6 @@ function MenuItem({ text = "Account settings", onClick = () => {} }) {
           {text}
         </div>
       )}
-    </Menu.Item>
+    </MenuItem>
   );
 }
