@@ -351,6 +351,7 @@ const Create = ({ onChange, open, setOpen }) => {
             if (!values.orgId) errors.orgId = "L'identifiant est obligatoire";
             if (!values.city) errors.city = "La ville est obligatoire";
             if (!values.email) errors.email = "L'email est obligatoire";
+            if (!values.responsible) errors.responsible = "Le responsable est obligatoire";
             else if (!emailRegex.test(values.email)) errors.email = "L'email est invalide";
             return errors;
           }}
