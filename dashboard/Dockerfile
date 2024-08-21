@@ -11,6 +11,7 @@ ENV VITE_USE_HTTP $VITE_USE_HTTP
 ENV APP_ENV production
 ENV NODE_ENV production
 ENV SHA $SHA
+ENV NODE_OPTIONS=--max-old-space-size=4096
 
 WORKDIR /usr/src/app
 COPY yarn.lock .yarnrc.yml ./
