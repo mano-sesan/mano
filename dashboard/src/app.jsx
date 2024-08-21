@@ -201,6 +201,15 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
       </main>
     );
 
+  // When no user, store in session storage the current route to redirect to it after login
+  if (!user) {
+    try {
+      window.sessionStorage.setItem("redirectPath", rest.location.pathname);
+    } catch (e) {
+      // On s'en fiche si ça ne marche pas
+    }
+  }
+
   // Do not show content if loading state is fullscreen and user is logged in.
   if (user && fullScreen) return <div></div>;
   return (
