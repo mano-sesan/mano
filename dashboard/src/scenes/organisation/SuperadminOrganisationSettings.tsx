@@ -21,6 +21,10 @@ export default function SuperadminOrganisationSettings({
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!data.orgId) return toast.error("L'identifiant interne est obligatoire");
+    if (!data.name) return toast.error("Le nom est obligatoire");
+    if (!data.city) return toast.error("La ville est obligatoire");
+
     tryFetchExpectOk(() => API.put({ path: `/organisation/superadmin/${organisation._id}`, body: data })).then(([error, res]) => {
       if (!error) {
         toast.success("Organisation mise à jour");
