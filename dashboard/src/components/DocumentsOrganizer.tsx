@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SortableJS from "sortablejs";
 import type { DocumentWithLinkedItem, DocumentOrFolderId, FolderWithLinkedItem, Folder } from "../types/document";
-// import UserName from './UserName';
 import { useRecoilValue } from "recoil";
 import { organisationAuthentifiedState } from "../recoil/auth";
 import UserName from "./UserName";
