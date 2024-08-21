@@ -274,7 +274,7 @@ export default function NewIndex() {
               <h3 className="text-lg font-semibold mb-4">Qui nous finance</h3>
               <div>
                 Mano est financé par les agences régionales de santé (ARS) d’Île-de-France, de Bretagne, de Normandie, d’Occitanie, de
-                Bourgogne-Franche-Conté, et des Pays de la Loire
+                Bourgogne-Franche-Conté, et du Grand Est.
               </div>
             </div>
           </div>
