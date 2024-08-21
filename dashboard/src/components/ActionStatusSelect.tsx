@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { organisationState, userState } from "../recoil/auth";
 import { encryptConsultation } from "../recoil/consultations";
 import { ConsultationInstance } from "../types/consultation";
-import { ActionInstance } from "../types/action";
+import { ActionInstance, ActionStatus } from "../types/action";
 import { useDataLoader } from "./DataLoader";
 
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
@@ -47,7 +47,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
       onChange={async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const status = e.target.value;
+        const status = e.target.value as ActionStatus;
         const completedAt = status === TODO ? null : action.completedAt || now();
         const updatedUser = action.user || user._id;
         const historyEntry = {
