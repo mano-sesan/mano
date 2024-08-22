@@ -88,9 +88,9 @@ export default function SuperadminOrganisationSettings({
                 <CitySelect
                   name="city"
                   id="organisation-city"
-                  value={data.city}
-                  onChange={(nextCity) => {
-                    setData({ ...data, city: nextCity });
+                  value={{ city: data.city, region: data.region }}
+                  onChange={(next) => {
+                    setData({ ...data, city: next.city, region: next.region });
                   }}
                 />
               </div>

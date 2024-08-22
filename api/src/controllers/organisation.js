@@ -117,6 +117,7 @@ router.post(
         orgName: z.string().min(1),
         orgId: z.string().min(1),
         city: z.string().min(1),
+        region: z.optional(z.string().min(1)),
         responsible: z.optional(z.string()),
         name: z.string().min(1),
         email: z.string().email(),
@@ -135,6 +136,7 @@ router.post(
         name: orgName,
         orgId: orgId,
         city: city,
+        region: req.body.region || null,
         responsible: responsible || null,
         // We have to add default custom fields on creation
         // (search for "custom-fields-persons-setup" or "custom-fields-persons-refacto-regroup" in code).
@@ -398,6 +400,7 @@ router.put(
 
     const updateOrg = {};
     if (req.body.hasOwnProperty("city")) updateOrg.city = req.body.city;
+    if (req.body.hasOwnProperty("region")) updateOrg.region = req.body.region || null;
     if (req.body.hasOwnProperty("responsible")) updateOrg.responsible = req.body.responsible || null;
     if (req.body.hasOwnProperty("name")) updateOrg.name = req.body.name;
     if (req.body.hasOwnProperty("orgId")) updateOrg.orgId = req.body.orgId;

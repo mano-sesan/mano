@@ -1,3 +1,4 @@
+import { StylesConfig, Theme } from "react-select";
 import { theme } from "../config";
 import AsyncSelect from "react-select/async";
 
@@ -7,21 +8,45 @@ type GeoApiResponse = {
     type: string;
     coordinates: [number, number];
   };
+  region: {
+    code: number;
+    nom: string;
+  };
   nom: string;
   code: string;
   _score: number;
 };
 
-type City = string;
+type CitySelectValue = {
+  city: string;
+  region: string;
+};
 
-export default function CitySelect({ name, id, value, onChange }: { value: City; onChange: (value: City) => void; name: string; id: string }) {
+export default function CitySelect({
+  name,
+  id,
+  value,
+  onChange,
+}: {
+  value: CitySelectValue;
+  onChange: (value: CitySelectValue) => void;
+  name: string;
+  id: string;
+}) {
   async function loadOptions(inputValue: string) {
     const response: Array<GeoApiResponse> = await fetch(
-      `https://geo.api.gouv.fr/communes?nom=${inputValue}&fields=codeDepartement,centre&boost=population&limit=5`
+      `https://geo.api.gouv.fr/communes?nom=${inputValue}&fields=codeDepartement,centre,region&boost=population&limit=5`
     ).then((res) => res.json());
-    const options = response.map((city) => {
-      const cityAndDepartment = `${city.nom} (${city.codeDepartement})`;
-      return { value: `${cityAndDepartment} - ${JSON.stringify(city.centre.coordinates)}`, label: cityAndDepartment };
+    const options = response.map((item) => {
+      const cityAndDepartment = `${item.nom} (${item.codeDepartement})`;
+      const regionAndCode = `${item.region.nom} (${item.region.code})`;
+      return {
+        value: {
+          city: `${cityAndDepartment} - ${JSON.stringify(item.centre.coordinates)}`,
+          region: regionAndCode,
+        },
+        label: cityAndDepartment,
+      };
     });
     return options;
   }
@@ -36,21 +61,27 @@ export default function CitySelect({ name, id, value, onChange }: { value: City;
       instanceId={id}
       inputId={id}
       classNamePrefix={id}
-      value={{ value: value, label: value?.split?.(" - ")[0] }}
+      value={{
+        value: {
+          city: value.city,
+          region: value.region,
+        },
+        label: value?.city?.split?.(" - ")[0],
+      }}
       onChange={(e) => onChange(e?.value)}
       loadOptions={loadOptions}
     />
   );
 }
 
-const filterStyles = {
+const filterStyles: StylesConfig<{ value: CitySelectValue; label: string }, false> = {
   // control: (styles) => ({ ...styles, borderWidth: 0 }),
-  indicatorSeparator: (styles: any) => ({ ...styles, borderWidth: 0, backgroundColor: "transparent" }),
-  menuPortal: (provided: any) => ({ ...provided, zIndex: 10000 }),
-  menu: (provided: any) => ({ ...provided, zIndex: 10000 }),
+  indicatorSeparator: (styles) => ({ ...styles, borderWidth: 0, backgroundColor: "transparent" }),
+  menuPortal: (provided) => ({ ...provided, zIndex: 10000 }),
+  menu: (provided) => ({ ...provided, zIndex: 10000 }),
 };
 
-function setTheme(defaultTheme) {
+function setTheme(defaultTheme: Theme): Theme {
   return {
     ...defaultTheme,
     colors: {

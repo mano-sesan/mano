@@ -20,6 +20,7 @@ export interface OrganisationInstance {
   orgId: string;
   name: string;
   city: string;
+  region: string;
 
   collaborations?: string[];
 
