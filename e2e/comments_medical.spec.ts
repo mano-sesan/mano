@@ -73,7 +73,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Traitement créé !").click();
-  await page.getByText("Commentaire de traitement avant création").click();
+  await page.locator('[data-test-id="Manu ChaoDossier Médical"]').getByText("Commentaire de traitement avant création").click();
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page
     .getByRole("dialog", { name: "Traitement: Supo (créée par User Admin Test - 1)" })
