@@ -166,6 +166,8 @@ const SuperAdmin = () => {
                   <br />
                   <small className="tw-text-gray-500">Ville: {o.city?.split?.(" - ")?.[0]}</small>
                   <br />
+                  <small className="tw-text-gray-500">Région: {o.region || ""}</small>
+                  <br />
                   <small className="tw-text-gray-500">Responsable: {o.responsible}</small>
                 </div>
               ),
@@ -350,7 +352,7 @@ const Create = ({ onChange, open, setOpen }) => {
       <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
         <ModalHeader title="Créer une nouvelle organisation et un administrateur" />
         <Formik
-          initialValues={{ orgName: "", name: "", email: "", orgId: "", city: "", responsible: "" }}
+          initialValues={{ orgName: "", name: "", email: "", orgId: "", city: "", responsible: "", region: "" }}
           validate={(values) => {
             const errors = {};
             if (!values.name) errors.name = "Le nom est obligatoire";
@@ -402,9 +404,10 @@ const Create = ({ onChange, open, setOpen }) => {
                         <CitySelect
                           name="city"
                           id="organisation-create-city"
-                          value={values.city}
-                          onChange={(nextCity) => {
-                            handleChange({ target: { name: "city", value: nextCity } });
+                          value={{ city: values.city, region: values.region }}
+                          onChange={(next) => {
+                            handleChange({ target: { name: "city", value: next.city } });
+                            handleChange({ target: { name: "region", value: next.region } });
                           }}
                         />
                         {touched.city && errors.city && <span className="tw-text-xs tw-text-red-500">{errors.city}</span>}

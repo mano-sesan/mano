@@ -13,6 +13,7 @@ function serializeOrganisation(organisation) {
     name: organisation.name,
     orgId: organisation.orgId,
     city: organisation.city,
+    region: organisation.region,
     responsible: organisation.responsible,
     createdAt: organisation.createdAt,
     updatedAt: organisation.updatedAt,
