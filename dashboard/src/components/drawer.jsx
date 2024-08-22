@@ -86,7 +86,7 @@ const Drawer = () => {
           {["admin", "normal", "restricted-access"].includes(role) && (
             <>
               <li>
-                <NavLink to="/report-new" activeClassName="active">
+                <NavLink to="/report" activeClassName="active">
                   Comptes rendus
                 </NavLink>
               </li>
