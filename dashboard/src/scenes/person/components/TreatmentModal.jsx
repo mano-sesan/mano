@@ -22,87 +22,55 @@ import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 
 export default function TreatmentModal() {
-  const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
+  const [treatmentIdForModal, setTreatmentIdForModal] = useState(null);
+  const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
+
   const history = useHistory();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const currentTreatmentId = searchParams.get("treatmentId");
   const newTreatment = searchParams.get("newTreatment");
-  const currentTreatment = useMemo(() => {
-    if (!currentTreatmentId) return null;
-    return treatmentsObjects[currentTreatmentId];
-  }, [currentTreatmentId, treatmentsObjects]);
   const personId = searchParams.get("personId");
 
-  const [open, setOpen] = useState(false);
-  const consultationIdRef = useRef(currentTreatmentId);
-  const newConsultationRef = useRef(newTreatment);
   useEffect(() => {
-    if (consultationIdRef.current !== currentTreatmentId) {
-      consultationIdRef.current = currentTreatmentId;
-      setOpen(!!currentTreatmentId);
-    }
-    if (newConsultationRef.current !== newTreatment) {
-      newConsultationRef.current = newTreatment;
-      setOpen(!!newTreatment);
+    if (currentTreatmentId) {
+      setIsTreatmentModalOpen(true);
+      setTreatmentIdForModal(currentTreatmentId);
+    } else if (newTreatment) {
+      setIsTreatmentModalOpen(true);
+      setTreatmentIdForModal(null);
+    } else {
+      setIsTreatmentModalOpen(false);
+      setTreatmentIdForModal(null);
     }
   }, [newTreatment, currentTreatmentId]);
 
-  const manualCloseRef = useRef(false);
-  const onAfterLeave = () => {
-    if (manualCloseRef.current) history.goBack();
-    manualCloseRef.current = false;
-  };
-
   return (
-    <ModalContainer open={open} size="3xl" onAfterLeave={onAfterLeave}>
-      <TreatmentContent
-        key={open}
-        personId={personId}
-        treatment={currentTreatment}
-        onClose={() => {
-          manualCloseRef.current = true;
-          setOpen(false);
-        }}
-      />
+    <ModalContainer
+      size="3xl"
+      open={isTreatmentModalOpen}
+      onClose={() => setIsTreatmentModalOpen(false)}
+      onAfterLeave={() => {
+        setTreatmentIdForModal(null);
+        history.goBack();
+      }}
+    >
+      <TreatmentContent treatmentId={treatmentIdForModal} personId={personId} onClose={() => setIsTreatmentModalOpen(false)} />
     </ModalContainer>
   );
 }
 
-/**
- * @param {Object} props
- * @param {Function} props.onClose
- * @param {Boolean} props.isNewTreatment
- * @param {Object} props.treatment
- * @param {Object} props.person
- */
-
-// if we create those objects within the component,
-// it will be re-created on each dependency change
-// and intialState will be re-created on each dependency change
-const newTreatmentInitialState = (user, personId, organisation) => ({
-  _id: null,
-  startDate: new Date(),
-  endDate: null,
-  name: "",
-  dosage: "",
-  frequency: "",
-  indication: "",
-  user: user._id,
-  person: personId,
-  organisation: organisation._id,
-  documents: [],
-  comments: [],
-  history: [],
-});
-
-function TreatmentContent({ onClose, treatment, personId }) {
+function TreatmentContent({ treatmentId, onClose, personId }) {
+  const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
   const { refresh } = useDataLoader();
 
-  const newTreatmentInitialStateRef = useRef(newTreatmentInitialState(user, personId, organisation));
+  const treatment = treatmentId ? treatmentsObjects[treatmentId] : null;
+  const isNewTreatment = !treatmentId;
+
+  const canEdit = useMemo(() => !treatment || treatment.user === user._id, [treatment, user._id]);
 
   const initialState = useMemo(() => {
     if (treatment) {
@@ -113,20 +81,32 @@ function TreatmentContent({ onClose, treatment, personId }) {
         ...treatment,
       };
     }
-    return newTreatmentInitialStateRef.current;
-  }, [treatment]);
+    return {
+      _id: null,
+      startDate: new Date(),
+      endDate: null,
+      name: "",
+      dosage: "",
+      frequency: "",
+      indication: "",
+      user: user._id,
+      person: personId,
+      organisation: organisation._id,
+      documents: [],
+      comments: [],
+      history: [],
+    };
+  }, [treatment, user._id, personId, organisation._id]);
 
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("Informations");
   const [data, setData] = useState(initialState);
-  const isNewTreatment = !data?._id;
+  const [isEditing, setIsEditing] = useState(isNewTreatment);
 
   useEffect(() => {
     setData(initialState);
   }, [initialState]);
-
-  const canEdit = useMemo(() => !treatment || treatment.user === user._id, [treatment, user._id]);
-
-  const [isEditing, setIsEditing] = useState(isNewTreatment);
 
   const handleChange = (event) => {
     const target = event.currentTarget || event.target;
@@ -155,6 +135,8 @@ function TreatmentContent({ onClose, treatment, personId }) {
       toast.error("La date de fin de traitement est hors limites (entre 1900 et 2100)");
       return false;
     }
+
+    if (closeOnSubmit) setIsSubmitting(true);
 
     if (!isNewTreatment && !!treatment) {
       const historyEntry = {
@@ -185,11 +167,13 @@ function TreatmentContent({ onClose, treatment, personId }) {
     );
     if (error) {
       toast.error(errorMessage(error));
+      setIsSubmitting(false);
       return false;
     }
     const decryptedData = await decryptItem(treatmentResponse.data, { type: "treatment in modal" });
     if (!decryptedData) {
       toast.error("Erreur lors de la récupération des données du traitement");
+      setIsSubmitting(false);
       return false;
     }
     setData(decryptedData);
@@ -197,7 +181,6 @@ function TreatmentContent({ onClose, treatment, personId }) {
     if (closeOnSubmit) onClose();
     return true;
   }
-
   return (
     <>
       <ModalHeader
@@ -455,20 +438,23 @@ function TreatmentContent({ onClose, treatment, personId }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()}>
+        <button disabled={isSubmitting || isDeleting} name="Fermer" type="button" className="button-cancel" onClick={() => onClose()}>
           Fermer
         </button>
-        {!isNewTreatment && !!isEditing && (
+        {!isNewTreatment && isEditing ? (
           <button
             type="button"
             name="cancel"
             className="button-destructive"
+            disabled={isSubmitting || isDeleting}
             onClick={async (e) => {
+              setIsDeleting(true);
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer ce traitement ?")) return;
               const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/treatment/${treatment._id}` }));
               if (error) {
                 toast.error(errorMessage(error));
+                setIsDeleting(false);
                 return;
               }
               await refresh();
@@ -476,9 +462,9 @@ function TreatmentContent({ onClose, treatment, personId }) {
               onClose();
             }}
           >
-            Supprimer
+            {isDeleting ? "Suppression..." : "Supprimer"}
           </button>
-        )}
+        ) : null}
 
         {isEditing && (
           <button
@@ -486,9 +472,9 @@ function TreatmentContent({ onClose, treatment, personId }) {
             type="submit"
             className="button-submit !tw-bg-blue-900"
             form="add-treatment-form"
-            disabled={!canEdit}
+            disabled={!canEdit || isSubmitting || isDeleting}
           >
-            Sauvegarder
+            {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
           </button>
         )}
         {!isEditing && (
