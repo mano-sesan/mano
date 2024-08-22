@@ -18,13 +18,21 @@ test("Super admin", async ({ page }) => {
       status: 200,
       contentType: "application/json",
       body: JSON.stringify([
-        { codeDepartement: "44", centre: { type: "Point", coordinates: [-1.5573, 47.1733] }, nom: "Rezé", code: "44143", _score: 1.2718640935284935 },
+        {
+          codeDepartement: "44",
+          centre: { type: "Point", coordinates: [-1.5573, 47.1733] },
+          nom: "Rezé",
+          code: "44143",
+          _score: 1.2718640935284935,
+          region: { code: "52", nom: "Pays de la Loire" },
+        },
         {
           codeDepartement: "15",
           centre: { type: "Point", coordinates: [3.1066, 45.1333] },
           nom: "Rézentières",
           code: "15161",
           _score: 0.45756001815706887,
+          region: { code: "84", nom: "Auvergne-Rhône-Alpes" },
         },
       ]),
     });
