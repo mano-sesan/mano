@@ -359,6 +359,9 @@ function DocumentsFullScreen<T extends DocumentWithLinkedItem | FolderWithLinked
 
 function ButtonDownloadAll({ documents }: { documents: DocumentWithLinkedItem[] }) {
   const [isDownloading, setIsDownloading] = useState(false);
+
+  if (!documents.filter((doc) => doc.type === "document").length) return null;
+
   return (
     <button
       type="button"
