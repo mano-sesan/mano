@@ -74,6 +74,7 @@ const Reset = () => {
               // On ignore l'erreur
             }
             // Et dans tous les cas on redirige
+            window.sessionStorage.removeItem("redirectPath");
             window.localStorage.removeItem("previously-logged-in");
             window.location.href = "/auth";
           }

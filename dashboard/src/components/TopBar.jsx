@@ -32,6 +32,7 @@ const TopBar = () => {
         // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
         // Il n'a donc aucune utilité d'un point de vue code.
         setTimeout(() => {
+          window.sessionStorage.removeItem("redirectPath");
           window.localStorage.removeItem("previously-logged-in");
           window.location.href = "/auth";
         }, 1500);
@@ -119,6 +120,7 @@ const TopBar = () => {
               <DropdownItem
                 onClick={() => {
                   tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+                    window.sessionStorage.removeItem("redirectPath");
                     window.localStorage.removeItem("previously-logged-in");
                     window.location.href = "/auth";
                   });

@@ -88,6 +88,7 @@ const SignIn = () => {
     setShowPassword(false);
     setAuthViaCookie(false);
     tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+      window.sessionStorage.removeItem("redirectPath");
       window.localStorage.removeItem("previously-logged-in");
       window.location.href = "/auth";
     });

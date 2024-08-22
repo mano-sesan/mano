@@ -314,6 +314,7 @@ const EncryptionKey = ({ isMain }) => {
             className="button-submit !tw-bg-black"
             onClick={() => {
               tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+                window.sessionStorage.removeItem("redirectPath");
                 window.localStorage.removeItem("previously-logged-in");
                 window.location.href = "/auth";
               });
