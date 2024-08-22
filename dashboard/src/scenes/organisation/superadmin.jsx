@@ -17,8 +17,12 @@ import { checkEncryptedVerificationKey, derivedMasterKey } from "../../services/
 import SuperadminOrganisationSettings from "./SuperadminOrganisationSettings";
 import SuperadminOrganisationUsers from "./SuperadminOrgationsationUsers";
 import SuperadminUsersSearch from "./SuperadminUsersSearch";
+import { useRecoilValue } from "recoil";
+import { userState } from "../../recoil/auth";
+import { Redirect } from "react-router-dom";
 
 const SuperAdmin = () => {
+  const user = useRecoilValue(userState);
   const [organisations, setOrganisations] = useState(null);
   const [updateKey, setUpdateKey] = useState(null);
   const [sortBy, setSortBy] = useState("countersTotal");
@@ -36,6 +40,7 @@ const SuperAdmin = () => {
 
   useEffect(() => {
     (async () => {
+      if (user.role !== "superadmin") return;
       if (!refresh) return;
       const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation", query: { withCounters: true } }));
       if (error) {
@@ -58,6 +63,8 @@ const SuperAdmin = () => {
   }, [sortBy, sortOrder]);
 
   const total = organisations?.length;
+
+  if (user.role !== "superadmin") return <Redirect to="/stats" />;
 
   return (
     <>
