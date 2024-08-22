@@ -17,7 +17,6 @@ export type ReportInstance = {
   collaborations?: Array<string>;
 
   services?: any; // deprecated
-  oldDateSystem?: string; // ??? (not documented) - deprecated
 };
 
 export type ReadyToEncryptReportInstance = {
@@ -36,6 +35,5 @@ export type ReadyToEncryptReportInstance = {
     description?: string;
     collaborations?: Array<string>;
     services?: any; // deprecated
-    oldDateSystem?: string; // ??? (not documented) - deprecated
   };
 };
