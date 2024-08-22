@@ -93,7 +93,7 @@ export const flattenedServicesSelector = selector({
   },
 });
 
-const encryptedFields = ["description", "services", "team", "date", "collaborations", "oldDateSystem"];
+const encryptedFields = ["description", "services", "team", "date", "collaborations"];
 
 export function prepareReportForEncryption(report: ReportInstance, { checkRequiredFields = true } = {}): ReadyToEncryptReportInstance {
   if (checkRequiredFields) {
