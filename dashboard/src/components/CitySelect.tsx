@@ -39,11 +39,10 @@ export default function CitySelect({
     ).then((res) => res.json());
     const options = response.map((item) => {
       const cityAndDepartment = `${item.nom} (${item.codeDepartement})`;
-      const regionAndCode = `${item.region.nom} (${item.region.code})`;
       return {
         value: {
           city: `${cityAndDepartment} - ${JSON.stringify(item.centre.coordinates)}`,
-          region: regionAndCode,
+          region: item.region.nom,
         },
         label: cityAndDepartment,
       };
