@@ -439,8 +439,23 @@ router.delete(
     const canDelete = req.user.role === "superadmin" || (req.user.role === "admin" && req.user.organisation === req.params._id);
     if (!canDelete) return res.status(403).send({ ok: false, error: "Forbidden" });
 
+    // Get organisation responsible, organisation name.
+    const organisation = await Organisation.findOne({ where: { _id: req.params._id } });
+    if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
+
     const result = await Organisation.destroy({ where: { _id: req.params._id } });
     if (result === 0) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    const recipients = ["guillaume.demirhan@sesan.fr"];
+    if (organisation.responsible === "Melissa") recipients.push("melissa.saiter@sesan.fr");
+    if (organisation.responsible === "Yoann") recipients.push("yoann.kittery@sesan.fr");
+    await mailservice.sendEmail(
+      recipients,
+      "Organisation supprimée",
+      null,
+      `L'organisation ${organisation.name} (responsable: ${organisation.responsible}) a été supprimée de Mano par ${req.user.name} (${req.user.email}).`
+    );
+
     return res.status(200).send({ ok: true });
   })
 );
