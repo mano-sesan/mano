@@ -164,7 +164,7 @@ const SuperAdmin = () => {
                   <br />
                   <small className="tw-text-gray-500">ID: {o.orgId}</small>
                   <br />
-                  <small className="tw-text-gray-500">Ville: {o.city?.split?.(" - ")?.[0]}</small>
+                  <small className="tw-text-gray-500">Ville: {o.city?.split?.(" - ")?.[0] || "non renseignée"}</small>
                   <br />
                   <small className="tw-text-gray-500">Région: {o.region || ""}</small>
                   <br />
