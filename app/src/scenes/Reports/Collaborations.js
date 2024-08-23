@@ -10,13 +10,14 @@ import { FlashListStyled } from '../../components/Lists';
 import { ListEmptyCollaboration } from '../../components/ListEmptyContainer';
 import Row from '../../components/Row';
 import Spacer from '../../components/Spacer';
-import { currentTeamState, organisationState } from '../../recoil/auth';
+import { currentTeamState, organisationState, userState } from '../../recoil/auth';
 import { getPeriodTitle } from './utils';
-import { prepareReportForEncryption, reportsState } from '../../recoil/reports';
+import { prepareReportForEncryption } from '../../recoil/reports';
 import { currentTeamReportsSelector } from './selectors';
 import { refreshTriggerState } from '../../components/Loader';
 
 const Collaborations = ({ route, navigation }) => {
+  const user = useRecoilValue(userState);
   const [collaboration, setCollaboration] = useState('');
   const [posting, setPosting] = useState(false);
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
@@ -61,6 +62,7 @@ const Collaborations = ({ route, navigation }) => {
       setOrganisation(response.data);
       onSubmit(collaboration);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collaboration, collaborations, organisation._id, setOrganisation]);
 
   const onSubmit = async (newCollaboration) => {
@@ -69,11 +71,11 @@ const Collaborations = ({ route, navigation }) => {
     const response = reportDB?._id
       ? await API.put({
           path: `/report/${reportDB?._id}`,
-          body: prepareReportForEncryption({ ...reportDB, collaborations }),
+          body: prepareReportForEncryption({ ...reportDB, collaborations, updatedBy: user._id }),
         })
       : await API.post({
           path: '/report',
-          body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations }),
+          body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations, updatedBy: user._id }),
         });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {

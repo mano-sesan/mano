@@ -8,8 +8,10 @@ import { dayjsInstance } from "../../../services/date";
 import { useDataLoader } from "../../../components/DataLoader";
 import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
+import { useRecoilValue } from "recoil";
+import { usersState } from "../../../recoil/auth";
 
-export default function Transmissions({ period, selectedTeamsObject, reports }) {
+export default function Transmissions({ userId, period, selectedTeamsObject, reports }) {
   const [transmissionForModal, setTransmissionForModal] = useState(null);
   const [isTransmissionModalOpen, setIsTransmissionModalOpen] = useState(false);
   const days = useMemo(() => {
@@ -26,6 +28,7 @@ export default function Transmissions({ period, selectedTeamsObject, reports }) 
           team={transmissionForModal?.team}
           report={transmissionForModal?.report}
           isOpen={isTransmissionModalOpen}
+          userId={userId}
           onClose={() => setIsTransmissionModalOpen(false)}
           onClosed={() => setTransmissionForModal(null)}
         />
@@ -122,7 +125,7 @@ function TransmissionPrint({ report, team }) {
   );
 }
 
-function Transmission({ report, team, day, teamId, reactSelectInputId, onOpenTransmissionModal }) {
+function Transmission({ report, team, day, teamId, userId, reactSelectInputId, onOpenTransmissionModal }) {
   const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
   // Désactivation temporaire du FIX des lutins d'internet https://github.com/mano-sesan/mano/pull/506/files
   // A rediscuter avec Arnaud, il pose problème pour la modification d'une transmission par deux personnes.
@@ -136,8 +139,20 @@ function Transmission({ report, team, day, teamId, reactSelectInputId, onOpenTra
   const onSaveReport = async (body) => {
     const [error] = await tryFetchExpectOk(async () =>
       report?._id
-        ? API.put({ path: `report/${report._id}`, body: await encryptReport(body) })
-        : API.post({ path: "report", body: await encryptReport(body) })
+        ? API.put({
+            path: `/report/${report._id}`,
+            body: await encryptReport({
+              ...body,
+              updatedBy: userId,
+            }),
+          })
+        : API.post({
+            path: "/report",
+            body: await encryptReport({
+              ...body,
+              updatedBy: userId,
+            }),
+          })
     );
     if (error) {
       toast.error(errorMessage(error));
@@ -220,13 +235,15 @@ function concatTransmissions(text1, text2) {
   return text1 + "\n\n" + text2;
 }
 
-function TransmissionModal({ onClose, onClosed, report, day, team, isOpen }) {
+function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userId }) {
   const teamId = team?._id;
+  const users = useRecoilValue(usersState);
   const { refresh } = useDataLoader();
 
   const initialDescription = report?.description;
   const [remoteDescription, setRemoteDescription] = useState(initialDescription);
   const [remoteUpdatedAt, setRemoteUpdatedAt] = useState(report?.updatedAt);
+  const [remoteUpdatedBy, setRemoteUpdatedBy] = useState(report?.updatedBy);
   const intervalRef = useRef(null);
 
   useEffect(() => {
@@ -234,11 +251,12 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen }) {
     intervalRef.current = setInterval(
       () => {
         if (!report?._id) return;
-        API.get({ path: `report/${report._id}` }).then(async (response) => {
+        API.get({ path: `/report/${report._id}` }).then(async (response) => {
           if (response.ok) {
             const decryptedReport = await decryptItem(response.data);
             setRemoteDescription(decryptedReport.description);
             setRemoteUpdatedAt(decryptedReport.updatedAt);
+            setRemoteUpdatedBy(decryptedReport.updatedBy);
           }
         });
       },
@@ -267,12 +285,13 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen }) {
               description,
               team: teamId,
               date: day,
+              updatedBy: userId,
             };
 
             const [error] = await tryFetchExpectOk(async () =>
               report?._id
-                ? API.put({ path: `report/${report._id}`, body: await encryptReport(body) })
-                : API.post({ path: "report", body: await encryptReport(body) })
+                ? API.put({ path: `/report/${report._id}`, body: await encryptReport(body) })
+                : API.post({ path: "/report", body: await encryptReport(body) })
             );
             if (error) {
               toast.error(errorMessage(error));
@@ -285,7 +304,10 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen }) {
           <div>
             {hasBeenModified ? (
               <div className="tw-text-xs">
-                <span>Modifié par un utilisateur {dayjsInstance(remoteUpdatedAt).fromNow()}</span>
+                <span>
+                  Modifié par {remoteUpdatedBy ? users.find((u) => u._id === remoteUpdatedBy)?.name : "un utilisateur"}{" "}
+                  {dayjsInstance(remoteUpdatedAt).fromNow()}
+                </span>
                 <br />
                 <span className="tw-opacity-50">
                   Votre transmission sera enregistrée à la suite. Vous pouvez l'enregistrer et la réouvrir pour voir les modifications.

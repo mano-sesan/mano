@@ -35,5 +35,6 @@ export type ReadyToEncryptReportInstance = {
     description?: string;
     collaborations?: Array<string>;
     services?: any; // deprecated
+    updatedBy?: UUIDV4;
   };
 };

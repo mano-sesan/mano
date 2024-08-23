@@ -119,11 +119,11 @@ const Report = ({ navigation, route }) => {
     const response = reportDB?._id
       ? await API.put({
           path: `/report/${reportDB?._id}`,
-          body: prepareReportForEncryption({ ...reportDB, ...report }),
+          body: prepareReportForEncryption({ ...reportDB, ...report, updatedBy: user._id }),
         })
       : await API.post({
           path: '/report',
-          body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day }),
+          body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
         });
     if (response.error) {
       setUpdating(false);
