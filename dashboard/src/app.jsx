@@ -172,7 +172,6 @@ const App = () => {
           <RestrictedRoute path="/reception" component={Reception} />
           <RestrictedRoute path="/search" component={SearchView} />
           <RestrictedRoute path="/report" component={Report} />
-          <RestrictedRoute path="/report-new" component={Report} />
           <RestrictedRoute path="*" component={() => <Redirect to={"stats"} />} />
         </Switch>
         <ActionModal />
