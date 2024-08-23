@@ -62,6 +62,7 @@ const View = () => {
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/team/${id}` }));
     if (error) {
       toast.error(errorMessage(error));
+      history.push("/team");
       return;
     }
     setTeam(response.data);

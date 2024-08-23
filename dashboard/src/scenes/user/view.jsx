@@ -30,6 +30,7 @@ const View = () => {
     const [error, response] = await tryFetch(() => API.get({ path: `/user/${id}` }));
     if (error) {
       toast.error(errorMessage(error));
+      history.push("/user");
       return;
     }
     setLocalUser(response.data);

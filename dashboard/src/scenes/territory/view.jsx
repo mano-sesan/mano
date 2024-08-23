@@ -32,7 +32,10 @@ const View = () => {
 
   useTitle(`${territory?.name} - Territoire`);
 
-  if (!territory) return <Loading />;
+  if (!territory) {
+    history.push("/territory");
+    return null;
+  }
 
   return (
     <>
