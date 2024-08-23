@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
 import { toast } from "react-toastify";
@@ -57,17 +57,14 @@ const List = () => {
         <div>
           <Structure
             key={currentStructure}
-            onSuccess={() => {
-              setCurrentStructure(null);
-              getStructures();
-            }}
             structure={currentStructure}
             open={currentStructureOpen}
             onOpen={() => setCurrentStructureOpen(true)}
             onClose={() => {
-              setCurrentStructure(null);
               setCurrentStructureOpen(false);
+              getStructures();
             }}
+            onAfterLeave={() => setCurrentStructure(null)}
           />
         </div>
       </div>
@@ -168,18 +165,13 @@ const List = () => {
   );
 };
 
-const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen }) => {
-  const structureRef = useRef(initStructure);
+const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLeave }) => {
   const user = useRecoilValue(userState);
   const categories = useRecoilValue(flattenedStructuresCategoriesSelector);
 
   const [structure, setStructure] = useState(initStructure);
-  const [disabled, setDisabled] = useState(false);
-  const onResetAndClose = () => {
-    structureRef.current = initStructure;
-    setStructure(initStructure);
-    onClose();
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const onChange = (e) => setStructure({ ...structure, [e.target.name]: e.target.value });
   const onSubmit = async (e) => {
@@ -188,39 +180,51 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
       toast.error("Le nom de la structure est obligatoire");
       return;
     }
-    setDisabled(true);
+    setIsSubmitting(true);
     const isNew = !initStructure?._id;
     const [error] = await tryFetch(async () =>
       !isNew ? API.put({ path: `/structure/${initStructure._id}`, body: structure }) : API.post({ path: "/structure", body: structure })
     );
-    setDisabled(false);
     if (error) {
       toast.error(errorMessage(error));
+      setIsSubmitting(false);
       return;
     }
     toast.success(!isNew ? "Structure mise à jour !" : "Structure créée !");
-    onSuccess();
-    onResetAndClose();
-    setDisabled(false);
+    onClose();
   };
 
   const onDeleteStructure = async () => {
     if (window.confirm("Voulez-vous vraiment supprimer cette structure ? Cette action est irréversible.")) {
+      setIsDeleting(true);
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/structure/${structure._id}` }));
       if (error) {
         toast.error(errorMessage(error));
+        setIsDeleting(false);
         return;
       }
       toast.success("Structure supprimée !");
-      onSuccess();
-      onResetAndClose();
+      setStructure(initStructure);
+      onClose();
     }
   };
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       <ButtonCustom onClick={onOpen} color="primary" title="Créer une structure" padding="12px 24px" />
-      <ModalContainer open={open} onClose={onResetAndClose} size="full">
+      <ModalContainer
+        open={open}
+        onClose={() => {
+          setStructure(initStructure);
+          onClose();
+        }}
+        size="full"
+        onAfterLeave={() => {
+          setIsSubmitting(false);
+          setIsDeleting(false);
+          onAfterLeave();
+        }}
+      >
         <ModalHeader title={!initStructure?._id ? "Créer une structure" : "Modifier une structure"} />
         <ModalBody className="tw-pb-4">
           <form id="create-structure-form" className="tw-flex tw-w-full tw-flex-row tw-flex-wrap" onSubmit={onSubmit}>
@@ -291,17 +295,12 @@ const Structure = ({ structure: initStructure, onSuccess, open, onClose, onOpen 
             Annuler
           </button>
           {user.role === "admin" && Boolean(initStructure?._id) && (
-            <button type="button" className="button-destructive" onClick={onDeleteStructure}>
-              Supprimer
+            <button type="button" disabled={isSubmitting || isDeleting} className="button-destructive" onClick={onDeleteStructure}>
+              {isDeleting ? "Suppression..." : "Supprimer"}
             </button>
           )}
-          <button
-            type="submit"
-            disabled={disabled || JSON.stringify(structureRef.current) === JSON.stringify(structure)}
-            className="button-submit"
-            form="create-structure-form"
-          >
-            Enregistrer
+          <button type="submit" disabled={isSubmitting || isDeleting} className="button-submit" form="create-structure-form">
+            {isSubmitting ? "Enregistrement..." : "Enregistrer"}
           </button>
         </ModalFooter>
       </ModalContainer>
