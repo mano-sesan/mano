@@ -68,7 +68,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             const newPassage = {
               date: body.date,
               team: body.team,
-              user: user._id,
+              user: body.user || user._id,
               person: personId,
               comment: body.comment,
             };
