@@ -16,9 +16,8 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
             })
           }
           onDelete={(doc) => {
-            console.log('onDelete', doc);
             onUpdatePerson(true, {
-              documents: personDB.documents.filter((d) => d.file.filename !== doc.file.filename),
+              documents: personDB.documents.filter((d) => d?.file?.filename !== doc.file.filename),
             });
           }}
           personDB={personDB}

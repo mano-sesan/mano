@@ -269,7 +269,6 @@ const Document = ({ personId, document, onDelete, style }) => {
                 setIsDeleting(true);
                 await API.delete({ path: document.downloadPath ?? `/person/${document.person ?? personId}/document/${document.file.filename}` });
                 onDelete(document);
-                setIsDeleting(false);
               },
             },
           ]);
