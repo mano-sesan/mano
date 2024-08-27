@@ -496,7 +496,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         )}
         ifEmpty="Pas encore de consultation"
       />
-      <SubList label="Documents médicaux" data={allMedicalDocuments} renderItem={() => null} ifEmpty="Pas encore de document médical">
+      <SubList
+        disableVoirPlus={true}
+        label="Documents médicaux"
+        data={allMedicalDocuments}
+        renderItem={() => null}
+        ifEmpty="Pas encore de document médical">
         <DocumentsManager documents={allMedicalDocuments} personDB={personDB} onAddDocument={onAddDocument} onDelete={onDelete} />
       </SubList>
     </ScrollContainer>
