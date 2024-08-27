@@ -91,26 +91,6 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const allMedicalDocuments = useMemo(() => {
-    const ordonnances =
-      treatments
-        ?.map((treatment) => treatment.documents?.map((doc) => ({ ...doc, type: 'treatment', treatment })))
-        .filter(Boolean)
-        .flat() || [];
-    const consultationsDocs =
-      consultations
-        ?.filter((consultation) => {
-          if (!consultation?.onlyVisibleBy?.length) return true;
-          return consultation.onlyVisibleBy.includes(user._id);
-        })
-        .map((consultation) => consultation.documents?.map((doc) => ({ ...doc, type: 'consultation', consultation })))
-        .filter(Boolean)
-
-        .flat() || [];
-    const otherDocs = medicalFile?.documents || [];
-    return [...ordonnances, ...consultationsDocs, ...otherDocs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [consultations, medicalFile, treatments, user._id]);
-
   const allMedicalComments = useMemo(() => {
     const treatmentsComments =
       treatments
@@ -131,6 +111,106 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
     );
   }, [consultations, medicalFile, treatments, user]);
+
+  const defaultDocuments = organisation.defaultMedicalFolders.map((folder) => ({
+    ...folder,
+    movable: false,
+    linkedItem: {
+      _id: person._id,
+      type: 'person',
+    },
+  }));
+  const defaultDocumentsIds = defaultDocuments.map((d) => d._id);
+
+  const allMedicalDocuments = useMemo(() => {
+    if (!medicalFile) return [];
+    const treatmentsDocs = [
+      {
+        _id: 'treatment',
+        name: 'Traitements',
+        position: 1,
+        parentId: 'root',
+        type: 'folder',
+        linkedItem: {
+          _id: medicalFile._id,
+          type: 'medical-file',
+        },
+        movable: false,
+        createdAt: new Date(),
+        createdBy: 'we do not care',
+      },
+    ];
+    for (const treatment of treatments) {
+      for (const document of treatment.documents || []) {
+        const docWithLinkedItem = {
+          ...document,
+          type: document.type ?? 'document', // it will always be a document in treatments - folders are only saved in medicalFile
+          linkedItem: {
+            _id: treatment._id,
+            type: 'treatment',
+          },
+          parentId: document.parentId ?? 'treatment',
+        };
+        treatmentsDocs.push(docWithLinkedItem);
+      }
+    }
+
+    const consultationsDocs = [
+      {
+        _id: 'consultation',
+        name: 'Consultations',
+        position: 0,
+        parentId: 'root',
+        type: 'folder',
+        linkedItem: {
+          _id: medicalFile._id,
+          type: 'medical-file',
+        },
+        movable: false,
+        createdAt: new Date(),
+        createdBy: 'we do not care',
+      },
+    ];
+    for (const consultation of consultations) {
+      if (consultation?.onlyVisibleBy?.length) {
+        if (!consultation.onlyVisibleBy.includes(user._id)) continue;
+      }
+      for (const document of consultation.documents || []) {
+        const docWithLinkedItem = {
+          ...document,
+          type: document.type ?? 'document', // it will always be a document in treatments - folders are only saved in medicalFile
+          linkedItem: {
+            _id: consultation._id,
+            type: 'consultation',
+          },
+          parentId: document.parentId ?? 'consultation',
+        };
+        consultationsDocs.push(docWithLinkedItem);
+      }
+    }
+
+    const otherDocs = [];
+
+    for (const document of medicalFile?.documents || []) {
+      const docWithLinkedItem = {
+        ...document,
+        type: document.type ?? 'document', // or 'folder'
+        linkedItem: {
+          _id: medicalFile._id,
+          type: 'medical-file',
+        },
+        parentId: document.parentId ?? 'root',
+      };
+      otherDocs.push(docWithLinkedItem);
+    }
+
+    return [
+      ...treatmentsDocs,
+      ...consultationsDocs,
+      ...otherDocs.filter((d) => !defaultDocumentsIds.includes(d._id)),
+      ...(defaultDocuments || []),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [consultations, defaultDocuments, medicalFile, treatments, user._id, defaultDocumentsIds]);
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
@@ -254,7 +334,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
   const onDelete = async (doc) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
       ...medicalFile,
-      documents: medicalFile.documents.filter((d) => d.file.filename !== doc.file.filename),
+      documents: medicalFile.documents.filter((d) => d?.file?.filename !== doc.file.filename),
     });
     const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile._id}`, body });
 
@@ -417,24 +497,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         )}
         ifEmpty="Pas encore de consultation"
       />
-      <SubList
-        label="Documents médicaux"
-        data={allMedicalDocuments}
-        renderItem={(medicalDocument) => (
-          <DocumentRow key={medicalDocument.name}>
-            <Document document={medicalDocument} personId={personDB?._id} />
-          </DocumentRow>
-        )}
-        ifEmpty="Pas encore de document médical">
-        <DocumentsManager personDB={personDB} onAddDocument={onAddDocument} onDelete={onDelete} />
+      <SubList label="Documents médicaux" data={allMedicalDocuments} renderItem={() => null} ifEmpty="Pas encore de document médical">
+        <DocumentsManager documents={allMedicalDocuments} personDB={personDB} onAddDocument={onAddDocument} onDelete={onDelete} />
       </SubList>
     </ScrollContainer>
   );
 };
-
-const DocumentRow = styled.View`
-  margin-horizontal: 30px;
-`;
 
 const BackButton = styled.TouchableOpacity`
   margin-right: auto;
