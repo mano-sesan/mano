@@ -72,7 +72,7 @@ export const itemsGroupedByPersonSelector = selector({
       personsObject[person._id] = {
         ...person,
         nameNormalized,
-        formattedBirthDate: person.birthdate ? `${age} an${age > 1 ? 's' : ''} (${formatBirthDate(person.birthdate)})` : null,
+        formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : null,
         age,
         // remove anything that is not a number
         formattedPhoneNumber: person.phone?.replace(/\D/g, ''),
