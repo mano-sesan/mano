@@ -12,6 +12,8 @@ const ActionsTabNavigator = () => {
   return (
     <SceneContainer>
       <TabNavigator.Navigator
+        // See: https://github.com/react-navigation/react-navigation/issues/11590
+        // eslint-disable-next-line react/no-unstable-nested-components
         tabBar={(props) => (
           <>
             <ScreenTitle title="Agenda" />
