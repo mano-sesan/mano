@@ -19,7 +19,6 @@ import HealthInsuranceMultiCheckBox from '../../components/Selects/HealthInsuran
 import CustomFieldInput from '../../components/CustomFieldInput';
 import ConsultationRow from '../../components/ConsultationRow';
 import TreatmentRow from '../../components/TreatmentRow';
-import Document from '../../components/Document';
 import DocumentsManager from '../../components/DocumentsManager';
 import { MyText } from '../../components/MyText';
 import { flattenedCustomFieldsPersonsSelector } from '../../recoil/persons';
