@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components/native';
 import ButtonExpand from './ButtonExpand';
-import Spinner from './Spinner';
 import { MyText } from './MyText';
 import Button from './Button';
 
 const initNumberToShow = 10;
 
-const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = 'list' }) => {
+const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = 'list', disableVoirPlus = false }) => {
   const [expanded, setExpanded] = useState(false);
   const [numberToShow, setNumberToShow] = useState(initNumberToShow);
 
@@ -29,7 +28,9 @@ const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = '
     return (
       <>
         {dataToShow.map(renderItem)}
-        {dataToShow.length < data.length && <Button caption="Voir plus" onPress={() => setNumberToShow((num) => num + initNumberToShow)} noBorder />}
+        {!disableVoirPlus && dataToShow.length < data.length && (
+          <Button caption="Voir plus" onPress={() => setNumberToShow((num) => num + initNumberToShow)} noBorder />
+        )}
       </>
     );
   };
