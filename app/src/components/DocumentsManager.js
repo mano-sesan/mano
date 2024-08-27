@@ -214,7 +214,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete })
   return (
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
-      {documents.length ? renderTree(tree, personDB._id, onDelete) : null}
+      {documents.length ? <View className="mb-4">{renderTree(tree, personDB._id, onDelete)}</View> : null}
       <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} />
       <Modal animationType="fade" visible={!!asset}>
         <SceneContainer>
