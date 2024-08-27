@@ -159,16 +159,21 @@ const SuperAdmin = () => {
               sortOrder,
               sortBy,
               render: (o) => (
-                <div>
-                  {o.name}
-                  <br />
-                  <small className="tw-text-gray-500">ID: {o.orgId}</small>
-                  <br />
-                  <small className="tw-text-gray-500">Ville: {o.city?.split?.(" - ")?.[0] || "non renseignée"}</small>
-                  <br />
-                  <small className="tw-text-gray-500">Région: {o.region || ""}</small>
-                  <br />
-                  <small className="tw-text-gray-500">Responsable: {o.responsible}</small>
+                <div className="tw-flex tw-flex-col tw-gap-2">
+                  <div>
+                    <div className="tw-font-bold">{o.name}</div>
+                    <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
+                  </div>
+                  <div>
+                    <div className="tw-text-xs tw-text-gray-500 tw-font-bold">{o.city?.split?.(" - ")?.[0] || "non renseignée"}</div>
+                    <div className="tw-text-xs tw-text-gray-500">{o.region || ""}</div>
+                  </div>
+                  <div className="tw-text-gray-500 tw-text-xs">
+                    Responsable&nbsp;: <b>{o.responsible}</b>
+                  </div>
+                  <div className="tw-text-xs tw-text-gray-500">
+                    {o.encryptionLastUpdateAt ? "Dernier chiffrement : " + formatDateWithFullMonth(o.encryptionLastUpdateAt) : "Pas encore chiffrée"}
+                  </div>
                 </div>
               ),
             },
@@ -209,61 +214,25 @@ const SuperAdmin = () => {
               sortBy,
               render: (o) => {
                 return (
-                  <div
-                    className={
-                      // yolo
-                      o.countersTotal === 0
-                        ? "tw-opacity-10"
-                        : o.countersTotal < 10
-                          ? "tw-opacity-50"
-                          : o.countersTotal > 10000
-                            ? "tw-font-extrabold"
-                            : o.countersTotal > 5000
-                              ? "tw-font-bold"
-                              : o.countersTotal > 2000
-                                ? "tw-font-semibold"
-                                : o.countersTotal > 200
-                                  ? "tw-font-medium"
-                                  : ""
-                    }
-                  >
-                    <div>Personnes: {o.counters.persons || 0}</div>
-                    <div>Familles: {o.counters.groups || 0}</div>
-                    <div>Actions: {o.counters.actions || 0}</div>
-                    <div>Passages: {o.counters.passages || 0}</div>
-                    <div>Rencontres: {o.counters.rencontres || 0}</div>
-                    <div>Territoires: {o.counters.territories || 0}</div>
-                    <div>Observations: {o.counters.observations || 0}</div>
-                    <div>Comptes-rendus: {o.counters.reports || 0}</div>
-                    <div>Collaborations: {o.counters.collaborations || 0}</div>
-                    <div>Commentaires: {o.counters.comments || 0}</div>
-                    <div>Consultations: {o.counters.consultations || 0}</div>
-                    <div>Traitements: {o.counters.treatments || 0}</div>
+                  <div className="tw-grid tw-grid-cols-2">
+                    <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>Personnes: {o.counters.persons || 0}</div>
+                    <div className={!o.counters.groups ? "tw-text-gray-400" : ""}>Familles: {o.counters.groups || 0}</div>
+                    <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>Actions: {o.counters.actions || 0}</div>
+                    <div className={!o.counters.passages ? "tw-text-gray-400" : ""}>Passages: {o.counters.passages || 0}</div>
+                    <div className={!o.counters.rencontres ? "tw-text-gray-400" : ""}>Rencontres: {o.counters.rencontres || 0}</div>
+                    <div className={!o.counters.observations ? "tw-text-gray-400" : ""}>Observations: {o.counters.observations || 0}</div>
+                    <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>Commentaires: {o.counters.comments || 0}</div>
+                    <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>Consultations: {o.counters.consultations || 0}</div>
                   </div>
                 );
               },
-            },
-            {
-              title: "Dernier chiffrement",
-              dataKey: "encryptionLastUpdateAt",
-              sortBy,
-              sortOrder,
-              onSortOrder: setSortOrder,
-              onSortBy: setSortBy,
-              render: (o) => (
-                <div>
-                  {o.encryptionLastUpdateAt ? formatDateWithFullMonth(o.encryptionLastUpdateAt) : "Pas encore chiffrée"}
-                  <br />
-                  <small className="tw-text-gray-500">{o.encryptionLastUpdateAt ? "il y a " + formatAge(o.encryptionLastUpdateAt) : ""}</small>
-                </div>
-              ),
             },
             {
               title: "Action",
               dataKey: "delete",
               render: (organisation) => {
                 return (
-                  <div className="tw-flex-col tw-flex tw-gap-y-2">
+                  <div className="tw-flex">
                     <div>
                       <button
                         className="button-classic"
@@ -274,7 +243,7 @@ const SuperAdmin = () => {
                           setOpenOrgSettingsModal(true);
                         }}
                       >
-                        Modifier l'organisation
+                        ✏️
                       </button>
                     </div>
                     <div>
@@ -287,7 +256,7 @@ const SuperAdmin = () => {
                           setOpenUserListModal(true);
                         }}
                       >
-                        Voir les utilisateurs
+                        👀
                       </button>
                     </div>
                     <div>
@@ -300,12 +269,13 @@ const SuperAdmin = () => {
                         }}
                         className="button-classic tw-text-left"
                       >
-                        Ajouter un utilisateur
+                        ➕
                       </button>
                     </div>
                     <div>
                       <DeleteButtonAndConfirmModal
                         title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
+                        buttonText="🗑️"
                         textToConfirm={organisation.name}
                         onConfirm={async () => {
                           const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/organisation/${organisation._id}` }));
