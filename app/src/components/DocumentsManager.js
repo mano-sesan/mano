@@ -73,7 +73,7 @@ const renderTree = (node, personId, onDelete, level = 0) => {
         <Document key={node._id + 'doc'} document={node} personId={personId} onDelete={onDelete} style={[{ paddingLeft: (level - 1) * 10 }]} />
       ) : level > 0 ? (
         <Text key={node._id + 'folder'} className="py-2 text-base" style={[{ paddingLeft: (level - 1) * 10 }]}>
-          {node.type === 'folder' ? '📁' : '📄'} {node.name}
+          {node.type === 'folder' ? '📂' : '📄'} {node.name}
         </Text>
       ) : null}
       {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, personId, onDelete, level + 1))}
