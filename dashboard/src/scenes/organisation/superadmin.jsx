@@ -114,7 +114,7 @@ const SuperAdmin = () => {
               setSearchUserModal(true);
             }}
           >
-            🧐 Rechercher un utilisateur
+            🧐 &nbsp;Recherche utilisateur
           </button>
           <button
             className="button-classic"
@@ -126,7 +126,7 @@ const SuperAdmin = () => {
               download(blob, "villes-utilisatrices-de-mano_umap.geojson");
             }}
           >
-            Exporter les villes vers umap
+            Export vers umap
           </button>
           <button
             className="button-destructive"
@@ -138,7 +138,7 @@ const SuperAdmin = () => {
             Fusionner deux orgas
           </button>
           <button className="button-submit" type="button" onClick={() => setOpenCreateModal(true)}>
-            Créer une nouvelle organisation
+            Nouvelle organisation
           </button>
         </div>
       </div>
