@@ -17,6 +17,7 @@ import DocumentPicker, { isInProgress } from 'react-native-document-picker';
 import FileViewer from 'react-native-file-viewer';
 const RNFS = require('react-native-fs');
 
+// Cette fonction vient du dashboard pour transformer les documents en arbre
 const buildFolderTree = (items, rootFolderName) => {
   const rootFolderItem = {
     _id: 'root',
@@ -33,13 +34,6 @@ const buildFolderTree = (items, rootFolderName) => {
     const children = items
       .filter((item) => item.parentId === folder._id)
       .sort((a, b) => {
-        /*
-        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description
-        compareFn(a, b) return value	sort order
-        > 0	sort a after b, e.g. [b, a]
-        < 0	sort a before b, e.g. [a, b]
-        === 0	keep original order of a and b
-        */
         if (!a.position && a.position !== 0) return 1;
         if (!b.position && b.position !== 0) return -1;
         // all the non movable should be first
@@ -71,8 +65,8 @@ const buildFolderTree = (items, rootFolderName) => {
   return rootForTree;
 };
 
-const renderTree = (node, baseKey, personId, onDelete, level = 0) => {
-  console.log('renderTree', node.name);
+// Cette fonction permet de rendre l'arbre de documents
+const renderTree = (node, personId, onDelete, level = 0) => {
   return (
     <View key={node._id}>
       {node.type === 'document' ? (
@@ -82,11 +76,12 @@ const renderTree = (node, baseKey, personId, onDelete, level = 0) => {
           {node.type === 'folder' ? '📁' : '📄'} {node.name}
         </Text>
       ) : null}
-      {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, baseKey, personId, onDelete, level + 1))}
+      {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, personId, onDelete, level + 1))}
     </View>
   );
 };
 
+// La liste des documents en tant que telle.
 const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete }) => {
   const user = useRecoilValue(userState);
   const [asset, setAsset] = useState(null);
@@ -215,13 +210,11 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete })
     }),
     'Dossier racine'
   );
-  const baseKey = documents.map((e) => e.name).join();
-  console.log(baseKey);
 
   return (
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
-      {documents.length ? renderTree(tree, baseKey, personDB._id, onDelete) : null}
+      {documents.length ? renderTree(tree, personDB._id, onDelete) : null}
       <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} />
       <Modal animationType="fade" visible={!!asset}>
         <SceneContainer>
