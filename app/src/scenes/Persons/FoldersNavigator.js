@@ -49,8 +49,9 @@ const FoldersSummary = ({ navigation, backgroundColor }) => {
       {customFieldsPersons.map(({ name }) => {
         return <Row key={name} withNextButton caption={name} onPress={() => navigation.navigate(name)} />;
       })}
-      <Row withNextButton caption="Documents" onPress={() => navigation.navigate('Documents_Mano')} />
-      {!!organisation.groupsEnabled && <Row withNextButton caption="Liens Familiaux" onPress={() => navigation.navigate('Group')} />}
+      <Spacer />
+      <Row withNextButton caption="📁   Documents" onPress={() => navigation.navigate('Documents_Mano')} />
+      {!!organisation.groupsEnabled && <Row withNextButton caption="👪   Liens Familiaux" onPress={() => navigation.navigate('Group')} />}
       {!!user?.healthcareProfessional && (
         <>
           <Spacer />
