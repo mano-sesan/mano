@@ -165,13 +165,12 @@ const SuperAdmin = () => {
                     <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
                   </div>
                   <div>
-                    <div className="tw-text-xs tw-text-gray-500 tw-font-bold">{o.city?.split?.(" - ")?.[0] || "non renseignée"}</div>
+                    <div className="tw-text-xs tw-text-gray-600 tw-font-bold">{o.city?.split?.(" - ")?.[0] || "non renseignée"}</div>
                     <div className="tw-text-xs tw-text-gray-500">{o.region || ""}</div>
                   </div>
                   <div className="tw-text-gray-500 tw-text-xs">
                     Responsable&nbsp;: <b>{o.responsible}</b>
-                  </div>
-                  <div className="tw-text-xs tw-text-gray-500">
+                    <br />
                     {o.encryptionLastUpdateAt ? "Dernier chiffrement : " + formatDateWithFullMonth(o.encryptionLastUpdateAt) : "Pas encore chiffrée"}
                   </div>
                 </div>
@@ -214,7 +213,7 @@ const SuperAdmin = () => {
               sortBy,
               render: (o) => {
                 return (
-                  <div className="tw-grid tw-grid-cols-2">
+                  <div className="tw-grid tw-grid-cols-2 tw-gap-x-1.5">
                     <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>Personnes: {o.counters.persons || 0}</div>
                     <div className={!o.counters.groups ? "tw-text-gray-400" : ""}>Familles: {o.counters.groups || 0}</div>
                     <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>Actions: {o.counters.actions || 0}</div>
@@ -230,12 +229,14 @@ const SuperAdmin = () => {
             {
               title: "Action",
               dataKey: "delete",
+              style: { width: "200px" },
               render: (organisation) => {
                 return (
-                  <div className="tw-flex">
+                  <div className="tw-flex tw-gap-1.5">
                     <div>
                       <button
-                        className="button-classic"
+                        className="button-classic !tw-ml-0 !tw-px-3 my-tooltip"
+                        data-tooltip={"Modifier l'organisation"}
                         type="button"
                         data-testid={`Modifier l'organisation ${organisation.name}`}
                         onClick={() => {
@@ -248,7 +249,8 @@ const SuperAdmin = () => {
                     </div>
                     <div>
                       <button
-                        className="button-classic"
+                        className="button-classic !tw-ml-0 !tw-px-3  my-tooltip"
+                        data-tooltip={"Voir les utilisateurs"}
                         type="button"
                         data-testid={`Voir les utilisateurs ${organisation.name}`}
                         onClick={() => {
@@ -262,12 +264,13 @@ const SuperAdmin = () => {
                     <div>
                       <button
                         type="button"
+                        className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
                         data-testid={`Ajouter utilisateur ${organisation.name}`}
+                        data-tooltip={"Ajouter un utilisateur"}
                         onClick={() => {
                           setSelectedOrganisation(organisation);
                           setOpenCreateUserModal(true);
                         }}
-                        className="button-classic tw-text-left"
                       >
                         ➕
                       </button>
@@ -276,6 +279,7 @@ const SuperAdmin = () => {
                       <DeleteButtonAndConfirmModal
                         title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
                         buttonText="🗑️"
+                        className="!tw-ml-0 !tw-px-3"
                         textToConfirm={organisation.name}
                         onConfirm={async () => {
                           const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/organisation/${organisation._id}` }));
