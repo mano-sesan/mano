@@ -215,11 +215,19 @@ const SuperAdmin = () => {
                 return (
                   <div className="tw-grid tw-grid-cols-2 tw-gap-x-1.5">
                     <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>Personnes: {o.counters.persons || 0}</div>
-                    <div className={!o.counters.groups ? "tw-text-gray-400" : ""}>Familles: {o.counters.groups || 0}</div>
+                    <div className={!o.groupsEnabled ? "tw-line-through tw-opacity-20" : !o.counters.groups ? "tw-text-gray-400" : ""}>
+                      Familles: {o.counters.groups || 0}
+                    </div>
                     <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>Actions: {o.counters.actions || 0}</div>
-                    <div className={!o.counters.passages ? "tw-text-gray-400" : ""}>Passages: {o.counters.passages || 0}</div>
-                    <div className={!o.counters.rencontres ? "tw-text-gray-400" : ""}>Rencontres: {o.counters.rencontres || 0}</div>
-                    <div className={!o.counters.observations ? "tw-text-gray-400" : ""}>Observations: {o.counters.observations || 0}</div>
+                    <div className={!o.passagesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.passages ? "tw-text-gray-400" : ""}>
+                      Passages: {o.counters.passages || 0}
+                    </div>
+                    <div className={!o.rencontresEnabled ? "tw-line-through tw-opacity-20" : !o.counters.rencontres ? "tw-text-gray-400" : ""}>
+                      Rencontres: {o.counters.rencontres || 0}
+                    </div>
+                    <div className={!o.territoriesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.observations ? "tw-text-gray-400" : ""}>
+                      Observations: {o.counters.observations || 0}
+                    </div>
                     <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>Commentaires: {o.counters.comments || 0}</div>
                     <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>Consultations: {o.counters.consultations || 0}</div>
                   </div>
