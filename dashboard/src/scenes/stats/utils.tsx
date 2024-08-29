@@ -90,8 +90,11 @@ export function getMultichoiceBarData(
 
   const barData = Object.keys(reducedDataPerOption)
     .filter((key) => reducedDataPerOption[key]?.length > 0)
+    // Je ne touche à rien mais jje n'ai pas compris pourquoi c'est transformé en string ici
+    // ça provoque un bug (du coup j'ai repassé en number pour le sort)
+    // Introduit ici: https://github.com/mano-sesan/mano/pull/437
     .map((key) => ({ name: key, [key]: String(reducedDataPerOption[key]?.length) }))
-    .sort((a, b) => (b[b.name] > a[a.name] ? 1 : -1));
+    .sort((a, b) => (Number(b[b.name]) > Number(a[a.name]) ? 1 : -1));
 
   return barData;
 }
