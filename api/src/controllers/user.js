@@ -201,7 +201,7 @@ router.post(
 
       return res.status(403).send({
         ok: false,
-        code:
+        error:
           "Trop de tentatives de connexions infructueuses, vous pourrez vous reconnecter à partir de " +
           displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
       });
@@ -289,7 +289,7 @@ router.get(
 
       return res.status(403).send({
         ok: false,
-        code:
+        error:
           "Trop de tentatives de connexions infructueuses, vous pourrez vous reconnecter à partir de " +
           displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
       });
