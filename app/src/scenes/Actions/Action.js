@@ -194,8 +194,8 @@ const Action = ({ navigation, route }) => {
   };
 
   const updateAction = async (action) => {
-    if (!action.name.trim()) {
-      Alert.alert("Vous devez rentrer un nom d'action");
+    if (!action.name.trim()?.length && !action.categories.length) {
+      Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
       setUpdating(false);
       return false;
     }
