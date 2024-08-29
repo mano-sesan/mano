@@ -11,7 +11,7 @@ import ActionsSortableList from "../../components/ActionsSortableList";
 
 export default function ConsultationsStats({ consultations, personsWithConsultations, filterBase, filterPersons, setFilterPersons }) {
   const organisation = useRecoilValue(organisationState);
-  const [actionsModalOpened, setActionsModalOpened] = useState(false);
+  const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
   const [slicedData, setSlicedData] = useState([]);
   const user = useRecoilValue(userState);
 
@@ -74,7 +74,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
               user.role === "stats-only"
                 ? undefined
                 : (newSlice) => {
-                    setActionsModalOpened(true);
+                    setConsultationssModalOpened(true);
                     setSlicedData(consultationsByType[newSlice].data);
                   }
             }
@@ -88,7 +88,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
               user.role === "stats-only"
                 ? undefined
                 : (newSlice) => {
-                    setActionsModalOpened(true);
+                    setConsultationssModalOpened(true);
                     setSlicedData(consultations.filter((c) => c.status === newSlice));
                   }
             }
@@ -134,7 +134,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
                   user.role === "stats-only"
                     ? undefined
                     : (newSlice, field) => {
-                        setActionsModalOpened(true);
+                        setConsultationssModalOpened(true);
                         if (newSlice === "Non renseigné") {
                           setSlicedData(consultationsByType[c.name].data.filter((c) => !c[field]));
                         } else {
@@ -153,10 +153,10 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
           </details>
         );
       })}
-      <SelectedActionsModal
-        open={actionsModalOpened}
+      <SelectedConsultationsModal
+        open={consultationsModalOpened}
         onClose={() => {
-          setActionsModalOpened(false);
+          setConsultationssModalOpened(false);
         }}
         onAfterLeave={() => {
           setSlicedData([]);
@@ -168,7 +168,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
   );
 }
 
-const SelectedActionsModal = ({ open, onClose, data, title, onAfterLeave }) => {
+const SelectedConsultationsModal = ({ open, onClose, data, title, onAfterLeave }) => {
   return (
     <ModalContainer open={open} size="full" onClose={onClose} onAfterLeave={onAfterLeave}>
       <ModalHeader title={title} />

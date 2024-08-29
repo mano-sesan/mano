@@ -9,6 +9,7 @@ const ListEmptyContainer = ({ text, opaque }) => (
 );
 
 export const ListEmptyActions = () => <ListEmptyContainer text="Il n'y a pas d'action à afficher" />;
+export const ListEmptyConsultations = () => <ListEmptyContainer text="Il n'y a pas de consultation à afficher" />;
 export const ListEmptyPersons = () => <ListEmptyContainer text="Il n'y a pas de personne à afficher" />;
 export const ListEmptyStructures = () => <ListEmptyContainer text="Il n'y a pas de structure à afficher" />;
 export const ListEmptyTerritories = () => <ListEmptyContainer text="Il n'y a pas de territoire à afficher" />;
@@ -23,6 +24,7 @@ export const ListEmptyUrgentAction = () => <ListEmptyContainer opaque text="Il n
 export const ListEmptyUrgentComment = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire urgent à afficher" />;
 
 export const ListNoMoreActions = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre action à afficher" />;
+export const ListNoMoreConsultations = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre consultation à afficher" />;
 export const ListNoMoreComments = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre commentaire à afficher" />;
 export const ListNoMoreRencontres = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre rencontre à afficher" />;
 export const ListNoMoreObservations = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre observation de territoire à afficher" />;
