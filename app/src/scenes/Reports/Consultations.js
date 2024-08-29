@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import SceneContainer from '../../components/SceneContainer';
 import Spinner from '../../components/Spinner';
-import { ListEmptyActions, ListNoMoreActions } from '../../components/ListEmptyContainer';
+import { ListEmptyConsultations, ListNoMoreConsultations } from '../../components/ListEmptyContainer';
 import { FlashListStyled } from '../../components/Lists';
 import { refreshTriggerState, loadingState } from '../../components/Loader';
 import { consultationsForReport } from './selectors';
@@ -34,7 +34,7 @@ const Consultations = ({ route, navigation }) => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
-  const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
+  const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyConsultations), [loading]);
 
   const onPseudoPress = useCallback(
     (person) => {
@@ -56,7 +56,7 @@ const Consultations = ({ route, navigation }) => {
   };
 
   return (
-    <SceneContainer testID="actions-list-for-report" backgroundColor="#fff">
+    <SceneContainer testID="consultations-list-for-report" backgroundColor="#fff">
       <ScreenTitle
         title={`Consultations ${status === DONE ? 'faites' : status === CANCEL ? 'annulées' : 'créées'}\n${getPeriodTitle(
           date,
@@ -74,7 +74,7 @@ const Consultations = ({ route, navigation }) => {
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}
         onEndReachedThreshold={0.3}
-        ListFooterComponent={consultationsToShow.length > 0 ? ListNoMoreActions : null}
+        ListFooterComponent={consultationsToShow.length > 0 ? ListNoMoreConsultations : null}
       />
     </SceneContainer>
   );
