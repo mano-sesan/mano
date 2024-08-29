@@ -204,14 +204,11 @@ router.get(
     const actions = (await Action.findAll(countQuery)).map((item) => item.toJSON());
     const persons = (await Person.findAll(countQuery)).map((item) => item.toJSON());
     const groups = (await Group.findAll(countQuery)).map((item) => item.toJSON());
-    const territories = (await Territory.findAll(countQuery)).map((item) => item.toJSON());
-    const reports = (await Report.findAll(countQuery)).map((item) => item.toJSON());
     const comments = (await Comment.findAll(countQuery)).map((item) => item.toJSON());
     const passages = (await Passage.findAll(countQuery)).map((item) => item.toJSON());
     const rencontres = (await Rencontre.findAll(countQuery)).map((item) => item.toJSON());
     const consultations = (await Consultation.findAll(countQuery)).map((item) => item.toJSON());
     const observations = (await TerritoryObservation.findAll(countQuery)).map((item) => item.toJSON());
-    const treatments = (await Treatment.findAll(countQuery)).map((item) => item.toJSON());
     const users = (await User.findAll(countQuery)).map((item) => item.toJSON());
 
     const data = organisations
@@ -221,13 +218,8 @@ router.get(
           actions: actions.find((a) => a.organisation === org._id) ? Number(actions.find((a) => a.organisation === org._id).countByOrg) : 0,
           persons: persons.find((p) => p.organisation === org._id) ? Number(persons.find((p) => p.organisation === org._id).countByOrg) : 0,
           groups: groups.find((p) => p.organisation === org._id) ? Number(groups.find((p) => p.organisation === org._id).countByOrg) : 0,
-          territories: territories.find((t) => t.organisation === org._id)
-            ? Number(territories.find((t) => t.organisation === org._id).countByOrg)
-            : 0,
-          reports: reports.find((r) => r.organisation === org._id) ? Number(reports.find((r) => r.organisation === org._id).countByOrg) : 0,
           comments: comments.find((r) => r.organisation === org._id) ? Number(comments.find((r) => r.organisation === org._id).countByOrg) : 0,
           passages: passages.find((r) => r.organisation === org._id) ? Number(passages.find((r) => r.organisation === org._id).countByOrg) : 0,
-          treatments: treatments.find((r) => r.organisation === org._id) ? Number(treatments.find((r) => r.organisation === org._id).countByOrg) : 0,
           observations: observations.find((r) => r.organisation === org._id)
             ? Number(observations.find((r) => r.organisation === org._id).countByOrg)
             : 0,
