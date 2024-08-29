@@ -43,7 +43,7 @@ test("Super admin", async ({ page }) => {
   await page.getByRole("button", { name: "Se connecter" }).click();
 
   // Création d'une organisation
-  await page.getByRole("button", { name: "Créer une nouvelle" }).click();
+  await page.getByRole("button", { name: "Nouvelle organisation" }).click();
   await page.getByLabel("Nom", { exact: true }).fill("Orga Test - Nouvelle Orga");
   await page.getByLabel("Identifiant interne (non").click();
   await page.getByLabel("Identifiant interne (non").fill("identifiant orga");
