@@ -138,7 +138,11 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
                         if (newSlice === "Non renseigné") {
                           setSlicedData(consultationsByType[c.name].data.filter((c) => !c[field]));
                         } else {
-                          setSlicedData(consultationsByType[c.name].data.filter((c) => c[field] === newSlice));
+                          setSlicedData(
+                            consultationsByType[c.name].data.filter((c) =>
+                              Array.isArray(c[field]) ? c[field].includes(newSlice) : c[field] === newSlice
+                            )
+                          );
                         }
                       }
                 }
