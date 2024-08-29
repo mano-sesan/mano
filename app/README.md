@@ -2,8 +2,6 @@
 
 ## Comment livrer une version mobile pour android
 
-Cette procédure est temporaire, a été améliorée mais pour être automatisée.
-
 1. Lancer `yarn update-mobile-app-version [patch|minor|major]`
 2. Lancer `yarn build:android-apk`
 3. Lancer `yarn publish-release-to-github`
