@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
 import API from '../../services/api';
@@ -23,6 +23,7 @@ const NewPlaceForm = ({ route, navigation }) => {
   const [places, setPlaces] = useRecoilState(placesState);
   const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
   const user = useRecoilValue(userState);
+
   const data = useMemo(() => {
     if (!name) return places;
     return places.filter((p) => p?.name?.toLocaleLowerCase().includes(name?.toLocaleLowerCase()));
@@ -30,23 +31,7 @@ const NewPlaceForm = ({ route, navigation }) => {
 
   const { person } = route.params;
 
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
-
-  const backRequestHandledRef = useRef(null);
-  const handleBeforeRemove = (e) => {
-    if (backRequestHandledRef.current === true) return;
-    e.preventDefault();
-    onGoBackRequested();
-  };
-
-  useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
-    return () => {
-      beforeRemoveListenerUnsbscribe();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const onCreatePlace = useCallback(async () => {
     setPosting(true);
     const response = await API.post({ path: '/place', body: preparePlaceForEncryption({ name, user: user._id }) });
@@ -61,70 +46,36 @@ const NewPlaceForm = ({ route, navigation }) => {
     }
   }, [name, setPlaces, user._id, onSubmit]);
 
-  const onSubmit = async (place) => {
-    if (person.relsPersonPlace?.find((rpp) => rpp.place === place._id)) {
-      Alert.alert('Ce lieu est déjà enregistré pour cette personne');
-      return;
-    }
-    setPosting(true);
+  const onSubmit = useCallback(
+    async (place) => {
+      if (posting) return;
+      if (person.relsPersonPlace?.find((rpp) => rpp.place === place._id)) {
+        Alert.alert('Ce lieu est déjà enregistré pour cette personne');
+        return;
+      }
+      //
+      setPosting(true);
 
-    const response = await API.post({
-      path: '/relPersonPlace',
-      body: prepareRelPersonPlaceForEncryption({ place: place._id, person: person._id, user: user._id }),
-    });
-    if (response.error) {
-      setPosting(false);
-      Alert.alert(response.error);
-      return;
-    }
-    if (response.ok) {
-      setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-      onBack();
-    }
-  };
-
-  const onBack = () => {
-    backRequestHandledRef.current = true;
-    navigation.navigate(route.params.fromRoute);
-    setTimeout(() => setPosting(false), 250);
-  };
+      const response = await API.post({
+        path: '/relPersonPlace',
+        body: prepareRelPersonPlaceForEncryption({ place: place._id, person: person._id, user: user._id }),
+      });
+      if (response.error) {
+        setPosting(false);
+        Alert.alert(response.error);
+        return;
+      }
+      if (response.ok) {
+        setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
+        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+        navigation.goBack();
+      }
+    },
+    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
+  );
 
   const isReadyToSave = !!name?.trim()?.length;
-
-  const onGoBackRequested = () => {
-    if (!isReadyToSave) return onBack();
-
-    if (isReadyToSave) {
-      Alert.alert('Voulez-vous enregistrer ce lieu ?', null, [
-        {
-          text: 'Enregistrer',
-          onPress: onCreatePlace,
-        },
-        {
-          text: 'Ne pas enregistrer',
-          onPress: onBack,
-          style: 'destructive',
-        },
-        {
-          text: 'Annuler',
-          style: 'cancel',
-        },
-      ]);
-      return;
-    }
-    Alert.alert('Voulez-vous abandonner la création de ce lieu ?', null, [
-      {
-        text: 'Continuer la création',
-      },
-      {
-        text: 'Abandonner',
-        onPress: onBack,
-        style: 'destructive',
-      },
-    ]);
-  };
-  const keyExtractor = (structure) => structure._id;
+  const keyExtractor = (place) => place._id;
   const renderRow = ({ item: place }) => <Row onPress={() => onSubmit(place)} caption={place.name} />;
   const ListHeaderComponent = useMemo(
     () => (
@@ -138,10 +89,12 @@ const NewPlaceForm = ({ route, navigation }) => {
 
   return (
     <SceneContainer>
-      <ScreenTitle title={`Nouveau lieu - ${person.name}`} onBack={onGoBackRequested} />
+      <ScreenTitle title={`Nouveau lieu - ${person.name}`} onBack={() => navigation.goBack()} />
       <Search results={data} placeholder="Rechercher un lieu..." onChange={setName} />
       <FlashListStyled
         data={data}
+        key={JSON.stringify(data) + posting}
+        refreshing={refreshTrigger.status}
         estimatedItemSize={77}
         ListHeaderComponent={ListHeaderComponent}
         renderItem={renderRow}

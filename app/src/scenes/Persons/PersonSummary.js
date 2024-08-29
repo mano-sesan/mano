@@ -104,7 +104,7 @@ const PersonSummary = ({
     const placesId = relsPersonPlace.map((rel) => rel.place);
     return allPlaces.filter((pl) => placesId.includes(pl._id));
   }, [allPlaces, relsPersonPlace]);
-  const onAddPlaceRequest = () => navigation.push('NewPersonPlaceForm', { person: populatedPerson, fromRoute: 'Person' });
+  const onAddPlaceRequest = () => navigation.push('NewPersonPlaceForm', { person: personDB, fromRoute: 'Person' });
 
   const teams = useRecoilValue(teamsState);
 
@@ -227,7 +227,7 @@ const PersonSummary = ({
         value={person.alertness}
       />
       <TeamsMultiCheckBoxes
-        values={teams.filter((t) => person.assignedTeams.includes(t._id)).map((t) => t.name)}
+        values={teams.filter((t) => (person.assignedTeams || []).includes(t._id)).map((t) => t.name)}
         onChange={(newAssignedTeams) =>
           onChange({
             assignedTeams: newAssignedTeams.map((teamName) => teams.find((t) => t.name === teamName)?._id),
