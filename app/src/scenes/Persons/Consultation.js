@@ -395,9 +395,11 @@ const Consultation = ({ navigation, route }) => {
             })}
           <Label label="Document(s)" />
           <DocumentsManager
+            defaultParent="consultation"
             personDB={person}
             onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
             onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
+            onUpdateDocument={(doc) => onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })}
             documents={consultation.documents}
           />
           <Spacer />

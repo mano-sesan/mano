@@ -18,9 +18,9 @@ import FileViewer from 'react-native-file-viewer';
 const RNFS = require('react-native-fs');
 
 // Cette fonction vient du dashboard pour transformer les documents en arbre
-const buildFolderTree = (items, rootFolderName) => {
+const buildFolderTree = (items, rootFolderName, defaultParent) => {
   const rootFolderItem = {
-    _id: 'root',
+    _id: defaultParent,
     name: rootFolderName,
     position: 0,
     parentId: 'NA', // for type safety easiness purpose
@@ -46,13 +46,13 @@ const buildFolderTree = (items, rootFolderName) => {
         if (item.type === 'folder') {
           return {
             ...item,
-            parentId: item.parentId || 'root',
+            parentId: item.parentId || defaultParent,
             children: findChildren(item),
           };
         }
         return {
           ...item,
-          parentId: item.parentId || 'root',
+          parentId: item.parentId || defaultParent,
         };
       });
     return children;
@@ -66,23 +66,30 @@ const buildFolderTree = (items, rootFolderName) => {
 };
 
 // Cette fonction permet de rendre l'arbre de documents
-const renderTree = (node, personId, onDelete, level = 0) => {
+const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
   return (
     <View key={node._id}>
       {node.type === 'document' ? (
-        <Document key={node._id + 'doc'} document={node} personId={personId} onDelete={onDelete} style={[{ paddingLeft: (level - 1) * 10 }]} />
+        <Document
+          key={node._id + 'doc'}
+          document={node}
+          personId={personId}
+          onUpdate={onUpdate}
+          onDelete={onDelete}
+          style={[{ paddingLeft: (level - 1) * 10 }]}
+        />
       ) : level > 0 ? (
         <Text key={node._id + 'folder'} className="py-2 text-base" style={[{ paddingLeft: (level - 1) * 10 }]}>
           {node.type === 'folder' ? '📂' : '📄'} {node.name}
         </Text>
       ) : null}
-      {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, personId, onDelete, level + 1))}
+      {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, personId, onDelete, onUpdate, level + 1))}
     </View>
   );
 };
 
 // La liste des documents en tant que telle.
-const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete }) => {
+const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDocument, onDelete, defaultParent = 'root' }) => {
   const user = useRecoilValue(userState);
   const [asset, setAsset] = useState(null);
   const [name, setName] = useState('');
@@ -205,16 +212,17 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete })
       return {
         ...doc,
         type: doc.type || 'document',
-        parentId: doc.parentId || 'root',
+        parentId: doc.parentId || defaultParent,
       };
     }),
-    'Dossier racine'
+    'Dossier racine',
+    defaultParent
   );
 
   return (
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
-      {documents.length ? <View className="mb-4">{renderTree(tree, personDB._id, onDelete)}</View> : null}
+      {documents.length ? <View className="mb-4">{renderTree(tree, personDB._id, onDelete, onUpdateDocument)}</View> : null}
       <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} />
       <Modal animationType="fade" visible={!!asset}>
         <SceneContainer>
@@ -231,13 +239,17 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onDelete })
   );
 };
 
-const Document = ({ personId, document, onDelete, style }) => {
+const Document = ({ personId, document, onDelete, onUpdate, style }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [name, setName] = useState(document.name);
   const { showActionSheetWithOptions } = useActionSheet();
 
+  const extension = document.name.split('.').reverse()[0];
+
   const onMorePress = async () => {
-    const options = ['Supprimer', 'Annuler'];
+    const options = ['Supprimer', 'Renommer', 'Annuler'];
     showActionSheetWithOptions(
       {
         options,
@@ -266,49 +278,91 @@ const Document = ({ personId, document, onDelete, style }) => {
             },
           ]);
         }
+        if (options[buttonIndex] === 'Renommer') {
+          setIsRenaming(true);
+        }
       }
     );
   };
 
   return (
-    <TouchableOpacity
-      style={style}
-      onLongPress={onMorePress}
-      onPress={() => {
-        if (!document?.file?.filename) {
-          Alert.alert('Erreur', 'Le document est introuvable');
-          capture(new Error('Document not found for downloading'), { personId, document });
-          return;
-        }
-        if (isDownloading) return;
-        setIsDownloading(true);
-        API.download({
-          path: document.downloadPath ?? `/person/${document.person ?? personId}/document/${document.file.filename}`,
-          encryptedEntityKey: document.encryptedEntityKey,
-          document,
-        }).then(({ path }) => {
-          FileViewer.open(path)
-            .then((f) => {
-              setIsDownloading(false);
-            })
-            .catch((error) => {
-              if (error.toString()?.includes('No app associated')) {
-                Alert.alert(
-                  'Mano ne peut pas ouvrir seul ce type de fichier',
-                  `Vous pouvez chercher une application sur le store pour ouvrir les fichiers de type .${path
-                    .split('.')
-                    .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
-                );
-              }
-              setIsDownloading(false);
-            });
-        });
-      }}
-      key={document.name + document.createdAt}>
-      {!!isDownloading && <Text className="text-base py-2">Chargement du document chiffré…</Text>}
-      {!!isDeleting && <Text className="text-base py-2">Suppression du document…</Text>}
-      {!isDeleting && !isDownloading && <Text className="text-base py-2">📄 {document.name}</Text>}
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity
+        style={style}
+        onLongPress={onMorePress}
+        onPress={() => {
+          if (!document?.file?.filename) {
+            Alert.alert('Erreur', 'Le document est introuvable');
+            capture(new Error('Document not found for downloading'), { personId, document });
+            return;
+          }
+          if (isDownloading) return;
+          setIsDownloading(true);
+          API.download({
+            path: document.downloadPath ?? `/person/${document.person ?? personId}/document/${document.file.filename}`,
+            encryptedEntityKey: document.encryptedEntityKey,
+            document,
+          }).then(({ path }) => {
+            FileViewer.open(path)
+              .then((f) => {
+                setIsDownloading(false);
+              })
+              .catch((error) => {
+                if (error.toString()?.includes('No app associated')) {
+                  Alert.alert(
+                    'Mano ne peut pas ouvrir seul ce type de fichier',
+                    `Vous pouvez chercher une application sur le store pour ouvrir les fichiers de type .${path
+                      .split('.')
+                      .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
+                  );
+                }
+                setIsDownloading(false);
+              });
+          });
+        }}
+        key={document.name + document.createdAt}>
+        {!!isDownloading && <Text className="text-base py-2">Chargement du document chiffré…</Text>}
+        {!!isDeleting && <Text className="text-base py-2">Suppression du document…</Text>}
+        {!isDeleting && !isDownloading && <Text className="text-base py-2">📄 {document.name}</Text>}
+      </TouchableOpacity>
+      <Modal animationType="fade" visible={isRenaming}>
+        <SceneContainer>
+          <ScreenTitle
+            title="Donner un nom à cette photo"
+            onBack={() => {
+              setIsRenaming(false);
+            }}
+          />
+          <ScrollContainer>
+            <InputLabelled label="Nom" onChangeText={setName} value={name} placeholder="Nom" editable />
+            <ButtonsContainer>
+              <Button
+                caption="Enregistrer"
+                onPress={() => {
+                  if (!name.length) return;
+                  if (name.split('.').reverse()[0] !== extension) {
+                    setName(`${name}.${extension}`);
+                    onUpdate({
+                      ...document,
+                      name: `${name}.${extension}`,
+                    });
+                  } else {
+                    onUpdate({
+                      ...document,
+                      name,
+                    });
+                  }
+
+                  setIsRenaming(false);
+                }}
+                disabled={false}
+                loading={false}
+              />
+            </ButtonsContainer>
+          </ScrollContainer>
+        </SceneContainer>
+      </Modal>
+    </>
   );
 };
 

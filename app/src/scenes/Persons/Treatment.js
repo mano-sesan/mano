@@ -235,9 +235,15 @@ const Treatment = ({ navigation, route }) => {
           <InputLabelled label="Indication" value={indication} onChangeText={setIndication} placeholder="Angine" testID="new-treatment-indication" />
           <Label label="Document(s)" />
           <DocumentsManager
+            defaultParent="treatment"
             personDB={personDB}
-            onAddDocument={(doc) => setDocuments((docs) => [...docs, doc])}
+            onAddDocument={(doc) => {
+              setDocuments((docs) => [...docs, doc]);
+            }}
             onDelete={(doc) => setDocuments((docs) => docs.filter((d) => d.file.filename !== doc.file.filename))}
+            onUpdateDocument={(doc) => {
+              setDocuments((docs) => docs.map((d) => (d.file.filename === doc.file.filename ? doc : d)));
+            }}
             documents={documents}
           />
           <Spacer />

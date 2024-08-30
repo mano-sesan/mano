@@ -36,14 +36,20 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
       <SubHeader center backgroundColor={backgroundColor || colors.app.color} onBack={navigation.goBack} caption="Documents" />
       <ScrollContainer backgroundColor={backgroundColor || colors.app.color}>
         <DocumentsManager
+          defaultParent="root"
           onAddDocument={(document) =>
             onUpdatePerson(true, {
               documents: [...(personDB.documents || []), document],
             })
           }
-          onDelete={(doc) => {
+          onUpdateDocument={(document) =>
             onUpdatePerson(true, {
-              documents: personDB.documents.filter((d) => d?.file?.filename !== doc.file.filename),
+              documents: [...personDB.documents.filter((d) => d?.file?.filename !== document.file.filename), document],
+            })
+          }
+          onDelete={(document) => {
+            onUpdatePerson(true, {
+              documents: personDB.documents.filter((d) => d?.file?.filename !== document.file.filename),
             });
           }}
           personDB={personDB}
