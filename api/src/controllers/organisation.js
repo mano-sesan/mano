@@ -202,13 +202,14 @@ router.get(
         "city",
         "region",
         "responsible",
-        "encryptionLastUpdateAt",
-        "updatedAt",
-        "createdAt",
         "groupsEnabled",
         "passagesEnabled",
         "rencontresEnabled",
         "territoriesEnabled",
+        "encryptionLastUpdateAt",
+        "encryptedVerificationKey",
+        "updatedAt",
+        "createdAt",
       ],
     });
     if (withCounters !== "true") return res.status(200).send({ ok: true, data });
