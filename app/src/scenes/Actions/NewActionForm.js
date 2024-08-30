@@ -105,7 +105,7 @@ const NewActionForm = ({ route, navigation }) => {
     navigation.replace('Action', {
       actions: response.decryptedData,
       action: actionToRedirect,
-      editable: true,
+      editable: false,
     });
     setTimeout(() => setPosting(false), 250);
   };
