@@ -193,7 +193,24 @@ router.get(
       return next(error);
     }
     const { withCounters } = req.query;
-    const organisations = await Organisation.findAll({ where: { _id: { [Op.ne]: "00000000-5f5a-89e2-2e60-88fa20cc50be" } } });
+    const organisations = await Organisation.findAll({
+      where: { _id: { [Op.ne]: "00000000-5f5a-89e2-2e60-88fa20cc50be" } },
+      attributes: [
+        "_id",
+        "name",
+        "orgId",
+        "city",
+        "region",
+        "responsible",
+        "encryptionLastUpdateAt",
+        "updatedAt",
+        "createdAt",
+        "groupsEnabled",
+        "passagesEnabled",
+        "rencontresEnabled",
+        "territoriesEnabled",
+      ],
+    });
     if (withCounters !== "true") return res.status(200).send({ ok: true, data });
 
     const countQuery = {
