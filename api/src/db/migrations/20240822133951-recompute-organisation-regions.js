@@ -121,7 +121,11 @@ module.exports = {
         console.log("No city for org", org.name);
         continue;
       }
-      const dep = org.city.split("(")[1].split(")")[0];
+      const dep = org.city.split("(")?.[1]?.split(")")?.[0];
+      if (!dep) {
+        console.log("No department for org", org.name);
+        continue;
+      }
       const region = m[dep];
       if (!region) {
         console.log("No region for department", dep, "org", org.name);
