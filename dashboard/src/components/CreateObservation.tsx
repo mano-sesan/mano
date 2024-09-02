@@ -401,7 +401,13 @@ const CreateObservation = ({ id, observation, open, setOpen }: CreateObservation
                     Supprimer
                   </button>
                 ) : null}
-                <ButtonCustom disabled={isSubmitting} loading={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} title="Sauvegarder" />
+                <ButtonCustom
+                  disabled={isSubmitting}
+                  loading={isSubmitting}
+                  onClick={() => !isSubmitting && handleSubmit()}
+                  title="Sauvegarder"
+                  type="submit"
+                />
               </ModalFooter>
             </>
           )}

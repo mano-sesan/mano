@@ -145,7 +145,7 @@ const View = () => {
                   </span>
                 </DeleteButtonAndConfirmModal>
               )}
-              <ButtonCustom title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
+              <ButtonCustom type="submit" title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
             </div>
           </React.Fragment>
         )}

@@ -338,7 +338,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                             </div>
                             {isMedicalFile && (
                               <div className="tw-flex tw-w-full tw-items-end tw-justify-end tw-gap-2">
-                                <ButtonCustom disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                                <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
                                 <ButtonCustom
                                   disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
                                   color="primary"
@@ -388,7 +388,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                     </div>
                     {!isMedicalFile && (
                       <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                        <ButtonCustom disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                        <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
                         <ButtonCustom
                           disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
                           color="primary"
@@ -515,7 +515,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                                       ))}
                                   </div>
                                   <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                                    <ButtonCustom disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                                    <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
                                     <ButtonCustom
                                       disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
                                       color="primary"
@@ -579,7 +579,7 @@ function OutOfTeamsModal({ open, onClose, removedTeams }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <ButtonCustom color="secondary" onClick={() => onClose()} title="Ignorer cette étape" />
+        <ButtonCustom type="button" color="secondary" onClick={() => onClose()} title="Ignorer cette étape" />
         <ButtonCustom
           color="primary"
           onClick={() => {
@@ -589,6 +589,7 @@ function OutOfTeamsModal({ open, onClose, removedTeams }) {
                 .reduce((acc, [team, reasons]) => ({ ...acc, [team]: reasons }), {})
             );
           }}
+          type="submit"
           title="Enregistrer"
         />
       </ModalFooter>

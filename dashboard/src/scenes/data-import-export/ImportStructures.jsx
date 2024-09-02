@@ -135,7 +135,13 @@ export default function ImportStructures() {
 
   return (
     <>
-      <ButtonCustom onClick={() => fileDialogRef.current.click()} color="primary" title="Importer un fichier .xlsx" padding="12px 24px" />
+      <ButtonCustom
+        type="button"
+        onClick={() => fileDialogRef.current.click()}
+        color="primary"
+        title="Importer un fichier .xlsx"
+        padding="12px 24px"
+      />
       <input
         ref={fileDialogRef}
         key={reloadKey}
@@ -188,7 +194,7 @@ export default function ImportStructures() {
             ))}
           </ul>
 
-          <ButtonCustom onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
+          <ButtonCustom type="submit" onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
         </ModalBody>
       </Modal>
     </>

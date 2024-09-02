@@ -176,7 +176,7 @@ const View = () => {
                   <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
                 </DeleteButtonAndConfirmModal>
               )}
-              <ButtonCustom title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
+              <ButtonCustom type="submit" title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
             </div>
           </React.Fragment>
         )}

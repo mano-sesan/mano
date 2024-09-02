@@ -4,7 +4,6 @@ import { useRecoilValue } from "recoil";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { sortActionsOrConsultations } from "../../../recoil/actions";
 import { personsState } from "../../../recoil/persons";
-import ButtonCustom from "../../../components/ButtonCustom";
 import { ModalContainer, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { NotificationActionList, NotificationCommentList } from "../../../components/Notification";
 

@@ -41,7 +41,7 @@ const OnboardingEndModal = ({ open, setOpen }) => {
             vous suivez, et enregistrer vos observations jour après jour.
           </li>
         </ul>
-        <ButtonCustom onClick={() => setOpen(false)} title="C'est noté, merci !" style={{ margin: "20px auto" }} />
+        <ButtonCustom onClick={() => setOpen(false)} title="C'est noté, merci !" style={{ margin: "20px auto" }} type="submit" />
       </ModalBody>
     </Modal>
   );

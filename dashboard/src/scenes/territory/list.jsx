@@ -132,7 +132,14 @@ export const CreateTerritory = () => {
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       {!["restricted-access"].includes(user.role) && (
-        <ButtonCustom disabled={!currentTeam?._id} onClick={() => setOpen(true)} color="primary" title="Créer un territoire" padding="12px 24px" />
+        <ButtonCustom
+          type="button"
+          disabled={!currentTeam?._id}
+          onClick={() => setOpen(true)}
+          color="primary"
+          title="Créer un territoire"
+          padding="12px 24px"
+        />
       )}
       <TerritoryModal open={open} setOpen={setOpen} />
     </div>
@@ -224,7 +231,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
               </Row>
               <br />
               <div className="tw-mt-2 tw-flex tw-justify-end">
-                <ButtonCustom disabled={isSubmitting} onClick={handleSubmit} title="Sauvegarder" />
+                <ButtonCustom type="submit" disabled={isSubmitting} onClick={handleSubmit} title="Sauvegarder" />
               </div>
             </React.Fragment>
           )}

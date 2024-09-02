@@ -279,6 +279,7 @@ const SignIn = () => {
         <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-7 [&_>_*]:!tw-w-full">
           {user.teams.map((team) => (
             <ButtonCustom
+              type="button"
               key={team._id}
               title={team.name}
               onClick={() => {

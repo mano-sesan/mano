@@ -51,6 +51,7 @@ const List = ({ territory = {} }) => {
               });
               setOpenObservationModale(true);
             }}
+            type="button"
             color="primary"
             title="Nouvelle observation"
             padding="12px 24px"
