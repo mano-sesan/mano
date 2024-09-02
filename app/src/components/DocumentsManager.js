@@ -175,11 +175,12 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
       return;
     }
     const extension = asset.fileName.split('.').reverse()[0];
+    const newName = `${name}.${extension}`;
     const { data: file, encryptedEntityKey } = await API.upload({
       file: {
         uri: asset.uri,
         base64: asset.base64,
-        fileName: `${name}.${extension}`,
+        fileName: newName,
         type: asset.type,
       },
       path: `/person/${personDB._id}/document`,
@@ -191,7 +192,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
     }
     await onAddDocument({
       _id: file.filename,
-      name: file.originalname,
+      name: newName,
       encryptedEntityKey,
       createdAt: new Date(),
       createdBy: user._id,
@@ -342,6 +343,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                   if (!name.length) return;
                   if (name.split('.').reverse()[0] !== extension) {
                     setName(`${name}.${extension}`);
+                    console.log(name);
                     onUpdate({
                       ...document,
                       name: `${name}.${extension}`,
