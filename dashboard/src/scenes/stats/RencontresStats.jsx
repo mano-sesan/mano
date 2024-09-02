@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
 import Filters from "../../components/Filters";
 import { Block } from "./Blocks";
+import { SelectedPersonsModal } from "./PersonsStats";
 
 const RencontresStats = ({
   rencontres,
@@ -14,12 +15,31 @@ const RencontresStats = ({
   filterPersons,
   setFilterPersons,
 }) => {
+  const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
+  const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
+  const [genderSlice, setGenderSlice] = useState(null);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsWithRencontres.length === 1)
       return `Filtrer par personnes suivies (${personsWithRencontres.length} personne concernée par le filtre actuel) :`;
     return `Filtrer par personnes suivies (${personsWithRencontres.length} personnes concernées par le filtre actuel) :`;
   }, [filterPersons, personsWithRencontres.length]);
+
+  const filteredPersonsBySlice = useMemo(() => {
+    if (genderSlice) {
+      const withCatSlice = {};
+      for (const person of personsWithRencontres) {
+        if (genderSlice === "Non renseigné" && !person.gender) {
+          withCatSlice[person._id] = person;
+        }
+        if (person.gender === genderSlice) {
+          withCatSlice[person._id] = person;
+        }
+      }
+      return Object.values(withCatSlice);
+    }
+    return [];
+  }, [genderSlice, personsWithRencontres]);
 
   return (
     <>
@@ -45,6 +65,11 @@ const RencontresStats = ({
           data={getPieData(personsWithRencontres, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
+          onItemClick={(id) => {
+            setIsPersonsModalOpened(true);
+            setIsOnlyNewPersons(false);
+            setGenderSlice(id);
+          }}
         />
         <CustomResponsivePie
           title="Nombre de nouvelles personnes rencontrées"
@@ -54,8 +79,21 @@ const RencontresStats = ({
             "gender",
             { options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"] }
           )}
+          onItemClick={(id) => {
+            setIsPersonsModalOpened(true);
+            setIsOnlyNewPersons(true);
+            setGenderSlice(id);
+          }}
         />
       </div>
+      <SelectedPersonsModal
+        open={isPersonsModalOpened}
+        onClose={() => {
+          setIsPersonsModalOpened(false);
+        }}
+        persons={isOnlyNewPersons ? filteredPersonsBySlice.filter((person) => !personsInRencontresBeforePeriod[person._id]) : filteredPersonsBySlice}
+        title={`Personnes rencontrées`}
+      />
     </>
   );
 };
