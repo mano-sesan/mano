@@ -220,6 +220,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
         }}
         size="full"
         onAfterLeave={() => {
+          setStructure(null);
           setIsSubmitting(false);
           setIsDeleting(false);
           onAfterLeave();
