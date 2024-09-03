@@ -3,16 +3,7 @@ import { toast } from "react-toastify";
 
 import ButtonCustom from "./ButtonCustom";
 import PasswordInput from "./PasswordInput";
-
-/* eslint-disable no-extend-native */
-String.prototype.capitalize = function () {
-  return this.charAt(0).toUpperCase() + this.slice(1);
-};
-
-/* eslint-disable no-extend-native */
-String.prototype.capitalize = function () {
-  return this.charAt(0).toUpperCase() + this.slice(1);
-};
+import { capitalize } from "../utils";
 
 const checks = {
   IS_EMPTY: (password) => password === "",
@@ -116,7 +107,7 @@ const ChangePassword = ({ onSubmit, onFinished, withCurrentPassword, centerButto
           />
           {Object.keys(codesToHints).map((check, index, array) => {
             let caption = codesToHints[check];
-            if (index === 0) caption = caption?.capitalize();
+            if (index === 0) caption = caption ? capitalize(caption) : "";
             if (index !== array.length - 1) caption = `${caption}, `;
             return (
               <span
