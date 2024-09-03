@@ -88,18 +88,6 @@ const TopBar = () => {
                 {user?.name} - {user.role}
               </DropdownItem>
               <DropdownItem divider />
-              <DropdownItem tag="a" href="https://mano.sesan.fr/faq/" target="_blank" rel="noreferrer">
-                Besoin d'aide ? <OpenNewWindowIcon />
-              </DropdownItem>
-              <DropdownItem divider />
-              <DropdownItem
-                tag="a"
-                target="_blank"
-                rel="noreferrer"
-                href="https://framaforms.org/nouveau-questionnaire-de-satisfaction-de-mano-1627635427"
-              >
-                Donner mon avis sur Mano <OpenNewWindowIcon />
-              </DropdownItem>
               <DropdownItem tag="a" href="/charte.pdf" target="_blank" rel="noreferrer">
                 Charte des Utilisateurs <OpenNewWindowIcon />
               </DropdownItem>
