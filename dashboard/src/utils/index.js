@@ -4,8 +4,8 @@ export const isNullOrUndefined = (value) => {
   return false;
 };
 
-export const capitalize = function () {
-  return this.charAt(0).toUpperCase() + this.slice(1);
+export const capitalize = function (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
 export const looseUuidRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
