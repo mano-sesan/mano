@@ -3,6 +3,7 @@ import { currentTeamState } from "../../recoil/auth";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import { BlockDateWithTime, BlockTotal } from "./Blocks";
 import { getMultichoiceBarData, getPieData } from "./utils";
+import { capitalize } from "../../utils";
 
 const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleForMultiChoice }) => {
   const team = useRecoilValue(currentTeamState);
@@ -18,14 +19,14 @@ const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleF
         if (["number"].includes(field.type)) {
           return (
             <div className="tw-basis-64 tw-shrink-0 tw-grow-0" key={field.name}>
-              <BlockTotal title={field.label} data={data} field={field.name} help={help?.(field.label.capitalize())} />
+              <BlockTotal title={field.label} data={data} field={field.name} help={help?.(capitalize(field.label))} />
             </div>
           );
         }
         if (["date", "date-with-time", "duration"].includes(field.type)) {
           return (
             <div className="tw-basis-64 tw-shrink-0 tw-grow-0" key={field.name}>
-              <BlockDateWithTime data={data} field={field} help={help?.(field.label.capitalize())} />
+              <BlockDateWithTime data={data} field={field} help={help?.(capitalize(field.label))} />
             </div>
           );
         }
@@ -34,7 +35,7 @@ const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleF
             <div className="tw-basis-full tw-shrink-0" key={field.name}>
               <CustomResponsivePie
                 title={field.label}
-                help={help?.(field.label.capitalize())}
+                help={help?.(capitalize(field.label))}
                 onItemClick={onSliceClick ? (newSlice) => onSliceClick?.(newSlice, field.name) : undefined}
                 data={getPieData(data, field.name, {
                   options: field.options,
@@ -49,7 +50,7 @@ const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleF
             <div className="tw-basis-full tw-shrink-0" key={field.name}>
               <CustomResponsiveBar
                 title={field.label}
-                help={help?.(field.label.capitalize())}
+                help={help?.(capitalize(field.label))}
                 onItemClick={onSliceClick ? (newSlice) => onSliceClick?.(newSlice, field.name) : undefined}
                 isMultiChoice
                 axisTitleY="File active"

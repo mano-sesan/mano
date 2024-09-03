@@ -8,6 +8,7 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../co
 import { currentTeamState, usersState, userState, organisationState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
+import { capitalize } from "../../../utils";
 
 export default function PassagesRencontres({ person }) {
   const users = useRecoilValue(usersState);
@@ -110,7 +111,7 @@ export default function PassagesRencontres({ person }) {
         </div>
       </div>
       <ModalContainer open={!!fullScreen} size="prose" onClose={() => setFullScreen(false)}>
-        <ModalHeader title={`${selected.capitalize()} de  ${person?.name} (${personPassages.length})`}></ModalHeader>
+        <ModalHeader title={`${capitalize(selected)} de  ${person?.name} (${personPassages.length})`}></ModalHeader>
         <ModalBody>
           {selected === "passages" ? (
             <PassagesTable personPassages={personPassages} users={users} />
