@@ -81,31 +81,6 @@ label.tailwindui {
   outline: auto !important;
 }
 
-/* otp */
-// https://dev.to/madsstoumann/using-a-single-input-for-one-time-code-352l
-// .otp-six-chars {
-//   --otp-digits: 6; /* length */
-//   --otc-ls: 2ch;
-//   --otc-gap: 1.25;
-//   /* private consts */
-//   --_otp-bgsz: calc(var(--otc-ls) + 1ch);
-//   // --otc-bg: @apply tw-bg-main;
-
-//   all: unset;
-//   background: linear-gradient(90deg,
-//     var(--otc-bg, #EEE) calc(var(--otc-gap) * var(--otc-ls)),
-//     transparent 0
-//   ) 0 0 / var(--_otp-bgsz) 100%;
-//   caret-color: var(--otc-cc, #333);
-//   clip-path: inset(0% calc(var(--otc-ls) / 2) 0% 0%);
-//   font-family: ui-monospace, monospace;
-//   font-size: var(--otc-fz, 2.5em);
-//   inline-size: calc(var(--otc-digits) * var(--_otp-bgsz));
-//   letter-spacing: var(--otc-ls);
-//   padding-block: var(--otc-pb, 1ch);
-//   padding-inline-start: calc(((var(--otc-ls) - 1ch) / 2) * var(--otc-gap));
-// }
-
 /* table selego */
 
 table.table-selego {
