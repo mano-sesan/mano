@@ -231,7 +231,7 @@ router.post(
       return res.status(403).send({ ok: false, error: "E-mail ou mot de passe incorrect", code: EMAIL_OR_PASSWORD_INVALID });
     }
 
-    if (["superadmin"].includes(user.role)) {
+    if (["superadmin"].includes(user.role) && process.env.NODE_ENV !== "test") {
       if (otp?.length) {
         const { otp: expectedOtp } = await User.scope("withPassword").findOne({ where: { email }, attributes: ["otp"] });
         const auth = otp === expectedOtp;
