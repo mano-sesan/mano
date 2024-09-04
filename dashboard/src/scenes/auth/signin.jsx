@@ -253,6 +253,23 @@ const SignIn = () => {
       history.push("/team");
       return;
     }
+    if (organisation.lockedBy === user._id) {
+      if (!window.confirm("Il semblerait que vous soyez en train de rechiffrer votre organisation, est-ce toujours le cas ?")) {
+        const [error] = await tryFetchExpectOk(async () =>
+          API.put({
+            path: `/organisation/${organisation._id}`,
+            body: {
+              encrypting: false,
+              lockedForEncryption: false,
+              lockedBy: null,
+            },
+          })
+        );
+        if (error) {
+          toast.error(errorMessage(error));
+        }
+      }
+    }
     // basic login
     if (user.teams.length === 1 || (process.env.NODE_ENV === "development" && import.meta.env.SKIP_TEAMS === "true")) {
       setCurrentTeam(user.teams[0]);

@@ -150,6 +150,7 @@ const EncryptionKey = ({ isMain }) => {
           path: `/organisation/${organisation._id}`,
           body: {
             lockedForEncryption: true,
+            lockedBy: user._id,
           },
         })
       );
@@ -277,6 +278,7 @@ const EncryptionKey = ({ isMain }) => {
           path: `/organisation/${organisation._id}`,
           body: {
             lockedForEncryption: false,
+            lockedBy: null,
           },
         })
       );
