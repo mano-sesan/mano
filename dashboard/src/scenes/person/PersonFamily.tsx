@@ -157,6 +157,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
         <h3 className="tw-mb-0 tw-text-xl tw-font-extrabold">Liens familiaux</h3>
         <ButtonCustom
           title="Ajouter un lien"
+          type="button"
           className="tw-ml-auto"
           onClick={() => {
             refresh(); // just refresh to make sure we have the latest data

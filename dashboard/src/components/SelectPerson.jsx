@@ -1,7 +1,6 @@
 import { useHistory } from "react-router-dom";
 import { selector, useRecoilValue } from "recoil";
 import { personsState, sortPersons } from "../recoil/persons";
-import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";
 
 const sortedPersonsByNameSelector = selector({
@@ -51,21 +50,21 @@ const SelectPerson = ({
         getOptionLabel={(i) => (i?.otherNames ? `${i?.name} ${i?.otherNames}` : i?.name)}
         formatOptionLabel={(i, options) => {
           return (
-            <div style={{ display: "flex", alignItems: "center" }}>
+            <div className="tw-flex tw-items-center">
               {i?.name}
-              {Boolean(i?.otherNames) && <span style={{ marginLeft: "0.5rem", fontSize: "0.8rem", opacity: 0.5 }}>{i?.otherNames}</span>}
+              {Boolean(i?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{i?.otherNames}</span>}
               {!disableAccessToPerson && options.context !== "menu" && (
-                <ButtonCustom
+                <button
+                  type="button"
+                  className="tw-ml-2 tw-font-semibold tw-text-sm tw-text-main"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     history.push(`/person/${i._id}`);
                   }}
-                  color="link"
-                  title="Accéder au dossier"
-                  padding="0"
-                  style={{ marginLeft: "0.5rem" }}
-                />
+                >
+                  Accéder au dossier
+                </button>
               )}
             </div>
           );

@@ -7,8 +7,6 @@ import { actionsState, CANCEL, DONE, encryptAction, sortActionsOrConsultations, 
 import { currentTeamState, userState } from "../recoil/auth";
 import { commentsState, encryptComment } from "../recoil/comments";
 import { personsState } from "../recoil/persons";
-import { formatTime } from "../services/date";
-import ButtonCustom from "./ButtonCustom";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import Table from "./table";
 import UserName from "./UserName";

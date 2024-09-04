@@ -211,6 +211,7 @@ const TableCustomFields = ({
         {!onlyOptionsEditable && <ButtonCustom title="Ajouter un champ" loading={isSubmitting} onClick={() => setIsNewField(true)} />}
         <ButtonCustom
           title="Mettre à jour"
+          type="submit"
           loading={isSubmitting}
           onClick={() => handleSubmit()}
           disabled={JSON.stringify(mutableData) === JSON.stringify(fields)}

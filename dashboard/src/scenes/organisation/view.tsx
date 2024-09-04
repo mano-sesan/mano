@@ -254,6 +254,7 @@ const View = () => {
                         </DeleteButtonAndConfirmModal>
                         <ButtonCustom
                           title="Mettre à jour"
+                          type="submit"
                           loading={isSubmitting}
                           onClick={handleSubmit as unknown as MouseEventHandler<HTMLButtonElement>}
                         />
@@ -281,6 +282,7 @@ const View = () => {
                       <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
                         <ButtonCustom
                           title={"Mettre à jour"}
+                          type="submit"
                           disabled={values.checkboxShowAllOrgaPersons === organisation.checkboxShowAllOrgaPersons}
                           loading={isSubmitting}
                           onClick={handleSubmit as unknown as MouseEventHandler<HTMLButtonElement>}
@@ -345,6 +347,7 @@ const View = () => {
                         <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
                           <ButtonCustom
                             title={"Mettre à jour"}
+                            type="submit"
                             disabled={values.receptionEnabled === organisation.receptionEnabled}
                             loading={isSubmitting}
                             onClick={handleSubmit as unknown as MouseEventHandler<HTMLButtonElement>}
@@ -379,6 +382,7 @@ const View = () => {
                       <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
                         <ButtonCustom
                           title={"Mettre à jour"}
+                          type="button"
                           disabled={values.territoriesEnabled === organisation.territoriesEnabled}
                           loading={isSubmitting}
                           onClick={handleSubmit as unknown as MouseEventHandler<HTMLButtonElement>}
@@ -429,6 +433,7 @@ const View = () => {
                       <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
                         <ButtonCustom
                           title={"Mettre à jour"}
+                          type="button"
                           disabled={
                             values.rencontresEnabled === organisation.rencontresEnabled && values.passagesEnabled === organisation.passagesEnabled
                           }
@@ -465,6 +470,7 @@ const View = () => {
                           <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
                             <ButtonCustom
                               title={"Mettre à jour"}
+                              type="button"
                               disabled={values.groupsEnabled === organisation.groupsEnabled}
                               loading={isSubmitting}
                               onClick={handleSubmit as unknown as MouseEventHandler<HTMLButtonElement>}

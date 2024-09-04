@@ -130,6 +130,7 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
             {category}
             <button
               className="selected-action-category-close-button tw-ml-2 tw-font-bold"
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 setSelected((s) => s.filter((_cat) => _cat !== category));
@@ -153,7 +154,12 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
         <div className="mt-1 tw-flex tw-flex-wrap tw-items-center tw-gap-1 tw-text-xs tw-text-gray-500">
           <p className="tw-m-0">Catégories les plus utilisées :</p>
           {mostUsedCategoriesToShow.map((cat, i) => (
-            <button className="tw-rounded-full tw-border tw-border-gray-300 tw-p-1" key={cat + i} onClick={() => setSelected((s) => [...s, cat])}>
+            <button
+              type="button"
+              className="tw-rounded-full tw-border tw-border-gray-300 tw-p-1"
+              key={cat + i}
+              onClick={() => setSelected((s) => [...s, cat])}
+            >
               {cat}
             </button>
           ))}

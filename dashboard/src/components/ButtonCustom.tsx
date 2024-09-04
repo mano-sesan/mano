@@ -10,20 +10,20 @@ const ButtonCustom = ({
   className = "",
   loading,
   title = "ButtonCustom",
-  type = "submit",
+  type,
   width,
   disabled,
   icon,
   padding = "",
   ...rest
 }: {
+  type: "button" | "submit" | "reset";
   color?: "primary" | "secondary" | "link" | "cancel" | "danger" | "warning";
   onClick?: MouseEventHandler<HTMLButtonElement>;
   style?: any;
   className?: string;
   loading?: boolean;
   title?: string;
-  type?: "button" | "submit" | "reset";
   width?: number;
   disabled?: boolean;
   icon?: string;

@@ -120,6 +120,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
           </table>
           <div className="tw-mb-10 tw-flex tw-justify-end tw-gap-4">
             <ButtonCustom
+              type="button"
               onClick={() => {
                 const workbook = utils.book_new();
 
@@ -233,7 +234,13 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
               title="Télécharger la configuration actuelle"
               padding="12px 24px"
             />
-            <ButtonCustom onClick={() => fileDialogRef.current?.click()} color="primary" title="Importer un fichier .xlsx" padding="12px 24px" />
+            <ButtonCustom
+              type="button"
+              onClick={() => fileDialogRef.current?.click()}
+              color="primary"
+              title="Importer un fichier .xlsx"
+              padding="12px 24px"
+            />
             <input
               ref={fileDialogRef}
               key={reloadKey}
@@ -335,9 +342,9 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
           ))}
           <div className="tw-mt-8 tw-flex tw-justify-end tw-gap-4">
             {!workbookHasErrors ? (
-              <ButtonCustom onClick={() => handleImport()} color="primary" title="Valider l'import" padding="12px 24px" />
+              <ButtonCustom type="button" onClick={() => handleImport()} color="primary" title="Valider l'import" padding="12px 24px" />
             ) : (
-              <ButtonCustom onClick={() => setWorkbookData(null)} color="secondary" title="Annuler, recommencer" padding="12px 24px" />
+              <ButtonCustom type="button" onClick={() => setWorkbookData(null)} color="secondary" title="Annuler, recommencer" padding="12px 24px" />
             )}
           </div>
         </div>

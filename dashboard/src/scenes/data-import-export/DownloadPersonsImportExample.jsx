@@ -36,6 +36,7 @@ export default function DownloadPersonsImportExample() {
       }}
       color="primary"
       title="Télécharger un exemple"
+      type="button"
       padding="12px 24px"
     />
   );

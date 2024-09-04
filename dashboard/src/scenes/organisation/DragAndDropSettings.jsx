@@ -91,7 +91,9 @@ const DragAndDropSettings = ({
     <>
       <div className={["tw-my-10 tw-flex tw-items-center tw-gap-2", isDisabled ? "disable-everything" : ""].join(" ")}>
         {title}
-        {!!addButtonCaption && <ButtonCustom title={addButtonCaption} className="tw-ml-auto" onClick={() => setAddGroupModalVisible(true)} />}
+        {!!addButtonCaption && (
+          <ButtonCustom type="button" title={addButtonCaption} className="tw-ml-auto" onClick={() => setAddGroupModalVisible(true)} />
+        )}
       </div>
       <hr />
       <div key={JSON.stringify(data)} className={isDisabled ? "tw-cursor-wait" : ""}>

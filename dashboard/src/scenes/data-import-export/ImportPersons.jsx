@@ -161,7 +161,13 @@ export default function ImportPersons() {
 
   return (
     <>
-      <ButtonCustom onClick={() => fileDialogRef.current.click()} color="primary" title="Importer un fichier .xlsx" padding="12px 24px" />
+      <ButtonCustom
+        type="button"
+        onClick={() => fileDialogRef.current.click()}
+        color="primary"
+        title="Importer un fichier .xlsx"
+        padding="12px 24px"
+      />
       <input
         ref={fileDialogRef}
         key={reloadKey}
@@ -214,7 +220,7 @@ export default function ImportPersons() {
             ))}
           </ul>
 
-          <ButtonCustom onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
+          <ButtonCustom type="submit" onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
         </ModalBody>
       </Modal>
     </>

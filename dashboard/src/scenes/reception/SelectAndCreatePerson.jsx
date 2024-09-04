@@ -272,6 +272,7 @@ const Person = ({ person, showLinkToPerson }) => {
               e.stopPropagation();
               history.push(`/person/${person._id}`);
             }}
+            type="button"
             color="link"
             title="Accéder au dossier"
             padding="0px"

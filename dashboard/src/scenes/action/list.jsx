@@ -200,6 +200,7 @@ const List = () => {
             }}
             color="primary"
             title="Créer une action"
+            type="button"
             padding={"12px 24px"}
           />
           {Boolean(user.healthcareProfessional) && (
@@ -214,6 +215,7 @@ const List = () => {
               }}
               color="primary"
               title="Créer une consultation"
+              type="button"
               padding={"12px 24px"}
             />
           )}

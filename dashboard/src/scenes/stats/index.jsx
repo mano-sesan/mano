@@ -783,7 +783,7 @@ const Stats = () => {
           )}
         </div>
         <div className="tw-ml-auto tw-flex tw-basis-1/3 tw-items-center tw-justify-end">
-          <ButtonCustom color="link" title="Imprimer" onClick={window.print} />
+          <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
           <ExportFormattedData
             observations={observations}
             passages={passagesFilteredByPersons}

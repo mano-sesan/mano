@@ -211,7 +211,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
-      <ButtonCustom onClick={onOpen} color="primary" title="Créer une structure" padding="12px 24px" />
+      <ButtonCustom type="button" onClick={onOpen} color="primary" title="Créer une structure" padding="12px 24px" />
       <ModalContainer
         open={open}
         onClose={() => {

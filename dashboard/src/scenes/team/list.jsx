@@ -103,7 +103,7 @@ const Create = () => {
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
-      <ButtonCustom color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
+      <ButtonCustom type="button" color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
       <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
         <ModalHeader close={onboardingForTeams ? <></> : null} toggle={() => setOpen(false)}>
           {onboardingForTeams ? "Dernière étape !" : "Créer une équipe"}
@@ -212,7 +212,7 @@ const Create = () => {
                   <br />
                   <Row>
                     <Col className="tw-mt-4 tw-flex tw-justify-end">
-                      <ButtonCustom id="create-team" title="Créer" loading={isSubmitting} onClick={handleSubmit} />
+                      <ButtonCustom type="button" id="create-team" title="Créer" loading={isSubmitting} onClick={handleSubmit} />
                     </Col>
                   </Row>
                 </React.Fragment>

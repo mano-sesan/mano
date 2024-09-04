@@ -98,6 +98,7 @@ const PersonPlaces = ({ person }) => {
         </h3>
         <ButtonCustom
           title="Ajouter un lieu"
+          type="button"
           className="tw-ml-auto"
           onClick={() => {
             refresh(); // just refresh to make sure we have the latest data

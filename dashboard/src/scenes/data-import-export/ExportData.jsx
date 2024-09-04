@@ -187,6 +187,7 @@ const ExportData = () => {
       color="primary"
       onClick={onExportToCSV}
       title="Exporter les données en .xlsx"
+      type="button"
       padding="12px 24px"
       loading={isExporting}
       disabled={isExporting}

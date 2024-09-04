@@ -30,6 +30,7 @@ const CreatePerson = () => {
         disabled={!currentTeam}
         onClick={() => setOpen(true)}
         color="primary"
+        type="button"
         title="Créer une personne"
         padding="12px 24px"
       />
@@ -85,6 +86,7 @@ const CreatePerson = () => {
                 <br />
                 <div className="tw-mt-4 tw-flex tw-justify-end">
                   <ButtonCustom
+                    type="submit"
                     onClick={() => !isSubmitting && handleSubmit()}
                     disabled={!!isSubmitting || !values.name?.trim()?.length}
                     title={isSubmitting ? "Sauvegarde..." : "Sauvegarder"}

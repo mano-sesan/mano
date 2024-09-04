@@ -80,7 +80,7 @@ const EditContent = ({ open, setOpen, onSubmit, content, title }) => {
                 </Col>
               </Row>
               <br />
-              <ButtonCustom loading={isSubmitting} onClick={handleSubmit} title="Enregistrer" />
+              <ButtonCustom loading={isSubmitting} onClick={handleSubmit} title="Enregistrer" type="submit" />
             </React.Fragment>
           )}
         </Formik>

@@ -211,6 +211,7 @@ const Reception = () => {
             history.push(`?${searchParams.toString()}`);
           }}
           color="primary"
+          type="button"
           title="Action"
           padding={"8px 14px"}
           style={{ height: "fit-content" }}
@@ -226,6 +227,7 @@ const Reception = () => {
                 if (selectedPersons?.[0]._id) searchParams.set("personId", selectedPersons?.[0]._id);
                 history.push(`?${searchParams.toString()}`);
               }}
+              type="button"
               color="primary"
               disabled={!selectedPersons.length || selectedPersons.length > 1}
               title="Consultation"
@@ -240,6 +242,7 @@ const Reception = () => {
             color="primary"
             style={{ height: "fit-content" }}
             icon={plusIcon}
+            type="button"
             title="Passage"
             padding={"8px 14px"}
             disabled={addingPassage || !selectedPersons.length}
@@ -266,10 +269,23 @@ const Reception = () => {
               <h5 id="passages-title">
                 {passages.length} passage{passages.length > 1 ? "s" : ""}
               </h5>
-              <ButtonCustom onClick={onAddAnonymousPassage} color="primary" icon={plusIcon} title="Passage anonyme" id="add-anonymous-passage" />
+              <ButtonCustom
+                onClick={onAddAnonymousPassage}
+                type="button"
+                color="primary"
+                icon={plusIcon}
+                title="Passage anonyme"
+                id="add-anonymous-passage"
+              />
               {!!passages.length && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <ButtonCustom onClick={() => setTodaysPassagesOpen(true)} color="link" title="Voir les passages d'aujourd'hui" padding="0px" />
+                  <ButtonCustom
+                    type="button"
+                    onClick={() => setTodaysPassagesOpen(true)}
+                    color="link"
+                    title="Voir les passages d'aujourd'hui"
+                    padding="0px"
+                  />
                 </div>
               )}
             </div>
