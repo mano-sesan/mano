@@ -567,8 +567,6 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
     return [...persons].sort(sortPersons(sortBy, sortOrder));
   }, [persons, sortBy, sortOrder]);
 
-  if (!sliceField) return null;
-
   const exportXlsx = () => {
     const wb = utils.book_new();
     const ws = utils.json_to_sheet(
@@ -643,13 +641,17 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
                 sortOrder,
                 sortBy,
               },
-              {
-                title: sliceField.label,
-                dataKey: sliceField,
-                render: (person) => {
-                  return <CustomFieldDisplay type={sliceField.type} value={person[sliceField.field]} />;
-                },
-              },
+              ...(sliceField
+                ? [
+                    {
+                      title: sliceField.label,
+                      dataKey: sliceField,
+                      render: (person) => {
+                        return <CustomFieldDisplay type={sliceField.type} value={person[sliceField.field]} />;
+                      },
+                    },
+                  ]
+                : []),
               { title: "Équipe(s) en charge", dataKey: "assignedTeams", render: (person) => <Teams teams={teams} person={person} /> },
               {
                 title: "Suivi(e) depuis le",
