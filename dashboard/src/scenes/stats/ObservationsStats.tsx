@@ -22,6 +22,7 @@ import type { TeamInstance } from "../../types/team";
 import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
 import { useSessionStorage } from "../../services/useSessionStorage";
+import { capitalize } from "../../utils";
 
 interface ObservationsStatsProps {
   territories: Array<TerritoryInstance>;
@@ -149,7 +150,7 @@ const ObservationsStats = ({
           customFields={customFieldsObs}
           onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
           help={(label) =>
-            `${label.capitalize()} des observations des territoires sélectionnés, dans la période définie.\n\nLa moyenne de cette données est basée sur le nombre d'observations faites.`
+            `${capitalize(label)} des observations des territoires sélectionnés, dans la période définie.\n\nLa moyenne de cette données est basée sur le nombre d'observations faites.`
           }
           totalTitleForMultiChoice={<span className="tw-font-bold">Nombre d'observations concernées</span>}
         />

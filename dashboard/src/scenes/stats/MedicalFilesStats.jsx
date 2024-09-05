@@ -7,6 +7,7 @@ import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import { capture } from "../../services/sentry";
 import { userState } from "../../recoil/auth";
 import { useRecoilValue } from "recoil";
+import { capitalize } from "../../utils";
 
 const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, personsForStats, customFieldsMedicalFile, personFields, title }) => {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
@@ -71,7 +72,7 @@ const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, person
           customFields={customFieldsMedicalFile}
           onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
           help={(label) =>
-            `${label.capitalize()} des ${title} dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`
+            `${capitalize(label)} des ${title} dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`
           }
           totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
         />

@@ -20,6 +20,7 @@ import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import { groupsState } from "../../recoil/groups";
 import EvolutiveStatsSelector from "../../components/EvolutiveStatsSelector";
 import EvolutiveStatsViewer from "../../components/EvolutiveStatsViewer";
+import { capitalize } from "../../utils";
 
 export default function PersonStats({
   title,
@@ -183,7 +184,7 @@ export default function PersonStats({
                       }
                 }
                 data={getPieData(personsForStats, "alertness", { isBoolean: true })}
-                help={`${title.capitalize()} vulnérables dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
+                help={`${capitalize(title)} vulnérables dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
               />
               <CustomResponsivePie
                 title="Sortie de file active"
@@ -250,7 +251,7 @@ export default function PersonStats({
                   customFields={section.fields}
                   onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
                   help={(label) =>
-                    `${label.capitalize()} des ${title} dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`
+                    `${capitalize(label)} des ${title} dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`
                   }
                   totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
                 />

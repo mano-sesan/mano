@@ -8,6 +8,7 @@ import CustomFieldsStats from "./CustomFieldsStats";
 import Filters from "../../components/Filters";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import ActionsSortableList from "../../components/ActionsSortableList";
+import { capitalize } from "../../utils";
 
 export default function ConsultationsStats({ consultations, personsWithConsultations, filterBase, filterPersons, setFilterPersons }) {
   const organisation = useRecoilValue(organisationState);
@@ -146,7 +147,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
                         }
                       }
                 }
-                help={(label) => `${label.capitalize()} des consultations réalisées dans la période définie.`}
+                help={(label) => `${capitalize(label)} des consultations réalisées dans la période définie.`}
                 totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de consultations concernées</span>}
               />
             </div>

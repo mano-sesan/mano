@@ -4,6 +4,11 @@ export const isNullOrUndefined = (value) => {
   return false;
 };
 
+export const capitalize = function (str) {
+  if (typeof str !== "string") return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
 export const looseUuidRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
 export const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
 export const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
