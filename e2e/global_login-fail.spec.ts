@@ -24,7 +24,6 @@ test("Try to login and fail", async ({ page }) => {
   await page.getByRole("button", { name: "Se connecter" }).click();
 
   await page.getByLabel("Email").click();
-  await page.getByLabel("Email").dblclick();
   await page.getByLabel("Email").fill("");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.getByText("Adresse email invalide").click();

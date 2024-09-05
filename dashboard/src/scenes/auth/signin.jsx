@@ -339,6 +339,9 @@ const SignIn = () => {
               </div>
               {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.password}</p>}
             </div>
+            <div className="-tw-mt-5 tw-mb-5 tw-text-right tw-text-sm">
+              <Link to="/auth/forgot">Première connexion ou mot de passe oublié&nbsp;?</Link>
+            </div>
             {showOtp && (
               <div className="tw-mb-6">
                 <div className="tw-flex tw-flex-col-reverse ">
