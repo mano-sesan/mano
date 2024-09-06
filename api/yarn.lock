@@ -440,6 +440,7 @@ __metadata:
     cookie-parser: "npm:^1.4.5"
     cors: "npm:^2.8.5"
     cross-env: "npm:^7.0.3"
+    dayjs: "npm:^1.11.13"
     dotenv: "npm:^16.0.0"
     eslint: "npm:^8.57.0"
     express: "npm:^4.19.2"
@@ -992,6 +993,13 @@ __metadata:
     es5-ext: "npm:^0.10.50"
     type: "npm:^1.0.1"
   checksum: 1fedcb3b956a461f64d86b94b347441beff5cef8910b6ac4ec509a2c67eeaa7093660a98b26601ac91f91260238add73bdf25867a9c0cb783774642bc4c1523f
+  languageName: node
+  linkType: hard
+
+"dayjs@npm:^1.11.13":
+  version: 1.11.13
+  resolution: "dayjs@npm:1.11.13"
+  checksum: a3caf6ac8363c7dade9d1ee797848ddcf25c1ace68d9fe8678ecf8ba0675825430de5d793672ec87b24a69bf04a1544b176547b2539982275d5542a7955f35b7
   languageName: node
   linkType: hard
 
