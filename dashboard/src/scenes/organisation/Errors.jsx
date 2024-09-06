@@ -50,28 +50,43 @@ export default function Errors() {
   const [open, setOpen] = useState(false);
   const [item, setItem] = useState(undefined);
   const [data, setData] = useState(undefined);
+  const [loadingInfo, setLoadingInfo] = useState("");
   const organisation = useRecoilValue(organisationState);
 
   useEffect(() => {
     (async () => {
       let res = [];
+      setLoadingInfo(`Chargement des personnes… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "person")));
+      setLoadingInfo(`Chargement des groupes… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "group")));
+      setLoadingInfo(`Chargement des rapports… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "report")));
+      setLoadingInfo(`Chargement des passages… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "passage")));
+      setLoadingInfo(`Chargement des rencontres… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "rencontre")));
+      setLoadingInfo(`Chargement des actions… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "action")));
+      setLoadingInfo(`Chargement des territoires… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "territory")));
+      setLoadingInfo(`Chargement des lieux… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "place")));
+      setLoadingInfo(`Chargement des relations personnes-lieux… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "relPersonPlace")));
+      setLoadingInfo(`Chargement des observations de territoires… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "territory-observation")));
+      setLoadingInfo(`Chargement des commentaires… (${res.length} erreurs trouvées)`);
       res.push(...(await fetchErrored(organisation._id, "comment")));
+      setLoadingInfo(`Chargement des consultations… (${res.length} erreurs trouvées)`);
       if (user.healthcareProfessional) {
         res.push(...(await fetchErrored(organisation._id, "consultation")));
+        setLoadingInfo(`Chargement des traitements… (${res.length} erreurs trouvées)`);
         res.push(...(await fetchErrored(organisation._id, "treatment")));
+        setLoadingInfo(`Chargement des dossiers médicaux… (${res.length} erreurs trouvées)`);
         res.push(...(await fetchErrored(organisation._id, "medical-file")));
       }
-
+      setLoadingInfo(`Enregistrement des données… (${res.length} erreurs trouvées)`);
       setData(res);
     })();
   }, [organisation._id, user.healthcareProfessional]);
@@ -83,6 +98,8 @@ export default function Errors() {
         <Loading />
         <div className="tw-italic tw-text-xs tw-text-center tw-w-96 tw-mx-auto tw-mt-8 tw-animate-pulse">
           Le chargement des données en erreur nécessite de recharger puis déchiffrer toute la base de données, cela peut être long…
+          <br />
+          {loadingInfo}
         </div>
       </>
     );
