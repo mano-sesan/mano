@@ -199,16 +199,10 @@ const Reception = () => {
         <ButtonCustom
           icon={plusIcon}
           onClick={() => {
-            const searchParams = new URLSearchParams(history.location.search);
-            searchParams.set("newAction", true);
-            searchParams.set(
-              "personIds",
-              selectedPersons
-                .map((p) => p?._id)
-                .filter(Boolean)
-                .join(",")
-            );
-            history.push(`?${searchParams.toString()}`);
+            // const searchParams = new URLSearchParams(history.location.search);
+            // searchParams.set("newAction", true);
+            // window.sessionStorage.setItem("persons-for-action-modal", JSON.stringify(selectedPersons));
+            // history.push(`?${searchParams.toString()}`);
           }}
           color="primary"
           type="button"

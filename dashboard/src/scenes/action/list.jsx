@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { selectorFamily, useRecoilValue } from "recoil";
+import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory } from "react-router-dom";
 import Search from "../../components/search";
 import ActionsCalendar from "../../components/ActionsCalendar";
@@ -19,6 +19,7 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { dayjsInstance } from "../../services/date";
 import useMinimumWidth from "../../services/useMinimumWidth";
+import { modalActionState } from "../../recoil/modal";
 
 const showAsOptions = ["Calendrier", "Liste", "Hebdomadaire"];
 const showTypeOptions = ["Actions et consultations", "Actions", "Consultations"];
@@ -127,6 +128,7 @@ const List = () => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationState);
+  const setModalAction = useSetRecoilState(modalActionState);
 
   const history = useHistory();
   const [search, setSearch] = useSearchParamState("search", "");
@@ -193,10 +195,32 @@ const List = () => {
             icon={agendaIcon}
             disabled={!currentTeam}
             onClick={() => {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("dueAt", dayjsInstance().toISOString());
-              searchParams.set("newAction", true);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({
+                open: true,
+                from: "/action",
+                isForMultiplePerson: true,
+                isEditing: true,
+                action: {
+                  _id: null,
+                  dueAt: dayjsInstance().toISOString(),
+                  withTime: false,
+                  completedAt: null,
+                  status: TODO,
+                  teams: teams.length === 1 ? [teams[0]._id] : [],
+                  user: user._id,
+                  person: [],
+                  organisation: organisation._id,
+                  categories: [],
+                  documents: [],
+                  comments: [],
+                  history: [],
+                  name: "",
+                  description: "",
+                  urgent: false,
+                  group: false,
+                  createdAt: new Date(),
+                },
+              });
             }}
             color="primary"
             title="Créer une action"
