@@ -16,6 +16,7 @@ const { capture } = require("../sentry");
 const { ExtractJwt } = require("passport-jwt");
 const { serializeUserWithTeamsAndOrganisation, serializeTeam } = require("../utils/data-serializer");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
+const dayjs = require("dayjs");
 
 const EMAIL_OR_PASSWORD_INVALID = "EMAIL_OR_PASSWORD_INVALID";
 const PASSWORD_NOT_VALIDATED = "PASSWORD_NOT_VALIDATED";
@@ -178,6 +179,7 @@ router.post(
       z.object({
         password: z.string(),
         email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
+        otp: z.optional(z.string().length(6)),
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in signin: ${e}`);
@@ -185,12 +187,13 @@ router.post(
       return next(error);
     }
     const now = new Date();
-    let { password, email } = req.body;
+    let { password, email, otp } = req.body;
     if (!password || !email) return res.status(400).send({ ok: false, error: "Missing password" });
     email = (email || "").trim().toLowerCase();
 
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(403).send({ ok: false, error: "E-mail ou mot de passe incorrect", code: EMAIL_OR_PASSWORD_INVALID });
+
     if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
@@ -226,6 +229,26 @@ router.post(
       user.nextLoginAttemptAt = date;
       await user.save();
       return res.status(403).send({ ok: false, error: "E-mail ou mot de passe incorrect", code: EMAIL_OR_PASSWORD_INVALID });
+    }
+
+    if (["superadmin"].includes(user.role) && process.env.NODE_ENV !== "test") {
+      if (otp?.length) {
+        const { otp: expectedOtp } = await User.scope("withPassword").findOne({ where: { email }, attributes: ["otp"] });
+        const auth = otp === expectedOtp;
+        if (!auth) return res.status(403).send({ ok: false, error: "Code incorrect", code: "Code incorrect" });
+        user.otp = "";
+        user.lastOtpAt = new Date();
+        await user.save();
+      } else if (!user.lastOtpAt || dayjs(user.lastOtpAt).isBefore(dayjs().subtract(1, "month"))) {
+        // 6 chars OTP to uppercase
+        const otp = crypto.randomBytes(3).toString("hex").toUpperCase();
+        user.otp = otp;
+        const subject = `Code de connexion pour Mano: ${otp}`;
+        const body = `Veuillez rentrer ce code unique dans Mano: ${otp}`;
+        await mailservice.sendEmail(user.email, subject, body);
+        await user.save();
+        return res.status(200).send({ ok: true, askForOtp: true });
+      }
     }
 
     user.lastLoginAt = new Date();
@@ -277,6 +300,12 @@ router.get(
     const token = platform === "dashboard" ? req.cookies.jwt : platform === "android" ? ExtractJwt.fromAuthHeaderWithScheme("JWT")(req) : null;
     if (!token) return res.status(400).send({ ok: false });
     const user = await User.findOne({ where: { _id: req.user._id } });
+
+    if (["superadmin"].includes(user.role)) {
+      if (!user.lastOtpAt || dayjs(user.lastOtpAt).isBefore(dayjs().subtract(1, "month"))) {
+        return res.status(401).send({ ok: false });
+      }
+    }
 
     if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });

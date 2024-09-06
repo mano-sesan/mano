@@ -23,6 +23,8 @@ module.exports = (sequelize, DataTypes) => {
     loginAttempts: { type: DataTypes.INTEGER, defaultValue: 0 },
     nextLoginAttemptAt: DataTypes.DATE,
     decryptAttempts: { type: DataTypes.INTEGER, defaultValue: 0 },
+    otp: DataTypes.TEXT,
+    lastOtpAt: DataTypes.DATE,
     // we don't have `nextDecryptAttemptAt` because
     // 1. the flow is different than signin (the encryption key is checked in the frontend) and
     // 2. we create a userLog at every decrypt attempt (failure or success) so we can track the number of attempts
@@ -42,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
     modelName: "User",
     freezeTableName: true,
     defaultScope: {
-      attributes: { exclude: ["password", "forgotPasswordResetToken", "forgotPasswordResetExpires", "debugApp", "debugDashboard"] },
+      attributes: { exclude: ["password", "forgotPasswordResetToken", "forgotPasswordResetExpires", "debugApp", "debugDashboard", "otp"] },
     },
     scopes: {
       withPassword: {

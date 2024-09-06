@@ -39,6 +39,7 @@ const SignIn = () => {
   const [userName, setUserName] = useState(false);
   const [showSelectTeam, setShowSelectTeam] = useState(false);
   const [showEncryption, setShowEncryption] = useState(false);
+  const [showOtp, setShowOtp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authViaCookie, setAuthViaCookie] = useState(false);
@@ -50,7 +51,7 @@ const SignIn = () => {
   const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
 
   const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
-  const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "" });
+  const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "", otp: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isDesktop = useMinimumWidth("sm");
 
@@ -134,9 +135,10 @@ const SignIn = () => {
     const emailError = !authViaCookie && !validator.isEmail(signinForm.email) ? "Adresse email invalide" : "";
     const passwordError = !authViaCookie && validator.isEmpty(signinForm.password) ? "Ce champ est obligatoire" : "";
     const orgEncryptionKeyError = !!showEncryption && validator.isEmpty(signinForm.orgEncryptionKey) ? "Ce champ est obligatoire" : "";
-    if (emailError || passwordError || orgEncryptionKeyError) {
+    const otpKeyError = !!showOtp && validator.isEmpty(signinForm.otp) ? "Ce champ est obligatoire" : "";
+    if (emailError || passwordError || orgEncryptionKeyError || otpKeyError) {
       setShowErrors(true);
-      setSigninFormErrors({ email: emailError, password: passwordError, orgEncryptionKey: orgEncryptionKeyError });
+      setSigninFormErrors({ email: emailError, password: passwordError, orgEncryptionKey: orgEncryptionKeyError, otp: otpKeyError });
       return;
     }
     setShowErrors(false);
@@ -144,6 +146,7 @@ const SignIn = () => {
     const body = {
       email: signinForm.email,
       password: signinForm.password,
+      otp: signinForm.otp?.trim()?.toUpperCase(),
     };
     const browser = detect();
     if (browser) {
@@ -172,8 +175,12 @@ const SignIn = () => {
       response = signinResponse;
     }
     window.localStorage.removeItem("automaticReload"); //  to enable automatiq reload when outdated version is used
-    const { user, token, ok } = response;
+    const { user, token, ok, askForOtp } = response;
     if (!ok) return setIsSubmitting(false);
+    if (askForOtp) {
+      setShowOtp(true);
+      return setIsSubmitting(false);
+    }
     const { organisation } = user;
     const storedOrganisationId = window.localStorage.getItem("mano-organisationId");
     addToDebugMixedOrgsBug({
@@ -335,6 +342,25 @@ const SignIn = () => {
             <div className="-tw-mt-5 tw-mb-5 tw-text-right tw-text-sm">
               <Link to="/auth/forgot">Première connexion ou mot de passe oublié&nbsp;?</Link>
             </div>
+            {showOtp && (
+              <div className="tw-mb-6">
+                <div className="tw-flex tw-flex-col-reverse ">
+                  <input
+                    name="otp"
+                    type="text"
+                    id="otp"
+                    className="tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-p-2.5 tw-text-black tw-outline-main tw-transition-all tw-uppercase"
+                    autoComplete="one-time-code"
+                    placeholder="000000"
+                    maxLength={6}
+                    value={signinForm.otp}
+                    onChange={handleChangeRequest}
+                  />
+                  <label htmlFor="email">Code reçu par email </label>
+                </div>
+                {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.otp}</p>}
+              </div>
+            )}
           </>
         )}
         {!!showEncryption && (
