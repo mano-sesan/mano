@@ -10,6 +10,7 @@ interface DatePickerProps {
   required?: boolean;
   onInvalid?: (e: FormEvent<HTMLInputElement>) => void;
   disabled?: boolean;
+  minDate?: string;
 }
 
 export default function DatePicker({
@@ -21,6 +22,7 @@ export default function DatePicker({
   required = false,
   onInvalid = () => null,
   disabled = false,
+  minDate = LEFT_BOUNDARY_DATE,
 }: DatePickerProps): JSX.Element {
   return (
     <input
@@ -36,7 +38,7 @@ export default function DatePicker({
       }}
       required={required}
       onInvalid={onInvalid}
-      min={dateForInputDate(LEFT_BOUNDARY_DATE, withTime)}
+      min={dateForInputDate(minDate, withTime)}
       max={dateForInputDate(RIGHT_BOUNDARY_DATE, withTime)}
     />
   );

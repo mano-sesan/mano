@@ -42,6 +42,7 @@ import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
 import { getHashedOrgEncryptionKey } from "./services/encryption";
 import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./recoil/version";
+import Sandbox from "./scenes/sandbox";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -159,6 +160,7 @@ const App = () => {
         <ScrollToTop />
         <Switch>
           <SentryRoute path="/auth" component={Auth} />
+          <SentryRoute path="/bac-a-sable" component={Sandbox} />
           <RestrictedRoute path="/charte" component={Charte} />
           <RestrictedRoute path="/account" component={Account} />
           <RestrictedRoute path="/user" component={User} />
