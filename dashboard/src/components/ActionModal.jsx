@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
 import DatePicker from "./DatePicker";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
-import { useLocation, useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, encryptAction } from "../recoil/actions";
@@ -28,10 +28,10 @@ import AutoResizeTextarea from "./AutoresizeTextArea";
 import { groupsState } from "../recoil/groups";
 import { encryptComment } from "../recoil/comments";
 import { modalActionState } from "../recoil/modal";
+import { decryptItem } from "../services/encryption";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
   const location = useLocation();
   const open = modalAction.open && location.pathname === modalAction.from;
 
@@ -61,6 +61,7 @@ export default function ActionModal() {
 }
 
 function ActionContent({ onClose, isMulti = false }) {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
   const teams = useRecoilValue(teamsState);
   const user = useRecoilValue(userState);
@@ -68,7 +69,6 @@ function ActionContent({ onClose, isMulti = false }) {
   const currentTeam = useRecoilValue(currentTeamState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const groups = useRecoilValue(groupsState);
-  const history = useHistory();
   const { refresh } = useDataLoader();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +85,8 @@ function ActionContent({ onClose, isMulti = false }) {
     [modalAction.action, teams]
   );
 
-  const isNewAction = !action._id;
+  const initialExistingAction = action._id ? actionsObjects[action._id] : undefined;
+  const isNewAction = !initialExistingAction;
 
   const [activeTab, setActiveTab] = useState("Informations");
   const isOnePerson = typeof action?.person === "string" || action?.person?.length === 1;
@@ -114,7 +115,7 @@ function ActionContent({ onClose, isMulti = false }) {
       body.completedAt = null;
     }
 
-    if (!isNewAction && action) {
+    if (!isNewAction && initialExistingAction) {
       const historyEntry = {
         date: new Date(),
         user: user._id,
@@ -122,21 +123,21 @@ function ActionContent({ onClose, isMulti = false }) {
       };
       for (const key in body) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== action[key]) {
+        if (body[key] !== initialExistingAction[key]) {
           // On ignore les changements de `null` à `""` et inversement.
-          if (!body[key] && !action[key]) {
+          if (!body[key] && !initialExistingAction[key]) {
             continue;
           }
-          historyEntry.data[key] = { oldValue: action[key], newValue: body[key] };
+          historyEntry.data[key] = { oldValue: initialExistingAction[key], newValue: body[key] };
         }
       }
-      if (Object.keys(historyEntry.data).length) body.history = [...(action.history || []), historyEntry];
+      if (Object.keys(historyEntry.data).length) body.history = [...(initialExistingAction.history || []), historyEntry];
 
       setIsSubmitting(true);
 
       const [actionError] = await tryFetchExpectOk(async () =>
         API.put({
-          path: `/action/${action._id}`,
+          path: `/action/${initialExistingAction._id}`,
           body: await encryptAction(body),
         })
       );
@@ -146,7 +147,7 @@ function ActionContent({ onClose, isMulti = false }) {
         return false;
       }
 
-      const actionCancelled = action.status !== CANCEL && body.status === CANCEL;
+      const actionCancelled = initialExistingAction.status !== CANCEL && body.status === CANCEL;
       // On affiche le toast de mise à jour uniquement si on a fermé la modale.
       if (closeOnSubmit) toast.success("Mise à jour !");
       if (actionCancelled) {
@@ -202,10 +203,14 @@ function ActionContent({ onClose, isMulti = false }) {
                     }
                   }
                   await refresh();
-                  const searchParams = new URLSearchParams(history.location.search);
-                  searchParams.set("actionId", actionReponse.data._id);
-                  searchParams.set("isEditing", "true");
-                  history.replace(`?${searchParams.toString()}`);
+                  const decryptedAction = await decryptItem(actionReponse.data);
+                  setModalAction({
+                    open: true,
+                    from: "/action",
+                    isForMultiplePerson: false,
+                    isEditing: true,
+                    action: { ...decryptedAction, comments: comments.map((c) => ({ ...c, action: decryptedAction._id })) },
+                  });
                 },
               },
             ],

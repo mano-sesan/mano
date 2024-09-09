@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import React, { useMemo, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useHistory, useLocation } from "react-router-dom";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocalStorage } from "../services/useLocalStorage";
 import { actionsState, CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, userState } from "../recoil/auth";
@@ -17,6 +17,8 @@ import BellIconWithNotifications from "../assets/icons/BellIconWithNotifications
 import { useDataLoader } from "./DataLoader";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import TagTeam from "./TagTeam";
+import { modalActionState } from "../recoil/modal";
+import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 export default function Notification() {
   const [showModal, setShowModal] = useState(false);
@@ -102,6 +104,9 @@ export default function Notification() {
 
 export const NotificationActionList = ({ setShowModal, actions, setSortOrder, setSortBy, sortBy, sortOrder, title, showTeam = false }) => {
   const history = useHistory();
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
+
   const user = useRecoilValue(userState);
   const { refresh } = useDataLoader();
   if (!actions.length) return null;
@@ -117,9 +122,7 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
           dataTestId="name"
           onRowClick={(action) => {
             setShowModal(false);
-            const searchParams = new URLSearchParams(history.location.search);
-            searchParams.set("actionId", action._id);
-            history.push(`?${searchParams.toString()}`);
+            setModalAction({ open: true, from: location.pathname, action: action });
           }}
           columns={[
             {
@@ -221,7 +224,10 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
 };
 
 export const NotificationCommentList = ({ setShowModal, comments, title, showTeam = false }) => {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const history = useHistory();
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const { refresh } = useDataLoader();
@@ -240,9 +246,7 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
           onRowClick={(comment) => {
             setShowModal(false);
             if (comment.type === "action") {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("actionId", comment.action);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
             } else {
               history.push(`/person/${comment.person}`);
             }

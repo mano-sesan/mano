@@ -1,23 +1,37 @@
 import { atom } from "recoil";
 import { ActionInstance } from "../types/action";
 
-export const modalActionState = atom<{
+type ModalActionState = {
   open: boolean;
-  from?: "/reception" | "/action";
+  from?: string;
   isForMultiplePerson?: boolean;
   isEditing?: boolean;
   personsIds?: string[];
   shouldResetOnClose?: boolean;
   action?: Partial<ActionInstance>;
-}>({
+};
+
+const defaultModalActionState = (): ModalActionState => ({
+  open: false,
+  from: "/reception",
+  isEditing: false,
+  isForMultiplePerson: false,
+  personsIds: [],
+  shouldResetOnClose: false,
+  action: null,
+});
+
+export const modalActionState = atom<ModalActionState>({
   key: "modalAction",
-  default: {
-    open: false,
-    from: "/reception",
-    isEditing: false,
-    isForMultiplePerson: false,
-    personsIds: [],
-    shouldResetOnClose: false,
-    action: null,
-  },
+  default: defaultModalActionState(),
+  effects_UNSTABLE: [
+    ({ setSelf, onSet }) => {
+      onSet((newState) => {
+        setSelf({
+          ...defaultModalActionState(),
+          ...newState,
+        });
+      });
+    },
+  ],
 });

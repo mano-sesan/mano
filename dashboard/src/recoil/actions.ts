@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 import { ActionInstance } from "../types/action";
+import { TeamInstance } from "../types/team";
 
 const collectionName = "action";
 export const actionsState = atom<Array<ActionInstance>>({
@@ -205,3 +206,28 @@ export const sortActionsOrConsultations =
     // (sortBy === 'dueAt')
     return defaultSort(a, b);
   };
+
+export const defaultActionForModal = (
+  params: Partial<ActionInstance> & {
+    organisation: string;
+    teams: Array<string>;
+    dueAt: Date;
+    user: string;
+  }
+): ActionInstance => ({
+  _id: null,
+  withTime: false,
+  completedAt: null,
+  status: TODO,
+  person: undefined,
+  categories: [],
+  documents: [],
+  comments: [],
+  history: [],
+  name: "",
+  description: "",
+  urgent: false,
+  group: undefined,
+  createdAt: new Date(),
+  ...params,
+});

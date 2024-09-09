@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -17,6 +17,8 @@ import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
+import { modalActionState } from "../recoil/modal";
+import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 /*
 3 components:
@@ -188,6 +190,8 @@ function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayCo
 }
 
 function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment, color, showAddCommentButton, withClickableLabel }) {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const setModalAction = useSetRecoilState(modalActionState);
   const users = useRecoilValue(usersState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
@@ -334,6 +338,7 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
                               case "action":
                                 searchParams.set("actionId", comment.action);
                                 history.push(`?${searchParams.toString()}`);
+                                setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
                                 break;
                               case "person":
                                 history.push(`/person/${comment.person}`);
@@ -387,7 +392,7 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
   );
 }
 
-function CommentDisplay({ comment, onClose, onEditComment, canToggleUrgentCheck, canToggleGroupCheck, canToggleShareComment, color = "main" }) {
+function CommentDisplay({ comment, onClose, onEditComment, color = "main" }) {
   const user = useRecoilValue(userState);
 
   const isEditable = useMemo(() => {

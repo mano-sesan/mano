@@ -5,7 +5,7 @@ import Search from "../../components/search";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import ActionsWeekly from "../../components/ActionsWeekly";
 import SelectCustom from "../../components/SelectCustom";
-import { mappedIdsToLabels, TODO } from "../../recoil/actions";
+import { defaultActionForModal, mappedIdsToLabels, TODO } from "../../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector } from "../../recoil/selectors";
 import { filterBySearch } from "../search/utils";
@@ -200,26 +200,12 @@ const List = () => {
                 from: "/action",
                 isForMultiplePerson: true,
                 isEditing: true,
-                action: {
-                  _id: null,
+                action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
-                  withTime: false,
-                  completedAt: null,
-                  status: TODO,
                   teams: teams.length === 1 ? [teams[0]._id] : [],
-                  user: user._id,
-                  person: [],
-                  organisation: organisation._id,
-                  categories: [],
-                  documents: [],
-                  comments: [],
-                  history: [],
-                  name: "",
-                  description: "",
-                  urgent: false,
-                  group: false,
-                  createdAt: new Date(),
-                },
+                  userId: user._id,
+                  organisationId: organisation._id,
+                }),
               });
             }}
             color="primary"
@@ -410,10 +396,18 @@ const List = () => {
             isNightSession={allSelectedTeamsAreNightSession}
             actions={dataConsolidated}
             onCreateAction={(date) => {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("dueAt", dayjsInstance(date).toISOString());
-              searchParams.set("newAction", true);
-              history.push(`?${searchParams.toString()}`); // Update the URL with the new search parameters.
+              setModalAction({
+                open: true,
+                from: "/action",
+                isForMultiplePerson: true,
+                isEditing: true,
+                action: defaultActionForModal({
+                  dueAt: dayjsInstance(date).toISOString(),
+                  teams: teams.length === 1 ? [teams[0]._id] : [],
+                  userId: user._id,
+                  organisationId: organisation._id,
+                }),
+              });
             }}
           />
         </div>

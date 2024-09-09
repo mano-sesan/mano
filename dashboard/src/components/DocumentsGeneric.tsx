@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
-import { useHistory } from "react-router-dom";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 import { userState, organisationAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
@@ -16,6 +16,8 @@ import { toast } from "react-toastify";
 import DocumentsOrganizer from "./DocumentsOrganizer";
 import { decryptFile, encryptFile, getHashedOrgEncryptionKey } from "../services/encryption";
 import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
+import { modalActionState } from "../recoil/modal";
+import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 interface DocumentsModuleProps<T> {
   documents: T[];
@@ -725,6 +727,9 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
   canToggleGroupCheck,
   color,
 }: DocumentModalProps<T>) {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
   const initialName = useMemo(() => document.name, [document.name]);
   const [name, setName] = useState(initialName);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -858,9 +863,7 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
           {!!showAssociatedItem && document?.linkedItem?.type === "action" && (
             <button
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("actionId", document.linkedItem._id);
-                history.push(`?${searchParams.toString()}`);
+                setModalAction({ open: true, from: location.pathname, action: actionsObjects[document.linkedItem._id] });
                 onClose();
               }}
               className="button-classic"
