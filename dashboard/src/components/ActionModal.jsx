@@ -44,15 +44,17 @@ export default function ActionModal() {
         if (modalAction.shouldResetOnClose) setModalAction({ open: false });
       }}
     >
-      <ActionContent
-        key={open}
-        isMulti={modalAction.isForMultiplePerson}
-        onClose={() => {
-          // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement,
-          // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
-          setModalAction((modalAction) => ({ ...modalAction, open: false, shouldResetOnClose: true }));
-        }}
-      />
+      {modalAction.action ? (
+        <ActionContent
+          key={open}
+          isMulti={modalAction.isForMultiplePerson}
+          onClose={() => {
+            // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement,
+            // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
+            setModalAction((modalAction) => ({ ...modalAction, open: false, shouldResetOnClose: true }));
+          }}
+        />
+      ) : null}
     </ModalContainer>
   );
 }
@@ -278,13 +280,7 @@ function ActionContent({ onClose, isMulti = false }) {
     refresh();
     return true;
   }
-  const canSave = true; /*useMemo(() => {
-    if (data.status !== initialState.status) return true;
-    if (data.urgent !== initialState.urgent) return true;
-    if (JSON.stringify(data.onlyVisibleBy) !== JSON.stringify(initialState.onlyVisibleBy)) return true;
-    if (JSON.stringify(data.completedAt) !== JSON.stringify(initialState.completedAt)) return true;
-    return false;
-  }, [data, initialState]); */
+  const canSave = true;
 
   const handleChange = (event) => {
     const target = event.currentTarget || event.target;
@@ -401,10 +397,7 @@ function ActionContent({ onClose, isMulti = false }) {
                           <SelectPerson
                             noLabel
                             value={action.person}
-                            onChange={(e) => {
-                              // window.sessionStorage.setItem("persons-for-action-modal", JSON.stringify(e.currentTarget.value));
-                              handleChange(e);
-                            }}
+                            onChange={handleChange}
                             isMulti={isMulti}
                             inputId="create-action-person-select"
                           />
