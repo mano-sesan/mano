@@ -22,14 +22,5 @@ const defaultModalActionState = (): ModalActionState => ({
 export const modalActionState = atom<ModalActionState>({
   key: "modalAction",
   default: defaultModalActionState(),
-  effects_UNSTABLE: [
-    ({ setSelf, onSet }) => {
-      onSet((newState) => {
-        setSelf({
-          ...defaultModalActionState(),
-          ...newState,
-        });
-      });
-    },
-  ],
+  effects: [({ onSet }) => onSet((newValue) => ({ ...defaultModalActionState(), ...newValue }))],
 });
