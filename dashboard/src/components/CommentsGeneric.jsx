@@ -336,8 +336,6 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
                             if (comment.isMedicalCommentShared) return;
                             switch (comment.type) {
                               case "action":
-                                searchParams.set("actionId", comment.action);
-                                history.push(`?${searchParams.toString()}`);
                                 setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
                                 break;
                               case "person":
