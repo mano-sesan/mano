@@ -25,6 +25,7 @@ import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";
 import { capture } from "../../services/sentry";
 import { addToDebugMixedOrgsBug } from "../../utils/debug-mixed-orgs-bug";
+import { modalConfirmState } from "../../components/ModalConfirm";
 
 const SignIn = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -32,6 +33,7 @@ const SignIn = () => {
   const setCurrentTeam = useSetRecoilState(currentTeamState);
   const setTeams = useSetRecoilState(teamsState);
   const setUsers = useSetRecoilState(usersState);
+  const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const [user, setUser] = useRecoilState(userState);
   const history = useHistory();
   const location = useLocation();
@@ -130,6 +132,7 @@ const SignIn = () => {
   }, []);
 
   const handleSubmit = async (e) => {
+    e.persist();
     e.preventDefault();
     const emailError = !authViaCookie && !validator.isEmail(signinForm.email) ? "Adresse email invalide" : "";
     const passwordError = !authViaCookie && validator.isEmpty(signinForm.password) ? "Ce champ est obligatoire" : "";
@@ -254,20 +257,60 @@ const SignIn = () => {
       return;
     }
     if (organisation.lockedBy === user._id) {
-      if (!window.confirm("Il semblerait que vous soyez en train de rechiffrer votre organisation, est-ce toujours le cas ?")) {
-        const [error] = await tryFetchExpectOk(async () =>
-          API.put({
-            path: `/organisation/${organisation._id}`,
-            body: {
-              encrypting: false,
-              lockedForEncryption: false,
-              lockedBy: null,
-            },
-          })
-        );
-        if (error) {
-          toast.error(errorMessage(error));
-        }
+      const canSignin = await new Promise((resolve) => {
+        setModalConfirmState({
+          open: true,
+          options: {
+            title: "Il semblerait que vous soyez en train de rechiffrer votre organisation, est-ce toujours le cas ?",
+            subTitle: (
+              <>
+                <b>Votre organisation est actuellement verrouillée pour rechiffrement.</b>
+                <br />
+                <br />
+                <small className="tw-opacity-70">
+                  Lorsque vous êtes en train de rechiffrer votre organisation, il devient impossible aux autres utilisateurs d'ajouter ou de modifier
+                  des données.
+                  <br /> Il se peut que, pendant un rechiffrement, le rechiffrement a été interrompu (par exemple si vous rechargez votre page de
+                  navigateur), mais l'organisation est toujours verrouillée, et les utilisateurs -&nbsp;vous compris&nbsp;- ne peuvent toujours pas
+                  ajouter ou modifier des données.
+                </small>
+              </>
+            ),
+            buttons: [
+              {
+                text: "Oui, je suis toujours en train de rechiffrer sur une autre page",
+                className: "button-cancel",
+                onClick: () => {
+                  resolve(true);
+                },
+              },
+              {
+                text: "Non, je ne rechiffre plus",
+                className: "button-submit",
+                onClick: async () => {
+                  const [error] = await tryFetchExpectOk(async () =>
+                    API.put({
+                      path: `/organisation/${organisation._id}`,
+                      body: {
+                        encrypting: false,
+                        lockedForEncryption: false,
+                        lockedBy: null,
+                      },
+                    })
+                  );
+                  if (error) {
+                    toast.error(errorMessage(error));
+                  }
+                  resolve(false);
+                },
+              },
+            ],
+          },
+        });
+      });
+      if (!canSignin) {
+        handleSubmit(e);
+        return;
       }
     }
     // basic login
