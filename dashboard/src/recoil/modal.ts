@@ -6,7 +6,6 @@ type ModalActionState = {
   from?: string;
   isForMultiplePerson?: boolean;
   isEditing?: boolean;
-  personsIds?: string[];
   shouldResetOnClose?: boolean;
   action?: Partial<ActionInstance>;
 };
@@ -16,7 +15,6 @@ const defaultModalActionState = (): ModalActionState => ({
   from: "/reception",
   isEditing: false,
   isForMultiplePerson: false,
-  personsIds: [],
   shouldResetOnClose: false,
   action: null,
 });

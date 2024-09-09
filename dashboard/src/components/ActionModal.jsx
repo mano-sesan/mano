@@ -46,11 +46,7 @@ export default function ActionModal() {
     >
       <ActionContent
         key={open}
-        personId={!modalAction.isForMultiplePerson ? modalAction.personsIds?.[0] : undefined}
-        personIds={modalAction.isForMultiplePerson ? modalAction.personsIds : undefined}
         isMulti={modalAction.isForMultiplePerson}
-        completedAt={modalAction.action?.completedAt}
-        dueAt={modalAction.action?.dueAt}
         onClose={() => {
           // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement,
           // On supprime le la liste des personnes suivies pour ne pas la réutiliser.

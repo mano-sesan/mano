@@ -206,11 +206,11 @@ const Reception = () => {
               open: true,
               from: location.pathname,
               isEditing: true,
-              personsIds: selectedPersons.map((p) => p?._id).filter(Boolean),
               isForMultiplePerson: true,
               action: defaultActionForModal({
                 dueAt: dayjsInstance().toISOString(),
                 teams: teams.length === 1 ? [teams[0]._id] : [],
+                person: selectedPersons.map((p) => p?._id).filter(Boolean),
                 user: user._id,
                 organisation: organisation._id,
               }),

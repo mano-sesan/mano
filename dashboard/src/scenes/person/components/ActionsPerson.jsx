@@ -75,10 +75,10 @@ export const Actions = ({ person }) => {
                 open: true,
                 from: location.pathname,
                 isEditing: true,
-                personsIds: [person._id],
                 action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
+                  person: person._id,
                   user: user._id,
                   organisation: organisation._id,
                 }),
@@ -136,10 +136,10 @@ export const Actions = ({ person }) => {
                 open: true,
                 from: location.pathname,
                 isEditing: true,
-                personsIds: [person._id],
                 action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
+                  person: person._id,
                   user: user._id,
                   organisation: organisation._id,
                 }),
