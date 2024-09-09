@@ -79,8 +79,8 @@ export const Actions = ({ person }) => {
                 action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
-                  userId: user._id,
-                  organisationId: organisation._id,
+                  user: user._id,
+                  organisation: organisation._id,
                 }),
               });
             }}
@@ -140,8 +140,8 @@ export const Actions = ({ person }) => {
                 action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
-                  userId: user._id,
-                  organisationId: organisation._id,
+                  user: user._id,
+                  organisation: organisation._id,
                 }),
               });
             }}

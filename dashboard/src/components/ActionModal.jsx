@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { v4 as uuidv4 } from "uuid";
@@ -317,7 +318,11 @@ function ActionContent({ onClose, isMulti = false }) {
           </div>
         }
         onClose={() => {
-          // if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+          if (initialExistingAction) {
+            const { personPopulated, userPopulated, ...initialExistingActionWithoutPopulated } = initialExistingAction;
+            const { personPopulated: actionPersonPopulated, userPopulated: actionUserPopulated, ...actionWithoutPopulated } = action;
+            if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
+          }
           setModalConfirmState({
             open: true,
             options: {

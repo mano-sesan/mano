@@ -79,8 +79,8 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
                       status: DONE,
                       completedAt: dayjsInstance(period.startDate).set("hour", 12),
                       teams: teams.length === 1 ? [teams[0]._id] : [],
-                      userId: user._id,
-                      organisationId: organisation._id,
+                      user: user._id,
+                      organisation: organisation._id,
                     }),
                   });
                 } else {
@@ -182,8 +182,8 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
                     status: DONE,
                     completedAt: dayjsInstance(period.startDate).set("hour", 12),
                     teams: teams.length === 1 ? [teams[0]._id] : [],
-                    userId: user._id,
-                    organisationId: organisation._id,
+                    user: user._id,
+                    organisation: organisation._id,
                   }),
                 });
               } else {

@@ -203,8 +203,8 @@ const List = () => {
                 action: defaultActionForModal({
                   dueAt: dayjsInstance().toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
-                  userId: user._id,
-                  organisationId: organisation._id,
+                  user: user._id,
+                  organisation: organisation._id,
                 }),
               });
             }}
@@ -404,8 +404,8 @@ const List = () => {
                 action: defaultActionForModal({
                   dueAt: dayjsInstance(date).toISOString(),
                   teams: teams.length === 1 ? [teams[0]._id] : [],
-                  userId: user._id,
-                  organisationId: organisation._id,
+                  user: user._id,
+                  organisation: organisation._id,
                 }),
               });
             }}
