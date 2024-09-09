@@ -101,7 +101,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
           searchParams.set("consultationId", actionOrConsultation._id);
           history.push(`?${searchParams.toString()}`);
         } else {
-          setModalAction({ open: true, from: "/action", action: actionOrConsultation });
+          setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
         }
       }}
       rowDisabled={(actionOrConsultation) => disableConsultationRow(actionOrConsultation, user)}

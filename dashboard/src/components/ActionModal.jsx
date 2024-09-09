@@ -60,6 +60,7 @@ export default function ActionModal() {
 }
 
 function ActionContent({ onClose, isMulti = false }) {
+  const location = useLocation();
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
   const teams = useRecoilValue(teamsState);
@@ -205,7 +206,7 @@ function ActionContent({ onClose, isMulti = false }) {
                   const decryptedAction = await decryptItem(actionReponse.data);
                   setModalAction({
                     open: true,
-                    from: "/action",
+                    from: location.pathname,
                     isForMultiplePerson: false,
                     isEditing: true,
                     action: { ...decryptedAction, comments: comments.map((c) => ({ ...c, action: decryptedAction._id })) },
