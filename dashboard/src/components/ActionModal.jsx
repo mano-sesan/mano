@@ -320,7 +320,7 @@ function ActionContent({ onClose, isMulti = false }) {
         onClose={() => {
           if (initialExistingAction) {
             const { personPopulated, userPopulated, ...initialExistingActionWithoutPopulated } = initialExistingAction;
-            const { personPopulated: actionPersonPopulated, userPopulated: actionUserPopulated, ...actionWithoutPopulated } = action;
+            const { style, personPopulated: actionPersonPopulated, userPopulated: actionUserPopulated, ...actionWithoutPopulated } = action;
             if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
           }
           setModalConfirmState({
@@ -542,7 +542,7 @@ function ActionContent({ onClose, isMulti = false }) {
                         id="create-action-urgent"
                         className="tw-mr-2"
                         name="urgent"
-                        checked={action.urgent}
+                        checked={action.urgent || false}
                         onChange={() => {
                           handleChange({ target: { name: "urgent", checked: Boolean(!action.urgent), value: Boolean(!action.urgent) } });
                         }}
