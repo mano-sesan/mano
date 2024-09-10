@@ -273,8 +273,8 @@ router.put(
         structuresGroupedCategories: z.optional(z.array(z.object({ groupTitle: z.string(), categories: z.array(z.string().min(1)) }))),
         territoriesGroupedTypes: z.optional(z.array(z.object({ groupTitle: z.string(), types: z.array(z.string().min(1)) }))),
         defaultPersonsFolders: z.optional(z.array(folderSchema)),
-        defaultMedicalFolders: z.optional(folderSchema),
-        groupedServices: z.optional(z.array(z.object({ groupedServices: z.string(), services: z.array(z.string().min(1)) }))),
+        defaultMedicalFolders: z.optional(z.array(folderSchema)),
+        groupedServices: z.optional(z.array(z.object({ groupTitle: z.string(), services: z.array(z.string().min(1)) }))),
         collaborations: z.optional(z.array(z.string().min(1))),
         groupedCustomFieldsObs: z.optional(z.array(customFieldGroupSchema)),
         fieldsPersonsCustomizableOptions: z.optional(z.array(customFieldSchema)),
@@ -315,7 +315,7 @@ router.put(
           _id: z.string().regex(looseUuidRegex),
         }),
         body: z.object(req.user.role !== "admin" ? { collaborations: z.array(z.string()) } : bodyToParse),
-      });
+      }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in organisation put: ${e}`);
       error.status = 400;
