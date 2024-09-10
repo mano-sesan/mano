@@ -262,8 +262,44 @@ router.get(
 );
 
 router.put(
+  "/:_id/collaborations",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "restricted-access"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        params: z.object({
+          _id: z.string().regex(looseUuidRegex),
+        }),
+        body: z.object({ collaborations: z.array(z.string()) }),
+      }).parse(req);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation put: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+    const { _id } = req.params;
+
+    const canUpdate = req.user.organisation === _id;
+    if (!canUpdate) return res.status(403).send({ ok: false, error: "Forbidden" });
+
+    const organisation = await Organisation.findOne({ where: { _id } });
+    if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    if (req.body.hasOwnProperty("collaborations")) {
+      await organisation.update({ collaborations: req.body.collaborations });
+    }
+    return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
+  })
+);
+
+router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
+  // Todo: supprimer "restricted-access" et "normal" de validateUser
+  // Parce que maintenant pour les mises à jours de collaborations se font par ailleurs
+  // (route: /organisation/:_id/collaborations)
+  // Cependant, il faut attendre quelques mois (pas urgent) que l'app soit mise à jour (décembre 2024)
   validateUser(["admin", "normal", "restricted-access"]),
   catchErrors(async (req, res, next) => {
     try {
