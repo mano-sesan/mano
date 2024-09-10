@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
-import React, { useMemo, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import React, { useState } from "react";
+import { useHistory, useLocation } from "react-router-dom";
+import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocalStorage } from "../services/useLocalStorage";
-import { actionsState, CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
+import { CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, userState } from "../recoil/auth";
 import { commentsState, encryptComment } from "../recoil/comments";
 import { personsState } from "../recoil/persons";
@@ -17,20 +17,17 @@ import BellIconWithNotifications from "../assets/icons/BellIconWithNotifications
 import { useDataLoader } from "./DataLoader";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import TagTeam from "./TagTeam";
+import { modalActionState } from "../recoil/modal";
+import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } from "../recoil/selectors";
 
-export default function Notification() {
-  const [showModal, setShowModal] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsState);
-  const actions = useRecoilValue(actionsState);
-  const comments = useRecoilValue(commentsState);
-
-  const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
-  const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
-
-  const actionsFiltered = useMemo(
-    () =>
-      actions
+const actionsUrgentSelector = selectorFamily({
+  key: "actionsUrgentSelector",
+  get:
+    ({ actionsSortBy, actionsSortOrder }) =>
+    ({ get }) => {
+      const actions = get(arrayOfitemsGroupedByActionSelector);
+      const currentTeam = get(currentTeamState);
+      return actions
         .filter((action) => {
           return (
             (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) &&
@@ -38,13 +35,20 @@ export default function Notification() {
             action.urgent
           );
         })
-        .sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder)),
-    [actions, currentTeam?._id, actionsSortBy, actionsSortOrder]
-  );
+        .sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
+    },
+});
 
-  const commentsFiltered = useMemo(
+const commentsUrgentSelector = selectorFamily({
+  key: "commentsUrgentSelector",
+  get:
     () =>
-      comments
+    ({ get }) => {
+      const actions = get(itemsGroupedByActionSelector);
+      const persons = get(personsState);
+      const comments = get(commentsState);
+      const currentTeam = get(currentTeamState);
+      return comments
         .filter((c) => c.urgent && (Array.isArray(c.teams) ? c.teams.includes(currentTeam?._id) : c.team === currentTeam?._id))
         .map((comment) => {
           const commentPopulated = { ...comment };
@@ -55,7 +59,7 @@ export default function Notification() {
           }
           if (comment.action) {
             const id = comment?.action;
-            const action = actions.find((p) => p._id === id);
+            const action = actions[id];
             commentPopulated.actionPopulated = action;
             commentPopulated.personPopulated = persons.find((p) => p._id === action?.person);
             commentPopulated.type = "action";
@@ -63,11 +67,18 @@ export default function Notification() {
           return commentPopulated;
         })
         .filter((c) => c.actionPopulated || c.personPopulated)
-        .sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt))),
-    [comments, persons, actions, currentTeam?._id]
-  );
+        .sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt)));
+    },
+});
 
-  if (!actionsFiltered.length && !commentsFiltered.length) return null;
+export default function Notification() {
+  const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
+  const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
+  const [showModal, setShowModal] = useState(false);
+  const actions = useRecoilValue(actionsUrgentSelector({ actionsSortBy, actionsSortOrder }));
+  const comments = useRecoilValue(commentsUrgentSelector());
+
+  if (!actions.length && !comments.length) return null;
   return (
     <>
       <button
@@ -76,19 +87,19 @@ export default function Notification() {
         className="tw-flex tw-self-center"
         onClick={() => setShowModal(true)}
       >
-        <BellIconWithNotifications size={24} notificationsNumber={actionsFiltered.length + commentsFiltered.length} />
+        <BellIconWithNotifications size={24} notificationsNumber={actions.length + comments.length} />
       </button>
       <ModalContainer open={showModal} onClose={() => setShowModal(false)} size="full">
         <ModalBody className="relative tw-mb-6">
           <NotificationActionList
             setShowModal={setShowModal}
-            actions={actionsFiltered}
+            actions={actions}
             setSortOrder={setActionsSortOrder}
             setSortBy={setActionsSortBy}
             sortBy={actionsSortBy}
             sortOrder={actionsSortOrder}
           />
-          <NotificationCommentList setShowModal={setShowModal} comments={commentsFiltered} />
+          <NotificationCommentList setShowModal={setShowModal} comments={comments} />
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setShowModal(false)}>
@@ -102,6 +113,9 @@ export default function Notification() {
 
 export const NotificationActionList = ({ setShowModal, actions, setSortOrder, setSortBy, sortBy, sortOrder, title, showTeam = false }) => {
   const history = useHistory();
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
+
   const user = useRecoilValue(userState);
   const { refresh } = useDataLoader();
   if (!actions.length) return null;
@@ -117,9 +131,7 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
           dataTestId="name"
           onRowClick={(action) => {
             setShowModal(false);
-            const searchParams = new URLSearchParams(history.location.search);
-            searchParams.set("actionId", action._id);
-            history.push(`?${searchParams.toString()}`);
+            setModalAction({ open: true, from: location.pathname, action: action });
           }}
           columns={[
             {
@@ -221,7 +233,10 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
 };
 
 export const NotificationCommentList = ({ setShowModal, comments, title, showTeam = false }) => {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const history = useHistory();
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const { refresh } = useDataLoader();
@@ -240,9 +255,7 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
           onRowClick={(comment) => {
             setShowModal(false);
             if (comment.type === "action") {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("actionId", comment.action);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
             } else {
               history.push(`/person/${comment.person}`);
             }

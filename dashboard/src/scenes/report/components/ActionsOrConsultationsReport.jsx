@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CANCEL, DONE, TODO, mappedIdsToLabels } from "../../../recoil/actions";
+import { CANCEL, DONE, TODO, defaultActionForModal, mappedIdsToLabels } from "../../../recoil/actions";
 import { useHistory } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
@@ -7,14 +7,18 @@ import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { useRecoilValue } from "recoil";
-import { userState } from "../../../recoil/auth";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { dayjsInstance } from "../../../services/date";
+import { modalActionState } from "../../../recoil/modal";
 
 export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCreated, consultationsCreated, period }) => {
   const [activeTab, setActiveTab] = useLocalStorage("reports-actions-consultation-toggle", "Actions");
   const [fullScreen, setFullScreen] = useState(false);
   const [filterStatus, setFilterStatus] = useState([TODO, DONE, CANCEL]);
+  const setModalAction = useSetRecoilState(modalActionState);
+  const teams = useRecoilValue(teamsState);
+  const organisation = useRecoilValue(organisationState);
 
   const hasCreatedAtFilter = filterStatus.includes("CREATED");
   const filteredActions = actions.filter((item) => !filterStatus.length || filterStatus.includes(item.status));
@@ -64,11 +68,28 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
                 activeTab.includes("Actions") ? "tw-bg-main" : "tw-bg-blue-900",
               ].join(" ")}
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set(activeTab.includes("Actions") ? "newAction" : "newConsultation", true);
-                searchParams.set("dueAt", period.startDate);
-                searchParams.set("completedAt", dayjsInstance(period.startDate).set("hour", 12));
-                history.push(`?${searchParams.toString()}`);
+                if (activeTab.includes("Actions")) {
+                  setModalAction({
+                    open: true,
+                    from: location.pathname,
+                    isEditing: true,
+                    isForMultiplePerson: true,
+                    action: defaultActionForModal({
+                      dueAt: period.startDate,
+                      status: DONE,
+                      completedAt: dayjsInstance(period.startDate).set("hour", 12),
+                      teams: teams.length === 1 ? [teams[0]._id] : [],
+                      user: user._id,
+                      organisation: organisation._id,
+                    }),
+                  });
+                } else {
+                  const searchParams = new URLSearchParams(history.location.search);
+                  searchParams.set("newConsultation", true);
+                  searchParams.set("dueAt", period.startDate);
+                  searchParams.set("completedAt", dayjsInstance(period.startDate).set("hour", 12));
+                  history.push(`?${searchParams.toString()}`);
+                }
               }}
             >
               ＋
@@ -150,9 +171,26 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
             type="button"
             className="button-submit"
             onClick={() => {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set(activeTab.includes("Actions") ? "newAction" : "newConsultation", true);
-              history.push(`?${searchParams.toString()}`);
+              if (activeTab.includes("Actions")) {
+                setModalAction({
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  isForMultiplePerson: true,
+                  action: defaultActionForModal({
+                    dueAt: period.startDate,
+                    status: DONE,
+                    completedAt: dayjsInstance(period.startDate).set("hour", 12),
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
+              } else {
+                const searchParams = new URLSearchParams(history.location.search);
+                searchParams.set("newConsultation", true);
+                history.push(`?${searchParams.toString()}`);
+              }
             }}
           >
             {activeTab.includes("Actions") ? "＋ Ajouter une action" : "＋ Ajouter une consultation"}

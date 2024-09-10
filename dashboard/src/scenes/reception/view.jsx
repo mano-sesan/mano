@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
+import { dayjsInstance, formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
 import { currentTeamReportsSelector } from "../../recoil/selectors";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
-import { actionsState, TODO } from "../../recoil/actions";
-import { currentTeamState, userState, organisationState } from "../../recoil/auth";
+import { actionsState, defaultActionForModal, TODO } from "../../recoil/actions";
+import { currentTeamState, userState, organisationState, teamsState } from "../../recoil/auth";
 import { personsState } from "../../recoil/persons";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
 import { passagesState, encryptPassage } from "../../recoil/passages";
@@ -24,6 +24,7 @@ import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../components/DataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
+import { modalActionState } from "../../recoil/modal";
 
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
@@ -104,6 +105,8 @@ const Reception = () => {
   const consultationsByStatus = useRecoilValue(consultationsByStatusSelector({ status }));
   const [services, setServices] = useState(null);
   const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
+  const setModalAction = useSetRecoilState(modalActionState);
+  const teams = useRecoilValue(teamsState);
 
   const dataConsolidated = useMemo(
     () => [...actionsByStatus, ...consultationsByStatus].sort((a, b) => new Date(b.completedAt || b.dueAt) - new Date(a.completedAt || a.dueAt)),
@@ -199,16 +202,19 @@ const Reception = () => {
         <ButtonCustom
           icon={plusIcon}
           onClick={() => {
-            const searchParams = new URLSearchParams(history.location.search);
-            searchParams.set("newAction", true);
-            searchParams.set(
-              "personIds",
-              selectedPersons
-                .map((p) => p?._id)
-                .filter(Boolean)
-                .join(",")
-            );
-            history.push(`?${searchParams.toString()}`);
+            setModalAction({
+              open: true,
+              from: location.pathname,
+              isEditing: true,
+              isForMultiplePerson: true,
+              action: defaultActionForModal({
+                dueAt: dayjsInstance().toISOString(),
+                teams: teams.length === 1 ? [teams[0]._id] : [],
+                person: selectedPersons.map((p) => p?._id).filter(Boolean),
+                user: user._id,
+                organisation: organisation._id,
+              }),
+            });
           }}
           color="primary"
           type="button"

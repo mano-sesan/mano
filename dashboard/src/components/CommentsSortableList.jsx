@@ -1,18 +1,23 @@
 import React, { useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import Table from "./table";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import { organisationState } from "../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import PersonName from "./PersonName";
 import { useLocalStorage } from "../services/useLocalStorage";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../recoil/comments";
+import { modalActionState } from "../recoil/modal";
+import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 export default function CommentsSortableList({ data, className = "" }) {
+  const setModalAction = useSetRecoilState(modalActionState);
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const organisation = useRecoilValue(organisationState);
+  const location = useLocation();
   const history = useHistory();
   const [sortOrder, setSortOrder] = useLocalStorage("comments-reports-sortOrder", "ASC");
   const [sortBy, setSortBy] = useLocalStorage("comments-reports-sortBy", "ASC");
@@ -59,8 +64,7 @@ export default function CommentsSortableList({ data, className = "" }) {
         const searchParams = new URLSearchParams(history.location.search);
         switch (comment.type) {
           case "action":
-            searchParams.set("actionId", comment.action);
-            history.push(`?${searchParams.toString()}`);
+            setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
             break;
           case "person":
             history.push(`/person/${comment.person}`);

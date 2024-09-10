@@ -62,8 +62,6 @@ test("Create action with comments", async ({ page }) => {
   await page.getByText(person1Name).last().click();
   await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*/);
   await page.getByText("action avec commentaire").click();
-  // example: http://localhost:8090/person/93ebb9bb-428d-4b0c-a7ce-1318cbcd22f3?tab=R%C3%A9sum%C3%A9&actionId=a459a925-33a3-44bd-afeb-5b3f5a92a7a0
-  await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*\?tab=R%C3%A9sum%C3%A9&actionId=.*/);
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page
     .getByRole("dialog", { name: "Action: action avec commentaire (créée par User Admin Test - 7)" })
@@ -93,7 +91,6 @@ test("Create action with comments", async ({ page }) => {
   await page.getByText(person2Name).first().click();
   await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*/);
   await page.getByText(actionFor2PersonName).click();
-  await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*\?tab=R%C3%A9sum%C3%A9&actionId=.*/);
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page
     .getByRole("dialog", { name: `Action: ${actionFor2PersonName} (créée par User Admin Test - 7)` })
@@ -107,7 +104,6 @@ test("Create action with comments", async ({ page }) => {
   await page.locator(`data-test-id=${actionFor2PersonName}`).getByText(person1Name).click();
   await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*/);
   await page.getByText(actionFor2PersonName).click();
-  await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*\?tab=R%C3%A9sum%C3%A9&actionId=.*/);
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page
     .getByRole("dialog", { name: `Action: ${actionFor2PersonName} (créée par User Admin Test - 7)` })
@@ -157,7 +153,6 @@ test("Create action with comments", async ({ page }) => {
     .getByText("Une personne avec un commentaire prioritaire modifié")
     .click();
   await expect(page.getByRole("dialog", { name: "Commentaires urgents et vigilance" })).not.toBeVisible();
-  await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*\?actionId=.*/);
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page.getByRole("heading", { name: "action avec commentaire (créée par User Admin Test - 7)" }).click();
   await expect(

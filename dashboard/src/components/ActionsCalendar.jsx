@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { addOneDay, dayjsInstance, formatCalendarDate, formatDateTimeWithNameOfDay, formatTime, subtractOneDay } from "../services/date";
 import Table from "./table";
 import ActionOrConsultationName from "./ActionOrConsultationName";
@@ -15,8 +15,10 @@ import { useLocalStorage } from "../services/useLocalStorage";
 import TabsNav from "./tailwind/TabsNav";
 import DescriptionIcon from "./DescriptionIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
+import { modalActionState } from "../recoil/modal";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
+  const setModalAction = useSetRecoilState(modalActionState);
   const history = useHistory();
   const location = useLocation();
   const user = useRecoilValue(userState);
@@ -99,8 +101,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
           searchParams.set("consultationId", actionOrConsultation._id);
           history.push(`?${searchParams.toString()}`);
         } else {
-          searchParams.set("actionId", actionOrConsultation._id);
-          history.push(`?${searchParams.toString()}`);
+          setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
         }
       }}
       rowDisabled={(actionOrConsultation) => disableConsultationRow(actionOrConsultation, user)}

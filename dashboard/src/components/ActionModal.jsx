@@ -1,9 +1,10 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo } from "react";
+import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
-import { useLocation, useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, encryptAction } from "../recoil/actions";
@@ -27,128 +28,78 @@ import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { groupsState } from "../recoil/groups";
 import { encryptComment } from "../recoil/comments";
+import { modalActionState } from "../recoil/modal";
+import { decryptItem } from "../services/encryption";
 
 export default function ActionModal() {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const history = useHistory();
+  const [modalAction, setModalAction] = useRecoilState(modalActionState);
+  const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const currentActionId = searchParams.get("actionId");
-  const newAction = searchParams.get("newAction");
-  const currentAction = useMemo(() => {
-    if (!currentActionId) return null;
-    return actionsObjects[currentActionId];
-  }, [currentActionId, actionsObjects]);
-  const personId = searchParams.get("personId");
-  const personIds = searchParams.get("personIds")?.split(",").filter(Boolean);
-  const dueAt = searchParams.get("dueAt");
-  const completedAt = searchParams.get("completedAt");
-
-  const [open, setOpen] = useState(false);
-  const actionIdRef = useRef(currentActionId);
-  const newActionRef = useRef(newAction);
-  useEffect(() => {
-    if (actionIdRef.current !== currentActionId) {
-      actionIdRef.current = currentActionId;
-      setOpen(!!currentActionId);
-    }
-    if (newActionRef.current !== newAction) {
-      newActionRef.current = newAction;
-      setOpen(!!newAction);
-    }
-  }, [newAction, currentActionId]);
-
-  const manualCloseRef = useRef(false);
-  const onAfterLeave = () => {
-    if (manualCloseRef.current) history.goBack();
-    manualCloseRef.current = false;
-  };
+  const open = modalAction.open && location.pathname === modalAction.from;
 
   return (
-    <ModalContainer open={open} size="full" onAfterLeave={onAfterLeave}>
-      <ActionContent
-        key={open}
-        personId={personId}
-        personIds={personIds}
-        isMulti={!currentActionId && !personId}
-        action={currentAction}
-        completedAt={completedAt}
-        dueAt={dueAt}
-        onClose={() => {
-          manualCloseRef.current = true;
-          setOpen(false);
-        }}
-      />
+    <ModalContainer
+      open={open}
+      size="full"
+      onAfterLeave={() => {
+        // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement :
+        // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
+        if (resetAfterLeave) {
+          setResetAfterLeave(false);
+          setModalAction({ open: false });
+        }
+      }}
+    >
+      {modalAction.action ? (
+        <ActionContent
+          key={open}
+          isMulti={modalAction.isForMultiplePerson}
+          onClose={() => {
+            setResetAfterLeave(true);
+            setModalAction((modalAction) => ({ ...modalAction, open: false }));
+          }}
+        />
+      ) : null}
     </ModalContainer>
   );
 }
 
-const newActionInitialState = (organisationId, personId, userId, dueAt, completedAt, teams, isMulti, personIds) => ({
-  _id: null,
-  dueAt: dueAt || (completedAt ? new Date(completedAt) : new Date()),
-  withTime: false,
-  completedAt,
-  status: completedAt ? DONE : TODO,
-  teams: teams.length === 1 ? [teams[0]._id] : [],
-  user: userId,
-  person: isMulti ? personIds : personId,
-  organisation: organisationId,
-  categories: [],
-  documents: [],
-  comments: [],
-  history: [],
-  name: "",
-  description: "",
-  urgent: false,
-  group: false,
-  createdAt: new Date(),
-});
-
-function ActionContent({ onClose, action, personId = null, personIds = null, isMulti = false, completedAt = null, dueAt = null }) {
+function ActionContent({ onClose, isMulti = false }) {
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const [modalAction, setModalAction] = useRecoilState(modalActionState);
   const teams = useRecoilValue(teamsState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const currentTeam = useRecoilValue(currentTeamState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const groups = useRecoilValue(groupsState);
-  const history = useHistory();
   const { refresh } = useDataLoader();
-
-  const newActionInitialStateRef = useRef(
-    newActionInitialState(organisation?._id, personId, user?._id, dueAt, completedAt, teams, isMulti, personIds)
-  );
-  const [isEditing, setIsEditing] = useState(!action || searchParams.get("isEditing") === "true");
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditing = modalAction.isEditing;
 
-  const initialState = useMemo(() => {
-    if (action) {
-      return {
-        documents: [],
-        comments: [],
-        history: [],
-        teams: action.teams ?? teams.length === 1 ? [teams[0]._id] : [],
-        ...action,
-      };
-    }
-    return newActionInitialStateRef.current;
-  }, [action, teams]);
+  const action = useMemo(
+    () => ({
+      documents: [],
+      comments: [],
+      history: [],
+      teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
+      ...modalAction.action,
+    }),
+    [modalAction.action, teams]
+  );
 
-  const [data, setData] = useState(initialState);
-  const isNewAction = !data._id;
-  useEffect(() => {
-    setData(initialState);
-  }, [initialState]);
+  const initialExistingAction = action._id ? actionsObjects[action._id] : undefined;
+  const isNewAction = !initialExistingAction;
 
   const [activeTab, setActiveTab] = useState("Informations");
-  const isOnePerson = typeof data?.person === "string" || data?.person?.length === 1;
-  const onlyPerson = !isOnePerson ? null : typeof data?.person === "string" ? data.person : data.person?.[0];
+  const isOnePerson = typeof action?.person === "string" || action?.person?.length === 1;
+  const onlyPerson = !isOnePerson ? null : typeof action?.person === "string" ? action.person : action.person?.[0];
   const canToggleGroupCheck = !!organisation.groupsEnabled && !!onlyPerson && groups.find((group) => group.persons.includes(onlyPerson));
 
   async function handleSubmit({ newData = {}, closeOnSubmit = false } = {}) {
-    const body = { ...data, ...newData };
+    const body = { ...action, ...newData };
 
     body.name = body.name.trim();
 
@@ -169,7 +120,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       body.completedAt = null;
     }
 
-    if (!isNewAction && action) {
+    if (!isNewAction && initialExistingAction) {
       const historyEntry = {
         date: new Date(),
         user: user._id,
@@ -177,21 +128,21 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
       };
       for (const key in body) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== action[key]) {
+        if (body[key] !== initialExistingAction[key]) {
           // On ignore les changements de `null` à `""` et inversement.
-          if (!body[key] && !action[key]) {
+          if (!body[key] && !initialExistingAction[key]) {
             continue;
           }
-          historyEntry.data[key] = { oldValue: action[key], newValue: body[key] };
+          historyEntry.data[key] = { oldValue: initialExistingAction[key], newValue: body[key] };
         }
       }
-      if (Object.keys(historyEntry.data).length) body.history = [...(action.history || []), historyEntry];
+      if (Object.keys(historyEntry.data).length) body.history = [...(initialExistingAction.history || []), historyEntry];
 
       setIsSubmitting(true);
 
       const [actionError] = await tryFetchExpectOk(async () =>
         API.put({
-          path: `/action/${data._id}`,
+          path: `/action/${initialExistingAction._id}`,
           body: await encryptAction(body),
         })
       );
@@ -201,11 +152,11 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
         return false;
       }
 
-      const actionCancelled = action.status !== CANCEL && body.status === CANCEL;
+      const actionCancelled = initialExistingAction.status !== CANCEL && body.status === CANCEL;
       // On affiche le toast de mise à jour uniquement si on a fermé la modale.
       if (closeOnSubmit) toast.success("Mise à jour !");
       if (actionCancelled) {
-        const { name, person, dueAt, withTime, description, categories, urgent, teams } = data;
+        const { name, person, dueAt, withTime, description, categories, urgent, teams } = action;
         const comments = action.comments.filter((c) => c.action === action._id);
         setModalConfirmState({
           open: true,
@@ -257,10 +208,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                     }
                   }
                   await refresh();
-                  const searchParams = new URLSearchParams(history.location.search);
-                  searchParams.set("actionId", actionReponse.data._id);
-                  searchParams.set("isEditing", "true");
-                  history.replace(`?${searchParams.toString()}`);
+                  const decryptedAction = await decryptItem(actionReponse.data);
+                  setModalAction({
+                    open: true,
+                    from: location.pathname,
+                    isForMultiplePerson: false,
+                    isEditing: true,
+                    action: { ...decryptedAction, comments: comments.map((c) => ({ ...c, action: decryptedAction._id })) },
+                  });
                 },
               },
             ],
@@ -331,23 +286,16 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
     refresh();
     return true;
   }
-  const canSave = useMemo(() => {
-    if (data.status !== initialState.status) return true;
-    if (data.urgent !== initialState.urgent) return true;
-    if (JSON.stringify(data.onlyVisibleBy) !== JSON.stringify(initialState.onlyVisibleBy)) return true;
-    if (JSON.stringify(data.completedAt) !== JSON.stringify(initialState.completedAt)) return true;
-    return false;
-  }, [data, initialState]);
+  const canSave = true;
 
   const handleChange = (event) => {
     const target = event.currentTarget || event.target;
     const { name, value } = target;
-    if (isMulti && name === "person" && Array.isArray(value) && value.length > 1 && data.documents?.length > 0) {
+    if (isMulti && name === "person" && Array.isArray(value) && value.length > 1 && action.documents?.length > 0) {
       toast.error("Vous ne pouvez pas sélectionner plusieurs personnes si des documents sont déjà associés à cette action.");
       return;
     }
-    setData((data) => ({ ...data, [name]: value }));
-    setIsEditing(true);
+    setModalAction((modalAction) => ({ ...modalAction, isEditing: true, action: { ...action, [name]: value } }));
   };
 
   return (
@@ -368,7 +316,11 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
           </div>
         }
         onClose={() => {
-          if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+          if (initialExistingAction) {
+            const { personPopulated, userPopulated, ...initialExistingActionWithoutPopulated } = initialExistingAction;
+            const { style, personPopulated: actionPersonPopulated, userPopulated: actionUserPopulated, ...actionWithoutPopulated } = action;
+            if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
+          }
           setModalConfirmState({
             open: true,
             options: {
@@ -395,8 +347,8 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             className="tw-px-3 tw-py-2"
             tabs={[
               "Informations",
-              `Documents ${data?.documents?.length ? `(${data.documents.length})` : ""}`,
-              `Commentaires ${data?.comments?.length ? `(${data.comments.length})` : ""}`,
+              `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
+              `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
               "Historique",
             ]}
             onClick={(tab) => {
@@ -434,12 +386,12 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                         <textarea
                           name="name"
                           id="name"
-                          value={data.name}
+                          value={action.name}
                           onChange={handleChange}
                           className="tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base tw-transition-all"
                         />
                       ) : (
-                        <CustomFieldDisplay value={data.name} type="textarea" />
+                        <CustomFieldDisplay value={action.name} type="textarea" />
                       )}
                     </div>
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
@@ -448,10 +400,16 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                       </label>
                       {isEditing ? (
                         <div className="tw-w-full">
-                          <SelectPerson noLabel value={data.person} onChange={handleChange} isMulti={isMulti} inputId="create-action-person-select" />
+                          <SelectPerson
+                            noLabel
+                            value={action.person}
+                            onChange={handleChange}
+                            isMulti={isMulti}
+                            inputId="create-action-person-select"
+                          />
                         </div>
                       ) : (
-                        <PersonName item={data} />
+                        <PersonName item={action} />
                       )}
                     </div>
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
@@ -461,14 +419,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                       {isEditing ? (
                         <div className="tw-w-full">
                           <ActionsCategorySelect
-                            values={data.categories}
+                            values={action.categories}
                             id="categories"
                             onChange={(v) => handleChange({ currentTarget: { value: v, name: "categories" } })}
                             withMostUsed
                           />
                         </div>
                       ) : (
-                        <CustomFieldDisplay value={data.categories?.join(", ")} type="text" />
+                        <CustomFieldDisplay value={action.categories?.join(", ")} type="text" />
                       )}
                     </div>
                     {!["restricted-access"].includes(user.role) && (
@@ -478,10 +436,10 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                         </label>
                         {isEditing ? (
                           <div className="tw-block tw-w-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300 tw-text-base tw-transition-all">
-                            <AutoResizeTextarea name="description" id="description" value={data.description} onChange={handleChange} rows={4} />
+                            <AutoResizeTextarea name="description" id="description" value={action.description} onChange={handleChange} rows={4} />
                           </div>
                         ) : (
-                          <CustomFieldDisplay value={data.description} type="textarea" />
+                          <CustomFieldDisplay value={action.description} type="textarea" />
                         )}
                       </div>
                     )}
@@ -495,15 +453,15 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                                 className="tw-mr-2"
                                 id="create-action-for-group"
                                 name="group"
-                                checked={data.group}
+                                checked={action.group}
                                 onChange={() => {
-                                  handleChange({ target: { name: "group", checked: Boolean(!data.group), value: Boolean(!data.group) } });
+                                  handleChange({ target: { name: "group", checked: Boolean(!action.group), value: Boolean(!action.group) } });
                                 }}
                               />
                               Action familiale <br />
                               <small className="text-muted">Cette action sera à effectuer pour toute la famille</small>
                             </>
-                          ) : data.group ? (
+                          ) : action.group ? (
                             <>
                               Action familiale <br />
                               <small className="text-muted">Cette action sera à effectuer pour toute la famille</small>
@@ -525,10 +483,10 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                     {isEditing ? (
                       <>
                         <DatePicker
-                          withTime={data.withTime}
+                          withTime={action.withTime}
                           id="dueAt"
                           name="dueAt"
-                          defaultValue={data.dueAt ?? new Date()}
+                          defaultValue={action.dueAt ?? new Date()}
                           onChange={handleChange}
                           onInvalid={() => setActiveTab("Informations")}
                         />
@@ -538,16 +496,16 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                             id="withTime"
                             name="withTime"
                             className="tw-mr-2"
-                            checked={data.withTime || false}
+                            checked={action.withTime || false}
                             onChange={() => {
-                              handleChange({ target: { name: "withTime", checked: Boolean(!data.withTime), value: Boolean(!data.withTime) } });
+                              handleChange({ target: { name: "withTime", checked: Boolean(!action.withTime), value: Boolean(!action.withTime) } });
                             }}
                           />
                           <label htmlFor="withTime">Montrer l'heure</label>
                         </div>
                       </>
                     ) : (
-                      <CustomFieldDisplay value={data.dueAt} type={data.withTime ? "date-with-time" : "date"} />
+                      <CustomFieldDisplay value={action.dueAt} type={action.withTime ? "date-with-time" : "date"} />
                     )}
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
@@ -558,7 +516,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                       <div className="tw-w-full">
                         <SelectTeamMultiple
                           onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "teams" } })}
-                          value={Array.isArray(data.teams) ? data.teams : [data.team]}
+                          value={Array.isArray(action.teams) ? action.teams : [action.team]}
                           colored
                           inputId="create-action-team-select"
                           classNamePrefix="create-action-team-select"
@@ -566,7 +524,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                       </div>
                     ) : (
                       <div className="tw-flex tw-flex-col">
-                        {(Array.isArray(data.teams) ? data.teams : [data.team]).map((teamId) => (
+                        {(Array.isArray(action.teams) ? action.teams : [action.team]).map((teamId) => (
                           <TagTeam key={teamId} teamId={teamId} />
                         ))}
                       </div>
@@ -579,9 +537,9 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                         id="create-action-urgent"
                         className="tw-mr-2"
                         name="urgent"
-                        checked={data.urgent}
+                        checked={action.urgent || false}
                         onChange={() => {
-                          handleChange({ target: { name: "urgent", checked: Boolean(!data.urgent), value: Boolean(!data.urgent) } });
+                          handleChange({ target: { name: "urgent", checked: Boolean(!action.urgent), value: Boolean(!action.urgent) } });
                         }}
                       />
                       Action prioritaire <br />
@@ -593,7 +551,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                     <div className="tw-w-full">
                       <SelectStatus
                         name="status"
-                        value={data.status || ""}
+                        value={action.status || ""}
                         onChange={handleChange}
                         inputId="update-action-select-status"
                         classNamePrefix="update-action-select-status"
@@ -601,17 +559,17 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                     </div>
                   </div>
                   <div
-                    className={["tw-mb-4 tw-flex tw-flex-1 tw-flex-col", [DONE, CANCEL].includes(data.status) ? "tw-visible" : "tw-invisible"].join(
+                    className={["tw-mb-4 tw-flex tw-flex-1 tw-flex-col", [DONE, CANCEL].includes(action.status) ? "tw-visible" : "tw-invisible"].join(
                       " "
                     )}
                   >
-                    <label htmlFor="completedAt">{data.status === DONE ? "Faite le" : "Annulée le"}</label>
+                    <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
                     <div>
                       <DatePicker
                         withTime
                         id="completedAt"
                         name="completedAt"
-                        defaultValue={data.completedAt ?? new Date()}
+                        defaultValue={action.completedAt ?? new Date()}
                         onChange={handleChange}
                         onInvalid={() => setActiveTab("Informations")}
                       />
@@ -627,26 +585,26 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
               .join(" ")}
           >
             <DocumentsModule
-              personId={Array.isArray(data.person) && data.person.length === 1 ? data.person[0] : data.person}
+              personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
               showAssociatedItem={false}
-              documents={data.documents.map((doc) => ({
+              documents={action.documents.map((doc) => ({
                 ...doc,
                 type: doc.type ?? "document", // or 'folder'
                 linkedItem: { _id: action?._id, type: "action" },
               }))}
               onAddDocuments={async (nextDocuments) => {
                 const newData = {
-                  ...data,
-                  documents: [...data.documents, ...nextDocuments],
+                  ...action,
+                  documents: [...action.documents, ...nextDocuments],
                 };
-                setData(newData);
+                setModalAction({ ...modalAction, action: newData });
                 if (isNewAction) return;
                 const ok = await handleSubmit({ newData });
                 if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
               }}
               onDeleteDocument={async (document) => {
-                const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
-                setData(newData);
+                const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
+                setModalAction({ ...modalAction, action: newData });
                 if (isNewAction) return true;
                 const ok = await handleSubmit({ newData });
                 if (ok) toast.success("Document supprimé");
@@ -654,13 +612,13 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
               }}
               onSubmitDocument={async (document) => {
                 const newData = {
-                  ...data,
-                  documents: data.documents.map((d) => {
+                  ...action,
+                  documents: action.documents.map((d) => {
                     if (d._id === document._id) return document;
                     return d;
                   }),
                 };
-                setData(newData);
+                setModalAction({ ...modalAction, action: newData });
                 if (isNewAction) return;
                 const ok = await handleSubmit({ newData });
                 if (ok) toast.success("Document mis à jour");
@@ -673,7 +631,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
               .join(" ")}
           >
             <CommentsModule
-              comments={data.comments
+              comments={action.comments
                 .map((c) => ({ ...c, type: "action", action }))
                 .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
               color="main"
@@ -681,8 +639,8 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
               typeForNewComment="action"
               actionId={action?._id}
               onDeleteComment={async (comment) => {
-                const newData = { ...data, comments: data.comments.filter((c) => c._id !== comment._id) };
-                setData(newData);
+                const newData = { ...action, comments: action.comments.filter((c) => c._id !== comment._id) };
+                setModalAction({ ...modalAction, action: newData });
                 if (!isNewAction) {
                   const [error] = await tryFetchExpectOk(() => API.delete({ path: `/comment/${comment._id}` }));
                   if (error) {
@@ -700,7 +658,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                     // On a besoin d'un identifiant temporaire pour les nouveaux commentaires dans une nouvelle action
                     // Car on peut ajouter, supprimer, éditer des commentaires qui n'existent pas en base de données.
                     // Cet identifiant sera remplacé par l'identifiant de l'objet créé par le serveur.
-                    setData({ ...data, comments: [{ ...comment, _id: uuidv4() }, ...data.comments] });
+                    setModalAction({ ...modalAction, action: { ...action, comments: [{ ...comment, _id: uuidv4() }, ...action.comments] } });
                     return;
                   } else {
                     const [error, response] = await tryFetchExpectOk(async () => API.post({ path: "/comment", body: await encryptComment(comment) }));
@@ -708,13 +666,14 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
                       toast.error("Erreur lors de l'ajout du commentaire");
                       return;
                     }
-                    const newData = { ...data, comments: [{ ...comment, _id: response.data._id }, ...data.comments] };
-                    setData(newData);
+                    const newData = { ...action, comments: [{ ...comment, _id: response.data._id }, ...action.comments] };
+                    setModalAction({ ...modalAction, action: newData });
                     const ok = await handleSubmit({ newData });
                     if (ok) toast.success("Commentaire ajouté !");
                   }
                 } else {
-                  setData({ ...data, comments: data.comments.map((c) => (c._id === comment._id ? comment : c)) });
+                  const newData = { ...action, comments: action.comments.map((c) => (c._id === comment._id ? comment : c)) };
+                  setModalAction({ ...modalAction, action: newData });
                   if (isNewAction) return;
                   const [error] = await tryFetchExpectOk(async () =>
                     API.put({
@@ -794,7 +753,7 @@ function ActionContent({ onClose, action, personId = null, personIds = null, isM
             type="button"
             onClick={(e) => {
               e.preventDefault();
-              setIsEditing(true);
+              setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
             }}
             className={["button-submit", activeTab === "Informations" ? "tw-visible" : "tw-invisible"].join(" ")}
             disabled={isDeleting}

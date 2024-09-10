@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import Table from "./table";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import ActionOrConsultationName from "./ActionOrConsultationName";
@@ -18,9 +18,11 @@ import useSearchParamState from "../services/useSearchParamState";
 import DescriptionIcon from "./DescriptionIcon";
 import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
+import { modalActionState } from "../recoil/modal";
 
 const ActionsSortableList = ({ data, limit = 0 }) => {
   useTitle("Agenda");
+  const setModalAction = useSetRecoilState(modalActionState);
   const history = useHistory();
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
@@ -64,8 +66,7 @@ const ActionsSortableList = ({ data, limit = 0 }) => {
             searchParams.set("consultationId", actionOrConsultation._id);
             history.push(`?${searchParams.toString()}`);
           } else {
-            searchParams.set("actionId", actionOrConsultation._id);
-            history.push(`?${searchParams.toString()}`);
+            setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
           }
         }}
         rowDisabled={(actionOrConsultation) => disableConsultationRow(actionOrConsultation, user)}

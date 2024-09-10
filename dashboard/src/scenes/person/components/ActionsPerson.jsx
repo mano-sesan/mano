@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useRecoilValue, selectorFamily } from "recoil";
-import { organisationState, userState } from "../../../recoil/auth";
-import { CANCEL, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../../recoil/actions";
-import { useHistory } from "react-router-dom";
+import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
+import { organisationState, teamsState, userState } from "../../../recoil/auth";
+import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../../recoil/actions";
+import { useHistory, useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
 import TagTeam from "../../../components/TagTeam";
 import ActionOrConsultationName from "../../../components/ActionOrConsultationName";
-import { formatDateWithNameOfDay, formatTime } from "../../../services/date";
+import { dayjsInstance, formatDateWithNameOfDay, formatTime } from "../../../services/date";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
@@ -16,6 +16,7 @@ import { itemsGroupedByPersonSelector } from "../../../recoil/selectors";
 import DescriptionIcon from "../../../components/DescriptionIcon";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
+import { modalActionState } from "../../../recoil/modal";
 
 const filteredPersonActionsSelector = selectorFamily({
   key: "filteredPersonActionsSelector",
@@ -50,13 +51,16 @@ const filteredPersonActionsSelector = selectorFamily({
 });
 
 export const Actions = ({ person }) => {
+  const teams = useRecoilValue(teamsState);
+  const user = useRecoilValue(userState);
+  const organisation = useRecoilValue(organisationState);
+  const setModalAction = useSetRecoilState(modalActionState);
   const data = person?.actions || [];
   const [fullScreen, setFullScreen] = useState(false);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterStatus, setFilterStatus] = useState([]);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
   const filteredData = useRecoilValue(filteredPersonActionsSelector({ personId: person._id, filterCategories, filterStatus, filterTeamIds }));
-  const history = useHistory();
 
   return (
     <section title="Actions de la personne suivie" className="tw-relative tw-overflow-x-hidden">
@@ -67,10 +71,18 @@ export const Actions = ({ person }) => {
             aria-label="Ajouter une action"
             className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
             onClick={() => {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("newAction", true);
-              searchParams.set("personId", person._id);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({
+                open: true,
+                from: location.pathname,
+                isEditing: true,
+                action: defaultActionForModal({
+                  dueAt: dayjsInstance().toISOString(),
+                  teams: teams.length === 1 ? [teams[0]._id] : [],
+                  person: person._id,
+                  user: user._id,
+                  organisation: organisation._id,
+                }),
+              });
             }}
           >
             ＋
@@ -120,9 +132,18 @@ export const Actions = ({ person }) => {
             type="button"
             className="button-submit"
             onClick={() => {
-              const searchParams = new URLSearchParams(history.location.search);
-              searchParams.set("newAction", true);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({
+                open: true,
+                from: location.pathname,
+                isEditing: true,
+                action: defaultActionForModal({
+                  dueAt: dayjsInstance().toISOString(),
+                  teams: teams.length === 1 ? [teams[0]._id] : [],
+                  person: person._id,
+                  user: user._id,
+                  organisation: organisation._id,
+                }),
+              });
             }}
           >
             ＋ Ajouter une action
@@ -194,7 +215,8 @@ const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilter
 };
 
 const ActionsTable = ({ filteredData }) => {
-  const history = useHistory();
+  const location = useLocation();
+  const setModalAction = useSetRecoilState(modalActionState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
 
@@ -210,9 +232,7 @@ const ActionsTable = ({ filteredData }) => {
                 <div
                   className={["restricted-access"].includes(user.role) ? "tw-cursor-not-allowed tw-py-2" : "tw-cursor-pointer tw-py-2"}
                   onClick={() => {
-                    const searchParams = new URLSearchParams(history.location.search);
-                    searchParams.set("actionId", action._id);
-                    history.push(`?${searchParams.toString()}`);
+                    setModalAction({ open: true, from: location.pathname, action });
                   }}
                 >
                   <div className="tw-flex">

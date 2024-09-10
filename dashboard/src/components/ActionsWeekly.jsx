@@ -1,6 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import DatePicker from "react-datepicker";
 import { CANCEL, DONE } from "../recoil/actions";
 import { dayjsInstance, formatTime } from "../services/date";
@@ -12,6 +12,7 @@ import TagTeam from "./TagTeam";
 import useSearchParamState from "../services/useSearchParamState";
 import { disableConsultationRow } from "../recoil/consultations";
 import ActionStatusSelect from "./ActionStatusSelect";
+import { modalActionState } from "../recoil/modal";
 
 export default function ActionsWeekly({ actions, isNightSession, onCreateAction }) {
   const [startOfWeek, setStartOfWeek] = useSearchParamState("startOfWeek", dayjsInstance().startOf("week").format("YYYY-MM-DD"));
@@ -118,6 +119,7 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
 }
 
 function ActionsOfDay({ actions }) {
+  const setModalAction = useSetRecoilState(modalActionState);
   const history = useHistory();
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
@@ -146,8 +148,7 @@ function ActionsOfDay({ actions }) {
               searchParams.set("consultationId", action._id);
               history.push(`?${searchParams.toString()}`);
             } else {
-              searchParams.set("actionId", action._id);
-              history.push(`?${searchParams.toString()}`);
+              setModalAction({ open: true, from: "/action", action });
             }
           }}
           className={[
