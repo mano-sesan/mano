@@ -33,6 +33,7 @@ import { decryptItem } from "../services/encryption";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
+  const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
   const open = modalAction.open && location.pathname === modalAction.from;
 
@@ -41,7 +42,12 @@ export default function ActionModal() {
       open={open}
       size="full"
       onAfterLeave={() => {
-        if (modalAction.shouldResetOnClose) setModalAction({ open: false });
+        // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement :
+        // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
+        if (resetAfterLeave) {
+          setResetAfterLeave(false);
+          setModalAction({ open: false });
+        }
       }}
     >
       {modalAction.action ? (
@@ -49,9 +55,8 @@ export default function ActionModal() {
           key={open}
           isMulti={modalAction.isForMultiplePerson}
           onClose={() => {
-            // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement,
-            // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
-            setModalAction((modalAction) => ({ ...modalAction, open: false, shouldResetOnClose: true }));
+            setResetAfterLeave(true);
+            setModalAction((modalAction) => ({ ...modalAction, open: false }));
           }}
         />
       ) : null}
