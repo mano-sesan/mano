@@ -24,6 +24,7 @@ function serializeOrganisation(organisation) {
     passagesEnabled: organisation.passagesEnabled,
     checkboxShowAllOrgaPersons: organisation.checkboxShowAllOrgaPersons,
     lockedForEncryption: organisation.lockedForEncryption,
+    lockedBy: organisation.lockedBy,
     rencontresEnabled: organisation.rencontresEnabled,
     encryptedVerificationKey: organisation.encryptedVerificationKey,
     migrations: organisation.migrations,

@@ -186,13 +186,14 @@ router.post(
           encryptionLastUpdateAt: new Date(),
           encrypting: false,
           lockedForEncryption: false,
+          lockedBy: null,
           encryptedVerificationKey,
         });
         await organisation.save({ transaction: tx });
       });
     } catch (e) {
       capture("error encrypting", e);
-      organisation.set({ encrypting: false, lockedForEncryption: false });
+      organisation.set({ encrypting: false, lockedForEncryption: false, lockedBy: null });
       await organisation.save();
       throw e;
     }

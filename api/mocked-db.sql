@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS mano."Organisation" (
     "passagesEnabled" boolean DEFAULT true,
     "checkboxShowAllOrgaPersons" boolean DEFAULT true,
     "lockedForEncryption" boolean DEFAULT false,
+    "lockedBy" boolean DEFAULT NULL,
     "rencontresEnabled" boolean DEFAULT true
 );
 
