@@ -15,6 +15,7 @@ import ButtonsContainer from './ButtonsContainer';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import DocumentPicker, { isInProgress } from 'react-native-document-picker';
 import FileViewer from 'react-native-file-viewer';
+import SelectLabelled from './Selects/SelectLabelled';
 const RNFS = require('react-native-fs');
 
 // Cette fonction vient du dashboard pour transformer les documents en arbre
@@ -65,6 +66,12 @@ const buildFolderTree = (items, rootFolderName, defaultParent) => {
   return rootForTree;
 };
 
+function flattenTreeForFolderSelect(node, depth = 0, result = []) {
+  result.push({ _id: node._id, name: ' '.repeat(depth * 2) + '📁' + ' ' + node.name });
+  (node.children || []).filter((e) => e.type === 'folder').forEach((child) => flattenTreeForFolderSelect(child, depth + 1, result));
+  return result;
+}
+
 // Cette fonction permet de rendre l'arbre de documents
 const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
   return (
@@ -90,6 +97,7 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 
 // La liste des documents en tant que telle.
 const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDocument, onDelete, defaultParent = 'root' }) => {
+  const [selectedFolder, setSelectedFolder] = useState('root');
   const user = useRecoilValue(userState);
   const [asset, setAsset] = useState(null);
   const [name, setName] = useState('');
@@ -196,6 +204,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
       encryptedEntityKey,
       createdAt: new Date(),
       createdBy: user._id,
+      parentId: selectedFolder,
       downloadPath: `/person/${personDB._id}/document/${file.filename}`,
       file,
     });
@@ -219,6 +228,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
     'Dossier racine',
     defaultParent
   );
+  const folders = flattenTreeForFolderSelect(tree);
 
   return (
     <>
@@ -229,7 +239,21 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
         <SceneContainer>
           <ScreenTitle title="Donner un nom à cette photo" onBack={reset} />
           <ScrollContainer>
-            <InputLabelled label="Nom" onChangeText={setName} value={name} placeholder="Nom" editable />
+            <View>
+              <InputLabelled label="Nom" onChangeText={setName} value={name} placeholder="Nom" editable />
+              {folders.length > 1 ? (
+                <SelectLabelled
+                  label="Dossier"
+                  values={folders.map((e) => e._id)}
+                  mappedIdsToLabels={folders}
+                  value={selectedFolder}
+                  onSelect={(e) => {
+                    setSelectedFolder(e);
+                  }}
+                  editable={true}
+                />
+              ) : null}
+            </View>
             <ButtonsContainer>
               <Button caption="Enregistrer" onPress={sendToDB} disabled={!name.length} loading={loading === 'sending'} />
             </ButtonsContainer>
@@ -247,7 +271,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
   const [name, setName] = useState(document.name);
   const { showActionSheetWithOptions } = useActionSheet();
 
-  const extension = document.name.split('.').reverse()[0];
+  const extension = document.name?.split('.').reverse()[0];
 
   const onMorePress = async () => {
     const options = ['Supprimer', 'Renommer', 'Annuler'];
