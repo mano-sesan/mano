@@ -200,7 +200,24 @@ const SuperAdmin = () => {
               sortOrder,
               sortBy,
               render: (o) => {
-                return <span>Utilisateurs: {o.users || 0}</span>;
+                return (
+                  <>
+                    <div>Utilisateurs: {o.users || 0}</div>
+                    <div className="tw-grid tw-grid-cols-2 tw-text-xs tw-mt-2 tw-text-gray-600">
+                      <div className={!o.usersByRole["admin"] ? "tw-text-gray-400" : ""}>Admin: {o.usersByRole["admin"] || 0}</div>
+                      <div className={!o.usersByRole["restricted-access"] ? "tw-text-gray-400" : ""}>
+                        Restreint: {o.usersByRole["restricted-access"] || 0}
+                      </div>
+                      <div className={!o.usersByRole["normal"] ? "tw-text-gray-400" : ""}>Normal: {o.usersByRole["normal"] || 0}</div>
+                      <div className={!o.usersByRole["stats-only"] ? "tw-text-gray-400" : ""}>Stats: {o.usersByRole["stats-only"] || 0}</div>
+                    </div>
+                    <div className="tw-mt-2 tw-text-xs tw-text-gray-600">
+                      <div className={!o.usersProSante ? "tw-text-gray-400" : ""}>Pro de santé: {o.usersProSante || 0}</div>
+                      <div className={!o.usersNeverConnected ? "tw-text-gray-400" : ""}>Jamais connecté: {o.usersNeverConnected || 0}</div>
+                      <div className={!o.usersConnectedToday ? "tw-text-gray-400" : ""}>Connecté aujourd'hui: {o.usersConnectedToday || 0}</div>
+                    </div>
+                  </>
+                );
               },
             },
             {
