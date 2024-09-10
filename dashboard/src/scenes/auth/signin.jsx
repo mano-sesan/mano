@@ -132,7 +132,6 @@ const SignIn = () => {
   }, []);
 
   const handleSubmit = async (e) => {
-    e.persist();
     e.preventDefault();
     const emailError = !authViaCookie && !validator.isEmail(signinForm.email) ? "Adresse email invalide" : "";
     const passwordError = !authViaCookie && validator.isEmpty(signinForm.password) ? "Ce champ est obligatoire" : "";
