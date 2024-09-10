@@ -314,7 +314,7 @@ router.put(
           _id: z.string().regex(looseUuidRegex),
         }),
         body: z.object(req.user.role !== "admin" ? { collaborations: z.array(z.string()) } : bodyToParse),
-      });
+      }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in organisation put: ${e}`);
       error.status = 400;
