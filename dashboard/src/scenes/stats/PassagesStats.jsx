@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
 import { AgeRangeBar } from "./PersonsStats";
 import Filters from "../../components/Filters";
+import { SelectedPersonsModal } from "./PersonsStats";
 
 const PassagesStats = ({
   passages,
@@ -13,12 +14,31 @@ const PassagesStats = ({
   filterPersons,
   setFilterPersons,
 }) => {
+  const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
+  const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
+  const [genderSlice, setGenderSlice] = useState(null);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsWithPassages.length === 1)
       return `Filtrer par personnes suivies (${personsWithPassages.length} personne concernée par le filtre actuel) :`;
     return `Filtrer par personnes suivies (${personsWithPassages.length} personnes concernées par le filtre actuel) :`;
   }, [filterPersons, personsWithPassages]);
+
+  const filteredPersonsBySlice = useMemo(() => {
+    if (genderSlice) {
+      const withCatSlice = {};
+      for (const person of personsWithPassages) {
+        if (genderSlice === "Non renseigné" && !person.gender) {
+          withCatSlice[person._id] = person;
+        }
+        if (person.gender === genderSlice) {
+          withCatSlice[person._id] = person;
+        }
+      }
+      return Object.values(withCatSlice);
+    }
+    return [];
+  }, [genderSlice, personsWithPassages]);
 
   return (
     <>
@@ -47,6 +67,11 @@ const PassagesStats = ({
           data={getPieData(personsWithPassages, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
+          onItemClick={(id) => {
+            setIsPersonsModalOpened(true);
+            setIsOnlyNewPersons(false);
+            setGenderSlice(id);
+          }}
         />
         <CustomResponsivePie
           title="Nombre de nouvelles personnes passées (passages anonymes exclus)"
@@ -56,9 +81,22 @@ const PassagesStats = ({
             "gender",
             { options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"] }
           )}
+          onItemClick={(id) => {
+            setIsPersonsModalOpened(true);
+            setIsOnlyNewPersons(true);
+            setGenderSlice(id);
+          }}
         />
         <AgeRangeBar persons={personsWithPassages} />
       </div>
+      <SelectedPersonsModal
+        open={isPersonsModalOpened}
+        onClose={() => {
+          setIsPersonsModalOpened(false);
+        }}
+        persons={isOnlyNewPersons ? filteredPersonsBySlice.filter((person) => !personsInPassagesBeforePeriod[person._id]) : filteredPersonsBySlice}
+        title={`Personnes rencontrées`}
+      />
     </>
   );
 };
