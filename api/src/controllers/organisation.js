@@ -227,29 +227,53 @@ router.get(
     const rencontres = (await Rencontre.findAll(countQuery)).map((item) => item.toJSON());
     const consultations = (await Consultation.findAll(countQuery)).map((item) => item.toJSON());
     const observations = (await TerritoryObservation.findAll(countQuery)).map((item) => item.toJSON());
-    const users = (await User.findAll(countQuery)).map((item) => item.toJSON());
+    const usersNeverConnected = (await User.findAll({ where: { lastLoginAt: null }, ...countQuery })).map((item) => item.toJSON());
+    const usersConnectedToday = (
+      await User.findAll({ where: { lastLoginAt: { [Op.gt]: new Date(new Date().setHours(0, 0, 0, 0)) } }, ...countQuery })
+    ).map((item) => item.toJSON());
+    const usersProSante = (await User.findAll({ where: { healthcareProfessional: true }, ...countQuery })).map((item) => item.toJSON());
+    const usersByRole = (
+      await User.findAll({
+        group: ["organisation", "role"],
+        attributes: ["organisation", "role", [fn("COUNT", "TagName"), "countByOrgAndRole"]],
+      })
+    ).map((item) => item.toJSON());
 
     const data = organisations
       .map((org) => org.toJSON())
       .map((org) => {
+        const actionsOrg = actions.find((a) => a.organisation === org._id);
+        const personsOrg = persons.find((p) => p.organisation === org._id);
+        const groupsOrg = groups.find((p) => p.organisation === org._id);
+        const commentsOrg = comments.find((p) => p.organisation === org._id);
+        const passagesOrg = passages.find((p) => p.organisation === org._id);
+        const observationsOrg = observations.find((p) => p.organisation === org._id);
+        const consultationsOrg = consultations.find((p) => p.organisation === org._id);
+        const rencontresOrg = rencontres.find((p) => p.organisation === org._id);
         const counters = {
-          actions: actions.find((a) => a.organisation === org._id) ? Number(actions.find((a) => a.organisation === org._id).countByOrg) : 0,
-          persons: persons.find((p) => p.organisation === org._id) ? Number(persons.find((p) => p.organisation === org._id).countByOrg) : 0,
-          groups: groups.find((p) => p.organisation === org._id) ? Number(groups.find((p) => p.organisation === org._id).countByOrg) : 0,
-          comments: comments.find((r) => r.organisation === org._id) ? Number(comments.find((r) => r.organisation === org._id).countByOrg) : 0,
-          passages: passages.find((r) => r.organisation === org._id) ? Number(passages.find((r) => r.organisation === org._id).countByOrg) : 0,
-          observations: observations.find((r) => r.organisation === org._id)
-            ? Number(observations.find((r) => r.organisation === org._id).countByOrg)
-            : 0,
-          consultations: consultations.find((r) => r.organisation === org._id)
-            ? Number(consultations.find((r) => r.organisation === org._id).countByOrg)
-            : 0,
-          rencontres: rencontres.find((r) => r.organisation === org._id) ? Number(rencontres.find((r) => r.organisation === org._id).countByOrg) : 0,
+          actions: actionsOrg ? Number(actionsOrg.countByOrg) : 0,
+          persons: personsOrg ? Number(personsOrg.countByOrg) : 0,
+          groups: groupsOrg ? Number(groupsOrg.countByOrg) : 0,
+          comments: commentsOrg ? Number(commentsOrg.countByOrg) : 0,
+          passages: passagesOrg ? Number(passagesOrg.countByOrg) : 0,
+          observations: observationsOrg ? Number(observationsOrg.countByOrg) : 0,
+          consultations: consultationsOrg ? Number(consultationsOrg.countByOrg) : 0,
+          rencontres: rencontresOrg ? Number(rencontresOrg.countByOrg) : 0,
         };
+        const usersByOrg = usersByRole.filter((r) => r.organisation === org._id);
+        const usersByOrgAndRole = usersByOrg.reduce((acc, item) => {
+          acc[item.role] = Number(item.countByOrgAndRole || 0);
+          acc["total"] = (acc["total"] || 0) + Number(item.countByOrgAndRole || 0);
+          return acc;
+        }, {});
         return {
           ...org,
           counters,
-          users: users.find((r) => r.organisation === org._id) ? Number(users.find((r) => r.organisation === org._id).countByOrg) : 0,
+          users: usersByOrgAndRole["total"],
+          usersByRole: usersByOrgAndRole,
+          usersNeverConnected: Number(usersNeverConnected.find((u) => u.organisation === org._id)?.countByOrg || 0),
+          usersConnectedToday: Number(usersConnectedToday.find((u) => u.organisation === org._id)?.countByOrg || 0),
+          usersProSante: Number(usersProSante.find((u) => u.organisation === org._id)?.countByOrg || 0),
           countersTotal: Object.keys(counters).reduce((total, key) => total + (counters[key] || 0), 0),
         };
       });
