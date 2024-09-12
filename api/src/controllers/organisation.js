@@ -328,7 +328,7 @@ router.put(
         passagesEnabled: z.optional(z.boolean()),
         checkboxShowAllOrgaPersons: z.optional(z.boolean()),
         lockedForEncryption: z.optional(z.boolean()),
-        lockedBy: z.optional(z.string().regex(looseUuidRegex)),
+        lockedBy: z.optional(z.string().regex(looseUuidRegex)).nullable(),
         services: z.optional(z.array(z.string().min(1))),
       };
       if (req.body.encryptionLastUpdateAt) {
