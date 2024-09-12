@@ -276,7 +276,16 @@ function ActionContent({ onClose, isMulti = false }) {
           }
         }
       }
-      toast.success("Création réussie !");
+      if (Array.isArray(body.person)) {
+        toast.success(
+          <>
+            <div>Création réussie !</div>
+            <div className="tw-text-sm tw-text-gray-500">{body.person.length} actions créées</div>
+          </>
+        );
+      } else {
+        toast.success("Création réussie !");
+      }
     }
     if (closeOnSubmit) {
       onClose();
