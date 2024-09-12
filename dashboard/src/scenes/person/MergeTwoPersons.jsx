@@ -1,36 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
-import { Col, Button, Row, Modal, ModalBody, ModalHeader } from "reactstrap";
-import styled from "styled-components";
-import { Formik } from "formik";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { toast } from "react-toastify";
 import dayjs from "dayjs";
+import { Formik } from "formik";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
+import { Button, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { useRecoilState, useRecoilValue } from "recoil";
+import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
+import CustomFieldInput from "../../components/CustomFieldInput";
+import { useDataLoader } from "../../components/DataLoader";
+import SelectCustom from "../../components/SelectCustom";
+import SelectTeamMultiple from "../../components/SelectTeamMultiple";
+import UserName from "../../components/UserName";
+import Table from "../../components/table";
+import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
+import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
+import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
+import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
 import {
   allowedPersonFieldsInHistorySelector,
   personFieldsIncludingCustomFieldsSelector,
   personsState,
   usePreparePersonForEncryption,
 } from "../../recoil/persons";
-import SelectCustom from "../../components/SelectCustom";
-import CustomFieldInput from "../../components/CustomFieldInput";
-import SelectTeamMultiple from "../../components/SelectTeamMultiple";
-import UserName from "../../components/UserName";
-import Table from "../../components/table";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import API, { tryFetchExpectOk } from "../../services/api";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
-import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
-import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
-import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
 import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
+import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
 import { prepareTreatmentForEncryption, treatmentsState } from "../../recoil/treatments";
-import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
-import { useDataLoader } from "../../components/DataLoader";
+import API, { tryFetchExpectOk } from "../../services/api";
 import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";
-import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
 
 const getRawValue = (field, value) => {
   try {
@@ -247,7 +247,14 @@ const MergeTwoPersons = ({ person }) => {
 
                 const mergedActions = actions
                   .filter((a) => a.person === personToMergeAndDelete._id)
-                  .map((action) => prepareActionForEncryption({ ...action, person: originPerson._id, user: action.user || user._id }));
+                  .map((action) =>
+                    prepareActionForEncryption({
+                      ...action,
+                      person: originPerson._id,
+                      user: action.user || user._id,
+                      teams: action.teams?.length ? action.teams : [currentTeam?._id],
+                    })
+                  );
 
                 const mergedComments = comments
                   .filter((c) => c.person === personToMergeAndDelete._id)
