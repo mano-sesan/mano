@@ -404,9 +404,25 @@ function ActionContent({ onClose, isMulti = false }) {
                       )}
                     </div>
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                      <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="person">
-                        {isMulti ? "Personne(s) suivie(s)" : "Personne suivie"}
-                      </label>
+                      {isMulti ? (
+                        <div className="tw-flex tw-w-full tw-items-end">
+                          <div className="tw-grow">
+                            <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="person">
+                              Personne(s) suivie(s)
+                            </label>
+                          </div>
+                          <div className="tw-text-sm text-muted tw-mb-1.5">
+                            {action.person?.length
+                              ? `${action.person.length} personne${action.person.length > 1 ? "s" : ""} sélectionnée${action.person.length > 1 ? "s" : ""}`
+                              : ""}
+                          </div>
+                        </div>
+                      ) : (
+                        <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="person">
+                          Personne suivie
+                        </label>
+                      )}
+
                       {isEditing ? (
                         <div className="tw-w-full">
                           <SelectPerson
