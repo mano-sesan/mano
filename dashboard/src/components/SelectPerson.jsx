@@ -56,7 +56,7 @@ const SelectPerson = ({
               {!disableAccessToPerson && options.context !== "menu" && (
                 <button
                   type="button"
-                  className="tw-ml-2 tw-font-semibold tw-text-sm tw-text-main"
+                  className="tw-ml-2 tw-font-semibold tw-text-sm tw-text-main tw-z-50"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
