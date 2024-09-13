@@ -3,7 +3,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { dayjsInstance, formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
 import { currentTeamReportsSelector } from "../../recoil/selectors";
-import SelectAndCreatePerson from "./SelectAndCreatePerson";
+import SelectAndCreatePersonForReception from "./SelectAndCreatePersonForReception";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
@@ -191,7 +191,7 @@ const Reception = () => {
 
       <div className="tw-mb-10 tw-mt-8 tw-flex tw-gap-4">
         <div className="tw-grow">
-          <SelectAndCreatePerson
+          <SelectAndCreatePersonForReception
             value={selectedPersons}
             onChange={onSelectPerson}
             inputId="person-select-and-create-reception"

@@ -69,7 +69,7 @@ const filterEasySearch = (search, items = []) => {
   return [...firstItems, ...secondItems];
 };
 
-const SelectAndCreatePerson = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
+const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
   const { refresh } = useDataLoader();
   const [persons] = useRecoilState(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
@@ -349,4 +349,4 @@ const AdditionalInfoRed = ({ label, value }) => {
   );
 };
 
-export default SelectAndCreatePerson;
+export default SelectAndCreatePersonForReception;
