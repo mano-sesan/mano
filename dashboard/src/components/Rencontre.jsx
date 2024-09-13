@@ -13,6 +13,7 @@ import AutoResizeTextarea from "./AutoresizeTextArea";
 import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
 import { encryptRencontre } from "../recoil/rencontres";
+import SelectAndCreatePerson from "./SelectAndCreatePerson";
 
 const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null, disableAccessToPerson = false }) => {
   const user = useRecoilValue(userState);
@@ -141,14 +142,10 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
                   </div>
                   <div className="tw-basis-1/2 tw-px-4 tw-py-2">
                     {showMultiSelect ? (
-                      <SelectPerson
-                        disableAccessToPerson={disableAccessToPerson}
-                        value={values.persons}
-                        onChange={handleChange}
-                        isClearable
-                        isMulti
-                        name="persons"
-                      />
+                      <>
+                        <label htmlFor="person">Personnes(s) suivie(s)</label>
+                        <SelectAndCreatePerson value={values.persons} onChange={handleChange} />
+                      </>
                     ) : (
                       <SelectPerson disableAccessToPerson={disableAccessToPerson} value={values.person} onChange={handleChange} />
                     )}
