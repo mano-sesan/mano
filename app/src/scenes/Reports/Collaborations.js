@@ -52,7 +52,7 @@ const Collaborations = ({ route, navigation }) => {
   const onCreateCollaboration = useCallback(async () => {
     setPosting(true);
     const newCollaborations = [...new Set([...collaborations, collaboration])];
-    const response = await API.put({ path: `/organisation/${organisation._id}`, body: { collaborations: newCollaborations } });
+    const response = await API.put({ path: `/organisation/${organisation._id}/collaborations`, body: { collaborations: newCollaborations } });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);

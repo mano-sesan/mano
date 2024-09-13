@@ -26,7 +26,7 @@ function CollaborationsSettings() {
     async (newGroups) => {
       const [error, response] = await tryFetchExpectOk(async () =>
         API.put({
-          path: `/organisation/${organisation._id}`,
+          path: `/organisation/${organisation._id}/collaborations`,
           body: { collaborations: newGroups[0].items },
         })
       );
@@ -65,7 +65,7 @@ const AddCollaboration = () => {
     setOrganisation({ ...organisation, collaborations: newCollaborations }); // optimistic UI
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
-        path: `/organisation/${organisation._id}`,
+        path: `/organisation/${organisation._id}/collaborations`,
         body: {
           collaborations: newCollaborations,
         },
@@ -153,7 +153,7 @@ const Collaboration = ({ item: collaboration }) => {
 
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
-        path: `/organisation/${organisation._id}`,
+        path: `/organisation/${organisation._id}/collaborations`,
         body: {
           collaborations: newCollaborations,
         },

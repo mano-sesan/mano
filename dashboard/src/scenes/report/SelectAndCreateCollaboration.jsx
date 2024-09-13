@@ -1,4 +1,3 @@
-import React from "react";
 import { toast } from "react-toastify";
 import { useRecoilState } from "recoil";
 import SelectCustom from "../../components/SelectCustom";
@@ -23,7 +22,7 @@ const SelectAndCreateCollaboration = ({ values, onChange, className = "", inputI
     onChangeRequest([...(values || []), collab]);
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
-        path: `/organisation/${organisation._id}`,
+        path: `/organisation/${organisation._id}/collaborations`,
         body: {
           collaborations: [...(organisation.collaborations || []), collab].filter((e) => Boolean(e.trim())),
         },
