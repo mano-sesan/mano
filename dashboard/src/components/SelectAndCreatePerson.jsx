@@ -78,6 +78,7 @@ const SelectAndCreatePerson = ({ value, onChange }) => {
       }}
       defaultOptions={personsToOptions(searchablePersons)}
       name="persons"
+      instanceId="persons"
       isMulti
       isDisabled={isDisabled}
       isSearchable
