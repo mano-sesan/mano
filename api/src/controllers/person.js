@@ -433,29 +433,84 @@ router.delete(
       if (groupIdToDelete) {
         await Group.destroy({ where: { _id: groupIdToDelete, organisation: req.user.organisation }, transaction: tx });
       }
-      for (let _id of actionIdsToDelete) {
-        await Action.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+      if (actionIdsToDelete?.length > 0) {
+        await Action.destroy({
+          where: {
+            _id: { [Op.in]: actionIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of commentIdsToDelete) {
-        await Comment.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (commentIdsToDelete?.length > 0) {
+        await Comment.destroy({
+          where: {
+            _id: { [Op.in]: commentIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of passageIdsToDelete) {
-        await Passage.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (passageIdsToDelete?.length > 0) {
+        await Passage.destroy({
+          where: {
+            _id: { [Op.in]: passageIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of rencontreIdsToDelete) {
-        await Rencontre.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (rencontreIdsToDelete?.length > 0) {
+        await Rencontre.destroy({
+          where: {
+            _id: { [Op.in]: rencontreIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of consultationIdsToDelete) {
-        await Consultation.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (consultationIdsToDelete?.length > 0) {
+        await Consultation.destroy({
+          where: {
+            _id: { [Op.in]: consultationIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of treatmentIdsToDelete) {
-        await Treatment.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (treatmentIdsToDelete?.length > 0) {
+        await Treatment.destroy({
+          where: {
+            _id: { [Op.in]: treatmentIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of medicalFileIdsToDelete) {
-        await MedicalFile.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (medicalFileIdsToDelete?.length > 0) {
+        await MedicalFile.destroy({
+          where: {
+            _id: { [Op.in]: medicalFileIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
-      for (let _id of relsPersonPlaceIdsToDelete) {
-        await RelPersonPlace.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (relsPersonPlaceIdsToDelete?.length > 0) {
+        await RelPersonPlace.destroy({
+          where: {
+            _id: { [Op.in]: relsPersonPlaceIdsToDelete },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
     });
 
