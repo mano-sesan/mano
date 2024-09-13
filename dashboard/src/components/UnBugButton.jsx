@@ -46,6 +46,12 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                     <span className="tw-text-xs tw-text-white tw-bg-red-700 tw-rounded tw-px-1 tw-pb-0.5 tw-ml-2">nouveau</span>
                   </li>
                 </ul>
+                <li>
+                  Un problème pendant le week-end&nbsp;?
+                  <ul className="tw-list-disc">
+                    <li>Appelez Guillaume au 07&nbsp;68&nbsp;55&nbsp;81&nbsp;48</li>
+                  </ul>
+                </li>
               </li>
             </ul>
           </ModalBody>
