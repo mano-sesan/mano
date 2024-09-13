@@ -271,14 +271,15 @@ router.delete(
       error.status = 400;
       return next(error);
     }
-    // FIXME: not compatible with app versions below 3.5.4
-    // try {
-    //   z.array(z.string().regex(looseUuidRegex)).parse(req.body.commentIdsToDelete);
-    // } catch (e) {
-    //   const error = new Error(`Invalid request in action delete comments: ${e}`);
-    //   error.status = 400;
-    //   return next(error);
-    // }
+    try {
+      z.object({
+        commentIdsToDelete: z.optional(z.array(z.string().regex(looseUuidRegex))),
+      }).parse(req.body || {});
+    } catch (e) {
+      const error = new Error(`Invalid request in action delete comments: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
 
     await sequelize.transaction(async (tx) => {
       const action = await Action.findOne({
@@ -288,8 +289,15 @@ router.delete(
         },
       });
       if (action) await action.destroy({ transaction: tx });
-      for (let _id of req.body.commentIdsToDelete || []) {
-        await Comment.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
+
+      if (req.body.commentIdsToDelete?.length) {
+        await Comment.destroy({
+          where: {
+            _id: { [Op.in]: req.body.commentIdsToDelete.filter(Boolean) },
+            organisation: req.user.organisation,
+          },
+          transaction: tx,
+        });
       }
     });
 
