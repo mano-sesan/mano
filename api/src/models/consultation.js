@@ -10,6 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     onlyVisibleBy: [{ type: DataTypes.UUID, references: { model: "User", key: "_id", deferrable: Deferrable.INITIALLY_IMMEDIATE } }],
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
+    deletedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
   };
 
   class Consultation extends Model {

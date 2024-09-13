@@ -9,6 +9,7 @@ module.exports = (sequelize, DataTypes) => {
     debug: { type: DataTypes.JSONB },
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
+    deletedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
   };
 
   class Report extends Model {
