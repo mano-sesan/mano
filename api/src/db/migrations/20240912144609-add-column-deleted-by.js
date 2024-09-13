@@ -3,6 +3,8 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface) {
+    // tmp fix: do nothing
+    return;
     await queryInterface.sequelize.query(`ALTER TABLE "mano"."Action" ADD COLUMN "deletedBy" UUID;`);
     await queryInterface.sequelize.query(
       `ALTER TABLE "mano"."Action" ADD CONSTRAINT "Action_deletedBy_fkey" FOREIGN KEY ("deletedBy") REFERENCES "mano"."User"("_id") ON DELETE SET NULL;`
