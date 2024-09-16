@@ -378,72 +378,86 @@ const Create = ({ onChange, open, setOpen }) => {
             <>
               <ModalBody className="tw-px-4 tw-py-2 tw-pb-20">
                 <React.Fragment>
-                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap">
+                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="orgName">Nom</label>
-                        <input className="tailwindui" autoComplete="off" name="orgName" id="orgName" value={values.orgName} onChange={handleChange} />
-                        {touched.orgName && errors.orgName && <span className="tw-text-xs tw-text-red-500">{errors.orgName}</span>}
-                      </div>
+                      <label htmlFor="orgName">Nom</label>
+                      <input className="tailwindui" autoComplete="off" name="orgName" id="orgName" value={values.orgName} onChange={handleChange} />
+                      {touched.orgName && errors.orgName && <span className="tw-text-xs tw-text-red-500">{errors.orgName}</span>}
                     </div>
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="orgId">
-                          Identifiant interne <small>(non modifiable par les users)</small>
-                        </label>
-                        <input className="tailwindui" autoComplete="off" name="orgId" id="orgId" value={values.orgId} onChange={handleChange} />
-                        {touched.orgId && errors.orgId && <span className="tw-text-xs tw-text-red-500">{errors.orgId}</span>}
-                      </div>
+                      <label htmlFor="orgId">
+                        Identifiant interne <small>(non modifiable par les users)</small>
+                      </label>
+                      <input className="tailwindui" autoComplete="off" name="orgId" id="orgId" value={values.orgId} onChange={handleChange} />
+                      {touched.orgId && errors.orgId && <span className="tw-text-xs tw-text-red-500">{errors.orgId}</span>}
                     </div>
                   </div>
-                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap">
+                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
                     <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="organisation-create-city">Ville</label>
-                        <CitySelect
-                          name="city"
-                          id="organisation-create-city"
-                          value={{ city: values.city, region: values.region }}
-                          onChange={(next) => {
-                            handleChange({ target: { name: "city", value: next.city } });
-                            handleChange({ target: { name: "region", value: next.region } });
-                          }}
-                        />
-                        {touched.city && errors.city && <span className="tw-text-xs tw-text-red-500">{errors.city}</span>}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="tw-flex tw-basis-full tw-flex-col tw-py-2">
-                    <div className="tw-mb-4">
-                      <label htmlFor="organisation-responsible">Responsable / Chargé de déploiement</label>
-                      <SelectCustom
-                        name="responsible"
-                        id="organisation-responsible"
-                        inputId="organisation-responsible"
-                        classNamePrefix="organisation-responsible"
-                        value={options.find((o) => o.value === values.responsible)}
-                        onChange={(nextResponsible) => {
-                          handleChange({ target: { name: "responsible", value: nextResponsible.value } });
+                      <label htmlFor="organisation-create-city">Ville</label>
+                      <CitySelect
+                        name="city"
+                        id="organisation-create-city"
+                        value={{ city: values.city, region: values.region }}
+                        onChange={(next) => {
+                          handleChange({ target: { name: "city", value: next.city } });
+                          handleChange({ target: { name: "region", value: next.region } });
                         }}
-                        options={options}
                       />
-                      {touched.responsible && errors.responsible && <span className="tw-text-xs tw-text-red-500">{errors.responsible}</span>}
+                      {touched.city && errors.city && <span className="tw-text-xs tw-text-red-500">{errors.city}</span>}
                     </div>
                   </div>
-                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap">
+                  <div className="tw-flex tw-basis-full tw-flex-col tw-py-2 tw-mb-2">
+                    <label htmlFor="organisation-responsible">Responsable / Chargé de déploiement</label>
+                    <SelectCustom
+                      name="responsible"
+                      id="organisation-responsible"
+                      inputId="organisation-responsible"
+                      classNamePrefix="organisation-responsible"
+                      value={options.find((o) => o.value === values.responsible)}
+                      onChange={(nextResponsible) => {
+                        handleChange({ target: { name: "responsible", value: nextResponsible.value } });
+                      }}
+                      options={options}
+                    />
+                    {touched.responsible && errors.responsible && <span className="tw-text-xs tw-text-red-500">{errors.responsible}</span>}
+                  </div>
+                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="name">Nom de l’administrateur</label>
-                        <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
-                        {touched.name && errors.name && <span className="tw-text-xs tw-text-red-500">{errors.name}</span>}
-                      </div>
+                      <label htmlFor="name">Nom de l’administrateur</label>
+                      <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                      {touched.name && errors.name && <span className="tw-text-xs tw-text-red-500">{errors.name}</span>}
                     </div>
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <div className="tw-mb-4">
-                        <label htmlFor="email">Email de l’administrateur</label>
-                        <input className="tailwindui" autoComplete="off" name="email" id="email" value={values.email} onChange={handleChange} />
-                        {touched.email && errors.email && <span className="tw-text-xs tw-text-red-500">{errors.email}</span>}
-                      </div>
+                      <label htmlFor="email">Email de l’administrateur</label>
+                      <input className="tailwindui" autoComplete="off" name="email" id="email" value={values.email} onChange={handleChange} />
+                      {touched.email && errors.email && <span className="tw-text-xs tw-text-red-500">{errors.email}</span>}
+                    </div>
+                  </div>
+                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <label htmlFor="emailDirection">Email Direction</label>
+                      <input
+                        className="tailwindui"
+                        autoComplete="off"
+                        name="emailDirection"
+                        id="emailDirection"
+                        value={values.emailDirection}
+                        onChange={handleChange}
+                      />
+                      {touched.emailDirection && errors.emailDirection && <span className="tw-text-xs tw-text-red-500">{errors.emailDirection}</span>}
+                    </div>
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <label htmlFor="emailDpo">Email DPO</label>
+                      <input
+                        className="tailwindui"
+                        autoComplete="off"
+                        name="emailDpo"
+                        id="emailDpo"
+                        value={values.emailDpo}
+                        onChange={handleChange}
+                      />
+                      {touched.emailDpo && errors.emailDpo && <span className="tw-text-xs tw-text-red-500">{errors.emailDpo}</span>}
                     </div>
                   </div>
                 </React.Fragment>
