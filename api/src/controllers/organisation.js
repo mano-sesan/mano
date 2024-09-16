@@ -119,8 +119,8 @@ router.post(
         city: z.string().min(1),
         region: z.optional(z.string().min(1)),
         responsible: z.optional(z.string()),
-        emailDirection: z.string().email(),
-        emailDpo: z.string().email(),
+        emailDirection: z.optional(z.string().email()),
+        emailDpo: z.optional(z.string().email()),
         name: z.string().min(1),
         email: z.string().email(),
       }).parse(req.body);
