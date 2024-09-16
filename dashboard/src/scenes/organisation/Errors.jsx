@@ -40,6 +40,7 @@ async function fetchErrored(organisationId, path) {
     if (!res.hasMore) finished = true;
     const decryptedData = (await Promise.all(res.data.map((p) => getErroredDecryption(p)))).filter((e) => e);
     erroredPersons.push(...decryptedData.map((p) => ({ _id: p._id, type: path, data: p })));
+    page++;
   }
   return erroredPersons;
 }
