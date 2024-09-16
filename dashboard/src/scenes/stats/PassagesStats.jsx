@@ -95,7 +95,7 @@ const PassagesStats = ({
           setIsPersonsModalOpened(false);
         }}
         persons={isOnlyNewPersons ? filteredPersonsBySlice.filter((person) => !personsInPassagesBeforePeriod[person._id]) : filteredPersonsBySlice}
-        title={`Personnes rencontrées`}
+        title={`Passages`}
       />
     </>
   );
