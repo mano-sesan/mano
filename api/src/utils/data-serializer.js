@@ -15,6 +15,8 @@ function serializeOrganisation(organisation) {
     city: organisation.city,
     region: organisation.region,
     responsible: organisation.responsible,
+    emailDpo: organisation.emailDpo,
+    emailDirection: organisation.emailDirection,
     createdAt: organisation.createdAt,
     updatedAt: organisation.updatedAt,
     encryptionEnabled: organisation.encryptionEnabled,

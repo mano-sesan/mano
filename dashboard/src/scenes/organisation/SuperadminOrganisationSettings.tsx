@@ -50,9 +50,9 @@ export default function SuperadminOrganisationSettings({
   return (
     <ModalContainer open={open} onClose={onClose} size="3xl">
       <ModalHeader title={`Organisation ${organisation?.name}`} key={organisation?._id} onClose={onClose} />
-      <ModalBody className="tw-px-4 tw-py-2 tw-pb-20">
+      <ModalBody className="tw-px-4 tw-py-2">
         {data?._id && (
-          <form id="organisation-settings" onSubmit={handleSubmit} className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-pb-40">
+          <form id="organisation-settings" onSubmit={handleSubmit} className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap">
             <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
               <div className="tw-mb-4">
                 <label htmlFor="name">Nom</label>
@@ -106,6 +106,37 @@ export default function SuperadminOrganisationSettings({
                     setData({ ...data, responsible: nextResponsible.value });
                   }}
                   options={options}
+                />
+              </div>
+            </div>
+
+            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+              <div className="tw-mb-4">
+                <label htmlFor="orgId" aria-disabled={true}>
+                  Email Direction
+                </label>
+                <input
+                  className="tailwindui"
+                  autoComplete="off"
+                  name="emailDirection"
+                  id="emailDirection"
+                  defaultValue={data.emailDirection}
+                  onChange={(e) => setData({ ...data, emailDirection: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+              <div className="tw-mb-4">
+                <label htmlFor="orgId" aria-disabled={true}>
+                  Email DPO
+                </label>
+                <input
+                  className="tailwindui"
+                  autoComplete="off"
+                  name="emailDpo"
+                  id="emailDpo"
+                  defaultValue={data.emailDpo}
+                  onChange={(e) => setData({ ...data, emailDpo: e.target.value })}
                 />
               </div>
             </div>

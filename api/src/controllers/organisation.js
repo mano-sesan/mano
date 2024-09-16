@@ -119,6 +119,8 @@ router.post(
         city: z.string().min(1),
         region: z.optional(z.string().min(1)),
         responsible: z.optional(z.string()),
+        emailDirection: z.optional(z.string().email()),
+        emailDpo: z.optional(z.string().email()),
         name: z.string().min(1),
         email: z.string().email(),
       }).parse(req.body);
@@ -127,7 +129,7 @@ router.post(
       error.status = 400;
       return next(error);
     }
-    const { orgName, name, email, orgId, city, responsible } = req.body;
+    const { orgName, name, email, orgId, city, responsible, emailDirection, emailDpo } = req.body;
     const user = await User.findOne({ where: { email } });
     if (user) return res.status(400).send({ ok: false, error: "Cet email existe déjà dans une autre organisation" });
 
@@ -138,6 +140,8 @@ router.post(
         city: city,
         region: req.body.region || null,
         responsible: responsible || null,
+        emailDirection: emailDirection || null,
+        emailDpo: emailDpo || null,
         // We have to add default custom fields on creation
         // (search for "custom-fields-persons-setup" or "custom-fields-persons-refacto-regroup" in code).
         customFieldsPersons: [
@@ -202,6 +206,8 @@ router.get(
         "city",
         "region",
         "responsible",
+        "emailDirection",
+        "emailDpo",
         "groupsEnabled",
         "passagesEnabled",
         "rencontresEnabled",
@@ -458,6 +464,8 @@ router.put(
           orgId: z.string().min(1),
           city: z.optional(z.string().min(1)),
           responsible: z.optional(z.string()),
+          emailDirection: z.optional(z.string().email()),
+          emailDpo: z.optional(z.string().email()),
         }),
       }).parse(req);
     } catch (e) {
@@ -476,6 +484,8 @@ router.put(
     if (req.body.hasOwnProperty("responsible")) updateOrg.responsible = req.body.responsible || null;
     if (req.body.hasOwnProperty("name")) updateOrg.name = req.body.name;
     if (req.body.hasOwnProperty("orgId")) updateOrg.orgId = req.body.orgId;
+    if (req.body.hasOwnProperty("emailDirection")) updateOrg.emailDirection = req.body.emailDirection;
+    if (req.body.hasOwnProperty("emailDpo")) updateOrg.emailDpo = req.body.emailDpo;
 
     await organisation.update(updateOrg);
 
