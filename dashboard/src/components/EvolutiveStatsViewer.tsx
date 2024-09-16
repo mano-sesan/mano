@@ -76,10 +76,14 @@ export default function EvolutiveStatsViewer({
                 <button
                   className="tw-flex tw-flex-col tw-items-center tw-justify-around tw-rounded-lg tw-border tw-p-4"
                   type="button"
-                  onClick={() => {
-                    setPersonsModalOpened(true);
-                    setModalValueEnd(valueEnd);
-                  }}
+                  onClick={
+                    user.role === "stats-only"
+                      ? undefined
+                      : () => {
+                          setPersonsModalOpened(true);
+                          setModalValueEnd(valueEnd);
+                        }
+                  }
                 >
                   <div className="tw-flex tw-items-baseline tw-gap-x-2">
                     <p className="tw-text-6xl tw-font-bold tw-text-main">{countSwitched}</p>
