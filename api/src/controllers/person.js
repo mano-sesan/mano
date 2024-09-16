@@ -419,7 +419,14 @@ router.delete(
       } = req.body;
 
       let person = await Person.findOne({ where: { _id: req.params._id, organisation: req.user.organisation } });
-      if (person) await person.destroy({ transaction: tx });
+      if (person) {
+        await Person.update(
+          { deletedBy: req.user._id },
+          { where: { _id: req.params._id, organisation: req.user.organisation } },
+          { silent: true, transaction: tx }
+        );
+        await person.destroy({ transaction: tx });
+      }
 
       for (let { encrypted, encryptedEntityKey, _id } of actionsToTransfer) {
         await Action.update({ encrypted, encryptedEntityKey }, { where: { _id, organisation: req.user.organisation }, transaction: tx });

@@ -161,7 +161,14 @@ router.post(
       }
 
       let person = await Person.findOne({ where: { _id: personToDeleteId, organisation: req.user.organisation } });
-      if (person) await person.destroy({ transaction: tx });
+      if (person) {
+        await Person.update(
+          { deletedBy: req.user._id },
+          { where: { _id: personToDeleteId, organisation: req.user.organisation } },
+          { silent: true, transaction: tx }
+        );
+        await person.destroy({ transaction: tx });
+      }
 
       if (groupToDeleteId) {
         let group = await Group.findOne({ where: { _id: groupToDeleteId, organisation: req.user.organisation } });

@@ -6,7 +6,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
-import { organisationState } from "../../recoil/auth";
+import { organisationState, usersState } from "../../recoil/auth";
 import TagTeam from "../../components/TagTeam";
 import { useDataLoader } from "../../components/DataLoader";
 import Loading from "../../components/loading";
@@ -37,6 +37,7 @@ export default function Poubelle() {
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
   const [refreshKey, setRefreshKey] = useState(0);
+  const users = useRecoilValue(usersState);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {
@@ -268,6 +269,9 @@ export default function Poubelle() {
                       {formatDateWithFullMonth(p.deletedAt)}
                     </div>
                     <div className="tw-text-gray-500 tw-text-xs">il y a {p.deletedAt ? formatAge(p.deletedAt) : "un certain temps"}</div>
+                    {p.deletedBy ? (
+                      <div className="tw-text-gray-500 tw-text-xs">par {users.find((e) => e._id === p.deletedBy)?.name || p.deletedBy}</div>
+                    ) : null}
                   </>
                 );
               },
