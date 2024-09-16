@@ -6,7 +6,6 @@ module.exports = (sequelize, DataTypes) => {
     organisation: { type: DataTypes.UUID, references: { model: "Organisation", key: "_id", deferrable: Deferrable.INITIALLY_IMMEDIATE } },
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
-    deletedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
   };
 
   class TerritoryObservation extends Model {
