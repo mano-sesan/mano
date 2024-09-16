@@ -376,7 +376,7 @@ const Create = ({ onChange, open, setOpen }) => {
         >
           {({ values, handleChange, handleSubmit, touched, errors }) => (
             <>
-              <ModalBody className="tw-px-4 tw-py-2 tw-pb-20">
+              <ModalBody className="tw-px-4 tw-py-2">
                 <React.Fragment>
                   <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">

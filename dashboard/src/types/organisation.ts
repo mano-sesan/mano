@@ -60,4 +60,6 @@ export interface OrganisationInstance {
   defaultMedicalFolders?: Folder[];
 
   responsible?: string;
+  emailDirection?: string;
+  emailDpo?: string;
 }
