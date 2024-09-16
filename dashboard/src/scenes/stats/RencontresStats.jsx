@@ -4,6 +4,8 @@ import { getPieData } from "./utils";
 import Filters from "../../components/Filters";
 import { Block } from "./Blocks";
 import { SelectedPersonsModal } from "./PersonsStats";
+import { userState } from "../../recoil/auth";
+import { useRecoilValue } from "recoil";
 
 const RencontresStats = ({
   rencontres,
@@ -18,6 +20,7 @@ const RencontresStats = ({
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
+  const user = useRecoilValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsWithRencontres.length === 1)
@@ -65,11 +68,15 @@ const RencontresStats = ({
           data={getPieData(personsWithRencontres, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
-          onItemClick={(id) => {
-            setIsPersonsModalOpened(true);
-            setIsOnlyNewPersons(false);
-            setGenderSlice(id);
-          }}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (id) => {
+                  setIsPersonsModalOpened(true);
+                  setIsOnlyNewPersons(false);
+                  setGenderSlice(id);
+                }
+          }
         />
         <CustomResponsivePie
           title="Nombre de nouvelles personnes rencontrées"
@@ -79,11 +86,15 @@ const RencontresStats = ({
             "gender",
             { options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"] }
           )}
-          onItemClick={(id) => {
-            setIsPersonsModalOpened(true);
-            setIsOnlyNewPersons(true);
-            setGenderSlice(id);
-          }}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (id) => {
+                  setIsPersonsModalOpened(true);
+                  setIsOnlyNewPersons(true);
+                  setGenderSlice(id);
+                }
+          }
         />
       </div>
       <SelectedPersonsModal

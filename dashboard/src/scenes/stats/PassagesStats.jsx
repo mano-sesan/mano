@@ -4,6 +4,8 @@ import { getPieData } from "./utils";
 import { AgeRangeBar } from "./PersonsStats";
 import Filters from "../../components/Filters";
 import { SelectedPersonsModal } from "./PersonsStats";
+import { useRecoilValue } from "recoil";
+import { userState } from "../../recoil/auth";
 
 const PassagesStats = ({
   passages,
@@ -17,6 +19,7 @@ const PassagesStats = ({
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
+  const user = useRecoilValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsWithPassages.length === 1)
@@ -67,11 +70,15 @@ const PassagesStats = ({
           data={getPieData(personsWithPassages, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
-          onItemClick={(id) => {
-            setIsPersonsModalOpened(true);
-            setIsOnlyNewPersons(false);
-            setGenderSlice(id);
-          }}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (id) => {
+                  setIsPersonsModalOpened(true);
+                  setIsOnlyNewPersons(false);
+                  setGenderSlice(id);
+                }
+          }
         />
         <CustomResponsivePie
           title="Nombre de nouvelles personnes passées (passages anonymes exclus)"
@@ -81,11 +88,15 @@ const PassagesStats = ({
             "gender",
             { options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"] }
           )}
-          onItemClick={(id) => {
-            setIsPersonsModalOpened(true);
-            setIsOnlyNewPersons(true);
-            setGenderSlice(id);
-          }}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (id) => {
+                  setIsPersonsModalOpened(true);
+                  setIsOnlyNewPersons(true);
+                  setGenderSlice(id);
+                }
+          }
         />
         <AgeRangeBar persons={personsWithPassages} />
       </div>
