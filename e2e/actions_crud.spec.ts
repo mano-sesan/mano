@@ -63,7 +63,7 @@ test("Actions", async ({ page }) => {
     await page.getByRole("button", { name: "Modifier" }).click();
     await page.getByLabel("Nom").fill(action2Name);
     await page.getByLabel("Description").fill("plouf");
-    await page.getByLabel("Action prioritaire Cette action sera mise en avant par rapport aux autres").check();
+    await page.getByLabel("Action prioritaire").check();
     await page.getByLabel("Montrer l'heure").check();
     await page.getByLabel("À faire le").fill(dayjs().format("YYYY-MM-DDTHH:mm"));
     await page.getByRole("button", { name: "Sauvegarder" }).click();

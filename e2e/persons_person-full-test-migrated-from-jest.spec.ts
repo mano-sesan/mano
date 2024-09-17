@@ -99,7 +99,7 @@ test("test", async ({ page }) => {
   //  await page.locator('body:has-text("Orga Test - 1Team Test - 1User Test - 1User Test - 1 - adminBesoin d\'aide ? Donn")').press("Enter");
   await page.getByLabel("Description").click();
   await page.getByLabel("Description").fill("tests description");
-  await page.getByText("Action prioritaire Cette action sera mise en avant par rapport aux autres").click();
+  await page.getByText("Action prioritaire").click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
 

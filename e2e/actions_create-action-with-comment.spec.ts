@@ -42,7 +42,7 @@ test("Create action with comments", async ({ page }) => {
   await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2");
   await page.getByRole("button", { name: "Créer une action" }).click();
   await page.getByLabel("Nom de l'action").fill("action avec commentaire");
-  await page.getByText("Action prioritaire Cette action sera mise en avant par rapport aux autres").click();
+  await page.getByText("Action prioritaire").click();
   await changeReactSelectValue(page, "create-action-person-select", person1Name);
   await page.getByLabel("Description").fill("Une seule personne");
 
