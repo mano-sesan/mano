@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 import { ActionInstance } from "../types/action";
-import { TeamInstance } from "../types/team";
 
 const collectionName = "action";
 export const actionsState = atom<Array<ActionInstance>>({
@@ -105,6 +104,7 @@ export const prepareActionForEncryption = (action: ActionInstance, { checkRequir
     completedAt: action.completedAt,
     dueAt: action.dueAt,
     status: action.status,
+    recurrence: action.recurrence,
 
     decrypted,
     entityKey: action.entityKey,

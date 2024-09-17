@@ -53,6 +53,18 @@ const customFieldSchema = z
   })
   .strict();
 
+const recurrenceSchema = z
+  .object({
+    _id: z.optional(z.string().regex(looseUuidRegex)),
+    startDate: z.optional(z.preprocess((input) => new Date(input), z.date())),
+    endDate: z.optional(z.preprocess((input) => new Date(input), z.date())),
+    timeInterval: z.optional(z.string()),
+    timeUnit: z.optional(z.enum(["day", "week", "month", "year"])),
+    selectedDays: z.optional(z.array(z.enum(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]))),
+    recurrenceTypeForMonthAndYear: z.optional(z.enum(["absolute", "relative", "relativeLast"])),
+  })
+  .strict();
+
 const customFieldGroupSchema = z
   .object({
     name: z.string().min(1),
@@ -88,6 +100,7 @@ module.exports = {
   isoDateRegex,
   customFieldSchema,
   customFieldGroupSchema,
+  recurrenceSchema,
   sanitizeAll,
   folderSchema,
 };

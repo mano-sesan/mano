@@ -34,4 +34,5 @@ export interface ActionInstance {
   deletedAt?: Date;
   completedAt: Date | undefined;
   isConsultation?: boolean;
+  recurrence?: UUIDV4;
 }

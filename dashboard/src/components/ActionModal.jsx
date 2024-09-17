@@ -30,6 +30,8 @@ import { groupsState } from "../recoil/groups";
 import { encryptComment } from "../recoil/comments";
 import { modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
+import Recurrence from "./Recurrence";
+import { DISABLED_FEATURES } from "../config";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -85,6 +87,8 @@ function ActionContent({ onClose, isMulti = false }) {
       comments: [],
       history: [],
       teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
+      dueAt: new Date(),
+      recurrence: {},
       ...modalAction.action,
     }),
     [modalAction.action, teams]
@@ -508,7 +512,7 @@ function ActionContent({ onClose, isMulti = false }) {
                           withTime={action.withTime}
                           id="dueAt"
                           name="dueAt"
-                          defaultValue={action.dueAt ?? new Date()}
+                          defaultValue={action.dueAt}
                           onChange={handleChange}
                           onInvalid={() => setActiveTab("Informations")}
                         />
@@ -580,6 +584,46 @@ function ActionContent({ onClose, isMulti = false }) {
                       />
                     </div>
                   </div>
+                  {!DISABLED_FEATURES["action-recurrentes"] && isNewAction && (
+                    <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
+                      <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center">
+                        <input
+                          type="checkbox"
+                          id="create-action-recurrent"
+                          className="tw-mr-2"
+                          name="recurrent"
+                          checked={action.isRecurrent}
+                          onChange={() => {
+                            handleChange({
+                              target: { name: "isRecurrent", checked: Boolean(!action.isRecurrent), value: Boolean(!action.isRecurrent) },
+                            });
+                          }}
+                        />
+                        Répéter cette action
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="tw-size-5 tw-ml-2 tw-text-main"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
+                          />
+                        </svg>
+                      </label>
+                      {action.isRecurrent && (
+                        <Recurrence
+                          startDate={action.dueAt}
+                          initialValues={action.recurrence}
+                          onChange={(recurrence) => handleChange({ target: { name: "recurrence", value: recurrence } })}
+                        />
+                      )}
+                    </div>
+                  )}
                   <div className={["tw-mb-4 tw-flex tw-flex-col", [DONE, CANCEL].includes(action.status) ? "" : "tw-hidden"].join(" ")}>
                     <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
                     <div>
