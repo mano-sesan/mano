@@ -6,7 +6,6 @@ import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../recoil/version";
 import AddPersons from "./AddPersons";
-import { MANO_TEST_ORG_ID } from "../config";
 
 export const showDrawerState = atom({
   key: "showDrawerState",
