@@ -385,8 +385,8 @@ function ActionContent({ onClose, isMulti = false }) {
                 .join(" ")}
             >
               <div className="tw-flex tw-h-full tw-w-full tw-flex-col tw-overflow-y-auto tw-text-left sm:tw-flex-row">
-                <div id="right" className="tw-flex-[2] tw-min-h-full tw-basis-2/3 tw-ml-4 tw-mr-4">
-                  <div className="tw-flex tw-flex-col sm:tw-pr-8 sm:tw-border-r sm:tw-border-gray-300">
+                <div id="right" className="tw-flex-[2] tw-basis-2/3 tw-ml-4 tw-mr-4">
+                  <div className="tw-min-h-full tw-flex tw-flex-col sm:tw-pr-8 sm:tw-border-r sm:tw-border-gray-300">
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
                       <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="name">
                         Nom de l'action
@@ -484,12 +484,12 @@ function ActionContent({ onClose, isMulti = false }) {
                                 }}
                               />
                               Action familiale
-                              <div className="text-muted tw-text-xs">Cette action sera à effectuer pour toute la famille</div>
+                              <span className="text-muted tw-text-xs tw-block">Cette action sera à effectuer pour toute la famille</span>
                             </>
                           ) : action.group ? (
                             <>
                               Action familiale
-                              <div className="text-muted tw-text-xs">Cette action sera à effectuer pour toute la famille</div>
+                              <span className="text-muted tw-text-xs tw-block">Cette action sera à effectuer pour toute la famille</span>
                             </>
                           ) : null}
                         </label>
@@ -565,7 +565,7 @@ function ActionContent({ onClose, isMulti = false }) {
                         }}
                       />
                       Action prioritaire
-                      <div className="text-muted tw-text-xs">Cette action sera mise en avant par rapport aux autres</div>
+                      <span className="text-muted tw-text-xs tw-block">Cette action sera mise en avant par rapport aux autres</span>
                     </label>
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
@@ -580,11 +580,7 @@ function ActionContent({ onClose, isMulti = false }) {
                       />
                     </div>
                   </div>
-                  <div
-                    className={["tw-mb-4 tw-flex tw-flex-1 tw-flex-col", [DONE, CANCEL].includes(action.status) ? "tw-visible" : "tw-invisible"].join(
-                      " "
-                    )}
-                  >
+                  <div className={["tw-mb-4 tw-flex tw-flex-col", [DONE, CANCEL].includes(action.status) ? "" : "tw-hidden"].join(" ")}>
                     <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
                     <div>
                       <DatePicker
