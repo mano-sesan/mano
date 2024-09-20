@@ -73,7 +73,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
         if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
           occurrences.push(occurrence);
         }
-        nextDate = nextDate.add(timeInterval, "year");
+        nextDate = nextDate.add(1, "year");
       } else if (recurrenceTypeForMonthAndYear === "relative") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
         let occurrence = nextDate.startOf("month").day(targetDayOfWeek);
@@ -89,7 +89,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
         ) {
           occurrences.push(relativeOccurrence);
         }
-        nextDate = nextDate.startOf("month").add(timeInterval, "year");
+        nextDate = nextDate.startOf("month").add(1, "year");
       } else if (recurrenceTypeForMonthAndYear === "relativeLast") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
         let lastOccurrence = nextDate.endOf("month").day(targetDayOfWeek).startOf("day");
@@ -99,7 +99,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
         if (lastOccurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(lastOccurrence)) {
           occurrences.push(lastOccurrence);
         }
-        nextDate = nextDate.startOf("month").add(timeInterval, "year");
+        nextDate = nextDate.startOf("month").add(1, "year");
       }
     }
   }

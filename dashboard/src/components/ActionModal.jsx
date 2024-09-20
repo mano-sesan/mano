@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
@@ -32,6 +32,9 @@ import { modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { DISABLED_FEATURES } from "../config";
+import { getOccurrences } from "../utils/recurrence";
+import { Menu, Transition } from "@headlessui/react";
+import RepeatIcon from "../assets/icons/RepeatIcon";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -227,22 +230,65 @@ function ActionContent({ onClose, isMulti = false }) {
         });
       }
     } else {
+      // On prévient l'utilisateur si la récurrence est activée qu'il y aura plusieurs actions créées.
+      const hasRecurrence = body.recurrence?.timeUnit;
+      const occurrences = hasRecurrence ? getOccurrences(body.recurrence) : [];
+      if (occurrences.length > 1) {
+        const total = occurrences.length * (Array.isArray(body.person) ? body.person.length : 1);
+        const text =
+          "En sauvegardant, du fait de la récurrence et du nombre de personnes, vous allez créer " + total + " actions. Voulez-vous continuer ?";
+        if (!confirm(text)) return false;
+      }
+
       let actionsId = [];
       setIsSubmitting(true);
-      if (Array.isArray(body.person)) {
-        const [actionError, actionResponse] = await tryFetchExpectOk(async () =>
+
+      // Creation de la récurrence si nécessaire
+      if (hasRecurrence) {
+        const [recurrenceError, recurrenceResponse] = await tryFetchExpectOk(async () =>
           API.post({
-            path: "/action/multiple",
-            body: await Promise.all(
-              body.person.map((personId) =>
+            path: "/recurrence",
+            body: {
+              ...body.recurrence,
+              startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),
+              endDate: dayjsInstance(body.recurrence.endDate).startOf("day").toDate(),
+            },
+          })
+        );
+        if (recurrenceError) {
+          toast.error("Erreur lors de la création de la récurrence, les données n'ont pas été sauvegardées.");
+          setIsSubmitting(false);
+          return false;
+        }
+        // Pour sauvegarder le lien entre la récurrence et les actions
+        body.recurrence = recurrenceResponse.data._id;
+      }
+
+      // Sauvegarde de l'action pour plusieurs personnes (et potentiellement plusieurs occurrences)
+      if (Array.isArray(body.person)) {
+        const [actionError, actionResponse] = await tryFetchExpectOk(async () => {
+          const actions = body.person.flatMap((personId) => {
+            if (hasRecurrence) {
+              return occurrences.map((occurrence) =>
                 encryptAction({
                   ...body,
                   person: personId,
+                  dueAt: occurrence,
                 })
-              )
-            ),
-          })
-        );
+              );
+            } else {
+              return encryptAction({
+                ...body,
+                person: personId,
+                recurrence: undefined,
+              });
+            }
+          });
+          return API.post({
+            path: "/action/multiple",
+            body: await Promise.all(actions),
+          });
+        });
         if (actionError) {
           toast.error("Erreur lors de la création des action, les données n'ont pas été sauvegardées.");
           setIsSubmitting(false);
@@ -280,11 +326,12 @@ function ActionContent({ onClose, isMulti = false }) {
           }
         }
       }
-      if (Array.isArray(body.person)) {
+      if (Array.isArray(body.person) || occurrences.length) {
+        const total = (Array.isArray(body.person) ? body.person.length : 1) * (occurrences.length || 1);
         toast.success(
           <>
             <div>Création réussie !</div>
-            <div className="tw-text-sm tw-text-gray-500">{body.person.length} actions créées</div>
+            <div className="tw-text-sm tw-text-gray-500">{total} actions créées</div>
           </>
         );
       } else {
@@ -586,7 +633,7 @@ function ActionContent({ onClose, isMulti = false }) {
                   </div>
                   {!DISABLED_FEATURES["action-recurrentes"] && isNewAction && (
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                      <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center">
+                      <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
                         <input
                           type="checkbox"
                           id="create-action-recurrent"
@@ -600,20 +647,7 @@ function ActionContent({ onClose, isMulti = false }) {
                           }}
                         />
                         Répéter cette action
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth={1.5}
-                          stroke="currentColor"
-                          className="tw-size-5 tw-ml-2 tw-text-main"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"
-                          />
-                        </svg>
+                        <RepeatIcon className="tw-size-5 tw-ml-2 tw-text-main" />
                       </label>
                       {action.isRecurrent && (
                         <Recurrence
@@ -809,19 +843,58 @@ function ActionContent({ onClose, isMulti = false }) {
             {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
           </button>
         )}
-        {!isEditing && (
-          <button
-            title="Modifier cette action - seul le créateur peut modifier une action"
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
-            }}
-            className={["button-submit", activeTab === "Informations" ? "tw-visible" : "tw-invisible"].join(" ")}
-            disabled={isDeleting}
-          >
-            Modifier
-          </button>
+        {!isEditing && !initialExistingAction?.recurrence && (
+          <>
+            <button
+              title="Modifier cette action - seul le créateur peut modifier une action"
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+              }}
+              className={["button-submit", activeTab === "Informations" ? "tw-visible" : "tw-invisible"].join(" ")}
+              disabled={isDeleting}
+            >
+              Modifier
+            </button>
+          </>
+        )}
+        {!isEditing && initialExistingAction?.recurrence && (
+          <Menu as="div" className="tw-relative tw-inline-block tw-text-left">
+            <div>
+              <Menu.Button className="button-submit">Modifier</Menu.Button>
+            </div>
+            <Transition
+              as={Fragment}
+              enter="tw-transition tw-ease-out tw-duration-100"
+              enterFrom="tw-transform tw-opacity-0 tw-scale-95"
+              enterTo="tw-transform tw-opacity-100 tw-scale-100"
+              leave="tw-transition tw-ease-in tw-duration-75"
+              leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
+              leaveTo="tw-transform tw-opacity-0 tw-scale-95"
+            >
+              <Menu.Items
+                className={`tw-absolute tw-bottom-full tw-right-0 tw-z-[105] tw-mb-2 tw-w-72 tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none`}
+              >
+                <div className="tw-py-1">
+                  <Menu.Item>
+                    <div
+                      className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                    >
+                      Cette action et toutes les suivantes
+                    </div>
+                  </Menu.Item>
+                  <Menu.Item>
+                    <div
+                      className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                    >
+                      Cette action uniquement
+                    </div>
+                  </Menu.Item>
+                </div>
+              </Menu.Items>
+            </Transition>
+          </Menu>
         )}
       </ModalFooter>
     </>

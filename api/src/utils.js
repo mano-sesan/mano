@@ -55,15 +55,29 @@ const customFieldSchema = z
 
 const recurrenceSchema = z
   .object({
-    _id: z.optional(z.string().regex(looseUuidRegex)),
-    startDate: z.optional(z.preprocess((input) => new Date(input), z.date())),
-    endDate: z.optional(z.preprocess((input) => new Date(input), z.date())),
-    timeInterval: z.optional(z.string()),
-    timeUnit: z.optional(z.enum(["day", "week", "month", "year"])),
-    selectedDays: z.optional(z.array(z.enum(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]))),
-    recurrenceTypeForMonthAndYear: z.optional(z.enum(["absolute", "relative", "relativeLast"])),
+    startDate: z.preprocess((input) => new Date(input), z.date()),
+    endDate: z.preprocess((input) => new Date(input), z.date()),
+    timeUnit: z.enum(["day", "week", "month", "year"]),
+    timeInterval: z.number(),
+    selectedDays: z.array(z.enum(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])).optional(),
+    recurrenceTypeForMonthAndYear: z.enum(["absolute", "relative", "relativeLast"]).optional(),
   })
-  .strict();
+  .strict()
+  .refine((data) => {
+    if (data.timeUnit === "week") {
+      return data.selectedDays !== undefined;
+    } else if (data.timeUnit === "month" || data.timeUnit === "year") {
+      return data.recurrenceTypeForMonthAndYear !== undefined;
+    }
+    return true;
+  });
+
+const existingRecurrenceSchema = z.intersection(
+  recurrenceSchema,
+  z.object({
+    _id: z.string().regex(looseUuidRegex),
+  })
+);
 
 const customFieldGroupSchema = z
   .object({
@@ -101,6 +115,7 @@ module.exports = {
   customFieldSchema,
   customFieldGroupSchema,
   recurrenceSchema,
+  existingRecurrenceSchema,
   sanitizeAll,
   folderSchema,
 };

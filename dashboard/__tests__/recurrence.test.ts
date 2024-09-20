@@ -96,7 +96,7 @@ describe("Recurrence", () => {
       expect(actual).toEqual(expected);
     });
 
-    it("every 1 years, the 10th of january", () => {
+    it("every 1 year, the 10th of january", () => {
       let actual = occurrences("2024-01-10", "2026-01-01", 1, "year", undefined, "absolute");
       let expected = toDates(["2024-01-10", "2025-01-10"]);
       expect(actual).toEqual(expected);
@@ -105,7 +105,7 @@ describe("Recurrence", () => {
       expect(actual).toEqual(expected);
     });
 
-    it("every n years, the first sunday of january", () => {
+    it("every 1 year, the first sunday of january", () => {
       let actual = occurrences("2024-01-07", "2026-01-01", 1, "year", undefined, "relative");
       let expected = toDates(["2024-01-07", "2025-01-05"]);
       expect(actual).toEqual(expected);
@@ -114,7 +114,7 @@ describe("Recurrence", () => {
       expect(actual).toEqual(expected);
     });
 
-    it("every n years, the last sunday of january", () => {
+    it("every 1 year, the last sunday of january", () => {
       let actual = occurrences("2024-01-28", "2026-01-01", 1, "year", undefined, "relativeLast");
       let expected = toDates(["2024-01-28", "2025-01-26"]);
       expect(actual).toEqual(expected);

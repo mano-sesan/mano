@@ -38,6 +38,27 @@ module.exports = {
           type: Sequelize.DataTypes.ENUM("absolute", "relative", "relativeLast"),
           allowNull: true,
         },
+        organisation: {
+          type: Sequelize.DataTypes.UUID,
+          allowNull: false,
+          references: {
+            model: {
+              tableName: "Organisation",
+              schema: "mano",
+            },
+            key: "_id",
+          },
+        },
+        createdAt: {
+          allowNull: false,
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        },
+        updatedAt: {
+          allowNull: false,
+          type: Sequelize.DATE,
+          defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        },
       }
     );
   },
