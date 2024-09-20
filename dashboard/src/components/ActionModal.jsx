@@ -91,7 +91,7 @@ function ActionContent({ onClose, isMulti = false }) {
       history: [],
       teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
       dueAt: new Date(),
-      recurrence: {},
+      recurrenceData: {},
       ...modalAction.action,
     }),
     [modalAction.action, teams]
@@ -231,8 +231,13 @@ function ActionContent({ onClose, isMulti = false }) {
       }
     } else {
       // On prévient l'utilisateur si la récurrence est activée qu'il y aura plusieurs actions créées.
-      const hasRecurrence = body.recurrence?.timeUnit;
-      const occurrences = hasRecurrence ? getOccurrences(body.recurrence) : [];
+      const hasRecurrence = body.recurrenceData?.timeUnit;
+      const recurrenceDataWithDates = {
+        ...body.recurrenceData,
+        startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),
+        endDate: dayjsInstance(body.recurrenceData.endDate).startOf("day").toDate(),
+      };
+      const occurrences = hasRecurrence ? getOccurrences(recurrenceDataWithDates) : [];
       if (occurrences.length > 1) {
         const total = occurrences.length * (Array.isArray(body.person) ? body.person.length : 1);
         const text =
@@ -248,11 +253,7 @@ function ActionContent({ onClose, isMulti = false }) {
         const [recurrenceError, recurrenceResponse] = await tryFetchExpectOk(async () =>
           API.post({
             path: "/recurrence",
-            body: {
-              ...body.recurrence,
-              startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),
-              endDate: dayjsInstance(body.recurrence.endDate).startOf("day").toDate(),
-            },
+            body: recurrenceDataWithDates,
           })
         );
         if (recurrenceError) {
@@ -652,8 +653,8 @@ function ActionContent({ onClose, isMulti = false }) {
                       {action.isRecurrent && (
                         <Recurrence
                           startDate={action.dueAt}
-                          initialValues={action.recurrence}
-                          onChange={(recurrence) => handleChange({ target: { name: "recurrence", value: recurrence } })}
+                          initialValues={action.recurrenceData}
+                          onChange={(recurrenceData) => handleChange({ target: { name: "recurrenceData", value: recurrenceData } })}
                         />
                       )}
                     </div>
@@ -880,6 +881,10 @@ function ActionContent({ onClose, isMulti = false }) {
                   <Menu.Item>
                     <div
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+                      }}
                     >
                       Cette action et toutes les suivantes
                     </div>
@@ -887,6 +892,10 @@ function ActionContent({ onClose, isMulti = false }) {
                   <Menu.Item>
                     <div
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+                      }}
                     >
                       Cette action uniquement
                     </div>
