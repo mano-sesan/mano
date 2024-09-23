@@ -21,23 +21,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Homme",
+          "custom-2023-06-16T08-50-52-737Z": "Apatride",
           history: [
             {
               date: dayjs("2024-01-02").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -70,16 +70,16 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [],
     });
-    expect(computed.valueStart).toBe("Homme");
-    expect(computed.valueEnd).toBe("Femme");
+    expect(computed.valueStart).toBe("Apatride");
+    expect(computed.valueEnd).toBe("Française");
     expect(dayjs(computed.startDateConsolidated).format("YYYY-MM-DD")).toBe("2024-01-01");
     expect(dayjs(computed.endDateConsolidated).format("YYYY-MM-DD")).toBe("2024-04-01");
   });
@@ -92,9 +92,9 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
@@ -102,7 +102,7 @@ describe("Stats evolutives", () => {
         {
           ...personPopulated,
           followedSince: dayjs("2024-05-01").toDate(),
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             // whatever
           ],
@@ -121,9 +121,9 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
@@ -132,14 +132,14 @@ describe("Stats evolutives", () => {
           ...personPopulated,
           _id: "1",
           followedSince: dayjs("2023-01-01").toDate(),
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2024-02-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -150,14 +150,14 @@ describe("Stats evolutives", () => {
           ...personPopulated,
           _id: "2",
           followedSince: dayjs("2024-01-15").toDate(),
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2024-02-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -179,23 +179,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2023-10-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme",
-                  newValue: "Femme transgenre",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Française",
+                  newValue: "Hors UE",
                 },
               },
               user: "XXX",
@@ -203,9 +203,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2023-12-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme transgenre",
-                  newValue: "Homme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Hors UE",
+                  newValue: "Apatride",
                 },
               },
               user: "XXX",
@@ -213,9 +213,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-02").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -237,23 +237,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2023-10-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme",
-                  newValue: "Femme transgenre",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Française",
+                  newValue: "Hors UE",
                 },
               },
               user: "XXX",
@@ -261,9 +261,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2023-12-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme transgenre",
-                  newValue: "Homme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Hors UE",
+                  newValue: "Apatride",
                 },
               },
               user: "XXX",
@@ -271,9 +271,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-02").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -281,9 +281,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-03").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme",
-                  newValue: "Homme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Française",
+                  newValue: "Apatride",
                 },
               },
               user: "XXX",
@@ -291,9 +291,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-04").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -315,9 +315,9 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
@@ -327,14 +327,14 @@ describe("Stats evolutives", () => {
         },
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2023-10-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme",
-                  newValue: "Femme transgenre",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Française",
+                  newValue: "Hors UE",
                 },
               },
               user: "XXX",
@@ -342,9 +342,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2023-12-01").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme transgenre",
-                  newValue: "Homme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Hors UE",
+                  newValue: "Apatride",
                 },
               },
               user: "XXX",
@@ -352,9 +352,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-02").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -362,9 +362,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-03").toDate(),
               data: {
-                gender: {
-                  oldValue: "Femme",
-                  newValue: "Homme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Française",
+                  newValue: "Apatride",
                 },
               },
               user: "XXX",
@@ -372,9 +372,9 @@ describe("Stats evolutives", () => {
             {
               date: dayjs("2024-04-04").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "Apatride",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -387,7 +387,7 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(50);
   });
 
-  test("checking the exact value for the `fromValue`: 'Homme' and 'Homme transgenre' is not the same", async () => {
+  test("checking the exact value for the `fromValue`: 'Apatride' and 'UE' is not the same", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
       endDate: "2024-04-01T00:00:00.000Z",
@@ -396,23 +396,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
-          fromValue: "Homme",
-          toValue: "Femme",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
+          fromValue: "Apatride",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2024-02-02").toDate(),
               data: {
-                gender: {
-                  oldValue: "Homme transgenre",
-                  newValue: "Femme",
+                "custom-2023-06-16T08-50-52-737Z": {
+                  oldValue: "UE",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -434,23 +434,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
           fromValue: "Non renseigné",
-          toValue: "Femme",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs("2024-02-02").toDate(),
               data: {
-                gender: {
+                "custom-2023-06-16T08-50-52-737Z": {
                   oldValue: "",
-                  newValue: "Femme",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
@@ -558,23 +558,23 @@ describe("Stats evolutives", () => {
       evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
       evolutiveStatsIndicators: [
         {
-          fieldName: "gender",
+          fieldName: "custom-2023-06-16T08-50-52-737Z",
           fromValue: "Non renseigné",
-          toValue: "Femme",
+          toValue: "Française",
           type: "enum",
         },
       ],
       persons: [
         {
           ...personPopulated,
-          gender: "Femme",
+          "custom-2023-06-16T08-50-52-737Z": "Française",
           history: [
             {
               date: dayjs().toDate(),
               data: {
-                gender: {
+                "custom-2023-06-16T08-50-52-737Z": {
                   oldValue: "",
-                  newValue: "Femme",
+                  newValue: "Française",
                 },
               },
               user: "XXX",
