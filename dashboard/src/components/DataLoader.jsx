@@ -259,7 +259,20 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           if (personsFromOtherOrgs.length) {
             // get the logs to try to understand what happened
             const logs = getDebugMixedOrgsBug();
-            capture("DataLoader: personsFromOtherOrgs", { extra: { logs } });
+            capture("DataLoader: personsFromOtherOrgs amélioré", {
+              extra: {
+                logs,
+                organisationId,
+                totalPersonsFromOtherOrgs: personsFromOtherOrgs.length,
+                personFromOtherOrg: {
+                  _id: personsFromOtherOrgs[0]?._id,
+                  organisation: personsFromOtherOrgs[0]?.organisation,
+                  createdAt: personsFromOtherOrgs[0]?.createdAt,
+                  updatedAt: personsFromOtherOrgs[0]?.updatedAt,
+                  deletedAt: personsFromOtherOrgs[0]?.deletedAt,
+                },
+              },
+            });
           }
           setPersons(newPersons);
         }
