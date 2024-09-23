@@ -177,7 +177,6 @@ router.get(
         "_id",
         "encrypted",
         "encryptedEntityKey",
-        "organisation",
         "createdAt",
         "updatedAt",
         "deletedAt",
