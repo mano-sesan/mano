@@ -28,6 +28,7 @@ import { decryptItem } from "../services/encryption";
 import { errorMessage } from "../utils";
 import { capture } from "../services/sentry";
 import { getDebugMixedOrgsBug } from "../utils/debug-mixed-orgs-bug";
+import { recurrencesState } from "../recoil/recurrences";
 
 // Update to flush cache.
 
@@ -110,6 +111,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [passages, setPassages] = useRecoilState(passagesState);
   const [rencontres, setRencontres] = useRecoilState(rencontresState);
   const [actions, setActions] = useRecoilState(actionsState);
+  const [recurrences, setRecurrences] = useRecoilState(recurrencesState);
   const [territories, setTerritories] = useRecoilState(territoriesState);
   const [places, setPlaces] = useRecoilState(placesState);
   const [relsPersonPlace, setRelsPersonPlace] = useRecoilState(relsPersonPlaceState);
@@ -160,7 +162,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     /*
     Refresh organisation (and user), to get the latest organisation fields
     and the latest user roles
-  */
+    */
 
     const [userError, userResponse] = await tryFetch(() => {
       return API.getAbortable({ path: "/user/me" });
@@ -357,6 +359,24 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
       const actionsSuccess = await loadActions(0);
       if (!actionsSuccess) return false;
+    }
+    if (stats.recurrences > 0) {
+      let newItems = [];
+      setLoadingText("Chargement des actions récurrentes");
+      async function loadRecurrences(page = 0) {
+        const [error, res] = await tryFetchExpectOk(async () => {
+          return API.getAbortable({ path: "/recurrence", query: { ...query, page: String(page) } });
+        });
+        if (error) return resetLoaderOnError();
+        const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
+        setProgress((p) => p + res.data.length);
+        newItems.push(...decryptedData);
+        if (res.hasMore) return loadRecurrences(page + 1);
+        if (newItems.length) setRecurrences(mergeItems(places, newItems));
+        return true;
+      }
+      const placesSuccess = await loadRecurrences(0);
+      if (!placesSuccess) return false;
     }
     if (stats.territories > 0) {
       let newItems = [];

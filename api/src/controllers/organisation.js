@@ -28,6 +28,7 @@ const {
   UserLog,
   Team,
   sequelize,
+  Recurrence,
 } = require("../db/sequelize");
 const mailservice = require("../utils/mailservice");
 const validateUser = require("../middleware/validateUser");
@@ -76,6 +77,9 @@ router.get(
     const reports = await Report.count(query);
     const territoryObservations = await TerritoryObservation.count(query);
     const territories = await Territory.count(query);
+    const recurrences = await Recurrence.count(
+      query.where[Op.or] ? { ...query, where: { ...query.where, [Op.or]: query.where[Op.or].filter((item) => !item.deletedAt) } } : query
+    );
 
     // Medical data is never saved in cache so we always have to download all at every page reload.
     // In other words "after" param is intentionnaly ignored for consultations, treatments and medical files.
@@ -102,6 +106,7 @@ router.get(
         consultations,
         treatments,
         medicalFiles,
+        recurrences,
       },
     });
   })
