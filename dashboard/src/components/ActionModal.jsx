@@ -32,9 +32,10 @@ import { modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { DISABLED_FEATURES } from "../config";
-import { getOccurrences } from "../utils/recurrence";
+import { getOccurrences, recurrenceAsText } from "../utils/recurrence";
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
+import { recurrencesState } from "../recoil/recurrences";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -75,6 +76,7 @@ function ActionContent({ onClose, isMulti = false }) {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
   const teams = useRecoilValue(teamsState);
   const user = useRecoilValue(userState);
+  const recurrences = useRecoilValue(recurrencesState);
   const organisation = useRecoilValue(organisationState);
   const currentTeam = useRecoilValue(currentTeamState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
@@ -91,10 +93,10 @@ function ActionContent({ onClose, isMulti = false }) {
       history: [],
       teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
       dueAt: new Date(),
-      recurrenceData: {},
+      recurrenceData: modalAction.action?.recurrence ? recurrences.find((e) => e._id === modalAction.action?.recurrence) || {} : {},
       ...modalAction.action,
     }),
-    [modalAction.action, teams]
+    [modalAction.action, teams, recurrences]
   );
 
   const initialExistingAction = action._id ? actionsObjects[action._id] : undefined;
@@ -632,6 +634,19 @@ function ActionContent({ onClose, isMulti = false }) {
                       />
                     </div>
                   </div>
+                  {!DISABLED_FEATURES["action-recurrentes"] && !isEditing && action.recurrence && action.recurrenceData.timeUnit && (
+                    <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
+                      <div className="tw-flex tw-items-center tw-text-sm">
+                        <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
+                        <div>
+                          {recurrenceAsText(action.recurrenceData)} jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
+                        </div>
+                      </div>
+                      <div className="tw-mt-2">
+                        <div>Prochaines occurrences</div>
+                      </div>
+                    </div>
+                  )}
                   {!DISABLED_FEATURES["action-recurrentes"] && isNewAction && (
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
                       <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
