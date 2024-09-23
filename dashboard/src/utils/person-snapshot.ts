@@ -6,6 +6,8 @@ import { dayjsInstance } from "../services/date";
 import { getValueByField } from "./person-get-value-by-field";
 import { forbiddenPersonFieldsInHistory } from "../recoil/persons";
 
+const fixedInTimeFields = ["birthdate", "gender"];
+
 export function getPersonSnapshotAtDate({
   person,
   snapshotDate,
@@ -39,6 +41,10 @@ export function getPersonSnapshotAtDate({
     }
     for (const fieldName of Object.keys(historyItem.data)) {
       if (forbiddenPersonFieldsInHistory.includes(fieldName)) continue;
+      // Certains champs sont fixes dans le temps et donc ignorés. Il s'agit des champs "genre" et "date de naissance" qu'on considère (arbitrairement) comme fixes.
+      // Cela permet de gérer le cas où une personne n'avait pas de date de naissance et qu'on la renseigne plus tard.
+      // On veut dans ce cas la voir apparaitre dans les stats.
+      if (fixedInTimeFields.includes(fieldName)) continue;
       if (onlyForFieldName && fieldName !== onlyForFieldName) continue; // we support only one indicator for now
       if (!typesByFields[fieldName]) continue; // this is a deleted custom field
       const oldValue = replaceNullishWithNonRenseigne
