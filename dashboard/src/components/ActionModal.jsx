@@ -9,7 +9,7 @@ import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
-import { dayjsInstance, outOfBoundariesDate } from "../services/date";
+import { dayjsInstance, formatDateWithNameOfDay, outOfBoundariesDate } from "../services/date";
 import { modalConfirmState } from "./ModalConfirm";
 import SelectStatus from "./SelectStatus";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./tailwind/Modal";
@@ -130,6 +130,11 @@ function ActionContent({ onClose, isMulti = false }) {
     }
 
     if (!isNewAction && initialExistingAction) {
+      if (modalAction.isEditingAllNextOccurences) {
+        const text = `En modifiant cette action et les suivantes, toutes les actions après à la date de celle-ci (${dayjsInstance(action.dueAt).format("DD/MM/YYYY")}) seront supprimées, puis recréées avec les informations que vous avez renseignées. Cela signifie que tout ce qui aurait été rattaché aux actions suivantes (commentaires, documents, etc.) sera supprimé. Êtes-vous sûr de vouloir continuer ?`;
+        if (!confirm(text)) return false;
+      }
+
       const historyEntry = {
         date: new Date(),
         user: user._id,
@@ -159,6 +164,44 @@ function ActionContent({ onClose, isMulti = false }) {
         toast.error("Erreur lors de la mise à jour de l'action, les données n'ont pas été sauvegardées.");
         setIsSubmitting(false);
         return false;
+      }
+
+      if (modalAction.isEditingAllNextOccurences) {
+        // Suppression de toutes les actions qui sont après la date de l'action modifiée.
+        const nextActions = Object.values(actionsObjects).filter(
+          (a) =>
+            dayjsInstance(a.dueAt).isAfter(initialExistingAction.dueAt) &&
+            a.person === initialExistingAction.person &&
+            a.recurrence === initialExistingAction.recurrence
+        );
+        for (const nextAction of nextActions) {
+          const [error] = await tryFetchExpectOk(() => API.delete({ path: `/action/${nextAction._id}` }));
+          if (error) {
+            toast.error("Erreur lors de la suppression des actions suivantes, les données n'ont pas été sauvegardées.");
+            setIsSubmitting(false);
+            return false;
+          }
+        }
+        // Création des nouvelles actions.
+        const occurrences = getOccurrences(body.recurrenceData).filter((d) => dayjsInstance(d).isAfter(dayjsInstance(body.dueAt).endOf("day")));
+        const [actionError] = await tryFetchExpectOk(async () => {
+          API.post({
+            path: "/action/multiple",
+            body: await Promise.all(
+              occurrences.map((occurrence) =>
+                encryptAction({
+                  ...body,
+                  dueAt: occurrence,
+                })
+              )
+            ),
+          });
+        });
+        if (actionError) {
+          toast.error("Erreur lors de la création des action, les données n'ont pas été sauvegardées.");
+          setIsSubmitting(false);
+          return false;
+        }
       }
 
       const actionCancelled = initialExistingAction.status !== CANCEL && body.status === CANCEL;
@@ -250,31 +293,36 @@ function ActionContent({ onClose, isMulti = false }) {
       let actionsId = [];
       setIsSubmitting(true);
 
-      // Creation de la récurrence si nécessaire
+      // Creation de la récurrence si nécessaire. Attention on doit créer une récurrence par personnes,
+      // pour pouvoir modifier une action pour une personne sans impacter les autres.
+      const recurrencesIds = [];
       if (hasRecurrence) {
-        const [recurrenceError, recurrenceResponse] = await tryFetchExpectOk(async () =>
-          API.post({
-            path: "/recurrence",
-            body: recurrenceDataWithDates,
-          })
-        );
-        if (recurrenceError) {
-          toast.error("Erreur lors de la création de la récurrence, les données n'ont pas été sauvegardées.");
-          setIsSubmitting(false);
-          return false;
+        for (const _personId of Array.isArray(body.person) ? body.person : [body.person]) {
+          const [recurrenceError, recurrenceResponse] = await tryFetchExpectOk(async () =>
+            API.post({
+              path: "/recurrence",
+              body: recurrenceDataWithDates,
+            })
+          );
+          if (recurrenceError) {
+            toast.error("Erreur lors de la création de la récurrence, les données n'ont pas été sauvegardées.");
+            setIsSubmitting(false);
+            return false;
+          }
+          // Pour sauvegarder le lien entre la récurrence et les actions
+          recurrencesIds.push(recurrenceResponse.data._id);
         }
-        // Pour sauvegarder le lien entre la récurrence et les actions
-        body.recurrence = recurrenceResponse.data._id;
       }
 
       // Sauvegarde de l'action pour plusieurs personnes (et potentiellement plusieurs occurrences)
       if (Array.isArray(body.person)) {
         const [actionError, actionResponse] = await tryFetchExpectOk(async () => {
-          const actions = body.person.flatMap((personId) => {
+          const actions = body.person.flatMap((personId, index) => {
             if (hasRecurrence) {
               return occurrences.map((occurrence) =>
                 encryptAction({
                   ...body,
+                  recurrence: recurrencesIds[index],
                   person: personId,
                   dueAt: occurrence,
                 })
@@ -303,6 +351,7 @@ function ActionContent({ onClose, isMulti = false }) {
           API.post({
             path: "/action",
             body: await encryptAction(body),
+            reccurence: hasRecurrence ? recurrencesIds[0] : undefined,
           })
         );
         if (actionError) {
@@ -607,30 +656,54 @@ function ActionContent({ onClose, isMulti = false }) {
                     )}
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                    <label htmlFor="create-action-urgent">
-                      <input
-                        type="checkbox"
-                        id="create-action-urgent"
-                        className="tw-mr-2"
-                        name="urgent"
-                        checked={action.urgent || false}
-                        onChange={() => {
-                          handleChange({ target: { name: "urgent", checked: Boolean(!action.urgent), value: Boolean(!action.urgent) } });
-                        }}
-                      />
-                      Action prioritaire
-                      <span className="text-muted tw-text-xs tw-block">Cette action sera mise en avant par rapport aux autres</span>
-                    </label>
+                    {isEditing ? (
+                      <label htmlFor="create-action-urgent">
+                        <input
+                          type="checkbox"
+                          id="create-action-urgent"
+                          className="tw-mr-2"
+                          name="urgent"
+                          checked={action.urgent || false}
+                          onChange={() => {
+                            handleChange({ target: { name: "urgent", checked: Boolean(!action.urgent), value: Boolean(!action.urgent) } });
+                          }}
+                        />
+                        Action prioritaire
+                        <span className="text-muted tw-text-xs tw-block">Cette action sera mise en avant par rapport aux autres</span>
+                      </label>
+                    ) : action.urgent ? (
+                      <>
+                        Action prioritaire
+                        <span className="text-muted tw-text-xs tw-block">Cette action sera mise en avant par rapport aux autres</span>
+                      </>
+                    ) : null}
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
                     <label htmlFor="update-action-select-status">Statut</label>
+
                     <div className="tw-w-full">
                       <SelectStatus
+                        disabled={
+                          modalAction.isEditingAllNextOccurences || (!modalAction.isEditing && action.recurrence && action.recurrenceData.timeUnit)
+                        }
                         name="status"
                         value={action.status || ""}
                         onChange={handleChange}
                         inputId="update-action-select-status"
                         classNamePrefix="update-action-select-status"
+                      />
+                    </div>
+                  </div>
+                  <div className={["tw-mb-4 tw-flex tw-flex-col", [DONE, CANCEL].includes(action.status) ? "" : "tw-hidden"].join(" ")}>
+                    <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
+                    <div>
+                      <DatePicker
+                        withTime
+                        id="completedAt"
+                        name="completedAt"
+                        defaultValue={action.completedAt ?? new Date()}
+                        onChange={handleChange}
+                        onInvalid={() => setActiveTab("Informations")}
                       />
                     </div>
                   </div>
@@ -642,8 +715,15 @@ function ActionContent({ onClose, isMulti = false }) {
                           {recurrenceAsText(action.recurrenceData)} jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
                         </div>
                       </div>
-                      <div className="tw-mt-2">
-                        <div>Prochaines occurrences</div>
+                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-ml-8">
+                        <div className="tw-font-bold">Occurrences suivantes</div>
+                        <ul className="tw-list-disc tw-pl-4">
+                          {getOccurrences(action.recurrenceData)
+                            .filter((d) => d > dayjsInstance(action.dueAt).endOf("day").toDate())
+                            .map((d) => {
+                              return <li key={d}>{formatDateWithNameOfDay(d)}</li>;
+                            })}
+                        </ul>
                       </div>
                     </div>
                   )}
@@ -674,19 +754,6 @@ function ActionContent({ onClose, isMulti = false }) {
                       )}
                     </div>
                   )}
-                  <div className={["tw-mb-4 tw-flex tw-flex-col", [DONE, CANCEL].includes(action.status) ? "" : "tw-hidden"].join(" ")}>
-                    <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
-                    <div>
-                      <DatePicker
-                        withTime
-                        id="completedAt"
-                        name="completedAt"
-                        defaultValue={action.completedAt ?? new Date()}
-                        onChange={handleChange}
-                        onInvalid={() => setActiveTab("Informations")}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -699,6 +766,7 @@ function ActionContent({ onClose, isMulti = false }) {
             <DocumentsModule
               personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
               showAssociatedItem={false}
+              showAddDocumentButton={!modalAction.isEditingAllNextOccurences}
               documents={action.documents.map((doc) => ({
                 ...doc,
                 type: doc.type ?? "document", // or 'folder'
@@ -813,6 +881,11 @@ function ActionContent({ onClose, isMulti = false }) {
         </div>
       </ModalBody>
       <ModalFooter>
+        {modalAction.isEditingAllNextOccurences ? (
+          <div className="tw-flex tw-my-auto tw-border-l-4 tw-text-sm tw-border-orange-500 tw-bg-orange-100 tw-py-2 tw-px-4 tw-text-orange-700 tw-items-center">
+            <div>Vous éditez cette action et toutes les suivantes</div>
+          </div>
+        ) : null}
         <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()} disabled={isDeleting || isSubmitting}>
           Fermer
         </button>
@@ -898,7 +971,7 @@ function ActionContent({ onClose, isMulti = false }) {
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
                         e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: true }));
                       }}
                     >
                       Cette action et toutes les suivantes
@@ -909,7 +982,7 @@ function ActionContent({ onClose, isMulti = false }) {
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
                         e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: false }));
                       }}
                     >
                       Cette action uniquement
