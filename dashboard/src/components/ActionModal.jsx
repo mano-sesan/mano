@@ -450,9 +450,20 @@ function ActionContent({ onClose, isMulti = false }) {
         }
         onClose={() => {
           if (initialExistingAction) {
-            const { personPopulated, userPopulated, ...initialExistingActionWithoutPopulated } = initialExistingAction;
-            const { style, personPopulated: actionPersonPopulated, userPopulated: actionUserPopulated, ...actionWithoutPopulated } = action;
+            const { personPopulated, userPopulated, isRecurrent, recurrenceData, ...initialExistingActionWithoutPopulated } = initialExistingAction;
+            const {
+              style,
+              isRecurrent: actionIsRecurrent,
+              recurrenceData: actionRecurrenceData,
+              personPopulated: actionPersonPopulated,
+              userPopulated: actionUserPopulated,
+              ...actionWithoutPopulated
+            } = action;
             if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
+            else {
+              console.log(JSON.stringify(actionWithoutPopulated, null, 2));
+              console.log(JSON.stringify(initialExistingActionWithoutPopulated, null, 2));
+            }
           }
           setModalConfirmState({
             open: true,
