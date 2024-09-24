@@ -32,7 +32,7 @@ import { modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { DISABLED_FEATURES } from "../config";
-import { getOccurrences, recurrenceAsText } from "../utils/recurrence";
+import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 import { recurrencesState } from "../recoil/recurrences";
@@ -132,7 +132,7 @@ function ActionContent({ onClose, isMulti = false }) {
 
     if (!isNewAction && initialExistingAction) {
       if (modalAction.isEditingAllNextOccurences) {
-        const text = `En modifiant cette action et les suivantes, toutes les actions après à la date de celle-ci (${dayjsInstance(action.dueAt).format("DD/MM/YYYY")}) seront supprimées, puis recréées avec les informations que vous avez renseignées. Cela signifie que tout ce qui aurait été rattaché aux actions suivantes (commentaires, documents, etc.) sera supprimé. Êtes-vous sûr de vouloir continuer ?`;
+        const text = `En modifiant cette action et les suivantes, toutes les actions recurrentes pour cette personne après à la date de celle-ci (${dayjsInstance(action.dueAt).format("DD/MM/YYYY")}) seront supprimées, puis recréées avec les informations que vous avez renseignées. Cela signifie que tout ce qui aurait été rattaché aux actions suivantes (commentaires, documents, etc.) sera supprimé. Êtes-vous sûr de vouloir continuer ?`;
         if (!confirm(text)) return false;
       }
 
@@ -212,6 +212,7 @@ function ActionContent({ onClose, isMulti = false }) {
                 encryptAction({
                   ...body,
                   dueAt: occurrence,
+                  reccurence: body.recurrence,
                 })
               )
             ),
@@ -732,7 +733,8 @@ function ActionContent({ onClose, isMulti = false }) {
                       <div className="tw-flex tw-items-center tw-text-sm">
                         <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
                         <div>
-                          {recurrenceAsText(action.recurrenceData)} jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
+                          {recurrenceAsText({ ...action.recurrenceData, nthWeekdayInMonth: getNthWeekdayInMonth(action.recurrenceData.startDate) })}{" "}
+                          jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
                         </div>
                       </div>
                       <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-ml-8">

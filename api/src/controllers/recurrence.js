@@ -39,7 +39,7 @@ router.post(
 );
 
 router.put(
-  "/:id",
+  "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal", "restricted-access"]),
   catchErrors(async (req, res, next) => {
@@ -51,26 +51,27 @@ router.put(
       return next(error);
     }
 
-    Recurrence.update(
-      {
-        startDate: req.body.startDate,
-        endDate: req.body.endDate,
-        timeInterval: req.body.timeUnit === "year" ? 1 : req.body.timeInterval,
-        timeUnit: req.body.timeUnit,
-        selectedDays: req.body.timeUnit !== "week" ? null : req.body.selectedDays,
-        recurrenceTypeForMonthAndYear: req.body.timeUnit !== "month" && req.body.timeUnit !== "year" ? null : req.body.recurrenceTypeForMonthAndYear,
+    const recurrence = await Recurrence.findOne({
+      where: {
+        _id: req.params._id,
+        organisation: req.user.organisation,
       },
-      { where: { _id: req.params.id, organisation: req.user.organisation } }
-    ).then((data) => {
-      if (data[0] === 0) {
-        const error = new Error("Recurrence not found");
-        error.status = 404;
-        return next(error);
-      }
-      return res.status(200).send({
-        ok: true,
-        data,
-      });
+    });
+    if (!recurrence) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    recurrence.set({
+      startDate: req.body.startDate,
+      endDate: req.body.endDate,
+      timeInterval: req.body.timeUnit === "year" ? 1 : req.body.timeInterval,
+      timeUnit: req.body.timeUnit,
+      selectedDays: req.body.timeUnit !== "week" ? null : req.body.selectedDays,
+      recurrenceTypeForMonthAndYear: req.body.timeUnit !== "month" && req.body.timeUnit !== "year" ? null : req.body.recurrenceTypeForMonthAndYear,
+    });
+    await recurrence.save();
+
+    return res.status(200).send({
+      ok: true,
+      data: recurrence,
     });
   })
 );

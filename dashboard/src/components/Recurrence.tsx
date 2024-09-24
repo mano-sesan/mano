@@ -52,7 +52,9 @@ export default function Recurrence({
   const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
   const [timeInterval, setTimeInterval] = useState<number>(initialValues.timeInterval || 1);
   const [timeUnit, setTimeUnit] = useState<(typeof timeUnits)[number]>(initialValues.timeUnit || "week");
-  const [selectedDays, setSelectedDays] = useState<typeof days>(initialValues.selectedDays || [initialDayLabel]);
+  const [selectedDays, setSelectedDays] = useState<typeof days>(
+    initialValues.selectedDays || (initialValues.timeUnit === "day" ? days : [initialDayLabel])
+  );
   const [recurrenceTypeForMonthAndYear, setRecurrenceTypeForMonthAndYear] = useState<RecurrenceTypeForMonthAndYear>(
     initialValues.recurrenceTypeForMonthAndYear || "relative"
   );
