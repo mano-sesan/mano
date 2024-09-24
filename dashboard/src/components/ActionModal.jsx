@@ -93,6 +93,7 @@ function ActionContent({ onClose, isMulti = false }) {
       history: [],
       teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
       dueAt: new Date(),
+      isRecurrent: modalAction.action?.recurrence ? true : false,
       recurrenceData: modalAction.action?.recurrence ? recurrences.find((e) => e._id === modalAction.action?.recurrence) || {} : {},
       ...modalAction.action,
     }),
@@ -166,7 +167,26 @@ function ActionContent({ onClose, isMulti = false }) {
         return false;
       }
 
-      if (modalAction.isEditingAllNextOccurences) {
+      if (modalAction.isEditingAllNextOccurences && initialExistingAction.recurrence) {
+        // Mise à jour de la récurrence.
+        const recurrenceDataWithDates = {
+          ...body.recurrenceData,
+          startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),
+          endDate: dayjsInstance(body.recurrenceData.endDate).startOf("day").toDate(),
+        };
+        const [recurrenceError, recurrenceResponse] = await tryFetchExpectOk(async () =>
+          API.put({
+            path: `/recurrence/${initialExistingAction.recurrence}`,
+            body: recurrenceDataWithDates,
+          })
+        );
+        if (recurrenceError) {
+          toast.error("Erreur lors de la création de la récurrence, les données n'ont pas été sauvegardées.");
+          setIsSubmitting(false);
+          return false;
+        }
+        body.recurrence = recurrenceResponse.data._id;
+
         // Suppression de toutes les actions qui sont après la date de l'action modifiée.
         const nextActions = Object.values(actionsObjects).filter(
           (a) =>
@@ -183,7 +203,7 @@ function ActionContent({ onClose, isMulti = false }) {
           }
         }
         // Création des nouvelles actions.
-        const occurrences = getOccurrences(body.recurrenceData).filter((d) => dayjsInstance(d).isAfter(dayjsInstance(body.dueAt).endOf("day")));
+        const occurrences = getOccurrences(recurrenceDataWithDates).filter((d) => dayjsInstance(d).isAfter(dayjsInstance(body.dueAt).endOf("day")));
         const [actionError] = await tryFetchExpectOk(async () => {
           API.post({
             path: "/action/multiple",
@@ -727,33 +747,34 @@ function ActionContent({ onClose, isMulti = false }) {
                       </div>
                     </div>
                   )}
-                  {!DISABLED_FEATURES["action-recurrentes"] && isNewAction && (
-                    <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                      <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
-                        <input
-                          type="checkbox"
-                          id="create-action-recurrent"
-                          className="tw-mr-2"
-                          name="recurrent"
-                          checked={action.isRecurrent}
-                          onChange={() => {
-                            handleChange({
-                              target: { name: "isRecurrent", checked: Boolean(!action.isRecurrent), value: Boolean(!action.isRecurrent) },
-                            });
-                          }}
-                        />
-                        Répéter cette action
-                        <RepeatIcon className="tw-size-5 tw-ml-2 tw-text-main" />
-                      </label>
-                      {action.isRecurrent && (
-                        <Recurrence
-                          startDate={action.dueAt}
-                          initialValues={action.recurrenceData}
-                          onChange={(recurrenceData) => handleChange({ target: { name: "recurrenceData", value: recurrenceData } })}
-                        />
-                      )}
-                    </div>
-                  )}
+                  {!DISABLED_FEATURES["action-recurrentes"] &&
+                    (isNewAction || (action.recurrence && action.recurrenceData.timeUnit && modalAction.isEditingAllNextOccurences)) && (
+                      <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
+                        <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
+                          <input
+                            type="checkbox"
+                            id="create-action-recurrent"
+                            className="tw-mr-2"
+                            name="recurrent"
+                            checked={action.isRecurrent}
+                            onChange={() => {
+                              handleChange({
+                                target: { name: "isRecurrent", checked: Boolean(!action.isRecurrent), value: Boolean(!action.isRecurrent) },
+                              });
+                            }}
+                          />
+                          Répéter cette action
+                          <RepeatIcon className="tw-size-5 tw-ml-2 tw-text-main" />
+                        </label>
+                        {action.isRecurrent && (
+                          <Recurrence
+                            startDate={action.dueAt}
+                            initialValues={action.recurrenceData}
+                            onChange={(recurrenceData) => handleChange({ target: { name: "recurrenceData", value: recurrenceData } })}
+                          />
+                        )}
+                      </div>
+                    )}
                 </div>
               </div>
             </div>
