@@ -460,10 +460,6 @@ function ActionContent({ onClose, isMulti = false }) {
               ...actionWithoutPopulated
             } = action;
             if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
-            else {
-              console.log(JSON.stringify(actionWithoutPopulated, null, 2));
-              console.log(JSON.stringify(initialExistingActionWithoutPopulated, null, 2));
-            }
           }
           setModalConfirmState({
             open: true,
