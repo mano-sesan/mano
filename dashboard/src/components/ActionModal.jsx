@@ -333,7 +333,7 @@ function ActionContent({ onClose, isMulti = false }) {
           setModalConfirmState({
             open: true,
             options: {
-              title: "Quitter la action sans enregistrer ?",
+              title: "Quitter l'action sans enregistrer ?",
               subTitle: "Toutes les modifications seront perdues.",
               buttons: [
                 {
