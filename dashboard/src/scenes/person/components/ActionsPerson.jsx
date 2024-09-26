@@ -312,7 +312,7 @@ const ActionsTable = ({ filteredData }) => {
                       )}
                       <div className="tw-flex tw-grow tw-flex-col tw-items-start">
                         <ActionOrConsultationName item={action} />
-                        {(action.recurrence || action.nextOccurrence) && (
+                        {action.recurrence && action.nextOccurrence && (
                           <div className="tw-flex tw-items-center tw-gap-1 tw-text-xs tw-italic tw-text-main">
                             Occurrence suivante le {action.nextOccurrence.format("DD/MM/YYYY")}
                           </div>

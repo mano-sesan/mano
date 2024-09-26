@@ -336,9 +336,9 @@ function ActionContent({ onClose, isMulti = false }) {
       }
 
       // Sauvegarde de l'action pour plusieurs personnes (et potentiellement plusieurs occurrences)
-      if (Array.isArray(body.person)) {
+      if (Array.isArray(body.person) || hasRecurrence) {
         const [actionError, actionResponse] = await tryFetchExpectOk(async () => {
-          const actions = body.person.flatMap((personId, index) => {
+          const actions = (Array.isArray(body.person) ? body.person : [body.person]).flatMap((personId, index) => {
             if (hasRecurrence) {
               return occurrences.map((occurrence) =>
                 encryptAction({
@@ -372,7 +372,6 @@ function ActionContent({ onClose, isMulti = false }) {
           API.post({
             path: "/action",
             body: await encryptAction(body),
-            reccurence: hasRecurrence ? recurrencesIds[0] : undefined,
           })
         );
         if (actionError) {
