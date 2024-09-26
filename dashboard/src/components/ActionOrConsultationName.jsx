@@ -22,7 +22,7 @@ export default function ActionOrConsultationName({ item, hideType = false }) {
     <>
       {item.recurrence ? (
         <div className="tw-flex tw-items-center">
-          <RepeatIcon className="tw-size-5 tw-mr-2 tw-text-main" />
+          <RepeatIcon className="tw-size-5 tw-mr-1.5 tw-text-main" />
           {getName(item)}
         </div>
       ) : (

@@ -33,7 +33,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
   } else if (timeUnit === "month") {
     while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
       if (recurrenceTypeForMonthAndYear === "absolute") {
-        const occurrence = nextDate.date(startDate.getDate());
+        const occurrence = nextDate.date(dayjsInstance(startDate).date());
         if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
           occurrences.push(occurrence);
         }
@@ -69,7 +69,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
   } else if (timeUnit === "year") {
     while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
       if (recurrenceTypeForMonthAndYear === "absolute") {
-        const occurrence = nextDate.date(startDate.getDate()).month(startDate.getMonth());
+        const occurrence = nextDate.date(dayjsInstance(startDate).date()).month(dayjsInstance(startDate).month());
         if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
           occurrences.push(occurrence);
         }
