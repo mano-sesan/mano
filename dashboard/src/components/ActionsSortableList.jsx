@@ -25,6 +25,8 @@ const ActionsSortableList = ({
   limit = 0,
   localStorageSortByName = "actions-consultations-sortBy",
   localStorageSortOrderName = "actions-consultations-sortOrder",
+  defaultOrder = "ASC",
+  onAfterActionClick = null,
 }) => {
   useTitle("Agenda");
   const setModalAction = useSetRecoilState(modalActionState);
@@ -32,8 +34,8 @@ const ActionsSortableList = ({
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const organisation = useRecoilValue(organisationState);
-  const [sortBy, setSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
-  const [sortOrder, setSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
+  const [sortBy, setSortBy] = useLocalStorage(localStorageSortByName, "dueAt");
+  const [sortOrder, setSortOrder] = useLocalStorage(localStorageSortOrderName, defaultOrder);
   const [page, setPage] = useSearchParamState("page", 0, { resetToDefaultIfTheFollowingValueChange: currentTeam?._id });
 
   const dataSorted = useMemo(() => {
@@ -72,6 +74,7 @@ const ActionsSortableList = ({
             history.push(`?${searchParams.toString()}`);
           } else {
             setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
+            if (onAfterActionClick) onAfterActionClick(actionOrConsultation);
           }
         }}
         rowDisabled={(actionOrConsultation) => disableConsultationRow(actionOrConsultation, user)}

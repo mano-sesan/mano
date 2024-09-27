@@ -920,7 +920,15 @@ function ActionContent({ onClose, isMulti = false }) {
               .filter(Boolean)
               .join(" ")}
           >
-            <AllOccurrences action={action} />
+            <AllOccurrences
+              action={action}
+              onAfterActionClick={(a) => {
+                toast.success(
+                  "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
+                );
+                setActiveTab("Informations");
+              }}
+            />
           </div>
         </div>
       </ModalBody>
@@ -1042,7 +1050,7 @@ function ActionContent({ onClose, isMulti = false }) {
   );
 }
 
-function AllOccurrences({ action }) {
+function AllOccurrences({ action, onAfterActionClick }) {
   const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
   const actions = person?.actions.filter((e) => e.recurrence === action.recurrence) || [];
   const [isAfterOpen, setIsAfterOpen] = useState(true);
@@ -1076,6 +1084,8 @@ function AllOccurrences({ action }) {
             data={beforeActions}
             localStorageSortByName="action-recurrence-before-sortBy"
             localStorageSortOrderName="action-recurrence-before-sortBy"
+            defaultOrder="DESC"
+            onAfterActionClick={onAfterActionClick}
           />
         )}
       </div>
@@ -1094,6 +1104,8 @@ function AllOccurrences({ action }) {
             data={afterActions}
             localStorageSortByName="action-recurrence-after-sortBy"
             localStorageSortOrderName="action-recurrence-after-sortBy"
+            defaultOrder="DESC"
+            onAfterActionClick={onAfterActionClick}
           />
         )}
       </div>
@@ -1125,12 +1137,10 @@ function NextOccurrences({ action }) {
             <tr
               key={a._id}
               onClick={() => {
-                if (confirm("Voulez-vous quitter cette action et aller sur l'occurrence sélectionnée ?")) {
-                  setModalAction({ open: true, from: location.pathname, action: a });
-                  toast.success(
-                    "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
-                  );
-                }
+                setModalAction({ open: true, from: location.pathname, action: a });
+                toast.success(
+                  "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
+                );
               }}
             >
               <td className="!tw-p-1">
