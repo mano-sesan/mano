@@ -1069,6 +1069,13 @@ function AllOccurrences({ action, onAfterActionClick }) {
   if (!actions.length) return null;
   return (
     <div className="tw-p-4">
+      <div className="tw-flex tw-items-center tw-mb-8">
+        <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
+        <div>
+          {recurrenceAsText({ ...action.recurrenceData, nthWeekdayInMonth: getNthWeekdayInMonth(action.recurrenceData.startDate) })} jusqu'au{" "}
+          {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
+        </div>
+      </div>
       <div className="tw-mb-8">
         <div
           className="tw-bg-gray-100 tw-rounded-lg tw-p-4 tw-flex tw-text-lg tw-font-semibold tw-cursor-pointer"
@@ -1076,7 +1083,9 @@ function AllOccurrences({ action, onAfterActionClick }) {
             setIsBeforeOpen(!isBeforeOpen);
           }}
         >
-          <div className="tw-grow">Occurrences précédentes</div>
+          <div className="tw-grow">
+            Occurrences précédentes <span className="tw-opacity-75">({beforeActions.length})</span>
+          </div>
           <div>{isBeforeOpen ? "-" : "+"}</div>
         </div>
         {isBeforeOpen && (
@@ -1096,7 +1105,9 @@ function AllOccurrences({ action, onAfterActionClick }) {
             setIsAfterOpen(!isAfterOpen);
           }}
         >
-          <div className="tw-grow">Occurrences suivantes</div>
+          <div className="tw-grow">
+            Occurrences suivantes <span className="tw-opacity-75">({afterActions.length})</span>
+          </div>
           <div>{isAfterOpen ? "-" : "+"}</div>
         </div>
         {isAfterOpen && (
