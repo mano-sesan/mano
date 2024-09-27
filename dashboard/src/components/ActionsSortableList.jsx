@@ -20,7 +20,12 @@ import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
 import { modalActionState } from "../recoil/modal";
 
-const ActionsSortableList = ({ data, limit = 0 }) => {
+const ActionsSortableList = ({
+  data,
+  limit = 0,
+  localStorageSortByName = "actions-consultations-sortBy",
+  localStorageSortOrderName = "actions-consultations-sortOrder",
+}) => {
   useTitle("Agenda");
   const setModalAction = useSetRecoilState(modalActionState);
   const history = useHistory();

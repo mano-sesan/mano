@@ -19,6 +19,7 @@ import ActionOrConsultationName from "./ActionOrConsultationName";
 import TagTeam from "./TagTeam";
 import { modalActionState } from "../recoil/modal";
 import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } from "../recoil/selectors";
+import { actionsWithoutFutureRecurrences } from "../utils/recurrence";
 
 const actionsUrgentSelector = selectorFamily({
   key: "actionsUrgentSelector",
@@ -27,15 +28,15 @@ const actionsUrgentSelector = selectorFamily({
     ({ get }) => {
       const actions = get(arrayOfitemsGroupedByActionSelector);
       const currentTeam = get(currentTeamState);
-      return actions
-        .filter((action) => {
+      return actionsWithoutFutureRecurrences(
+        actions.filter((action) => {
           return (
             (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) &&
             action.status === TODO &&
             action.urgent
           );
         })
-        .sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
+      ).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
     },
 });
 
@@ -159,7 +160,16 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
               onSortBy: setSortBy,
               sortBy,
               sortOrder,
-              render: (action) => <ActionOrConsultationName item={action} />,
+              render: (action) => (
+                <>
+                  <ActionOrConsultationName item={action} />
+                  {action.recurrence && action.nextOccurrence && (
+                    <div className="tw-flex tw-items-center tw-gap-1 tw-text-xs tw-italic tw-text-main">
+                      Occurrence suivante le {action.nextOccurrence.format("DD/MM/YYYY")}
+                    </div>
+                  )}
+                </>
+              ),
             },
             {
               title: "Personne suivie",

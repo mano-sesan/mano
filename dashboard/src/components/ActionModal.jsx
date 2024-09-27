@@ -9,7 +9,7 @@ import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
-import { dayjsInstance, formatDateWithNameOfDay, outOfBoundariesDate } from "../services/date";
+import { dayjsInstance, outOfBoundariesDate } from "../services/date";
 import { modalConfirmState } from "./ModalConfirm";
 import SelectStatus from "./SelectStatus";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./tailwind/Modal";
@@ -20,7 +20,7 @@ import UserName from "./UserName";
 import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
 import CustomFieldDisplay from "./CustomFieldDisplay";
-import { itemsGroupedByActionSelector } from "../recoil/selectors";
+import { itemsGroupedByActionSelector, itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
 import { useDataLoader } from "./DataLoader";
@@ -36,6 +36,9 @@ import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 import { recurrencesState } from "../recoil/recurrences";
+import ActionStatusSelect from "./ActionStatusSelect";
+import DateBloc from "./DateBloc";
+import ActionsSortableList from "./ActionsSortableList";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -449,13 +452,15 @@ function ActionContent({ onClose, isMulti = false }) {
         }
         onClose={() => {
           if (initialExistingAction) {
-            const { personPopulated, userPopulated, isRecurrent, recurrenceData, ...initialExistingActionWithoutPopulated } = initialExistingAction;
+            const { personPopulated, userPopulated, isRecurrent, recurrenceData, nextOccurrence, ...initialExistingActionWithoutPopulated } =
+              initialExistingAction;
             const {
               style,
               isRecurrent: actionIsRecurrent,
               recurrenceData: actionRecurrenceData,
               personPopulated: actionPersonPopulated,
               userPopulated: actionUserPopulated,
+              nextOccurrence: actionNextOccurrence,
               ...actionWithoutPopulated
             } = action;
             if (isEqual(actionWithoutPopulated, initialExistingActionWithoutPopulated)) return onClose();
@@ -489,15 +494,21 @@ function ActionContent({ onClose, isMulti = false }) {
               `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
               `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
               "Historique",
+              ...(!DISABLED_FEATURES["action-recurrentes"] && action.recurrence && action.recurrenceData.timeUnit
+                ? ["Voir toutes les occurrences"]
+                : []),
             ]}
             onClick={(tab) => {
               if (tab.includes("Informations")) setActiveTab("Informations");
               if (tab.includes("Documents")) setActiveTab("Documents");
               if (tab.includes("Commentaires")) setActiveTab("Commentaires");
               if (tab.includes("Historique")) setActiveTab("Historique");
+              if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
               refresh();
             }}
-            activeTabIndex={["Informations", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
+            activeTabIndex={["Informations", "Documents", "Commentaires", "Historique", "Voir toutes les occurrences"].findIndex(
+              (tab) => tab === activeTab
+            )}
           />
           <form
             id="add-action-form"
@@ -743,15 +754,9 @@ function ActionContent({ onClose, isMulti = false }) {
                           jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
                         </div>
                       </div>
-                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-ml-8">
-                        <div className="tw-font-bold">Occurrences suivantes</div>
-                        <ul className="tw-list-disc tw-pl-4">
-                          {getOccurrences(action.recurrenceData)
-                            .filter((d) => d > dayjsInstance(action.dueAt).endOf("day").toDate())
-                            .map((d) => {
-                              return <li key={d}>{formatDateWithNameOfDay(d)}</li>;
-                            })}
-                        </ul>
+                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-pl-8 tw-w-full">
+                        <div className="tw-font-bold tw-mb-4">Occurrences suivantes</div>
+                        <NextOccurrences action={action} />
                       </div>
                     </div>
                   )}
@@ -907,6 +912,16 @@ function ActionContent({ onClose, isMulti = false }) {
           >
             <ActionHistory action={action} />
           </div>
+          <div
+            className={[
+              "tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto",
+              activeTab !== "Voir toutes les occurrences" && "tw-hidden",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <AllOccurrences action={action} />
+          </div>
         </div>
       </ModalBody>
       <ModalFooter>
@@ -1024,6 +1039,116 @@ function ActionContent({ onClose, isMulti = false }) {
         )}
       </ModalFooter>
     </>
+  );
+}
+
+function AllOccurrences({ action }) {
+  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const actions = person?.actions.filter((e) => e.recurrence === action.recurrence) || [];
+  const [isAfterOpen, setIsAfterOpen] = useState(true);
+  const [isBeforeOpen, setIsBeforeOpen] = useState(false);
+
+  const afterActions = [];
+  const beforeActions = [];
+  for (const a of actions) {
+    if (dayjsInstance(a.completedAt || a.dueAt).isAfter(dayjsInstance(action.completedAt || action.dueAt))) {
+      afterActions.push(a);
+    } else {
+      beforeActions.push(a);
+    }
+  }
+
+  if (!actions.length) return null;
+  return (
+    <div className="tw-p-4">
+      <div className="tw-mb-8">
+        <div
+          className="tw-bg-gray-100 tw-rounded-lg tw-p-4 tw-flex tw-text-lg tw-font-semibold tw-cursor-pointer"
+          onClick={() => {
+            setIsBeforeOpen(!isBeforeOpen);
+          }}
+        >
+          <div className="tw-grow">Occurrences précédentes</div>
+          <div>{isBeforeOpen ? "-" : "+"}</div>
+        </div>
+        {isBeforeOpen && (
+          <ActionsSortableList
+            data={beforeActions}
+            localStorageSortByName="action-recurrence-before-sortBy"
+            localStorageSortOrderName="action-recurrence-before-sortBy"
+          />
+        )}
+      </div>
+      <div className="tw-mb-8">
+        <div
+          className="tw-bg-gray-100 tw-rounded-lg tw-p-4 tw-flex tw-text-lg tw-font-semibold tw-cursor-pointer"
+          onClick={() => {
+            setIsAfterOpen(!isAfterOpen);
+          }}
+        >
+          <div className="tw-grow">Occurrences suivantes</div>
+          <div>{isAfterOpen ? "-" : "+"}</div>
+        </div>
+        {isAfterOpen && (
+          <ActionsSortableList
+            data={afterActions}
+            localStorageSortByName="action-recurrence-after-sortBy"
+            localStorageSortOrderName="action-recurrence-after-sortBy"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NextOccurrences({ action }) {
+  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const actions =
+    person?.actions
+      .filter((e) => e.recurrence === action.recurrence)
+      .filter((a) => dayjsInstance(a.completedAt || a.dueAt).isAfter(dayjsInstance(action.completedAt || action.dueAt))) || [];
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
+
+  if (!actions.length)
+    return (
+      <div className="tw-text-xs tw-text-gray-600 -tw-mt-4">
+        Aucune occurrence de l'action après celle-ci. Vous pouvez afficher toutes les occurrences de l'action en sélectionnant l'onglet correspondant
+        ci-dessus.
+      </div>
+    );
+  return (
+    <table className="table table-striped">
+      <tbody className="small">
+        {actions.map((a) => {
+          return (
+            <tr
+              key={a._id}
+              onClick={() => {
+                if (confirm("Voulez-vous quitter cette action et aller sur l'occurrence sélectionnée ?")) {
+                  setModalAction({ open: true, from: location.pathname, action: a });
+                  toast.success(
+                    "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
+                  );
+                }
+              }}
+            >
+              <td className="!tw-p-1">
+                <DateBloc date={[DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt} />
+              </td>
+              <td className="!tw-p-1 !tw-align-middle">
+                <ActionStatusSelect action={a} />
+              </td>
+              <td className="!tw-p-1 !tw-align-middle">
+                <div className="tw-flex tw-h-full tw-shrink-0 tw-flex-col tw-justify-center tw-gap-px">
+                  {Array.isArray(a?.teams) ? a.teams.map((e) => <TagTeam key={e} teamId={e} />) : <TagTeam teamId={a?.team} />}
+                </div>
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
   );
 }
 

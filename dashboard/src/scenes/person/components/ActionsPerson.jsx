@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../../recoil/actions";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
 import TagTeam from "../../../components/TagTeam";
@@ -17,61 +17,7 @@ import DescriptionIcon from "../../../components/DescriptionIcon";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import { modalActionState } from "../../../recoil/modal";
-
-function processActions(actionsToSet) {
-  const now = dayjsInstance().startOf("day");
-
-  // Utilitaire pour obtenir la date de l'action (completedAt si disponible, sinon dueAt)
-  const getActionDate = (action) => {
-    return action.completedAt ? dayjsInstance(action.completedAt) : dayjsInstance(action.dueAt);
-  };
-
-  // Filtrer les actions qui n'ont pas de récurrence (recurrence === null)
-  const actionsWithoutRecurrence = structuredClone(actionsToSet.filter((action) => action.recurrence === null));
-
-  // Grouper les actions par récurrence
-  const actionsGroupedByRecurrence = structuredClone(
-    actionsToSet.reduce((acc, action) => {
-      if (action.recurrence !== null) {
-        if (!acc[action.recurrence]) {
-          acc[action.recurrence] = [];
-        }
-        acc[action.recurrence].push(action);
-      }
-      return acc;
-    }, {})
-  );
-
-  // Parcourir chaque groupe de récurrence et appliquer la logique
-  const actionsWithRecurrence = Object.values(actionsGroupedByRecurrence).flatMap((group) => {
-    // Trier les actions dans le groupe par date
-    const sortedGroup = group.sort((a, b) => (getActionDate(a).isAfter(getActionDate(b)) ? 1 : -1));
-
-    // Trouver la première action à venir
-    const firstUpcomingIndex = sortedGroup.findIndex((action) => getActionDate(action).isAfter(now));
-
-    // Si aucune action à venir, retourner tout le groupe
-    if (firstUpcomingIndex === -1) {
-      return sortedGroup;
-    }
-
-    // Garder les actions jusqu'à la première action à venir (inclus)
-    const actionsToDisplay = sortedGroup.slice(0, firstUpcomingIndex + 1);
-
-    // Enrichir la dernière action (la première à venir) avec la date de la suivante, si elle existe
-    if (firstUpcomingIndex + 1 < sortedGroup.length) {
-      const nextAction = sortedGroup[firstUpcomingIndex + 1];
-      actionsToDisplay[firstUpcomingIndex].nextOccurrence = getActionDate(nextAction);
-    }
-
-    return actionsToDisplay;
-  });
-
-  // Combiner les actions sans récurrence et celles avec récurrence
-  const finalActions = [...actionsWithoutRecurrence, ...actionsWithRecurrence];
-
-  return finalActions;
-}
+import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 
 const filteredPersonActionsSelector = selectorFamily({
   key: "filteredPersonActionsSelector",
@@ -82,7 +28,7 @@ const filteredPersonActionsSelector = selectorFamily({
       let actionsToSet = person?.actions || [];
 
       // Process sur les actions pour les récurrentes
-      actionsToSet = processActions(actionsToSet);
+      actionsToSet = actionsWithoutFutureRecurrences(actionsToSet);
 
       if (filterCategories.length) {
         actionsToSet = actionsToSet.filter((a) =>

@@ -1,6 +1,7 @@
 import { Dayjs } from "dayjs";
 import { dayjsInstance } from "../services/date";
 import { days, Recurrence } from "../types/recurrence";
+import { ActionInstance } from "../types/action";
 
 const ucFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -105,6 +106,55 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
   }
 
   return occurrences.map((date) => date.toDate());
+}
+
+type ActionInstanceWithNextOccurrence = ActionInstance & { nextOccurrence: Dayjs };
+
+// On donne une liste d'action et on retire les actions récurrentes qui sont après la prochaine occurrence.
+// Utile pour ne pas afficher toutes les actions du futur dans les notifications
+export function actionsWithoutFutureRecurrences(actionsToSet: ActionInstanceWithNextOccurrence[]) {
+  const now = dayjsInstance().startOf("day");
+
+  const getActionDate = (action: ActionInstance): Dayjs => {
+    return action.completedAt ? dayjsInstance(action.completedAt) : dayjsInstance(action.dueAt);
+  };
+
+  const actionsWithoutRecurrence = structuredClone(actionsToSet.filter((action) => action.recurrence === null));
+  const actionsGroupedByRecurrence: Record<string, ActionInstanceWithNextOccurrence[]> = structuredClone(
+    actionsToSet.reduce((acc, action) => {
+      if (action.recurrence !== null) {
+        if (!acc[action.recurrence]) {
+          acc[action.recurrence] = [];
+        }
+        acc[action.recurrence].push(action);
+      }
+      return acc;
+    }, {})
+  );
+
+  const actionsWithRecurrence = Object.values(actionsGroupedByRecurrence).flatMap((group) => {
+    // Trier les actions dans le groupe par date
+    const sortedGroup = group.sort((a, b) => (getActionDate(a).isAfter(getActionDate(b)) ? 1 : -1));
+    // Trouver la première action à venir
+    const firstUpcomingIndex = sortedGroup.findIndex((action) => !now.isAfter(getActionDate(action)));
+    // Si aucune action à venir, retourner tout le groupe
+    if (firstUpcomingIndex === -1) {
+      return sortedGroup;
+    }
+
+    // On garde les actions jusqu'à la première action à venir (inclus)
+    const actionsToDisplay = sortedGroup.slice(0, firstUpcomingIndex + 1);
+    // Enrichir la dernière action (la première à venir) avec la date de la suivante, si elle existe
+    if (firstUpcomingIndex + 1 < sortedGroup.length) {
+      const nextAction = sortedGroup[firstUpcomingIndex + 1];
+      actionsToDisplay[firstUpcomingIndex].nextOccurrence = getActionDate(nextAction);
+    }
+
+    return actionsToDisplay;
+  });
+
+  const finalActions = [...actionsWithoutRecurrence, ...actionsWithRecurrence];
+  return finalActions;
 }
 
 export function getNthWeekdayInMonth(date: Date) {
