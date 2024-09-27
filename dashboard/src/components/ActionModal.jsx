@@ -1052,7 +1052,7 @@ function ActionContent({ onClose, isMulti = false }) {
 
 function AllOccurrences({ action, onAfterActionClick }) {
   const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
-  const actions = person?.actions.filter((e) => e.recurrence === action.recurrence) || [];
+  const actions = (person?.actions || []).filter((e) => e.recurrence === action.recurrence);
   const [isAfterOpen, setIsAfterOpen] = useState(true);
   const [isBeforeOpen, setIsBeforeOpen] = useState(false);
 
