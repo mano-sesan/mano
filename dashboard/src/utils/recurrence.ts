@@ -119,10 +119,10 @@ export function actionsWithoutFutureRecurrences(actionsToSet: ActionInstanceWith
     return action.completedAt ? dayjsInstance(action.completedAt) : dayjsInstance(action.dueAt);
   };
 
-  const actionsWithoutRecurrence = structuredClone(actionsToSet.filter((action) => action.recurrence === null));
+  const actionsWithoutRecurrence = structuredClone(actionsToSet.filter((action) => !action.recurrence)); // null ou undefined
   const actionsGroupedByRecurrence: Record<string, ActionInstanceWithNextOccurrence[]> = structuredClone(
     actionsToSet.reduce((acc, action) => {
-      if (action.recurrence !== null) {
+      if (action.recurrence) {
         if (!acc[action.recurrence]) {
           acc[action.recurrence] = [];
         }
