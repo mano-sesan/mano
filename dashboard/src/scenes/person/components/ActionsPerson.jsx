@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../../recoil/actions";
-import { useHistory, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
 import TagTeam from "../../../components/TagTeam";
@@ -17,6 +17,7 @@ import DescriptionIcon from "../../../components/DescriptionIcon";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import { modalActionState } from "../../../recoil/modal";
+import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 
 const filteredPersonActionsSelector = selectorFamily({
   key: "filteredPersonActionsSelector",
@@ -25,6 +26,9 @@ const filteredPersonActionsSelector = selectorFamily({
     ({ get }) => {
       const person = get(itemsGroupedByPersonSelector)[personId];
       let actionsToSet = person?.actions || [];
+
+      // Process sur les actions pour les récurrentes
+      actionsToSet = actionsWithoutFutureRecurrences(actionsToSet);
 
       if (filterCategories.length) {
         actionsToSet = actionsToSet.filter((a) =>
@@ -254,6 +258,11 @@ const ActionsTable = ({ filteredData }) => {
                       )}
                       <div className="tw-flex tw-grow tw-flex-col tw-items-start">
                         <ActionOrConsultationName item={action} />
+                        {action.recurrence && action.nextOccurrence && (
+                          <div className="tw-flex tw-items-center tw-gap-1 tw-text-xs tw-italic tw-text-main">
+                            Occurrence suivante le {action.nextOccurrence.format("DD/MM/YYYY")}
+                          </div>
+                        )}
                       </div>
                       <div className="tw-flex tw-h-full tw-shrink-0 tw-flex-col tw-justify-center tw-gap-px">
                         {Array.isArray(action?.teams) ? action.teams.map((e) => <TagTeam key={e} teamId={e} />) : <TagTeam teamId={action?.team} />}

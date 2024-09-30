@@ -1,21 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SelectCustom from "../components/SelectCustom";
 import { dayjsInstance } from "../services/date";
 import DatePicker from "../components/DatePicker";
-import { getNthWeekdayInMonth, getOccurrences, numberAsOrdinal, recurrenceAsText } from "../utils/recurrence";
-
-export default function Sandbox() {
-  return (
-    <div className="main">
-      <div className="tw-container tw-mx-auto tw-flex tw-flex-col tw-gap-8 tw-mt-8">
-        <h1>Bac à sable</h1>
-        <div className="">
-          <Recurrence />
-        </div>
-      </div>
-    </div>
-  );
-}
+import { getNthWeekdayInMonth, numberAsOrdinal, recurrenceAsText } from "../utils/recurrence";
 
 const numbers = Array.from({ length: 99 }, (_, i) => i + 1);
 const timeUnits = ["day", "week", "month", "year"] as const;
@@ -44,14 +31,33 @@ const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dima
 
 const ucFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function Recurrence() {
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
-  const [endDate, setEndDate] = useState<Date | undefined>(dayjsInstance(startDate).add(6, "month").toDate());
+type RecurrenceData = {
+  endDate: Date;
+  timeInterval: number;
+  timeUnit: (typeof timeUnits)[number];
+  selectedDays: typeof days;
+  recurrenceTypeForMonthAndYear: RecurrenceTypeForMonthAndYear;
+};
+
+export default function Recurrence({
+  startDate,
+  onChange,
+  initialValues,
+}: {
+  startDate?: Date;
+  onChange?: (data: RecurrenceData) => void;
+  initialValues?: RecurrenceData;
+}) {
+  const [endDate, setEndDate] = useState<Date>(initialValues.endDate || dayjsInstance(startDate).add(6, "month").toDate());
   const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
-  const [timeInterval, setTimeInterval] = useState<number>(1);
-  const [timeUnit, setTimeUnit] = useState<(typeof timeUnits)[number]>("week");
-  const [selectedDays, setSelectedDays] = useState<typeof days>([initialDayLabel]);
-  const [recurrenceTypeForMonthAndYear, setRecurrenceTypeForMonthAndYear] = useState<RecurrenceTypeForMonthAndYear>("relative");
+  const [timeInterval, setTimeInterval] = useState<number>(initialValues.timeInterval || 1);
+  const [timeUnit, setTimeUnit] = useState<(typeof timeUnits)[number]>(initialValues.timeUnit || "week");
+  const [selectedDays, setSelectedDays] = useState<typeof days>(
+    initialValues.selectedDays || (initialValues.timeUnit === "day" ? days : [initialDayLabel])
+  );
+  const [recurrenceTypeForMonthAndYear, setRecurrenceTypeForMonthAndYear] = useState<RecurrenceTypeForMonthAndYear>(
+    initialValues.recurrenceTypeForMonthAndYear || "relative"
+  );
 
   const shouldShowDays = timeUnit === "week" || (timeUnit === "day" && timeInterval === 1);
   const shouldShowDayRadio = timeUnit === "month" || timeUnit === "year";
@@ -85,21 +91,20 @@ function Recurrence() {
     }
   };
 
+  useEffect(() => {
+    handleChangeStartDate(startDate, selectedDays);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startDate]);
+
+  useEffect(() => {
+    if (onChange) {
+      onChange({ endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear]);
+
   return (
     <div className="tw-flex tw-flex-col tw-gap-4">
-      <div className="tw-flex tw-gap-2 tw-items-center tw-justify-start">
-        <div>Début</div>
-        <div className="tw-w-36">
-          <DatePicker
-            id="date"
-            defaultValue={startDate}
-            onChange={({ target: { value } }) => {
-              handleChangeStartDate(value, selectedDays);
-              setStartDate(value);
-            }}
-          />
-        </div>
-      </div>
       <div className="tw-flex tw-gap-2 tw-items-center tw-justify-start">
         Répéter chaque
         {timeUnit !== "year" ? (
@@ -225,24 +230,6 @@ function Recurrence() {
           />
         </div>
       </div>
-      <div className="tw-h-64 tw-overflow-y-auto tw-border tw-w-96 tw-p-2">
-        {getOccurrences({
-          startDate: dayjsInstance(startDate).startOf("day").toDate(),
-          endDate,
-          timeInterval,
-          timeUnit,
-          selectedDays,
-          recurrenceTypeForMonthAndYear,
-        }).map((date) => {
-          return (
-            // eslint-disable-next-line react/jsx-key
-            <div className="tw-py-1">
-              <div>{dayjsInstance(date).format("dddd D MMMM YYYY HH:mm")}</div>
-              <div className="tw-text-xs">{dayjsInstance(date).toDate().toISOString()}</div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -251,6 +238,7 @@ function Day({ label, onClick, selected }: { label: string; onClick?: () => void
   return (
     <button
       onClick={onClick}
+      type="button"
       className={`tw-rounded-full tw-h-10 tw-w-10 tw-flex tw-items-center tw-justify-center tw-text-white ${selected ? "tw-bg-main" : "tw-bg-main25"}`}
     >
       {label}

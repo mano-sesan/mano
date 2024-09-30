@@ -9,12 +9,15 @@ module.exports = (sequelize, DataTypes) => {
     completedAt: DataTypes.DATE,
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
+    recurrence: { type: DataTypes.UUID, allowNull: true, references: { model: "Recurrence", key: "_id" } },
   };
 
   class Action extends Model {
-    static associate({ Organisation, Action }) {
+    static associate({ Organisation, Action, Recurrence }) {
       Action.belongsTo(Organisation, { foreignKey: { type: DataTypes.UUID, name: "organisation", field: "organisation" } });
       Organisation.hasMany(Action, { foreignKey: { type: DataTypes.UUID, name: "organisation", field: "organisation" } });
+      Action.belongsTo(Recurrence, { foreignKey: { type: DataTypes.UUID, name: "recurrence", field: "recurrence" } });
+      Recurrence.hasMany(Action, { foreignKey: { type: DataTypes.UUID, name: "recurrence", field: "recurrence" } });
     }
   }
 

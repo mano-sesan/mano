@@ -75,6 +75,7 @@ router.post(
           status: z.enum(STATUS),
           dueAt: z.preprocess((input) => new Date(input), z.date()),
           ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
+          recurrence: z.optional(z.string().regex(looseUuidRegex)),
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
         })
@@ -94,6 +95,7 @@ router.post(
           status,
           dueAt,
           completedAt: completedAt || null,
+          recurrence: action.recurrence || null,
           encrypted,
           encryptedEntityKey,
         };
@@ -106,6 +108,7 @@ router.post(
             createdAt: data.createdAt,
             updatedAt: data.updatedAt,
             deletedAt: data.deletedAt,
+            recurrence: data.recurrence,
             status: data.status,
             dueAt: data.dueAt,
             completedAt: data.completedAt,
@@ -182,6 +185,7 @@ router.get(
         "status",
         "dueAt",
         "completedAt",
+        "recurrence",
         // All other fields are encrypted and should not be returned.
       ],
     });

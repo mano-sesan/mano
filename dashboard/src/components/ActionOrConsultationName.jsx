@@ -4,6 +4,7 @@ import { useRecoilValue } from "recoil";
 import { disableConsultationRow } from "../recoil/consultations";
 import { getName } from "../recoil/actions";
 import UserName from "./UserName";
+import RepeatIcon from "../assets/icons/RepeatIcon";
 
 export default function ActionOrConsultationName({ item, hideType = false }) {
   const me = useRecoilValue(userState);
@@ -19,7 +20,14 @@ export default function ActionOrConsultationName({ item, hideType = false }) {
   }
   return (
     <>
-      <div>{getName(item)}</div>
+      {item.recurrence ? (
+        <div className="tw-flex tw-items-center">
+          <RepeatIcon className="tw-size-5 tw-mr-1.5 tw-text-main" />
+          {getName(item)}
+        </div>
+      ) : (
+        <div>{getName(item)}</div>
+      )}
       <div>
         {item.categories?.map((category) => (
           <span

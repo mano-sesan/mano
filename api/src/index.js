@@ -117,6 +117,7 @@ app.use("/consultation", require("./controllers/consultation"));
 app.use("/treatment", require("./controllers/treatment"));
 app.use("/group", require("./controllers/group"));
 app.use("/medical-file", require("./controllers/medicalFile"));
+app.use("/recurrence", require("./controllers/recurrence"));
 
 // The error handler must be before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler());
