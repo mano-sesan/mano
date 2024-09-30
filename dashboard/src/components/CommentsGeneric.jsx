@@ -56,6 +56,7 @@ export function CommentsModule({
   canToggleGroupCheck = false,
   canToggleUrgentCheck = false,
   canToggleShareComment = false,
+  showAddCommentButton = true,
   onDeleteComment,
   onSubmitComment,
   color = "main", // main|blue-900
@@ -104,7 +105,7 @@ export function CommentsModule({
         </div>
       ) : (
         <CommentsTable
-          showAddCommentButton
+          showAddCommentButton={showAddCommentButton}
           comments={comments}
           color={color}
           onDisplayComment={setCommentToDisplay}
@@ -222,9 +223,11 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
           </svg>
           Aucun commentaire pour le moment
         </div>
-        <button type="button" className={`button-submit !tw-bg-${color}`} onClick={onAddComment}>
-          ＋ Ajouter un commentaire
-        </button>
+        {showAddCommentButton && (
+          <button type="button" className={`button-submit !tw-bg-${color}`} onClick={onAddComment}>
+            ＋ Ajouter un commentaire
+          </button>
+        )}
       </div>
     );
   }

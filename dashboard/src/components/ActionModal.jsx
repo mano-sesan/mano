@@ -800,7 +800,7 @@ function ActionContent({ onClose, isMulti = false }) {
             <DocumentsModule
               personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
               showAssociatedItem={false}
-              showAddDocumentButton={!modalAction.isEditingAllNextOccurences}
+              showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
               documents={action.documents.map((doc) => ({
                 ...doc,
                 type: doc.type ?? "document", // or 'folder'
@@ -850,6 +850,7 @@ function ActionContent({ onClose, isMulti = false }) {
                 .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
               color="main"
               canToggleUrgentCheck
+              showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
               typeForNewComment="action"
               actionId={action?._id}
               onDeleteComment={async (comment) => {
@@ -950,7 +951,12 @@ function ActionContent({ onClose, isMulti = false }) {
             className="button-destructive"
             onClick={async (e) => {
               e.stopPropagation();
-              if (!window.confirm("Voulez-vous supprimer cette action ?")) return;
+              if (modalAction.isEditingAllNextOccurences) {
+                if (!window.confirm("Voulez-vous supprimer cette action ET TOUTES LES SUIVANTES ?")) return;
+              } else {
+                if (!window.confirm("Voulez-vous supprimer cette action ?")) return;
+              }
+
               setIsDeleting(true);
               const [error] = await tryFetchExpectOk(() =>
                 API.delete({
@@ -964,6 +970,24 @@ function ActionContent({ onClose, isMulti = false }) {
                 toast.error("Erreur lors de la suppression de l'action");
                 setIsDeleting(false);
                 return;
+              }
+
+              // Suppression des occurrences suivantes si nécessaire:
+              if (modalAction.isEditingAllNextOccurences) {
+                const nextActions = Object.values(actionsObjects).filter(
+                  (a) =>
+                    dayjsInstance(a.dueAt).isAfter(initialExistingAction.dueAt) &&
+                    a.person === initialExistingAction.person &&
+                    a.recurrence === initialExistingAction.recurrence
+                );
+                for (const nextAction of nextActions) {
+                  const [error] = await tryFetchExpectOk(() => API.delete({ path: `/action/${nextAction._id}` }));
+                  if (error) {
+                    toast.error("Erreur lors de la suppression des actions suivantes, les données n'ont pas été sauvegardées.");
+                    setIsSubmitting(false);
+                    return false;
+                  }
+                }
               }
               refresh();
               toast.success("Suppression réussie");
