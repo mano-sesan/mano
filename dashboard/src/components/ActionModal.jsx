@@ -734,16 +734,20 @@ function ActionContent({ onClose, isMulti = false }) {
                   </div>
                   <div className={["tw-mb-4 tw-flex tw-flex-col", [DONE, CANCEL].includes(action.status) ? "" : "tw-hidden"].join(" ")}>
                     <label htmlFor="completedAt">{action.status === DONE ? "Faite le" : "Annulée le"}</label>
-                    <div>
-                      <DatePicker
-                        withTime
-                        id="completedAt"
-                        name="completedAt"
-                        defaultValue={action.completedAt ?? new Date()}
-                        onChange={handleChange}
-                        onInvalid={() => setActiveTab("Informations")}
-                      />
-                    </div>
+                    {isEditing ? (
+                      <div>
+                        <DatePicker
+                          withTime
+                          id="completedAt"
+                          name="completedAt"
+                          defaultValue={action.completedAt ?? new Date()}
+                          onChange={handleChange}
+                          onInvalid={() => setActiveTab("Informations")}
+                        />
+                      </div>
+                    ) : (
+                      <CustomFieldDisplay value={action.completedAt} type="date-with-time" />
+                    )}
                   </div>
                   {!DISABLED_FEATURES["action-recurrentes"] && !isEditing && action.recurrence && action.recurrenceData.timeUnit && (
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
