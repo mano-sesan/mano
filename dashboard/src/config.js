@@ -29,9 +29,6 @@ const getHost = () => {
   if (window.location.host.includes("espace-mano.localhost")) {
     return "api-mano.localhost";
   }
-  if (window.location.host.includes("test.fabrique.social.gouv.fr")) {
-    return "api-mano.test.fabrique.social.gouv.fr";
-  }
   if (window.location.host.includes("preprod-espace-mano.sesan.fr")) {
     console.log("preprod mano");
     return "preprod-api-mano.sesan.fr";
@@ -40,7 +37,7 @@ const getHost = () => {
     console.log("prod mano");
     return "api-mano.sesan.fr";
   }
-  return "mano.fabrique.social.gouv.fr";
+  return "preprod-api-mano.sesan.fr";
 };
 
 const HOST = getHost();
