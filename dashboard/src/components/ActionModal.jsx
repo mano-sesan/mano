@@ -214,7 +214,13 @@ function ActionContent({ onClose, isMulti = false }) {
               occurrences.map((occurrence) =>
                 encryptAction({
                   ...body,
-                  dueAt: occurrence,
+                  // On met la dueAt de la récurrence avec l'heure si withTime est activé.
+                  dueAt: !body.withTime
+                    ? occurrence
+                    : dayjsInstance(occurrence)
+                        .set("hour", dayjsInstance(body.dueAt).hour())
+                        .set("minute", dayjsInstance(body.dueAt).minute())
+                        .toDate(),
                   reccurence: body.recurrence,
                 })
               )
@@ -348,7 +354,12 @@ function ActionContent({ onClose, isMulti = false }) {
                   ...body,
                   recurrence: recurrencesIds[index],
                   person: personId,
-                  dueAt: occurrence,
+                  dueAt: !body.withTime
+                    ? occurrence
+                    : dayjsInstance(occurrence)
+                        .set("hour", dayjsInstance(body.dueAt).hour())
+                        .set("minute", dayjsInstance(body.dueAt).minute())
+                        .toDate(),
                 })
               );
             } else {
