@@ -372,11 +372,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setProgress((p) => p + res.data.length);
         newItems.push(...decryptedData);
         if (res.hasMore) return loadRecurrences(page + 1);
-        if (newItems.length) setRecurrences(mergeItems(places, newItems));
+        if (newItems.length) setRecurrences(mergeItems(recurrences, newItems));
         return true;
       }
-      const placesSuccess = await loadRecurrences(0);
-      if (!placesSuccess) return false;
+      const recurrencesSuccess = await loadRecurrences(0);
+      if (!recurrencesSuccess) return false;
     }
     if (stats.territories > 0) {
       let newItems = [];
