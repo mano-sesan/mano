@@ -5,7 +5,7 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
-      - VIRTUAL_HOST=website-mano.localhost,mano.test.fabrique.social.gouv.fr,mano.sesan.fr,preprod-mano.sesan.fr
+      - VIRTUAL_HOST=website-mano.localhost,mano.sesan.fr,preprod-mano.sesan.fr
       - PORT=8080
       - no_proxy=ad.sesan.fr,.gcsidf.local,localhost,127.0.0.1
       - https_proxy=http://sesclaprx-vip.grita.fr:3128
@@ -21,7 +21,7 @@ services:
         VITE_USE_HTTP: ${VITE_USE_HTTP}
     environment:
       - NODE_ENV=production
-      - VIRTUAL_HOST=espace-mano.localhost,espace-mano.test.fabrique.social.gouv.fr,espace-mano.sesan.fr,preprod-espace-mano.sesan.fr
+      - VIRTUAL_HOST=espace-mano.localhost,espace-mano.sesan.fr,preprod-espace-mano.sesan.fr
       - PORT=8083
       - VITE_SCHEME=${VITE_SCHEME}
       - VITE_HOST=${VITE_HOST}
@@ -39,7 +39,7 @@ services:
       - /var/deploy:/deploy
     environment:
       NODE_ENV: production
-      VIRTUAL_HOST: api-mano.localhost,api-mano.test.fabrique.social.gouv.fr,api-mano.sesan.fr,preprod-api-mano.sesan.fr
+      VIRTUAL_HOST: api-mano.localhost,api-mano.sesan.fr,preprod-api-mano.sesan.fr
       PORT: 3000
       DEPLOY_KEY_FILE: /run/secrets/deploy_key
       PGHOST: host.docker.internal
@@ -64,7 +64,7 @@ services:
     restart: always
     image: metabase/metabase
     environment:
-      VIRTUAL_HOST: metabase-mano.localhost,metabase-mano.test.fabrique.social.gouv.fr,metabase-mano.sesan.fr,preprod-metabase-mano.sesan.fr
+      VIRTUAL_HOST: metabase-mano.localhost,metabase-mano.sesan.fr,preprod-metabase-mano.sesan.fr
       MB_DB_TYPE: postgres
       MB_DB_DBNAME: metabaseappdb
       MB_DB_PORT: 5432
