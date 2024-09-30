@@ -769,7 +769,7 @@ function ActionContent({ onClose, isMulti = false }) {
                           jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
                         </div>
                       </div>
-                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-pl-8 tw-w-full">
+                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-w-full">
                         <div className="tw-font-bold tw-mb-4">Occurrences suivantes</div>
                         <NextOccurrences action={action} />
                       </div>
