@@ -54,6 +54,12 @@ describe("Recurrence", () => {
       expected = toDates(["2024-01-02", "2024-01-08", "2024-01-09", "2024-01-15", "2024-01-16"]);
     });
 
+    it("every 1 week on monday and friday (bug melissa)", () => {
+      const actual = occurrences("2024-10-03", "2024-10-08", 1, "week", ["Lundi", "Vendredi"]);
+      const expected = toDates(["2024-10-04", "2024-10-07"]);
+      expect(actual).toEqual(expected);
+    });
+
     it("every 2 weeks on monday and sunday", () => {
       const actual = occurrences("2024-01-01", "2024-02-04", 2, "week", ["Lundi", "Dimanche"]);
       const expected = toDates(["2024-01-01", "2024-01-07", "2024-01-15", "2024-01-21", "2024-01-29", "2024-02-04"]);
