@@ -34,7 +34,12 @@ app.use(Sentry.Handlers.tracingHandler());
 if (process.env.NODE_ENV === "production") {
   app.use(cors({ credentials: true, origin: [/mano\.localhost$/, /sesan\.fr$/] }));
 } else {
-  app.use(cors({ credentials: true, origin: ["http://localhost:4145", "http://localhost:8083", "http://localhost:8090", "http://localhost:3000"] }));
+  app.use(
+    cors({
+      credentials: true,
+      origin: ["http://localhost:1420", "http://localhost:4145", "http://localhost:8083", "http://localhost:8090", "http://localhost:3000"],
+    })
+  );
 }
 
 const now = new Date();
