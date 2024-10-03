@@ -29,7 +29,7 @@ export function getOccurrences(recurrence: Recurrence): Date[] {
           }
         }
       }
-      nextDate = nextDate.add(timeInterval, "week");
+      nextDate = nextDate.startOf("week").add(timeInterval, "week");
     }
   } else if (timeUnit === "month") {
     while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
