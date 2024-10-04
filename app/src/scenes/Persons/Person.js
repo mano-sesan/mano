@@ -245,7 +245,7 @@ const Person = ({ route, navigation }) => {
         );
       }
     }
-    const actionIdsToDelete = actions.filter((a) => a.group === false && a.person === personDB._id).map((a) => a._id);
+    const actionIdsToDelete = actions.filter((a) => !a.group && a.person === personDB._id).map((a) => a._id);
     const commentIdsToDelete = comments
       .filter((c) => {
         if (c.group) return false;

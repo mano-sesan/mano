@@ -227,7 +227,7 @@ export const defaultActionForModal = (
   name: "",
   description: "",
   urgent: false,
-  group: undefined,
+  group: false,
   createdAt: new Date(),
   ...params,
 });
