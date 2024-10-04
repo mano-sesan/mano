@@ -18,7 +18,7 @@ export interface ActionInstance {
   categories: string[];
   team?: UUIDV4;
   teams: UUIDV4[];
-  group?: UUIDV4;
+  group?: UUIDV4 | boolean; // Trop bizarre, à revoir
   documents?: Array<Document | Folder>;
   comments?: any[];
   structure?: UUIDV4;
