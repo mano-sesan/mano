@@ -108,7 +108,7 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
           </div>
         </div>
         <div className="tw-w-full tw-px-7 tw-pb-2">
-          <ActionsOrConsultationsFilters setFilterStatus={setFilterStatus} filterStatus={filterStatus} disabled={!data.length} />
+          <ActionsOrConsultationsFilters setFilterStatus={setFilterStatus} filterStatus={filterStatus} disabled={false} />
         </div>
         <div className="tw-grow tw-overflow-y-auto tw-border-t tw-border-main tw-border-opacity-20">
           <ActionsSortableList data={filteredData} />
