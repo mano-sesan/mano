@@ -1,4 +1,5 @@
 import { Dayjs } from "dayjs";
+import structuredClone from "@ungap/structured-clone";
 import { dayjsInstance } from "../services/date";
 import { days, Recurrence } from "../types/recurrence";
 import { ActionInstance } from "../types/action";

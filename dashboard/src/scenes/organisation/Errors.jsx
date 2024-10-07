@@ -1,6 +1,7 @@
 import API, { tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { useRecoilValue } from "recoil";
+import structuredClone from "@ungap/structured-clone";
 import { organisationState, userState } from "../../recoil/auth";
 import { useEffect, useState } from "react";
 import Loading from "../../components/loading";
