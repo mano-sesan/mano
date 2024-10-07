@@ -52,10 +52,11 @@ const DEFAULT_ORGANISATION_KEY =
   process.env.NODE_ENV === "development" && import.meta.env.VITE_TEST !== "true" ? import.meta.env.VITE_DEFAULT_ORGANISATION_KEY : "";
 
 const MANO_TEST_ORG_ID = "00000000-5f5a-89e2-2e60-88fa20cc50bf";
+const MANO_ORGA_ACTIONS_RECURRENTES = ["cae49636-e0b4-4d37-a1a5-eb378d9c0980", "6628b5db-2652-4c41-bdd0-ed8b34c20258", MANO_TEST_ORG_ID];
 
 const DISABLED_FEATURES = {
   // "feature-key": true,
   "action-recurrentes": !(ENV === "development" || HOST === "preprod-api-mano.sesan.fr"),
 };
 
-export { theme, HOST, SCHEME, ENV, VERSION, DEFAULT_ORGANISATION_KEY, DISABLED_FEATURES, MANO_TEST_ORG_ID };
+export { theme, HOST, SCHEME, ENV, VERSION, DEFAULT_ORGANISATION_KEY, DISABLED_FEATURES, MANO_TEST_ORG_ID, MANO_ORGA_ACTIONS_RECURRENTES };
