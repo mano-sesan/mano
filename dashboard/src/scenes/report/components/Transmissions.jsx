@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
+import structuredClone from "@ungap/structured-clone";
 import { encryptReport } from "../../../recoil/reports";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
