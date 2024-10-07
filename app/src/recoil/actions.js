@@ -93,6 +93,7 @@ export const prepareActionForEncryption = (action) => {
     completedAt: action.completedAt,
     dueAt: action.dueAt,
     status: action.status,
+    recurrence: action.recurrence,
 
     decrypted,
     entityKey: action.entityKey,
