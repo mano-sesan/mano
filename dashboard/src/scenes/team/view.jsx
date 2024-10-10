@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import Loading from "../../components/loading";
 import ButtonCustom from "../../components/ButtonCustom";
 import NightSessionModale from "../../components/NightSessionModale";
-import { currentTeamState, organisationState, teamsState } from "../../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { useRecoilState, useRecoilValue } from "recoil";
 import useTitle from "../../services/useTitle";
@@ -25,12 +25,14 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../compo
 import SelectTeam from "../../components/SelectTeam";
 import { encryptReport, reportsState } from "../../recoil/reports";
 import { useDataLoader } from "../../components/DataLoader";
+import { cleanHistory } from "../../utils/person-history";
 
 const View = () => {
   const [team, setTeam] = useState(null);
   const { id } = useParams();
   const history = useHistory();
 
+  const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const actions = useRecoilValue(actionsState);
   const consultations = useRecoilValue(consultationsState);
@@ -249,6 +251,19 @@ const View = () => {
                 const personsToUpdate = personsInTeam.map((p) => ({
                   ...p,
                   assignedTeams: p.assignedTeams.filter((t) => t !== id).concat(transferSelectedTeam),
+                  history: [
+                    ...(cleanHistory(p.history) || []),
+                    {
+                      date: new Date(),
+                      user: user._id,
+                      data: {
+                        assignedTeams: {
+                          oldValue: p.assignedTeams,
+                          newValue: p.assignedTeams.filter((t) => t !== id).concat(transferSelectedTeam),
+                        },
+                      },
+                    },
+                  ],
                 }));
                 const passagesToUpdate = passagesInTeam.map((p) => ({ ...p, team: transferSelectedTeam }));
                 const rencontresToUpdate = rencontresInTeam.map((r) => ({ ...r, team: transferSelectedTeam }));
