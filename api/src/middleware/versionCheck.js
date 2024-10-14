@@ -1,7 +1,7 @@
 const { QueryTypes } = require("sequelize");
 const { sequelize } = require("../db/sequelize");
 
-const MINIMUM_MOBILE_APP_VERSION = [3, 5, 0];
+const MINIMUM_MOBILE_APP_VERSION = [3, 9, 0];
 
 let deploymentCommit = null;
 let deploymentDate = null;
