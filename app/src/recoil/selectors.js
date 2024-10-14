@@ -289,7 +289,9 @@ const formatData = (data) => {
     return [
       ...actions,
       { type: 'title', title: section.title, _id: section.title },
-      ...section.data.sort((a, b) => new Date(b.dueAt) - new Date(a.dueAt)),
+      ...section.data.sort((a, b) =>
+        section.title === INCOMINGDAYS ? new Date(a.dueAt) - new Date(b.dueAt) : new Date(b.dueAt) - new Date(a.dueAt)
+      ),
     ];
   }, []);
 };
