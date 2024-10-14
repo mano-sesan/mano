@@ -32,7 +32,7 @@ const List = () => {
     return filterBySearch(search, orderedStructures);
   }, [search, sortBy, sortOrder, structures]);
 
-  useTitle("Structures");
+  useTitle("Contacts");
 
   const getStructures = async () => {
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/structure" }));
@@ -53,7 +53,7 @@ const List = () => {
   return (
     <>
       <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
-        <div className="tw-grow tw-text-xl">{`Structures (${filteredStructures?.length})`}</div>
+        <div className="tw-grow tw-text-xl">{`Contacts (${filteredStructures?.length})`}</div>
         <div>
           <Structure
             key={currentStructure}
@@ -177,7 +177,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!structure.name) {
-      toast.error("Le nom de la structure est obligatoire");
+      toast.error("Le nom du contact est obligatoire");
       return;
     }
     setIsSubmitting(true);
@@ -190,12 +190,12 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
       setIsSubmitting(false);
       return;
     }
-    toast.success(!isNew ? "Structure mise à jour !" : "Structure créée !");
+    toast.success(!isNew ? "Contact mise à jour !" : "Contact créée !");
     onClose();
   };
 
   const onDeleteStructure = async () => {
-    if (window.confirm("Voulez-vous vraiment supprimer cette structure ? Cette action est irréversible.")) {
+    if (window.confirm("Voulez-vous vraiment supprimer ce contact ? Cette action est irréversible.")) {
       setIsDeleting(true);
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/structure/${structure._id}` }));
       if (error) {
@@ -203,7 +203,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
         setIsDeleting(false);
         return;
       }
-      toast.success("Structure supprimée !");
+      toast.success("Contact supprimé !");
       setStructure(initStructure);
       onClose();
     }
@@ -211,7 +211,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
-      <ButtonCustom type="button" onClick={onOpen} color="primary" title="Créer une structure" padding="12px 24px" />
+      <ButtonCustom type="button" onClick={onOpen} color="primary" title="Créer un contact" padding="12px 24px" />
       <ModalContainer
         open={open}
         onClose={() => {
@@ -226,7 +226,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
           onAfterLeave();
         }}
       >
-        <ModalHeader title={!initStructure?._id ? "Créer une structure" : "Modifier une structure"} />
+        <ModalHeader title={!initStructure?._id ? "Créer un contact" : "Modifier un contact"} />
         <ModalBody className="tw-pb-4">
           <form id="create-structure-form" className="tw-flex tw-w-full tw-flex-row tw-flex-wrap" onSubmit={onSubmit}>
             <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">

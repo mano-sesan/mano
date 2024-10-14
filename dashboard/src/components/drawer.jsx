@@ -101,7 +101,7 @@ const Drawer = () => {
             </li> */}
               <li>
                 <NavLink to="/structure" activeClassName="active">
-                  Structures
+                  Contacts
                 </NavLink>
               </li>
               <li>

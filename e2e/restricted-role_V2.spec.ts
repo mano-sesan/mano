@@ -58,7 +58,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Organisation" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Statistiques" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Personnes suivies" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Territoires" })).toBeVisible(); // ok
@@ -126,7 +126,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Organisation" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Statistiques" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
 
   // menu navigation visible pour restricted
   await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();

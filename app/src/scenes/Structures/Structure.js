@@ -103,7 +103,7 @@ const Structure = ({ navigation, route }) => {
       return false;
     }
     if (response.ok) {
-      Alert.alert('Structure mise à jour !');
+      Alert.alert('Contact mise à jour !');
       setStructures((structures) =>
         structures.map((s) => {
           if (s._id === response.data._id) return response.data;
@@ -153,7 +153,7 @@ const Structure = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer cette structure ?', null, [
+    Alert.alert('Voulez-vous enregistrer ce contact ?', null, [
       {
         text: 'Enregistrer',
         onPress: async () => {
@@ -264,8 +264,7 @@ const Structure = ({ navigation, route }) => {
             onBack={onBack}
             textToConfirm={structureDB?.name}
             onDelete={onDelete}>
-            Cette opération est irréversible{'\n'}et entrainera la suppression définitive de cette structure{'\n'}pour toutes les organisations qui
-            utilisent Mano
+            Cette opération est irréversible{'\n'}et entrainera la suppression définitive de ce contact
           </DeleteButtonAndConfirmModal>
           <Button
             caption={editable ? 'Mettre à jour' : 'Modifier'}

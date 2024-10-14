@@ -15,7 +15,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Équipes" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Organisation" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Soliguide" })).not.toBeVisible();
-  await expect(page.getByRole("link", { name: "Structures" })).not.toBeVisible();
+  await expect(page.getByRole("link", { name: "Contacts" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Comptes rendus" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Personnes suivies" })).not.toBeVisible();
   await expect(page.getByRole("link", { name: "Territoires" })).not.toBeVisible();

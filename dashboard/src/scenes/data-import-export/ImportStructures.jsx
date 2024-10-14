@@ -43,7 +43,7 @@ export default function ImportStructures() {
       // I only took one part of the code, because we use "w" only.
       const workbook = read(data, { dateNF: "yyyy-mm-dd" });
       const { SheetNames, Sheets } = workbook;
-      const structuresSheetName = SheetNames.find((name) => name.toLocaleLowerCase().includes("structure"));
+      const structuresSheetName = SheetNames.find((name) => name.toLocaleLowerCase().includes("contacts"));
       const structuresSheet = Sheets[structuresSheetName];
       /*
       something like that:
@@ -123,7 +123,7 @@ export default function ImportStructures() {
   };
 
   const onImportData = async () => {
-    if (window.confirm(`Voulez-vous vraiment importer ${structuresToImport.length} structures dans Mano ? Cette opération est irréversible.`)) {
+    if (window.confirm(`Voulez-vous vraiment importer ${structuresToImport.length} contacts dans Mano ? Cette opération est irréversible.`)) {
       const [error] = await tryFetchExpectOk(async () => API.post({ path: "/structure/import", body: { structuresToImport } }));
       if (!error) toast.success("Importation réussie !");
       refresh();
@@ -152,15 +152,15 @@ export default function ImportStructures() {
         onChange={onParseData}
       />
       <Modal isOpen={showImportSummary} toggle={() => setShowImportSummary(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de structures</ModalHeader>
+        <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de contacts</ModalHeader>
         <ModalBody>
           <p>
-            Nombre de structures à importer&nbsp;: <strong>{structuresToImport.length}</strong>
+            Nombre de contacts à importer&nbsp;: <strong>{structuresToImport.length}</strong>
           </p>
           <Alert color="warning">
             Vérifiez bien la liste des champs ci-dessous. S'il manque un champ (par exemple parce qu'une colonne ne contient pas le nom exact indiqué
-            dans Mano), alors <strong>ce champ ne sera pas considéré</strong> et votre liste de structures sera donc corrompue. Les corrections
-            devront être effectuées à la main au cas par cas, ce qui peut être un peu long.
+            dans Mano), alors <strong>ce champ ne sera pas considéré</strong> et votre liste de contacts sera donc corrompue. Les corrections devront
+            être effectuées à la main au cas par cas, ce qui peut être un peu long.
           </Alert>
           {Boolean(ignoredFields.length) && (
             <>

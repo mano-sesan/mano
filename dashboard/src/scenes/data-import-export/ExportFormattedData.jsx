@@ -95,7 +95,6 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
       "Personne suivie - Nom": persons.find((p) => p._id === action.person)?.name,
       "Personne suivie - id": persons.find((p) => p._id === action.person)?._id,
       Groupe: action.group,
-      Structure: action.structure,
       "Avec heure": action.withTime ? "Oui" : "Non",
       Équipe: action.teams?.length ? action.teams.map((t) => teams.find((team) => team._id === t)?.name).join(", ") : action.team,
       Urgent: action.urgent ? "Oui" : "Non",
