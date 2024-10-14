@@ -190,7 +190,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
       setIsSubmitting(false);
       return;
     }
-    toast.success(!isNew ? "Contact mise à jour !" : "Contact créée !");
+    toast.success(!isNew ? "Contact mis à jour !" : "Contact créé !");
     onClose();
   };
 

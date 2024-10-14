@@ -103,7 +103,7 @@ const Structure = ({ navigation, route }) => {
       return false;
     }
     if (response.ok) {
-      Alert.alert('Contact mise à jour !');
+      Alert.alert('Contact mis à jour !');
       setStructures((structures) =>
         structures.map((s) => {
           if (s._id === response.data._id) return response.data;
