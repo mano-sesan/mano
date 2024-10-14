@@ -84,7 +84,7 @@ const NewStructureForm = ({ navigation, route }) => {
 
   return (
     <SceneContainer>
-      <ScreenTitle title="Nouvelle structure" onBack={onGoBackRequested} />
+      <ScreenTitle title="Nouveau contact" onBack={onGoBackRequested} />
       <ScrollContainer>
         <InputLabelled label="Nom" onChangeText={setName} value={name} placeholder="Hôpital du Centre" />
         <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateStructure} loading={posting} />
