@@ -114,11 +114,11 @@ test("test", async ({ page }) => {
   await page.getByRole("dialog").getByLabel("Commentaire").fill("Un commentaire");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
-  await page.getByRole("link", { name: "Structures" }).click();
-  await page.getByRole("button", { name: "Créer une structure" }).click();
-  await page.getByLabel("Nom").fill("Une structure");
+  await page.getByRole("link", { name: "Contacts" }).click();
+  await page.getByRole("button", { name: "Créer un contact" }).click();
+  await page.getByLabel("Nom").fill("Un contact");
   await page.getByRole("button", { name: "Enregistrer" }).click();
-  await page.getByText("Structure créée !").click();
+  await page.getByText("Contact créé !").click();
   await page.getByRole("link", { name: "Comptes rendus" }).click();
   await page.getByRole("link", { name: "Organisation" }).click();
   await page.getByRole("link", { name: "Agenda" }).click();

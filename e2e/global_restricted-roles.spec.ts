@@ -110,7 +110,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByRole("link", { name: "Territoires" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();
 
-    await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
 
     await expect(page.getByRole("link", { name: "Statistiques" })).toBeVisible();
@@ -177,7 +177,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByRole("link", { name: "Territoires" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();
 
-    await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
 
     await expect(page.getByRole("link", { name: "Statistiques" })).toBeVisible();
@@ -240,7 +240,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByRole("link", { name: "Territoires" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();
 
-    await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
 
     await expect(page.getByRole("link", { name: "Statistiques" })).toBeVisible();
@@ -300,7 +300,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByRole("link", { name: "Territoires" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Comptes rendus" })).toBeVisible();
 
-    await expect(page.getByRole("link", { name: "Structures" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Soliguide" })).toBeVisible();
 
     await expect(page.getByRole("link", { name: "Statistiques" })).not.toBeVisible();

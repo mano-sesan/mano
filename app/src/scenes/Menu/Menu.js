@@ -33,7 +33,7 @@ const Menu = ({ navigation }) => {
             navigation.navigate('Reports');
           }}
         />
-        <Row withNextButton caption="Structures" onPress={() => navigation.navigate('Structures')} />
+        <Row withNextButton caption="Contacts" onPress={() => navigation.navigate('Structures')} />
         <Row withNextButton caption="Soliguide" onPress={() => navigation.navigate('Soliguide')} />
         <Spacer height={30} />
         <Row withNextButton caption={`Changer d'équipe (actuellement ${currentTeam?.name})`} onPress={() => navigation.navigate('ChangeTeam')} />

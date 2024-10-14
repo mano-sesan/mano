@@ -50,7 +50,7 @@ const getSettingTitle = (tabId) => {
   if (tabId === "encryption") return "Chiffrement";
   if (tabId === "reception") return "Accueil de jour";
   if (tabId === "actions") return "Actions";
-  if (tabId === "structures") return "Structures";
+  if (tabId === "structures") return "Contacts";
   if (tabId === "territories") return "Territoires";
   if (tabId === "rencontres-passages") return "Passages/rencontres";
   if (tabId === "consultations") return "Consultations";
@@ -60,7 +60,7 @@ const getSettingTitle = (tabId) => {
   if (tabId === "import") return "Import de personnes suivies";
   if (tabId === "import-configuration") return "Import de configuration";
   if (tabId === "import-territories") return "Import de territoires";
-  if (tabId === "import-structures") return "Import de structures";
+  if (tabId === "import-structures") return "Import de contacts";
   if (tabId === "export") return "Export des données";
   if (tabId === "poubelle") return "Données supprimées";
   if (tabId === "errors") return "Données en erreur";
@@ -168,7 +168,7 @@ const View = () => {
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "reception"} text="Accueil de jour" onClick={() => setTab("reception")} />
             <MenuButton selected={tab === "actions"} text="Actions" onClick={() => setTab("actions")} />
-            <MenuButton selected={tab === "structures"} text="Structures" onClick={() => setTab("structures")} />
+            <MenuButton selected={tab === "structures"} text="Contacts" onClick={() => setTab("structures")} />
             <MenuButton selected={tab === "territories"} text="Territoires" onClick={() => setTab("territories")} />
             <MenuButton selected={tab === "rencontres-passages"} text="Passages/rencontres" onClick={() => setTab("rencontres-passages")} />
             <MenuButton selected={tab === "consultations"} text="Consultations" onClick={() => setTab("consultations")} />
@@ -184,7 +184,7 @@ const View = () => {
             <MenuButton selected={tab === "import"} text="Import de personnes suivies" onClick={() => setTab("import")} />
             <MenuButton selected={tab === "import-configuration"} text="Import de configuration" onClick={() => setTab("import-configuration")} />
             <MenuButton selected={tab === "import-territories"} text="Import de territoires" onClick={() => setTab("import-territories")} />
-            <MenuButton selected={tab === "import-structures"} text="Import de structures" onClick={() => setTab("import-structures")} />
+            <MenuButton selected={tab === "import-structures"} text="Import de contacts" onClick={() => setTab("import-structures")} />
             <MenuButton selected={tab === "export"} text="Export des données" onClick={() => setTab("export")} />
           </div>
           <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Maintenance</div>
@@ -660,15 +660,13 @@ const View = () => {
                 case "import-structures":
                   return (
                     <>
-                      <TabTitle>Importer des structures</TabTitle>
+                      <TabTitle>Importer des Contacts</TabTitle>
                       <div className="tw-flex tw-flex-wrap -tw-mx-4">
                         <div className="tw-basis-10/12 tw-w-full tw-px-4">
-                          <p>
-                            Vous pouvez importer une liste de structures depuis un fichier Excel. Ce fichier doit avoir quelques caractéristiques:
-                          </p>
+                          <p>Vous pouvez importer une liste de contacts depuis un fichier Excel. Ce fichier doit avoir quelques caractéristiques:</p>
                           <ul className="tw-mt-4 tw-list-inside tw-list-disc">
                             <li>
-                              avoir un onglet dont le nom contient <code>structure</code>
+                              avoir un onglet dont le nom contient <code>contact</code>
                             </li>
                             <li>avoir en première ligne de cet onglet des têtes de colonnes</li>
                             <li>

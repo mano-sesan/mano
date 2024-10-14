@@ -4,8 +4,8 @@ import API, { tryFetchExpectOk } from "../services/api";
 import { DONE, encryptAction, TODO } from "../recoil/actions";
 import { usePreparePersonForEncryption } from "../recoil/persons";
 
-const numberOfPersons = 10000;
-const numberOfActionsPerPerson = 100;
+const numberOfPersons = 200;
+const numberOfActionsPerPerson = 10;
 
 export default function AddPersons() {
   const currentTeam = useRecoilValue(currentTeamAuthentifiedState);
@@ -20,7 +20,7 @@ export default function AddPersons() {
           path: "/person",
           body: await encryptPerson({
             name: Math.random().toString(36).substring(2, 12), // generate random 10 letters name
-            teamId: currentTeam._id,
+            assignedTeams: [currentTeam._id],
             // random date in the last 5 years
             followedSince: new Date(new Date().getTime() - Math.random() * 5 * 365 * 24 * 3600 * 1000),
             createdAt: new Date(new Date().getTime() - Math.random() * 5 * 365 * 24 * 3600 * 1000),

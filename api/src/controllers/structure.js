@@ -38,7 +38,7 @@ router.post(
       where: { name: req.body.name, organisation: req.user.organisation },
     });
     if (existingStructure) {
-      return res.status(400).send({ ok: false, error: "Une structure avec le même nom existe déjà" });
+      return res.status(400).send({ ok: false, error: "Un contact avec le même nom existe déjà" });
     }
 
     const newStructure = {
@@ -234,7 +234,7 @@ router.put(
         where: { name: req.body.name, organisation: req.user.organisation, _id: { [Op.ne]: _id } },
       });
       if (existingStructure) {
-        return res.status(400).send({ ok: false, error: "Une structure avec le même nom existe déjà" });
+        return res.status(400).send({ ok: false, error: "Un contact avec le même nom existe déjà" });
       }
       updatedStructure.name = req.body.name;
     }
