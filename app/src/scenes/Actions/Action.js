@@ -69,12 +69,13 @@ const Action = ({ navigation, route }) => {
     let existingAction = actions.find((a) => a._id === route.params?.action?._id);
     if (!existingAction) existingAction = route.params?.action;
     return Object.assign({}, castToAction(existingAction), { _id: existingAction._id });
-  }, [actions, route.params?.action?._id]);
+  }, [actions, route.params?.action]);
 
   const [action, setAction] = useState(() => castToAction(actionDB));
 
   useEffect(() => {
     setAction(castToAction(actionDB));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionDB?.updatedAt]);
 
   const [multipleActions] = useState(() => route?.params?.actions);
@@ -167,7 +168,7 @@ const Action = ({ navigation, route }) => {
     ]);
   };
 
-  const onSearchPerson = () => navigation.push('PersonsSearch', { fromRoute: 'Action' }, { merge: true });
+  const onSearchPerson = () => navigation.push('PersonsSearch', { ...route.params, fromRoute: 'Action' }, { merge: true });
 
   const handleBeforeRemove = (e) => {
     if (backRequestHandledRef.current === true) return;
@@ -179,6 +180,7 @@ const Action = ({ navigation, route }) => {
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
   useFocusEffect(
