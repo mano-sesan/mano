@@ -306,7 +306,7 @@ function ActionContent({ onClose, isMulti = false }) {
       }
     } else {
       // On prévient l'utilisateur si la récurrence est activée qu'il y aura plusieurs actions créées.
-      const hasRecurrence = body.recurrenceData?.timeUnit;
+      const hasRecurrence = body.recurrenceData?.timeUnit && body.isRecurrent;
       const recurrenceDataWithDates = {
         ...body.recurrenceData,
         startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),
