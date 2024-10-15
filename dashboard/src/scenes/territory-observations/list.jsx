@@ -25,7 +25,6 @@ const List = ({ territory = {} }) => {
 
   const observations = useMemo(
     () => territoryObservations.filter((obs) => obs.territory === territory._id).sort(sortTerritoriesObservations(sortBy, sortOrder)),
-    // .sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt)),
     [sortBy, sortOrder, territory._id, territoryObservations]
   );
 
