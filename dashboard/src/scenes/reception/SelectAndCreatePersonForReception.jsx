@@ -37,7 +37,7 @@ function personsToOptions(persons, actions, passages, rencontres, urgentActions)
 }
 
 const searchablePersonsSelector = selector({
-  key: "searchablePersonsSelector",
+  key: "searchablePersonsSelectorForReception",
   get: ({ get }) => {
     const persons = get(personsState);
     return persons.map((person) => {
