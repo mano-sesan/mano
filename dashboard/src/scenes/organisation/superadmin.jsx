@@ -28,11 +28,14 @@ const SuperAdmin = () => {
   const [sortBy, setSortBy] = useState("countersTotal");
   const [sortOrder, setSortOrder] = useState("DESC");
   const [refresh, setRefresh] = useState(true);
+  const [refreshUsers, setRefreshUsers] = useState(true);
   const [searchUserModal, setSearchUserModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openMergeModal, setOpenMergeModal] = useState(false);
   const [openOrgSettingsModal, setOpenOrgSettingsModal] = useState(false);
   const [openCreateUserModal, setOpenCreateUserModal] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [openEditUserModal, setOpenEditUserModal] = useState(false);
   const [openUserListModal, setOpenUserListModal] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
 
@@ -74,7 +77,10 @@ const SuperAdmin = () => {
         open={openUserListModal}
         setOpen={setOpenUserListModal}
         setOpenCreateUserModal={setOpenCreateUserModal}
+        setOpenEditUserModal={setOpenEditUserModal}
+        setEditUser={setEditUser}
         openCreateUserModal={openCreateUserModal}
+        openEditUserModal={openEditUserModal}
         organisation={selectedOrganisation}
         setSelectedOrganisation={setSelectedOrganisation}
       />
@@ -104,6 +110,13 @@ const SuperAdmin = () => {
         }}
       />
       <CreateUser onChange={() => setRefresh(true)} open={openCreateUserModal} setOpen={setOpenCreateUserModal} organisation={selectedOrganisation} />
+      <EditUser
+        editUser={editUser}
+        onChange={() => setRefresh(true)}
+        open={openEditUserModal}
+        setOpen={setOpenEditUserModal}
+        organisation={selectedOrganisation}
+      />
       <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
         <h2 className="tw-text-2xl">Organisations ({total})</h2>
         <div>
@@ -744,6 +757,163 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
                 </button>
                 <button className="button-submit" onClick={handleSubmit}>
                   Créer
+                </button>
+              </ModalFooter>
+            </>
+          )}
+        </Formik>
+      </ModalContainer>
+    </>
+  );
+};
+
+const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
+  const user = editUser;
+  const [organisationTeams, setOrganisationTeams] = useState([]);
+  useEffect(() => {
+    if (!organisation?._id) return;
+    (async () => {
+      const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `organisation/${organisation._id}/teams` }));
+      if (error) return toast.error(errorMessage(error));
+      setOrganisationTeams(response.data);
+    })();
+  }, [organisation?._id]);
+
+  if (!organisation || !user) return;
+
+  console.log("user", user);
+
+  return (
+    <>
+      <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
+        <Formik
+          initialValues={{
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            team: user.teams.map((t) => t._id),
+            role: user.role,
+            healthcareProfessional: user.healthcareProfessional,
+          }}
+          onSubmit={async (body, actions) => {
+            try {
+              if (!body.email) return toast.error("L'email est obligatoire");
+              if (!emailRegex.test(body.email)) return toast.error("L'email est invalide");
+              if (!body.role) return toast.error("Le rôle est obligatoire");
+
+              body.organisation = organisation._id;
+              const [error] = await tryFetch(() => API.put({ path: `/user/${user._id}`, body }));
+              if (error) {
+                toast.error(errorMessage(error));
+                return false;
+              }
+              toast.success("Modification réussie !");
+              onChange();
+              setOpen(false);
+            } catch (orgCreationError) {
+              actions.setSubmitting(false);
+              toast.error(orgCreationError.message);
+            }
+          }}
+        >
+          {({ values, handleChange, handleSubmit }) => (
+            <>
+              <ModalHeader title={`Modifier un utilisateur pour ${organisation.orgId}`} />
+              <ModalBody className="tw-px-4 tw-py-2 tw-pb-20">
+                <React.Fragment>
+                  <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap">
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="name">Nom</label>
+                        <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                      </div>
+                    </div>
+
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="email">Email</label>
+                        <input
+                          className="tailwindui"
+                          autoComplete="off"
+                          type="email"
+                          name="email"
+                          id="email"
+                          value={values.email}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="phone">Téléphone</label>
+                        <input
+                          className="tailwindui"
+                          autoComplete="off"
+                          type="tel"
+                          name="phone"
+                          id="phone"
+                          value={values.phone}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="team">Équipes</label>
+                        <div>
+                          <SelectCustom
+                            name="name"
+                            options={organisationTeams}
+                            onChange={(teams) => handleChange({ target: { value: teams?.map((t) => t._id) || [], name: "team" } })}
+                            value={values.team.map((_teamId) => organisationTeams.find((_team) => _team._id === _teamId))}
+                            getOptionValue={(team) => team._id}
+                            getOptionLabel={(team) => team.name}
+                            isMulti
+                            isDisabled={organisationTeams.length === 0}
+                            inputId="team"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="role">Role</label>
+                        <SelectRole handleChange={handleChange} value={values.role} />
+                      </div>
+                    </div>
+                    <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
+                      <label htmlFor="healthcareProfessional" className="tw-mb-0">
+                        <input
+                          type="checkbox"
+                          className="tw-mr-2"
+                          name="healthcareProfessional"
+                          id="healthcareProfessional"
+                          checked={values.healthcareProfessional}
+                          onChange={() => {
+                            handleChange({
+                              target: {
+                                name: "healthcareProfessional",
+                                checked: Boolean(!values.healthcareProfessional),
+                                value: Boolean(!values.healthcareProfessional),
+                              },
+                            });
+                          }}
+                        />
+                        Professionnel·le de santé
+                      </label>
+                      <div>
+                        <small className="text-muted">Un professionnel·le de santé a accès au dossier médical complet des personnes.</small>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              </ModalBody>
+              <ModalFooter>
+                <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
+                  Annuler
+                </button>
+                <button className="button-submit" onClick={handleSubmit}>
+                  Enregistrer
                 </button>
               </ModalFooter>
             </>

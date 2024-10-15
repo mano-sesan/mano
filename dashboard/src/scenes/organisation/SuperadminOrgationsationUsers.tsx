@@ -8,18 +8,24 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 
-export default function SuperadminOrganisation({
+export default function SuperadminOrganisationUsers({
   organisation,
   setOpen,
   setOpenCreateUserModal,
+  setOpenEditUserModal,
+  setEditUser,
   open,
   openCreateUserModal,
+  openEditUserModal,
 }: {
   organisation: OrganisationInstance;
   setOpen: (open: boolean) => void;
   setOpenCreateUserModal: (open: boolean) => void;
+  setEditUser: (user: UserInstance) => void;
+  setOpenEditUserModal: (open: boolean) => void;
   open: boolean;
   openCreateUserModal: boolean;
+  openEditUserModal: boolean;
 }) {
   const [users, setUsers] = useState([]);
   const [isGeneratingLinkForUser, setIsGeneratingLinkForUser] = useState<false | string>(false);
@@ -31,7 +37,7 @@ export default function SuperadminOrganisation({
 
   useEffect(() => {
     if (organisation?._id && open) {
-      if (!openCreateUserModal) {
+      if (!openCreateUserModal && !openEditUserModal) {
         tryFetchExpectOk(() => API.get({ path: `/user`, query: { organisation: organisation._id } })).then(([error, response]) => {
           if (!error) {
             setUsers(response.data);
@@ -41,7 +47,7 @@ export default function SuperadminOrganisation({
     } else {
       onClose();
     }
-  }, [organisation?._id, open, openCreateUserModal, onClose]);
+  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose]);
 
   return (
     <ModalContainer open={open} onClose={onClose} size="full">
@@ -121,7 +127,7 @@ export default function SuperadminOrganisation({
                   </div>
                 </td>
                 <td>
-                  <div className="tw-grid tw-gap-1">
+                  <div className="tw-grid tw-gap-2">
                     <DeleteButtonAndConfirmModal
                       title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
                       textToConfirm={user.email}
@@ -134,6 +140,15 @@ export default function SuperadminOrganisation({
                     >
                       <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
                     </DeleteButtonAndConfirmModal>
+                    <button
+                      className="button-submit"
+                      onClick={() => {
+                        setOpenEditUserModal(true);
+                        setEditUser(user);
+                      }}
+                    >
+                      Modifier
+                    </button>
                   </div>
                 </td>
               </tr>
