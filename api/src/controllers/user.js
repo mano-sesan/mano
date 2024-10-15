@@ -838,7 +838,7 @@ router.put(
 router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser("admin"),
+  validateUser(["admin", "superadmin"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -852,6 +852,7 @@ router.put(
           password: z.optional(z.string().min(1)),
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
+          ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
         }),
       }).parse(req);
     } catch (e) {
@@ -862,8 +863,9 @@ router.put(
 
     const _id = req.params._id;
     const { name, email, team, role, healthcareProfessional, phone } = req.body;
+    const organisationId = req.user.role === "superadmin" ? req.body.organisation : req.user.organisation;
 
-    const user = await User.findOne({ where: { _id, organisation: req.user.organisation } });
+    const user = await User.findOne({ where: { _id, organisation: organisationId } });
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     if (name) user.name = sanitizeAll(name);
@@ -884,7 +886,7 @@ router.put(
     if (team && Array.isArray(team)) {
       const existingTeams = await Team.findAll({
         where: {
-          organisation: req.user.organisation,
+          organisation: organisationId,
           _id: { [Op.in]: team },
         },
         transaction: tx,
