@@ -149,3 +149,14 @@ export const encryptObs =
   (obs: TerritoryObservationInstance, { checkRequiredFields = true } = {}) => {
     return encryptItem(prepareObsForEncryption(customFields)(obs, { checkRequiredFields }));
   };
+
+type SortOrder = "ASC" | "DESC";
+
+type SortBy = "observedAt";
+
+export const sortTerritoriesObservations =
+  (sortBy: SortBy, sortOrder: SortOrder) => (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => {
+    return sortOrder === "ASC"
+      ? new Date(b.observedAt || b.createdAt).getTime() - new Date(a.observedAt || a.createdAt).getTime()
+      : new Date(a.observedAt || a.createdAt).getTime() - new Date(b.observedAt || b.createdAt).getTime();
+  };
