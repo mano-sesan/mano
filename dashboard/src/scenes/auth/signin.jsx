@@ -69,7 +69,7 @@ const SignIn = () => {
     if (["stats-only"].includes(user.role)) return history.push("/stats");
     // S'il y a une redirection prévues dans le sessionStorage, on la fait
     const redirect = window.sessionStorage.getItem("redirectPath");
-    if (redirect) {
+    if (redirect && redirect !== "/") {
       window.sessionStorage.removeItem("redirectPath");
       history.push(redirect);
       return;
