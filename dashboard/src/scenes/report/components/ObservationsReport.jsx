@@ -115,8 +115,6 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
     );
   };
 
-  console.log(observations);
-
   const orderedObservations = useMemo(
     () => [...(observations || [])].sort(sortTerritoriesObservations(sortBy, sortOrder)),
     [sortBy, sortOrder, observations]
