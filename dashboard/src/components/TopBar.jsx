@@ -13,6 +13,7 @@ import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import ColorHeaderBand from "./ColorHeaderBand";
 import UnBugButton from "./UnBugButton";
 import ModalCacheResetLoader from "./ModalCacheResetLoader";
+import { clearCache } from "../services/dataManagement";
 
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
@@ -22,12 +23,12 @@ const TopBar = () => {
   const teams = useRecoilValue(teamsState);
   const [currentTeam, setCurrentTeam] = useRecoilState(currentTeamState);
 
-  const { resetCache, refresh, isLoading } = useDataLoader();
+  const { refresh, isLoading } = useDataLoader();
 
   function resetCacheAndLogout() {
     // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
     setModalCacheOpen(true);
-    resetCache("call ResetCache from TopBar.jsx").then(() => {
+    clearCache().then(() => {
       tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
         // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
         // Il n'a donc aucune utilité d'un point de vue code.

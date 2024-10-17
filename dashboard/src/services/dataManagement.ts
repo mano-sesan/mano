@@ -44,9 +44,6 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   addToDebugMixedOrgsBug("cleared localStorage");
   // window.sessionStorage?.clear();
 
-  // wait 200ms to make sure the cache is cleared
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
   // Check if the cache is empty
   const localStorageEmpty = window.localStorage.length === 0;
   // const sessionStorageEmpty = window.sessionStorage.length === 0;

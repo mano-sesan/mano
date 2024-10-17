@@ -1,5 +1,5 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+import { setCacheItem } from "../services/dataManagement";
+import { atom } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -8,13 +8,7 @@ import { encryptItem } from "../services/encryption";
 const collectionName = "comment";
 export const commentsState = atom({
   key: collectionName,
-  default: selector({
-    key: "comment/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("comment", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 

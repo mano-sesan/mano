@@ -9,7 +9,7 @@ import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import CreateObservation from "../../../components/CreateObservation";
 import { territoriesState } from "../../../recoil/territory";
 import { dayjsInstance } from "../../../services/date";
-import { currentTeamAuthentifiedState, currentTeamState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
+import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
 import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { useSessionStorage } from "../../../services/useSessionStorage";

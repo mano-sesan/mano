@@ -1,7 +1,7 @@
 import { organisationState } from "./auth";
 import { atom, selector } from "recoil";
 import type { RecoilValueReadOnly } from "recoil";
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { setCacheItem } from "../services/dataManagement";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -12,13 +12,7 @@ import { encryptItem } from "../services/encryption";
 const collectionName = "territory-observation";
 export const territoryObservationsState = atom<Array<TerritoryObservationInstance>>({
   key: collectionName,
-  default: selector({
-    key: "territory-observation/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("territory-observation", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
