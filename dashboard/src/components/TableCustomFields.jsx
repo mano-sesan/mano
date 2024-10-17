@@ -318,7 +318,6 @@ export const EditCustomField = ({ open, onDelete, data, editingField, onClose, o
               id="label"
               name="label"
               required
-              onInvalid={(F) => F.target.setCustomValidity("Le nom est obligatoire")}
               value={field.label}
               disabled={onlyOptionsEditable}
               onChange={(e) => setField({ ...field, label: e.target.value })}
