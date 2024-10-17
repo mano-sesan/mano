@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import CreateObservation from "../../components/CreateObservation";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
+import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
 import { useRecoilValue } from "recoil";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
@@ -24,11 +24,8 @@ const List = ({ territory = {} }) => {
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
 
   const observations = useMemo(
-    () =>
-      territoryObservations
-        .filter((obs) => obs.territory === territory._id)
-        .sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt)),
-    [territory._id, territoryObservations]
+    () => territoryObservations.filter((obs) => obs.territory === territory._id).sort(sortTerritoriesObservations(sortBy, sortOrder)),
+    [sortBy, sortOrder, territory._id, territoryObservations]
   );
 
   if (!observations) return null;
@@ -79,10 +76,6 @@ const List = ({ territory = {} }) => {
           {
             title: "Créée par",
             dataKey: "user",
-            onSortOrder: setSortOrder,
-            onSortBy: setSortBy,
-            sortOrder,
-            sortBy,
             render: (obs) => <UserName id={obs.user} />,
           },
           {

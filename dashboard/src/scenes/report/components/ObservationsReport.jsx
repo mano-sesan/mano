@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
@@ -10,9 +10,10 @@ import CreateObservation from "../../../components/CreateObservation";
 import { territoriesState } from "../../../recoil/territory";
 import { dayjsInstance } from "../../../services/date";
 import { currentTeamAuthentifiedState, currentTeamState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
-import { customFieldsObsSelector } from "../../../recoil/territoryObservations";
+import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { useSessionStorage } from "../../../services/useSessionStorage";
+import { useLocalStorage } from "../../../services/useLocalStorage";
 
 export const ObservationsReport = ({ observations, period, selectedTeams }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -57,6 +58,8 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
 };
 
 const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) => {
+  const [sortBy, setSortBy] = useLocalStorage("report-territory-obs-sortBy", "name");
+  const [sortOrder, setSortOrder] = useLocalStorage("report-territory-obs-sortOrder", "ASC");
   const [observationToEdit, setObservationToEdit] = useState(undefined);
   const [openObservationModale, setOpenObservationModale] = useSessionStorage("create-observation-modal-open", false);
   const territories = useRecoilValue(territoriesState);
@@ -112,6 +115,13 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
     );
   };
 
+  console.log(observations);
+
+  const orderedObservations = useMemo(
+    () => [...(observations || [])].sort(sortTerritoriesObservations(sortBy, sortOrder)),
+    [sortBy, sortOrder, observations]
+  );
+
   return (
     <>
       <div className="tw-px-4 tw-py-2 print:tw-mb-4 print:tw-px-0">
@@ -136,10 +146,10 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
             Ajouter une observation
           </button>
         </div>
-        {!!observations.length && (
+        {!!orderedObservations.length && (
           <Table
             className="Table"
-            data={observations}
+            data={orderedObservations}
             onRowClick={(obs) => {
               setObservationToEdit(obs);
               setOpenObservationModale(true);
@@ -149,6 +159,10 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
               {
                 title: "Date",
                 dataKey: "observedAt",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortOrder,
+                sortBy,
                 render: (obs) => {
                   return (
                     <>
