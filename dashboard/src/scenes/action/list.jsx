@@ -173,7 +173,7 @@ const List = () => {
 
   return (
     <>
-      <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
+      <div className="tw-flex tw-gap-2 tw-w-full tw-items-center tw-mt-8 tw-mb-12">
         <div className="tw-grow tw-text-xl">
           Agenda{" "}
           {viewAllOrganisationData ? (
@@ -190,7 +190,7 @@ const List = () => {
             </>
           )}
         </div>
-        <div className="noprint tw-flex  tw-gap-3">
+        <div className="noprint tw-gap-3 tw-flex">
           <ButtonCustom
             icon={agendaIcon}
             disabled={!currentTeam}
@@ -211,7 +211,9 @@ const List = () => {
             color="primary"
             title="Créer une action"
             type="button"
+            noWrap
             padding={"12px 24px"}
+            style={{ height: "fit-content" }}
           />
           {Boolean(user.healthcareProfessional) && (
             <ButtonCustom
@@ -226,7 +228,9 @@ const List = () => {
               color="primary"
               title="Créer une consultation"
               type="button"
+              noWrap
               padding={"12px 24px"}
+              style={{ height: "fit-content" }}
             />
           )}
         </div>

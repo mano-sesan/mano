@@ -7,6 +7,7 @@ const ButtonCustom = ({
   color = "primary",
   onClick = () => {},
   style,
+  noWrap,
   className = "",
   loading,
   title = "ButtonCustom",
@@ -21,6 +22,7 @@ const ButtonCustom = ({
   color?: "primary" | "secondary" | "link" | "cancel" | "danger" | "warning";
   onClick?: MouseEventHandler<HTMLButtonElement>;
   style?: any;
+  noWrap?: boolean;
   className?: string;
   loading?: boolean;
   title?: string;
@@ -45,7 +47,9 @@ const ButtonCustom = ({
       </SpinnerContainer>
       <Content padding={padding}>
         {!!icon && <Icon color={color} icon={icon} />}
-        <Title transparent={Boolean(loading)}>{title}</Title>
+        <Title transparent={Boolean(loading)} noWrap={Boolean(noWrap)}>
+          {title}
+        </Title>
       </Content>
     </ButtonWrapper>
   );
@@ -102,9 +106,11 @@ const Icon = styled.div<{
 
 const Title = styled.p<{
   transparent: boolean;
+  noWrap: boolean;
 }>`
   ${(props) => props.transparent && "color: transparent"};
   margin-bottom: 0;
+  ${(props) => props.noWrap && "white-space: nowrap;"}
 `;
 
 const Content = styled.div<{
