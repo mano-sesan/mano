@@ -225,6 +225,7 @@ const View = () => {
                 const passagesInTeam = passages.filter((p) => p.team === id);
                 const rencontresInTeam = rencontres.filter((r) => r.team === id);
                 const reportsInTeam = reports.filter((r) => r.team === id);
+                const reportsInTargetTeam = reports.filter((r) => r.team === transferSelectedTeam);
 
                 let items = [];
                 if (actionsInTeam.length) items.push(`${actionsInTeam.length} actions`);
@@ -267,7 +268,24 @@ const View = () => {
                 }));
                 const passagesToUpdate = passagesInTeam.map((p) => ({ ...p, team: transferSelectedTeam }));
                 const rencontresToUpdate = rencontresInTeam.map((r) => ({ ...r, team: transferSelectedTeam }));
-                const reportsToUpdate = reportsInTeam.map((r) => ({ ...r, team: transferSelectedTeam }));
+
+                // Fusion des rapports : quand deux rapports ont la même date, on met à jour pour mettre la description à la suite, ainsi que les collaborations
+                // debugger;
+                const reportsInTargetTeamToUpdate = reportsInTeam
+                  .filter((r) => reportsInTargetTeam.find((rt) => rt.date === r.date))
+                  .map((r) => {
+                    const reportInTargetTeam = reportsInTargetTeam.find((rt) => rt.date === r.date);
+                    return {
+                      ...reportInTargetTeam,
+                      description: `${reportInTargetTeam.description}\n\n${r.description}`,
+                      collaborations: Array.from(new Set((reportInTargetTeam.collaborations || []).concat(r.collaborations || []))),
+                    };
+                  });
+
+                const reportsToUpdate = reportsInTeam
+                  .filter((r) => !reportsInTargetTeam.find((rt) => rt.date === r.date))
+                  .map((r) => ({ ...r, team: transferSelectedTeam }));
+                // return;
                 const [transferTeamError] = await tryFetchExpectOk(async () =>
                   API.post({
                     path: `/transfer-team`,
@@ -280,6 +298,7 @@ const View = () => {
                       passagesToUpdate: await Promise.all(passagesToUpdate.map(encryptPassage)),
                       rencontresToUpdate: await Promise.all(rencontresToUpdate.map(encryptRencontre)),
                       reportsToUpdate: await Promise.all(reportsToUpdate.map(encryptReport)),
+                      reportsInTargetTeamToUpdate: await Promise.all(reportsInTargetTeamToUpdate.map(encryptReport)),
                       teamToDeleteId: id,
                       targetTeamId: transferSelectedTeam,
                     },

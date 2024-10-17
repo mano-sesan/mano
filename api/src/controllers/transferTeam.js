@@ -36,6 +36,7 @@ router.post(
       "passagesToUpdate",
       "rencontresToUpdate",
       "reportsToUpdate",
+      "reportsInTargetTeamToUpdate",
     ];
     for (const key of arraysOfEncryptedItems) {
       try {
@@ -73,6 +74,7 @@ router.post(
         passagesToUpdate,
         rencontresToUpdate,
         reportsToUpdate,
+        reportsInTargetTeamToUpdate,
         teamToDeleteId,
         targetTeamId,
       } = req.body;
@@ -111,7 +113,21 @@ router.post(
       // TODO: report contient actuellement deux fois team (chiffré et non chiffré) ce qui doit poser problème
       // cf: https://github.com/mano-sesan/mano/issues/635
       for (let { encrypted, encryptedEntityKey, _id } of reportsToUpdate) {
-        await Report.update({ encrypted, encryptedEntityKey }, { where: { _id, organisation: req.user.organisation }, transaction: tx });
+        await Report.update(
+          { encrypted, encryptedEntityKey, team: targetTeamId },
+          { where: { _id, team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx }
+        );
+      }
+
+      // Delete reports in team to delete (they have be updated in target team)
+      await Report.destroy({ where: { team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx });
+
+      // Update report in target team
+      for (let { encrypted, encryptedEntityKey, _id } of reportsInTargetTeamToUpdate) {
+        await Report.update(
+          { encrypted, encryptedEntityKey, team: targetTeamId },
+          { where: { _id, team: targetTeamId, organisation: req.user.organisation }, transaction: tx }
+        );
       }
 
       // Update report, service, user directly

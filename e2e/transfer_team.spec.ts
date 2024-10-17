@@ -11,7 +11,7 @@ test.beforeAll(async () => {
   await populate();
 });
 
-test("Replace me", async ({ page }) => {
+test("Transfer team", async ({ page }) => {
   await loginWith(page, "admin1@example.org");
   await page.getByRole("link", { name: "Équipes" }).click();
   await page.getByRole("button", { name: "Créer une équipe" }).click();
@@ -90,7 +90,16 @@ test("Replace me", async ({ page }) => {
   await page.getByText("Création réussie !").click();
   // Comptes rendus
   await page.getByRole("link", { name: "Comptes rendus" }).click();
+  // On ajoute d'abord une transmission dans l'équipe nouvelle pour vérifier la fusion
   await page.getByLabel("Remove Team Test -").click();
+  await page.locator(".report-team-select__indicator").click();
+  await page.getByText("nouvelle", { exact: true }).click();
+  await page.getByRole("button", { name: "Ajouter une transmission" }).click();
+  await page.getByPlaceholder("Entrez ici votre transmission").click();
+  await page.getByPlaceholder("Entrez ici votre transmission").fill("ligne1");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  // Puis on refait une transmission sur l'ancienne équipe
+  await page.getByLabel("Remove nouvelle").click();
   await page.locator(".report-team-select__indicator").click();
   await page.getByText("ancienne", { exact: true }).click();
   await page
@@ -101,7 +110,7 @@ test("Replace me", async ({ page }) => {
   await page.locator("#Douche-add").click();
   await page.getByRole("button", { name: "Ajouter une transmission" }).click();
   await page.getByPlaceholder("Entrez ici votre transmission").click();
-  await page.getByPlaceholder("Entrez ici votre transmission").fill("transmission test");
+  await page.getByPlaceholder("Entrez ici votre transmission").fill("ligne2");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   // Utilisateurs
   await page.getByRole("link", { name: "Utilisateurs" }).click();
@@ -134,7 +143,7 @@ test("Replace me", async ({ page }) => {
   await page.getByText("1rencontreRencontres (1)").click();
   await page.getByText("1personne crééePersonnes créé").click();
   await page.getByText("1observationObservations de").click();
-  await page.getByRole("group").getByText("transmission test").click();
+  await page.getByRole("group").getByText("ligne1ligne2").click();
   await page.getByRole("button", { name: "Actions (1)" }).click();
   await page.getByRole("button", { name: "Consultations (1)" }).click();
   await page.locator('[data-test-id="nouvelle-Café-1"]').click();
