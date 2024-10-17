@@ -255,9 +255,11 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
         API.get({ path: `/report/${report._id}` }).then(async (response) => {
           if (response.ok) {
             const decryptedReport = await decryptItem(response.data);
-            setRemoteDescription(decryptedReport.description);
-            setRemoteUpdatedAt(decryptedReport.updatedAt);
-            setRemoteUpdatedBy(decryptedReport.updatedBy);
+            if (decryptedReport) {
+              setRemoteDescription(decryptedReport.description);
+              setRemoteUpdatedAt(decryptedReport.updatedAt);
+              setRemoteUpdatedBy(decryptedReport.updatedBy);
+            }
           }
         });
       },
