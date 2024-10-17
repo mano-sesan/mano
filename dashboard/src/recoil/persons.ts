@@ -248,7 +248,7 @@ export const usePreparePersonForEncryption = () => {
 
 type SortOrder = "ASC" | "DESC";
 
-type SortBy = "name" | "createdAt" | "formattedBirthDate" | "alertness" | "group" | "user" | "followedSince" | "lastUpdateCheckForGDPR";
+type SortBy = "name" | "createdAt" | "deletedAt" | "formattedBirthDate" | "alertness" | "group" | "user" | "followedSince" | "lastUpdateCheckForGDPR";
 
 const defaultSort = (a: PersonInstance, b: PersonInstance, sortOrder: SortOrder) =>
   sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name);
@@ -258,6 +258,11 @@ export const sortPersons = (sortBy: SortBy, sortOrder: SortOrder) => (a: PersonI
     return sortOrder === "ASC"
       ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  }
+  if (sortBy === "deletedAt") {
+    return sortOrder === "ASC"
+      ? new Date(b.deletedAt).getTime() - new Date(a.deletedAt).getTime()
+      : new Date(a.deletedAt).getTime() - new Date(b.deletedAt).getTime();
   }
   if (sortBy === "formattedBirthDate") {
     if (!a.birthdate && !b.birthdate) return defaultSort(a, b, sortOrder);

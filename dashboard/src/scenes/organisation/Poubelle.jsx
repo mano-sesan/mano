@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
@@ -12,6 +12,7 @@ import { useDataLoader } from "../../components/DataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import { sortPersons } from "../../recoil/persons";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));
@@ -45,6 +46,11 @@ export default function Poubelle() {
       setPersons(data.persons);
     });
   }, [organisation._id, refreshKey]);
+
+  const sortedPersons = useMemo(() => {
+    if (!persons) return [];
+    return persons.sort(sortPersons(sortBy, sortOrder));
+  }, [persons, sortBy, sortOrder]);
 
   const getAssociatedData = (id) => {
     const associatedData = {
@@ -181,7 +187,7 @@ export default function Poubelle() {
       </div>
       <div className="mt-8">
         <Table
-          data={persons}
+          data={sortedPersons}
           rowKey={"_id"}
           noData="Aucune personne supprimée"
           columns={[
