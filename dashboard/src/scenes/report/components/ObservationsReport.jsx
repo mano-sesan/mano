@@ -116,8 +116,14 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
   };
 
   const orderedObservations = useMemo(
-    () => [...(observations || [])].sort(sortTerritoriesObservations(sortBy, sortOrder)),
-    [sortBy, sortOrder, observations]
+    () =>
+      [
+        ...(observations || []).map((obs) => ({
+          ...obs,
+          territoryName: territories.find((t) => t._id === obs.territory)?.name,
+        })),
+      ].sort(sortTerritoriesObservations(sortBy, sortOrder)),
+    [sortBy, sortOrder, observations, territories]
   );
 
   return (
@@ -170,7 +176,15 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
                   );
                 },
               },
-              { title: "Territoire", dataKey: "territory", render: (obs) => territories.find((t) => t._id === obs.territory)?.name },
+              {
+                title: "Territoire",
+                dataKey: "territoryName",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortOrder,
+                sortBy,
+                render: (obs) => obs.territoryName,
+              },
               {
                 title: "Observation",
                 dataKey: "entityKey",
