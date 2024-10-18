@@ -12,40 +12,39 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
           setIsModalOpen(true);
         }}
       >
-        Un bug ?
+        Besoin d'aide ?
       </button>
       {isModalOpen && (
         <ModalContainer open={isModalOpen} onClose={() => setIsModalOpen(false)} size="xl">
-          <ModalHeader toggle={() => setIsModalOpen(false)} title="Un bug ? 🪲" />
-          <ModalBody className="tw-p-4">
-            <p>
-              Vous ne voyez plus vos données&nbsp;? C’est peut-être un problème de cache sur votre ordinateur. Nous vous conseillons les étapes
-              suivantes&nbsp;:
-            </p>
-            <ul className="tw-list-disc tw-space-y-2">
+          <ModalHeader toggle={() => setIsModalOpen(false)} title="Besoin d'aide ? 🪲" />
+          <ModalBody className="tw-p-4 tw-text-gray-700">
+            <p>Vous avez un problème ? Nous vous conseillons les étapes suivantes&nbsp;:</p>
+            <ul className="tw-list-disc tw-space-y-3">
               <li>
-                Cliquez{" "}
-                <button className={"tw-text-blue-500 tw-underline"} onClick={onResetCacheAndLogout}>
-                  sur ce lien
+                <button className={"tw-text-main tw-underline tw-font-bold"} onClick={onResetCacheAndLogout}>
+                  Videz le cache de mano
                 </button>{" "}
-                pour réinitialiser le cache et vérifiez si le problème persiste
+                et vérifiez si le problème persiste.
               </li>
               <li>
-                Essayez depuis un autre ordinateur ou un autre compte pour voir si le problème est général ou localisé. Cela aidera les équipes pour
-                l'étape suivante
+                <b>Essayez depuis un autre ordinateur</b>
               </li>
               <li>
-                Si le problème persiste, contactez votre chargé de déploiement&nbsp;:
-                <ul className="tw-list-disc">
-                  <li>Yoann - yoann.kittery@sesan.fr (07&nbsp;45&nbsp;16&nbsp;40&nbsp;04)</li>
-                  <li>Melissa - melissa.saiter@sesan.fr (07&nbsp;49&nbsp;08&nbsp;27&nbsp;10)</li>
+                Contactez votre chargé de déploiement&nbsp;:
+                <ul className="tw-list-disc  tw-space-y-1">
+                  <li>
+                    Yoann - <b>yoann.kittery@sesan.fr</b> (07&nbsp;45&nbsp;16&nbsp;40&nbsp;04)
+                  </li>
+                  <li>
+                    Melissa - <b>melissa.saiter@sesan.fr</b> (07&nbsp;49&nbsp;08&nbsp;27&nbsp;10)
+                  </li>
                 </ul>
-                <li>
-                  Un problème pendant le week-end&nbsp;?
-                  <ul className="tw-list-disc">
-                    <li>Appelez Guillaume au 07&nbsp;68&nbsp;55&nbsp;81&nbsp;48</li>
-                  </ul>
-                </li>
+              </li>
+              <li>
+                Un problème pendant le week-end&nbsp;?
+                <ul className="tw-list-disc">
+                  <li>Appelez Guillaume au 07&nbsp;68&nbsp;55&nbsp;81&nbsp;48</li>
+                </ul>
               </li>
             </ul>
           </ModalBody>
