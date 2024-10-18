@@ -19,6 +19,7 @@ import DescriptionIcon from "./DescriptionIcon";
 import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
 import { modalActionState } from "../recoil/modal";
+import UserName from "./UserName";
 
 const ActionsSortableList = ({
   data,
@@ -27,6 +28,7 @@ const ActionsSortableList = ({
   localStorageSortOrderName = "actions-consultations-sortOrder",
   defaultOrder = "ASC",
   onAfterActionClick = null,
+  columns = ["urgentOrGroupOrConsultation", "dueAt", "name", "person", "status", "team"],
 }) => {
   useTitle("Agenda");
   const setModalAction = useSetRecoilState(modalActionState);
@@ -104,7 +106,7 @@ const ActionsSortableList = ({
           },
           {
             title: "Date",
-            dataKey: "dueAt" || "_id",
+            dataKey: "dueAt",
             onSortOrder: setSortOrder,
             onSortBy: setSortBy,
             sortBy,
@@ -139,6 +141,11 @@ const ActionsSortableList = ({
             render: (action) => <PersonName item={action} />,
           },
           {
+            title: "Créée par",
+            dataKey: "createdBy",
+            render: (action) => <UserName id={action.user} />,
+          },
+          {
             title: "Statut",
             onSortOrder: setSortOrder,
             onSortBy: setSortBy,
@@ -163,7 +170,7 @@ const ActionsSortableList = ({
               );
             },
           },
-        ]}
+        ].filter((c) => columns.includes(c.dataKey))}
       />
       {limit > 0 && <Page page={page} limit={limit} total={total} onChange={({ page }) => setPage(page, true)} />}
     </>

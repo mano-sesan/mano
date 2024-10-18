@@ -18,6 +18,7 @@ import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import { modalActionState } from "../../../recoil/modal";
 import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
+import ActionsSortableList from "../../../components/ActionsSortableList";
 
 const filteredPersonActionsSelector = selectorFamily({
   key: "filteredPersonActionsSelector",
@@ -111,9 +112,9 @@ export const Actions = ({ person }) => {
         setFilterTeamIds={setFilterTeamIds}
         filterTeamIds={filterTeamIds}
       />
-      <ModalContainer open={!!fullScreen} className="" size="prose" onClose={() => setFullScreen(false)}>
+      <ModalContainer open={!!fullScreen} className="" size="5xl" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`Actions de  ${person?.name} (${filteredData.length})`}>
-          <div className="tw-mt-2 tw-w-full tw-max-w-2xl">
+          <div className="tw-mt-2 tw-w-full tw-px-8">
             <ActionsFilters
               data={data}
               setFilterCategories={setFilterCategories}
@@ -126,7 +127,9 @@ export const Actions = ({ person }) => {
           </div>
         </ModalHeader>
         <ModalBody>
-          <ActionsTable filteredData={filteredData} />
+          <div className="tw-px-4">
+            <ActionsSortableList data={filteredData} columns={["urgentOrGroupOrConsultation", "dueAt", "createdBy", "name", "status", "team"]} />
+          </div>
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>
