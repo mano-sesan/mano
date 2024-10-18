@@ -24,7 +24,6 @@ import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionK
 import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";
 import { capture } from "../../services/sentry";
-import { addToDebugMixedOrgsBug } from "../../utils/debug-mixed-orgs-bug";
 import { modalConfirmState } from "../../components/ModalConfirm";
 
 const SignIn = () => {
@@ -113,7 +112,6 @@ const SignIn = () => {
         setOrganisation(organisation);
         setUserName(user.name);
         setUser(user);
-        window.localStorage.setItem("mano-organisationId", organisation._id);
         if (!!organisation.encryptionEnabled && !["superadmin"].includes(user.role)) setShowEncryption(true);
       }
       return setLoading(false);
@@ -173,15 +171,8 @@ const SignIn = () => {
       return setIsSubmitting(false);
     }
     const { organisation } = user;
-    const storedOrganisationId = window.localStorage.getItem("mano-organisationId");
-    addToDebugMixedOrgsBug({
-      logFrom: "handleSubmit in signin.jsx",
-      "organisation._id": organisation._id,
-      "storedOrganisationId && storedOrganisationId !== organisation._id": storedOrganisationId && storedOrganisationId !== organisation._id,
-    });
     setOrganisation(organisation);
     setUser(user);
-    window.localStorage.setItem("mano-organisationId", organisation._id);
     if (!!organisation.encryptionEnabled && !showEncryption && !["superadmin"].includes(user.role)) {
       setShowEncryption(true);
       return setIsSubmitting(false);
