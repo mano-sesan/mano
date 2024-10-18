@@ -165,11 +165,11 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
           ))}
         </div>
       )}
-      <ModalContainer open={open} onAfterEnter={() => setModalIsOpened(true)} onBeforeLeave={() => setModalIsOpened(false)}>
+      <ModalContainer size="3xl" open={open} onAfterEnter={() => setModalIsOpened(true)} onBeforeLeave={() => setModalIsOpened(false)}>
         <ModalHeader title="Sélectionner des catégories" />
         <ModalBody>
           <div
-            className="tw-mx-4 tw-flex tw-max-h-16 tw-flex-wrap tw-gap-2 tw-overflow-y-auto tw-rounded tw-border tw-border-gray-300  tw-px-2.5 tw-py-1"
+            className="tw-mt-4 tw-mx-4 tw-flex tw-flex-wrap tw-gap-2 tw-overflow-y-auto tw-rounded tw-border tw-border-gray-300  tw-px-2.5 tw-py-1"
             ref={categories2Ref}
           >
             {selected.map((category, i) => (
@@ -199,10 +199,10 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
               placeholder="Recherchez..."
             />
           </div>
-          <div className="tw-mx-4 tw-mt-8 tw-flex tw-h-[50vh] tw-basis-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300">
+          <div className="tw-mx-4 tw-my-4 tw-flex tw-h-[50vh] tw-basis-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300">
             <div className="tw-flex tw-basis-1/3 tw-flex-col tw-justify-start tw-border-gray-300">
               <span className="tw-border-b tw-border-gray-300 tw-px-4 tw-py-2 tw-text-left tw-font-semibold">Groupes</span>
-              <div className="tw-flex tw-flex-col tw-overflow-y-auto">
+              <div className="tw-flex tw-flex-col tw-overflow-y-auto tw-text-sm">
                 {groups.map(({ groupTitle, categories }) => (
                   <button
                     key={groupTitle}
@@ -220,7 +220,7 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
             </div>
             <div className="tw-flex tw-basis-2/3 tw-flex-col tw-justify-start tw-border-l tw-border-gray-300">
               <span className="tw-border-b tw-border-gray-300 tw-px-4 tw-py-2 tw-text-left tw-font-semibold">Catégories</span>
-              <div className="tw-flex tw-flex-col tw-overflow-y-auto">
+              <div className="tw-flex tw-flex-col tw-overflow-y-auto  tw-text-sm">
                 {groups
                   .find((group) => group.groupTitle === groupSelected)
                   ?.categories.map((category, i) => (
