@@ -156,7 +156,15 @@ type SortBy = "observedAt";
 
 export const sortTerritoriesObservations =
   (sortBy: SortBy, sortOrder: SortOrder) => (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => {
-    return sortOrder === "ASC"
-      ? new Date(b.observedAt || b.createdAt).getTime() - new Date(a.observedAt || a.createdAt).getTime()
-      : new Date(a.observedAt || a.createdAt).getTime() - new Date(b.observedAt || b.createdAt).getTime();
+    if (sortBy === "observedAt") {
+      return sortOrder === "ASC"
+        ? new Date(b.observedAt || b.createdAt).getTime() - new Date(a.observedAt || a.createdAt).getTime()
+        : new Date(a.observedAt || a.createdAt).getTime() - new Date(b.observedAt || b.createdAt).getTime();
+    }
+    if (sortBy === "territoryName") {
+      return sortOrder === "ASC" ? a.territoryName.localeCompare(b.territoryName) : b.territoryName.localeCompare(a.territoryName);
+    }
+    if (sortBy === "userName") {
+      return sortOrder === "ASC" ? (a.userName || "").localeCompare(b.userName || "") : (b.userName || "").localeCompare(a.userName || "");
+    }
   };
