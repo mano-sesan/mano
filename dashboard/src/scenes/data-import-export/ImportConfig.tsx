@@ -460,7 +460,22 @@ function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): 
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
-        data[sheetName].data.push(trimAllValues({ rubrique, intitule, type, choix: choix?.split(",") || [], enabledTeams }));
+        data[sheetName].data.push(
+          trimAllValues({
+            rubrique,
+            intitule,
+            type,
+            choix: Array.isArray(choix)
+              ? choix
+              : typeof choix === "string"
+                ? choix
+                    .split(",")
+                    .map((c) => c.trim())
+                    .filter(Boolean)
+                : [],
+            enabledTeams,
+          })
+        );
         data[sheetName].withTeams = true;
       }
 
@@ -473,7 +488,22 @@ function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): 
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
-        data[sheetName].data.push(trimAllValues({ rubrique, intitule, type, choix: choix?.split(",") || [], enabledTeams }));
+        data[sheetName].data.push(
+          trimAllValues({
+            rubrique,
+            intitule,
+            type,
+            choix: Array.isArray(choix)
+              ? choix
+              : typeof choix === "string"
+                ? choix
+                    .split(",")
+                    .map((c) => c.trim())
+                    .filter(Boolean)
+                : [],
+            enabledTeams,
+          })
+        );
         data[sheetName].withTeams = true;
       }
 
@@ -486,7 +516,22 @@ function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): 
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
-        data[sheetName].data.push(trimAllValues({ rubrique, intitule, type, choix: choix?.split(",") || [], enabledTeams }));
+        data[sheetName].data.push(
+          trimAllValues({
+            rubrique,
+            intitule,
+            type,
+            choix: Array.isArray(choix)
+              ? choix
+              : typeof choix === "string"
+                ? choix
+                    .split(",")
+                    .map((c) => c.trim())
+                    .filter(Boolean)
+                : [],
+            enabledTeams,
+          })
+        );
         data[sheetName].withTeams = true;
       }
 
@@ -499,7 +544,22 @@ function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): 
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
-        data[sheetName].data.push(trimAllValues({ rubrique, intitule, type, choix: choix?.split(",") || [], enabledTeams }));
+        data[sheetName].data.push(
+          trimAllValues({
+            rubrique,
+            intitule,
+            type,
+            choix: Array.isArray(choix)
+              ? choix
+              : typeof choix === "string"
+                ? choix
+                    .split(",")
+                    .map((c) => c.trim())
+                    .filter(Boolean)
+                : [],
+            enabledTeams,
+          })
+        );
         data[sheetName].withTeams = true;
       }
 
