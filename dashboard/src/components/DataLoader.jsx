@@ -1,6 +1,6 @@
 /* eslint-disable no-inner-declarations */
 import { useEffect } from "react";
-import { atom, selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { toast } from "react-toastify";
 
 import { personsState } from "../recoil/persons";
@@ -31,7 +31,6 @@ import { getDebugMixedOrgsBug } from "../utils/debug-mixed-orgs-bug";
 import { recurrencesState } from "../recoil/recurrences";
 
 // Update to flush cache.
-
 const isLoadingState = atom({ key: "isLoadingState", default: false });
 const fullScreenState = atom({ key: "fullScreenState", default: true });
 const progressState = atom({ key: "progressState", default: null });
@@ -44,23 +43,6 @@ export const totalLoadingDurationState = atom({
 const initialLoadingTextState = "En attente de chargement";
 export const loadingTextState = atom({ key: "loadingTextState", default: initialLoadingTextState });
 export const initialLoadIsDoneState = atom({ key: "initialLoadIsDoneState", default: false });
-export const lastLoadState = atom({
-  key: "lastLoadState",
-  default: selector({
-    key: "lastLoadState/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
-      return cache;
-    },
-  }),
-  effects: [
-    ({ onSet }) => {
-      onSet(async (newValue) => {
-        await setCacheItem(dashboardCurrentCacheKey, newValue);
-      });
-    },
-  ],
-});
 
 export default function DataLoader() {
   const isLoading = useRecoilValue(isLoadingState);
@@ -96,7 +78,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setLoadingText = useSetRecoilState(loadingTextState);
   const setInitialLoadIsDone = useSetRecoilState(initialLoadIsDoneState);
   const setTotalLoadingDuration = useSetRecoilState(totalLoadingDurationState);
-  const [lastLoadValue, setLastLoad] = useRecoilState(lastLoadState);
   const setProgress = useSetRecoilState(progressState);
   const setTotal = useSetRecoilState(totalState);
 
@@ -126,48 +107,28 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /*
-  Steps
-
-  INITIALLY: Recoil takes care of cache reconciliation, so the loader don't have to worry about it
-  - each atom `person`, `action` etc. has an async default value, which is a selector that will get the data from the cache
-  - each of those atoms has an effect that will update the cache when the data is set
-
-  Then, for initial load / refresh, the loader will:
-  1. Start the UI:
-    - set isLoading to true
-    - set fullScreen to true if it's the initial load
-    - set loadingText to 'Chargement des données' if it's the initial load, 'Mise à jour des données' otherwise
-  2. Get the latest organisation, in order to get the latest migrations data, and updated custom fields
-  3. Get the latest user, in order to get the latest user roles
-  4. Get the latest stats, in order to know what data to download, with the following parameters
-    - after lastLoadValue, which is a date provided by the server, and is the last time the data was downloaded
-    - withDeleted, to get the data deleted from other users, so that we can filter it out in here
-    - withAllMedicalData, only on initial load because medical data is never saved in cache
-    The stats will be used for
-    - knowing the total items count, and setting the progress bar
-    - knowing what data to download
-  5. Get the server date, in order to know when the data was last updated
-  6. Download all the data, with the following parameters
-    - withDeleted, to get the data deleted from other users, so that we can filter it out in here
-    - after lastLoadValue, which is a date provided by the server, and is the last time the data was downloaded
-
-  */
   async function loadOrRefreshData(isStartingInitialLoad) {
     setIsLoading(true);
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
+
+    let lastLoadValue = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
     let now = Date.now();
 
-    /*
-    Refresh organisation (and user), to get the latest organisation fields
-    and the latest user roles
-    */
+    // On vérifie s'il y a un autre identifiant d'organisation dans le cache pour le supprimer le cas échéant
+    const otherOrganisationId = await getCacheItemDefaultValue("organisationId", null);
+    if (otherOrganisationId && otherOrganisationId !== organisation._id) {
+      setLoadingText("Nettoyage du cache de la précédente organisation");
+      await clearCache("otherOrganisationId");
+      lastLoadValue = 0;
+    }
 
+    // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const [userError, userResponse] = await tryFetch(() => {
       return API.getAbortable({ path: "/user/me" });
     });
     if (userError || !userResponse.ok) return resetLoaderOnError(userError || userResponse.error);
+
     const latestOrganisation = userResponse.user.organisation;
     const latestUser = userResponse.user;
     const latestTeams = userResponse.user.orgTeams;
@@ -241,6 +202,41 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       after: lastLoadValue,
       withDeleted: true,
     };
+
+    setLoadingText("Récupération des données dans le cache");
+    if (isStartingInitialLoad) {
+      await Promise.resolve()
+        .then(() => getCacheItemDefaultValue("person", []))
+        .then((persons) => setPersons([...persons]))
+        .then(() => getCacheItemDefaultValue("group", []))
+        .then((groups) => setGroups([...groups]))
+        .then(() => getCacheItemDefaultValue("report", []))
+        .then((reports) => setReports([...reports]))
+        .then(() => getCacheItemDefaultValue("passage", []))
+        .then((passages) => setPassages([...passages]))
+        .then(() => getCacheItemDefaultValue("rencontre", []))
+        .then((rencontres) => setRencontres([...rencontres]))
+        .then(() => getCacheItemDefaultValue("action", []))
+        .then((actions) => setActions([...actions]))
+        .then(() => getCacheItemDefaultValue("recurrence", []))
+        .then((recurrences) => setRecurrences([...recurrences]))
+        .then(() => getCacheItemDefaultValue("territory", []))
+        .then((territories) => setTerritories([...territories]))
+        .then(() => getCacheItemDefaultValue("place", []))
+        .then((places) => setPlaces([...places]))
+        .then(() => getCacheItemDefaultValue("relPersonPlace", []))
+        .then((relsPersonPlace) => setRelsPersonPlace([...relsPersonPlace]))
+        .then(() => getCacheItemDefaultValue("territory-observation", []))
+        .then((territoryObservations) => setTerritoryObservations([...territoryObservations]))
+        .then(() => getCacheItemDefaultValue("comment", []))
+        .then((comments) => setComments([...comments]))
+        .then(() => getCacheItemDefaultValue("consultation", []))
+        .then((consultations) => setConsultations([...consultations]))
+        .then(() => getCacheItemDefaultValue("treatment", []))
+        .then((treatments) => setTreatments([...treatments]))
+        .then(() => getCacheItemDefaultValue("medical-file", []))
+        .then((medicalFiles) => setMedicalFiles([...medicalFiles]));
+    }
 
     if (stats.persons > 0) {
       let newItems = [];
@@ -542,9 +538,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!medicalFilesSuccess) return false;
     }
 
+    // On enregistre également l'identifiant de l'organisation
+    setCacheItem("organisationId", organisationId);
     setIsLoading(false);
     if (!lastLoadValue) setTotalLoadingDuration((d) => d + Date.now() - now);
-    setLastLoad(serverDate);
+    await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setLoadingText("En attente de rafraichissement");
     setProgress(null);
     setTotal(null);
@@ -555,7 +553,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   async function resetLoaderOnError(error) {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
-    setLastLoad(0);
     await clearCache("resetLoaderOnError");
     // Pas de message d'erreur si la page est en train de se fermer
     // et que l'erreur est liée à une requête annulable.
@@ -567,29 +564,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     return false;
   }
 
-  async function resetCache(calledFrom = "not defined") {
-    setLastLoad(0);
-    setPersons([]);
-    setGroups([]);
-    setReports([]);
-    setPassages([]);
-    setRencontres([]);
-    setActions([]);
-    setTerritories([]);
-    setPlaces([]);
-    setRelsPersonPlace([]);
-    setTerritoryObservations([]);
-    setComments([]);
-    setConsultations([]);
-    setTreatments([]);
-    setMedicalFiles([]);
-    await clearCache("called from RestCache from " + calledFrom);
-  }
-
   return {
     refresh: () => loadOrRefreshData(false),
     startInitialLoad: () => loadOrRefreshData(true),
-    resetCache,
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
   };

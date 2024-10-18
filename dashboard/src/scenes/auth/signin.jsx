@@ -45,7 +45,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authViaCookie, setAuthViaCookie] = useState(false);
-  const { startInitialLoad, isLoading, resetCache } = useDataLoader();
+  const { startInitialLoad, isLoading } = useDataLoader();
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
 
@@ -69,7 +69,7 @@ const SignIn = () => {
     if (["stats-only"].includes(user.role)) return history.push("/stats");
     // S'il y a une redirection prévues dans le sessionStorage, on la fait
     const redirect = window.sessionStorage.getItem("redirectPath");
-    if (redirect) {
+    if (redirect && redirect !== "/") {
       window.sessionStorage.removeItem("redirectPath");
       history.push(redirect);
       return;
@@ -110,17 +110,6 @@ const SignIn = () => {
       if (ok && token && user) {
         setAuthViaCookie(true);
         const { organisation } = user;
-        const storedOrganisationId = window.localStorage.getItem("mano-organisationId");
-        addToDebugMixedOrgsBug({
-          logFrom: "useEffect signin.jsx",
-          "organisation._id": organisation._id,
-          "storedOrganisationId && storedOrganisationId !== organisation._id": storedOrganisationId && storedOrganisationId !== organisation._id,
-        });
-        if (storedOrganisationId && storedOrganisationId !== organisation._id) {
-          await resetCache("call ResetCache from useEffect in signin.jsx");
-        } else {
-          addToDebugMixedOrgsBug("no need to reset cache from useEffect in signin.jsx");
-        }
         setOrganisation(organisation);
         setUserName(user.name);
         setUser(user);
@@ -190,11 +179,6 @@ const SignIn = () => {
       "organisation._id": organisation._id,
       "storedOrganisationId && storedOrganisationId !== organisation._id": storedOrganisationId && storedOrganisationId !== organisation._id,
     });
-    if (storedOrganisationId && storedOrganisationId !== organisation._id) {
-      await resetCache("call ResetCache from handleSubmit in signin.jsx");
-    } else {
-      addToDebugMixedOrgsBug("no need to reset cache from handleSubmit in signin.jsx");
-    }
     setOrganisation(organisation);
     setUser(user);
     window.localStorage.setItem("mano-organisationId", organisation._id);

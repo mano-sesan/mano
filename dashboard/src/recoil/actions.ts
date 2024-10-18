@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils";
@@ -10,13 +10,7 @@ import { ActionInstance } from "../types/action";
 const collectionName = "action";
 export const actionsState = atom<Array<ActionInstance>>({
   key: collectionName,
-  default: selector({
-    key: "action/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("action", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 

@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { setCacheItem } from "../services/dataManagement";
 import { atom, selector, useRecoilValue } from "recoil";
 import { organisationState } from "./auth";
 import { toast } from "react-toastify";
@@ -10,13 +10,7 @@ import { encryptItem } from "../services/encryption";
 const collectionName = "person";
 export const personsState = atom<PersonInstance[]>({
   key: collectionName,
-  default: selector({
-    key: "person/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("person", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 

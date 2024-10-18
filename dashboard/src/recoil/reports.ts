@@ -1,4 +1,4 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
+import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
@@ -13,13 +13,7 @@ import { encryptItem } from "../services/encryption";
 const collectionName = "report";
 export const reportsState = atom({
   key: collectionName,
-  default: selector({
-    key: "report/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("report", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [
     ({ onSet }) =>
       onSet(async (newValue: Array<ReportInstance>) => {

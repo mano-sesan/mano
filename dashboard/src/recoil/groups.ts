@@ -1,5 +1,5 @@
-import { getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
-import { atom, selector, selectorFamily } from "recoil";
+import { setCacheItem } from "../services/dataManagement";
+import { atom, selectorFamily } from "recoil";
 import type { GroupInstance } from "../types/group";
 import type { UUIDV4 } from "../types/uuid";
 import { encryptItem } from "../services/encryption";
@@ -7,13 +7,7 @@ import { encryptItem } from "../services/encryption";
 const collectionName = "group";
 export const groupsState = atom<GroupInstance[]>({
   key: collectionName,
-  default: selector({
-    key: "group/default",
-    get: async () => {
-      const cache = await getCacheItemDefaultValue("group", []);
-      return cache;
-    },
-  }),
+  default: [],
   effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
