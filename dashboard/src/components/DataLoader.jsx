@@ -27,7 +27,6 @@ import useDataMigrator from "./DataMigrator";
 import { decryptItem } from "../services/encryption";
 import { errorMessage } from "../utils";
 import { capture } from "../services/sentry";
-import { getDebugMixedOrgsBug } from "../utils/debug-mixed-orgs-bug";
 import { recurrencesState } from "../recoil/recurrences";
 
 // Update to flush cache.
@@ -252,14 +251,12 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (res.hasMore) return loadPersons(page + 1);
         if (newItems.length) {
           const newPersons = mergeItems(persons, newItems);
+          // Cette partie n'est probablement plus utile
           // Check if some people from previous organisations are still in the list
           const personsFromOtherOrgs = newPersons.filter((p) => p.organisation !== organisationId);
           if (personsFromOtherOrgs.length) {
-            // get the logs to try to understand what happened
-            const logs = getDebugMixedOrgsBug();
-            capture("DataLoader: personsFromOtherOrgs amélioré", {
+            capture("DataLoader: personsFromOtherOrgs", {
               extra: {
-                logs,
                 organisationId,
                 totalPersonsFromOtherOrgs: personsFromOtherOrgs.length,
                 personFromOtherOrg: {

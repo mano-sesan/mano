@@ -7,7 +7,6 @@ import * as Sentry from "@sentry/react";
 import { fr } from "date-fns/esm/locale";
 import { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { addToDebugMixedOrgsBug } from "./utils/debug-mixed-orgs-bug";
 import Account from "./scenes/account";
 import Auth from "./scenes/auth";
 import Organisation from "./scenes/organisation";
@@ -99,7 +98,7 @@ function abortRequests() {
     // reset new abort controller ?
     // API.abortController = new AbortController();
   } catch (e) {
-    addToDebugMixedOrgsBug("Aborting requests failed", e);
+    console.log("Aborting requests failed", e);
     console.error(e);
   }
 }
@@ -142,7 +141,6 @@ const App = () => {
   const deploymentDate = useRecoilValue(deploymentDateState);
 
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
-    addToDebugMixedOrgsBug("automatic force reload 🤖💪🆙");
     abortRequests();
     window.localStorage.setItem("deploymentDate", deploymentDate);
     window.localStorage.setItem("deploymentCommit", deploymentCommit);
