@@ -26,7 +26,6 @@ import ProgressBar from "./LoaderProgressBar";
 import useDataMigrator from "./DataMigrator";
 import { decryptItem } from "../services/encryption";
 import { errorMessage } from "../utils";
-import { capture } from "../services/sentry";
 import { recurrencesState } from "../recoil/recurrences";
 
 // Update to flush cache.
@@ -202,43 +201,8 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       withDeleted: true,
     };
 
-    setLoadingText("Récupération des données dans le cache");
-    if (isStartingInitialLoad) {
-      await Promise.resolve()
-        .then(() => getCacheItemDefaultValue("person", []))
-        .then((persons) => setPersons([...persons]))
-        .then(() => getCacheItemDefaultValue("group", []))
-        .then((groups) => setGroups([...groups]))
-        .then(() => getCacheItemDefaultValue("report", []))
-        .then((reports) => setReports([...reports]))
-        .then(() => getCacheItemDefaultValue("passage", []))
-        .then((passages) => setPassages([...passages]))
-        .then(() => getCacheItemDefaultValue("rencontre", []))
-        .then((rencontres) => setRencontres([...rencontres]))
-        .then(() => getCacheItemDefaultValue("action", []))
-        .then((actions) => setActions([...actions]))
-        .then(() => getCacheItemDefaultValue("recurrence", []))
-        .then((recurrences) => setRecurrences([...recurrences]))
-        .then(() => getCacheItemDefaultValue("territory", []))
-        .then((territories) => setTerritories([...territories]))
-        .then(() => getCacheItemDefaultValue("place", []))
-        .then((places) => setPlaces([...places]))
-        .then(() => getCacheItemDefaultValue("relPersonPlace", []))
-        .then((relsPersonPlace) => setRelsPersonPlace([...relsPersonPlace]))
-        .then(() => getCacheItemDefaultValue("territory-observation", []))
-        .then((territoryObservations) => setTerritoryObservations([...territoryObservations]))
-        .then(() => getCacheItemDefaultValue("comment", []))
-        .then((comments) => setComments([...comments]))
-        .then(() => getCacheItemDefaultValue("consultation", []))
-        .then((consultations) => setConsultations([...consultations]))
-        .then(() => getCacheItemDefaultValue("treatment", []))
-        .then((treatments) => setTreatments([...treatments]))
-        .then(() => getCacheItemDefaultValue("medical-file", []))
-        .then((medicalFiles) => setMedicalFiles([...medicalFiles]));
-    }
-
+    let newPersons = [];
     if (stats.persons > 0) {
-      let newItems = [];
       setLoadingText("Chargement des personnes");
       async function loadPersons(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -247,37 +211,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newPersons.push(...decryptedData);
         if (res.hasMore) return loadPersons(page + 1);
-        if (newItems.length) {
-          const newPersons = mergeItems(persons, newItems);
-          // Cette partie n'est probablement plus utile
-          // Check if some people from previous organisations are still in the list
-          const personsFromOtherOrgs = newPersons.filter((p) => p.organisation !== organisationId);
-          if (personsFromOtherOrgs.length) {
-            capture("DataLoader: personsFromOtherOrgs", {
-              extra: {
-                organisationId,
-                totalPersonsFromOtherOrgs: personsFromOtherOrgs.length,
-                personFromOtherOrg: {
-                  _id: personsFromOtherOrgs[0]?._id,
-                  organisation: personsFromOtherOrgs[0]?.organisation,
-                  createdAt: personsFromOtherOrgs[0]?.createdAt,
-                  updatedAt: personsFromOtherOrgs[0]?.updatedAt,
-                  deletedAt: personsFromOtherOrgs[0]?.deletedAt,
-                },
-              },
-            });
-          }
-          setPersons(newPersons);
-        }
         return true;
       }
       const personSuccess = await loadPersons(0);
       if (!personSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cachePersons = await getCacheItemDefaultValue("person", []);
+      if (newPersons.length) {
+        setPersons(mergeItems(cachePersons, newPersons));
+      } else {
+        setPersons(cachePersons);
+      }
+    } else if (newPersons.length) {
+      setPersons(mergeItems(persons, newPersons));
+    }
+
+    let newGroups = [];
     if (stats.groups > 0) {
-      let newItems = [];
       setLoadingText("Chargement des familles");
       async function loadGroups(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -286,16 +240,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "groups" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newGroups.push(...decryptedData);
         if (res.hasMore) return loadGroups(page + 1);
-        if (newItems.length) setGroups(mergeItems(groups, newItems));
         return true;
       }
       const groupsSuccess = await loadGroups(0);
       if (!groupsSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheGroups = await getCacheItemDefaultValue("group", []);
+      if (newGroups.length) {
+        setGroups(mergeItems(cacheGroups, newGroups));
+      } else {
+        setGroups(cacheGroups);
+      }
+    } else if (newGroups.length) {
+      setGroups(mergeItems(groups, newGroups));
+    }
+
+    let newReports = [];
     if (stats.reports > 0) {
-      let newItems = [];
       setLoadingText("Chargement des comptes-rendus");
       async function loadReports(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -304,16 +269,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "reports" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newReports.push(...decryptedData);
         if (res.hasMore) return loadReports(page + 1);
-        if (newItems.length) setReports(mergeItems(reports, newItems, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
         return true;
       }
       const reportsSuccess = await loadReports(0);
       if (!reportsSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheReports = await getCacheItemDefaultValue("report", []);
+      if (newReports.length) {
+        setReports(mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      } else {
+        setReports(cacheReports);
+      }
+    } else if (newReports.length) {
+      setReports(mergeItems(reports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+    }
+
+    let newPassages = [];
     if (stats.passages > 0) {
-      let newItems = [];
       setLoadingText("Chargement des passages");
       async function loadPassages(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -322,16 +298,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "passages" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newPassages.push(...decryptedData);
         if (res.hasMore) return loadPassages(page + 1);
-        if (newItems.length) setPassages(mergeItems(passages, newItems));
         return true;
       }
       const passagesSuccess = await loadPassages(0);
       if (!passagesSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cachePassages = await getCacheItemDefaultValue("passage", []);
+      if (newPassages.length) {
+        setPassages(mergeItems(cachePassages, newPassages));
+      } else {
+        setPassages(cachePassages);
+      }
+    } else if (newPassages.length) {
+      setPassages(mergeItems(passages, newPassages));
+    }
+
+    let newRencontres = [];
     if (stats.rencontres > 0) {
-      let newItems = [];
       setLoadingText("Chargement des rencontres");
       async function loadRencontres(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -340,16 +327,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "rencontres" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newRencontres.push(...decryptedData);
         if (res.hasMore) return loadRencontres(page + 1);
-        if (newItems.length) setRencontres(mergeItems(rencontres, newItems));
         return true;
       }
       const rencontresSuccess = await loadRencontres(0);
       if (!rencontresSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheRencontres = await getCacheItemDefaultValue("rencontre", []);
+      if (newRencontres.length) {
+        setRencontres(mergeItems(cacheRencontres, newRencontres));
+      } else {
+        setRencontres(cacheRencontres);
+      }
+    } else if (newRencontres.length) {
+      setRencontres(mergeItems(rencontres, newRencontres));
+    }
+
+    let newActions = [];
     if (stats.actions > 0) {
-      let newItems = [];
       setLoadingText("Chargement des actions");
       async function loadActions(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -358,16 +356,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "actions" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newActions.push(...decryptedData);
         if (res.hasMore) return loadActions(page + 1);
-        if (newItems.length) setActions(mergeItems(actions, newItems));
         return true;
       }
       const actionsSuccess = await loadActions(0);
       if (!actionsSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheActions = await getCacheItemDefaultValue("action", []);
+      if (newActions.length) {
+        setActions(mergeItems(cacheActions, newActions));
+      } else {
+        setActions(cacheActions);
+      }
+    } else if (newActions.length) {
+      setActions(mergeItems(actions, newActions));
+    }
+
+    let newRecurrences = [];
     if (stats.recurrences > 0) {
-      let newItems = [];
       setLoadingText("Chargement des actions récurrentes");
       async function loadRecurrences(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -376,16 +385,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newRecurrences.push(...decryptedData);
         if (res.hasMore) return loadRecurrences(page + 1);
-        if (newItems.length) setRecurrences(mergeItems(recurrences, newItems));
         return true;
       }
       const recurrencesSuccess = await loadRecurrences(0);
       if (!recurrencesSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheRecurrences = await getCacheItemDefaultValue("recurrence", []);
+      if (newRecurrences.length) {
+        setRecurrences(mergeItems(cacheRecurrences, newRecurrences));
+      } else {
+        setRecurrences(cacheRecurrences);
+      }
+    } else if (newRecurrences.length) {
+      setRecurrences(mergeItems(recurrences, newRecurrences));
+    }
+
+    let newTerritories = [];
     if (stats.territories > 0) {
-      let newItems = [];
       setLoadingText("Chargement des territoires");
       async function loadTerritories(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -394,16 +414,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territories" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newTerritories.push(...decryptedData);
         if (res.hasMore) return loadTerritories(page + 1);
-        if (newItems.length) setTerritories(mergeItems(territories, newItems));
         return true;
       }
       const territoriesSuccess = await loadTerritories(0);
       if (!territoriesSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheTerritories = await getCacheItemDefaultValue("territory", []);
+      if (newTerritories.length) {
+        setTerritories(mergeItems(cacheTerritories, newTerritories));
+      } else {
+        setTerritories(cacheTerritories);
+      }
+    } else if (newTerritories.length) {
+      setTerritories(mergeItems(territories, newTerritories));
+    }
+
+    let newPlaces = [];
     if (stats.places > 0) {
-      let newItems = [];
       setLoadingText("Chargement des lieux");
       async function loadPlaces(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -412,34 +443,56 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "places" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newPlaces.push(...decryptedData);
         if (res.hasMore) return loadPlaces(page + 1);
-        if (newItems.length) setPlaces(mergeItems(places, newItems));
         return true;
       }
       const placesSuccess = await loadPlaces(0);
       if (!placesSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cachePlaces = await getCacheItemDefaultValue("place", []);
+      if (newPlaces.length) {
+        setPlaces(mergeItems(cachePlaces, newPlaces));
+      } else {
+        setPlaces(cachePlaces);
+      }
+    } else if (newPlaces.length) {
+      setPlaces(mergeItems(places, newPlaces));
+    }
+
+    let newRelsPersonPlace = [];
     if (stats.relsPersonPlace > 0) {
-      let newItems = [];
       setLoadingText("Chargement des relations personne-lieu");
-      async function loadRelPersonPlaces(page = 0) {
+      async function loadRelsPersonPlace(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
           return API.getAbortable({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
-        if (res.hasMore) return loadRelPersonPlaces(page + 1);
-        if (newItems.length) setRelsPersonPlace(mergeItems(relsPersonPlace, newItems));
+        newRelsPersonPlace.push(...decryptedData);
+        if (res.hasMore) return loadRelsPersonPlace(page + 1);
         return true;
       }
-      const relsPersonPlacesSuccess = await loadRelPersonPlaces(0);
-      if (!relsPersonPlacesSuccess) return false;
+      const relsPersonPlaceSuccess = await loadRelsPersonPlace(0);
+      if (!relsPersonPlaceSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheRelsPersonPlace = await getCacheItemDefaultValue("relPersonPlace", []);
+      if (newRelsPersonPlace.length) {
+        setRelsPersonPlace(mergeItems(cacheRelsPersonPlace, newRelsPersonPlace));
+      } else {
+        setRelsPersonPlace(cacheRelsPersonPlace);
+      }
+    } else if (newRelsPersonPlace.length) {
+      setRelsPersonPlace(mergeItems(relsPersonPlace, newRelsPersonPlace));
+    }
+
+    let newTerritoryObservations = [];
     if (stats.territoryObservations > 0) {
-      let newItems = [];
       setLoadingText("Chargement des observations de territoire");
       async function loadObservations(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -448,16 +501,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newTerritoryObservations.push(...decryptedData);
         if (res.hasMore) return loadObservations(page + 1);
-        if (newItems.length) setTerritoryObservations(mergeItems(territoryObservations, newItems));
         return true;
       }
       const territoryObservationsSuccess = await loadObservations(0);
       if (!territoryObservationsSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheTerritoryObservations = await getCacheItemDefaultValue("territory-observation", []);
+      if (newTerritoryObservations.length) {
+        setTerritoryObservations(mergeItems(cacheTerritoryObservations, newTerritoryObservations));
+      } else {
+        setTerritoryObservations(cacheTerritoryObservations);
+      }
+    } else if (newTerritoryObservations.length) {
+      setTerritoryObservations(mergeItems(territoryObservations, newTerritoryObservations));
+    }
+
+    let newComments = [];
     if (stats.comments > 0) {
-      let newItems = [];
       setLoadingText("Chargement des commentaires");
       async function loadComments(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -466,16 +530,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "comments" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newComments.push(...decryptedData);
         if (res.hasMore) return loadComments(page + 1);
-        if (newItems.length) setComments(mergeItems(comments, newItems));
         return true;
       }
       const commentsSuccess = await loadComments(0);
       if (!commentsSuccess) return false;
     }
+
+    if (isStartingInitialLoad) {
+      const cacheComments = await getCacheItemDefaultValue("comment", []);
+      if (newComments.length) {
+        setComments(mergeItems(cacheComments, newComments));
+      } else {
+        setComments(cacheComments);
+      }
+    } else if (newComments.length) {
+      setComments(mergeItems(comments, newComments));
+    }
+
+    let newConsultations = [];
     if (stats.consultations > 0) {
-      let newItems = [];
       setLoadingText("Chargement des consultations");
       async function loadConsultations(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
@@ -487,52 +562,90 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         if (error) return resetLoaderOnError();
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
+        newConsultations.push(...decryptedData);
         if (res.hasMore) return loadConsultations(page + 1);
-        if (newItems.length) setConsultations(mergeItems(consultations, newItems, { formatNewItemsFunction: formatConsultation }));
         return true;
       }
       const consultationsSuccess = await loadConsultations(0);
       if (!consultationsSuccess) return false;
     }
-    if (["admin", "normal"].includes(latestUser.role) && stats.treatments > 0) {
-      let newItems = [];
-      setLoadingText("Chargement des traitements");
-      async function loadTreatments(page = 0) {
-        const [error, res] = await tryFetchExpectOk(async () => {
-          return API.getAbortable({ path: "/treatment", query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue } });
-        });
-        if (error) return resetLoaderOnError();
-        const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
-        setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
-        if (res.hasMore) return loadTreatments(page + 1);
-        if (newItems.length) setTreatments(mergeItems(treatments, newItems));
-        return true;
+    if (isStartingInitialLoad) {
+      const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
+      if (newConsultations.length) {
+        setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      } else {
+        setConsultations(cacheConsultations);
       }
-      const treatmentsSuccess = await loadTreatments(0);
-      if (!treatmentsSuccess) return false;
+    } else if (newConsultations.length) {
+      setConsultations(mergeItems(consultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
     }
-    if (["admin", "normal"].includes(latestUser.role) && stats.medicalFiles > 0) {
-      let newItems = [];
-      setLoadingText("Chargement des fichiers médicaux");
-      async function loadMedicalFiles(page = 0) {
-        const [error, res] = await tryFetchExpectOk(async () => {
-          return API.getAbortable({
-            path: "/medical-file",
-            query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
+
+    if (["admin", "normal"].includes(latestUser.role)) {
+      let newTreatments = [];
+      if (stats.treatments > 0) {
+        setLoadingText("Chargement des traitements");
+        async function loadTreatments(page = 0) {
+          const [error, res] = await tryFetchExpectOk(async () => {
+            return API.getAbortable({
+              path: "/treatment",
+              query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
+            });
           });
-        });
-        if (error) return resetLoaderOnError();
-        const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
-        setProgress((p) => p + res.data.length);
-        newItems.push(...decryptedData);
-        if (res.hasMore) return loadMedicalFiles(page + 1);
-        if (newItems.length) setMedicalFiles(mergeItems(medicalFiles, newItems));
-        return true;
+          if (error) return resetLoaderOnError();
+          const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
+          setProgress((p) => p + res.data.length);
+          newTreatments.push(...decryptedData);
+          if (res.hasMore) return loadTreatments(page + 1);
+          return true;
+        }
+        const treatmentsSuccess = await loadTreatments(0);
+        if (!treatmentsSuccess) return false;
       }
-      const medicalFilesSuccess = await loadMedicalFiles(0);
-      if (!medicalFilesSuccess) return false;
+
+      if (isStartingInitialLoad) {
+        const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
+        if (newTreatments.length) {
+          setTreatments(mergeItems(cacheTreatments, newTreatments));
+        } else {
+          setTreatments(cacheTreatments);
+        }
+      } else if (newTreatments.length) {
+        setTreatments(mergeItems(treatments, newTreatments));
+      }
+    }
+
+    if (["admin", "normal"].includes(latestUser.role)) {
+      let newMedicalFiles = [];
+      if (stats.medicalFiles > 0) {
+        setLoadingText("Chargement des fichiers médicaux");
+        async function loadMedicalFiles(page = 0) {
+          const [error, res] = await tryFetchExpectOk(async () => {
+            return API.getAbortable({
+              path: "/medical-file",
+              query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
+            });
+          });
+          if (error) return resetLoaderOnError();
+          const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
+          setProgress((p) => p + res.data.length);
+          newMedicalFiles.push(...decryptedData);
+          if (res.hasMore) return loadMedicalFiles(page + 1);
+          return true;
+        }
+        const medicalFilesSuccess = await loadMedicalFiles(0);
+        if (!medicalFilesSuccess) return false;
+      }
+
+      if (isStartingInitialLoad) {
+        const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
+        if (newMedicalFiles.length) {
+          setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
+        } else {
+          setMedicalFiles(cacheMedicalFiles);
+        }
+      } else if (newMedicalFiles.length) {
+        setMedicalFiles(mergeItems(medicalFiles, newMedicalFiles));
+      }
     }
 
     // On enregistre également l'identifiant de l'organisation
