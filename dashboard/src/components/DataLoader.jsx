@@ -612,7 +612,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       } else if (newTreatments.length) {
         setTreatments(mergeItems(treatments, newTreatments));
       }
+    }
 
+    if (["admin", "normal"].includes(latestUser.role)) {
       let newMedicalFiles = [];
       if (stats.medicalFiles > 0) {
         setLoadingText("Chargement des fichiers médicaux");
