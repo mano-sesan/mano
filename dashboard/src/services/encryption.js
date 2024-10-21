@@ -229,7 +229,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
         draggable: false,
       }
     );
-    capture(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`, {
+    capture(`ERROR DECRYPTING ${type || "ITEM"}: ${errorDecrypt}`, {
       extra: { message: "ERROR DECRYPTING ITEM", item, type },
       tags: { _id: item._id },
     });
