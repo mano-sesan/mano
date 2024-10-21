@@ -29,6 +29,40 @@ import { errorMessage } from "../utils";
 import { capture } from "../services/sentry";
 import { recurrencesState } from "../recoil/recurrences";
 
+await Promise.resolve()
+.then(() => getCacheItemDefaultValue("person", []))
+.then((persons) => setPersons([...persons]))
+.then(() => getCacheItemDefaultValue("group", []))
+.then((groups) => setGroups([...groups]))
+.then(() => getCacheItemDefaultValue("report", []))
+.then((reports) => setReports([...reports]))
+.then(() => getCacheItemDefaultValue("passage", []))
+.then((passages) => setPassages([...passages]))
+.then(() => getCacheItemDefaultValue("rencontre", []))
+.then((rencontres) => setRencontres([...rencontres]))
+.then(() => getCacheItemDefaultValue("action", []))
+.then((actions) => setActions([...actions]))
+.then(() => getCacheItemDefaultValue("recurrence", []))
+.then((recurrences) => setRecurrences([...recurrences]))
+.then(() => getCacheItemDefaultValue("territory", []))
+.then((territories) => setTerritories([...territories]))
+.then(() => getCacheItemDefaultValue("place", []))
+.then((places) => setPlaces([...places]))
+.then(() => getCacheItemDefaultValue("relPersonPlace", []))
+.then((relsPersonPlace) => setRelsPersonPlace([...relsPersonPlace]))
+.then(() => getCacheItemDefaultValue("territory-observation", []))
+.then((territoryObservations) => setTerritoryObservations([...territoryObservations]))
+.then(() => getCacheItemDefaultValue("comment", []))
+.then((comments) => setComments([...comments]))
+.then(() => getCacheItemDefaultValue("consultation", []))
+.then((consultations) => setConsultations([...consultations]))
+.then(() => getCacheItemDefaultValue("treatment", []))
+.then((treatments) => setTreatments([...treatments]))
+.then(() => getCacheItemDefaultValue("medical-file", []))
+.then((medicalFiles) => setMedicalFiles([...medicalFiles]));
+}
+
+
 // Update to flush cache.
 const isLoadingState = atom({ key: "isLoadingState", default: false });
 const fullScreenState = atom({ key: "fullScreenState", default: true });
@@ -511,7 +545,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const cacheTerritoryObservations = await getCacheItemDefaultValue("territoryObservation", []);
+      const cacheTerritoryObservations = await getCacheItemDefaultValue("territory-observation", []);
       if (newTerritoryObservations.length) {
         setTerritoryObservations(mergeItems(cacheTerritoryObservations, newTerritoryObservations));
       } else {
@@ -637,7 +671,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheMedicalFiles = await getCacheItemDefaultValue("medicalFile", []);
+        const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
         if (newMedicalFiles.length) {
           setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
         } else {
