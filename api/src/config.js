@@ -1,7 +1,6 @@
 const fs = require("fs");
 const { mobileAppVersion } = require("../package.json");
 
-//
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.SECRET || "not_so_secret_4";
 const ENVIRONMENT = process.env.NODE_ENV || "development";
