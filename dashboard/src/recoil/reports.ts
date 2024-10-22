@@ -35,7 +35,7 @@ export const reportsState = atom({
               // TODO : réfléchir si on traite les erreurs ici ou si on les laisse remonter
               await API.delete({ path: `/report/${reportToDelete._id}` });
             }
-            capture("Duplicated reports " + key, {
+            capture(new Error("Duplicated reports " + key), {
               extra: {
                 [key]: reportsByDate.map((report) => ({
                   _id: report._id,
