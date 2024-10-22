@@ -30,6 +30,7 @@ export default function SuperadminOrganisationUsers({
   const [users, setUsers] = useState([]);
   const [isGeneratingLinkForUser, setIsGeneratingLinkForUser] = useState<false | string>(false);
   const [generatedLink, setGeneratedLink] = useState<[string, string] | undefined>();
+  const [isReleasingUser, setIsReleasingUser] = useState<false | string>(false);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -73,32 +74,54 @@ export default function SuperadminOrganisationUsers({
                     {user.lastLoginAt ? `Dernière connexion le ${formatDateWithFullMonth(user.lastLoginAt)}` : "Jamais connecté·e"}
                   </div>
                   <div className="tw-mt-1 tw-text-xs">
-                    {isGeneratingLinkForUser === user._id ? (
-                      <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Génération du lien de connexion en cours…</div>
-                    ) : (
-                      <>
-                        {generatedLink && generatedLink[0] === user._id && (
-                          <div className="tw-flex tw-cursor-default tw-items-center tw-text-green-700">✅ {generatedLink[1]}</div>
-                        )}
+                    <div>
+                      {isGeneratingLinkForUser === user._id ? (
+                        <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Génération du lien de connexion en cours…</div>
+                      ) : (
+                        <>
+                          {generatedLink && generatedLink[0] === user._id && (
+                            <div className="tw-flex tw-cursor-default tw-items-center tw-text-green-700">✅ {generatedLink[1]}</div>
+                          )}
+                          <button
+                            className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
+                            onClick={() => {
+                              setIsGeneratingLinkForUser(user._id);
+                              setGeneratedLink(undefined);
+                              (async () => {
+                                const [error, response] = await tryFetchExpectOk(async () =>
+                                  API.post({ path: `/user/generate-link`, body: { _id: user._id } })
+                                );
+                                if (error) return toast.error("Erreur lors de la génération du lien de connexion");
+                                setGeneratedLink([user._id, response.data.link]);
+                                setIsGeneratingLinkForUser(false);
+                              })();
+                            }}
+                          >
+                            {generatedLink && generatedLink[0] === user._id ? "🔄 Régénérer" : "Générer un lien de connexion"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <div>
+                      {isReleasingUser === user._id ? (
+                        <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Déblocage de l'utilisateur en cours…</div>
+                      ) : (
                         <button
                           className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
                           onClick={() => {
-                            setIsGeneratingLinkForUser(user._id);
-                            setGeneratedLink(undefined);
+                            setIsReleasingUser(user._id);
                             (async () => {
-                              const [error, response] = await tryFetchExpectOk(async () =>
-                                API.post({ path: `/user/generate-link`, body: { _id: user._id } })
-                              );
-                              if (error) return toast.error("Erreur lors de la génération du lien de connexion");
-                              setGeneratedLink([user._id, response.data.link]);
-                              setIsGeneratingLinkForUser(false);
+                              const [error] = await tryFetchExpectOk(async () => API.post({ path: `/user/release-user`, body: { _id: user._id } }));
+                              if (error) return toast.error("Erreur lors de la déblocage de l'utilisateur");
+                              toast.success("Utilisateur débloqué");
+                              setIsReleasingUser(false);
                             })();
                           }}
                         >
-                          {generatedLink && generatedLink[0] === user._id ? "🔄 Régénérer" : "Générer un lien de connexion"}
+                          {"Débloquer l'utilisateur (mot de passe + clé de chiffrement)"}
                         </button>
-                      </>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </td>
                 <td>
