@@ -56,4 +56,8 @@ test("Replace me", async ({ browser }) => {
   await expect(adminPage).toHaveURL("http://localhost:8090/reception?calendarTab=2");
   await adminPage.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(adminPage.getByText("créé_par_user")).toBeVisible();
+
+  // On ferme les deux navigateurs dans le doute
+  await adminPage.close();
+  await userPage.close();
 });
