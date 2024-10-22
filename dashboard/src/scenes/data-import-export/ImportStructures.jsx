@@ -10,8 +10,8 @@ import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { useDataLoader } from "../../components/DataLoader";
 import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
+import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportStructures() {
   const user = useRecoilValue(userState);

@@ -12,7 +12,7 @@ import { userState } from "../../recoil/auth";
 import BackButton from "../../components/backButton";
 import { TerritoryModal } from "./list";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { territoryObservationsState } from "../../recoil/territoryObservations";
 import { errorMessage } from "../../utils";
 

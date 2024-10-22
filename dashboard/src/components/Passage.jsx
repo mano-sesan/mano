@@ -11,8 +11,8 @@ import SelectPerson from "./SelectPerson";
 import DatePicker from "./DatePicker";
 import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
-import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
+import { useDataLoader } from "../services/dataLoader";
 
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useRecoilValue(userState);

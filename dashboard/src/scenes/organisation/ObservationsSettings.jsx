@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";

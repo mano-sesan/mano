@@ -10,10 +10,10 @@ import SelectPerson from "./SelectPerson";
 import DatePicker from "./DatePicker";
 import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
-import { useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
 import { encryptRencontre } from "../recoil/rencontres";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
+import { useDataLoader } from "../services/dataLoader";
 
 const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null, disableAccessToPerson = false }) => {
   const user = useRecoilValue(userState);

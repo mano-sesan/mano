@@ -9,7 +9,7 @@ import { dayjsInstance } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { groupSelector, groupsState, encryptGroup } from "../../recoil/groups";
 import SelectPerson from "../../components/SelectPerson";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import PersonName from "../../components/PersonName";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";

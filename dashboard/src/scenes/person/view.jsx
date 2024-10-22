@@ -14,7 +14,7 @@ import { organisationState, userState } from "../../recoil/auth";
 import PersonFamily from "./PersonFamily";
 import { groupSelector } from "../../recoil/groups";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import SearchInPerson from "./components/SearchInPerson";
 import { errorMessage } from "../../utils";
 import OutOfActiveListBanner from "./OutOfActiveListBanner";

@@ -21,7 +21,7 @@ import DownloadPersonsImportExample from "../data-import-export/DownloadPersonsI
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import ActionCategoriesSettings from "./ActionCategoriesSettings";
 import ServicesSettings from "./ServicesSettings";
 import ObservationsSettings from "./ObservationsSettings";

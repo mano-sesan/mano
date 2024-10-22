@@ -10,7 +10,7 @@ import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import type { PersonPopulated } from "../../../types/person";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } from "../../../types/document";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { encryptItem } from "../../../services/encryption";
 
 interface PersonDocumentsProps {

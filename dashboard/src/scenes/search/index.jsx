@@ -13,7 +13,7 @@ import { sortTerritories, territoriesState } from "../../recoil/territory";
 import { selector, selectorFamily, useRecoilValue } from "recoil";
 import { itemsGroupedByPersonSelector, onlyFilledObservationsTerritories, personsObjectSelector } from "../../recoil/selectors";
 import { formatBirthDate, formatDateWithFullMonth } from "../../services/date";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
 import { commentsState } from "../../recoil/comments";

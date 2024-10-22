@@ -8,12 +8,12 @@ import { currentTeamState, organisationState, teamsState, userState } from "../r
 import API, { tryFetchExpectOk } from "../services/api";
 import { useRecoilState, useRecoilValue } from "recoil";
 import Notification from "./Notification";
-import { useDataLoader } from "./DataLoader";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import ColorHeaderBand from "./ColorHeaderBand";
 import UnBugButton from "./UnBugButton";
 import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
+import { useDataLoader } from "../services/dataLoader";
 
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);

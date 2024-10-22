@@ -12,7 +12,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import API, { tryFetchExpectOk } from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import dayjs from "dayjs";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 
 const CreatePerson = () => {
   const { refresh } = useDataLoader();

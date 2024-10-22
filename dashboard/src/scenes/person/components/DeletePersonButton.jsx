@@ -1,7 +1,7 @@
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../../components/DeleteButtonAndConfirmModal";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { useDeletePerson } from "../../../services/useDeletePerson";
 
 export default function DeletePersonButton({ person }) {

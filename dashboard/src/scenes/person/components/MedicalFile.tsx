@@ -8,11 +8,7 @@ import DeletePersonButton from "./DeletePersonButton";
 import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import {
-  customFieldsMedicalFileSelector,
-  encryptMedicalFile,
-  groupedCustomFieldsMedicalFileSelector,
-} from "../../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";
@@ -22,7 +18,7 @@ import CommentsMedical from "./CommentsMedical";
 import type { PersonPopulated } from "../../../types/person";
 import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { toast } from "react-toastify";
 
 interface MedicalFileProps {
