@@ -13,7 +13,7 @@ import { sortComments } from "../recoil/comments";
 import { modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
-export default function CommentsSortableList({ data, className = "" }) {
+export default function CommentsSortableList({ data, className = "", fullScreen = false }) {
   const setModalAction = useSetRecoilState(modalActionState);
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const organisation = useRecoilValue(organisationState);
@@ -92,81 +92,185 @@ export default function CommentsSortableList({ data, className = "" }) {
       }}
       rowKey="_id"
       dataTestId="comment"
-      columns={[
-        {
-          title: "Date",
-          dataKey: "date",
-          className: "tw-w-24",
-          onSortOrder: setSortOrder,
-          onSortBy: setSortBy,
-          sortBy,
-          sortOrder,
-          render: (comment) => {
-            return (
-              <>
-                <DateBloc date={comment.date || comment.createdAt} />
-                <TimeBlock time={comment.date || comment.createdAt} />
-                <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
-                  {!!comment.urgent && <ExclamationMarkButton />}
-                  {!!organisation.groupsEnabled && !!comment.group && (
-                    <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
-                      👪
-                    </span>
-                  )}
-                </div>
-              </>
-            );
-          },
-        },
-        {
-          title: "Commentaire",
-          dataKey: "comment",
-          render: (comment) => {
-            return (
-              <>
-                <p>
-                  {comment.type === "action" && (
+      columns={
+        fullScreen
+          ? [
+              {
+                title: "",
+                dataKey: "urgentOrGroup",
+                small: true,
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (comment) => {
+                  return (
+                    <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
+                      {!!comment.urgent && <ExclamationMarkButton />}
+                      {!!organisation.groupsEnabled && !!comment.group && (
+                        <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
+                          👪
+                        </span>
+                      )}
+                    </div>
+                  );
+                },
+              },
+              {
+                title: "Date",
+                dataKey: "date",
+                style: { width: "90px" },
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (comment) => {
+                  return (
                     <>
-                      Action <b>{comment.actionPopulated?.name} </b>
-                      pour{" "}
+                      <DateBloc date={comment.date || comment.createdAt} />
+                      <TimeBlock time={comment.date || comment.createdAt} />
                     </>
-                  )}
-                  {comment.type === "treatment" && <>Traitement pour </>}
-                  {comment.type === "passage" && <>Passage pour </>}
-                  {comment.type === "rencontre" && <>Rencontre pour </>}
-                  {comment.type === "person" && <>Personne suivie </>}
-                  {comment.type === "consultation" && <>Consultation pour </>}
-                  {comment.type === "medical-file" && <>Personne suivie </>}
-                  <b>
-                    <PersonName item={comment} />
-                  </b>
-                </p>
-                <p className="tw-mb-4">
-                  {comment.comment
-                    ? comment.comment.split("\n").map((c, i, a) => {
-                        if (i === a.length - 1) return c;
-                        return (
-                          <React.Fragment key={i}>
-                            {c}
-                            <br />
-                          </React.Fragment>
-                        );
-                      })
-                    : ""}
-                </p>
-                <p className="tw-font-medium tw-italic">
-                  Par: <UserName id={comment.user} />
-                </p>
-              </>
-            );
-          },
-        },
-        {
-          title: "Équipe en charge",
-          dataKey: "team",
-          render: (comment) => <TagTeam teamId={comment?.team} />,
-        },
-      ]}
+                  );
+                },
+              },
+              {
+                title: "Type",
+                dataKey: "type",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (comment) => {
+                  return (
+                    <>
+                      {comment.type === "person" && "Personne suivie"}
+                      {comment.type === "action" && "Action"}
+                      {comment.type === "treatment" && "Traitement"}
+                      {comment.type === "passage" && "Passage"}
+                      {comment.type === "rencontre" && "Rencontre"}
+                      {comment.type === "consultation" && "Consultation"}
+                      {comment.type === "medical-file" && "Dossier médical"}
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Commentaire",
+                dataKey: "comment",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (comment) => {
+                  return (
+                    <>
+                      {comment.comment
+                        ? comment.comment.split("\n").map((c, i, a) => {
+                            if (i === a.length - 1) return c;
+                            return (
+                              <React.Fragment key={i}>
+                                {c}
+                                <br />
+                              </React.Fragment>
+                            );
+                          })
+                        : ""}
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Personne",
+                dataKey: "person",
+                render: (comment) => <PersonName item={comment} />,
+              },
+              {
+                title: "Créé par",
+                dataKey: "user",
+                render: (comment) => <UserName id={comment.user} />,
+              },
+              {
+                title: "Équipe en charge",
+                dataKey: "team",
+                render: (comment) => <TagTeam teamId={comment?.team} />,
+              },
+            ]
+          : [
+              {
+                title: "Date",
+                dataKey: "date",
+                className: "tw-w-24",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (comment) => {
+                  return (
+                    <>
+                      <DateBloc date={comment.date || comment.createdAt} />
+                      <TimeBlock time={comment.date || comment.createdAt} />
+                      <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
+                        {!!comment.urgent && <ExclamationMarkButton />}
+                        {!!organisation.groupsEnabled && !!comment.group && (
+                          <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
+                            👪
+                          </span>
+                        )}
+                      </div>
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Commentaire",
+                dataKey: "comment",
+                render: (comment) => {
+                  return (
+                    <>
+                      <p>
+                        {comment.type === "action" && (
+                          <>
+                            Action <b>{comment.actionPopulated?.name} </b>
+                            pour{" "}
+                          </>
+                        )}
+                        {comment.type === "treatment" && <>Traitement pour </>}
+                        {comment.type === "passage" && <>Passage pour </>}
+                        {comment.type === "rencontre" && <>Rencontre pour </>}
+                        {comment.type === "person" && <>Personne suivie </>}
+                        {comment.type === "consultation" && <>Consultation pour </>}
+                        {comment.type === "medical-file" && <>Personne suivie </>}
+                        <b>
+                          <PersonName item={comment} />
+                        </b>
+                      </p>
+                      <p className="tw-mb-4">
+                        {comment.comment
+                          ? comment.comment.split("\n").map((c, i, a) => {
+                              if (i === a.length - 1) return c;
+                              return (
+                                <React.Fragment key={i}>
+                                  {c}
+                                  <br />
+                                </React.Fragment>
+                              );
+                            })
+                          : ""}
+                      </p>
+                      <p className="tw-font-medium tw-italic">
+                        Par: <UserName id={comment.user} />
+                      </p>
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Équipe en charge",
+                dataKey: "team",
+                render: (comment) => <TagTeam teamId={comment?.team} />,
+              },
+            ]
+      }
     />
   );
 }
