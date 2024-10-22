@@ -180,8 +180,8 @@ const TestConnexion = () => {
     setTestOneCallEvery10MS("ongoing");
     responses.current.push(...(await testEvery(10, 500))); // 5 seconds
     setTestOneCallEvery10MS("done");
-    capture("Test connexion", {
-      extra: responses.current,
+    capture(new Error("Test connexion"), {
+      extra: { responses: responses.current },
     });
     setTestLaunched(false);
   }
@@ -206,10 +206,10 @@ const TestConnexion = () => {
   async function stopTest() {
     if (testLaunched) {
       if (!window.confirm("Êtes-vous sûr de vouloir arrêter le test ?")) return;
-      capture("Test connexion", {
-        extra: responses.current,
-        tags: responses.current?.length,
-        level: "high",
+      capture(new Error("Test connexion"), {
+        extra: { responses: responses.current },
+        tags: { responsesOK: responses.current?.length },
+        level: "warning",
       });
     }
     setOpen(false);

@@ -40,17 +40,16 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   }
   await deleteDB().catch(capture);
   window.localStorage?.clear();
-  // window.sessionStorage?.clear();
+  window.sessionStorage?.clear();
 
   // Check if the cache is empty
   const localStorageEmpty = window.localStorage.length === 0;
-  // const sessionStorageEmpty = window.sessionStorage.length === 0;
+  const sessionStorageEmpty = window.sessionStorage.length === 0;
   const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
 
   // If the cache is not empty, try again
   return new Promise((resolve) => {
-    // if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
-    if (localStorageEmpty && indexedDBEmpty) {
+    if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
       setupDB();
       resolve(true);
     } else {

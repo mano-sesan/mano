@@ -366,7 +366,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           return false;
         } catch (e) {
           toast.error("Erreur lors de la mise à jour des documents, vous pouvez contactez le support");
-          capture(e, { message: "Error while updating documents order" });
+          capture(e, { extra: { message: "Error while updating documents order" } });
         }
         return false;
       }}
