@@ -133,11 +133,11 @@ function SearchResults({ person, search }: { person: PersonPopulated; search: st
       />
       <div className="[&_table]:!tw-p0 tw-w-full tw-rounded-lg tw-bg-white tw-px-8 tw-py-4 print:tw-mb-4 [&_.title]:!tw-pb-5">
         {activeTab === "Actions" && <ActionsSortableList data={actions} />}
-        {activeTab === "Commentaires non médicaux" && <CommentsSortableList data={comments} />}
+        {activeTab === "Commentaires non médicaux" && <CommentsSortableList data={comments} fullScreen={true} />}
         {activeTab === "Lieux" && <Places places={places} />}
         {activeTab === "Consultations" && <ActionsSortableList data={consultations} />}
         {activeTab === "Traitements" && <TreatmentsSortableList treatments={treatments} />}
-        {activeTab === "Commentaires médicaux" && <CommentsSortableList data={commentsMedical} className="medical" />}
+        {activeTab === "Commentaires médicaux" && <CommentsSortableList data={commentsMedical} fullScreen={true} className="medical" />}
         {activeTab === "Documents non médicaux" && (
           <pre>
             <DocumentsModule
