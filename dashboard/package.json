@@ -96,7 +96,8 @@
     "build": "tsc && vite build",
     "lint": "eslint --fix --ext .ts,.tsx src",
     "lint-errors": "eslint --quiet --ext .ts,.tsx src",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "tsc"
   },
   "prettier": {
     "trailingComma": "es5",
