@@ -22,7 +22,7 @@ import Table from "../../components/table";
 import Passage from "../../components/Passage";
 import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { modalActionState } from "../../recoil/modal";
 

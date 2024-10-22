@@ -24,8 +24,8 @@ import CustomFieldDisplay from "./CustomFieldDisplay";
 import { itemsGroupedByConsultationSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
-import { useDataLoader } from "./DataLoader";
 import { decryptItem } from "../services/encryption";
+import { useDataLoader } from "../services/dataLoader";
 
 export default function ConsultationModal() {
   const consultationsObjects = useRecoilValue(itemsGroupedByConsultationSelector);

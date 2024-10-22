@@ -9,7 +9,7 @@ import Table from "../../components/table";
 import { toast } from "react-toastify";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import KeyInput from "../../components/KeyInput";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import { dayjsInstance } from "../../services/date";
 

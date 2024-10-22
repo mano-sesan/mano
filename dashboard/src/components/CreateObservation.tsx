@@ -22,10 +22,10 @@ import PersonName from "./PersonName";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import Table from "./table";
-import { useDataLoader } from "./DataLoader";
 import type { TerritoryObservationInstance } from "../types/territoryObs";
 import type { RencontreInstance } from "../types/rencontre";
 import FormikPersist from "./FormikPersist";
+import { useDataLoader } from "../services/dataLoader";
 
 interface CreateObservationProps {
   observation: TerritoryObservationInstance | null;

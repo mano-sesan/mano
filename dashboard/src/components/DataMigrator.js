@@ -2,7 +2,7 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { organisationState, userState } from "../recoil/auth";
 import { usePreparePersonForEncryption } from "../recoil/persons";
-import { loadingTextState } from "./DataLoader";
+import { loadingTextState } from "../services/dataLoader";
 
 const LOADING_TEXT = "Mise à jour des données de votre organisation…";
 

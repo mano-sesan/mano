@@ -12,8 +12,8 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
 import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
-import { useDataLoader } from "../../components/DataLoader";
 import { encryptItem } from "../../services/encryption";
+import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportPersons() {
   const user = useRecoilValue(userState);

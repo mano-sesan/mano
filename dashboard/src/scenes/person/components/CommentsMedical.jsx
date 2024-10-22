@@ -5,7 +5,7 @@ import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../../re
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { toast } from "react-toastify";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 
 const CommentsMedical = ({ person }) => {
   const { refresh } = useDataLoader();

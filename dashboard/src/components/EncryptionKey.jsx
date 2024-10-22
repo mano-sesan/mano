@@ -30,9 +30,9 @@ import {
 } from "../services/encryption";
 import { capture } from "../services/sentry";
 import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
-import { totalLoadingDurationState, useDataLoader } from "./DataLoader";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
+import { totalLoadingDurationState, useDataLoader } from "../services/dataLoader";
 
 const totalNumberOfItemsSelector = selector({
   key: "totalNumberOfItemsSelector",

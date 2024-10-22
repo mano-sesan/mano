@@ -13,7 +13,7 @@ import { medicalFileState } from "../../../recoil/medicalFiles";
 import { consultationsState } from "../../../recoil/consultations";
 import { treatmentsState } from "../../../recoil/treatments";
 import { userState } from "../../../recoil/auth";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { prepareGroupForEncryption } from "../../../recoil/groups";
 import { encryptItem } from "../../../services/encryption";
 import { itemsGroupedByPersonSelector } from "../../../recoil/selectors";

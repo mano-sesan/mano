@@ -17,7 +17,6 @@ import {
   userState,
 } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
-import { useDataLoader } from "../../components/DataLoader";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
@@ -25,6 +24,7 @@ import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";
 import { capture } from "../../services/sentry";
 import { modalConfirmState } from "../../components/ModalConfirm";
+import { useDataLoader } from "../../services/dataLoader";
 
 const SignIn = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);

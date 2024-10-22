@@ -22,7 +22,7 @@ import { organisationState, teamsState, userState } from "../recoil/auth";
 
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
-import useDataMigrator from "./DataMigrator";
+import useDataMigrator from "../components/DataMigrator";
 import { decryptItem } from "../services/encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";

@@ -13,7 +13,7 @@ import type { Document, FolderWithLinkedItem, LinkedItem } from "../../../types/
 import type { UUIDV4 } from "../../../types/uuid";
 import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;

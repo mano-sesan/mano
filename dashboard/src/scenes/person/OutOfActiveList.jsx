@@ -9,7 +9,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { outOfBoundariesDate } from "../../services/date";
 import SelectCustom from "../../components/SelectCustom";
 import DatePicker from "../../components/DatePicker";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 

@@ -24,7 +24,7 @@ import { errorMessage } from "../../utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectTeam from "../../components/SelectTeam";
 import { encryptReport, reportsState } from "../../recoil/reports";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 
 const View = () => {

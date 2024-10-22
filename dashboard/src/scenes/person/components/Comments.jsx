@@ -6,7 +6,7 @@ import { encryptComment } from "../../../recoil/comments";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { organisationState } from "../../../recoil/auth";
 import { groupsState } from "../../../recoil/groups";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 
 export default function Comments({ person }) {
