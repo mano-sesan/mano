@@ -28,10 +28,10 @@ import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { useDeletePerson } from "./components/DeletePersonButton";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import PersonName, { getPersonInfo } from "../../components/PersonName";
+import { useDeletePerson } from "../../services/useDeletePerson";
 
 const limit = 20;
 
