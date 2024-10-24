@@ -230,6 +230,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
       }
     );
     capture(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`, {
+      fingerprint: [`{{ default }}`, item._id],
       extra: { message: "ERROR DECRYPTING ITEM", item, type },
       tags: { _id: item._id },
     });
