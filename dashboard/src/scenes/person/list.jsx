@@ -211,7 +211,9 @@ const List = () => {
             </div>
           </div>
         </div>
-        <Filters base={filterPersonsWithAllFields} title="" filters={filters} onChange={setFilters} saveInURLParams />
+        {user.role !== "restricted-access" && (
+          <Filters base={filterPersonsWithAllFields} title="" filters={filters} onChange={setFilters} saveInURLParams />
+        )}
       </details>
       <PersonsTable
         data={data}

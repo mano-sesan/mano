@@ -73,7 +73,7 @@ const TopBar = () => {
           />
         </div>
         <div className="tw-flex tw-flex-1 tw-justify-end tw-gap-x-4 [&_.dropdown-menu.show]:tw-z-20">
-          {!["stats-only"].includes(user.role) ? <Notification /> : null}
+          {!["stats-only", "restricted-access"].includes(user.role) ? <Notification /> : null}
           <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} />
           <ButtonDropdown direction="down" isOpen={dropdownOpen} toggle={() => setDropdownOpen(!dropdownOpen)}>
             <DropdownToggle className="tw-ml-2.5 !tw-inline-flex tw-flex-1 tw-items-center tw-justify-between tw-gap-x-2.5 !tw-rounded-full tw-border-main tw-bg-main !tw-px-4 tw-py-1 tw-text-xs">
