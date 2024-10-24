@@ -61,8 +61,8 @@ export default function Comments({ person }) {
               })
             );
             if (!error) {
-              toast.success("Commentaire enregistré");
               await refresh();
+              toast.success("Commentaire enregistré");
             } else {
               toast.error(errorMessage(error));
             }
@@ -74,8 +74,8 @@ export default function Comments({ person }) {
               })
             );
             if (!error) {
-              toast.success("Commentaire enregistré");
               await refresh();
+              toast.success("Commentaire enregistré");
             } else {
               toast.error(errorMessage(error));
             }
