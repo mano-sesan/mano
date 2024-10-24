@@ -1,13 +1,15 @@
 import { NavLink } from "react-router-dom";
-import { useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 import TerritoryIcon from "../assets/icons/TerritoryIcon";
 import PersonIcon from "../assets/icons/PersonIcon";
 import Notification from "./Notification";
 import DotsIcon from "../assets/icons/DotsIcon";
 import { showDrawerState } from "./drawer";
+import { userState } from "../recoil/auth";
 
 export default function BottomBar() {
+  const user = useRecoilValue(userState);
   const setShowDrawer = useSetRecoilState(showDrawerState);
   return (
     <nav
@@ -41,10 +43,12 @@ export default function BottomBar() {
         <TerritoryIcon size={23} />
         Territoires
       </NavLink>
-      <div className="tw-flex tw-shrink-0 tw-grow tw-basis-0 tw-flex-col tw-items-center tw-justify-between tw-gap-2">
-        <Notification />
-        Priorités
-      </div>
+      {user?.role !== "restricted-access" && (
+        <div className="tw-flex tw-shrink-0 tw-grow tw-basis-0 tw-flex-col tw-items-center tw-justify-between tw-gap-2">
+          <Notification />
+          Priorités
+        </div>
+      )}
       <button
         type="button"
         className="tw-flex tw-shrink-0 tw-grow tw-basis-0 tw-flex-col tw-items-center tw-justify-between tw-gap-2 tw-uppercase"
