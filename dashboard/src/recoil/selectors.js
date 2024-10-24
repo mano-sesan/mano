@@ -17,8 +17,6 @@ import { groupsState } from "./groups";
 import { territoriesState } from "./territory";
 import { extractInfosFromHistory } from "../utils/person-history";
 
-const tomorrow = dayjsInstance().add(1, "day").format("YYYY-MM-DD");
-
 const usersObjectSelector = selector({
   key: "usersObjectSelector",
   get: ({ get }) => {
@@ -85,6 +83,7 @@ export const personsObjectSelector = selector({
 export const itemsGroupedByPersonSelector = selector({
   key: "itemsGroupedByPersonSelector",
   get: ({ get }) => {
+    const endOfToday = dayjsInstance().endOf("day").toISOString();
     const persons = get(personsState);
     const personsObject = {};
     const user = get(userState);
@@ -459,7 +458,7 @@ export const itemsGroupedByPersonSelector = selector({
         // otherwise we would have a bug that consider everybody "person suivies" in every period.
       ].filter((i) => Boolean(i));
 
-      personsObject[personId].lastUpdateCheckForGDPR = personsObject[personId].interactions.filter((a) => a < tomorrow)[0];
+      personsObject[personId].lastUpdateCheckForGDPR = personsObject[personId].interactions.filter((a) => a < endOfToday)[0];
     }
     return personsObject;
   },
