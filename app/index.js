@@ -16,12 +16,19 @@ dayjs.locale('fr');
 dayjs.extend(relativeTime);
 dayjs.extend(isBetween);
 
+const reactNavigationIntegration = Sentry.reactNavigationIntegration();
+
 Sentry.init({
   dsn: 'https://1bab2dc91a5ed9ddde3e4273fe5438a5@o4506615228596224.ingest.sentry.io/4506829687554048',
   environment: 'app',
   enabled: !__DEV__,
   tracesSampleRate: 0.05,
   release: version,
+  enableAppStartTracking: true,
+  enableNativeFramesTracking: true,
+  enableStallTracking: true,
+  enableUserInteractionTracing: true,
+  integrations: [reactNavigationIntegration],
   // ignoreErrors: [
   //   'Network request failed',
   //   'Failed to fetch',
