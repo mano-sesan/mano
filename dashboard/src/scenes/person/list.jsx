@@ -57,13 +57,17 @@ const personsFilteredBySearchSelector = selectorFamily({
     ({ get }) => {
       const personsFiltered = get(personsFilteredSelector({ viewAllOrganisationData, filters, alertness }));
       const personsSorted = [...personsFiltered].sort(sortPersons(sortBy, sortOrder));
+      const user = get(userState);
 
       if (!search?.length) {
         return personsSorted;
       }
-      const user = get(userState);
+
       const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
-      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields);
+      const restrictedFields =
+        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
+
+      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields, restrictedFields);
 
       return personsfilteredBySearch;
     },
