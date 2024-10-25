@@ -17,7 +17,7 @@ const STATUS = [TODO, DONE, CANCEL];
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"], { healthcareProfessional: true }),
+  validateUser(["admin", "normal", "restricted-access"], { healthcareProfessional: true }),
   validateEncryptionAndMigrations,
   catchErrors(async (req, res, next) => {
     try {
@@ -41,7 +41,7 @@ router.post(
       status,
       dueAt,
       completedAt: completedAt || null,
-      onlyVisibleBy,
+      onlyVisibleBy: req.user.role !== "restricted-access" ? onlyVisibleBy : [],
       encrypted,
       encryptedEntityKey,
     };
@@ -158,7 +158,7 @@ router.get(
 router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"], { healthcareProfessional: true }),
+  validateUser(["admin", "normal", "restricted-access"], { healthcareProfessional: true }),
   validateEncryptionAndMigrations,
   catchErrors(async (req, res, next) => {
     try {
