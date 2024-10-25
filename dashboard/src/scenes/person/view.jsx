@@ -49,9 +49,11 @@ export default function View() {
         <div>
           <BackButton />
         </div>
-        <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
-          <SearchInPerson person={person} />
-        </div>
+        {user.role !== "restricted-access" && (
+          <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
+            <SearchInPerson person={person} />
+          </div>
+        )}
         <div className="noprint">
           <UserName
             id={person.user}
