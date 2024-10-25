@@ -498,31 +498,35 @@ function ActionContent({ onClose, isMulti = false }) {
       />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
-          <TabsNav
-            className="tw-px-3 tw-py-2"
-            tabs={[
-              "Informations",
-              `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
-              `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
-              "Historique",
-              ...((!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
-              action.recurrence &&
-              action.recurrenceData.timeUnit
-                ? ["Voir toutes les occurrences"]
-                : []),
-            ]}
-            onClick={(tab) => {
-              if (tab.includes("Informations")) setActiveTab("Informations");
-              if (tab.includes("Documents")) setActiveTab("Documents");
-              if (tab.includes("Commentaires")) setActiveTab("Commentaires");
-              if (tab.includes("Historique")) setActiveTab("Historique");
-              if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
-              refresh();
-            }}
-            activeTabIndex={["Informations", "Documents", "Commentaires", "Historique", "Voir toutes les occurrences"].findIndex(
-              (tab) => tab === activeTab
-            )}
-          />
+          {user.role !== "restricted-access" ? (
+            <TabsNav
+              className="tw-px-3 tw-py-2"
+              tabs={[
+                "Informations",
+                `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
+                `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
+                "Historique",
+                ...((!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
+                action.recurrence &&
+                action.recurrenceData.timeUnit
+                  ? ["Voir toutes les occurrences"]
+                  : []),
+              ]}
+              onClick={(tab) => {
+                if (tab.includes("Informations")) setActiveTab("Informations");
+                if (tab.includes("Documents")) setActiveTab("Documents");
+                if (tab.includes("Commentaires")) setActiveTab("Commentaires");
+                if (tab.includes("Historique")) setActiveTab("Historique");
+                if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
+                refresh();
+              }}
+              activeTabIndex={["Informations", "Documents", "Commentaires", "Historique", "Voir toutes les occurrences"].findIndex(
+                (tab) => tab === activeTab
+              )}
+            />
+          ) : (
+            <div className="pt-4" />
+          )}
           <form
             id="add-action-form"
             onSubmit={(e) => {
@@ -707,7 +711,7 @@ function ActionContent({ onClose, isMulti = false }) {
                     )}
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                    {isEditing ? (
+                    {isEditing && user.role !== "restricted-access" ? (
                       <label htmlFor="create-action-urgent">
                         <input
                           type="checkbox"

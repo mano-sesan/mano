@@ -278,34 +278,38 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
-          <TabsNav
-            className="tw-px-3 tw-py-2"
-            renderTab={(tab) => {
-              if (tab.includes("Constantes"))
-                return (
-                  <>
-                    Constantes <span className="tw-rounded tw-border-none tw-bg-red-700 tw-px-1.5 tw-py-0.5 tw-text-xs tw-text-white">beta</span>
-                  </>
-                );
-              return tab;
-            }}
-            tabs={[
-              "Informations",
-              "Constantes",
-              `Documents ${data?.documents?.length ? `(${data.documents.length})` : ""}`,
-              `Commentaires ${data?.comments?.length ? `(${data.comments.length})` : ""}`,
-              "Historique",
-            ]}
-            onClick={(tab) => {
-              if (tab.includes("Informations")) setActiveTab("Informations");
-              if (tab.includes("Constantes")) setActiveTab("Constantes");
-              if (tab.includes("Documents")) setActiveTab("Documents");
-              if (tab.includes("Commentaires")) setActiveTab("Commentaires");
-              if (tab.includes("Historique")) setActiveTab("Historique");
-              refresh();
-            }}
-            activeTabIndex={["Informations", "Constantes", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
-          />
+          {user.role !== "restricted-access" ? (
+            <TabsNav
+              className="tw-px-3 tw-py-2"
+              renderTab={(tab) => {
+                if (tab.includes("Constantes"))
+                  return (
+                    <>
+                      Constantes <span className="tw-rounded tw-border-none tw-bg-red-700 tw-px-1.5 tw-py-0.5 tw-text-xs tw-text-white">beta</span>
+                    </>
+                  );
+                return tab;
+              }}
+              tabs={[
+                "Informations",
+                "Constantes",
+                `Documents ${data?.documents?.length ? `(${data.documents.length})` : ""}`,
+                `Commentaires ${data?.comments?.length ? `(${data.comments.length})` : ""}`,
+                "Historique",
+              ]}
+              onClick={(tab) => {
+                if (tab.includes("Informations")) setActiveTab("Informations");
+                if (tab.includes("Constantes")) setActiveTab("Constantes");
+                if (tab.includes("Documents")) setActiveTab("Documents");
+                if (tab.includes("Commentaires")) setActiveTab("Commentaires");
+                if (tab.includes("Historique")) setActiveTab("Historique");
+                refresh();
+              }}
+              activeTabIndex={["Informations", "Constantes", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
+            />
+          ) : (
+            <div className="pt-2" />
+          )}
           <form
             id="add-consultation-form"
             onSubmit={(e) => {
@@ -382,32 +386,33 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                   <CustomFieldDisplay type="text" value={data.type} />
                 )}
               </div>
-              {organisation.consultations
-                .find((e) => e.name === data.type)
-                ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-                .map((field) => {
-                  if (!isEditing) {
+              {user.role !== "restricted-access" &&
+                organisation.consultations
+                  .find((e) => e.name === data.type)
+                  ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
+                  .map((field) => {
+                    if (!isEditing) {
+                      return (
+                        <div data-test-id={field.label} key={field.name} className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                          <label className="tw-text-sm tw-font-semibold tw-text-blue-900" htmlFor="type">
+                            {field.label}
+                          </label>
+                          <CustomFieldDisplay key={field.name} type={field.type} value={data[field.name]} />
+                        </div>
+                      );
+                    }
                     return (
-                      <div data-test-id={field.label} key={field.name} className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                        <label className="tw-text-sm tw-font-semibold tw-text-blue-900" htmlFor="type">
-                          {field.label}
-                        </label>
-                        <CustomFieldDisplay key={field.name} type={field.type} value={data[field.name]} />
-                      </div>
+                      <CustomFieldInput
+                        colWidth={field.type === "textarea" ? 12 : 6}
+                        model="person"
+                        values={data}
+                        handleChange={handleChange}
+                        field={field}
+                        key={field.name}
+                      />
                     );
-                  }
-                  return (
-                    <CustomFieldInput
-                      colWidth={field.type === "textarea" ? 12 : 6}
-                      model="person"
-                      values={data}
-                      handleChange={handleChange}
-                      field={field}
-                      key={field.name}
-                    />
-                  );
-                })}
-              {data.user === user._id && (
+                  })}
+              {data.user === user._id && user.role !== "restricted-access" && (
                 <>
                   <hr className="tw-basis-full" />
                   <div className="tw-basis-full tw-px-4 tw-pt-2">
@@ -785,7 +790,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
         <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()}>
           Fermer
         </button>
-        {!isNewConsultation && !!isEditing && (
+        {!isNewConsultation && !!isEditing && user.role !== "restricted-access" && (
           <button
             type="button"
             name="cancel"
