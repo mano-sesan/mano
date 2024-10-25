@@ -30,6 +30,7 @@ import { commentsState, prepareCommentForEncryption } from '../../recoil/comment
 import { groupsState } from '../../recoil/groups';
 import API from '../../services/api';
 import PassageRow from './PassageRow';
+import { actionsWithoutFutureRecurrences } from '../../utils/recurrence';
 
 const PersonSummary = ({
   navigation,
@@ -86,7 +87,10 @@ const PersonSummary = ({
   const populatedPerson = useMemo(() => populatedPersons[personDB?._id] || {}, [populatedPersons, personDB?._id]);
   const { actions, comments, rencontres, passages, relsPersonPlace } = populatedPerson;
 
-  const sortedActions = useMemo(() => [...(actions || [])].sort((p1, p2) => (p1.dueAt > p2.dueAt ? -1 : 1)), [actions]);
+  const sortedActions = useMemo(
+    () => [...(actionsWithoutFutureRecurrences(actions) || [])].sort((p1, p2) => (p1.dueAt > p2.dueAt ? -1 : 1)),
+    [actions]
+  );
   const sortedComments = useMemo(
     () => [...(comments || [])].sort((c1, c2) => ((c1.date || c1.createdAt) > (c2.date || c2.createdAt) ? -1 : 1)),
     [comments]
