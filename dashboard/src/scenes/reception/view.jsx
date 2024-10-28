@@ -2,12 +2,12 @@ import { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { dayjsInstance, formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
-import { currentTeamReportsSelector } from "../../recoil/selectors";
+import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector, currentTeamReportsSelector } from "../../recoil/selectors";
 import SelectAndCreatePersonForReception from "./SelectAndCreatePersonForReception";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
-import { actionsState, defaultActionForModal, TODO } from "../../recoil/actions";
+import { defaultActionForModal, TODO } from "../../recoil/actions";
 import { currentTeamState, userState, organisationState, teamsState } from "../../recoil/auth";
 import { personsState } from "../../recoil/persons";
 import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
@@ -15,7 +15,6 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
 import { passagesState, encryptPassage } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
-import { consultationsState } from "../../recoil/consultations";
 import plusIcon from "../../assets/icons/plus-icon.svg";
 import PersonName from "../../components/PersonName";
 import Table from "../../components/table";
@@ -29,7 +28,7 @@ import { modalActionState } from "../../recoil/modal";
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
   get: ({ get }) => {
-    const actions = get(actionsState);
+    const actions = get(arrayOfitemsGroupedByActionSelector);
     const currentTeam = get(currentTeamState);
     return actions.filter((a) => (Array.isArray(a.teams) ? a.teams.includes(currentTeam._id) : a.team === currentTeam._id));
   },
@@ -39,7 +38,7 @@ const consultationsByAuthorizationSelector = selector({
   key: "consultationsByAuthorizationSelector",
   get: ({ get }) => {
     const user = get(userState);
-    const consultations = get(consultationsState);
+    const consultations = get(arrayOfitemsGroupedByConsultationSelector);
 
     if (!user.healthcareProfessional) return [];
     return consultations.filter((consult) => !consult.onlyVisibleBy?.length || consult.onlyVisibleBy.includes(user._id));
