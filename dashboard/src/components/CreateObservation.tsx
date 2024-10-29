@@ -440,7 +440,7 @@ const CreateObservation = ({ id, observation, open, setOpen }: CreateObservation
             setRencontre(undefined);
           }}
           onSave={
-            !observation?._id // || rencontresInProgress.find((r) => r.person === rencontre.person)
+            !observation?._id || rencontresInProgress.find((r) => r.person === rencontre.person)
               ? (rencontres: Array<RencontreInstance>) => {
                   const nextRencontres = [...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)), ...rencontres];
                   setRencontresInProgress(nextRencontres);
