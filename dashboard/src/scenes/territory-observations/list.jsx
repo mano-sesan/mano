@@ -6,13 +6,14 @@ import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservat
 import { useRecoilValue } from "recoil";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
+import { dayjsInstance } from "../../services/date";
 import UserName from "../../components/UserName";
 import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from "../../recoil/auth";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
 import { useSessionStorage } from "../../services/useSessionStorage";
 import { rencontresState } from "../../recoil/rencontres";
+import DateBloc, { TimeBlock } from "../../components/DateBloc";
 
 const List = ({ territory = {} }) => {
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "name");
@@ -96,16 +97,15 @@ const List = ({ territory = {} }) => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            render: (obs) => formatDateWithFullMonth(obs.observedAt || obs.createdAt),
-          },
-          {
-            title: "Créée par",
-            dataKey: "userName",
-            onSortOrder: setSortOrder,
-            onSortBy: setSortBy,
-            sortOrder,
-            sortBy,
-            render: (obs) => <UserName id={obs.user} />,
+            style: { width: "90px" },
+            render: (obs) => {
+              return (
+                <>
+                  <DateBloc date={obs.observedAt} />
+                  <TimeBlock time={obs.observedAt} />
+                </>
+              );
+            },
           },
           {
             title: "Observations",
@@ -133,6 +133,15 @@ const List = ({ territory = {} }) => {
                   })}
               </div>
             ),
+          },
+          {
+            title: "Créée par",
+            dataKey: "userName",
+            onSortOrder: setSortOrder,
+            onSortBy: setSortBy,
+            sortOrder,
+            sortBy,
+            render: (obs) => <UserName id={obs.user} />,
           },
           {
             title: "Équipe en charge",

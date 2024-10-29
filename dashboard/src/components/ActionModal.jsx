@@ -505,7 +505,7 @@ function ActionContent({ onClose, isMulti = false }) {
                 "Informations",
                 `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
                 `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
-                "Historique",
+                ...(isNewAction ? [] : ["Historique"]),
                 ...((!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
                 action.recurrence &&
                 action.recurrenceData.timeUnit
@@ -520,9 +520,13 @@ function ActionContent({ onClose, isMulti = false }) {
                 if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
                 refresh();
               }}
-              activeTabIndex={["Informations", "Documents", "Commentaires", "Historique", "Voir toutes les occurrences"].findIndex(
-                (tab) => tab === activeTab
-              )}
+              activeTabIndex={[
+                "Informations",
+                "Documents",
+                "Commentaires",
+                ...(isNewAction ? [] : ["Historique"]),
+                "Voir toutes les occurrences",
+              ].findIndex((tab) => tab === activeTab)}
             />
           ) : (
             <div className="pt-4" />
