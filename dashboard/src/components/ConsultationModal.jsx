@@ -295,7 +295,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                 "Constantes",
                 `Documents ${data?.documents?.length ? `(${data.documents.length})` : ""}`,
                 `Commentaires ${data?.comments?.length ? `(${data.comments.length})` : ""}`,
-                "Historique",
+                ...(isNewConsultation ? [] : user.role !== "restricted-access" ? ["Historique"] : []),
               ]}
               onClick={(tab) => {
                 if (tab.includes("Informations")) setActiveTab("Informations");
@@ -305,7 +305,13 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                 if (tab.includes("Historique")) setActiveTab("Historique");
                 refresh();
               }}
-              activeTabIndex={["Informations", "Constantes", "Documents", "Commentaires", "Historique"].findIndex((tab) => tab === activeTab)}
+              activeTabIndex={[
+                "Informations",
+                "Constantes",
+                "Documents",
+                "Commentaires",
+                ...(isNewConsultation ? [] : user.role !== "restricted-access" ? ["Historique"] : []),
+              ].findIndex((tab) => tab === activeTab)}
             />
           ) : (
             <div className="pt-2" />
