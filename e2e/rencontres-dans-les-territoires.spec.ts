@@ -47,7 +47,7 @@ test("Création de rencontres dans les observations de territoire", async ({ pag
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
   await page.getByText("Les rencontres ont également été sauvegardées").click();
-  await page.getByRole("cell", { name: date.format("MMMM YYYY") }).click();
+  await page.getByRole("cell", { name: date.format("dddd D MMMM") }).click();
   await page.getByRole("button", { name: "Informations" }).click();
   await page.getByRole("button", { name: "Rencontres (1)" }).click();
   await page.getByRole("button", { name: "+ Rencontre" }).click();
