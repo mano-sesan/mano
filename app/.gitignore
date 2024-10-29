@@ -22,6 +22,7 @@ DerivedData
 *.hmap
 *.ipa
 *.xcuserstate
+**/.xcode.env.local
 
 #
 .env
@@ -62,7 +63,7 @@ yarn-error.log
 *.jsbundle
 
 # Ruby / CocoaPods
-/ios/Pods/
+**/Pods/
 
 android/sentry.properties
 ios/sentry.properties
