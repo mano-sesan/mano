@@ -69,63 +69,72 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null,
           if (!body.anonymous && (showMultiSelect ? !body.persons?.length : !body.person?.length))
             return toast.error("Veuillez spécifier une personne");
 
-          if (isNew) {
-            const newRencontre = {
-              date: body.date,
-              team: body.team ?? currentTeam._id,
-              user: user._id,
-              person: personId,
-              comment: body.comment,
-            };
+          const baseRencontre = {
+            date: body.date,
+            team: body.team ?? currentTeam._id,
+            user: user._id,
+            comment: body.comment,
+          };
 
-            if (onSave) {
-              // Sometimes we don't want to actually save the rencontre, but just to get the data.
-              // Par exemple quand on veut ajouter une rencontre à une observation pas encore créee.
-              onSave(showMultiSelect ? body.persons.map((person) => ({ ...newRencontre, person })) : [newRencontre]);
-            } else {
-              if (showMultiSelect) {
-                for (const person of body.persons) {
-                  const [rencontreError] = await tryFetchExpectOk(async () =>
-                    API.post({
-                      path: "/rencontre",
-                      body: await encryptRencontre({ ...newRencontre, person }),
-                    })
-                  );
-                  if (rencontreError) {
-                    toast.error("Erreur lors de l'enregistrement de la rencontre");
-                  }
-                }
-              } else {
-                const [rencontreError] = await tryFetchExpectOk(async () =>
-                  API.post({
-                    path: "/rencontre",
-                    body: await encryptRencontre({ ...newRencontre, person: body.person }),
-                  })
-                );
-                if (rencontreError) {
-                  toast.error("Erreur lors de l'enregistrement de la rencontre");
-                }
-              }
-            }
+          if (onSave) {
+            // Sometimes we don't want to actually save the rencontre, but just to get the data
+            // For example when adding a rencontre to an observation not yet created
+            // Or modifying a rencontre not yet saved in an observation
+            const rencontres = isNew
+              ? showMultiSelect
+                ? body.persons.map((person) => ({ ...baseRencontre, person }))
+                : [{ ...baseRencontre, person: body.person }]
+              : [{ ...body }];
+
+            onSave(rencontres);
             await refresh();
             setOpen(false);
-            toast.success(body.person.length > 1 ? "Rencontre enregistrée" : "Rencontres enregistrées");
             return;
           }
-          const [error] = await tryFetchExpectOk(async () =>
-            API.put({
-              path: `/rencontre/${rencontre._id}`,
-              body: await encryptRencontre(body),
-            })
-          );
-          if (error) {
-            toast.error("Erreur lors de la mise à jour de la rencontre");
-            actions.setSubmitting(false);
-            return;
+
+          let success = true;
+
+          if (isNew) {
+            if (showMultiSelect) {
+              for (const person of body.persons) {
+                const [error] = await tryFetchExpectOk(async () =>
+                  API.post({
+                    path: "/rencontre",
+                    body: await encryptRencontre({ ...baseRencontre, person }),
+                  })
+                );
+                if (error) success = false;
+              }
+            } else {
+              const [error] = await tryFetchExpectOk(async () =>
+                API.post({
+                  path: "/rencontre",
+                  body: await encryptRencontre({ ...baseRencontre, person: body.person }),
+                })
+              );
+              if (error) success = false;
+            }
+          } else {
+            const [error] = await tryFetchExpectOk(async () =>
+              API.put({
+                path: `/rencontre/${rencontre._id}`,
+                body: await encryptRencontre(body),
+              })
+            );
+            if (error) {
+              success = false;
+              actions.setSubmitting(false);
+            }
           }
+
           await refresh();
           setOpen(false);
-          toast.success("Rencontre mise à jour");
+
+          if (success) {
+            toast.success(isNew ? (showMultiSelect ? "Rencontres enregistrées" : "Rencontre enregistrée") : "Rencontre mise à jour");
+          } else {
+            toast.error(isNew ? "Erreur lors de l'enregistrement de la/des rencontre(s)" : "Erreur lors de la mise à jour de la rencontre");
+          }
         }}
       >
         {({ values, handleChange, handleSubmit, isSubmitting }) => {
