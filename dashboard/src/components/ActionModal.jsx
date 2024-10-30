@@ -30,7 +30,7 @@ import { encryptComment } from "../recoil/comments";
 import { modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
-import { DISABLED_FEATURES, MANO_ORGA_ACTIONS_RECURRENTES } from "../config";
+import { DISABLED_FEATURES } from "../config";
 import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
@@ -498,39 +498,33 @@ function ActionContent({ onClose, isMulti = false }) {
       />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
-          {user.role !== "restricted-access" ? (
-            <TabsNav
-              className="tw-px-3 tw-py-2"
-              tabs={[
-                "Informations",
-                `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
-                `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
-                ...(isNewAction ? [] : ["Historique"]),
-                ...((!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
-                action.recurrence &&
-                action.recurrenceData.timeUnit
-                  ? ["Voir toutes les occurrences"]
-                  : []),
-              ]}
-              onClick={(tab) => {
-                if (tab.includes("Informations")) setActiveTab("Informations");
-                if (tab.includes("Documents")) setActiveTab("Documents");
-                if (tab.includes("Commentaires")) setActiveTab("Commentaires");
-                if (tab.includes("Historique")) setActiveTab("Historique");
-                if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
-                refresh();
-              }}
-              activeTabIndex={[
+          <TabsNav
+            className="tw-px-3 tw-py-2"
+            tabs={[
+              "Informations",
+              `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
+              `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
+              ...(isNewAction ? [] : ["Historique"]),
+              ...(!DISABLED_FEATURES["action-recurrentes"] && action.recurrence && action.recurrenceData.timeUnit
+                ? ["Voir toutes les occurrences"]
+                : []),
+            ]}
+            onClick={(tab) => {
+              if (tab.includes("Informations")) setActiveTab("Informations");
+              if (tab.includes("Documents")) setActiveTab("Documents");
+              if (tab.includes("Commentaires")) setActiveTab("Commentaires");
+              if (tab.includes("Historique")) setActiveTab("Historique");
+              if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
+              refresh();
+            }}
+            activeTabIndex={[
                 "Informations",
                 "Documents",
                 "Commentaires",
                 ...(isNewAction ? [] : ["Historique"]),
                 "Voir toutes les occurrences",
               ].findIndex((tab) => tab === activeTab)}
-            />
-          ) : (
-            <div className="pt-4" />
-          )}
+          />
           <form
             id="add-action-form"
             onSubmit={(e) => {
@@ -770,25 +764,22 @@ function ActionContent({ onClose, isMulti = false }) {
                       <CustomFieldDisplay value={action.completedAt} type="date-with-time" />
                     )}
                   </div>
-                  {(!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
-                    !isEditing &&
-                    action.recurrence &&
-                    action.recurrenceData.timeUnit && (
-                      <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                        <div className="tw-flex tw-items-center tw-text-sm">
-                          <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
-                          <div>
-                            {recurrenceAsText({ ...action.recurrenceData, nthWeekdayInMonth: getNthWeekdayInMonth(action.recurrenceData.startDate) })}{" "}
-                            jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
-                          </div>
-                        </div>
-                        <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-w-full">
-                          <div className="tw-font-bold tw-mb-4">Occurrences suivantes</div>
-                          <NextOccurrences action={action} />
+                  {!DISABLED_FEATURES["action-recurrentes"] && !isEditing && action.recurrence && action.recurrenceData.timeUnit && (
+                    <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
+                      <div className="tw-flex tw-items-center tw-text-sm">
+                        <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
+                        <div>
+                          {recurrenceAsText({ ...action.recurrenceData, nthWeekdayInMonth: getNthWeekdayInMonth(action.recurrenceData.startDate) })}{" "}
+                          jusqu'au {dayjsInstance(action.recurrenceData.endDate).format("DD/MM/YYYY")}
                         </div>
                       </div>
-                    )}
-                  {(!DISABLED_FEATURES["action-recurrentes"] || MANO_ORGA_ACTIONS_RECURRENTES.includes(organisation._id)) &&
+                      <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-w-full">
+                        <div className="tw-font-bold tw-mb-4">Occurrences suivantes</div>
+                        <NextOccurrences action={action} />
+                      </div>
+                    </div>
+                  )}
+                  {!DISABLED_FEATURES["action-recurrentes"] &&
                     (isNewAction || (action.recurrence && action.recurrenceData.timeUnit && modalAction.isEditingAllNextOccurences)) && (
                       <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
                         <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">

@@ -74,6 +74,9 @@ export default function SuperadminOrganisationUsers({
                     Créé·e le {formatDateWithFullMonth(user.createdAt)} -{" "}
                     {user.lastLoginAt ? `Dernière connexion le ${formatDateWithFullMonth(user.lastLoginAt)}` : "Jamais connecté·e"}
                     {user.disabledAt && <span className="tw-ml-1 tw-text-red-500">- Désactivé</span>}
+                    {(user.loginAttempts > 12 || user.decryptAttempts > 12) && (
+                      <span className="tw-ml-2 tw-rounded tw-bg-red-500 tw-px-2 tw-py-0.5 tw-text-white">Bloqué</span>
+                    )}
                   </div>
                   <div className="tw-mt-1 tw-text-xs">
                     <div>
@@ -105,23 +108,35 @@ export default function SuperadminOrganisationUsers({
                       )}
                     </div>
                     <div>
-                      {isReleasingUser === user._id ? (
-                        <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Déblocage de l'utilisateur en cours…</div>
-                      ) : (
-                        <button
-                          className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
-                          onClick={() => {
-                            setIsReleasingUser(user._id);
-                            (async () => {
-                              const [error] = await tryFetchExpectOk(async () => API.post({ path: `/user/release-user`, body: { _id: user._id } }));
-                              if (error) return toast.error("Erreur lors de la déblocage de l'utilisateur");
-                              toast.success("Utilisateur débloqué");
-                              setIsReleasingUser(false);
-                            })();
-                          }}
-                        >
-                          {"Débloquer l'utilisateur (mot de passe + clé de chiffrement)"}
-                        </button>
+                      {(user.loginAttempts > 12 || user.decryptAttempts > 12) && (
+                        <>
+                          {isReleasingUser === user._id ? (
+                            <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Déblocage de l'utilisateur en cours…</div>
+                          ) : (
+                            <button
+                              className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
+                              onClick={() => {
+                                setIsReleasingUser(user._id);
+                                (async () => {
+                                  const [error] = await tryFetchExpectOk(async () =>
+                                    API.post({ path: `/user/release-user`, body: { _id: user._id } })
+                                  );
+                                  if (error) return toast.error("Erreur lors de la déblocage de l'utilisateur");
+                                  const [usersError, response] = await tryFetchExpectOk(() =>
+                                    API.get({ path: `/user`, query: { organisation: organisation._id } })
+                                  );
+                                  if (!usersError) {
+                                    setUsers(response.data);
+                                  }
+                                  toast.success("Utilisateur débloqué");
+                                  setIsReleasingUser(false);
+                                })();
+                              }}
+                            >
+                              {"Débloquer l'utilisateur (mot de passe + clé de chiffrement)"}
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                     <div>

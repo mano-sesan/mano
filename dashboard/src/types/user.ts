@@ -20,4 +20,5 @@ export type UserInstance = {
   createdAt?: Date;
   decryptAttempts?: number;
   disabledAt?: Date | null;
+  loginAttempts?: number;
 };

@@ -757,6 +757,7 @@ router.get(
         lastLoginAt: user.lastLoginAt,
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
         teams: user.Teams ? user.Teams.map(serializeTeam) : [],
       };
     });
@@ -1049,6 +1050,7 @@ router.post(
 
     user.loginAttempts = 0;
     user.decryptAttempts = 0;
+    user.nextLoginAttemptAt = null;
     await user.save();
 
     return res.status(200).send({ ok: true });
