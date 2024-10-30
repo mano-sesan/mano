@@ -19,6 +19,8 @@ import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
 import { modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
+import Table from "./table";
+import DateBloc, { TimeBlock } from "./DateBloc";
 
 /*
 3 components:
@@ -241,154 +243,161 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
           </button>
         </div>
       )}
-      <table className="table">
-        <tbody className="small">
-          {(comments || []).map((comment, i) => {
-            if (!comment.type) throw new Error("type is required");
-            const isNotEditable =
-              comment.isMedicalCommentShared ||
-              ((!!searchParams.get("consultationId") || !!searchParams.get("treatmentId")) && comment.user !== user._id);
-            return (
-              <tr
-                key={comment._id}
-                title={isNotEditable ? "Ce commentaire peut seulement être modifié par l'utilisateur qui l'a créé" : ""}
-                className={[
-                  "tw-w-full",
-                  comment.isMedicalCommentShared ? "tw-bg-blue-900" : `tw-bg-${color}`,
-                  i % 2 && !comment.isMedicalCommentShared ? "tw-bg-opacity-0" : "tw-bg-opacity-5",
-                  isNotEditable && "!tw-cursor-not-allowed",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              >
-                <td
-                  onClick={() => {
-                    if (comment.isMedicalCommentShared) return;
-                    switch (comment.type) {
-                      case "action":
-                      case "person":
-                      case "medical-file":
-                        onDisplayComment(comment);
-                        break;
-                      case "passage":
-                        history.push(`/person/${comment.person}?passageId=${comment.passage}`);
-                        break;
-                      case "rencontre":
-                        history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
-                        break;
-                      case "consultation":
-                        if (searchParams.get("newConsultation") === "true") {
-                          onEditComment(comment);
+      <Table
+        data={comments || []}
+        onRowClick={(comment) => {
+          if (comment.isMedicalCommentShared) return;
+          switch (comment.type) {
+            case "action":
+            case "person":
+            case "medical-file":
+              onDisplayComment(comment);
+              break;
+            case "passage":
+              history.push(`/person/${comment.person}?passageId=${comment.passage}`);
+              break;
+            case "rencontre":
+              history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
+              break;
+            case "consultation":
+              if (searchParams.get("newConsultation") === "true") {
+                onEditComment(comment);
+                break;
+              }
+              if (searchParams.get("consultationId") === comment.consultation._id) {
+                if (comment.user === user._id) onEditComment(comment);
+                break;
+              }
+              searchParams.set("consultationId", comment.consultation._id);
+              history.push(`?${searchParams.toString()}`);
+              break;
+            case "treatment":
+              if (searchParams.get("newTreatment") === "true") {
+                onEditComment(comment);
+                break;
+              }
+              if (searchParams.get("treatmentId") === comment.treatment._id) {
+                if (comment.user === user._id) onEditComment(comment);
+                break;
+              }
+              searchParams.set("treatmentId", comment.treatment._id);
+              history.push(`?${searchParams.toString()}`);
+              break;
+            default:
+              break;
+          }
+        }}
+        rowKey="_id"
+        rowClassName={(comment, i) =>
+          [
+            "tw-w-full",
+            comment.isMedicalCommentShared ? "tw-bg-blue-900" : `tw-bg-${color}`,
+            i % 2 && !comment.isMedicalCommentShared ? "tw-bg-opacity-0" : "tw-bg-opacity-5",
+            (!!searchParams.get("consultationId") || !!searchParams.get("treatmentId")) && comment.user !== user._id && "!tw-cursor-not-allowed",
+          ]
+            .filter(Boolean)
+            .join(" ")
+        }
+        columns={[
+          {
+            title: "",
+            dataKey: "urgentAndGroup",
+            small: true,
+            render: (comment) => (
+              <div className="tw-flex tw-items-center tw-gap-1">
+                {!!comment.urgent && <ExclamationMarkButton />}
+                {!!organisation.groupsEnabled && !!comment.group && (
+                  <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
+                    👪
+                  </span>
+                )}
+              </div>
+            ),
+          },
+          {
+            title: "Date",
+            dataKey: "date",
+            style: { width: "90px" },
+            render: (comment) => {
+              return (
+                <>
+                  <DateBloc date={comment.date || comment.createdAt} />
+                  <TimeBlock time={comment.date || comment.createdAt} />
+                </>
+              );
+            },
+          },
+          {
+            title: "Commentaire",
+            dataKey: "comment",
+            render: (comment) => (
+              <div className="[overflow-wrap:anywhere] tw-leading-4">
+                {(comment.comment || "").split?.("\n")?.map((sentence, index) => (
+                  <React.Fragment key={sentence + index}>
+                    {sentence}
+                    <br />
+                  </React.Fragment>
+                ))}
+                {!!withClickableLabel && ["treatment", "consultation", "action", "passage", "rencontre"].includes(comment.type) && (
+                  <button
+                    type="button"
+                    className={`tw-mt-2 tw-block ${comment.isMedicalCommentShared ? "!tw-cursor-not-allowed" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (comment.isMedicalCommentShared) return;
+                      switch (comment.type) {
+                        case "action":
+                          setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
                           break;
-                        }
-                        if (searchParams.get("consultationId") === comment.consultation._id) {
-                          if (comment.user === user._id) onEditComment(comment);
+                        case "person":
+                          history.push(`/person/${comment.person}`);
                           break;
-                        }
-                        searchParams.set("consultationId", comment.consultation._id);
-                        history.push(`?${searchParams.toString()}`);
-                        break;
-                      case "treatment":
-                        if (searchParams.get("newTreatment") === "true") {
-                          onEditComment(comment);
+                        case "passage":
+                          history.push(`/person/${comment.person}?passageId=${comment.passage}`);
                           break;
-                        }
-                        if (searchParams.get("treatmentId") === comment.treatment._id) {
-                          if (comment.user === user._id) onEditComment(comment);
+                        case "rencontre":
+                          history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
                           break;
-                        }
-                        searchParams.set("treatmentId", comment.treatment._id);
-                        history.push(`?${searchParams.toString()}`);
-                        break;
-                      default:
-                        break;
-                    }
-                  }}
-                >
-                  <div className="tw-mx-auto tw-flex tw-w-full tw-max-w-prose tw-flex-col tw-gap-2 tw-overflow-hidden">
-                    <div className="tw-mb-4 tw-flex tw-items-center tw-align-middle">
-                      {!!comment.urgent && <ExclamationMarkButton className="tw-mr-4" />}
-                      <div className="tw-text-xs tw-opacity-50 tw-grow">{formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</div>
-                      {comment.isMedicalCommentShared ? (
-                        <div>
-                          <ConsultationButton />
-                        </div>
-                      ) : null}
+                        case "consultation":
+                          searchParams.set("consultationId", comment.consultation._id);
+                          history.push(`?${searchParams.toString()}`);
+                          break;
+                        case "treatment":
+                          searchParams.set("treatmentId", comment.treatment._id);
+                          history.push(`?${searchParams.toString()}`);
+                          break;
+                        case "medical-file":
+                          history.push(`/person/${comment.person}?tab=Dossier+Médical`);
+                          break;
+                        default:
+                          break;
+                      }
+                    }}
+                  >
+                    <div className="tw-rounded tw-border tw-border-blue-900 tw-bg-blue-900/10 tw-px-1">
+                      {comment.type === "treatment" && "Traitement"}
+                      {comment.type === "consultation" && "Consultation"}
+                      {comment.type === "action" && "Action"}
+                      {comment.type === "passage" && "Passage"}
+                      {comment.type === "rencontre" && "Rencontre"}
                     </div>
-                    <div className="tw-flex tw-w-full tw-flex-shrink tw-items-start">
-                      {!!organisation.groupsEnabled && !!comment.group && (
-                        <span className="tw-mr-2 tw-text-xl" aria-label="Commentaire familial" title="Commentaire familial">
-                          👪
-                        </span>
-                      )}
-                      <div className="[overflow-wrap:anywhere] tw-leading-4">
-                        {(comment.comment || "").split?.("\n")?.map((sentence, index) => (
-                          <React.Fragment key={sentence + index}>
-                            {sentence}
-                            <br />
-                          </React.Fragment>
-                        ))}
-                      </div>
-                      {!!withClickableLabel && ["treatment", "consultation", "action", "passage", "rencontre"].includes(comment.type) && (
-                        <button
-                          type="button"
-                          className={`tw-ml-auto tw-block ${comment.isMedicalCommentShared ? "!tw-cursor-not-allowed" : ""}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const searchParams = new URLSearchParams(location.search);
-                            if (comment.isMedicalCommentShared) return;
-                            switch (comment.type) {
-                              case "action":
-                                setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
-                                break;
-                              case "person":
-                                history.push(`/person/${comment.person}`);
-                                break;
-                              case "passage":
-                                history.push(`/person/${comment.person}?passageId=${comment.passage}`);
-                                break;
-                              case "rencontre":
-                                history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
-                                break;
-                              case "consultation":
-                                searchParams.set("consultationId", comment.consultation._id);
-                                history.push(`?${searchParams.toString()}`);
-                                break;
-                              case "treatment":
-                                searchParams.set("treatmentId", comment.treatment._id);
-                                history.push(`?${searchParams.toString()}`);
-                                break;
-                              case "medical-file":
-                                history.push(`/person/${comment.person}?tab=Dossier+Médical`);
-                                break;
-                              default:
-                                break;
-                            }
-                          }}
-                        >
-                          <div className="tw-rounded tw-border tw-border-blue-900 tw-bg-blue-900/10 tw-px-1">
-                            {comment.type === "treatment" && "Traitement"}
-                            {comment.type === "consultation" && "Consultation"}
-                            {comment.type === "action" && "Action"}
-                            {comment.type === "passage" && "Passage"}
-                            {comment.type === "rencontre" && "Rencontre"}
-                          </div>
-                        </button>
-                      )}
-                    </div>
-                    <div className="small tw-flex tw-items-end tw-justify-between">
-                      <p className="tw-mb-0 tw-basis-1/2 tw-opacity-50">Créé par {users.find((e) => e._id === comment.user)?.name}</p>
-                      <div className="tw-max-w-fit tw-basis-1/2">
-                        <TagTeam teamId={comment.team} />
-                      </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </button>
+                )}
+              </div>
+            ),
+          },
+          {
+            title: "Créé par",
+            dataKey: "user",
+            render: (comment) => <div className="tw-opacity-50">{users.find((e) => e._id === comment.user)?.name}</div>,
+          },
+          {
+            title: "Équipe",
+            dataKey: "team",
+            render: (comment) => <TagTeam teamId={comment.team} />,
+          },
+        ]}
+      />
     </>
   );
 }
