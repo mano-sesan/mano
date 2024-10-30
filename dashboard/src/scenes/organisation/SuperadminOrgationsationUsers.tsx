@@ -31,6 +31,7 @@ export default function SuperadminOrganisationUsers({
   const [isGeneratingLinkForUser, setIsGeneratingLinkForUser] = useState<false | string>(false);
   const [generatedLink, setGeneratedLink] = useState<[string, string] | undefined>();
   const [isReleasingUser, setIsReleasingUser] = useState<false | string>(false);
+  const [isReactivatingUser, setIsReactivatingUser] = useState<false | string>(false);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -72,6 +73,7 @@ export default function SuperadminOrganisationUsers({
                   <div className="tw-mt-1 tw-text-xs tw-text-gray-500">
                     Créé·e le {formatDateWithFullMonth(user.createdAt)} -{" "}
                     {user.lastLoginAt ? `Dernière connexion le ${formatDateWithFullMonth(user.lastLoginAt)}` : "Jamais connecté·e"}
+                    {user.disabledAt && <span className="tw-ml-1 tw-text-red-500">- Désactivé</span>}
                   </div>
                   <div className="tw-mt-1 tw-text-xs">
                     <div>
@@ -120,6 +122,35 @@ export default function SuperadminOrganisationUsers({
                         >
                           {"Débloquer l'utilisateur (mot de passe + clé de chiffrement)"}
                         </button>
+                      )}
+                    </div>
+                    <div>
+                      {user.disabledAt && (
+                        <>
+                          {isReactivatingUser === user._id ? (
+                            <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Réactivation de l'utilisateur en cours…</div>
+                          ) : (
+                            <button
+                              className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
+                              onClick={() => {
+                                setIsReactivatingUser(user._id);
+                                (async () => {
+                                  const [error] = await tryFetchExpectOk(async () =>
+                                    API.post({ path: `/user/reactivate-user`, body: { _id: user._id } })
+                                  );
+                                  if (error) return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                                  toast.success("Utilisateur réactivé");
+                                  setIsReactivatingUser(false);
+                                  // Refresh user data
+                                  const updatedUser = { ...user, disabledAt: null };
+                                  setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+                                })();
+                              }}
+                            >
+                              Réactiver l'utilisateur
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>

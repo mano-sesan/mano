@@ -243,6 +243,7 @@ router.get(
       await User.findAll({ where: { lastLoginAt: { [Op.gt]: new Date(new Date().setHours(0, 0, 0, 0)) } }, ...countQuery })
     ).map((item) => item.toJSON());
     const usersProSante = (await User.findAll({ where: { healthcareProfessional: true }, ...countQuery })).map((item) => item.toJSON());
+    const usersDisabled = (await User.findAll({ where: { disabledAt: { [Op.ne]: null } }, ...countQuery })).map((item) => item.toJSON());
     const usersByRole = (
       await User.findAll({
         group: ["organisation", "role"],
@@ -285,6 +286,7 @@ router.get(
           usersNeverConnected: Number(usersNeverConnected.find((u) => u.organisation === org._id)?.countByOrg || 0),
           usersConnectedToday: Number(usersConnectedToday.find((u) => u.organisation === org._id)?.countByOrg || 0),
           usersProSante: Number(usersProSante.find((u) => u.organisation === org._id)?.countByOrg || 0),
+          usersDisabled: Number(usersDisabled.find((u) => u.organisation === org._id)?.countByOrg || 0),
           countersTotal: Object.keys(counters).reduce((total, key) => total + (counters[key] || 0), 0),
         };
       });

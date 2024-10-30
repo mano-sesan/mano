@@ -19,4 +19,5 @@ export type UserInstance = {
   teams?: Array<TeamInstance>;
   createdAt?: Date;
   decryptAttempts?: number;
+  disabledAt?: Date | null;
 };

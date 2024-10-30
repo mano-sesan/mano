@@ -226,6 +226,7 @@ const SuperAdmin = () => {
                     </div>
                     <div className="tw-mt-2 tw-text-xs tw-text-gray-600">
                       <div className={!o.usersProSante ? "tw-text-gray-400" : ""}>Pro de santé: {o.usersProSante || 0}</div>
+                      <div className={!o.usersDisabled ? "tw-text-gray-400" : ""}>Désactivé: {o.usersDisabled || 0}</div>
                       <div className={!o.usersNeverConnected ? "tw-text-gray-400" : ""}>Jamais connecté: {o.usersNeverConnected || 0}</div>
                       <div className={!o.usersConnectedToday ? "tw-text-gray-400" : ""}>Connecté aujourd'hui: {o.usersConnectedToday || 0}</div>
                     </div>

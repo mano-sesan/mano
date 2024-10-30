@@ -194,6 +194,14 @@ router.post(
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(403).send({ ok: false, error: "E-mail ou mot de passe incorrect", code: EMAIL_OR_PASSWORD_INVALID });
 
+    if (user.disabledAt) {
+      return res.status(403).send({
+        ok: false,
+        error: "Votre compte a été désactivé, veuillez contacter l'administrateur de votre organisation",
+        code: "ACCOUNT_DISABLED",
+      });
+    }
+
     if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
@@ -300,6 +308,10 @@ router.get(
     const token = platform === "dashboard" ? req.cookies.jwt : platform === "android" ? ExtractJwt.fromAuthHeaderWithScheme("JWT")(req) : null;
     if (!token) return res.status(400).send({ ok: false });
     const user = await User.findOne({ where: { _id: req.user._id } });
+
+    if (user.disabledAt) {
+      return res.status(403).send({ ok: false, error: "Ce compte a été désactivé", code: "ACCOUNT_DISABLED" });
+    }
 
     if (["superadmin"].includes(user.role)) {
       if (!user.lastOtpAt || dayjs(user.lastOtpAt).isBefore(dayjs().subtract(1, "month"))) {
@@ -744,6 +756,7 @@ router.get(
         gaveFeedbackEarly2023: user.gaveFeedbackEarly2023,
         lastLoginAt: user.lastLoginAt,
         decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
         teams: user.Teams ? user.Teams.map(serializeTeam) : [],
       };
     });
@@ -1036,6 +1049,32 @@ router.post(
 
     user.loginAttempts = 0;
     user.decryptAttempts = 0;
+    await user.save();
+
+    return res.status(200).send({ ok: true });
+  })
+);
+
+router.post(
+  "/reactivate-user",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        _id: z.string().regex(looseUuidRegex),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in reactivate user: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const _id = req.body._id;
+    const user = await User.findOne({ where: { _id } });
+    if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    user.disabledAt = null;
     await user.save();
 
     return res.status(200).send({ ok: true });
