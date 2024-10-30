@@ -24,7 +24,7 @@ import { errorMessage } from "../../utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectTeam from "../../components/SelectTeam";
 import { encryptReport, reportsState } from "../../recoil/reports";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 
 const View = () => {
@@ -242,30 +242,36 @@ const View = () => {
 
                 if (text && !confirm(text)) return;
 
-                const actionsToUpdate = actionsInTeam.map((a) => ({ ...a, teams: a.teams.filter((t) => t !== id).concat(transferSelectedTeam) }));
+                const actionsToUpdate = actionsInTeam.map((a) => ({
+                  ...a,
+                  teams: Array.from(new Set([...a.teams.filter((t) => t !== id), transferSelectedTeam])),
+                }));
                 const consultationsToUpdate = consultationsInTeam.map((c) => ({
                   ...c,
-                  teams: c.teams.filter((t) => t !== id).concat(transferSelectedTeam),
+                  teams: Array.from(new Set([...c.teams.filter((t) => t !== id), transferSelectedTeam])),
                 }));
                 const commentsToUpdate = commentsInTeam.map((c) => ({ ...c, team: transferSelectedTeam }));
                 const observationsToUpdate = observationsInTeam.map((o) => ({ ...o, team: transferSelectedTeam }));
-                const personsToUpdate = personsInTeam.map((p) => ({
-                  ...p,
-                  assignedTeams: p.assignedTeams.filter((t) => t !== id).concat(transferSelectedTeam),
-                  history: [
-                    ...(cleanHistory(p.history) || []),
-                    {
-                      date: new Date(),
-                      user: user._id,
-                      data: {
-                        assignedTeams: {
-                          oldValue: p.assignedTeams,
-                          newValue: p.assignedTeams.filter((t) => t !== id).concat(transferSelectedTeam),
+                const personsToUpdate = personsInTeam.map((p) => {
+                  const newAssignedTeams = Array.from(new Set([...p.assignedTeams.filter((t) => t !== id), transferSelectedTeam]));
+                  return {
+                    ...p,
+                    assignedTeams: newAssignedTeams,
+                    history: [
+                      ...(cleanHistory(p.history) || []),
+                      {
+                        date: new Date(),
+                        user: user._id,
+                        data: {
+                          assignedTeams: {
+                            oldValue: p.assignedTeams,
+                            newValue: newAssignedTeams,
+                          },
                         },
                       },
-                    },
-                  ],
-                }));
+                    ],
+                  };
+                });
                 const passagesToUpdate = passagesInTeam.map((p) => ({ ...p, team: transferSelectedTeam }));
                 const rencontresToUpdate = rencontresInTeam.map((r) => ({ ...r, team: transferSelectedTeam }));
 

@@ -1,7 +1,7 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
 import { capture } from "./sentry";
 
-export const dashboardCurrentCacheKey = "mano_last_refresh_2024_06_11";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2024_10_21_4";
 const legacyStoreName = "mano_last_refresh_2022_01_11";
 const legacyManoDB = "mano-dashboard";
 const manoDB = "mano";
@@ -10,6 +10,7 @@ const storeName = "store";
 let customStore: UseStore | null = null;
 const savedCacheKey = window.localStorage.getItem("mano-currentCacheKey");
 if (savedCacheKey !== dashboardCurrentCacheKey) {
+  setupDB();
   clearCache("savedCacheKey diff dashboardCurrentCacheKey");
 } else {
   setupDB();
@@ -39,17 +40,16 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   }
   await deleteDB().catch(capture);
   window.localStorage?.clear();
-  // window.sessionStorage?.clear();
+  window.sessionStorage?.clear();
 
   // Check if the cache is empty
   const localStorageEmpty = window.localStorage.length === 0;
-  // const sessionStorageEmpty = window.sessionStorage.length === 0;
+  const sessionStorageEmpty = window.sessionStorage.length === 0;
   const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
 
   // If the cache is not empty, try again
   return new Promise((resolve) => {
-    // if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
-    if (localStorageEmpty && indexedDBEmpty) {
+    if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
       setupDB();
       resolve(true);
     } else {

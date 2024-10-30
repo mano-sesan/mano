@@ -7,7 +7,7 @@ import { organisationState, userState } from "../recoil/auth";
 import { encryptConsultation } from "../recoil/consultations";
 import { ConsultationInstance } from "../types/consultation";
 import { ActionInstance, ActionStatus } from "../types/action";
-import { useDataLoader } from "./DataLoader";
+import { useDataLoader } from "../services/dataLoader";
 
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
   return action.isConsultation !== undefined && action.isConsultation;

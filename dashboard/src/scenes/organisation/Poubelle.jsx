@@ -8,7 +8,7 @@ import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
 import { organisationState, usersState } from "../../recoil/auth";
 import TagTeam from "../../components/TagTeam";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";

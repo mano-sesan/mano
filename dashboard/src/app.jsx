@@ -29,7 +29,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
 import VersionOutdatedAlert from "./components/VersionOutdatedAlert";
 import ModalConfirm from "./components/ModalConfirm";
-import DataLoader, { initialLoadIsDoneState, useDataLoader } from "./components/DataLoader";
+import DataLoader from "./components/DataLoader";
 import { Bounce, cssTransition, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SentryRoute from "./components/Sentryroute";
@@ -42,6 +42,7 @@ import CGUs from "./scenes/auth/cgus";
 import { getHashedOrgEncryptionKey } from "./services/encryption";
 import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./recoil/version";
 import Sandbox from "./scenes/sandbox";
+import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 

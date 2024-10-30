@@ -19,7 +19,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 
 const List = () => {
   const organisation = useRecoilValue(organisationState);

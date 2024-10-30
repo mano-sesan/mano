@@ -7,6 +7,8 @@ fileignoreconfig:
   checksum: d2a1521a81c8bd4a73ae57ec526cfcba2499420d299288ae533bb22dee67a7b2
 - filename: app/ios/Podfile.lock
   checksum: dcaf6d48f6e5fbd5e1eba52c4ddcdbb058170b00612ab4aeb862beeb5941d6a9
+- filename: app/ios/mano.xcodeproj/project.pbxproj
+  checksum: 770a1d4e9af3d604152dfbc102f74671e11bae6be8331aa006249f20ba28a224
 - filename: dashboard/.yarnrc.yml
   checksum: 6b12c3fee90382d0b475cdd6e33b78871ba826a1e50564ee3ef4e2ab4100c3f6
 - filename: dashboard/src/components/drawer.js

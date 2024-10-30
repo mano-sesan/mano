@@ -13,7 +13,7 @@ import type { Document, FolderWithLinkedItem, LinkedItem } from "../../../types/
 import type { UUIDV4 } from "../../../types/uuid";
 import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -112,7 +112,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           const action = person.actions.find((a) => a._id === actionId);
           if (!action) {
             toast.error("Erreur lors de l'enregistrement des documents des actions, vous pouvez contactez le support");
-            capture("Error while ordering documents (action not found)", { extra: { actionId } });
+            capture(new Error("Error while ordering documents (action not found)"), { extra: { actionId } });
             return false;
           }
           // FIXME: pour l'instant on vérifie si les deux documents sont identiques avec JSON.stringify. Il faudrait trouver une meilleure solution.
@@ -173,7 +173,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           const action = person.actions.find((a) => a._id === actionDocument.linkedItem._id);
           if (!action) {
             toast.error("Erreur lors de la suppression du dossier pour les actions liées, vous pouvez contactez le support");
-            capture("Error while deleting folder (action not found)", { extra: { actionDocument } });
+            capture(new Error("Error while deleting folder (action not found)"), { extra: { actionDocument } });
             return false;
           }
           const [actionError] = await tryFetchExpectOk(async () => {
@@ -213,7 +213,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           const action = person.actions.find((a) => a._id === document.linkedItem._id);
           if (!action) {
             toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
-            capture("Error while deleting document (action not found)", { extra: { document } });
+            capture(new Error("Error while deleting document (action not found)"), { extra: { document } });
             return false;
           }
           const [actionError] = await tryFetchExpectOk(async () => {
@@ -256,7 +256,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
           const action = person.actions.find((a) => a._id === documentOrFolder.linkedItem._id);
           if (!action) {
             toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
-            capture("Error while updating document (action not found)", { extra: { documentOrFolder } });
+            capture(new Error("Error while updating document (action not found)"), { extra: { documentOrFolder } });
             return;
           }
           const [actionError] = await tryFetchExpectOk(async () => {

@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { useDataLoader } from "../../components/DataLoader";
 import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, encryptAction } from "../../recoil/actions";
 import { organisationState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
+import { useDataLoader } from "../../services/dataLoader";
 
 const ActionCategoriesSettings = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);

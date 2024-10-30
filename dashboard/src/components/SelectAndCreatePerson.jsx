@@ -7,7 +7,7 @@ import API, { tryFetchExpectOk } from "../services/api";
 import { formatBirthDate } from "../services/date";
 import { currentTeamState, userState } from "../recoil/auth";
 import dayjs from "dayjs";
-import { useDataLoader } from "./DataLoader";
+import { useDataLoader } from "../services/dataLoader";
 
 function removeDiatricsAndAccents(str) {
   return (str || "")

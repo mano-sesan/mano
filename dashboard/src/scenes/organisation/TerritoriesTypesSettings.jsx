@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { organisationState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";

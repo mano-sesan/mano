@@ -224,7 +224,6 @@ const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilter
 const ActionsTable = ({ filteredData }) => {
   const location = useLocation();
   const setModalAction = useSetRecoilState(modalActionState);
-  const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
 
   return (
@@ -237,7 +236,7 @@ const ActionsTable = ({ filteredData }) => {
             <tr key={action._id}>
               <td>
                 <div
-                  className={["restricted-access"].includes(user.role) ? "tw-cursor-not-allowed tw-py-2" : "tw-cursor-pointer tw-py-2"}
+                  className="tw-cursor-pointer tw-py-2"
                   onClick={() => {
                     setModalAction({ open: true, from: location.pathname, action });
                   }}

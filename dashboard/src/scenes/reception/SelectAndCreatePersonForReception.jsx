@@ -14,7 +14,7 @@ import { currentTeamState, organisationState, userState } from "../../recoil/aut
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { theme } from "../../config";
 import dayjs from "dayjs";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { decryptItem } from "../../services/encryption";
 
 function removeDiatricsAndAccents(str) {

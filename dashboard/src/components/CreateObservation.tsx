@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Formik, FormikHelpers } from "formik";
 import { toast } from "react-toastify";
 
@@ -22,10 +22,10 @@ import PersonName from "./PersonName";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import Table from "./table";
-import { useDataLoader } from "./DataLoader";
 import type { TerritoryObservationInstance } from "../types/territoryObs";
 import type { RencontreInstance } from "../types/rencontre";
 import FormikPersist from "./FormikPersist";
+import { useDataLoader } from "../services/dataLoader";
 
 interface CreateObservationProps {
   observation: TerritoryObservationInstance | null;
@@ -439,6 +439,15 @@ const CreateObservation = ({ id, observation, open, setOpen }: CreateObservation
           onFinished={() => {
             setRencontre(undefined);
           }}
+          onSave={
+            !observation?._id || rencontresInProgress.find((r) => r.person === rencontre.person)
+              ? (rencontres: Array<RencontreInstance>) => {
+                  const nextRencontres = [...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)), ...rencontres];
+                  setRencontresInProgress(nextRencontres);
+                  window.sessionStorage.setItem("create-observation-rencontres", JSON.stringify(nextRencontres));
+                }
+              : undefined
+          }
         />
       )}
     </>

@@ -22,16 +22,16 @@ import { placesState } from "../../recoil/places";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { useDeletePerson } from "./components/DeletePersonButton";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import PersonName, { getPersonInfo } from "../../components/PersonName";
+import { useDeletePerson } from "../../services/useDeletePerson";
 
 const limit = 20;
 
@@ -57,13 +57,17 @@ const personsFilteredBySearchSelector = selectorFamily({
     ({ get }) => {
       const personsFiltered = get(personsFilteredSelector({ viewAllOrganisationData, filters, alertness }));
       const personsSorted = [...personsFiltered].sort(sortPersons(sortBy, sortOrder));
+      const user = get(userState);
 
       if (!search?.length) {
         return personsSorted;
       }
-      const user = get(userState);
+
       const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
-      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields);
+      const restrictedFields =
+        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
+
+      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields, restrictedFields);
 
       return personsfilteredBySearch;
     },
@@ -211,7 +215,9 @@ const List = () => {
             </div>
           </div>
         </div>
-        <Filters base={filterPersonsWithAllFields} title="" filters={filters} onChange={setFilters} saveInURLParams />
+        {user.role !== "restricted-access" && (
+          <Filters base={filterPersonsWithAllFields} title="" filters={filters} onChange={setFilters} saveInURLParams />
+        )}
       </details>
       <PersonsTable
         data={data}

@@ -6,7 +6,7 @@ import { encryptComment } from "../../../recoil/comments";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { organisationState } from "../../../recoil/auth";
 import { groupsState } from "../../../recoil/groups";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 
 export default function Comments({ person }) {
@@ -61,8 +61,8 @@ export default function Comments({ person }) {
               })
             );
             if (!error) {
-              toast.success("Commentaire enregistré");
               await refresh();
+              toast.success("Commentaire enregistré");
             } else {
               toast.error(errorMessage(error));
             }
@@ -74,8 +74,8 @@ export default function Comments({ person }) {
               })
             );
             if (!error) {
-              toast.success("Commentaire enregistré");
               await refresh();
+              toast.success("Commentaire enregistré");
             } else {
               toast.error(errorMessage(error));
             }

@@ -428,9 +428,11 @@ const View = () => {
                     <PersonsReport personsCreated={personsCreated} period={period} selectedTeams={selectedTeams} />
                   </div>
                 </div>
-                <div className="tw-flex tw-items-center tw-justify-center no-print">
-                  <Priorites period={period} selectedTeams={selectedTeams} actions={actions} comments={comments} />
-                </div>
+                {user.role !== "restricted-access" && (
+                  <div className="tw-flex tw-items-center tw-justify-center no-print">
+                    <Priorites period={period} selectedTeams={selectedTeams} actions={actions} comments={comments} />
+                  </div>
+                )}
                 {organisation.receptionEnabled && (
                   <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-white tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
                     <ServicesReport selectedTeamsObject={selectedTeamsObject} period={period} />

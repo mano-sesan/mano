@@ -153,9 +153,13 @@ const Table = <T extends { [key: string]: any } & RootItem>({
                   style={column.style || {}}
                   key={String(dataKey) + String(column.title)}
                 >
-                  <button aria-label="Changer l'ordre de tri" type="button" onClick={onSortBy ? onNameClick : null}>
-                    {column.title}
-                  </button>
+                  {onSortBy ? (
+                    <button aria-label="Changer l'ordre de tri" type="button" onClick={onNameClick}>
+                      {column.title}
+                    </button>
+                  ) : (
+                    <span>{column.title}</span>
+                  )}
                   {column.help && <>{column.help}</>}
                   {!!onSortBy && (sortBy === sortableKey || sortBy === dataKey) && (
                     <button onClick={onSortBy ? onNameClick : null} type="button" aria-label="Changer l'ordre de tri">

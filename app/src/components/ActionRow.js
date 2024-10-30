@@ -11,6 +11,7 @@ import { DONE } from '../recoil/actions';
 import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
 import { organisationState } from '../recoil/auth';
 import { itemsGroupedByPersonSelector } from '../recoil/selectors';
+import RepeatIcon from '../icons/RepeatIcon';
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = 'action' }) => {
   const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
@@ -40,6 +41,11 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
           {!!organisation.groupsEnabled && !!action.group && (
             <View className="mr-2 shrink-0">
               <MyText>👪</MyText>
+            </View>
+          )}
+          {!!action.recurrence && (
+            <View className="mr-2 shrink-0">
+              <RepeatIcon />
             </View>
           )}
           <Name bold>{name}</Name>

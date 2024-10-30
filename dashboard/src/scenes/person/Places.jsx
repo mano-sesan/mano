@@ -5,7 +5,7 @@ import UserName from "../../components/UserName";
 import { organisationState, userState } from "../../recoil/auth";
 import { dayjsInstance } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 import { placesState, encryptPlace } from "../../recoil/places";

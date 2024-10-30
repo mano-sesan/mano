@@ -14,7 +14,7 @@ import { organisationState, userState } from "../../recoil/auth";
 import PersonFamily from "./PersonFamily";
 import { groupSelector } from "../../recoil/groups";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import SearchInPerson from "./components/SearchInPerson";
 import { errorMessage } from "../../utils";
 import OutOfActiveListBanner from "./OutOfActiveListBanner";
@@ -49,9 +49,11 @@ export default function View() {
         <div>
           <BackButton />
         </div>
-        <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
-          <SearchInPerson person={person} />
-        </div>
+        {user.role !== "restricted-access" && (
+          <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
+            <SearchInPerson person={person} />
+          </div>
+        )}
         <div className="noprint">
           <UserName
             id={person.user}

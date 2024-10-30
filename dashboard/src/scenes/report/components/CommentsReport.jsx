@@ -74,7 +74,7 @@ export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
       <ModalContainer open={!!fullScreen} className="" size="full" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`${activeTab} (${data.length})`} onClose={() => setFullScreen(false)} />
         <ModalBody>
-          <CommentsSortableList data={data} className={activeTab.includes("Commentaires médicaux") ? "medical" : ""} />
+          <CommentsSortableList fullScreen={true} data={data} className={activeTab.includes("Commentaires médicaux") ? "medical" : ""} />
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>

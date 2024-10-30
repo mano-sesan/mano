@@ -13,7 +13,7 @@ import { sortTerritories, territoriesState } from "../../recoil/territory";
 import { selector, selectorFamily, useRecoilValue } from "recoil";
 import { itemsGroupedByPersonSelector, onlyFilledObservationsTerritories, personsObjectSelector } from "../../recoil/selectors";
 import { formatBirthDate, formatDateWithFullMonth } from "../../services/date";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
 import { commentsState } from "../../recoil/comments";
@@ -247,7 +247,7 @@ const View = () => {
           {activeTab === "Traitements" && <TreatmentsSortableList treatments={treatments} />}
           {activeTab === "Personnes" && <Persons persons={persons} />}
           {activeTab === "Dossiers médicaux" && <Persons persons={medicalFiles} />}
-          {activeTab === "Commentaires non médicaux" && <CommentsSortableList data={comments} />}
+          {activeTab === "Commentaires non médicaux" && <CommentsSortableList fullScreen={true} data={comments} />}
           {activeTab === "Lieux" && <Places places={places} />}
           {activeTab === "Territoires" && <Territories territories={territories} />}
           {activeTab === "Observations" && <TerritoryObservations observations={observations} />}

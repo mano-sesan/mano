@@ -17,7 +17,7 @@ import UserName from "../../../components/UserName";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import PersonName from "../../../components/PersonName";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 

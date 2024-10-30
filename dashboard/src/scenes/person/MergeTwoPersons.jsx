@@ -7,7 +7,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import SelectCustom from "../../components/SelectCustom";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import UserName from "../../components/UserName";

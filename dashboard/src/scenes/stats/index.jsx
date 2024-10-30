@@ -17,7 +17,7 @@ import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../recoil/selectors";
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
-import { useDataLoader } from "../../components/DataLoader";
+import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ExportFormattedData from "../data-import-export/ExportFormattedData";

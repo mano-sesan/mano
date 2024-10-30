@@ -54,7 +54,28 @@ export async function encryptComment(comment, { checkRequiredFields = true } = {
   return encryptItem(prepareCommentForEncryption(comment, { checkRequiredFields }));
 }
 
-export const sortComments = (_sortBy, sortOrder) => (a, b) => {
+const defaultSort = (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime();
+
+export const sortComments = (sortBy, sortOrder) => (a, b) => {
+  if (sortBy === "urgentOrGroup") {
+    if (sortOrder === "ASC") {
+      if (a.urgent && !b.urgent) return -1;
+      if (!a.urgent && b.urgent) return 1;
+      if (a.group && !b.group) return -1;
+      if (!a.group && b.group) return 1;
+    } else {
+      if (a.urgent && !b.urgent) return 1;
+      if (!a.urgent && b.urgent) return -1;
+      if (a.group && !b.group) return 1;
+      if (!a.group && b.group) return -1;
+    }
+  }
+  if (sortBy === "comment") {
+    return sortOrder === "ASC" ? (a.comment || "").localeCompare(b.comment || "") : (b.comment || "").localeCompare(a.comment || "");
+  }
+  if (sortBy === "type") {
+    return sortOrder === "ASC" ? (a.type || "").localeCompare(b.type || "") : (b.type || "").localeCompare(a.type || "");
+  }
   // sortBy is always `date` for now
   return sortOrder === "ASC" ? new Date(b.date).getTime() - new Date(a.date).getTime() : new Date(a.date).getTime() - new Date(b.date).getTime();
 };

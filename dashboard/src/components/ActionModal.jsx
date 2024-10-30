@@ -23,7 +23,6 @@ import CustomFieldDisplay from "./CustomFieldDisplay";
 import { itemsGroupedByActionSelector, itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
-import { useDataLoader } from "./DataLoader";
 import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { groupsState } from "../recoil/groups";
@@ -39,6 +38,7 @@ import { recurrencesState } from "../recoil/recurrences";
 import ActionStatusSelect from "./ActionStatusSelect";
 import DateBloc from "./DateBloc";
 import ActionsSortableList from "./ActionsSortableList";
+import { useDataLoader } from "../services/dataLoader";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -504,7 +504,7 @@ function ActionContent({ onClose, isMulti = false }) {
               "Informations",
               `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
               `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
-              "Historique",
+              ...(isNewAction ? [] : ["Historique"]),
               ...(!DISABLED_FEATURES["action-recurrentes"] && action.recurrence && action.recurrenceData.timeUnit
                 ? ["Voir toutes les occurrences"]
                 : []),
@@ -517,9 +517,13 @@ function ActionContent({ onClose, isMulti = false }) {
               if (tab.includes("Voir toutes les occurrences")) setActiveTab("Voir toutes les occurrences");
               refresh();
             }}
-            activeTabIndex={["Informations", "Documents", "Commentaires", "Historique", "Voir toutes les occurrences"].findIndex(
-              (tab) => tab === activeTab
-            )}
+            activeTabIndex={[
+                "Informations",
+                "Documents",
+                "Commentaires",
+                ...(isNewAction ? [] : ["Historique"]),
+                "Voir toutes les occurrences",
+              ].findIndex((tab) => tab === activeTab)}
           />
           <form
             id="add-action-form"
@@ -705,7 +709,7 @@ function ActionContent({ onClose, isMulti = false }) {
                     )}
                   </div>
                   <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                    {isEditing ? (
+                    {isEditing && user.role !== "restricted-access" ? (
                       <label htmlFor="create-action-urgent">
                         <input
                           type="checkbox"

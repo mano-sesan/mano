@@ -22,7 +22,7 @@ import { toast } from "react-toastify";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import DatePicker from "../../../components/DatePicker";
 import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { cleanHistory } from "../../../utils/person-history";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import SelectCustom from "../../../components/SelectCustom";

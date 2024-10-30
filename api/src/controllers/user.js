@@ -1015,4 +1015,31 @@ router.post(
   })
 );
 
+router.post(
+  "/release-user",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        _id: z.string().regex(looseUuidRegex),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in release user: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const _id = req.body._id;
+    const user = await User.findOne({ where: { _id } });
+    if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    user.loginAttempts = 0;
+    user.decryptAttempts = 0;
+    await user.save();
+
+    return res.status(200).send({ ok: true });
+  })
+);
+
 module.exports = router;

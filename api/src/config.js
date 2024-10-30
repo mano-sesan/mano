@@ -2,9 +2,17 @@ const fs = require("fs");
 const { mobileAppVersion } = require("../package.json");
 
 const PORT = process.env.PORT || 3000;
-const SECRET = process.env.SECRET || "not_so_secret_4";
+
 const ENVIRONMENT = process.env.NODE_ENV || "development";
 const VERSION = process.env.SHA || "0.0.0";
+
+let SECRET = null;
+if (process.env.SECRET && fs.existsSync(process.env.SECRET)) {
+  SECRET = fs.readFileSync(process.env.SECRET, "utf8").trim().replace(/\n/g, "");
+} else {
+  console.warn("SECRET is not set, using default value");
+  SECRET = process.env.SECRET || "not_so_secret_4";
+}
 
 const PGHOST = process.env.PGHOST;
 const PGPORT = process.env.PGPORT;

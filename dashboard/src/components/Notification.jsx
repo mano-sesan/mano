@@ -14,12 +14,12 @@ import API, { tryFetchExpectOk } from "../services/api";
 import { ModalContainer, ModalBody, ModalFooter } from "./tailwind/Modal";
 import PersonName from "./PersonName";
 import BellIconWithNotifications from "../assets/icons/BellIconWithNotifications";
-import { useDataLoader } from "./DataLoader";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import TagTeam from "./TagTeam";
 import { modalActionState } from "../recoil/modal";
 import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } from "../recoil/selectors";
 import { actionsWithoutFutureRecurrences } from "../utils/recurrence";
+import { useDataLoader } from "../services/dataLoader";
 
 const actionsUrgentSelector = selectorFamily({
   key: "actionsUrgentSelector",

@@ -10,7 +10,7 @@ import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import type { PersonPopulated } from "../../../types/person";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } from "../../../types/document";
-import { useDataLoader } from "../../../components/DataLoader";
+import { useDataLoader } from "../../../services/dataLoader";
 import { encryptItem } from "../../../services/encryption";
 
 interface PersonDocumentsProps {
@@ -366,7 +366,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
           return false;
         } catch (e) {
           toast.error("Erreur lors de la mise à jour des documents, vous pouvez contactez le support");
-          capture(e, { message: "Error while updating documents order" });
+          capture(e, { extra: { message: "Error while updating documents order" } });
         }
         return false;
       }}
