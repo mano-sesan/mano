@@ -54,7 +54,7 @@ router.get(
 router.get(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
+  validateUser(["admin", "normal", "restricted-access"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
