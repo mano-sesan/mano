@@ -12,6 +12,7 @@ import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from 
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
 import { useSessionStorage } from "../../services/useSessionStorage";
+import { rencontresState } from "../../recoil/rencontres";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 
 const List = ({ territory = {} }) => {
@@ -24,20 +25,34 @@ const List = ({ territory = {} }) => {
   const [observation, setObservation] = useState(undefined);
   const [openObservationModale, setOpenObservationModale] = useSessionStorage("create-observation-modal-open", false);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const rencontres = useRecoilValue(rencontresState);
 
-  const observations = useMemo(
-    () =>
-      territoryObservations
-        .filter((obs) => obs.territory === territory._id)
-        .map((e) => {
-          return {
-            ...e,
-            userName: users.find((u) => u._id === e.user)?.name,
-          };
-        })
-        .sort(sortTerritoriesObservations(sortBy, sortOrder)),
-    [sortBy, sortOrder, territory._id, territoryObservations, users]
+  const filteredObservations = useMemo(
+    () => territoryObservations.filter((obs) => obs.territory === territory._id),
+    [territoryObservations, territory._id]
   );
+
+  const rencontresByObservationMap = useMemo(() => {
+    const mapping = new Map();
+    for (const rencontre of rencontres) {
+      if (rencontre.observation) {
+        const current = mapping.get(rencontre.observation) || [];
+        current.push(rencontre);
+        mapping.set(rencontre.observation, current);
+      }
+    }
+    return mapping;
+  }, [rencontres]);
+
+  const observations = useMemo(() => {
+    return filteredObservations
+      .map((e) => ({
+        ...e,
+        userName: users.find((u) => u._id === e.user)?.name,
+        rencontres: rencontresByObservationMap.get(e._id) || [],
+      }))
+      .sort(sortTerritoriesObservations(sortBy, sortOrder));
+  }, [filteredObservations, users, rencontresByObservationMap, sortBy, sortOrder]);
 
   if (!observations) return null;
 
@@ -132,6 +147,14 @@ const List = ({ territory = {} }) => {
             title: "Équipe en charge",
             dataKey: "team",
             render: (obs) => <TagTeam teamId={obs?.team} />,
+          },
+          {
+            title: "Rencontres",
+            dataKey: "rencontres",
+            render: (obs) => {
+              if (!obs.rencontres?.length) return null;
+              return <div className="tw-flex tw-items-center tw-justify-center">{obs.rencontres.length}</div>;
+            },
           },
         ]}
       />
