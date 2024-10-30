@@ -88,7 +88,7 @@ const PersonSummary = ({
   const { actions, comments, rencontres, passages, relsPersonPlace } = populatedPerson;
 
   const sortedActions = useMemo(
-    () => [...(actionsWithoutFutureRecurrences(actions) || [])].sort((p1, p2) => (p1.dueAt > p2.dueAt ? -1 : 1)),
+    () => [...(actionsWithoutFutureRecurrences(actions || []) || [])].sort((p1, p2) => (p1.dueAt > p2.dueAt ? -1 : 1)),
     [actions]
   );
   const sortedComments = useMemo(
