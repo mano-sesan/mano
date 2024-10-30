@@ -377,6 +377,8 @@ const Create = ({ onChange, open, setOpen }) => {
             return errors;
           }}
           onSubmit={async (body, actions) => {
+            if (!body.emailDirection) body.emailDirection = undefined;
+            if (!body.emailDpo) body.emailDpo = undefined;
             const [error] = await tryFetch(async () => API.post({ path: "/organisation", body }));
             actions.setSubmitting(false);
             if (error) {
