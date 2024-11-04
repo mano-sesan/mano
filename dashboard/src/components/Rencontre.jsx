@@ -15,7 +15,7 @@ import { encryptRencontre } from "../recoil/rencontres";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import { useDataLoader } from "../services/dataLoader";
 
-const Rencontre = ({ rencontre, onFinished, onSave = undefined, personId = null, disableAccessToPerson = false }) => {
+const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToPerson = false }) => {
   const user = useRecoilValue(userState);
   const teams = useRecoilValue(teamsState);
   const currentTeam = useRecoilValue(currentTeamState);

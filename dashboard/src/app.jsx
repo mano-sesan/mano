@@ -43,6 +43,7 @@ import { getHashedOrgEncryptionKey } from "./services/encryption";
 import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./recoil/version";
 import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
+import ObservationModal from "./components/ObservationModal";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -175,6 +176,7 @@ const App = () => {
           <RestrictedRoute path="/report" component={Report} />
           <RestrictedRoute path="*" component={() => <Redirect to={"stats"} />} />
         </Switch>
+        <ObservationModal />
         <ActionModal />
         <ConsultationModal />
         <TreatmentModal />

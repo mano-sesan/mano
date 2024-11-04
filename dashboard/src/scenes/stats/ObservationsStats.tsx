@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
@@ -8,7 +8,6 @@ import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
 import { dayjsInstance } from "../../services/date";
 import { customFieldsObsSelector } from "../../recoil/territoryObservations";
-import CreateObservation from "../../components/CreateObservation";
 import Filters, { filterData } from "../../components/Filters";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
@@ -23,6 +22,8 @@ import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
 import { useSessionStorage } from "../../services/useSessionStorage";
 import { capitalize } from "../../utils";
+import { modalObservationState } from "../../recoil/modal";
+import { useLocation } from "react-router-dom";
 
 interface ObservationsStatsProps {
   territories: Array<TerritoryInstance>;
@@ -194,12 +195,12 @@ const ObservationsStats = ({
 };
 
 const SelectedObsModal = ({ open, onClose, observations, territories, title, onAfterLeave, selectedTeams, period }) => {
-  const [observationToEdit, setObservationToEdit] = useState(undefined);
-  const [openObservationModale, setOpenObservationModale] = useSessionStorage("create-observation-modal-open", false);
+  const setModalObservation = useSetRecoilState(modalObservationState);
   const teams = useRecoilValue(teamsState);
   const team = useRecoilValue(currentTeamState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const users = useRecoilValue(usersState);
+  const location = useLocation();
 
   const exportXlsx = () => {
     const wb = utils.book_new();
@@ -264,8 +265,11 @@ const SelectedObsModal = ({ open, onClose, observations, territories, title, onA
               className="Table"
               data={observations}
               onRowClick={(obs) => {
-                setObservationToEdit(obs);
-                setOpenObservationModale(true);
+                setModalObservation({
+                  open: true,
+                  observation: obs,
+                  from: location.pathname,
+                });
               }}
               rowKey={"_id"}
               columns={[
@@ -331,7 +335,6 @@ const SelectedObsModal = ({ open, onClose, observations, territories, title, onA
           </button>
         </ModalFooter>
       </ModalContainer>
-      <CreateObservation id="stats" observation={observationToEdit} open={openObservationModale} setOpen={setOpenObservationModale} />
     </>
   );
 };
