@@ -73,36 +73,17 @@ export default function NewIndex() {
                 </a>
               </div>
             </div>
-            <div className="border rounded shadow p-4 bg-white md:mx-0 mx-2 flex flex-col">
-              <div className="text-center grid gap-2 grow">
-                <div>Yoann Kittery</div>
-                <div>
-                  <a href="mailto:yoann.kittery@sesan.fr" className="text-mano hover:underline">
-                    yoann.kittery@sesan.fr
-                  </a>
-                </div>
-                <div className="flex items-center justify-center">
-                  <a href="tel:+33749082710" className="hover:underline">
-                    07 45 16 40 04
-                  </a>
-                  <span className="text-[10px] text-white bg-mano rounded px-1 ml-2">nouveau</span>
-                </div>
-
-                <div className="text-xs mt-4 max-w-sm mx-auto">
-                  Île-de-france, PACA, Occitanie, Nouvelle&nbsp;Aquitaine, Pays&nbsp;de&nbsp;la&nbsp;Loire, Centre&nbsp;Val&nbsp;de&nbsp;Loire, Corse
-                  et Réunion
-                </div>
+            <div className="border rounded shadow px-8 py-4 gap-6 text-center bg-white md:mx-0 mx-2 flex flex-col text-sm items-center justify-center">
+              <div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
               </div>
-              <div className="pt-4">
-                <a
-                  target="_blank"
-                  className="flex my-4 bg-sky-600 text-white px-4 py-2 rounded shadow text-sm max-w-72 mx-auto"
-                  href="https://cal.com/ykittery-mano/reservez-un-temps-de-presentation-de-l-outil-mano?duration=60"
-                >
-                  <div className="text-left">Reservez un temps de présentation de l’outil MANO</div>
-                  <AgendaIcon size={42} />
-                </a>
+              <div>
+                Pour les régions Île-de-france, PACA, Occitanie, Nouvelle Aquitaine, Pays de la Loire, Centre Val de Loire, Corse et Réunion,
+                patientez un peu, nous arrivons bientôt&nbsp;!
               </div>
+              <div>En cas de question pour le déploiement, vous pouvez contacter Guillaume ou Mélissa.</div>
             </div>
           </div>
         </div>
@@ -283,7 +264,7 @@ export default function NewIndex() {
               <h2 className="text-2xl text-center mx-4 py-8">L’équipe</h2>
             </div>
             <div>
-              <div className="grid md:grid-cols-5 sm:grid-cols-3 grid-cols-2 gap-y-8 gap-x-2 max-w-[800px] mx-auto">
+              <div className="grid md:grid-cols-4 grid-cols-2 gap-y-8 gap-x-2 max-w-[800px] mx-auto">
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
                   <img src="/team/a.png" alt="Logo" className="w-16 h-16" />
                   <div>
@@ -321,20 +302,6 @@ export default function NewIndex() {
                     <div className="text-sm mt-1 h-10">Développeur</div>
                     <div className="mt-2">
                       <a href="mailto:raph@selego.co" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
-                  </div>
-                </div>
-                <div className="mx-auto flex flex-col items-center justify-center text-center">
-                  <img src="/team/y.png" alt="Logo" className="w-16 h-16" />
-                  <div>
-                    Yoann
-                    <br />
-                    KITTERY
-                    <div className="text-sm mt-1 h-10">Chargé de déploiement</div>
-                    <div className="mt-2">
-                      <a href="mailto:yoann.kittery@sesan.fr" target="_blank">
                         <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
                       </a>
                     </div>
