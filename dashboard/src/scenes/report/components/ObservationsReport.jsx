@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
@@ -45,7 +45,7 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
       <ModalContainer open={!!fullScreen} className="" size="full" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`Observations (${observations.length})`} onClose={() => setFullScreen(false)} />
         <ModalBody>
-          <ObservationsTable observations={observations} period={period} selectedTeams={selectedTeams} fullscreen />
+          <ObservationsTable observations={observations} period={period} selectedTeams={selectedTeams} />
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>
@@ -57,8 +57,8 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
   );
 };
 
-const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) => {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
+const ObservationsTable = ({ period, observations, selectedTeams }) => {
+  const setModalObservation = useSetRecoilState(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("report-territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("report-territory-obs-sortOrder", "ASC");
   const territories = useRecoilValue(territoriesState);

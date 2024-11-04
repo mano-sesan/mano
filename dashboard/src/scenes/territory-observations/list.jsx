@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance } from "../../services/date";
@@ -15,7 +15,7 @@ import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import { modalObservationState } from "../../recoil/modal";
 
 const List = ({ territory = {} }) => {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
+  const setModalObservation = useSetRecoilState(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
   const territoryObservations = useRecoilValue(territoryObservationsState);
