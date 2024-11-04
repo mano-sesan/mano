@@ -699,6 +699,10 @@ router.get(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         gaveFeedbackEarly2023: user.gaveFeedbackEarly2023,
+        lastLoginAt: user.lastLoginAt,
+        decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
         team: team.map((t) => t._id),
       },
     });
@@ -930,6 +934,7 @@ router.put(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         gaveFeedbackEarly2023: user.gaveFeedbackEarly2023,
+        team: (await user.getTeams({ raw: true, attributes: ["_id"] })).map((t) => t._id),
       },
     });
   })
@@ -1060,7 +1065,7 @@ router.post(
 router.post(
   "/reactivate-user",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["superadmin"]),
+  validateUser(["superadmin", "admin"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -1078,8 +1083,30 @@ router.post(
 
     user.disabledAt = null;
     await user.save();
+    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
 
-    return res.status(200).send({ ok: true });
+    return res.status(200).send({
+      ok: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        role: user.role,
+        healthcareProfessional: user.healthcareProfessional,
+        lastChangePasswordAt: user.lastChangePasswordAt,
+        termsAccepted: user.termsAccepted,
+        cgusAccepted: user.cgusAccepted,
+        gaveFeedbackEarly2023: user.gaveFeedbackEarly2023,
+        lastLoginAt: user.lastLoginAt,
+        decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
+        team: team.map((t) => t._id),
+      },
+    });
   })
 );
 
