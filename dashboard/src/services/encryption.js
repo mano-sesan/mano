@@ -229,7 +229,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
         draggable: false,
       }
     );
-    if (errorDecrypt === "key cannot be null or undefined") {
+    if (errorDecrypt.includes("key cannot be null or undefined")) {
       capture(`error decrypting : ${errorDecrypt}`, {
         fingerprint: [`{{ default }}`, errorDecrypt],
         extra: { item, type },
