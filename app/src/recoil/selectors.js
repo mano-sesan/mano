@@ -12,7 +12,6 @@ import { consultationsState } from './consultations';
 import { rencontresState } from './rencontres';
 import { treatmentsState } from './treatments';
 import { medicalFileState } from './medicalFiles';
-import dayjs from 'dayjs';
 import { groupsState } from './groups';
 import { formatAge, formatBirthDate } from '../services/dateDayjs';
 import { passagesState } from './passages';
@@ -249,52 +248,9 @@ export const actionsForCurrentTeamSelector = selector({
   },
 });
 
-const PASSED = 'Passées';
-const TODAY = "Aujourd'hui";
-const TOMORROW = 'Demain';
-const INCOMINGDAYS = 'À venir';
-const sections = [
-  {
-    title: PASSED,
-    data: [],
-  },
-  {
-    title: TODAY,
-    data: [],
-  },
-  {
-    title: TOMORROW,
-    data: [],
-  },
-  {
-    title: INCOMINGDAYS,
-    data: [],
-  },
-];
-
-const formatData = (data) => {
-  if (!data?.length) return [];
-  const dataInSections = data.reduce((actions, action) => {
-    let inSection = null;
-    if (isPassed(action.dueAt)) inSection = PASSED;
-    if (isToday(action.dueAt)) inSection = TODAY;
-    if (isTomorrow(action.dueAt)) inSection = TOMORROW;
-    if (isComingInDays(action.dueAt, 2)) inSection = INCOMINGDAYS;
-    return actions.map((section) => {
-      if (section.title !== inSection) return section;
-      return { ...section, data: [...section.data, action] };
-    });
-  }, sections);
-  return dataInSections.reduce((actions, section) => {
-    return [
-      ...actions,
-      { type: 'title', title: section.title, _id: section.title },
-      ...section.data.sort((a, b) =>
-        section.title === INCOMINGDAYS ? new Date(a.dueAt) - new Date(b.dueAt) : new Date(b.dueAt) - new Date(a.dueAt)
-      ),
-    ];
-  }, []);
-};
+export const PASSED = 'PASSED';
+export const TODAY = 'TODAY';
+export const INCOMINGDAYS = 'INCOMINGDAYS';
 
 /*
 
@@ -307,6 +263,13 @@ const sortDoneOrCancel = (a, b) => {
   if (!b.dueAt) return 1;
   if (a.dueAt > b.dueAt) return -1;
   return 1;
+};
+
+const sortTodo = (a, b) => {
+  if (!a.dueAt) return 1;
+  if (!b.dueAt) return -1;
+  if (a.dueAt > b.dueAt) return 1;
+  return -1;
 };
 /*
 
@@ -342,7 +305,7 @@ const actionsAndConsultationsSelector = selector({
   },
 });
 
-export const actionsDoneSelector = selector({
+const actionsDoneSelector = selector({
   key: 'actionsDoneSelector',
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
@@ -351,27 +314,28 @@ export const actionsDoneSelector = selector({
   },
 });
 
-export const actionsDoneSelectorSliced = selectorFamily({
+const actionsDoneSelectorSliced = selectorFamily({
   key: 'actionsDoneSelectorSliced',
   get:
     ({ limit }) =>
     ({ get }) => {
       const actionsDone = get(actionsDoneSelector);
+      if (!limit) return actionsDone;
       const filteredActions = actionsDone.filter((_, index) => index < limit);
       return filteredActions;
     },
 });
 
-export const actionsTodoSelector = selector({
+const actionsTodoSelector = selector({
   key: 'actionsTodoSelector',
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
-    const filteredActions = formatData(actions.filter((a) => a.status === TODO));
+    const filteredActions = actions.filter((a) => a.status === TODO).sort(sortTodo);
     return filteredActions;
   },
 });
 
-export const actionsCanceledSelector = selector({
+const actionsCanceledSelector = selector({
   key: 'actionsCanceledSelector',
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
@@ -380,21 +344,35 @@ export const actionsCanceledSelector = selector({
   },
 });
 
-export const actionsCanceledSelectorSliced = selectorFamily({
+const actionsCanceledSelectorSliced = selectorFamily({
   key: 'actionsCanceledSelectorSliced',
   get:
     ({ limit }) =>
     ({ get }) => {
       const actionsCanceled = get(actionsCanceledSelector);
+      if (!limit) return actionsCanceled;
       const filteredActions = actionsCanceled.filter((_, index) => index < limit);
       return filteredActions;
     },
 });
 
-export const actionsByStatusSelector = selectorFamily({
-  key: 'actionsByStatusSelector',
+const filterByTimeframe = (actions, timeframe) => {
+  switch (timeframe) {
+    case PASSED:
+      return actions.filter((action) => isPassed(action.dueAt));
+    case TODAY:
+      return actions.filter((action) => isToday(action.dueAt));
+    case INCOMINGDAYS:
+      return actions.filter((action) => isComingInDays(action.dueAt, 1));
+    default:
+      return actions;
+  }
+};
+
+export const actionsByStatusAndTimeframeSelector = selectorFamily({
+  key: 'actionsByStatusAndTimeframeSelector',
   get:
-    ({ status, limit }) =>
+    ({ status, limit, timeframe }) =>
     ({ get }) => {
       if (status === DONE) {
         const actions = get(actionsDoneSelectorSliced({ limit }));
@@ -402,7 +380,7 @@ export const actionsByStatusSelector = selectorFamily({
       }
       if (status === TODO) {
         const actions = get(actionsTodoSelector);
-        return actions;
+        return filterByTimeframe(actions, timeframe);
       }
       if (status === CANCEL) {
         const actions = get(actionsCanceledSelectorSliced({ limit }));
@@ -414,11 +392,10 @@ export const actionsByStatusSelector = selectorFamily({
 export const totalActionsByStatusSelector = selectorFamily({
   key: 'totalActionsByStatusSelector',
   get:
-    ({ status }) =>
+    ({ status, timeframe }) =>
     ({ get }) => {
-      if (status === DONE) return get(actionsDoneSelector).length;
-      if (status === TODO) return get(actionsTodoSelector).length;
-      if (status === CANCEL) return get(actionsCanceledSelector).length;
+      const actions = get(actionsByStatusAndTimeframeSelector({ status, limit: null, timeframe }));
+      return actions.length;
     },
 });
 
