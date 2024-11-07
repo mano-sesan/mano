@@ -229,21 +229,11 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
         draggable: false,
       }
     );
-    if (errorDecrypt?.message?.includes("key cannot be null or undefined")) {
-      capture(`error decrypting : ${errorDecrypt.message}`, {
-        fingerprint: [`{{ default }}`, errorDecrypt],
-        extra: { item, type },
-        tags: { _id: item._id },
-        level: "debug",
-      });
-    } else {
-      capture(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`, {
-        fingerprint: [`{{ default }}`, item._id],
-        extra: { item, type },
-        tags: { _id: item._id },
-        level: "fatal",
-      });
-    }
+    capture(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`, {
+      fingerprint: [`{{ default }}`, item._id],
+      extra: { message: "ERROR DECRYPTING ITEM", item, type },
+      tags: { _id: item._id },
+    });
     return null;
   }
 
