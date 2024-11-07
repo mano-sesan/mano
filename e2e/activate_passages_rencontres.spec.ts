@@ -9,8 +9,6 @@ test.beforeAll(async () => {
 test.setTimeout(90000);
 
 test("test", async ({ page }) => {
-  const today = dayjs().format("YYYY-MM-DD");
-
   /* ************************************************************************* */
   /* ****** PARTIE 1 TEST ADMIN 1 PASSAGE ACTIVE ET RENCONTRE DESACTIVE ****** */
   /* ************************************************************************* */
@@ -34,9 +32,10 @@ test("test", async ({ page }) => {
   await page.locator("#person-select-and-create-reception").fill("test1");
   await page.locator("#react-select-5-option-0").click();
   await page.getByText("Nouvelle personne ajoutée !").click();
-  await page.getByRole("button", { name: "Passage" }).first().click();
+  await page.getByRole("button", { name: "Passage", exact: true }).click();
+  await expect(page.getByText("1 passage", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Passage anonyme" }).click();
-  // await page.getByText("Passages enregistrés").click();
+  await expect(page.getByText("2 passages", { exact: true })).toBeVisible();
 
   /* ***** personnes suvies ***** */
 
@@ -46,7 +45,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Passages (1)" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Rencontres (0)" })).not.toBeVisible();
 
-  await page.getByRole("button", { name: "Ajouter un passage" }).click();
+  await page.getByLabel("Ajouter un passage").click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("test passage");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passage enregistré !").click();
