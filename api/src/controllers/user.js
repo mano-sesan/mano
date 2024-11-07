@@ -1082,6 +1082,7 @@ router.post(
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     user.disabledAt = null;
+    user.lastLoginAt = new Date();
     await user.save();
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
 
