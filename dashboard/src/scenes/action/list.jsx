@@ -19,7 +19,7 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { dayjsInstance } from "../../services/date";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { modalActionState } from "../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../recoil/modal";
 
 const showAsOptions = ["Calendrier", "Liste", "Hebdomadaire"];
 const showTypeOptions = ["Actions et consultations", "Actions", "Consultations"];
@@ -196,6 +196,7 @@ const List = () => {
             disabled={!currentTeam}
             onClick={() => {
               setModalAction({
+                ...defaultModalActionState(),
                 open: true,
                 from: "/action",
                 isForMultiplePerson: true,
@@ -401,6 +402,7 @@ const List = () => {
             actions={dataConsolidated}
             onCreateAction={(date) => {
               setModalAction({
+                ...defaultModalActionState(),
                 open: true,
                 from: "/action",
                 isForMultiplePerson: true,

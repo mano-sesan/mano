@@ -16,7 +16,7 @@ import { itemsGroupedByPersonSelector } from "../../../recoil/selectors";
 import DescriptionIcon from "../../../components/DescriptionIcon";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
-import { modalActionState } from "../../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
 import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 
@@ -77,6 +77,7 @@ export const Actions = ({ person }) => {
             className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
             onClick={() => {
               setModalAction({
+                ...defaultModalActionState(),
                 open: true,
                 from: location.pathname,
                 isEditing: true,
@@ -140,6 +141,7 @@ export const Actions = ({ person }) => {
             className="button-submit"
             onClick={() => {
               setModalAction({
+                ...defaultModalActionState(),
                 open: true,
                 from: location.pathname,
                 isEditing: true,
@@ -238,7 +240,7 @@ const ActionsTable = ({ filteredData }) => {
                 <div
                   className="tw-cursor-pointer tw-py-2"
                   onClick={() => {
-                    setModalAction({ open: true, from: location.pathname, action });
+                    setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action });
                   }}
                 >
                   <div className="tw-flex">

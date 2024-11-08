@@ -12,7 +12,7 @@ import TagTeam from "./TagTeam";
 import useSearchParamState from "../services/useSearchParamState";
 import { disableConsultationRow } from "../recoil/consultations";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 
 export default function ActionsWeekly({ actions, isNightSession, onCreateAction }) {
   const [startOfWeek, setStartOfWeek] = useSearchParamState("startOfWeek", dayjsInstance().startOf("week").format("YYYY-MM-DD"));
@@ -148,7 +148,7 @@ function ActionsOfDay({ actions }) {
               searchParams.set("consultationId", action._id);
               history.push(`?${searchParams.toString()}`);
             } else {
-              setModalAction({ open: true, from: "/action", action });
+              setModalAction({ ...defaultModalActionState(), open: true, from: "/action", action });
             }
           }}
           className={[

@@ -15,7 +15,7 @@ import { useLocalStorage } from "../services/useLocalStorage";
 import TabsNav from "./tailwind/TabsNav";
 import DescriptionIcon from "./DescriptionIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
   const setModalAction = useSetRecoilState(modalActionState);
@@ -101,7 +101,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
           searchParams.set("consultationId", actionOrConsultation._id);
           history.push(`?${searchParams.toString()}`);
         } else {
-          setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
+          setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionOrConsultation });
         }
       }}
       rowDisabled={(actionOrConsultation) => disableConsultationRow(actionOrConsultation, user)}

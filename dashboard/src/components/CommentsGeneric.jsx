@@ -17,7 +17,7 @@ import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 /*
@@ -339,7 +339,12 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
                             if (comment.isMedicalCommentShared) return;
                             switch (comment.type) {
                               case "action":
-                                setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
+                                setModalAction({
+                                  ...defaultModalActionState(),
+                                  open: true,
+                                  from: location.pathname,
+                                  action: actionsObjects[comment.action],
+                                });
                                 break;
                               case "person":
                                 history.push(`/person/${comment.person}`);

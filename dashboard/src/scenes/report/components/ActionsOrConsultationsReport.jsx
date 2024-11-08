@@ -10,7 +10,7 @@ import { useLocalStorage } from "../../../services/useLocalStorage";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { dayjsInstance } from "../../../services/date";
-import { modalActionState } from "../../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
 
 export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCreated, consultationsCreated, period }) => {
   const [activeTab, setActiveTab] = useLocalStorage("reports-actions-consultation-toggle", "Actions");
@@ -70,6 +70,7 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
               onClick={() => {
                 if (activeTab.includes("Actions")) {
                   setModalAction({
+                    ...defaultModalActionState(),
                     open: true,
                     from: location.pathname,
                     isEditing: true,
@@ -173,6 +174,7 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
             onClick={() => {
               if (activeTab.includes("Actions")) {
                 setModalAction({
+                  ...defaultModalActionState(),
                   open: true,
                   from: location.pathname,
                   isEditing: true,

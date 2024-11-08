@@ -23,7 +23,7 @@ import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { modalActionState } from "../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../recoil/modal";
 
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
@@ -202,6 +202,7 @@ const Reception = () => {
           icon={plusIcon}
           onClick={() => {
             setModalAction({
+              ...defaultModalActionState(),
               open: true,
               from: location.pathname,
               isEditing: true,
