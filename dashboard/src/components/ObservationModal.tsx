@@ -105,10 +105,12 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
   const onDelete = async (id: TerritoryObservationInstance["_id"]) => {
     const confirm = window.confirm("Êtes-vous sûr ?");
     if (confirm) {
+      setIsDeleting(true);
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
       if (error) return;
       await refresh();
       toast.success("Suppression réussie");
+      setIsDeleting(false);
       onClose();
     }
   };
@@ -129,6 +131,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
     for (const customField of customFieldsObs.filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))) {
       body[customField.name] = observation[customField.name];
     }
+    setIsSubmitting(true);
     const res = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
     if (res.ok) {
       toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
@@ -151,6 +154,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
         await refresh();
       }
     }
+    setIsSubmitting(false);
   }
 
   const handleChange = (event) => {
@@ -372,7 +376,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
         </button>
         {observation?._id ? (
           <button className="button-destructive !tw-ml-0" type="button" onClick={() => onDelete(observation._id)}>
-            Supprimer
+            {isDeleting ? "Suppression..." : "Supprimer"}
           </button>
         ) : null}
         <button
