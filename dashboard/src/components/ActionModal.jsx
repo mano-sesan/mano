@@ -27,7 +27,7 @@ import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { groupsState } from "../recoil/groups";
 import { encryptComment } from "../recoil/comments";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { DISABLED_FEATURES } from "../config";
@@ -292,6 +292,7 @@ function ActionContent({ onClose, isMulti = false }) {
                   await refresh();
                   const decryptedAction = await decryptItem(actionReponse.data);
                   setModalAction({
+                    ...defaultModalActionState(),
                     open: true,
                     from: location.pathname,
                     isForMultiplePerson: false,
@@ -518,12 +519,12 @@ function ActionContent({ onClose, isMulti = false }) {
               refresh();
             }}
             activeTabIndex={[
-                "Informations",
-                "Documents",
-                "Commentaires",
-                ...(isNewAction ? [] : ["Historique"]),
-                "Voir toutes les occurrences",
-              ].findIndex((tab) => tab === activeTab)}
+              "Informations",
+              "Documents",
+              "Commentaires",
+              ...(isNewAction ? [] : ["Historique"]),
+              "Voir toutes les occurrences",
+            ].findIndex((tab) => tab === activeTab)}
           />
           <form
             id="add-action-form"
@@ -1191,7 +1192,7 @@ function NextOccurrences({ action }) {
             <tr
               key={a._id}
               onClick={() => {
-                setModalAction({ open: true, from: location.pathname, action: a });
+                setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: a });
                 toast.success(
                   "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
                 );

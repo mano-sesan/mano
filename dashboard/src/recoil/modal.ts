@@ -10,7 +10,7 @@ type ModalActionState = {
   action?: Partial<ActionInstance>;
 };
 
-const defaultModalActionState = (): ModalActionState => ({
+export const defaultModalActionState = (): ModalActionState => ({
   open: false,
   from: "/reception",
   isEditing: false,
@@ -22,5 +22,4 @@ const defaultModalActionState = (): ModalActionState => ({
 export const modalActionState = atom<ModalActionState>({
   key: "modalAction",
   default: defaultModalActionState(),
-  effects: [({ onSet }) => onSet((newValue) => ({ ...defaultModalActionState(), ...newValue }))],
 });

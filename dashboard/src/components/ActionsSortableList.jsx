@@ -18,7 +18,7 @@ import useSearchParamState from "../services/useSearchParamState";
 import DescriptionIcon from "./DescriptionIcon";
 import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import UserName from "./UserName";
 
 const ActionsSortableList = ({
@@ -75,7 +75,7 @@ const ActionsSortableList = ({
             searchParams.set("consultationId", actionOrConsultation._id);
             history.push(`?${searchParams.toString()}`);
           } else {
-            setModalAction({ open: true, from: location.pathname, action: actionOrConsultation });
+            setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionOrConsultation });
             if (onAfterActionClick) onAfterActionClick(actionOrConsultation);
           }
         }}

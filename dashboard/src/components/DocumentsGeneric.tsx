@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import DocumentsOrganizer from "./DocumentsOrganizer";
 import { decryptFile, encryptFile, getHashedOrgEncryptionKey } from "../services/encryption";
 import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 interface DocumentsModuleProps<T> {
@@ -863,7 +863,12 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
           {!!showAssociatedItem && document?.linkedItem?.type === "action" && (
             <button
               onClick={() => {
-                setModalAction({ open: true, from: location.pathname, action: actionsObjects[document.linkedItem._id] });
+                setModalAction({
+                  ...defaultModalActionState(),
+                  open: true,
+                  from: location.pathname,
+                  action: actionsObjects[document.linkedItem._id],
+                });
                 onClose();
               }}
               className="button-classic"

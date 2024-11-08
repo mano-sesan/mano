@@ -16,7 +16,7 @@ import PersonName from "./PersonName";
 import BellIconWithNotifications from "../assets/icons/BellIconWithNotifications";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import TagTeam from "./TagTeam";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } from "../recoil/selectors";
 import { actionsWithoutFutureRecurrences } from "../utils/recurrence";
 import { useDataLoader } from "../services/dataLoader";
@@ -132,7 +132,7 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
           dataTestId="name"
           onRowClick={(action) => {
             setShowModal(false);
-            setModalAction({ open: true, from: location.pathname, action: action });
+            setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: action });
           }}
           columns={[
             {
@@ -265,7 +265,7 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
           onRowClick={(comment) => {
             setShowModal(false);
             if (comment.type === "action") {
-              setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
+              setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionsObjects[comment.action] });
             } else {
               history.push(`/person/${comment.person}`);
             }

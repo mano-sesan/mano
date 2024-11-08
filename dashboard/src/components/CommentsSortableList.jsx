@@ -10,7 +10,7 @@ import PersonName from "./PersonName";
 import { useLocalStorage } from "../services/useLocalStorage";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../recoil/comments";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 
 export default function CommentsSortableList({ data, className = "", fullScreen = false }) {
@@ -64,7 +64,7 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
         const searchParams = new URLSearchParams(history.location.search);
         switch (comment.type) {
           case "action":
-            setModalAction({ open: true, from: location.pathname, action: actionsObjects[comment.action] });
+            setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionsObjects[comment.action] });
             break;
           case "person":
             history.push(`/person/${comment.person}`);
