@@ -74,11 +74,11 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
-  const [rencontresInProgress, setRencontresInProgress] = useState<Array<RencontreInstance>>(modalObservation.rencontresInProgress);
 
   const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
+  const rencontresInProgress = modalObservation.rencontresInProgress;
 
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
@@ -277,8 +277,10 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const nextRencontres = rencontresInProgress.filter((r) => r.person !== rencontre.person);
-                                setRencontresInProgress(nextRencontres);
-                                window.sessionStorage.setItem("create-observation-rencontres", JSON.stringify(nextRencontres));
+                                setModalObservation((modalObservation) => ({
+                                  ...modalObservation,
+                                  rencontresInProgress: nextRencontres,
+                                }));
                               }}
                               className="button-destructive"
                             >
@@ -401,7 +403,10 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
               : (rencontres: Array<RencontreInstance>) => {
                   if (!rencontres.length) return;
                   const nextRencontres = [...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)), ...rencontres];
-                  setRencontresInProgress(nextRencontres);
+                  setModalObservation((modalObservation) => ({
+                    ...modalObservation,
+                    rencontresInProgress: nextRencontres,
+                  }));
                 }
           }
         />
