@@ -57,7 +57,12 @@ const Login = ({ navigation }) => {
         const [title, subTitle, actions = [], options = {}] = response.inAppMessage;
         if (!actions || !actions.length) return Alert.alert(title, subTitle);
         const actionsWithNavigation = actions.map((action) => {
-          if (action.link) {
+          if (action.text === 'Installer') {
+            API.updateLink = action.link;
+            action.onPress = () => {
+              API.downloadAndInstallUpdate(action.link);
+            };
+          } else if (action.link) {
             action.onPress = () => {
               Linking.openURL(action.link);
             };

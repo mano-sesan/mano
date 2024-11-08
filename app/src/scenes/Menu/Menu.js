@@ -40,6 +40,9 @@ const Menu = ({ navigation }) => {
         <Row withNextButton caption="Changer le mot de passe" onPress={() => navigation.navigate('ChangePassword')} />
         <Spacer height={30} />
         <Row withNextButton caption="Télécharger Mano" onPress={() => Linking.openURL(MANO_DOWNLOAD_URL)} />
+        {API.updateLink && (
+          <Row withNextButton caption="Mettre à jour la dernière version" onPress={() => API.downloadAndInstallUpdate(API.updateLink)} />
+        )}
         <Spacer height={30} />
         <Row withNextButton caption="Charte des utilisateurs" onPress={() => navigation.navigate('Charte')} />
         <Row withNextButton caption="Conditions générales d'utilisation" onPress={() => navigation.navigate('Cgu')} />
