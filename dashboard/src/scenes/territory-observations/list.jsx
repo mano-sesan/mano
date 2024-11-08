@@ -12,7 +12,7 @@ import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
 import { rencontresState } from "../../recoil/rencontres";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
-import { modalObservationState } from "../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 
 const List = ({ territory = {} }) => {
   const setModalObservation = useSetRecoilState(modalObservationState);
@@ -64,6 +64,7 @@ const List = ({ territory = {} }) => {
           <ButtonCustom
             onClick={() => {
               setModalObservation({
+                ...defaultModalObservationState(),
                 open: true,
                 observation: {
                   user: user._id,
@@ -88,6 +89,7 @@ const List = ({ territory = {} }) => {
         noData={`Pas encore d'observations pour ce territoire`}
         onRowClick={(obs) => {
           setModalObservation({
+            ...defaultModalObservationState(),
             open: true,
             observation: obs,
             from: location.pathname,

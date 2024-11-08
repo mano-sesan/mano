@@ -63,6 +63,7 @@ export default function ObservationModal() {
 
 function ObservationContent({ onClose }: { onClose: () => void }) {
   const modalObservation = useRecoilValue(modalObservationState);
+  console.log("modalObservation", modalObservation);
   const user = useRecoilValue(userAuthentifiedState);
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationAuthentifiedState);
@@ -74,10 +75,8 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
-  const [rencontresInProgress, setRencontresInProgress] = useState<Array<RencontreInstance>>(() => {
-    const stored = window.sessionStorage.getItem("create-observation-rencontres");
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [rencontresInProgress, setRencontresInProgress] = useState<Array<RencontreInstance>>(modalObservation.rencontresInProgress);
+
   const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
   const observation = useMemo(

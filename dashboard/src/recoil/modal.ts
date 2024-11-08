@@ -1,6 +1,7 @@
 import { atom } from "recoil";
 import { ActionInstance } from "../types/action";
 import { TerritoryObservationInstance } from "../types/territoryObs";
+import { RencontreInstance } from "../types/rencontre";
 
 type ModalActionState = {
   open: boolean;
@@ -31,17 +32,18 @@ type ModalObservationState = {
   from?: string;
   isEditing?: boolean;
   observation?: Partial<TerritoryObservationInstance>;
+  rencontresInProgress?: RencontreInstance[];
 };
 
-const defaultModalObservationState = (): ModalObservationState => ({
+export const defaultModalObservationState = (): ModalObservationState => ({
   open: false,
   from: "/territory",
   isEditing: false,
   observation: null,
+  rencontresInProgress: [],
 });
 
 export const modalObservationState = atom<ModalObservationState>({
   key: "modalObservation",
   default: defaultModalObservationState(),
-  effects: [({ onSet }) => onSet((newValue) => ({ ...defaultModalObservationState(), ...newValue }))],
 });

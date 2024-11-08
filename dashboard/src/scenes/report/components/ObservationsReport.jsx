@@ -12,7 +12,7 @@ import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersS
 import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { modalObservationState } from "../../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
 import { useLocation } from "react-router-dom";
 
 export const ObservationsReport = ({ observations, period, selectedTeams }) => {
@@ -138,6 +138,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             className="button-submit"
             onClick={() => {
               setModalObservation({
+                ...defaultModalObservationState(),
                 open: true,
                 observation: {
                   user: user._id,
@@ -159,6 +160,7 @@ const ObservationsTable = ({ period, observations, selectedTeams }) => {
             data={orderedObservations}
             onRowClick={(obs) => {
               setModalObservation({
+                ...defaultModalObservationState(),
                 open: true,
                 observation: obs,
                 from: location.pathname,

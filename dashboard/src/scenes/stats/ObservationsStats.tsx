@@ -22,7 +22,7 @@ import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
 import { useSessionStorage } from "../../services/useSessionStorage";
 import { capitalize } from "../../utils";
-import { modalObservationState } from "../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 import { useLocation } from "react-router-dom";
 
 interface ObservationsStatsProps {
@@ -266,6 +266,7 @@ const SelectedObsModal = ({ open, onClose, observations, territories, title, onA
               data={observations}
               onRowClick={(obs) => {
                 setModalObservation({
+                  ...defaultModalObservationState(),
                   open: true,
                   observation: obs,
                   from: location.pathname,
