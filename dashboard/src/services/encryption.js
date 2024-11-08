@@ -4,28 +4,20 @@ import { toast } from "react-toastify";
 import { capture } from "./sentry";
 
 let hashedOrgEncryptionKey = null;
-let enableEncrypt = false;
 
 export function getHashedOrgEncryptionKey() {
   return hashedOrgEncryptionKey;
 }
+
 export const setOrgEncryptionKey = async (orgEncryptionKey, { needDerivation = true } = {}) => {
   const newHashedOrgEncryptionKey = needDerivation ? await derivedMasterKey(orgEncryptionKey) : orgEncryptionKey;
   hashedOrgEncryptionKey = newHashedOrgEncryptionKey;
-  enableEncrypt = true;
   return newHashedOrgEncryptionKey;
 };
 
 export const resetOrgEncryptionKey = () => {
   hashedOrgEncryptionKey = null;
 };
-
-export function getEnableEncrypt() {
-  return enableEncrypt;
-}
-export function setEnableEncrypt(value) {
-  enableEncrypt = value;
-}
 
 // TODO: consolidate the base 64 in both dashboard / app: it looks inconsistent right now
 
@@ -212,7 +204,7 @@ export const encryptItem = async (item) => {
 // Qui du coup ne se mettraient plus à jour correctement.
 // Par contre quand on appelle cette fonction, il faut vérifier si l'item est null et ne pas l'utiliser.
 export const decryptItem = async (item, { decryptDeleted = false, type = "" } = {}) => {
-  if (!getEnableEncrypt()) return item;
+  if (!getHashedOrgEncryptionKey()) return item;
   if (!item.encrypted) return item;
   if (item.deletedAt && !decryptDeleted) return item;
   if (!item.encryptedEntityKey) return item;

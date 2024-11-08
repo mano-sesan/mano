@@ -31,6 +31,7 @@ const SessionCountDownLimiter = () => {
       if (sessionSeconds < maxSession) {
         setSessionSeconds(() => Math.floor((Date.now() - sessionStart.current) / 1000));
       } else {
+        resetOrgEncryptionKey();
         setReloadModalOpen(true);
         clearInterval(stopwatchInterval.current);
       }
@@ -60,7 +61,10 @@ const SessionCountDownLimiter = () => {
         <div>{timeString}</div>
       </div>
       <button
-        onClick={() => setReloadModalOpen(true)}
+        onClick={() => {
+          resetOrgEncryptionKey();
+          setReloadModalOpen(true);
+        }}
         className={[
           "button-link !tw-m-0 !tw-justify-start !tw-p-0",
           remainingSession < warnBeforeEndOfSession ? "!tw-font-bold !tw-text-red-500" : "",

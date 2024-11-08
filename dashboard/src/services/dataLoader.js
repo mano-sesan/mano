@@ -23,7 +23,7 @@ import { organisationState, teamsState, userState } from "../recoil/auth";
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import useDataMigrator from "../components/DataMigrator";
-import { decryptItem } from "../services/encryption";
+import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";
 
@@ -77,6 +77,8 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   }, []);
 
   async function loadOrRefreshData(isStartingInitialLoad) {
+    // premier check du chiffrement activé: si pas de clé de chiffrement, pas de donnée à télécharger
+    if (!getHashedOrgEncryptionKey()) return false;
     setIsLoading(true);
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
@@ -619,6 +621,12 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     }
 
+    // deuxième check du chiffrement activé, dans le scénario où
+    // 1. focus sur la page: on refresh
+    // 2. session trop longue: on verrouille et la clé de chiffrement est supprimée MAIS le refresh est lancé avant
+    // 3. problème: on a téléchargé des éléments mais non déchiffrés DONC
+    // => pour éviter des problèmes de cache on n'enrteigtre pas le `await setCacheItem(dashboardCurrentCacheKey, serverDate);`
+    if (!getHashedOrgEncryptionKey()) return false;
     // On enregistre également l'identifiant de l'organisation
     setCacheItem("organisationId", organisationId);
     setIsLoading(false);
