@@ -15,6 +15,7 @@ const Sentry = require("@sentry/node");
 
 require("./db/sequelize");
 require("./utils/userLogClean");
+require("./utils/desactivateUsers");
 
 const versionCheck = require("./middleware/versionCheck");
 

@@ -3,13 +3,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 
 import Loading from "../../components/loading";
-import ButtonCustom from "../../components/ButtonCustom";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, usersState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -22,7 +21,9 @@ const View = () => {
   const { id } = useParams();
   const history = useHistory();
   const [user, setUser] = useRecoilState(userState);
+  const setUsers = useSetRecoilState(usersState);
   const organisation = useRecoilValue(organisationState);
+  const [isReactivatingUser, setIsReactivatingUser] = useState(false);
 
   useTitle(`Utilisateur ${user?.name}`);
 
@@ -75,19 +76,20 @@ const View = () => {
             if (body.email && !emailRegex.test(body.email)) return toast.error("Email invalide");
             if (!body.name) return toast.error("Le nom doit faire au moins un caractère");
             body.organisation = organisation._id;
-            const [error] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));
+            const [error, response] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));
             if (error) {
               actions.setSubmitting(false);
               return toast.error(errorMessage(error));
             }
             if (user._id === id) {
-              const [error, response] = await tryFetchExpectOk(() => API.get({ path: `/user/${id}` }));
+              const [error, meResponse] = await tryFetchExpectOk(() => API.get({ path: `/user/${id}` }));
               if (error) {
                 actions.setSubmitting(false);
                 return toast.error(errorMessage(error));
               }
-              setUser(response.data);
+              setUser(meResponse.user);
             }
+            setLocalUser(response.user);
             actions.setSubmitting(false);
             toast.success("Mis à jour !");
           } catch (errorUpdatingUser) {
@@ -160,6 +162,29 @@ const View = () => {
               )}
             </div>
             <div className="tw-flex tw-justify-end tw-gap-4">
+              {localUser.disabledAt && (
+                <button
+                  type="button"
+                  className="button-classic"
+                  disabled={isReactivatingUser}
+                  onClick={async () => {
+                    setIsReactivatingUser(localUser._id);
+                    const [error, response] = await tryFetchExpectOk(async () =>
+                      API.post({ path: `/user/reactivate-user`, body: { _id: localUser._id } })
+                    );
+                    setIsReactivatingUser(false);
+                    if (error) {
+                      return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                    }
+                    toast.success("Utilisateur réactivé");
+                    // Refresh user data
+                    setLocalUser(response.user);
+                    setUsers((users) => users.map((u) => (u._id === localUser._id ? response.user : u)));
+                  }}
+                >
+                  Réactiver
+                </button>
+              )}
               {id !== user._id && (
                 <DeleteButtonAndConfirmModal
                   title={`Voulez-vous vraiment supprimer l'utilisateur ${values.name}`}
@@ -176,7 +201,9 @@ const View = () => {
                   <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
                 </DeleteButtonAndConfirmModal>
               )}
-              <ButtonCustom type="submit" title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
+              <button type="submit" onClick={handleSubmit} className="button-submit" disabled={isSubmitting}>
+                Mettre à jour
+              </button>
             </div>
           </React.Fragment>
         )}
