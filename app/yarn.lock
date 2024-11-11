@@ -3062,6 +3062,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@noble/hashes@npm:^1.3.2":
+  version: 1.5.0
+  resolution: "@noble/hashes@npm:1.5.0"
+  checksum: 1b46539695fbfe4477c0822d90c881a04d4fa2921c08c552375b444a48cac9930cb1ee68de0a3c7859e676554d0f3771999716606dc4d8f826e414c11692cdd9
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4205,6 +4212,22 @@ __metadata:
   version: 7.0.15
   resolution: "@types/json-schema@npm:7.0.15"
   checksum: a996a745e6c5d60292f36731dd41341339d4eeed8180bb09226e5c8d23759067692b1d88e5d91d72ee83dfc00d3aca8e7bd43ea120516c17922cbcb7c3e252db
+  languageName: node
+  linkType: hard
+
+"@types/libsodium-wrappers-sumo@npm:^0.7.8":
+  version: 0.7.8
+  resolution: "@types/libsodium-wrappers-sumo@npm:0.7.8"
+  dependencies:
+    "@types/libsodium-wrappers": "npm:*"
+  checksum: 6670eaea7a368819854784b347c0e634d54de11ab50d8c3fa33cd831d3a3c6c80178d6cf11d9f82fa241c5220f0e44a87574f13303b138a2de1cec1b6b3d557c
+  languageName: node
+  linkType: hard
+
+"@types/libsodium-wrappers@npm:*, @types/libsodium-wrappers@npm:^0.7.13":
+  version: 0.7.14
+  resolution: "@types/libsodium-wrappers@npm:0.7.14"
+  checksum: 4d6da97de60a1f79b2d3bb195ab3051e2216aae9aa70b9e13c2d9fb0675fbb68d57266e82eb80886f7dcbaba2c7b16f14acecb5a6b6ae4fea267b2499f49272c
   languageName: node
   linkType: hard
 
@@ -9234,6 +9257,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"libsodium-sumo@npm:^0.7.15":
+  version: 0.7.15
+  resolution: "libsodium-sumo@npm:0.7.15"
+  checksum: 5a1437ccff03c72669e7b49da702034e171df9ff6a4e65698297ab63ad0bf8f889d3dd51494e29418c643143526d8d7f08cbba3929d220334cddbe3e74a1560e
+  languageName: node
+  linkType: hard
+
+"libsodium-wrappers-sumo@npm:^0.7.13":
+  version: 0.7.15
+  resolution: "libsodium-wrappers-sumo@npm:0.7.15"
+  dependencies:
+    libsodium-sumo: "npm:^0.7.15"
+  checksum: 6da919a13395346d54f2ce4841adda8feb3fbb8a8c378ec5c93b7e6dc6353b379289349e659f3e017a9f1995ef396bf43f89c7ab4aab4e3b5ed85df62407d810
+  languageName: node
+  linkType: hard
+
+"libsodium-wrappers@npm:^0.7.13":
+  version: 0.7.15
+  resolution: "libsodium-wrappers@npm:0.7.15"
+  dependencies:
+    libsodium: "npm:^0.7.15"
+  checksum: 852c4879f3b3c48332fe704454c4dfc2a1387f9f3930faf84d8626c9670f93365e56aa186d14e2995e5d352f08af07c99c06a2c26d5f44818039f1014d404171
+  languageName: node
+  linkType: hard
+
+"libsodium@npm:^0.7.15":
+  version: 0.7.15
+  resolution: "libsodium@npm:0.7.15"
+  checksum: 7bdb529681f30be0533f33921509c36823d18f6fc158d66842e50d33cd9635ebb0dd02eb1fe3b51e192996ff173949f846793e10103371c8b179e5c29525556c
+  languageName: node
+  linkType: hard
+
 "lighthouse-logger@npm:^1.0.0":
   version: 1.4.2
   resolution: "lighthouse-logger@npm:1.4.2"
@@ -9500,6 +9555,7 @@ __metadata:
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:^2.20.2"
     react-native-image-picker: "npm:^7.1.2"
+    react-native-libsodium: "npm:^1.4.0"
     react-native-mmkv: "npm:^3.1.0"
     react-native-pager-view: "npm:^6.4.1"
     react-native-pdf: "npm:^6.7.5"
@@ -9507,7 +9563,6 @@ __metadata:
     react-native-reanimated: "npm:^3.16.1"
     react-native-safe-area-context: "npm:^4.11.1"
     react-native-screens: "npm:^3.35.0"
-    react-native-sodium: "npm:^0.4.0"
     react-native-svg: "npm:^15.8.0"
     react-native-tab-view: "npm:^3.5.2"
     react-native-webview: "npm:^13.12.3"
@@ -11363,6 +11418,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-libsodium@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "react-native-libsodium@npm:1.4.0"
+  dependencies:
+    "@noble/hashes": "npm:^1.3.2"
+    "@types/libsodium-wrappers": "npm:^0.7.13"
+    "@types/libsodium-wrappers-sumo": "npm:^0.7.8"
+    libsodium-wrappers: "npm:^0.7.13"
+    libsodium-wrappers-sumo: "npm:^0.7.13"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: c6b84749547785bf01278484e686664ab12fd1f34f0cc0e3b774f68a129988068e325988f90893d7275665913a8a9c4679658097338336b1a284687f752be6e8
+  languageName: node
+  linkType: hard
+
 "react-native-mmkv@npm:^3.1.0":
   version: 3.1.0
   resolution: "react-native-mmkv@npm:3.1.0"
@@ -11454,13 +11525,6 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 51b4ae9a5432dc980d560ac07baaddda12a78f56f2106e0e9498f6b46d4928c26d8288c4818627903675cc8c4d3643f14358d3ae448a3de2cb962a16270c201d
-  languageName: node
-  linkType: hard
-
-"react-native-sodium@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "react-native-sodium@npm:0.4.0"
-  checksum: b23c6314334b66a24aa6b933c6d3fae644179250ea41be948f1121942cc7565e352693c7cca5c5fc903131a1f0444f26e02cdf7fa534d919d49108555ef6761d
   languageName: node
   linkType: hard
 

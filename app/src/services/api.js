@@ -261,8 +261,8 @@ class ApiService {
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
     }).fetch('GET', url, { Authorization: `JWT ${this.token}`, 'Content-Type': 'application/json', platform: this.platform, version: VERSION });
-    const res = await RNFS.readFile(response.path(), 'base64');
-    const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
+    const encryptedData = await RNFS.readFile(response.path(), 'binary');
+    const decrypted = await decryptFile(encryptedData, encryptedEntityKey, this.hashedOrgEncryptionKey);
     const newPath = RNFS.TemporaryDirectoryPath + '/' + document.file.originalname;
     if (decrypted) {
       await RNFS.writeFile(newPath, decrypted, 'base64');
@@ -273,7 +273,14 @@ class ApiService {
   // Upload a file to a path.
   upload = async ({ file, path }) => {
     // Prepare file.
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+    let fileData;
+    if (file.uri.startsWith('file://')) {
+      fileData = await RNFS.readFile(file.uri.replace('file://', ''), 'binary');
+    } else {
+      fileData = await RNFS.readFile(file.uri, 'binary');
+    }
+
+    const { encryptedEntityKey, encryptedContent } = await encryptFile(fileData, this.hashedOrgEncryptionKey);
 
     // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
 
@@ -290,7 +297,7 @@ class ApiService {
       },
       [
         // element with property `filename` will be transformed into `file` in form data
-        { name: 'file', filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
+        { name: 'file', filename: file.fileName, mime: file.type, type: file.type, data: encryptedContent },
         // custom content type
         // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
         // // part file from storage
