@@ -141,7 +141,7 @@ const encryptFile = async (fileInBase64, masterKey_base64) => {
   const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey_base64, masterKey_base64);
 
   return {
-    encryptedContent: encryptedFile,
+    encryptedFile,
     encryptedEntityKey: encryptedEntityKey,
   };
 };
