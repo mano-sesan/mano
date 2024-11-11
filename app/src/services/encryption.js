@@ -134,20 +134,14 @@ export const _encrypt_and_prepend_nonce_uint8array = async (message_string_or_ui
 
 // Encrypt a file with the master key + entity key, and return the encrypted file and the entity key
 // (file: Base64, masterKey: Base64) => Promise<{encryptedFile: File, encryptedEntityKey: Uint8Array}>
-const encryptFile = async (fileBinary, masterKey) => {
+const encryptFile = async (fileInBase64, masterKey_base64) => {
   await ready;
-  // Convert to Uint8Array for encryption
-  const fileContent = new Uint8Array(fileBinary.length);
-  for (let i = 0; i < fileBinary.length; i++) {
-    fileContent[i] = fileBinary.charCodeAt(i);
-  }
-
-  const entityKey = await generateEntityKey();
-  const encryptedContent = await _encrypt_and_prepend_nonce_uint8array(fileContent, entityKey);
-  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey, masterKey);
+  const entityKey_base64 = await generateEntityKey();
+  const encryptedFile = await _encrypt_and_prepend_nonce(fileInBase64, entityKey_base64);
+  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey_base64, masterKey_base64);
 
   return {
-    encryptedContent: encryptedContent,
+    encryptedContent: encryptedFile,
     encryptedEntityKey: encryptedEntityKey,
   };
 };
