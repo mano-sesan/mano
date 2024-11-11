@@ -10,17 +10,14 @@ import { encryptRencontre, rencontresState } from "../recoil/rencontres";
 import { useDataLoader } from "../services/dataLoader";
 import Table from "./table";
 import CustomFieldInput from "./CustomFieldInput";
-import { TimeBlock } from "./DateBloc";
-import DateBloc from "./DateBloc";
+import DateBloc, { TimeBlock } from "./DateBloc";
 import DatePicker from "./DatePicker";
 import SelectTeam from "./SelectTeam";
 import SelectCustom from "./SelectCustom";
-import API from "../services/api";
 import { TerritoryObservationInstance } from "../types/territoryObs";
 import { toast } from "react-toastify";
-import { dayjsInstance } from "../services/date";
-import { outOfBoundariesDate } from "../services/date";
-import { tryFetchExpectOk } from "../services/api";
+import { dayjsInstance, outOfBoundariesDate } from "../services/date";
+import API, { tryFetchExpectOk } from "../services/api";
 import Rencontre from "./Rencontre";
 import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
@@ -165,7 +162,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} onClose={onClose} />
+      <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} onClose={() => onClose()} />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
           <nav className="noprint tw-flex tw-w-full" aria-label="Tabs">
@@ -209,7 +206,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
             </ul>
           </nav>
           <form
-            id="add-action-form"
+            id="add-observation-form"
             onSubmit={(e) => {
               e.preventDefault();
               handleSubmit();
@@ -278,6 +275,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
                         render: (rencontre) => {
                           return !rencontre._id ? (
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const nextRencontres = rencontresInProgress.filter((r) => r.person !== rencontre.person);
@@ -298,6 +296,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
                   <div className="tw-flex tw-justify-center tw-items-center tw-mt-4">
                     <button
                       className="button-submit"
+                      type="button"
                       onClick={() => {
                         setIsRencontreModalOpen(true);
                         setRencontre({
@@ -371,7 +370,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <button className="button-cancel" type="button" onClick={onClose}>
+        <button className="button-cancel" type="button" onClick={() => onClose()}>
           Annuler
         </button>
         {observation?._id ? (
@@ -380,11 +379,11 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
           </button>
         ) : null}
         <button
-          title="Sauvegarder cette action"
+          title="Sauvegarder cette observation"
           type="button"
           onClick={handleSubmit}
           className="button-submit"
-          form="add-action-form"
+          form="add-observation-form"
           disabled={isDeleting || isSubmitting}
         >
           {isSubmitting ? "Sauvegarde..." : "Sauvegarder"}

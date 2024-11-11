@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
-import Loading from "../../components/loading";
 import Observations from "../territory-observations/list";
 import { territoriesState } from "../../recoil/territory";
 import { useRecoilState, useRecoilValue } from "recoil";
