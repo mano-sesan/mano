@@ -222,7 +222,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
       }
     );
     capture(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`, {
-      fingerprint: [`{{ default }}`, item._id],
+      fingerprint: [`{{ default }}`, item._id, errorDecrypt],
       extra: { message: "ERROR DECRYPTING ITEM", item, type },
       tags: { _id: item._id },
     });
