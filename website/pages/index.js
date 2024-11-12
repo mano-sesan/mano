@@ -81,7 +81,7 @@ export default function NewIndex() {
               </div>
               <div>
                 Pour les régions Île-de-france, PACA, Occitanie, Nouvelle Aquitaine, Pays de la Loire, Centre Val de Loire, Corse et Réunion,
-                patientez un peu, nous arrivons bientôt&nbsp;!
+                patientez un peu, nous revenons bientôt&nbsp;!
               </div>
               <div>En cas de question pour le déploiement, vous pouvez contacter Guillaume ou Mélissa.</div>
             </div>
