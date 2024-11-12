@@ -87,7 +87,7 @@ const View = () => {
                 actions.setSubmitting(false);
                 return toast.error(errorMessage(error));
               }
-              setUser(meResponse.user);
+              setUser(meResponse.data);
             }
             setLocalUser(response.user);
             actions.setSubmitting(false);
