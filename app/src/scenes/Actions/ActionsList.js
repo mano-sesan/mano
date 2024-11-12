@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import styled from 'styled-components/native';
 import * as Sentry from '@sentry/react-native';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { connectActionSheet } from '@expo/react-native-action-sheet';
@@ -7,16 +6,15 @@ import ActionRow from '../../components/ActionRow';
 import Spinner from '../../components/Spinner';
 import { ListEmptyActions, ListNoMoreActions } from '../../components/ListEmptyContainer';
 import FloatAddButton from '../../components/FloatAddButton';
-import { MyText } from '../../components/MyText';
 import { FlashListStyled } from '../../components/Lists';
 import { TODO } from '../../recoil/actions';
-import { actionsByStatusSelector, totalActionsByStatusSelector } from '../../recoil/selectors';
+import { actionsByStatusAndTimeframeSelector, totalActionsByStatusSelector } from '../../recoil/selectors';
 import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { refreshTriggerState, loadingState } from '../../components/Loader';
 import Button from '../../components/Button';
 import ConsultationRow from '../../components/ConsultationRow';
 import { userState } from '../../recoil/auth';
-import { Dimensions } from 'react-native';
+import { Dimensions, View } from 'react-native';
 
 const keyExtractor = (action) => action._id;
 
@@ -27,12 +25,12 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   const loading = useRecoilValue(loadingState);
   const user = useRecoilValue(userState);
 
-  const status = useRoute().params.status;
+  const { status, timeframe } = useRoute().params;
   const [limit, setLimit] = useState(limitSteps);
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
 
-  const actionsByStatus = useRecoilValue(actionsByStatusSelector({ status, limit }));
-  const total = useRecoilValue(totalActionsByStatusSelector({ status }));
+  const actionsByStatusAndTimeframe = useRecoilValue(actionsByStatusAndTimeframeSelector({ status, timeframe, limit }));
+  const total = useRecoilValue(totalActionsByStatusSelector({ status, timeframe }));
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
 
@@ -43,6 +41,7 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   const isFocused = useIsFocused();
   useEffect(() => {
     if (isFocused && refreshTrigger.status !== true) onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const onPressFloatingButton = async () => {
@@ -68,10 +67,9 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   };
 
   const FlatListFooterComponent = useMemo(() => {
-    if ([TODO].includes(status)) return !actionsByStatus.length ? null : ListNoMoreActions;
     if (hasMore) return <Button caption="Montrer plus d'actions" onPress={() => setLimit((l) => l + limitSteps)} testID="show-more-actions" />;
     return ListNoMoreActions;
-  }, [hasMore, status, actionsByStatus.length]);
+  }, [hasMore]);
 
   const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
 
@@ -102,7 +100,8 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   );
 
   const renderItem = ({ item }) => {
-    if (item.type === 'title') return <SectionHeaderStyled heavy>{item.title}</SectionHeaderStyled>;
+    // if (item.type === 'title') return <SectionHeaderStyled heavy>{item.title}</SectionHeaderStyled>;
+    if (item.type === 'title') return null;
     if (item.isConsultation) {
       return <ConsultationRow consultation={item} onConsultationPress={onConsultationPress} onPseudoPress={onPseudoPress} withBadge showPseudo />;
     }
@@ -112,11 +111,15 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   const getItemType = (item) => item.type || 'action';
 
   return (
-    <Container>
+    <View
+      className="flex-1 h-full"
+      style={{
+        minHeight: Dimensions.get('window').height - (status === TODO ? 330 : 230),
+      }}>
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
-        data={actionsByStatus}
+        data={actionsByStatusAndTimeframe}
         estimatedItemSize={126}
         getItemType={getItemType}
         initialNumToRender={5}
@@ -127,22 +130,8 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
         ListFooterComponent={FlatListFooterComponent}
       />
       <FloatAddButton onPress={onPressFloatingButton} />
-    </Container>
+    </View>
   );
 };
-
-const SectionHeaderStyled = styled(MyText)`
-  height: 40px;
-  line-height: 40px;
-  font-size: 25px;
-  padding-left: 5%;
-  background-color: #fff;
-`;
-
-const Container = styled.View`
-  flex: 1;
-  height: 100%;
-  min-height: ${Dimensions.get('window').height - 230}px;
-`;
 
 export default connectActionSheet(ActionsList);
