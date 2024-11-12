@@ -34,7 +34,6 @@ const APKUpdater = () => {
         }
       }
 
-      console.log('LIDO');
 
       const downloadPath = `${RNBlobUtil.fs.dirs.DownloadDir}/mano-latest-${new Date().getTime()}.apk`;
 
