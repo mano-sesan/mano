@@ -1,5 +1,6 @@
 const { QueryTypes } = require("sequelize");
 const { sequelize } = require("../db/sequelize");
+const { MOBILE_APP_VERSION } = require("../config");
 
 const MINIMUM_MOBILE_APP_VERSION = [3, 9, 0];
 
@@ -47,7 +48,13 @@ module.exports = async ({ path, headers: { version, platform } }, res, next) => 
         inAppMessage: [
           `Veuillez mettre à jour votre application\u00A0!`,
           `Cette mise à jour est nécessaire pour continuer à utiliser l'application.`,
-          [{ text: "Télécharger la dernière version", link: `https://mano.sesan.fr/download?ts=${Date.now()}` }],
+          [
+            { text: "Télécharger la dernière version", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
+            {
+              text: "Installer",
+              link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk`,
+            },
+          ],
         ],
       });
     }

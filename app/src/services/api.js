@@ -100,14 +100,22 @@ class ApiService {
         if (res?.message && res.message === 'Veuillez mettre à jour votre application!') {
           const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
           if (!actions || !actions.length) return Alert.alert(title, subTitle);
-          const actionsWithNavigation = actions.map((action) => {
-            if (action.link) {
-              action.onPress = () => {
-                Linking.openURL(action.link);
-              };
-            }
-            return action;
-          });
+          const actionsWithNavigation = actions
+            .map((action) => {
+              if (action.text === 'Installer') {
+                this.updateLink = action.link;
+                // action.onPress = () => {
+                //   API.downloadAndInstallUpdate(action.link);
+                // };
+                return null;
+              } else if (action.link) {
+                action.onPress = () => {
+                  Linking.openURL(action.link);
+                };
+              }
+              return action;
+            })
+            .filter(Boolean);
           Alert.alert(title, subTitle, actionsWithNavigation, options);
           return res;
         }

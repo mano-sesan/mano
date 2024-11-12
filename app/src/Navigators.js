@@ -44,7 +44,7 @@ import EnvironmentIndicator from './components/EnvironmentIndicator';
 import API from './services/api';
 import Charte from './scenes/Menu/Charte';
 import CharteAcceptance from './scenes/Login/CharteAcceptance';
-import { DataLoader, LoaderProgress, loaderFullScreenState } from './components/Loader';
+import { DataLoader, loaderFullScreenState, loadingState, progressState } from './components/Loader';
 import BellWithNotifications from './scenes/Notifications/BellWithNotifications';
 import DotsIcon from './icons/DotsIcon';
 import Notifications from './scenes/Notifications/Notifications';
@@ -66,6 +66,8 @@ import CGUsAcceptance from './scenes/Login/CGUsAcceptance';
 import TerritoryObservationRencontre from './scenes/Territories/TerritoryObservationRencontre';
 import Consultations from './scenes/Reports/Consultations';
 import Passage from './scenes/Persons/Passage';
+import ProgressBar from './components/ProgressBar';
+import APKUpdater from './components/APKUpdater';
 
 const ActionsStack = createStackNavigator();
 const ActionsNavigator = () => {
@@ -295,6 +297,9 @@ const App = () => {
   const appState = useRef(AppState.currentState);
   const appStateListener = useRef(null);
   const navigationRef = useNavigationContainerRef();
+  const loading = useRecoilValue(loadingState);
+  const progress = useRecoilValue(progressState);
+  const fullScreen = useRecoilValue(loaderFullScreenState);
 
   const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -366,6 +371,7 @@ const App = () => {
       return;
     }
     onLogout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn]);
 
   return (
@@ -380,7 +386,8 @@ const App = () => {
           {!!isLoggedIn && <AppStack.Screen name="Home" component={TabNavigator} />}
         </AppStack.Navigator>
         <DataLoader />
-        <LoaderProgress />
+        <ProgressBar loading={loading} progress={progress} fullScreen={fullScreen} />
+        <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>
     </ActionSheetProvider>

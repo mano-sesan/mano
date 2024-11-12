@@ -5,7 +5,7 @@
 
 export default {
   app: {
-    color: '#008e7f',
+    color: '#226854',
     secondary: '#ae1d20',
     colorDark: '#0d5b54',
     colorGrey: '#8C9294',
