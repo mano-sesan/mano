@@ -5,7 +5,7 @@ import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption } from "../../recoil/persons";
+import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../recoil/persons";
 import { teamsState, userState } from "../../recoil/auth";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -22,6 +22,7 @@ export default function ImportPersons() {
   const fileDialogRef = useRef(null);
   const { refresh } = useDataLoader();
   const teams = useRecoilValue(teamsState);
+  const existingPersons = useRecoilValue(personsState);
 
   const { encryptPerson } = usePreparePersonForEncryption();
 
@@ -31,6 +32,7 @@ export default function ImportPersons() {
   const [importedFields, setImportedFields] = useState([]);
   const [ignoredFields, setIgnoredFields] = useState([]);
   const [reloadKey, setReloadKey] = useState(0); // because input type 'file' doesn't trigger 'onChange' for uploading twice the same file
+  const [duplicateNames, setDuplicateNames] = useState([]);
 
   const importableFields = useMemo(
     () =>
@@ -137,6 +139,17 @@ export default function ImportPersons() {
         }
       }
 
+      const existingNames = new Set(existingPersons.map((p) => p.name.toLowerCase()));
+      const duplicates = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
+
+      setDuplicateNames(duplicates);
+
+      if (duplicates.length) {
+        setShowImportSummary(true);
+        setReloadKey((k) => k + 1);
+        return;
+      }
+
       const encryptedPersons = await Promise.all(persons.map(encryptPerson));
       setPersonsToImport(encryptedPersons);
       const encryptedMedicalFiles = await Promise.all(medicalFiles.map(prepareMedicalFileForEncryption(customFieldsMedicalFile)).map(encryptItem));
@@ -180,47 +193,65 @@ export default function ImportPersons() {
       <Modal isOpen={showImportSummary} toggle={() => setShowImportSummary(false)} size="lg" backdrop="static">
         <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de personnes</ModalHeader>
         <ModalBody>
-          <p>
-            Nombre de personnes à importer&nbsp;: <strong>{personsToImport.length}</strong>
-          </p>
-          <Alert color="warning">
-            Vérifiez bien la liste des champs ci-dessous. S'il manque un champ (par exemple parce qu'une colonne ne contient pas le nom exact indiqué
-            dans Mano), alors <strong>ce champ ne sera pas considéré</strong> et votre file active sera donc corrompue. Les corrections devront être
-            effectuées à la main au cas par cas, ce qui peut être un peu long.
-          </Alert>
-          {Boolean(ignoredFields.length) && (
+          {Boolean(duplicateNames.length) ? (
             <>
-              <Alert color="danger">Certaines colonnes n'ont pas été trouvées dans Mano, consultez le détail ci-dessous.</Alert>
+              <Alert color="danger">
+                Import impossible : certains noms sont déjà présents dans Mano. Veuillez modifier ces noms dans votre fichier avant d'importer.
+              </Alert>
+              <p>Liste des noms en doublon :</p>
+              <ul>
+                {duplicateNames.map((name, index) => (
+                  <li key={index}>
+                    <code>{name}</code>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <>
               <p>
-                Les colonnes suivantes seront <strong>ignorées</strong> ({ignoredFields.length}) :<br />
-                <small>
-                  Ces colonnes sont présentes dans votre fichier mais n'ont pas de correspondance sur Mano, vérifiez votre fichier avant d'importer
-                  (problèmes de majuscules, de caractères accentués, etc.)
-                </small>
+                Nombre de personnes à importer&nbsp;: <strong>{personsToImport.length}</strong>
               </p>
+              <Alert color="warning">
+                Vérifiez bien la liste des champs ci-dessous. S'il manque un champ (par exemple parce qu'une colonne ne contient pas le nom exact
+                indiqué dans Mano), alors <strong>ce champ ne sera pas considéré</strong> et votre file active sera donc corrompue. Les corrections
+                devront être effectuées à la main au cas par cas, ce qui peut être un peu long.
+              </Alert>
+              {Boolean(ignoredFields.length) && (
+                <>
+                  <Alert color="danger">Certaines colonnes n'ont pas été trouvées dans Mano, consultez le détail ci-dessous.</Alert>
+                  <p>
+                    Les colonnes suivantes seront <strong>ignorées</strong> ({ignoredFields.length}) :<br />
+                    <small>
+                      Ces colonnes sont présentes dans votre fichier mais n'ont pas de correspondance sur Mano, vérifiez votre fichier avant
+                      d'importer (problèmes de majuscules, de caractères accentués, etc.)
+                    </small>
+                  </p>
+                </>
+              )}
+
+              <ul>
+                {ignoredFields.map((label, index) => (
+                  <li key={label + index}>
+                    <code>{label}</code>
+                  </li>
+                ))}
+              </ul>
+
+              <p>
+                Les colonnes suivantes seront <strong>importées</strong> ({importedFields.length}) :
+              </p>
+              <ul>
+                {importedFields.map((label, index) => (
+                  <li key={label + index}>
+                    <code style={{ color: "black" }}>{label}</code>
+                  </li>
+                ))}
+              </ul>
+
+              <ButtonCustom type="submit" onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
             </>
           )}
-
-          <ul>
-            {ignoredFields.map((label, index) => (
-              <li key={label + index}>
-                <code>{label}</code>
-              </li>
-            ))}
-          </ul>
-
-          <p>
-            Les colonnes suivantes seront <strong>importées</strong> ({importedFields.length}) :
-          </p>
-          <ul>
-            {importedFields.map((label, index) => (
-              <li key={label + index}>
-                <code style={{ color: "black" }}>{label}</code>
-              </li>
-            ))}
-          </ul>
-
-          <ButtonCustom type="submit" onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
         </ModalBody>
       </Modal>
     </>
