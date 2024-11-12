@@ -1,19 +1,19 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
 import TagTeam from "../../../components/TagTeam";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
-import CreateObservation from "../../../components/CreateObservation";
 import { territoriesState } from "../../../recoil/territory";
 import { dayjsInstance } from "../../../services/date";
 import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
 import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
-import { useSessionStorage } from "../../../services/useSessionStorage";
 import { useLocalStorage } from "../../../services/useLocalStorage";
+import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
+import { useLocation } from "react-router-dom";
 
 export const ObservationsReport = ({ observations, period, selectedTeams }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -45,7 +45,7 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
       <ModalContainer open={!!fullScreen} className="" size="full" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`Observations (${observations.length})`} onClose={() => setFullScreen(false)} />
         <ModalBody>
-          <ObservationsTable observations={observations} period={period} selectedTeams={selectedTeams} fullscreen />
+          <ObservationsTable observations={observations} period={period} selectedTeams={selectedTeams} />
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>
@@ -57,17 +57,17 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
   );
 };
 
-const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) => {
+const ObservationsTable = ({ period, observations, selectedTeams }) => {
+  const setModalObservation = useSetRecoilState(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("report-territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("report-territory-obs-sortOrder", "ASC");
-  const [observationToEdit, setObservationToEdit] = useState(undefined);
-  const [openObservationModale, setOpenObservationModale] = useSessionStorage("create-observation-modal-open", false);
   const territories = useRecoilValue(territoriesState);
   const teams = useRecoilValue(teamsState);
   const team = useRecoilValue(currentTeamAuthentifiedState);
   const user = useRecoilValue(userAuthentifiedState);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const users = useRecoilValue(usersState);
+  const location = useLocation();
 
   const exportXlsx = () => {
     const wb = utils.book_new();
@@ -137,14 +137,18 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
             type="button"
             className="button-submit"
             onClick={() => {
-              setObservationToEdit({
-                user: user._id,
-                team: selectedTeams.length === 1 ? selectedTeams[0]._id : null,
-                observedAt: dayjsInstance(period.startDate).toDate(),
-                createdAt: dayjsInstance().toDate(),
-                territory: null,
+              setModalObservation({
+                ...defaultModalObservationState(),
+                open: true,
+                observation: {
+                  user: user._id,
+                  team: selectedTeams.length === 1 ? selectedTeams[0]._id : null,
+                  observedAt: dayjsInstance(period.startDate).toDate(),
+                  createdAt: dayjsInstance().toDate(),
+                  territory: null,
+                },
+                from: location.pathname,
               });
-              setOpenObservationModale(true);
             }}
           >
             Ajouter une observation
@@ -155,8 +159,12 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
             className="Table"
             data={orderedObservations}
             onRowClick={(obs) => {
-              setObservationToEdit(obs);
-              setOpenObservationModale(true);
+              setModalObservation({
+                ...defaultModalObservationState(),
+                open: true,
+                observation: obs,
+                from: location.pathname,
+              });
             }}
             rowKey={"_id"}
             columns={[
@@ -222,9 +230,6 @@ const ObservationsTable = ({ period, observations, selectedTeams, fullscreen }) 
           />
         )}
       </div>
-      {fullscreen && (
-        <CreateObservation id="report" observation={observationToEdit} open={openObservationModale} setOpen={setOpenObservationModale} />
-      )}
     </>
   );
 };

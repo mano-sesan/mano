@@ -1,9 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
-import CreateObservation from "../../components/CreateObservation";
 import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance } from "../../services/date";
@@ -11,19 +10,18 @@ import UserName from "../../components/UserName";
 import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from "../../recoil/auth";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
-import { useSessionStorage } from "../../services/useSessionStorage";
 import { rencontresState } from "../../recoil/rencontres";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
+import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 
 const List = ({ territory = {} }) => {
+  const setModalObservation = useSetRecoilState(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
   const territoryObservations = useRecoilValue(territoryObservationsState);
   const users = useRecoilValue(usersState);
   const team = useRecoilValue(currentTeamAuthentifiedState);
   const user = useRecoilValue(userAuthentifiedState);
-  const [observation, setObservation] = useState(undefined);
-  const [openObservationModale, setOpenObservationModale] = useSessionStorage("create-observation-modal-open", false);
   const customFieldsObs = useRecoilValue(customFieldsObsSelector);
   const rencontres = useRecoilValue(rencontresState);
 
@@ -65,14 +63,18 @@ const List = ({ territory = {} }) => {
         <div>
           <ButtonCustom
             onClick={() => {
-              setObservation({
-                user: user._id,
-                team: null,
-                observedAt: dayjsInstance().toDate(),
-                createdAt: dayjsInstance().toDate(),
-                territory: territory?._id,
+              setModalObservation({
+                ...defaultModalObservationState(),
+                open: true,
+                observation: {
+                  user: user._id,
+                  team: null,
+                  observedAt: dayjsInstance().toDate(),
+                  createdAt: dayjsInstance().toDate(),
+                  territory: territory?._id,
+                },
+                from: location.pathname,
               });
-              setOpenObservationModale(true);
             }}
             type="button"
             color="primary"
@@ -86,8 +88,12 @@ const List = ({ territory = {} }) => {
         rowKey={"_id"}
         noData={`Pas encore d'observations pour ce territoire`}
         onRowClick={(obs) => {
-          setObservation(obs);
-          setOpenObservationModale(true);
+          setModalObservation({
+            ...defaultModalObservationState(),
+            open: true,
+            observation: obs,
+            from: location.pathname,
+          });
         }}
         columns={[
           {
@@ -158,7 +164,6 @@ const List = ({ territory = {} }) => {
           },
         ]}
       />
-      <CreateObservation observation={observation} open={openObservationModale} setOpen={setOpenObservationModale} id="territory" />
     </>
   );
 };
