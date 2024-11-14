@@ -24,8 +24,8 @@ const SentryInit = (app) => {
 };
 
 function capture(err, context = {}) {
+  console.log("capture", err, JSON.stringify(context));
   if (!sentryEnabled) {
-    console.log("capture", err, JSON.stringify(context));
     return;
   }
 

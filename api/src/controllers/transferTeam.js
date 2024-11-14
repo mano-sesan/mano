@@ -27,6 +27,7 @@ router.post(
   validateEncryptionAndMigrations,
   validateUser(["admin"]),
   catchErrors(async (req, res, next) => {
+    console.log("transfer team started");
     const arraysOfEncryptedItems = [
       "actionsToUpdate",
       "consultationsToUpdate",
@@ -64,6 +65,7 @@ router.post(
       return next(error);
     }
 
+    console.log("transfer team transaction started");
     await sequelize.transaction(async (tx) => {
       const {
         actionsToUpdate,
