@@ -64,8 +64,10 @@ const _decrypt_after_extracting_nonce = async (nonce_and_ciphertext_b64, key_b64
 
 const decrypt = async (encryptedContent, encryptedEntityKey, masterKey) => {
   const entityKey = await _decrypt_after_extracting_nonce(encryptedEntityKey, masterKey);
+
   const decrypted = await _decrypt_after_extracting_nonce(encryptedContent, entityKey);
-  const content = rnBase64.decode(decrypted);
+  const decryptedString = Buffer.from(decrypted).toString('utf8');
+  const content = rnBase64.decode(decryptedString);
 
   return {
     content,
@@ -150,8 +152,9 @@ const checkEncryptedVerificationKey = async (encryptedVerificationKey, masterKey
   await ready;
   try {
     const decrypted = await _decrypt_after_extracting_nonce(encryptedVerificationKey, masterKey);
-    const decryptedVerificationKey = rnBase64.decode(decrypted);
-
+    // decrypted is a uint8array, we need to convert it to a string
+    const decryptedString = Buffer.from(decrypted).toString('utf8');
+    const decryptedVerificationKey = rnBase64.decode(decryptedString);
     return decryptedVerificationKey === verificationPassphrase;
   } catch (e) {
     console.log('error checkEncryptedVerificationKey', e);
