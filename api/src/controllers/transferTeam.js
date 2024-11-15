@@ -134,7 +134,34 @@ router.post(
 
       // Update report, service, user directly
       await Report.update({ team: targetTeamId }, { where: { team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx });
-      await Service.update({ team: targetTeamId }, { where: { team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx });
+
+      // First, find all services from the team being deleted
+      const servicesToMerge = await Service.findAll({
+        where: { team: teamToDeleteId, organisation: req.user.organisation },
+        transaction: tx,
+      });
+      for (const service of servicesToMerge) {
+        // Check if a service with same unique constraints already exists in target team
+        const existingService = await Service.findOne({
+          where: {
+            organisation: req.user.organisation,
+            service: service.service,
+            date: service.date,
+            team: targetTeamId,
+          },
+          transaction: tx,
+        });
+
+        if (existingService) {
+          // If duplicate exists, merge by adding counts
+          await existingService.update({ count: (existingService.count || 0) + (service.count || 0) }, { transaction: tx });
+          // Delete the old service
+          await service.destroy({ transaction: tx });
+        } else {
+          // If no duplicate, just update the team
+          await service.update({ team: targetTeamId }, { transaction: tx });
+        }
+      }
 
       const usersToUpdate = await RelUserTeam.findAll({
         where: { team: teamToDeleteId, organisation: req.user.organisation },
