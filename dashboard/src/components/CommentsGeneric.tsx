@@ -467,7 +467,7 @@ function CommentDisplay({ comment, onClose, onEditComment, color = "main" }: Com
   return (
     <>
       <ModalContainer open size="4xl">
-        <ModalHeader onClose={onClose} title="Commentaire" />
+        <ModalHeader title="Commentaire" />
         <ModalBody className="tw-px-4 tw-py-2">
           <div className="tw-grid tw-w-full sm:tw-grid-cols-2 tw-gap-6 tw-py-4">
             <div className="[overflow-wrap:anywhere]">
