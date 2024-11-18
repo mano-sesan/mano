@@ -170,15 +170,16 @@ const checkEncryptedVerificationKey = async (encryptedVerificationKey, masterKey
 };
 
 // Decrypt a file with the master key + entity key, and return the decrypted file
-const decryptFile = async (file, encryptedEntityKey, masterKey) => {
+// (file: File, masterKey: Uint8Array, entityKey: Uint8Array) => Promise<File>
+const decryptFile = async (fileAsBase64, encryptedEntityKey, masterKey) => {
   await ready;
   const entityKey_bytes_array = await _decrypt_after_extracting_nonce(encryptedEntityKey, masterKey);
   try {
     const content_uint8array = await _decrypt_after_extracting_nonce_uint8array(
-      new Uint8Array(Buffer.from(rnBase64.decode(file), 'binary')),
+      new Uint8Array(Buffer.from(rnBase64.decode(fileAsBase64), 'binary')),
       entityKey_bytes_array
     );
-    return content_uint8array;
+    return sodium.to_base64(content_uint8array, sodium.base64_variants.ORIGINAL);
   } catch (e) {
     console.log('error decryptFile', e);
   }
