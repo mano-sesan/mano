@@ -144,7 +144,9 @@ export const _encrypt_and_prepend_nonce_uint8array = async (message_string_or_ui
 const encryptFile = async (fileInBase64, masterKey) => {
   await ready;
   const entityKey = await generateEntityKey();
-  const encryptedFile = await _encrypt_and_prepend_nonce(fileInBase64, entityKey);
+  // const encryptedFile = await _encrypt_and_prepend_nonce(fileInBase64, entityKey);
+  const encryptedFile = await _encrypt_and_prepend_nonce(new Uint8Array(Buffer.from(rnBase64.decode(fileInBase64), 'binary')), entityKey);
+
   const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey, masterKey);
 
   return {
@@ -168,13 +170,12 @@ const checkEncryptedVerificationKey = async (encryptedVerificationKey, masterKey
 };
 
 // Decrypt a file with the master key + entity key, and return the decrypted file
-// (file: File, masterKey: Uint8Array, entityKey: Uint8Array) => Promise<File>
-const decryptFile = async (fileAsBase64, encryptedEntityKey, masterKey) => {
+const decryptFile = async (file, encryptedEntityKey, masterKey) => {
   await ready;
   const entityKey_bytes_array = await _decrypt_after_extracting_nonce(encryptedEntityKey, masterKey);
   try {
     const content_uint8array = await _decrypt_after_extracting_nonce_uint8array(
-      new Uint8Array(Buffer.from(rnBase64.decode(fileAsBase64), 'binary')),
+      new Uint8Array(Buffer.from(rnBase64.decode(file), 'binary')),
       entityKey_bytes_array
     );
     return content_uint8array;
