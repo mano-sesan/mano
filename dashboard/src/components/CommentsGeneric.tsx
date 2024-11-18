@@ -27,29 +27,49 @@ import { itemsGroupedByActionSelector } from "../recoil/selectors";
   - expanding the CommentsPanel (full screen)
   - reading a Consultation/Treatment/Action
 - CommentModal for creating/editing a comment
-
 */
 
-/**
- * @param {Object} props
- * @param {Array} props.comments
- * @param {String} props.title
- * @param {String} props.typeForNewComment (person|action|passage|rencontre|medical-file|consultation|treatment)
- * @param {String} props.personId
- * @param {String} props.actionId
- * @param {Boolean} props.showPanel
- * @param {Boolean} props.canToggleGroupCheck
- * @param {Boolean} props.canToggleUrgentCheck
- * @param {Function} props.canToggleShareComment
- * @param {Function} props.onDeleteComment
- * @param {Function} props.onSubmitComment
- * @param {String} props.color (main|blue-900)
- */
+interface Comment {
+  _id: string;
+  type: "person" | "action" | "passage" | "rencontre" | "medical-file" | "consultation" | "treatment";
+  user: string;
+  date?: Date;
+  createdAt?: Date;
+  comment: string;
+  urgent?: boolean;
+  group?: boolean;
+  share?: boolean;
+  team: string;
+  person?: string;
+  action?: string;
+  passage?: string;
+  rencontre?: string;
+  consultation?: { _id: string };
+  treatment?: { _id: string };
+  isMedicalCommentShared?: boolean;
+  organisation?: string;
+}
+
+interface CommentsModuleProps {
+  comments?: Comment[];
+  title?: string;
+  typeForNewComment: "person" | "action" | "passage" | "rencontre" | "medical-file" | "consultation" | "treatment";
+  personId?: string | null;
+  actionId?: string | null;
+  showPanel?: boolean;
+  canToggleGroupCheck?: boolean;
+  canToggleUrgentCheck?: boolean;
+  canToggleShareComment?: boolean;
+  showAddCommentButton?: boolean;
+  onDeleteComment: (comment: Comment) => Promise<void>;
+  onSubmitComment: (comment: Partial<Comment>, isNew: boolean) => Promise<void>;
+  color?: "main" | "blue-900";
+}
 
 export function CommentsModule({
   comments = [],
   title = "Commentaires",
-  typeForNewComment, // person|action|passage|rencontre|medical-file|consultation|treatment
+  typeForNewComment,
   personId = null,
   actionId = null,
   showPanel = false,
@@ -59,8 +79,8 @@ export function CommentsModule({
   showAddCommentButton = true,
   onDeleteComment,
   onSubmitComment,
-  color = "main", // main|blue-900
-}) {
+  color = "main",
+}: CommentsModuleProps) {
   if (!typeForNewComment) throw new Error("typeForNewComment is required");
   if (!onDeleteComment) throw new Error("onDeleteComment is required");
   if (!onSubmitComment) throw new Error("onSubmitComment is required");
@@ -171,7 +191,17 @@ export function CommentsModule({
   );
 }
 
-function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayComment, onAddComment }) {
+interface CommentsFullScreenProps {
+  open: boolean;
+  comments: Comment[];
+  onClose: () => void;
+  title: string;
+  color: string;
+  onDisplayComment: (comment: Comment) => void;
+  onAddComment: () => void;
+}
+
+function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayComment, onAddComment }: CommentsFullScreenProps) {
   return (
     <ModalContainer open={open} size="prose" onClose={onClose}>
       <ModalHeader title={title} />
@@ -190,7 +220,25 @@ function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayCo
   );
 }
 
-function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment, color, showAddCommentButton, withClickableLabel }) {
+interface CommentsTableProps {
+  comments: Comment[];
+  onDisplayComment: (comment: Comment) => void;
+  onEditComment?: (comment: Comment) => void;
+  onAddComment: () => void;
+  color: string;
+  showAddCommentButton?: boolean;
+  withClickableLabel?: boolean;
+}
+
+function CommentsTable({
+  comments,
+  onDisplayComment,
+  onEditComment,
+  onAddComment,
+  color,
+  showAddCommentButton,
+  withClickableLabel,
+}: CommentsTableProps) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
   const users = useRecoilValue(usersState);
@@ -398,7 +446,17 @@ function CommentsTable({ comments, onDisplayComment, onEditComment, onAddComment
   );
 }
 
-function CommentDisplay({ comment, onClose, onEditComment, color = "main" }) {
+interface CommentDisplayProps {
+  comment: Comment;
+  onClose: () => void;
+  onEditComment: () => void;
+  color?: string;
+  canToggleGroupCheck?: boolean;
+  canToggleShareComment?: boolean;
+  canToggleUrgentCheck?: boolean;
+}
+
+function CommentDisplay({ comment, onClose, onEditComment, color = "main" }: CommentDisplayProps) {
   const user = useRecoilValue(userState);
 
   const isEditable = useMemo(() => {
@@ -409,7 +467,7 @@ function CommentDisplay({ comment, onClose, onEditComment, color = "main" }) {
   return (
     <>
       <ModalContainer open size="4xl">
-        <ModalHeader toggle={onClose} title="Commentaire" />
+        <ModalHeader title="Commentaire" />
         <ModalBody className="tw-px-4 tw-py-2">
           <div className="tw-grid tw-w-full sm:tw-grid-cols-2 tw-gap-6 tw-py-4">
             <div className="[overflow-wrap:anywhere]">
@@ -478,6 +536,21 @@ function CommentDisplay({ comment, onClose, onEditComment, color = "main" }) {
   );
 }
 
+interface CommentModalProps {
+  comment?: Partial<Comment>;
+  isNewComment: boolean;
+  onClose: () => void;
+  onDelete: (comment: Partial<Comment>) => Promise<void>;
+  onSubmit: (comment: Partial<Comment>, isNew: boolean) => Promise<void>;
+  canToggleGroupCheck: boolean;
+  canToggleUrgentCheck: boolean;
+  canToggleShareComment: boolean;
+  typeForNewComment: "person" | "action" | "passage" | "rencontre" | "consultation" | "treatment" | "medical-file";
+  actionId?: string | null;
+  personId?: string | null;
+  color: string;
+}
+
 function CommentModal({
   comment = {},
   isNewComment,
@@ -491,7 +564,7 @@ function CommentModal({
   actionId,
   personId,
   color,
-}) {
+}: CommentModalProps) {
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const currentTeam = useRecoilValue(currentTeamState);
@@ -513,7 +586,7 @@ function CommentModal({
         }}
         size="4xl"
       >
-        <ModalHeader toggle={onClose} title={isNewComment ? "Créer un commentaire" : "Éditer le commentaire"} />
+        <ModalHeader title={isNewComment ? "Créer un commentaire" : "Éditer le commentaire"} />
         <Formik
           initialValues={{
             urgent: false,
@@ -529,7 +602,7 @@ function CommentModal({
             if (!isNewComment && (!body.date || outOfBoundariesDate(body.date)))
               return toast.error("La date de création est hors limites (entre 1900 et 2100)");
 
-            const commentBody = {
+            const commentBody: Partial<Comment> = {
               comment: body.comment,
               urgent: body.urgent || false,
               group: body.group || false,
@@ -537,7 +610,7 @@ function CommentModal({
               user: user._id,
               date: body.date || new Date(),
               team: body.team || currentTeam._id,
-              organisation: organisation._id,
+              organisation: organisation._id, // TODO: vérifier si ça a du sens
               type: comment.type ?? typeForNewComment,
               action: actionId ?? body.action,
               person: personId ?? body.person,
@@ -690,7 +763,12 @@ function CommentModal({
                     Supprimer
                   </button>
                 )}
-                <button type="submit" onClick={handleSubmit} className={`button-submit !tw-bg-${color}`} disabled={isSubmitting}>
+                <button
+                  type="submit"
+                  onClick={handleSubmit as (e: unknown) => void}
+                  className={`button-submit !tw-bg-${color}`}
+                  disabled={isSubmitting}
+                >
                   Enregistrer
                 </button>
               </ModalFooter>
