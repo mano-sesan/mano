@@ -110,6 +110,8 @@ const Person = ({ route, navigation }) => {
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation, route?.params?.person]);
 
   useFocusEffect(
@@ -220,7 +222,7 @@ const Person = ({ route, navigation }) => {
       if (updatedGroup.relations.length === 0) {
         body.groupIdToDelete = group._id;
       } else {
-        body.groupToUpdate = await encryptItem(prepareGroupForEncryption(updatedGroup));
+        body.groupToUpdate = await API.encryptItem(prepareGroupForEncryption(updatedGroup));
       }
 
       if (personTransferId) {
