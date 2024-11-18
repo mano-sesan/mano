@@ -3,8 +3,6 @@ import 'fast-text-encoding'; // for TextEncoder
 const Buffer = require('buffer').Buffer;
 import sodium, { ready } from 'react-native-libsodium';
 import rnBase64 from 'react-native-base64';
-var base64js = require('base64-js');
-
 // https://github.com/serenity-kit/react-native-libsodium?tab=readme-ov-file#usage
 // the lib doesn't export this value, so we need to define it manually
 sodium.crypto_secretbox_MACBYTES = 16;
@@ -37,9 +35,6 @@ const derivedMasterKey = async (password) => {
   const b64 = sodium.crypto_pwhash(32, password_base64, b64salt, 2, 65536 << 10, 2);
   return b64;
 };
-
-/*
-
 
 /*
 
@@ -112,8 +107,11 @@ const encrypt = async (content_stringified, entityKey, masterKey) => {
   // Si entityKey est en base64, on le convertit en uint8array
   const entityKeyUint8array =
     typeof entityKey === 'string'
-      ? sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL)
-      : typeof entityKey === 'object' && !(data instanceof Uint8Array)
+      ? // entityKey est un string (en base64) avant le commit de ce commentaire (please blame).
+        sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL)
+      : // entityKey peut-être un objet qui n'est pas un Uint8Array, c'est MMKV qui crée son système
+      // Donc on convertit entityKey en Uint8Array
+      typeof entityKey === 'object' && !(entityKey instanceof Uint8Array)
       ? new Uint8Array(Object.values(entityKey))
       : entityKey;
 
@@ -143,12 +141,11 @@ export const _encrypt_and_prepend_nonce_uint8array = async (message_string_or_ui
 };
 
 // Encrypt a file with the master key + entity key, and return the encrypted file and the entity key
-// (file: Base64, masterKey: Base64) => Promise<{encryptedFile: File, encryptedEntityKey: Uint8Array}>
-const encryptFile = async (fileInBase64, masterKey_base64) => {
+const encryptFile = async (fileInBase64, masterKey) => {
   await ready;
-  const entityKey_base64 = await generateEntityKey();
-  const encryptedFile = await _encrypt_and_prepend_nonce(fileInBase64, entityKey_base64);
-  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey_base64, masterKey_base64);
+  const entityKey = await generateEntityKey();
+  const encryptedFile = await _encrypt_and_prepend_nonce(fileInBase64, entityKey);
+  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey, masterKey);
 
   return {
     encryptedFile,
