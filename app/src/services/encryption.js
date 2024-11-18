@@ -110,7 +110,13 @@ const encodeContent = (content) => {
 const encrypt = async (content_stringified, entityKey, masterKey) => {
   await ready;
   // Si entityKey est en base64, on le convertit en uint8array
-  const entityKeyUint8array = typeof entityKey === 'string' ? sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL) : entityKey;
+  const entityKeyUint8array =
+    typeof entityKey === 'string'
+      ? sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL)
+      : typeof entityKey === 'object' && !(data instanceof Uint8Array)
+      ? new Uint8Array(Object.values(entityKey))
+      : entityKey;
+
   const encryptedContent = await _encrypt_and_prepend_nonce(encodeContent(content_stringified), entityKeyUint8array);
   const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKeyUint8array, masterKey);
 
