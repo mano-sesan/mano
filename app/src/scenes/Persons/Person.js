@@ -146,8 +146,6 @@ const Person = ({ route, navigation }) => {
     }
     if (!!Object.keys(historyEntry.data).length) personToUpdate.history = [...(oldPerson.history || []), historyEntry];
 
-    console.log('personToUpdate', JSON.stringify(preparePersonForEncryption(personToUpdate), null, 2));
-
     const response = await API.put({
       path: `/person/${personDB._id}`,
       body: preparePersonForEncryption(personToUpdate),
