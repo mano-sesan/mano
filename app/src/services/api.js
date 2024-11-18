@@ -204,6 +204,7 @@ class ApiService {
     if (!this.enableEncrypt) return item;
     if (item.decrypted) {
       if (!item.entityKey) item.entityKey = await generateEntityKey();
+      // item.entityKey = await generateEntityKey();
       const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, this.hashedOrgEncryptionKey);
 
       item.encrypted = encryptedContent;

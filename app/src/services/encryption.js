@@ -81,6 +81,19 @@ Encrypt
 
 */
 
+function ensureUint8Array(data) {
+  // Already a Uint8Array
+  if (data instanceof Uint8Array) {
+    return data;
+  }
+  // If it's a regular object with numeric properties
+  if (typeof data === 'object') {
+    return new Uint8Array(Object.values(data));
+  }
+
+  throw new Error('Cannot convert to Uint8Array');
+}
+
 const generateEntityKey = async () => {
   await ready;
   return sodium.randombytes_buf(sodium.crypto_secretbox_KEYBYTES); // base64
@@ -89,7 +102,16 @@ const generateEntityKey = async () => {
 const _encrypt_and_prepend_nonce = async (message_string_or_uint8array, key_uint8array) => {
   await ready;
   const nonce_uint8array = sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
-  const crypto_secretbox_easy_uint8array = sodium.crypto_secretbox_easy(message_string_or_uint8array, nonce_uint8array, key_uint8array);
+  console.log('nonce_uint8array', nonce_uint8array);
+  console.log('message_string_or_uint8array', message_string_or_uint8array);
+  console.log('key_uint8array', key_uint8array);
+  console.log('ensureUint8Array(key_uint8array)', ensureUint8Array(key_uint8array));
+  const crypto_secretbox_easy_uint8array = sodium.crypto_secretbox_easy(
+    message_string_or_uint8array,
+    nonce_uint8array,
+    ensureUint8Array(key_uint8array)
+  );
+  console.log('crypto_secretbox_easy_uint8array', crypto_secretbox_easy_uint8array);
   const arrayBites = _appendBuffer(nonce_uint8array, crypto_secretbox_easy_uint8array);
   return sodium.to_base64(arrayBites, sodium.base64_variants.ORIGINAL);
 };
@@ -109,8 +131,14 @@ const encodeContent = (content) => {
 
 const encrypt = async (content_stringified, entityKey, masterKey) => {
   await ready;
+  console.log('content_stringified', content_stringified);
+  console.log('encodeContent(content_stringified)', encodeContent(content_stringified));
+  console.log('entityKey', entityKey);
   const encryptedContent = await _encrypt_and_prepend_nonce(encodeContent(content_stringified), entityKey);
+  console.log('encryptedContent', encryptedContent);
+  console.log('masterKey', masterKey);
   const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey, masterKey);
+  console.log('encryptedEntityKey', encryptedEntityKey);
 
   return {
     encryptedContent: encryptedContent,
