@@ -586,7 +586,7 @@ function CommentModal({
         }}
         size="4xl"
       >
-        <ModalHeader onClose={onClose} title={isNewComment ? "Créer un commentaire" : "Éditer le commentaire"} />
+        <ModalHeader title={isNewComment ? "Créer un commentaire" : "Éditer le commentaire"} />
         <Formik
           initialValues={{
             urgent: false,
