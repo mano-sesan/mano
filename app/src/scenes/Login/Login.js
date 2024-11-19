@@ -156,7 +156,7 @@ const Login = ({ navigation }) => {
       setLoading(false);
       return;
     }
-    if (['stats-only', 'restricted-access'].includes(response?.user?.role)) {
+    if (['stats-only'].includes(response?.user?.role)) {
       Alert.alert("Vous n'avez pas accès à l'application mobile Mano");
       setLoading(false);
       return;

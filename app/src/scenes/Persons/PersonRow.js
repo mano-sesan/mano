@@ -49,8 +49,7 @@ const PersonRow = ({ onPress, person, isPersonsSearchRow = false, showActionShee
     const options = [
       'Ajouter une action',
       ...(user.healthcareProfessional ? ['Ajouter une consultation'] : []),
-      'Ajouter un commentaire',
-      'Ajouter un lieu fréquenté',
+      ...(['admin', 'normal'].includes(user.role) ? ['Ajouter un commentaire', 'Ajouter un lieu fréquenté'] : []),
       'Annuler',
     ];
 

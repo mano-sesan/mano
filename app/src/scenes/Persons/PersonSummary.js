@@ -21,7 +21,7 @@ import TeamsMultiCheckBoxes from '../../components/MultiCheckBoxes/TeamsMultiChe
 import colors from '../../utils/colors';
 import PhoneIcon from '../../icons/PhoneIcon';
 import { placesState } from '../../recoil/places';
-import { organisationState, teamsState } from '../../recoil/auth';
+import { organisationState, teamsState, userState } from '../../recoil/auth';
 import DeleteButtonAndConfirmModal from '../../components/DeleteButtonAndConfirmModal';
 import RencontreRow from './RencontreRow';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
@@ -51,6 +51,7 @@ const PersonSummary = ({
     navigation.push('NewActionForm', { fromRoute: 'Person', person: personDB });
   };
 
+  const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const setComments = useSetRecoilState(commentsState);
   const groups = useRecoilValue(groupsState);
@@ -276,72 +277,74 @@ const PersonSummary = ({
         )}
         ifEmpty="Pas encore d'action"
       />
-      <SubList
-        label="Commentaires"
-        data={sortedComments}
-        renderItem={(comment) => (
-          <CommentRow
-            key={comment._id}
-            comment={comment}
+      {['admin', 'normal'].includes(user.role) && (
+        <SubList
+          label="Commentaires"
+          data={sortedComments}
+          renderItem={(comment) => (
+            <CommentRow
+              key={comment._id}
+              comment={comment}
+              canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
+              canToggleUrgentCheck
+              onDelete={async () => {
+                const response = await API.delete({ path: `/comment/${comment._id}` });
+                if (response.error) {
+                  Alert.alert(response.error);
+                  return false;
+                }
+                setComments((comments) => comments.filter((p) => p._id !== comment._id));
+                return true;
+              }}
+              onUpdate={
+                comment.team
+                  ? async (commentUpdated) => {
+                      commentUpdated.person = personDB?._id;
+                      const response = await API.put({
+                        path: `/comment/${comment._id}`,
+                        body: prepareCommentForEncryption(commentUpdated),
+                      });
+                      if (response.error) {
+                        Alert.alert(response.error);
+                        return false;
+                      }
+                      if (response.ok) {
+                        setComments((comments) =>
+                          comments.map((c) => {
+                            if (c._id === comment._id) return response.decryptedData;
+                            return c;
+                          })
+                        );
+                        return true;
+                      }
+                    }
+                  : null
+              }
+            />
+          )}
+          ifEmpty="Pas encore de commentaire">
+          <NewCommentInput
+            forwardRef={newCommentRef}
+            onFocus={() => _scrollToInput(newCommentRef)}
+            person={personDB?._id}
             canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
             canToggleUrgentCheck
-            onDelete={async () => {
-              const response = await API.delete({ path: `/comment/${comment._id}` });
-              if (response.error) {
-                Alert.alert(response.error);
-                return false;
+            onCommentWrite={onCommentWrite}
+            onCreate={async (newComment) => {
+              const body = {
+                ...newComment,
+                person: personDB?._id,
+              };
+              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+              if (!response.ok) {
+                Alert.alert(response.error || response.code);
+                return;
               }
-              setComments((comments) => comments.filter((p) => p._id !== comment._id));
-              return true;
+              setComments((comments) => [response.decryptedData, ...comments]);
             }}
-            onUpdate={
-              comment.team
-                ? async (commentUpdated) => {
-                    commentUpdated.person = personDB?._id;
-                    const response = await API.put({
-                      path: `/comment/${comment._id}`,
-                      body: prepareCommentForEncryption(commentUpdated),
-                    });
-                    if (response.error) {
-                      Alert.alert(response.error);
-                      return false;
-                    }
-                    if (response.ok) {
-                      setComments((comments) =>
-                        comments.map((c) => {
-                          if (c._id === comment._id) return response.decryptedData;
-                          return c;
-                        })
-                      );
-                      return true;
-                    }
-                  }
-                : null
-            }
           />
-        )}
-        ifEmpty="Pas encore de commentaire">
-        <NewCommentInput
-          forwardRef={newCommentRef}
-          onFocus={() => _scrollToInput(newCommentRef)}
-          person={personDB?._id}
-          canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
-          canToggleUrgentCheck
-          onCommentWrite={onCommentWrite}
-          onCreate={async (newComment) => {
-            const body = {
-              ...newComment,
-              person: personDB?._id,
-            };
-            const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
-            if (!response.ok) {
-              Alert.alert(response.error || response.code);
-              return;
-            }
-            setComments((comments) => [response.decryptedData, ...comments]);
-          }}
-        />
-      </SubList>
+        </SubList>
+      )}
       {organisation.rencontresEnabled && (
         <SubList
           label="Rencontres"
@@ -360,16 +363,18 @@ const PersonSummary = ({
           ifEmpty="Pas encore de passage"
         />
       )}
-      <SubList
-        label="Lieux fréquentés"
-        onAdd={onAddPlaceRequest}
-        data={sortedRelPersonPlace}
-        renderItem={(relPersonPlace, index) => {
-          const place = places.find((pl) => pl._id === relPersonPlace.place);
-          return <PlaceRow key={index} place={place} relPersonPlace={relPersonPlace} personDB={personDB} />;
-        }}
-        ifEmpty="Pas encore de lieu"
-      />
+      {['admin', 'normal'].includes(user.role) && (
+        <SubList
+          label="Lieux fréquentés"
+          onAdd={onAddPlaceRequest}
+          data={sortedRelPersonPlace}
+          renderItem={(relPersonPlace, index) => {
+            const place = places.find((pl) => pl._id === relPersonPlace.place);
+            return <PlaceRow key={index} place={place} relPersonPlace={relPersonPlace} personDB={personDB} />;
+          }}
+          ifEmpty="Pas encore de lieu"
+        />
+      )}
     </ScrollContainer>
   );
 };

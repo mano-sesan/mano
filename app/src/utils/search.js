@@ -13,16 +13,17 @@ const excludeFields = new Set([
 ]);
 const isObject = (variable) => typeof variable === 'object' && variable !== null && !Array.isArray(variable);
 
-const prepareItemForSearch = (item) => {
+const prepareItemForSearch = (item, restrictedFields = null) => {
   if (typeof item === 'string') return item;
   if (!item) return '';
   const itemClean = {};
   for (let key of Object.keys(item)) {
     if (excludeFields.has(key)) continue;
+    if (restrictedFields && !restrictedFields.includes(key)) continue;
     if (isObject(item[key])) {
-      itemClean[key] = prepareItemForSearch(item[key]);
+      itemClean[key] = prepareItemForSearch(item[key], restrictedFields);
     } else if (Array.isArray(item[key])) {
-      itemClean[key] = item[key].map(prepareItemForSearch);
+      itemClean[key] = item[key].map((subItem) => prepareItemForSearch(subItem, restrictedFields));
     } else {
       itemClean[key] = item[key];
     }
@@ -30,7 +31,7 @@ const prepareItemForSearch = (item) => {
   return itemClean;
 };
 
-export const filterBySearch = (search, items = []) => {
+export const filterBySearch = (search, items = [], restrictedFields = null) => {
   const searchLowercased = search.toLocaleLowerCase();
   // replace all accents with normal letters
   const searchNormalized = searchLowercased.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -64,7 +65,7 @@ export const filterBySearch = (search, items = []) => {
       itemsNameContainsOneOfTheWordsWithNoAccent.push(item);
       continue;
     }
-    const stringifiedItem = JSON.stringify(prepareItemForSearch(item)).toLocaleLowerCase();
+    const stringifiedItem = JSON.stringify(prepareItemForSearch(item, restrictedFields)).toLocaleLowerCase();
     if (searchTerms.filter((word) => stringifiedItem.includes(word)).length === searchTerms.length) {
       anyOtherPrropertyContainsOneOfTheWords.push(item);
       continue;
