@@ -28,12 +28,12 @@ router.get("/version", async (req, res) => {
     inAppMessage: [
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
-Nouveautés: vous pouver ajouter un passage non-anonyme.
-Cette version apporte aussi quelques corrections de bugs mineurs et améliorations.
+Nouveautés: le temps de chargement initial des données a été réduit.
+Vous pourrez aussi mettre-à-jour Mano sans sortir de l'application.
 `,
       [
         { text: "Télécharger", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
-        { text: "Installer", link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk` },
+        // { text: "Installer", link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk` },
         { text: "Plus tard", style: "cancel" },
       ],
       { cancelable: true },
