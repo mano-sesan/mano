@@ -8,14 +8,14 @@ const ScrollContainer = React.forwardRef(({ children, ...props }, ref) => (
   </Container>
 ));
 
-const Container = styled.ScrollView.attrs(({ debug, noPadding, testID, contentContainerStyle = {} }) => ({
+const Container = styled.ScrollView.attrs(({ debug, noPadding, testID, contentContainerStyle = {}, noRadius = false }) => ({
   contentContainerStyle: {
     borderWidth: debug ? 2 : 0,
     borderColor: 'red',
     padding: noPadding ? 0 : 30,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: noRadius ? 0 : 16,
+    borderTopRightRadius: noRadius ? 0 : 16,
     flexGrow: 1,
     ...contentContainerStyle,
   },
