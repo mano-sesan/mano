@@ -340,6 +340,8 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                       .split('.')
                       .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
                   );
+                } else {
+                  console.log('error opening file', error);
                 }
                 setIsDownloading(false);
               });

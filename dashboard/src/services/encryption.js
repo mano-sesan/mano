@@ -19,8 +19,6 @@ export const resetOrgEncryptionKey = () => {
   hashedOrgEncryptionKey = null;
 };
 
-// TODO: consolidate the base 64 in both dashboard / app: it looks inconsistent right now
-
 /*
 
 Utils
