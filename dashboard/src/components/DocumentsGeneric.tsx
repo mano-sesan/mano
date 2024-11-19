@@ -687,7 +687,7 @@ async function handleFilesUpload({ files, personId, user }) {
       return;
     }
     const fileUploaded = docResponse.data as FileMetadata;
-    toast.success(`Document ${fileUploaded.originalname} ajouté !`);
+    toast.success(`Document ${fileToUpload.name} ajouté !`);
     const document: Document = {
       _id: fileUploaded.filename,
       name: fileToUpload.name, // On garde le nom original du fichier avant upload, parce que pour une raison qui m'échappe il est abimé dans le transport.
