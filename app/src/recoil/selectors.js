@@ -89,6 +89,7 @@ export const itemsGroupedByPersonSelector = selector({
     const groups = get(groupsState);
 
     for (const group of groups) {
+      if (!group.persons?.length) continue;
       for (const person of group.persons) {
         if (!personsObject[person]) continue;
         personsObject[person].group = group;
