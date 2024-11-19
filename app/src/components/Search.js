@@ -7,7 +7,18 @@ import { MyTextInput } from './MyText';
 import { useRecoilValue } from 'recoil';
 import { organisationState } from '../recoil/auth';
 
-const Search = ({ path, onSearchStart, onSearchClear, onChange, withOrg, onSearchComplete, placeholder, style, onFocus, parentScroll }) => {
+const Search = ({
+  path,
+  onSearchStart,
+  onSearchClear,
+  onChange,
+  withOrg,
+  onSearchComplete,
+  placeholder,
+  style = {},
+  onFocus = () => null,
+  parentScroll,
+}) => {
   const [search, setSearch] = useState('');
   const searchTimeout = useRef(null);
   const keyboardDimissTimeout = useRef(null);
@@ -55,11 +66,6 @@ const Search = ({ path, onSearchStart, onSearchClear, onChange, withOrg, onSearc
       </TouchableOpacity>
     </Animated.View>
   );
-};
-
-Search.defaultProps = {
-  style: {},
-  onFocus: () => null,
 };
 
 const styles = StyleSheet.create({
