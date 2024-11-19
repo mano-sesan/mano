@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, Animated, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Keyboard, TouchableOpacity, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import styled from 'styled-components/native';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -11,7 +11,6 @@ import ButtonsContainer from '../../components/ButtonsContainer';
 import ButtonDelete from '../../components/ButtonDelete';
 import InputFromSearchList from '../../components/InputFromSearchList';
 import DateAndTimeInput from '../../components/DateAndTimeInput';
-import SubList from '../../components/SubList';
 import CommentRow from '../Comments/CommentRow';
 import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
 import UserName from '../../components/UserName';
@@ -164,14 +163,11 @@ const ActionInformation = ({
   );
 };
 
-const ActionComments = ({ actionDB, comments, setComments, canComment, newCommentRef, _scrollToInput, setWritingComment }) => {
+const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, _scrollToInput, setWritingComment }) => {
   return (
     <ScrollContainer noRadius>
-      <SubList
-        label="Commentaires"
-        key={actionDB?._id}
-        data={comments.filter((c) => c.action === actionDB?._id)}
-        renderItem={(comment) => (
+      {actionComments.length ? (
+        actionComments.map((comment) => (
           <CommentRow
             key={comment._id}
             comment={comment}
@@ -210,30 +206,34 @@ const ActionComments = ({ actionDB, comments, setComments, canComment, newCommen
                 : null
             }
           />
-        )}
-        ifEmpty="Pas encore de commentaire">
-        {!!canComment && (
-          <NewCommentInput
-            forwardRef={newCommentRef}
-            onFocus={() => _scrollToInput(newCommentRef)}
-            canToggleUrgentCheck
-            onCommentWrite={setWritingComment}
-            onCreate={async (newComment) => {
-              const body = {
-                ...newComment,
-                action: actionDB?._id,
-              };
-              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
-              if (!response.ok) {
-                Alert.alert(response.error || response.code);
-                return;
-              }
+        ))
+      ) : (
+        <EmptyContainer>
+          <Empty>Pas encore de commentaire</Empty>
+        </EmptyContainer>
+      )}
+      {!!canComment && (
+        <NewCommentInput
+          forwardRef={newCommentRef}
+          onFocus={() => _scrollToInput(newCommentRef)}
+          canToggleUrgentCheck
+          onCommentWrite={setWritingComment}
+          onCreate={async (newComment) => {
+            const body = {
+              ...newComment,
+              action: actionDB?._id,
+            };
+            const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+            if (!response.ok) {
+              Alert.alert(response.error || response.code);
+              return;
+            }
 
-              setComments((comments) => [response.decryptedData, ...comments]);
-            }}
-          />
-        )}
-      </SubList>
+            setComments((comments) => [response.decryptedData, ...comments]);
+            Keyboard.dismiss();
+          }}
+        />
+      )}
     </ScrollContainer>
   );
 };
@@ -590,6 +590,9 @@ const Action = ({ navigation, route }) => {
 
   const displayActionName = name.trim() || categories.join(', ') || 'Action';
 
+  // Move actionComments calculation to a useMemo hook at the component level
+  const actionComments = useMemo(() => comments.filter((c) => c.action === actionDB?._id), [comments, actionDB?._id]);
+
   return (
     <SceneContainer>
       <ScreenTitle
@@ -648,10 +651,11 @@ const Action = ({ navigation, route }) => {
           )}
         />
         <Tab.Screen
-          name="Commentaires"
+          name={`Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`}
           children={() => (
             <ActionComments
               actionDB={actionDB}
+              actionComments={actionComments}
               comments={comments}
               setComments={setComments}
               canComment={canComment}
@@ -737,6 +741,17 @@ const Urgent = styled(MyText)`
   padding: 2px 5px;
   margin: 0 auto 20px;
   color: red;
+`;
+
+const EmptyContainer = styled.View`
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Empty = styled(MyText)`
+  align-self: center;
+  font-style: italic;
 `;
 
 export default Action;
