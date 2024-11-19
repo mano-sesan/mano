@@ -29,7 +29,7 @@ router.get("/version", async (req, res) => {
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés: le temps de chargement initial des données a été réduit.
-Vous pourrez aussi mettre-à-jour Mano sans sortir de l'application.
+Vous pourrez aussi mettre à jour Mano sans sortir de l'application.
 `,
       [
         { text: "Télécharger", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
