@@ -350,6 +350,13 @@ const Consultation = ({ navigation, route }) => {
       );
     }, 250);
   };
+
+  const canEditAllFields = useMemo(() => {
+    return ['normal', 'admin'].includes(user.role);
+  }, [user.role]);
+
+  const canDelete = canEditAllFields;
+
   return (
     <SceneContainer testID="consultation-form">
       <ScreenTitle
@@ -376,32 +383,39 @@ const Consultation = ({ navigation, route }) => {
             editable={editable}
           />
           <ConsultationTypeSelect editable={editable} value={consultation.type} onSelect={(type) => onChange({ type })} />
-          {organisation.consultations
-            .find((e) => e.name === consultation.type)
-            ?.fields.filter((f) => f)
-            .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-            .map((field) => {
-              const { label, name } = field;
-              return (
-                <CustomFieldInput
-                  key={label}
-                  label={label}
-                  field={field}
-                  value={consultation[name]}
-                  handleChange={(newValue) => onChange({ [name]: newValue })}
-                  editable={editable}
-                />
-              );
-            })}
-          <Label label="Document(s)" />
-          <DocumentsManager
-            defaultParent="consultation"
-            personDB={person}
-            onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
-            onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
-            onUpdateDocument={(doc) => onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })}
-            documents={consultation.documents}
-          />
+          {canEditAllFields &&
+            organisation.consultations
+              .find((e) => e.name === consultation.type)
+              ?.fields.filter((f) => f)
+              .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
+              .map((field) => {
+                const { label, name } = field;
+                return (
+                  <CustomFieldInput
+                    key={label}
+                    label={label}
+                    field={field}
+                    value={consultation[name]}
+                    handleChange={(newValue) => onChange({ [name]: newValue })}
+                    editable={editable}
+                  />
+                );
+              })}
+          {canEditAllFields && (
+            <>
+              <Label label="Document(s)" />
+              <DocumentsManager
+                defaultParent="consultation"
+                personDB={person}
+                onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
+                onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
+                onUpdateDocument={(doc) =>
+                  onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })
+                }
+                documents={consultation.documents}
+              />
+            </>
+          )}
           <Spacer />
           <ActionStatusSelect
             value={consultation.status}
@@ -419,7 +433,7 @@ const Consultation = ({ navigation, route }) => {
             showTime
             withTime
           />
-          {consultationDB?.user === user._id ? (
+          {canEditAllFields && consultationDB?.user === user._id ? (
             <CheckboxLabelled
               label="Seulement visible par moi"
               alone
@@ -430,7 +444,7 @@ const Consultation = ({ navigation, route }) => {
             />
           ) : null}
           <ButtonsContainer>
-            {!isNew && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
+            {!isNew && canDelete && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
             <Button
               caption={isNew ? 'Créer' : editable ? 'Mettre à jour' : 'Modifier'}
               disabled={editable ? isDisabled : false}
@@ -439,81 +453,85 @@ const Consultation = ({ navigation, route }) => {
               testID="consultation-create"
             />
           </ButtonsContainer>
-          <SubList label="Constantes">
-            <React.Fragment key={`${consultationDB?._id}${editable}`}>
-              {[
-                { name: 'constantes-poids', label: 'Poids (kg)' },
-                { name: 'constantes-frequence-cardiaque', label: 'Taille (cm)' },
-                { name: 'constantes-taille', label: 'Fréquence cardiaque (bpm)' },
-                { name: 'constantes-saturation-o2', label: 'Fréq. respiratoire (mvts/min)' },
-                { name: 'constantes-temperature', label: 'Saturation en oxygène (%)' },
-                { name: 'constantes-glycemie-capillaire', label: 'Glycémie capillaire (g/L)' },
-                { name: 'constantes-frequence-respiratoire', label: 'Température (°C)' },
-                { name: 'constantes-tension-arterielle-systolique', label: 'Tension artérielle systolique (mmHg)' },
-                { name: 'constantes-tension-arterielle-diastolique', label: 'Tension artérielle diastolique (mmHg)' },
-              ].map((constante) => {
-                return (
-                  <InputLabelled
-                    key={constante.name}
-                    label={constante.label}
-                    value={consultation[constante.name]}
-                    onChangeText={(value) => onChange({ [constante.name]: value })}
-                    placeholder="50"
-                    keyboardType="number-pad"
-                    testID={constante.name}
-                    editable={editable}
+          {canEditAllFields && (
+            <>
+              <SubList label="Constantes">
+                <React.Fragment key={`${consultationDB?._id}${editable}`}>
+                  {[
+                    { name: 'constantes-poids', label: 'Poids (kg)' },
+                    { name: 'constantes-frequence-cardiaque', label: 'Taille (cm)' },
+                    { name: 'constantes-taille', label: 'Fréquence cardiaque (bpm)' },
+                    { name: 'constantes-saturation-o2', label: 'Fréq. respiratoire (mvts/min)' },
+                    { name: 'constantes-temperature', label: 'Saturation en oxygène (%)' },
+                    { name: 'constantes-glycemie-capillaire', label: 'Glycémie capillaire (g/L)' },
+                    { name: 'constantes-frequence-respiratoire', label: 'Température (°C)' },
+                    { name: 'constantes-tension-arterielle-systolique', label: 'Tension artérielle systolique (mmHg)' },
+                    { name: 'constantes-tension-arterielle-diastolique', label: 'Tension artérielle diastolique (mmHg)' },
+                  ].map((constante) => {
+                    return (
+                      <InputLabelled
+                        key={constante.name}
+                        label={constante.label}
+                        value={consultation[constante.name]}
+                        onChangeText={(value) => onChange({ [constante.name]: value })}
+                        placeholder="50"
+                        keyboardType="number-pad"
+                        testID={constante.name}
+                        editable={editable}
+                      />
+                    );
+                  })}
+                </React.Fragment>
+              </SubList>
+              <SubList
+                label="Commentaires"
+                key={consultationDB?._id}
+                data={consultation.comments}
+                renderItem={(comment) => (
+                  <CommentRow
+                    key={comment._id}
+                    comment={comment}
+                    onDelete={async () => {
+                      const consultationToSave = {
+                        ...consultation,
+                        comments: consultation.comments.filter((c) => c._id !== comment._id),
+                      };
+                      setConsultation(consultationToSave); // optimistic UI
+                      // need to pass `consultationToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                    }}
+                    onUpdate={async (commentUpdated) => {
+                      const consultationToSave = {
+                        ...consultation,
+                        comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                      };
+                      setConsultation(consultationToSave); // optimistic UI
+                      // need to pass `consultationToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                    }}
                   />
-                );
-              })}
-            </React.Fragment>
-          </SubList>
-          <SubList
-            label="Commentaires"
-            key={consultationDB?._id}
-            data={consultation.comments}
-            renderItem={(comment) => (
-              <CommentRow
-                key={comment._id}
-                comment={comment}
-                onDelete={async () => {
-                  const consultationToSave = {
-                    ...consultation,
-                    comments: consultation.comments.filter((c) => c._id !== comment._id),
-                  };
-                  setConsultation(consultationToSave); // optimistic UI
-                  // need to pass `consultationToSave` if we want last comment to be taken into account
-                  // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                  return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-                }}
-                onUpdate={async (commentUpdated) => {
-                  const consultationToSave = {
-                    ...consultation,
-                    comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
-                  };
-                  setConsultation(consultationToSave); // optimistic UI
-                  // need to pass `consultationToSave` if we want last comment to be taken into account
-                  // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                  return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-                }}
-              />
-            )}
-            ifEmpty="Pas encore de commentaire">
-            <NewCommentInput
-              forwardRef={newCommentRef}
-              onFocus={() => _scrollToInput(newCommentRef)}
-              onCommentWrite={setWritingComment}
-              onCreate={(newComment) => {
-                const consultationToSave = {
-                  ...consultation,
-                  comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
-                };
-                setConsultation(consultationToSave); // optimistic UI
-                // need to pass `consultationToSave` if we want last comment to be taken into account
-                // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-              }}
-            />
-          </SubList>
+                )}
+                ifEmpty="Pas encore de commentaire">
+                <NewCommentInput
+                  forwardRef={newCommentRef}
+                  onFocus={() => _scrollToInput(newCommentRef)}
+                  onCommentWrite={setWritingComment}
+                  onCreate={(newComment) => {
+                    const consultationToSave = {
+                      ...consultation,
+                      comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
+                    };
+                    setConsultation(consultationToSave); // optimistic UI
+                    // need to pass `consultationToSave` if we want last comment to be taken into account
+                    // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                    onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                  }}
+                />
+              </SubList>
+            </>
+          )}
         </View>
       </ScrollContainer>
     </SceneContainer>

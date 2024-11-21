@@ -175,6 +175,9 @@ const Report = ({ navigation, route }) => {
     [currentTeam?.name, currentTeam?.nightSession, day]
   );
 
+  const canViewComments = ['admin', 'normal'].includes(user.role);
+  const canViewConsultations = ['admin', 'normal'].includes(user.role);
+
   return (
     <SceneContainer>
       <ScreenTitle
@@ -224,7 +227,7 @@ const Report = ({ navigation, route }) => {
           disabled={!actionsCanceled.length}
         />
         <Spacer height={30} />
-        {user.healthcareProfessional && (
+        {user.healthcareProfessional && canViewConsultations && (
           <>
             <Row
               withNextButton
@@ -247,25 +250,29 @@ const Report = ({ navigation, route }) => {
             <Spacer height={30} />
           </>
         )}
-        <Row
-          withNextButton
-          caption={`Commentaires (${comments.length})`}
-          onPress={() => navigation.navigate('CommentsForReport', { date: day })}
-          disabled={!comments.length}
-        />
-        <Spacer height={30} />
-        <Row
-          withNextButton
-          caption={`Rencontres (${rencontres.length})`}
-          onPress={() => navigation.navigate('RencontresForReport', { date: day })}
-          disabled={!rencontres.length}
-        />
-        <Row
-          withNextButton
-          caption={`Passages (${passages.length})`}
-          onPress={() => navigation.navigate('PassagesForReport', { date: day })}
-          disabled={!passages.length}
-        />
+        {canViewComments && (
+          <>
+            <Row
+              withNextButton
+              caption={`Commentaires (${comments.length})`}
+              onPress={() => navigation.navigate('CommentsForReport', { date: day })}
+              disabled={!comments.length}
+            />
+            <Spacer height={30} />
+            <Row
+              withNextButton
+              caption={`Rencontres (${rencontres.length})`}
+              onPress={() => navigation.navigate('RencontresForReport', { date: day })}
+              disabled={!rencontres.length}
+            />
+            <Row
+              withNextButton
+              caption={`Passages (${passages.length})`}
+              onPress={() => navigation.navigate('PassagesForReport', { date: day })}
+              disabled={!passages.length}
+            />
+          </>
+        )}
         {!!organisation.territoriesEnabled && (
           <>
             <Spacer height={30} />
