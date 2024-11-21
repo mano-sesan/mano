@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Animated, Keyboard, TouchableOpacity, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import styled from 'styled-components/native';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -11,7 +11,6 @@ import ButtonsContainer from '../../components/ButtonsContainer';
 import ButtonDelete from '../../components/ButtonDelete';
 import InputFromSearchList from '../../components/InputFromSearchList';
 import DateAndTimeInput from '../../components/DateAndTimeInput';
-import SubList from '../../components/SubList';
 import CommentRow from '../Comments/CommentRow';
 import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
 import UserName from '../../components/UserName';
@@ -32,6 +31,9 @@ import { groupsState } from '../../recoil/groups';
 import { useFocusEffect } from '@react-navigation/native';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
 import { refreshTriggerState } from '../../components/Loader';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
+const Tab = createMaterialTopTabNavigator();
 
 const castToAction = (action) => {
   if (!action) action = {};
@@ -52,6 +54,189 @@ const castToAction = (action) => {
     history: action.history || [],
     documents: action.documents || [],
   };
+};
+
+const ActionInformation = ({
+  action,
+  persons,
+  editable,
+  setEditable,
+  setAction,
+  onSearchPerson,
+  descriptionRef,
+  _scrollToInput,
+  updating,
+  isUpdateDisabled,
+  onUpdateRequest,
+  onDeleteRequest,
+  canToggleGroupCheck,
+}) => {
+  const { name, dueAt, withTime, description, categories, status, urgent, group } = action;
+
+  return (
+    <ScrollContainer noRadius>
+      {!!action.user && <UserName metaCaption="Action ajoutée par" id={action.user?._id || action.user} />}
+      {!editable && urgent ? <Urgent bold>❗ Action prioritaire</Urgent> : null}
+      <InputLabelled
+        label="Nom de l'action"
+        onChangeText={(name) => setAction((a) => ({ ...a, name }))}
+        value={name}
+        placeholder="Nom de l'action"
+        editable={editable}
+        testID="action-name"
+      />
+      {persons.length < 2 ? (
+        <InputFromSearchList
+          label="Personne concernée"
+          value={persons[0]?.name || '-- Aucune --'}
+          onSearchRequest={onSearchPerson}
+          editable={editable}
+        />
+      ) : (
+        <>
+          <Label label="Personne(s) concerné(es)" />
+          <Tags
+            data={persons}
+            onChange={(persons) => setAction((a) => ({ ...a, persons }))}
+            onAddRequest={onSearchPerson}
+            renderTag={(person) => <MyText>{person?.name}</MyText>}
+          />
+        </>
+      )}
+      <ActionStatusSelect
+        onSelect={(status) => setAction((a) => ({ ...a, status }))}
+        onSelectAndSave={(status) => {
+          setAction((a) => ({ ...a, status }));
+        }}
+        value={status}
+        editable={editable}
+      />
+      <DateAndTimeInput
+        label="À faire le"
+        setDate={(dueAt) => setAction((a) => ({ ...a, dueAt }))}
+        date={dueAt}
+        showTime
+        showDay
+        withTime={withTime}
+        setWithTime={(withTime) => setAction((a) => ({ ...a, withTime }))}
+        editable={editable}
+      />
+      <InputLabelled
+        label="Description"
+        onChangeText={(description) => setAction((a) => ({ ...a, description }))}
+        value={description}
+        placeholder="Description"
+        multiline
+        editable={editable}
+        ref={descriptionRef}
+        onFocus={() => _scrollToInput(descriptionRef)}
+      />
+      <ActionCategoriesModalSelect onChange={(categories) => setAction((a) => ({ ...a, categories }))} values={categories} editable={editable} />
+      {editable ? (
+        <CheckboxLabelled
+          label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
+          alone
+          onPress={() => setAction((a) => ({ ...a, urgent: !a.urgent }))}
+          value={urgent}
+        />
+      ) : null}
+      {editable && !!canToggleGroupCheck ? (
+        <CheckboxLabelled
+          label="Action familiale (cette action sera à effectuer pour toute la famille)"
+          alone
+          onPress={() => setAction((a) => ({ ...a, group: !a.group }))}
+          value={group}
+        />
+      ) : null}
+
+      {!editable && <Spacer />}
+      <ButtonsContainer>
+        <ButtonDelete onPress={onDeleteRequest} />
+        <Button
+          caption={editable ? 'Mettre à jour' : 'Modifier'}
+          onPress={editable ? onUpdateRequest : () => setEditable(true)}
+          disabled={editable ? isUpdateDisabled : false}
+          loading={updating}
+        />
+      </ButtonsContainer>
+    </ScrollContainer>
+  );
+};
+
+const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, _scrollToInput, setWritingComment }) => {
+  return (
+    <ScrollContainer noRadius>
+      {!!canComment && (
+        <View className="flex-shrink-0 my-2.5">
+          <NewCommentInput
+            forwardRef={newCommentRef}
+            onFocus={() => _scrollToInput(newCommentRef)}
+            canToggleUrgentCheck
+            onCommentWrite={setWritingComment}
+            onCreate={async (newComment) => {
+              const body = {
+                ...newComment,
+                action: actionDB?._id,
+              };
+              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+              if (!response.ok) {
+                Alert.alert(response.error || response.code);
+                return;
+              }
+              Keyboard.dismiss();
+              setComments((comments) => [response.decryptedData, ...comments]);
+            }}
+          />
+        </View>
+      )}
+      {actionComments.length ? (
+        actionComments.map((comment) => (
+          <CommentRow
+            key={comment._id}
+            comment={comment}
+            canToggleUrgentCheck
+            onDelete={async () => {
+              const response = await API.delete({ path: `/comment/${comment._id}` });
+              if (response.error) {
+                Alert.alert(response.error);
+                return false;
+              }
+              setComments((comments) => comments.filter((p) => p._id !== comment._id));
+              return true;
+            }}
+            onUpdate={
+              comment.team
+                ? async (commentUpdated) => {
+                    commentUpdated.action = actionDB?._id;
+                    const response = await API.put({
+                      path: `/comment/${comment._id}`,
+                      body: prepareCommentForEncryption(commentUpdated),
+                    });
+                    if (response.error) {
+                      Alert.alert(response.error);
+                      return false;
+                    }
+                    if (response.ok) {
+                      setComments((comments) =>
+                        comments.map((c) => {
+                          if (c._id === comment._id) return response.decryptedData;
+                          return c;
+                        })
+                      );
+                      return true;
+                    }
+                  }
+                : null
+            }
+          />
+        ))
+      ) : (
+        <EmptyContainer>
+          <Empty>Pas encore de commentaire</Empty>
+        </EmptyContainer>
+      )}
+    </ScrollContainer>
+  );
 };
 
 const Action = ({ navigation, route }) => {
@@ -390,7 +575,7 @@ const Action = ({ navigation, route }) => {
     setTimeout(() => {
       ref.current?.measureLayout?.(
         scrollViewRef.current,
-        (x, y, width, height) => {
+        (x, y) => {
           scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
         },
         (error) => console.log('error scrolling', error)
@@ -402,9 +587,12 @@ const Action = ({ navigation, route }) => {
   const person = !isOnePerson ? null : persons?.[0];
   const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && groups.find((group) => group.persons.includes(person._id));
 
-  const { name, dueAt, withTime, description, categories, status, urgent, group } = action;
+  const { name, categories, group } = action;
 
   const displayActionName = name.trim() || categories.join(', ') || 'Action';
+
+  // Move actionComments calculation to a useMemo hook at the component level
+  const actionComments = useMemo(() => comments.filter((c) => c.action === actionDB?._id), [comments, actionDB?._id]);
 
   return (
     <SceneContainer>
@@ -420,162 +608,139 @@ const Action = ({ navigation, route }) => {
         saving={updating}
         testID="action"
       />
-      <ScrollContainer ref={scrollViewRef}>
-        {!!action.user && <UserName metaCaption="Action ajoutée par" id={action.user?._id || action.user} />}
-        {!editable && urgent ? <Urgent bold>❗ Action prioritaire</Urgent> : null}
-        <InputLabelled
-          label="Nom de l’action"
-          onChangeText={(name) => setAction((a) => ({ ...a, name }))}
-          value={name}
-          placeholder="Nom de l’action"
-          editable={editable}
-          testID="action-name"
-        />
-        {persons.length < 2 ? (
-          <InputFromSearchList
-            label="Personne concernée"
-            value={persons[0]?.name || '-- Aucune --'}
-            onSearchRequest={onSearchPerson}
-            editable={editable}
-          />
-        ) : (
-          <>
-            <Label label="Personne(s) concerné(es)" />
-            <Tags
-              data={persons}
-              onChange={(persons) => setAction((a) => ({ ...a, persons }))}
-              onAddRequest={onSearchPerson}
-              renderTag={(person) => <MyText>{person?.name}</MyText>}
-            />
-          </>
-        )}
-        <ActionStatusSelect
-          onSelect={(status) => setAction((a) => ({ ...a, status }))}
-          onSelectAndSave={(status) => {
-            setAction((a) => ({ ...a, status }));
+      <Tab.Navigator
+        // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
+        // https://github.com/react-navigation/react-navigation/issues/12052
+        tabBar={MyTabBar}
+        screenOptions={{
+          // swipeEnabled: true,
+          tabBarItemStyle: {
+            flexShrink: 1,
+            borderColor: 'transparent',
+            borderWidth: 1,
+          },
+          tabBarLabelStyle: {
+            textTransform: 'none',
+          },
+          tabBarContentContainerStyle: {
+            flex: 1,
+            borderColor: 'red',
+            borderWidth: 3,
+          },
+        }}>
+        <Tab.Screen
+          name="ActionInformations"
+          options={{
+            tabBarLabel: 'Informations',
           }}
-          value={status}
-          editable={editable}
-        />
-        <DateAndTimeInput
-          label="À faire le"
-          setDate={(dueAt) => setAction((a) => ({ ...a, dueAt }))}
-          date={dueAt}
-          showTime
-          showDay
-          withTime={withTime}
-          setWithTime={(withTime) => setAction((a) => ({ ...a, withTime }))}
-          editable={editable}
-        />
-        <InputLabelled
-          label="Description"
-          onChangeText={(description) => setAction((a) => ({ ...a, description }))}
-          value={description}
-          placeholder="Description"
-          multiline
-          editable={editable}
-          ref={descriptionRef}
-          onFocus={() => _scrollToInput(descriptionRef)}
-        />
-        <ActionCategoriesModalSelect onChange={(categories) => setAction((a) => ({ ...a, categories }))} values={categories} editable={editable} />
-        {editable ? (
-          <CheckboxLabelled
-            label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
-            alone
-            onPress={() => setAction((a) => ({ ...a, urgent: !a.urgent }))}
-            value={urgent}
-          />
-        ) : null}
-        {editable && !!canToggleGroupCheck ? (
-          <CheckboxLabelled
-            label="Action familiale (cette action sera à effectuer pour toute la famille)"
-            alone
-            onPress={() => setAction((a) => ({ ...a, group: !a.group }))}
-            value={group}
-          />
-        ) : null}
-
-        {!editable && <Spacer />}
-        <ButtonsContainer>
-          <ButtonDelete onPress={onDeleteRequest} />
-          <Button
-            caption={editable ? 'Mettre à jour' : 'Modifier'}
-            onPress={editable ? onUpdateRequest : () => setEditable(true)}
-            disabled={editable ? isUpdateDisabled : false}
-            loading={updating}
-          />
-        </ButtonsContainer>
-        <SubList
-          label="Commentaires"
-          key={actionDB?._id}
-          data={comments.filter((c) => c.action === actionDB?._id)}
-          renderItem={(comment) => (
-            <CommentRow
-              key={comment._id}
-              comment={comment}
-              canToggleUrgentCheck
-              onDelete={async () => {
-                const response = await API.delete({ path: `/comment/${comment._id}` });
-                if (response.error) {
-                  Alert.alert(response.error);
-                  return false;
-                }
-                setComments((comments) => comments.filter((p) => p._id !== comment._id));
-                return true;
-              }}
-              onUpdate={
-                comment.team
-                  ? async (commentUpdated) => {
-                      commentUpdated.action = actionDB?._id;
-                      const response = await API.put({
-                        path: `/comment/${comment._id}`,
-                        body: prepareCommentForEncryption(commentUpdated),
-                      });
-                      if (response.error) {
-                        Alert.alert(response.error);
-                        return false;
-                      }
-                      if (response.ok) {
-                        setComments((comments) =>
-                          comments.map((c) => {
-                            if (c._id === comment._id) return response.decryptedData;
-                            return c;
-                          })
-                        );
-                        return true;
-                      }
-                    }
-                  : null
-              }
+          children={() => (
+            <ActionInformation
+              action={action}
+              actionDB={actionDB}
+              persons={persons}
+              editable={editable}
+              setEditable={setEditable}
+              setAction={setAction}
+              organisation={organisation}
+              groups={groups}
+              onSearchPerson={onSearchPerson}
+              descriptionRef={descriptionRef}
+              _scrollToInput={_scrollToInput}
+              updating={updating}
+              isUpdateDisabled={isUpdateDisabled}
+              onUpdateRequest={onUpdateRequest}
+              onDeleteRequest={onDeleteRequest}
+              canToggleGroupCheck={canToggleGroupCheck}
             />
           )}
-          ifEmpty="Pas encore de commentaire">
-          {!!canComment && (
-            <NewCommentInput
-              forwardRef={newCommentRef}
-              onFocus={() => _scrollToInput(newCommentRef)}
-              canToggleUrgentCheck
-              onCommentWrite={setWritingComment}
-              onCreate={async (newComment) => {
-                const body = {
-                  ...newComment,
-                  action: actionDB?._id,
-                };
-                const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
-                if (!response.ok) {
-                  Alert.alert(response.error || response.code);
-                  return;
-                }
-
-                setComments((comments) => [response.decryptedData, ...comments]);
-              }}
+        />
+        <Tab.Screen
+          name="ActionCommentaires"
+          options={{
+            tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
+          }}
+          children={() => (
+            <ActionComments
+              actionDB={actionDB}
+              actionComments={actionComments}
+              comments={comments}
+              setComments={setComments}
+              canComment={canComment}
+              newCommentRef={newCommentRef}
+              _scrollToInput={_scrollToInput}
+              setWritingComment={setWritingComment}
             />
           )}
-        </SubList>
-      </ScrollContainer>
+        />
+      </Tab.Navigator>
     </SceneContainer>
   );
 };
+
+function MyTabBar({ state, descriptors, navigation, position }) {
+  return (
+    <View className="flex-row bg-white border-b border-gray-200">
+      {state.routes.map((route, index) => {
+        const { options } = descriptors[route.key];
+        const label = options.tabBarLabel !== undefined ? options.tabBarLabel : options.title !== undefined ? options.title : route.name;
+
+        const isFocused = state.index === index;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        };
+
+        const onLongPress = () => {
+          navigation.emit({
+            type: 'tabLongPress',
+            target: route.key,
+          });
+        };
+
+        const inputRange = state.routes.map((_, i) => i);
+        const opacity = position.interpolate({
+          inputRange,
+          outputRange: inputRange.map((i) => (i === index ? 1 : 0.5)),
+        });
+
+        return (
+          <TouchableOpacity
+            key={index}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            testID={options.tabBarTestID}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            className="flex-1 justify-center items-center py-2"
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              // textDecoration: isFocused ? 'underline' : 'none',
+              borderBottomWidth: isFocused ? 2 : 0,
+            }}>
+            <Animated.Text
+              // eslint-disable-next-line react-native/no-inline-styles
+              style={{
+                color: isFocused ? '#000' : '#000',
+                fontWeight: isFocused ? 'bold' : 'normal',
+                opacity,
+              }}>
+              {label}
+            </Animated.Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
 
 const Urgent = styled(MyText)`
   font-weight: bold;
@@ -583,6 +748,17 @@ const Urgent = styled(MyText)`
   padding: 2px 5px;
   margin: 0 auto 20px;
   color: red;
+`;
+
+const EmptyContainer = styled.View`
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+`;
+
+const Empty = styled(MyText)`
+  align-self: center;
+  font-style: italic;
 `;
 
 export default Action;
