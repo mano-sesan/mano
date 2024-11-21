@@ -56,6 +56,9 @@ const SignIn = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isDesktop = useMinimumWidth("sm");
 
+  const browser = detect();
+  const isAndroid = browser?.os?.toLowerCase().includes("android");
+
   useEffect(() => {
     if (isDisconnected) {
       toast.error("Votre session a expiré, veuillez vous reconnecter");
@@ -337,6 +340,14 @@ const SignIn = () => {
   return (
     <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black sm:tw-drop-shadow-2xl">
       <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{userName ? `Bienvenue ${userName?.split(" ")?.[0]}` : "Bienvenue"}&nbsp;!</h1>
+      {isAndroid && (
+        <div className="tw-mb-6 tw-text-center">
+          <a href="https://mano.sesan.fr/download" className="tw-text-main hover:tw-underline" target="_blank" rel="noopener noreferrer">
+            👋 Télécharger l'application mobile pour Android
+          </a>
+          <p className="tw-text-xs tw-text-gray-500">Cette application est recommandée pour une meilleure expérience mobile</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} method="POST">
         {!authViaCookie && (
           <>
