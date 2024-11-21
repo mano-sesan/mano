@@ -630,7 +630,10 @@ const Action = ({ navigation, route }) => {
           },
         }}>
         <Tab.Screen
-          name="Informations"
+          name="ActionInformations"
+          options={{
+            tabBarLabel: 'Informations',
+          }}
           children={() => (
             <ActionInformation
               action={action}
@@ -653,7 +656,10 @@ const Action = ({ navigation, route }) => {
           )}
         />
         <Tab.Screen
-          name={`Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`}
+          name="ActionCommentaires"
+          options={{
+            tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
+          }}
           children={() => (
             <ActionComments
               actionDB={actionDB}
