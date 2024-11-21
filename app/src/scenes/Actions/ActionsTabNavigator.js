@@ -7,7 +7,7 @@ import ScreenTitle from '../../components/ScreenTitle';
 import ActionsList from './ActionsList';
 import Tabs from '../../components/Tabs';
 import { CANCEL, DONE, TODO } from '../../recoil/actions';
-import { INCOMINGDAYS, PASSED, TODAY, TOMORROW } from '../../recoil/selectors';
+import { INCOMINGDAYS, PASSED, TODAY } from '../../recoil/selectors';
 
 const TopTab = createMaterialTopTabNavigator();
 const SubTab = createMaterialTopTabNavigator();
