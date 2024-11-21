@@ -44,7 +44,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authViaCookie, setAuthViaCookie] = useState(false);
-  const { startInitialLoad, isLoading } = useDataLoader();
+  const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
 
@@ -66,24 +66,29 @@ const SignIn = () => {
     }
   }, [isDisconnected, history]);
 
-  useEffect(() => {
-    if (isLoading !== true) return;
-    if (["stats-only"].includes(user.role)) return history.push("/stats");
-    // S'il y a une redirection prévues dans le sessionStorage, on la fait
-    const redirect = window.sessionStorage.getItem("redirectPath");
-    if (redirect && redirect !== "/") {
-      window.sessionStorage.removeItem("redirectPath");
-      history.push(redirect);
-      return;
-    }
-    if (isDesktop && !!organisation?.receptionEnabled) {
-      history.push("/reception");
-    } else {
-      history.push("/action");
-    }
-  }, [history, organisation, isLoading, isDesktop, user]);
-
-  const onSigninValidated = () => startInitialLoad();
+  const onSigninValidated = () =>
+    startInitialLoad()
+      // On redirige seulement après le chargement pour ne pas se retrouver dans un cas
+      // où l'élément qu'on veut voir n'est pas encore chargé.
+      .then(() => {
+        if (["stats-only"].includes(user.role)) return history.push("/stats");
+        // S'il y a une redirection prévues dans le sessionStorage, on la fait
+        const redirect = window.sessionStorage.getItem("redirectPath");
+        if (redirect && redirect !== "/") {
+          window.sessionStorage.removeItem("redirectPath");
+          history.push(redirect);
+        } else {
+          if (isDesktop && !!organisation?.receptionEnabled) {
+            history.push("/reception");
+          } else {
+            history.push("/action");
+          }
+        }
+        // Pour éviter le problème de timing, on attend le prochain cycle.
+        return Promise.resolve();
+      })
+      // On fait le nettoyage du loader après la redirection pour éviter un flash de chargement
+      .then(() => cleanupLoader());
 
   const onLogout = async () => {
     setShowErrors(false);

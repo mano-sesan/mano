@@ -629,13 +629,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (!getHashedOrgEncryptionKey()) return false;
     // On enregistre également l'identifiant de l'organisation
     setCacheItem("organisationId", organisationId);
-    setIsLoading(false);
     if (!lastLoadValue) setTotalLoadingDuration((d) => d + Date.now() - now);
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setLoadingText("En attente de rafraichissement");
-    setProgress(null);
-    setTotal(null);
-    setInitialLoadIsDone(true);
+    // On ne reset pas les valeurs de progress et total si on est en initial load
+    // Car on le fait après la redirection pour éviter un flash de chargement
+    if (!isStartingInitialLoad) {
+      setProgress(null);
+      setTotal(null);
+      setInitialLoadIsDone(true);
+      setIsLoading(false);
+    }
     return true;
   }
 
@@ -658,9 +662,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     return false;
   }
 
+  const cleanupLoader = () => {
+    setProgress(null);
+    setTotal(null);
+    setInitialLoadIsDone(true);
+    setIsLoading(false);
+  };
+
   return {
     refresh: () => loadOrRefreshData(false),
     startInitialLoad: () => loadOrRefreshData(true),
+    cleanupLoader,
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
   };
