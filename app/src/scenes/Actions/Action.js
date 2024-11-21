@@ -166,6 +166,30 @@ const ActionInformation = ({
 const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, _scrollToInput, setWritingComment }) => {
   return (
     <ScrollContainer noRadius>
+      {!!canComment && (
+        <View className="flex-shrink-0 my-2.5">
+          <NewCommentInput
+            forwardRef={newCommentRef}
+            onFocus={() => _scrollToInput(newCommentRef)}
+            canToggleUrgentCheck
+            onCommentWrite={setWritingComment}
+            onCreate={async (newComment) => {
+              const body = {
+                ...newComment,
+                action: actionDB?._id,
+              };
+              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+              if (!response.ok) {
+                Alert.alert(response.error || response.code);
+                return;
+              }
+
+              setComments((comments) => [response.decryptedData, ...comments]);
+              Keyboard.dismiss();
+            }}
+          />
+        </View>
+      )}
       {actionComments.length ? (
         actionComments.map((comment) => (
           <CommentRow
@@ -211,28 +235,6 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
         <EmptyContainer>
           <Empty>Pas encore de commentaire</Empty>
         </EmptyContainer>
-      )}
-      {!!canComment && (
-        <NewCommentInput
-          forwardRef={newCommentRef}
-          onFocus={() => _scrollToInput(newCommentRef)}
-          canToggleUrgentCheck
-          onCommentWrite={setWritingComment}
-          onCreate={async (newComment) => {
-            const body = {
-              ...newComment,
-              action: actionDB?._id,
-            };
-            const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
-            if (!response.ok) {
-              Alert.alert(response.error || response.code);
-              return;
-            }
-
-            setComments((comments) => [response.decryptedData, ...comments]);
-            Keyboard.dismiss();
-          }}
-        />
       )}
     </ScrollContainer>
   );
