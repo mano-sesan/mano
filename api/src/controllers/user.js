@@ -710,6 +710,21 @@ router.get(
 );
 
 router.get(
+  "/deleted-users",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "restricted-access", "stats-only"]),
+  catchErrors(async (req, res) => {
+    const organisationId = req.user.organisation;
+    const users = await User.findAll({
+      attributes: ["_id", "name"],
+      where: { organisation: organisationId, deletedAt: { [Op.ne]: null } },
+      paranoid: false,
+    });
+    return res.status(200).send({ ok: true, data: users });
+  })
+);
+
+router.get(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
@@ -940,6 +955,32 @@ router.put(
   })
 );
 
+const clearUserData = async (user) => {
+  user.set({
+    phone: null,
+    email: crypto.randomBytes(60).toString("hex"),
+    password: crypto.randomBytes(60).toString("hex"), // Random password
+    lastLoginAt: null,
+    termsAccepted: null,
+    cgusAccepted: null,
+    lastChangePasswordAt: null,
+    forgotPasswordResetToken: null,
+    forgotPasswordResetExpires: null,
+    healthcareProfessional: null,
+    role: null,
+    debugApp: null,
+    debugDashboard: null,
+    gaveFeedbackEarly2023: null,
+    loginAttempts: null,
+    nextLoginAttemptAt: null,
+    decryptAttempts: null,
+    otp: null,
+    lastOtpAt: null,
+    disabledAt: null,
+  });
+  return user;
+};
+
 router.delete(
   "/me",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -959,8 +1000,15 @@ router.delete(
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     let tx = await User.sequelize.transaction();
-    await Promise.all([User.destroy({ ...query, transaction: tx }), RelUserTeam.destroy({ where: { user: userId }, transaction: tx })]);
-    await user.destroy({ transaction: tx });
+
+    // Clear user data and soft delete
+    user = await clearUserData(user);
+    await user.save({ transaction: tx });
+    await user.destroy({ transaction: tx }); // This will set deletedAt
+
+    // Remove team associations
+    await RelUserTeam.destroy({ where: { user: userId }, transaction: tx });
+
     await tx.commit();
     res.status(200).send({ ok: true });
   })
@@ -997,8 +1045,15 @@ router.delete(
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     let tx = await User.sequelize.transaction();
-    await Promise.all([User.destroy({ ...query, transaction: tx }), RelUserTeam.destroy({ where: { user: userId }, transaction: tx })]);
-    await user.destroy({ transaction: tx });
+
+    // Clear user data and soft delete
+    user = await clearUserData(user);
+    await user.save({ transaction: tx });
+    await user.destroy({ transaction: tx }); // This will set deletedAt
+
+    // Remove team associations
+    await RelUserTeam.destroy({ where: { user: userId }, transaction: tx });
+
     await tx.commit();
     res.status(200).send({ ok: true });
   })
