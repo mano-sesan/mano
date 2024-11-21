@@ -183,9 +183,8 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                 Alert.alert(response.error || response.code);
                 return;
               }
-
-              setComments((comments) => [response.decryptedData, ...comments]);
               Keyboard.dismiss();
+              setComments((comments) => [response.decryptedData, ...comments]);
             }}
           />
         </View>
