@@ -629,6 +629,9 @@ const Action = ({ navigation, route }) => {
         }}>
         <Tab.Screen
           name="ActionInformations"
+          options={{
+            tabBarLabel: 'Informations',
+          }}
           children={() => (
             <ActionInformation
               action={action}
