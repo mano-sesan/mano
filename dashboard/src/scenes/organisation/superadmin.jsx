@@ -38,7 +38,7 @@ const SuperAdmin = () => {
   const [openEditUserModal, setOpenEditUserModal] = useState(false);
   const [openUserListModal, setOpenUserListModal] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
-
+  const [superadmins, setSuperadmins] = useState(null);
   useTitle("Organisations");
 
   useEffect(() => {
@@ -52,6 +52,7 @@ const SuperAdmin = () => {
       }
       const sortedDataAscendant = response.data?.sort((org1, org2) => (org1[sortBy] > org2[sortBy] ? 1 : -1));
       setOrganisations(sortOrder === "ASC" ? sortedDataAscendant : [...(sortedDataAscendant || [])].reverse());
+      setSuperadmins(response.superadmins);
       setUpdateKey((k) => k + 1);
       setRefresh(false);
     })();
@@ -118,7 +119,10 @@ const SuperAdmin = () => {
         organisation={selectedOrganisation}
       />
       <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
-        <h2 className="tw-text-2xl">Organisations ({total})</h2>
+        <div>
+          <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
+          <div className="tw-text-xs tw-text-gray-500">Superadmins: {superadmins || "-"}</div>
+        </div>
         <div>
           <button
             className="button-classic"
