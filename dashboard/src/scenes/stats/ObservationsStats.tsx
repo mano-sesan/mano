@@ -20,7 +20,6 @@ import type { Period } from "../../types/date";
 import type { TeamInstance } from "../../types/team";
 import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
-import { useSessionStorage } from "../../services/useSessionStorage";
 import { capitalize } from "../../utils";
 import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 import { useLocation } from "react-router-dom";
