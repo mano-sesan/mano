@@ -1044,7 +1044,7 @@ router.delete(
       action: `delete-user-${userId}`,
     });
 
-    const query = { where: { _id: userId } };
+    const query = { where: { _id: userId, role: { [Op.ne]: "superadmin" } } };
     if (req.user.role !== "superadmin") query.where.organisation = req.user.organisation;
 
     let user = await User.findOne(query);
