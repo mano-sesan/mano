@@ -133,6 +133,10 @@ test("Transfer team", async ({ page }) => {
     dialog.accept();
   });
   await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Transférer" }).click();
+
+  await page.getByPlaceholder("nouvelle").fill("nouvelle");
+  await page.locator('[data-test-id="button-delete-nouvelle"]').click();
+
   await page.getByText("Données transférées avec succès").click();
 
   // Vérification

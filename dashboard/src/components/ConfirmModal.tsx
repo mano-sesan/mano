@@ -9,9 +9,10 @@ interface ConfirmModalProps {
   children: React.ReactNode;
   textToConfirm: string;
   onConfirm: () => void;
+  buttonText?: string;
 }
 
-const ConfirmModal = ({ open, onClose, title, children, textToConfirm, onConfirm }: ConfirmModalProps) => {
+const ConfirmModal = ({ open, onClose, title, children, textToConfirm, onConfirm, buttonText = "Supprimer" }: ConfirmModalProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   return (
@@ -65,7 +66,7 @@ const ConfirmModal = ({ open, onClose, title, children, textToConfirm, onConfirm
           form={`delete-${textToConfirm}`}
           disabled={isDeleting}
         >
-          Supprimer
+          {buttonText}
         </button>
       </ModalFooter>
     </ModalContainer>

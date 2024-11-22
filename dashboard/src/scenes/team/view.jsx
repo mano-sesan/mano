@@ -256,6 +256,7 @@ const View = () => {
         onClose={() => setIsConfirmModalOpen(false)}
         title={`Confirmer le transfert vers ${teams.find((t) => t._id === transferSelectedTeam)?.name}`}
         textToConfirm={teams.find((t) => t._id === transferSelectedTeam)?.name || ""}
+        buttonText="Transférer"
         onConfirm={async () => {
           const actionsInTeam = actions.filter((a) => a.teams?.includes(id));
           const consultationsInTeam = consultations.filter((c) => c.teams?.includes(id));
