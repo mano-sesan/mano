@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { Formik } from "formik";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import TagTeam from "./TagTeam";
-import { currentTeamState, organisationState, teamsState, userState, usersState } from "../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../services/date";
 import { outOfBoundariesDate } from "../services/date";
@@ -241,7 +241,6 @@ function CommentsTable({
 }: CommentsTableProps) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
-  const users = useRecoilValue(usersState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const history = useHistory();
@@ -430,7 +429,9 @@ function CommentsTable({
                       )}
                     </div>
                     <div className="small tw-flex tw-items-end tw-justify-between">
-                      <p className="tw-mb-0 tw-basis-1/2 tw-opacity-50">Créé par {users.find((e) => e._id === comment.user)?.name}</p>
+                      <p className="tw-mb-0 tw-basis-1/2 tw-opacity-50">
+                        Créé par <UserName id={comment.user} />
+                      </p>
                       <div className="tw-max-w-fit tw-basis-1/2">
                         <TagTeam teamId={comment.team} />
                       </div>

@@ -44,6 +44,7 @@ module.exports = (sequelize, DataTypes) => {
     sequelize,
     modelName: "User",
     freezeTableName: true,
+    paranoid: true,
     defaultScope: {
       attributes: { exclude: ["password", "forgotPasswordResetToken", "forgotPasswordResetExpires", "debugApp", "debugDashboard", "otp"] },
     },

@@ -1,14 +1,17 @@
 import React from "react";
 import { useRecoilValue } from "recoil";
-import { usersState } from "../recoil/auth";
+import { deletedUsersState, usersState } from "../recoil/auth";
 import SelectUser from "./SelectUser";
 
 const UserName = ({ id, wrapper = (name) => name, canAddUser = null, handleChange = null, className = "" }) => {
   const users = useRecoilValue(usersState);
+  const deletedUsers = useRecoilValue(deletedUsersState);
 
   const user = users.find((u) => u._id === id);
+  const deletedUser = deletedUsers.find((u) => u._id === id);
+  const name = user?.name || deletedUser?.name;
 
-  if (!user?.name) {
+  if (!name) {
     if (!canAddUser) return <span className="tw-text-gray-500 tw-italic">Utilisateur supprimé</span>;
   }
   return (
@@ -21,7 +24,7 @@ const UserName = ({ id, wrapper = (name) => name, canAddUser = null, handleChang
           </div>
         </>
       ) : (
-        wrapper(user.name)
+        wrapper(name)
       )}
     </span>
   );
