@@ -250,6 +250,7 @@ router.get(
         attributes: ["organisation", "role", [fn("COUNT", "TagName"), "countByOrgAndRole"]],
       })
     ).map((item) => item.toJSON());
+    const superadmins = await User.count({ where: { role: "superadmin" } });
 
     const data = organisations
       .map((org) => org.toJSON())
@@ -294,6 +295,7 @@ router.get(
     return res.status(200).send({
       ok: true,
       data,
+      superadmins,
     });
   })
 );
