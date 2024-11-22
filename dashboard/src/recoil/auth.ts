@@ -100,4 +100,9 @@ export const encryptionKeyLengthState = atom({
   default: null,
 });
 
+export const deletedUsersState = atom<UserInstance[]>({
+  key: "deletedUsersState",
+  default: [],
+});
+
 export const MINIMUM_ENCRYPTION_KEY_LENGTH = 8;

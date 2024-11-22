@@ -5,13 +5,13 @@ import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
 import TagTeam from "../../../components/TagTeam";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
-import { currentTeamState, usersState, userState, organisationState } from "../../../recoil/auth";
+import { currentTeamState, userState, organisationState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { capitalize } from "../../../utils";
+import UserName from "../../../components/UserName";
 
 export default function PassagesRencontres({ person }) {
-  const users = useRecoilValue(usersState);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
@@ -113,11 +113,7 @@ export default function PassagesRencontres({ person }) {
       <ModalContainer open={!!fullScreen} size="prose" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`${capitalize(selected)} de  ${person?.name} (${personPassages.length})`}></ModalHeader>
         <ModalBody>
-          {selected === "passages" ? (
-            <PassagesTable personPassages={personPassages} users={users} />
-          ) : (
-            <RencontresTable personRencontres={personRencontres} users={users} />
-          )}
+          {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTable personRencontres={personRencontres} />}
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>
@@ -191,16 +187,12 @@ export default function PassagesRencontres({ person }) {
           Aucune rencontre
         </div>
       )}
-      {selected === "passages" ? (
-        <PassagesTable personPassages={personPassages} users={users} />
-      ) : (
-        <RencontresTable personRencontres={personRencontres} users={users} />
-      )}
+      {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTable personRencontres={personRencontres} />}
     </div>
   );
 }
 
-function PassagesTable({ personPassages, users }) {
+function PassagesTable({ personPassages }) {
   const history = useHistory();
   return (
     <table className="table table-striped">
@@ -227,7 +219,9 @@ function PassagesTable({ personPassages, users }) {
                   </div>
                 ) : null}
                 <div className="tw-flex tw-mt-1 tw-text-xs tw-items-center">
-                  <div className="tw-grow tw-text-black50">Créé par {users.find((e) => e._id === passage.user)?.name}</div>
+                  <div className="tw-grow tw-text-black50">
+                    Créé par <UserName id={passage.user} />
+                  </div>
                   <div className="tw-max-w-fit">
                     <TagTeam teamId={passage.team} />
                   </div>
@@ -241,7 +235,7 @@ function PassagesTable({ personPassages, users }) {
   );
 }
 
-function RencontresTable({ personRencontres, users }) {
+function RencontresTable({ personRencontres }) {
   const history = useHistory();
   return (
     <table className="table table-striped">
@@ -275,7 +269,9 @@ function RencontresTable({ personRencontres, users }) {
                   </div>
                 ) : null}
                 <div className="tw-flex tw-mt-1 tw-text-xs tw-items-center">
-                  <div className="tw-grow tw-text-black50">Créé par {users.find((e) => e._id === rencontre.user)?.name}</div>
+                  <div className="tw-grow tw-text-black50">
+                    Créé par <UserName id={rencontre.user} />
+                  </div>
                   <div className="tw-max-w-fit">
                     <TagTeam teamId={rencontre.team} />
                   </div>

@@ -9,6 +9,7 @@ import { DEFAULT_ORGANISATION_KEY } from "../../config";
 import PasswordInput from "../../components/PasswordInput";
 import {
   currentTeamState,
+  deletedUsersState,
   encryptionKeyLengthState,
   organisationState,
   sessionInitialDateTimestamp,
@@ -32,6 +33,7 @@ const SignIn = () => {
   const setCurrentTeam = useSetRecoilState(currentTeamState);
   const setTeams = useSetRecoilState(teamsState);
   const setUsers = useSetRecoilState(usersState);
+  const setDeletedUsers = useSetRecoilState(deletedUsersState);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const [user, setUser] = useRecoilState(userState);
   const history = useHistory();
@@ -231,6 +233,15 @@ const SignIn = () => {
     const users = usersResponse.data;
     setTeams(teams);
     setUsers(users);
+
+    // Les utilisateurs supprimés sont récupérés pour pouvoir afficher leur nom dans les éléments qu'ils ont créés.
+    const [errorDeletedUsers, deletedUsersResponse] = await tryFetchExpectOk(async () => API.get({ path: "/user/deleted-users" }));
+    if (errorDeletedUsers) {
+      toast.error(errorMessage(errorDeletedUsers));
+      return;
+    }
+    setDeletedUsers(deletedUsersResponse.data);
+
     // onboarding
     if (!organisation.encryptionEnabled && ["admin"].includes(user.role)) {
       history.push(`/organisation/${organisation._id}`);

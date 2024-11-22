@@ -666,6 +666,21 @@ router.get(
 );
 
 router.get(
+  "/deleted-users",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "restricted-access", "stats-only"]),
+  catchErrors(async (req, res) => {
+    const organisationId = req.user.organisation;
+    const users = await User.findAll({
+      attributes: ["_id", "name"],
+      where: { organisation: organisationId, deletedAt: { [Op.ne]: null } },
+      paranoid: false,
+    });
+    return res.status(200).send({ ok: true, data: users });
+  })
+);
+
+router.get(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser("admin"),
@@ -706,21 +721,6 @@ router.get(
         team: team.map((t) => t._id),
       },
     });
-  })
-);
-
-router.get(
-  "/deleted-users",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal", "restricted-access", "stats-only"]),
-  catchErrors(async (req, res) => {
-    const organisationId = req.user.organisation;
-    const users = await User.findAll({
-      attributes: ["_id", "name"],
-      where: { organisation: organisationId, deletedAt: { [Op.ne]: null } },
-      paranoid: false,
-    });
-    return res.status(200).send({ ok: true, data: users });
   })
 );
 
