@@ -750,7 +750,12 @@ router.get(
     });
 
     const data = users.map((user) => {
-      if ((req.user.role !== "admin" && req.user.role !== "superadmin") || req.query.minimal === "true") {
+      if (req.user.role !== "admin" && req.user.role !== "superadmin") {
+        return {
+          name: user.name,
+          _id: user._id,
+        };
+      } else if (req.query.minimal === "true") {
         return {
           name: user.name,
           _id: user._id,
