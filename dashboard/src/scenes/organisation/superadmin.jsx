@@ -268,14 +268,14 @@ const SuperAdmin = () => {
             {
               title: "Action",
               dataKey: "delete",
-              style: { width: "200px" },
+              style: { width: "100px" },
               render: (organisation) => {
                 return (
-                  <div className="tw-flex tw-gap-1.5">
+                  <div className="tw-grid tw-grid-cols-2 tw-gap-1.5">
                     <div>
                       <button
                         className="button-classic !tw-ml-0 !tw-px-3 my-tooltip"
-                        data-tooltip={"Modifier l'organisation"}
+                        data-tooltip={"Modifier"}
                         type="button"
                         data-testid={`Modifier l'organisation ${organisation.name}`}
                         onClick={() => {
@@ -289,7 +289,7 @@ const SuperAdmin = () => {
                     <div>
                       <button
                         className="button-classic !tw-ml-0 !tw-px-3  my-tooltip"
-                        data-tooltip={"Voir les utilisateurs"}
+                        data-tooltip={"Utilisateurs"}
                         type="button"
                         data-testid={`Voir les utilisateurs ${organisation.name}`}
                         onClick={() => {
@@ -297,7 +297,7 @@ const SuperAdmin = () => {
                           setOpenUserListModal(true);
                         }}
                       >
-                        👀
+                        🧑‍💻
                       </button>
                     </div>
                     <div>
@@ -305,7 +305,7 @@ const SuperAdmin = () => {
                         type="button"
                         className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
                         data-testid={`Ajouter utilisateur ${organisation.name}`}
-                        data-tooltip={"Ajouter un utilisateur"}
+                        data-tooltip={"Ajouter utilisateur"}
                         onClick={() => {
                           setSelectedOrganisation(organisation);
                           setOpenCreateUserModal(true);
