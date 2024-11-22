@@ -890,6 +890,7 @@ router.put(
           password: z.optional(z.string().min(1)),
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
+          role: z.optional(z.enum(["admin", "normal", "restricted-access", "stats-only"])),
           ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
         }),
       }).parse(req);
