@@ -70,6 +70,8 @@ const ActionInformation = ({
   onUpdateRequest,
   onDeleteRequest,
   canToggleGroupCheck,
+  canDelete,
+  canSetUrgent,
 }) => {
   const { name, dueAt, withTime, description, categories, status, urgent, group } = action;
 
@@ -132,7 +134,7 @@ const ActionInformation = ({
         onFocus={() => _scrollToInput(descriptionRef)}
       />
       <ActionCategoriesModalSelect onChange={(categories) => setAction((a) => ({ ...a, categories }))} values={categories} editable={editable} />
-      {editable ? (
+      {editable && canSetUrgent ? (
         <CheckboxLabelled
           label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
           alone
@@ -151,7 +153,7 @@ const ActionInformation = ({
 
       {!editable && <Spacer />}
       <ButtonsContainer>
-        <ButtonDelete onPress={onDeleteRequest} />
+        {canDelete && <ButtonDelete onPress={onDeleteRequest} />}
         <Button
           caption={editable ? 'Mettre à jour' : 'Modifier'}
           onPress={editable ? onUpdateRequest : () => setEditable(true)}
@@ -264,7 +266,7 @@ const Action = ({ navigation, route }) => {
 
   const [multipleActions] = useState(() => route?.params?.actions);
   const isMultipleActions = multipleActions?.length > 1;
-  const canComment = !isMultipleActions;
+  const canComment = !isMultipleActions && ['admin', 'normal'].includes(user.role);
 
   const persons = useMemo(() => {
     if (isMultipleActions) {
@@ -594,6 +596,9 @@ const Action = ({ navigation, route }) => {
   // Move actionComments calculation to a useMemo hook at the component level
   const actionComments = useMemo(() => comments.filter((c) => c.action === actionDB?._id), [comments, actionDB?._id]);
 
+  const canDelete = ['admin', 'normal'].includes(user.role);
+  const canSetUrgent = ['admin', 'normal'].includes(user.role);
+
   return (
     <SceneContainer>
       <ScreenTitle
@@ -608,71 +613,95 @@ const Action = ({ navigation, route }) => {
         saving={updating}
         testID="action"
       />
-      <Tab.Navigator
-        // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
-        // https://github.com/react-navigation/react-navigation/issues/12052
-        tabBar={MyTabBar}
-        screenOptions={{
-          // swipeEnabled: true,
-          tabBarItemStyle: {
-            flexShrink: 1,
-            borderColor: 'transparent',
-            borderWidth: 1,
-          },
-          tabBarLabelStyle: {
-            textTransform: 'none',
-          },
-          tabBarContentContainerStyle: {
-            flex: 1,
-            borderColor: 'red',
-            borderWidth: 3,
-          },
-        }}>
-        <Tab.Screen
-          name="ActionInformations"
-          options={{
-            tabBarLabel: 'Informations',
-          }}
-          children={() => (
-            <ActionInformation
-              action={action}
-              actionDB={actionDB}
-              persons={persons}
-              editable={editable}
-              setEditable={setEditable}
-              setAction={setAction}
-              organisation={organisation}
-              groups={groups}
-              onSearchPerson={onSearchPerson}
-              descriptionRef={descriptionRef}
-              _scrollToInput={_scrollToInput}
-              updating={updating}
-              isUpdateDisabled={isUpdateDisabled}
-              onUpdateRequest={onUpdateRequest}
-              onDeleteRequest={onDeleteRequest}
-              canToggleGroupCheck={canToggleGroupCheck}
-            />
-          )}
+      {canComment ? (
+        <Tab.Navigator
+          // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
+          // https://github.com/react-navigation/react-navigation/issues/12052
+          tabBar={MyTabBar}
+          screenOptions={{
+            tabBarItemStyle: {
+              flexShrink: 1,
+              borderColor: 'transparent',
+              borderWidth: 1,
+            },
+            tabBarLabelStyle: {
+              textTransform: 'none',
+            },
+            tabBarContentContainerStyle: {
+              flex: 1,
+              borderColor: 'red',
+              borderWidth: 3,
+            },
+          }}>
+          <Tab.Screen
+            name="ActionInformations"
+            options={{
+              tabBarLabel: 'Informations',
+            }}
+            children={() => (
+              <ActionInformation
+                action={action}
+                actionDB={actionDB}
+                persons={persons}
+                editable={editable}
+                setEditable={setEditable}
+                setAction={setAction}
+                organisation={organisation}
+                groups={groups}
+                onSearchPerson={onSearchPerson}
+                descriptionRef={descriptionRef}
+                _scrollToInput={_scrollToInput}
+                updating={updating}
+                isUpdateDisabled={isUpdateDisabled}
+                onUpdateRequest={onUpdateRequest}
+                onDeleteRequest={onDeleteRequest}
+                canToggleGroupCheck={canToggleGroupCheck}
+                canDelete={canDelete}
+                canSetUrgent={canSetUrgent}
+              />
+            )}
+          />
+          <Tab.Screen
+            name="ActionCommentaires"
+            options={{
+              tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
+            }}
+            children={() => (
+              <ActionComments
+                actionDB={actionDB}
+                actionComments={actionComments}
+                comments={comments}
+                setComments={setComments}
+                canComment={canComment}
+                newCommentRef={newCommentRef}
+                _scrollToInput={_scrollToInput}
+                setWritingComment={setWritingComment}
+              />
+            )}
+          />
+        </Tab.Navigator>
+      ) : (
+        <ActionInformation
+          action={action}
+          actionDB={actionDB}
+          persons={persons}
+          editable={editable}
+          setEditable={setEditable}
+          setAction={setAction}
+          organisation={organisation}
+          groups={groups}
+          onSearchPerson={onSearchPerson}
+          descriptionRef={descriptionRef}
+          _scrollToInput={_scrollToInput}
+          updating={updating}
+          isUpdateDisabled={isUpdateDisabled}
+          onUpdateRequest={onUpdateRequest}
+          onDeleteRequest={onDeleteRequest}
+          canToggleGroupCheck={canToggleGroupCheck}
+          canDelete={canDelete}
+          canSetUrgent={canSetUrgent}
         />
-        <Tab.Screen
-          name="ActionCommentaires"
-          options={{
-            tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
-          }}
-          children={() => (
-            <ActionComments
-              actionDB={actionDB}
-              actionComments={actionComments}
-              comments={comments}
-              setComments={setComments}
-              canComment={canComment}
-              newCommentRef={newCommentRef}
-              _scrollToInput={_scrollToInput}
-              setWritingComment={setWritingComment}
-            />
-          )}
-        />
-      </Tab.Navigator>
+      )}
     </SceneContainer>
   );
 };

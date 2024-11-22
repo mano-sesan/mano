@@ -212,31 +212,33 @@ export const DataLoader = () => {
     /*
     Get treatments
     */
-    if (response.data.treatments || initialLoad) {
-      setLoading('Chargement des traitements');
-      const refreshedTreatments = await getData({
-        collectionName: 'treatment',
-        data: treatments,
-        setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
-        lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
-      });
-      if (refreshedTreatments) {
-        setTreatments((oldTreatments) => mergeItems(oldTreatments, refreshedTreatments));
+    if (['admin', 'normal'].includes(user.role)) {
+      if (response.data.treatments || initialLoad) {
+        setLoading('Chargement des traitements');
+        const refreshedTreatments = await getData({
+          collectionName: 'treatment',
+          data: treatments,
+          setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
+          lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
+        });
+        if (refreshedTreatments) {
+          setTreatments((oldTreatments) => mergeItems(oldTreatments, refreshedTreatments));
+        }
       }
-    }
-    /*
+      /*
       Get medicalFiles
       */
-    if (response.data.medicalFiles || initialLoad) {
-      setLoading('Chargement des dossiers médicaux');
-      const refreshedMedicalFiles = await getData({
-        collectionName: 'medical-file',
-        data: medicalFiles,
-        setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
-        lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
-      });
-      if (refreshedMedicalFiles) {
-        setMedicalFiles((oldMedicalFiles) => mergeItems(oldMedicalFiles, refreshedMedicalFiles));
+      if (response.data.medicalFiles || initialLoad) {
+        setLoading('Chargement des dossiers médicaux');
+        const refreshedMedicalFiles = await getData({
+          collectionName: 'medical-file',
+          data: medicalFiles,
+          setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
+          lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
+        });
+        if (refreshedMedicalFiles) {
+          setMedicalFiles((oldMedicalFiles) => mergeItems(oldMedicalFiles, refreshedMedicalFiles));
+        }
       }
     }
     /*

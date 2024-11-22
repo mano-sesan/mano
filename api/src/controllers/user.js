@@ -267,7 +267,7 @@ router.post(
 
     await user.save();
 
-    if (req.headers.platform === "android" && ["stats-only", "restricted-access"].includes(user.role)) {
+    if (req.headers.platform === "android" && ["stats-only"].includes(user.role)) {
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 

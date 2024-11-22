@@ -14,6 +14,7 @@ import { selector, selectorFamily, useRecoilState, useRecoilValue } from 'recoil
 import { loadingState, refreshTriggerState } from '../../components/Loader';
 import { filterBySearch } from '../../utils/search';
 import { useIsFocused } from '@react-navigation/native';
+import { userState } from '../../recoil/auth';
 
 const personsFilteredSelector = selectorFamily({
   key: 'personsFilteredSelector',
@@ -44,6 +45,7 @@ const personsFilteredBySearchSelector = selectorFamily({
   get:
     ({ filterTeams, filterOutOfActiveList, filterAlertness, search }) =>
     ({ get }) => {
+      const user = get(userState);
       if (!search?.length && !filterTeams.length && !filterOutOfActiveList && !filterAlertness) {
         const persons = get(arrayOfitemsGroupedByPersonSelector);
         return persons;
@@ -51,7 +53,10 @@ const personsFilteredBySearchSelector = selectorFamily({
 
       const personsFiltered = get(personsFilteredSelector({ filterTeams, filterAlertness, filterOutOfActiveList }));
 
-      const personsfilteredBySearch = filterBySearch(search, personsFiltered);
+      const restrictedFields =
+        user.role === 'restricted-access' ? ['name', 'phone', 'otherNames', 'gender', 'formattedBirthDate', 'assignedTeams', 'email'] : null;
+
+      const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
       return personsfilteredBySearch;
     },

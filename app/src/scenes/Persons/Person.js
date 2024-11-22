@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Alert, Platform } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import PersonSummary from './PersonSummary';
 import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
@@ -60,6 +60,7 @@ const Person = ({ route, navigation }) => {
     if (isFocused && refreshTrigger.status !== true) {
       setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const castToPerson = useCallback(
@@ -183,6 +184,7 @@ const Person = ({ route, navigation }) => {
       const keepGoing = await new Promise((res) => {
         Alert.alert(
           'Voulez-vous continuer la suppression ?',
+          // eslint-disable-next-line max-len
           'Des données médicales sont associées à cette personne. Si vous la supprimez, ces données seront également effacées. Vous n’avez pas accès à ces données médicales car vous n’êtes pas un·e professionnel·le de santé. Voulez-vous supprimer cette personne et toutes ses données ?',
           [
             { text: 'Annuler', style: 'cancel', onPress: () => res(false) },
@@ -330,6 +332,8 @@ const Person = ({ route, navigation }) => {
     ]);
   };
 
+  const showFoldersTab = useMemo(() => ['admin', 'normal'].includes(user.role), [user.role]);
+
   return (
     <>
       <SceneContainer backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey} testID="person">
@@ -342,54 +346,73 @@ const Person = ({ route, navigation }) => {
           backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
           testID="person"
         />
-        <TabNavigator.Navigator
-          tabBar={(props) => (
-            <Tabs
-              numberOfTabs={2}
-              {...props}
-              backgroundColor={!person?.outOfActiveList ? colors.app.backgroundColor : colors.app.colorBackgroundDarkGrey}
-            />
-          )}
-          removeClippedSubviews={Platform.OS === 'android'}
-          screenOptions={{ swipeEnabled: true }}>
-          <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: 'Résumé' }}>
-            {() => (
-              <PersonSummary
-                navigation={navigation}
-                route={route}
-                person={person}
-                personDB={personDB}
-                backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
-                onChange={onChange}
-                onUpdatePerson={onUpdatePerson}
-                onCommentWrite={setWritingComment}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onBack={onBack}
-                isUpdateDisabled={isUpdateDisabled}
-                updating={updating}
-                editable={editable}
+        {showFoldersTab ? (
+          <TabNavigator.Navigator
+            tabBar={(props) => (
+              <Tabs
+                numberOfTabs={2}
+                {...props}
+                backgroundColor={!person?.outOfActiveList ? colors.app.backgroundColor : colors.app.colorBackgroundDarkGrey}
               />
             )}
-          </TabNavigator.Screen>
-          <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: 'Dossiers' }}>
-            {() => (
-              <FoldersNavigator
-                navigation={navigation}
-                route={route}
-                person={person}
-                personDB={personDB}
-                backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
-                onChange={onChange}
-                onUpdatePerson={onUpdatePerson}
-                onEdit={onEdit}
-                isUpdateDisabled={isUpdateDisabled}
-                editable={editable}
-                updating={updating}
-              />
-            )}
-          </TabNavigator.Screen>
-        </TabNavigator.Navigator>
+            removeClippedSubviews={Platform.OS === 'android'}
+            screenOptions={{ swipeEnabled: true }}>
+            <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: 'Résumé' }}>
+              {() => (
+                <PersonSummary
+                  navigation={navigation}
+                  route={route}
+                  person={person}
+                  personDB={personDB}
+                  backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+                  onChange={onChange}
+                  onUpdatePerson={onUpdatePerson}
+                  onCommentWrite={setWritingComment}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onBack={onBack}
+                  isUpdateDisabled={isUpdateDisabled}
+                  updating={updating}
+                  editable={editable}
+                />
+              )}
+            </TabNavigator.Screen>
+            <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: 'Dossiers' }}>
+              {() => (
+                <FoldersNavigator
+                  navigation={navigation}
+                  route={route}
+                  person={person}
+                  personDB={personDB}
+                  backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+                  onChange={onChange}
+                  onUpdatePerson={onUpdatePerson}
+                  onEdit={onEdit}
+                  isUpdateDisabled={isUpdateDisabled}
+                  editable={editable}
+                  updating={updating}
+                />
+              )}
+            </TabNavigator.Screen>
+          </TabNavigator.Navigator>
+        ) : (
+          <PersonSummary
+            navigation={navigation}
+            route={route}
+            person={person}
+            personDB={personDB}
+            backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+            onChange={onChange}
+            onUpdatePerson={onUpdatePerson}
+            onCommentWrite={setWritingComment}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onBack={onBack}
+            isUpdateDisabled={isUpdateDisabled}
+            updating={updating}
+            editable={editable}
+          />
+        )}
       </SceneContainer>
     </>
   );

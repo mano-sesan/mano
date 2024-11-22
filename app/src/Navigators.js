@@ -209,6 +209,7 @@ const MenuNavigator = () => {
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
+  const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
   const fullScreen = useRecoilValue(loaderFullScreenState);
 
@@ -255,16 +256,18 @@ const TabNavigator = () => {
           tabBarTestID: 'tab-bar-persons',
         }}
       />
-      <Tab.Screen
-        lazy
-        name="Notifications"
-        component={NotificationsNavigator}
-        options={{
-          tabBarIcon: BellWithNotifications,
-          tabBarLabel: 'PRIORITÉS',
-          tabBarTestID: 'tab-bar-notifications',
-        }}
-      />
+      {['admin', 'normal'].includes(user?.role) && (
+        <Tab.Screen
+          lazy
+          name="Notifications"
+          component={NotificationsNavigator}
+          options={{
+            tabBarIcon: BellWithNotifications,
+            tabBarLabel: 'PRIORITÉS',
+            tabBarTestID: 'tab-bar-notifications',
+          }}
+        />
+      )}
       <Tab.Screen
         lazy
         name="MenuTab"
