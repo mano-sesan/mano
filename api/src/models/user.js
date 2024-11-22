@@ -19,7 +19,6 @@ module.exports = (sequelize, DataTypes) => {
     role: { type: DataTypes.TEXT, defaultValue: "normal" },
     debugApp: DataTypes.JSONB,
     debugDashboard: DataTypes.JSONB,
-    gaveFeedbackEarly2023: DataTypes.BOOLEAN,
     loginAttempts: { type: DataTypes.INTEGER, defaultValue: 0 },
     nextLoginAttemptAt: DataTypes.DATE,
     decryptAttempts: { type: DataTypes.INTEGER, defaultValue: 0 },
