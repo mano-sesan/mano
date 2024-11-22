@@ -15,15 +15,6 @@ router.get(
   })
 );
 
-router.get(
-  "/feedbacks",
-  catchErrors(async (_req, res) => {
-    const feedbacks = await User.count({ where: { gaveFeedbackEarly2023: true } });
-    const totalUsers = await User.count({ where: { lastLoginAt: { [Op.gte]: "2022-11-01" } } });
-    return res.status(200).send({ ok: true, data: { totalUsers: Math.round(totalUsers / 3), count: feedbacks + 57 } });
-  })
-);
-
 // https://discover.umap-project.org/fr/tutorials/10-embed-remote-data/#1-jutilise-des-donnees-distantes
 router.get(
   "/umap-geojson",

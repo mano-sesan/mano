@@ -128,7 +128,6 @@ function serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTea
     lastChangePasswordAt: user.lastChangePasswordAt,
     termsAccepted: user.termsAccepted,
     cgusAccepted: user.cgusAccepted,
-    gaveFeedbackEarly2023: user.gaveFeedbackEarly2023,
     teams: teams.map(serializeTeam),
     orgTeams: orgTeams.map(serializeTeam),
     organisation: serializeOrganisation(organisation),

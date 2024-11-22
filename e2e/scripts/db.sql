@@ -222,8 +222,7 @@ CREATE TABLE IF NOT EXISTS mano."User" (
     "cgusAccepted" timestamp with time zone,
     "healthcareProfessional" boolean DEFAULT false,
     "debugApp" jsonb,
-    "debugDashboard" jsonb,
-    "gaveFeedbackEarly2023" boolean
+    "debugDashboard" jsonb
 );
 
 
