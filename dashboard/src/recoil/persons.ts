@@ -244,8 +244,11 @@ type SortOrder = "ASC" | "DESC";
 
 type SortBy = "name" | "createdAt" | "deletedAt" | "formattedBirthDate" | "alertness" | "group" | "user" | "followedSince" | "lastUpdateCheckForGDPR";
 
-const defaultSort = (a: PersonInstance, b: PersonInstance, sortOrder: SortOrder) =>
-  sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name);
+const defaultSort = (a: PersonInstance, b: PersonInstance, sortOrder: SortOrder) => {
+  const nameA = String(a.name || "");
+  const nameB = String(b.name || "");
+  return sortOrder === "ASC" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+};
 
 export const sortPersons = (sortBy: SortBy, sortOrder: SortOrder) => (a: PersonInstance, b: PersonInstance) => {
   if (sortBy === "createdAt") {
