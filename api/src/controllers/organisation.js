@@ -333,11 +333,7 @@ router.put(
 router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  // Todo: supprimer "restricted-access" et "normal" de validateUser
-  // Parce que maintenant pour les mises à jours de collaborations se font par ailleurs
-  // (route: /organisation/:_id/collaborations)
-  // Cependant, il faut attendre quelques mois (pas urgent) que l'app soit mise à jour (décembre 2024)
-  validateUser(["admin", "normal", "restricted-access"]),
+  validateUser(["admin"]),
   catchErrors(async (req, res, next) => {
     try {
       const bodyToParse = {
@@ -387,7 +383,7 @@ router.put(
         params: z.object({
           _id: z.string().regex(looseUuidRegex),
         }),
-        body: z.object(req.user.role !== "admin" ? { collaborations: z.array(z.string()) } : bodyToParse),
+        body: bodyToParse,
       }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in organisation put: ${e}`);
@@ -401,11 +397,6 @@ router.put(
 
     const organisation = await Organisation.findOne({ where: { _id } });
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
-
-    if (req.user.role !== "admin") {
-      await organisation.update({ collaborations: req.body.collaborations });
-      return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
-    }
 
     const updateOrg = {};
     if (req.body.hasOwnProperty("name")) updateOrg.name = req.body.name;
