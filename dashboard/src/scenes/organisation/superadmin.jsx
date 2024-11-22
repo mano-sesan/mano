@@ -28,7 +28,6 @@ const SuperAdmin = () => {
   const [sortBy, setSortBy] = useState("countersTotal");
   const [sortOrder, setSortOrder] = useState("DESC");
   const [refresh, setRefresh] = useState(true);
-  const [refreshUsers, setRefreshUsers] = useState(true);
   const [searchUserModal, setSearchUserModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openMergeModal, setOpenMergeModal] = useState(false);
