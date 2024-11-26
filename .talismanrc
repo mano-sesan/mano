@@ -4,7 +4,7 @@ fileignoreconfig:
 - filename: api/.yarnrc.yml
   checksum: 99a0c6990e8edd0215ff7c4fcf69591c70ef19f2c83e412a599292ac357708cd
 - filename: api/mocked-db.sql
-  checksum: d2a1521a81c8bd4a73ae57ec526cfcba2499420d299288ae533bb22dee67a7b2
+  checksum: 6cdd7b295560fb6e4a93267df1e276d1fddf152e923e022f8c2f05c450500918
 - filename: app/ios/Podfile.lock
   checksum: dcaf6d48f6e5fbd5e1eba52c4ddcdbb058170b00612ab4aeb862beeb5941d6a9
 - filename: app/ios/mano.xcodeproj/project.pbxproj
