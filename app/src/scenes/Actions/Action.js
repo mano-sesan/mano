@@ -32,6 +32,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
 import { refreshTriggerState } from '../../components/Loader';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import DocumentsManager from '../../components/DocumentsManager';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -292,8 +293,11 @@ const Action = ({ navigation, route }) => {
   }, []);
 
   const isUpdateDisabled = useMemo(() => {
+    // On ne compare pas les documents et l'historique qui sont gérés par ailleurs
     const newAction = { ...actionDB, ...castToAction(action) };
-    if (JSON.stringify(actionDB) !== JSON.stringify(newAction)) return false;
+    const { documents: documentsA, history: historyA, ...actionDBWithoutDocs } = actionDB;
+    const { documents: documentsB, history: historyB, ...newActionWithoutDocs } = newAction;
+    if (JSON.stringify(actionDBWithoutDocs) !== JSON.stringify(newActionWithoutDocs)) return false;
     return true;
   }, [actionDB, action]);
 
@@ -677,6 +681,36 @@ const Action = ({ navigation, route }) => {
                 _scrollToInput={_scrollToInput}
                 setWritingComment={setWritingComment}
               />
+            )}
+          />
+          <Tab.Screen
+            name="ActionDocuments"
+            options={{
+              tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ''}`,
+            }}
+            children={() => (
+              <ScrollContainer noRadius>
+                <DocumentsManager
+                  defaultParent="root"
+                  personDB={person}
+                  onAddDocument={(doc) => {
+                    const newActionDb = { ...actionDB, documents: [...(actionDB.documents || []), doc] };
+                    setAction(castToAction(newActionDb));
+                    updateAction(newActionDb);
+                  }}
+                  onDelete={(doc) => {
+                    const newActionDb = { ...actionDB, documents: actionDB.documents.filter((d) => d.file.filename !== doc.file.filename) };
+                    setAction(castToAction(newActionDb));
+                    updateAction(newActionDb);
+                  }}
+                  onUpdateDocument={(doc) => {
+                    const newActionDb = { ...actionDB, documents: actionDB.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) };
+                    setAction(castToAction(newActionDb));
+                    updateAction(newActionDb);
+                  }}
+                  documents={actionDB.documents}
+                />
+              </ScrollContainer>
             )}
           />
         </Tab.Navigator>
