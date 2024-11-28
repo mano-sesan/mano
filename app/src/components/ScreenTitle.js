@@ -38,20 +38,7 @@ const ScreenTitle = ({
       <AnimatedSafeAreaView style={[styles.color(backgroundColor), styles.wrapper(parentScroll, forceTop)]}>
         <StatusBar backgroundColor={backgroundColor} />
         <Animated.View style={[styles.color(backgroundColor), styles.container(forceTop)]}>
-          <Animated.View style={styles.titleContainer(parentScroll, forceTop)}>
-            {!forceTop && <Animated.View style={[styles.buttonsContainer]} />}
-            <Animated.View style={styles.titleCaptionContainer}>
-              <Title heavy ellipsizeMode="tail" color={color}>
-                {title}
-              </Title>
-              {Boolean(onPressRight) && (
-                <TouchableOpacity hitSlop={hitSlop} onPress={onPressRight}>
-                  <ButtonText>{customRight}</ButtonText>
-                </TouchableOpacity>
-              )}
-            </Animated.View>
-          </Animated.View>
-          <View style={[styles.buttonsContainer, styles.buttonsContainerFixed]}>
+          <View style={[styles.buttonsContainer]}>
             {!!showLeftButton && (
               <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? 'auto' : 'none'}>
                 <TouchableOpacity hitSlop={hitSlop} onPress={onBack} testID={`${testID}-back-button`}>
@@ -85,6 +72,18 @@ const ScreenTitle = ({
               </Animated.View>
             )}
           </View>
+          <Animated.View style={styles.titleContainer(parentScroll, forceTop)}>
+            <Animated.View style={styles.titleCaptionContainer}>
+              <Title heavy ellipsizeMode="tail" color={color}>
+                {title}
+              </Title>
+              {Boolean(onPressRight) && (
+                <TouchableOpacity hitSlop={hitSlop} onPress={onPressRight}>
+                  <ButtonText>{customRight}</ButtonText>
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+          </Animated.View>
         </Animated.View>
         {children}
       </AnimatedSafeAreaView>
@@ -151,13 +150,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     height: 30,
     width: '100%',
-  },
-  buttonsContainerFixed: {
-    position: 'absolute',
-    top: 15,
-    left: 15,
-    right: 15,
-    borderWidth: 0,
+    marginTop: 15,
   },
 
   buttonContainer: (show) => ({
