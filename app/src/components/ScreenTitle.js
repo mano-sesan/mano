@@ -4,6 +4,7 @@ import { ActivityIndicator, Animated, StatusBar, StyleSheet, TouchableOpacity, V
 import { MyText } from './MyText';
 import colors from '../utils/colors';
 import ArrowLeftExtended from '../icons/ArrowLeftExtended';
+import { DEVMODE_HIDE_STATUS_BAR } from '../config';
 
 const hitSlop = {
   top: 20,
@@ -36,7 +37,7 @@ const ScreenTitle = ({
   return (
     <>
       <AnimatedSafeAreaView style={[styles.color(backgroundColor), styles.wrapper(parentScroll, forceTop)]}>
-        <StatusBar backgroundColor={backgroundColor} />
+        <StatusBar backgroundColor={backgroundColor} hidden={Boolean(__DEV__ && DEVMODE_HIDE_STATUS_BAR)} />
         <Animated.View style={[styles.color(backgroundColor), styles.container(forceTop)]}>
           <Animated.View style={styles.titleContainer(parentScroll, forceTop)}>
             {!forceTop && <Animated.View style={[styles.buttonsContainer]} />}
