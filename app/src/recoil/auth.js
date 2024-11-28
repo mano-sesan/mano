@@ -36,3 +36,8 @@ export const currentTeamState = atom({
   default: null,
   effects: [({ onSet }) => onSet((currentTeam) => Sentry.setTag('currentTeam', currentTeam?._id ?? ''))],
 });
+
+export const deletedUsersState = atom({
+  key: 'deletedUsersState',
+  default: [],
+});

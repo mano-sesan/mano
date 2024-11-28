@@ -17,7 +17,7 @@ import EyeIcon from '../../icons/EyeIcon';
 import Title, { SubTitle } from '../../components/Title';
 import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from '../../config';
 import { useSetRecoilState } from 'recoil';
-import { currentTeamState, organisationState, teamsState, usersState, userState } from '../../recoil/auth';
+import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from '../../recoil/auth';
 import { clearCache, appCurrentCacheKey } from '../../services/dataManagement';
 import { refreshTriggerState } from '../../components/Loader';
 import { useIsFocused } from '@react-navigation/native';
@@ -40,6 +40,7 @@ const Login = ({ navigation }) => {
   const setOrganisation = useSetRecoilState(organisationState);
   const setTeams = useSetRecoilState(teamsState);
   const setUsers = useSetRecoilState(usersState);
+  const setDeletedUsers = useSetRecoilState(deletedUsersState);
   const setCurrentTeam = useSetRecoilState(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString('organisationId');
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
@@ -186,6 +187,7 @@ const Login = ({ navigation }) => {
       await AsyncStorage.setItem('persistent_email', email);
       const { data: teams } = await API.get({ path: '/team' });
       const { data: users } = await API.get({ path: '/user', query: { minimal: true } });
+      const { data: deletedUsers } = await API.get({ path: '/user/deleted-users' });
       setUser(response.user);
       setOrganisation(response.user.organisation);
       // We need to reset cache if organisation has changed.
@@ -196,6 +198,7 @@ const Login = ({ navigation }) => {
       }
       setStorageOrganisationId(response.user.organisation._id);
       setUsers(users);
+      setDeletedUsers(deletedUsers);
       setTeams(teams);
       // getting teams before going to team selection
       if (!__DEV__ && !response.user.lastChangePasswordAt) {
