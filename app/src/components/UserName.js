@@ -1,13 +1,14 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
 import styled from 'styled-components/native';
-import { usersState } from '../recoil/auth';
+import { deletedUsersState, usersState } from '../recoil/auth';
 import { MyText } from './MyText';
 
 const UserName = ({ id, caption }) => {
   const users = useRecoilValue(usersState);
+  const deletedUsers = useRecoilValue(deletedUsersState);
 
-  const user = users.find((u) => u._id === id);
+  const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
 
   if (!user?.name) return null;
   return (
