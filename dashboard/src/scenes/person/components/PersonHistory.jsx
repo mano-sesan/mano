@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useRecoilValue } from "recoil";
-import { teamsState, userState, usersState } from "../../../recoil/auth";
+import { deletedUsersState, teamsState, userState, usersState } from "../../../recoil/auth";
 import { personFieldsIncludingCustomFieldsSelector } from "../../../recoil/persons";
 import { formatDateWithFullMonth, dayjsInstance } from "../../../services/date";
 import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
@@ -9,7 +9,9 @@ import PersonTeamHistory from "./PersonTeamHistory";
 
 function UserName({ id, name }) {
   const users = useRecoilValue(usersState);
-  const user = users.find((u) => u._id === id);
+  const deletedUsers = useRecoilValue(deletedUsersState);
+
+  const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
   if (user) return user.name || "Utilisateur sans nom";
   else if (name) return name + " (utilisateur supprimé)";
   else return "Utilisateur supprimé";
