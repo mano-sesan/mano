@@ -1,24 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import ScrollContainer from '../../components/ScrollContainer';
 import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
 import ActionCategoriesModalSelect from '../../components/ActionCategoriesModalSelect';
+import { actionsFiltersState } from '../../recoil/actions';
+import { useRecoilState } from 'recoil';
 
-const ActionsFilter = ({ route, navigation }) => {
-  const [filterCategories, setFilterCategories] = useState(route.params?.filters?.filterCategories || []);
+const ActionsFilter = ({ navigation }) => {
+  const [actionsFilters, setActionsFilters] = useRecoilState(actionsFiltersState);
 
+  console.log('ActionsFilter', actionsFilters);
   const onBackRequested = () => {
-    navigation.navigate('ActionsList', {
-      filters: { filterCategories },
-      merge: true,
-    });
+    navigation.navigate('ActionsList');
   };
 
   return (
     <SceneContainer>
       <ScreenTitle title="Filtres" onBack={onBackRequested} />
       <ScrollContainer>
-        <ActionCategoriesModalSelect values={filterCategories} onChange={setFilterCategories} editable withMostUsed />
+        <ActionCategoriesModalSelect
+          values={actionsFilters.categories}
+          onChange={(categories) => {
+            setActionsFilters({ ...actionsFilters, categories });
+          }}
+          editable
+        />
       </ScrollContainer>
     </SceneContainer>
   );

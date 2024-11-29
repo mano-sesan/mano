@@ -370,9 +370,9 @@ const filterByTimeframe = (actions, timeframe) => {
   }
 };
 
-const filterByCategories = (actions, filterCategories) => {
-  if (!filterCategories?.length) return actions;
-  return actions.filter((action) => action.categories?.some((category) => filterCategories.includes(category)));
+const filterByCategories = (actions, categories) => {
+  if (!categories?.length) return actions;
+  return actions.filter((action) => action.categories?.some((category) => categories.includes(category)));
 };
 
 export const actionsByStatusAndTimeframeSelector = selectorFamily({
@@ -382,16 +382,16 @@ export const actionsByStatusAndTimeframeSelector = selectorFamily({
     ({ get }) => {
       if (status === DONE) {
         const actions = get(actionsDoneSelectorSliced({ limit }));
-        return filterByCategories(actions, filters?.filterCategories);
+        return filterByCategories(actions, filters?.categories);
       }
       if (status === TODO) {
         const actions = get(actionsTodoSelector);
         const timeFiltered = filterByTimeframe(actions, timeframe);
-        return filterByCategories(timeFiltered, filters?.filterCategories);
+        return filterByCategories(timeFiltered, filters?.categories);
       }
       if (status === CANCEL) {
         const actions = get(actionsCanceledSelectorSliced({ limit }));
-        return filterByCategories(actions, filters?.filterCategories);
+        return filterByCategories(actions, filters?.categories);
       }
     },
 });

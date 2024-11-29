@@ -7,7 +7,7 @@ import Spinner from '../../components/Spinner';
 import { ListEmptyActions, ListNoMoreActions } from '../../components/ListEmptyContainer';
 import FloatAddButton from '../../components/FloatAddButton';
 import { FlashListStyled } from '../../components/Lists';
-import { TODO } from '../../recoil/actions';
+import { actionsFiltersState, TODO } from '../../recoil/actions';
 import { actionsByStatusAndTimeframeSelector, totalActionsByStatusSelector } from '../../recoil/selectors';
 import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { refreshTriggerState, loadingState } from '../../components/Loader';
@@ -21,16 +21,18 @@ const keyExtractor = (action) => action._id;
 const limitSteps = 100;
 
 const ActionsList = ({ showActionSheetWithOptions }) => {
+  const filters = useRecoilValue(actionsFiltersState);
   const navigation = useNavigation();
   const loading = useRecoilValue(loadingState);
   const user = useRecoilValue(userState);
+  const route = useRoute();
 
-  const { status, timeframe } = useRoute().params;
+  const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
 
-  const actionsByStatusAndTimeframe = useRecoilValue(actionsByStatusAndTimeframeSelector({ status, timeframe, limit }));
-  const total = useRecoilValue(totalActionsByStatusSelector({ status, timeframe }));
+  const actionsByStatusAndTimeframe = useRecoilValue(actionsByStatusAndTimeframeSelector({ status, timeframe, limit, filters }));
+  const total = useRecoilValue(totalActionsByStatusSelector({ status, timeframe, filters }));
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
 

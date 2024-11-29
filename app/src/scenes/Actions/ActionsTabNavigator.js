@@ -6,8 +6,10 @@ import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
 import ActionsList from './ActionsList';
 import Tabs from '../../components/Tabs';
-import { CANCEL, DONE, TODO } from '../../recoil/actions';
+import { actionsFiltersState, CANCEL, DONE, TODO } from '../../recoil/actions';
 import { INCOMINGDAYS, PASSED, TODAY } from '../../recoil/selectors';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useRecoilValue } from 'recoil';
 
 const TopTab = createMaterialTopTabNavigator();
 const SubTab = createMaterialTopTabNavigator();
@@ -135,10 +137,17 @@ const TodoNavigator = () => {
 };
 
 const ActionsTabBar = (props) => {
+  const actionsFilters = useRecoilValue(actionsFiltersState);
   const { key, ...rest } = props;
+  const navigation = useNavigation();
+  const route = useRoute();
+  const numberOfFilters = actionsFilters.categories?.length;
+
+  const onFiltersPress = () => navigation.push('ActionsFilter', route.params);
+
   return (
     <>
-      <ScreenTitle title="Agenda" />
+      <ScreenTitle title="Agenda" customRight={`Filtres (${numberOfFilters})`} onPressRight={onFiltersPress} />
       <Tabs numberOfTabs={3} forceTop key={key} {...rest} />
     </>
   );
