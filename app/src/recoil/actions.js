@@ -110,3 +110,8 @@ export const mappedIdsToLabels = [
   { _id: DONE, name: 'FAITE' },
   { _id: CANCEL, name: 'ANNULÉE' },
 ];
+
+export const actionsFiltersState = atom({
+  key: 'actionsFiltersState',
+  default: {},
+});

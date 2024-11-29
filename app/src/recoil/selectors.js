@@ -370,22 +370,28 @@ const filterByTimeframe = (actions, timeframe) => {
   }
 };
 
+const filterByCategories = (actions, categories) => {
+  if (!categories?.length) return actions;
+  return actions.filter((action) => action.categories?.some((category) => categories.includes(category)));
+};
+
 export const actionsByStatusAndTimeframeSelector = selectorFamily({
   key: 'actionsByStatusAndTimeframeSelector',
   get:
-    ({ status, limit, timeframe }) =>
+    ({ status, limit, timeframe, filters }) =>
     ({ get }) => {
       if (status === DONE) {
         const actions = get(actionsDoneSelectorSliced({ limit }));
-        return actions;
+        return filterByCategories(actions, filters?.categories);
       }
       if (status === TODO) {
         const actions = get(actionsTodoSelector);
-        return filterByTimeframe(actions, timeframe);
+        const timeFiltered = filterByTimeframe(actions, timeframe);
+        return filterByCategories(timeFiltered, filters?.categories);
       }
       if (status === CANCEL) {
         const actions = get(actionsCanceledSelectorSliced({ limit }));
-        return actions;
+        return filterByCategories(actions, filters?.categories);
       }
     },
 });
@@ -393,9 +399,9 @@ export const actionsByStatusAndTimeframeSelector = selectorFamily({
 export const totalActionsByStatusSelector = selectorFamily({
   key: 'totalActionsByStatusSelector',
   get:
-    ({ status, timeframe }) =>
+    ({ status, timeframe, filters }) =>
     ({ get }) => {
-      const actions = get(actionsByStatusAndTimeframeSelector({ status, limit: null, timeframe }));
+      const actions = get(actionsByStatusAndTimeframeSelector({ status, limit: null, timeframe, filters }));
       return actions.length;
     },
 });

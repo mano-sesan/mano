@@ -68,6 +68,7 @@ import Consultations from './scenes/Reports/Consultations';
 import Passage from './scenes/Persons/Passage';
 import ProgressBar from './components/ProgressBar';
 import APKUpdater from './components/APKUpdater';
+import ActionsFilter from './scenes/Actions/ActionsFilter';
 
 const ActionsStack = createStackNavigator();
 const ActionsNavigator = () => {
@@ -89,6 +90,7 @@ const ActionsNavigator = () => {
 
       <PersonsStack.Screen name="Treatment" component={Treatment} />
       <ActionsStack.Screen name="Consultation" component={Consultation} />
+      <ActionsStack.Screen name="ActionsFilter" component={ActionsFilter} />
     </ActionsStack.Navigator>
   );
 };
