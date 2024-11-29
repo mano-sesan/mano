@@ -15,7 +15,7 @@ export default function DownloadStructuresImportExample() {
       onClick={() => {
         const importable = structuresFields(structuresCategories).filter((f) => f.importable);
         const ws = utils.aoa_to_sheet([importable.map((f) => f.label), importable.map((f) => placeholder(f))]);
-        const workbook = { Sheets: { structure: ws }, SheetNames: ["contacts"] };
+        const workbook = { Sheets: { contacts: ws }, SheetNames: ["contacts"] };
         writeFile(workbook, "contacts.xlsx");
       }}
       color="primary"
