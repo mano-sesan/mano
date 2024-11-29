@@ -9,7 +9,6 @@ import { useRecoilState } from 'recoil';
 const ActionsFilter = ({ navigation }) => {
   const [actionsFilters, setActionsFilters] = useRecoilState(actionsFiltersState);
 
-  console.log('ActionsFilter', actionsFilters);
   const onBackRequested = () => {
     navigation.navigate('ActionsList');
   };
