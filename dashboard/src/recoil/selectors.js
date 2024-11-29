@@ -49,7 +49,7 @@ const actionsWithCommentsSelector = selector({
     }
     for (const comment of comments) {
       if (!actionsObject[comment.action]) continue;
-      actionsObject[comment.action].comments.push(comment);
+      actionsObject[comment.action].comments.push({ ...comment, date: comment.date || comment.createdAt });
     }
     return actionsObject;
   },
