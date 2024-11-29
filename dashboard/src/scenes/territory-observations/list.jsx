@@ -16,7 +16,7 @@ import { defaultModalObservationState, modalObservationState } from "../../recoi
 
 const List = ({ territory = {} }) => {
   const setModalObservation = useSetRecoilState(modalObservationState);
-  const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "name");
+  const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "observedAt");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
   const territoryObservations = useRecoilValue(territoryObservationsState);
   const users = useRecoilValue(usersState);
