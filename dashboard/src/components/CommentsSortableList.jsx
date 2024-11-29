@@ -12,6 +12,7 @@ import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../recoil/comments";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
+import ConsultationButton from "./ConsultationButton";
 
 export default function CommentsSortableList({ data, className = "", fullScreen = false }) {
   const setModalAction = useSetRecoilState(modalActionState);
@@ -62,6 +63,7 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
       data={dataSorted}
       onRowClick={(comment) => {
         const searchParams = new URLSearchParams(history.location.search);
+        if (comment.isMedicalCommentShared) return;
         switch (comment.type) {
           case "action":
             setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionsObjects[comment.action] });
@@ -90,6 +92,7 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
             break;
         }
       }}
+      rowDisabled={(comment) => comment.isMedicalCommentShared}
       rowKey="_id"
       dataTestId="comment"
       columns={
@@ -112,6 +115,7 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
                           👪
                         </span>
                       )}
+                      {comment.isMedicalCommentShared ? <ConsultationButton /> : null}
                     </div>
                   );
                 },
@@ -217,6 +221,11 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
                           </span>
                         )}
                       </div>
+                      {comment.isMedicalCommentShared ? (
+                        <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
+                          <ConsultationButton />
+                        </div>
+                      ) : null}
                     </>
                   );
                 },

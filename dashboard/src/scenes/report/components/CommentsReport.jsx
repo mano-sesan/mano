@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import TabsNav from "../../../components/tailwind/TabsNav";
@@ -13,10 +13,20 @@ export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
   const user = useRecoilValue(userState);
   const canSeeMedicalData = ["admin", "normal"].includes(user.role) && !!user.healthcareProfessional;
 
-  const data = canSeeMedicalData && activeTab.includes("Commentaires médicaux") ? commentsMedical : comments;
+  // On affiche les commentaires médicaux partagés par les professionnels de santés
+  // à tout le monde s'ils ont coché la case "Partager avec les professionnels non-médicaux"
+  const commentsWithMedicalShared = useMemo(
+    () =>
+      [...(comments || []), ...(commentsMedical || []).filter((e) => e.share === true).map((e) => ({ ...e, isMedicalCommentShared: true }))].sort(
+        (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
+      ),
+    [comments, commentsMedical]
+  );
+
+  const data = canSeeMedicalData && activeTab.includes("Commentaires médicaux") ? commentsMedical : commentsWithMedicalShared;
   const tabs = canSeeMedicalData
-    ? [`Commentaires (${comments.length})`, `Commentaires médicaux (${commentsMedical.length})`]
-    : [`Commentaires (${comments.length})`];
+    ? [`Commentaires (${commentsWithMedicalShared.length})`, `Commentaires médicaux (${commentsMedical.length})`]
+    : [`Commentaires (${commentsWithMedicalShared.length})`];
 
   return (
     <>
@@ -52,10 +62,10 @@ export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
         className="printonly tw-flex tw-h-full tw-flex-col tw-overflow-hidden tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow"
       >
         <div className="tw-flex tw-flex-col tw-items-stretch tw-bg-white tw-px-3 tw-py-3">
-          <h3 className="tw-m-0 tw-text-base tw-font-medium">Commentaires ({comments.length})</h3>
+          <h3 className="tw-m-0 tw-text-base tw-font-medium">Commentaires ({commentsWithMedicalShared.length})</h3>
         </div>
         <div className="tw-grow tw-overflow-y-auto tw-border-t tw-border-main tw-border-opacity-20">
-          <CommentsSortableList data={comments} />
+          <CommentsSortableList data={commentsWithMedicalShared} />
         </div>
       </section>
       {!!canSeeMedicalData && (
