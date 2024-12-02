@@ -4,7 +4,7 @@ import { addOneDay, dateForDatePicker, formatDateWithNameOfDay, dayjsInstance } 
 import { TODO } from "../../recoil/actions";
 import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { reportsState } from "../../recoil/reports";
+import { flattenedServicesSelector, reportsState } from "../../recoil/reports";
 import { selectorFamily, useRecoilValue } from "recoil";
 import { passagesState } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
@@ -225,6 +225,7 @@ const defaultPreset = reportsPresets[0];
 
 const View = () => {
   const { dateString } = useParams();
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
   const organisation = useRecoilValue(organisationState);
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
@@ -433,7 +434,7 @@ const View = () => {
                     <Priorites period={period} selectedTeams={selectedTeams} actions={actions} comments={comments} />
                   </div>
                 )}
-                {organisation.receptionEnabled && (
+                {organisation.receptionEnabled && Boolean(flattenedServices?.length) && (
                   <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-white tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
                     <ServicesReport selectedTeamsObject={selectedTeamsObject} period={period} />
                   </div>
