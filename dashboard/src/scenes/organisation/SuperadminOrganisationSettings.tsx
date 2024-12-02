@@ -25,6 +25,9 @@ export default function SuperadminOrganisationSettings({
     if (!data.name) return toast.error("Le nom est obligatoire");
     if (!data.city) return toast.error("La ville est obligatoire");
 
+    if (!(data.emailDirection || "").trim()) data.emailDirection = undefined;
+    if (!(data.emailDpo || "").trim()) data.emailDpo = undefined;
+
     tryFetchExpectOk(() => API.put({ path: `/organisation/superadmin/${organisation._id}`, body: data })).then(([error, res]) => {
       if (!error) {
         toast.success("Organisation mise à jour");
