@@ -163,23 +163,29 @@ test("Create action with comments", async ({ page }) => {
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   await page.getByRole("button", { name: "Actions et commentaires urgents et vigilance" }).click();
-  await page
+
+  const firstComment = page
     .getByRole("dialog", { name: "Actions urgentes et vigilance" })
     .locator('[data-test-id="action avec commentaire"]')
-    .getByRole("button", { name: "Déprioriser" })
-    .click();
+    .getByRole("button", { name: "Déprioriser" });
+  await expect(firstComment).toBeVisible();
+  await firstComment.click();
   await expect(page.getByRole("dialog", { name: "Commentaires urgents et vigilance" })).toBeVisible();
-  await page
+
+  const secondComment = page
     .getByRole("dialog", { name: "Commentaires urgents et vigilance" })
     .locator('[data-test-id="commentaire prioritaire pour une personne"]')
-    .getByRole("button", { name: "Déprioriser" })
-    .click();
+    .getByRole("button", { name: "Déprioriser" });
+  await expect(secondComment).toBeVisible();
+  await secondComment.click();
   await expect(page.getByRole("dialog", { name: "Commentaires urgents et vigilance" })).toBeVisible();
-  await page
+
+  const thirdComment = page
     .getByRole("dialog", { name: "Commentaires urgents et vigilance" })
     .locator('[data-test-id="Une personne avec un commentaire prioritaire modifié"]')
-    .getByRole("button", { name: "Déprioriser" })
-    .click();
+    .getByRole("button", { name: "Déprioriser" });
+  await expect(thirdComment).toBeVisible();
+  await thirdComment.click();
   await expect(page.getByRole("dialog", { name: "Commentaires urgents et vigilance" })).not.toBeVisible();
 
   await page.getByText("action avec commentaire").first().click();
