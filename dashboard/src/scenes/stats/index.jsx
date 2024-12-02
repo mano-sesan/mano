@@ -677,7 +677,11 @@ const Stats = () => {
               type: "multi-choice",
             }
       ),
-      ...fieldsPersonsCustomizableOptions.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a })),
+      // On considère que les champs fieldsPersonsCustomizableOptions sont toujours activés
+      // Parce qu'il s'agit uniquement du champ "Motif de sortie de file active" (outOfActiveListReasons)
+      // et qu'un vieux bug qu'on pouvait les désactiver.
+      ...fieldsPersonsCustomizableOptions.map((a) => ({ field: a.name, ...a })),
+      // Par contre, les champs customFieldsPersons sont dépendants de l'état des équipes
       ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a })),
     ];
     if (user.healthcareProfessional) {
