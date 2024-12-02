@@ -108,7 +108,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
                     isMedicalFile
                     key={name}
                     person={person}
-                    sectionName={groupedCustomFieldsMedicalFileWithLegacyFields.length > 1 ? name : "Dossier Médical"}
+                    sectionName={name !== "Groupe par défaut" ? name : "Dossier Médical"}
                     fields={fields}
                   />
                 );
