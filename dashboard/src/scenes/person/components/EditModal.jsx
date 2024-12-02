@@ -487,7 +487,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                   return (
                     <>
                       {groupedCustomFieldsMedicalFileWithLegacyFields.map(({ name, fields }) => {
-                        const key = groupedCustomFieldsMedicalFileWithLegacyFields.length === 1 ? "Dossier Médical" : name;
+                        const key = name !== "Groupe par défaut" ? name : "Dossier Médical";
                         return (
                           <div key={key}>
                             <div

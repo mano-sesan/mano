@@ -138,7 +138,7 @@ test("Remplissage de la première organisation", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Mis à jour !").click();
   await page.getByRole("button", { name: "Dossier Médical" }).click();
-  await page.getByLabel("Éditer les groupe par défaut").click();
+  await page.getByLabel("Éditer les dossier médical").click();
   await page.getByLabel("numéro orga1").click();
   await page.getByLabel("numéro orga1").fill("numéro");
   await page.getByRole("button", { name: "Enregistrer" }).click();
@@ -272,7 +272,7 @@ test("Remplissage de la deuxième organisation", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Mis à jour !").click();
   await page.getByRole("button", { name: "Dossier Médical" }).click();
-  await page.getByLabel("Éditer les groupe par défaut").click();
+  await page.getByLabel("Éditer les dossier médical").click();
   await page.getByLabel("numéro orga2").click();
   await page.getByLabel("numéro orga2").fill("numéro");
   await page.getByRole("button", { name: "Enregistrer" }).click();
