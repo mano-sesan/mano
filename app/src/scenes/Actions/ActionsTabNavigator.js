@@ -141,7 +141,7 @@ const ActionsTabBar = (props) => {
   const { key, ...rest } = props;
   const navigation = useNavigation();
   const route = useRoute();
-  const numberOfFilters = actionsFilters.categories?.length;
+  const numberOfFilters = actionsFilters.categories?.length || 0;
 
   const onFiltersPress = () => navigation.push('ActionsFilter', route.params);
 
