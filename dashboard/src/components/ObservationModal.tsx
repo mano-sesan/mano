@@ -301,6 +301,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
                         setIsRencontreModalOpen(true);
                         setRencontre({
                           persons: [],
+                          date: observation.observedAt ? observation.observedAt : dayjsInstance().toDate(),
                           user: user._id,
                           team: team._id,
                         });
