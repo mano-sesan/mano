@@ -24,6 +24,7 @@ import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { defaultModalActionState, modalActionState } from "../../recoil/modal";
+import { flattenedServicesSelector } from "../../recoil/reports";
 
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
@@ -96,6 +97,7 @@ const todaysPassagesSelector = selector({
 const Reception = () => {
   useTitle("Accueil");
   const { refresh } = useDataLoader();
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
   const currentTeam = useRecoilValue(currentTeamState);
   const organisation = useRecoilValue(organisationState);
   const passages = useRecoilValue(todaysPassagesSelector);
@@ -296,18 +298,20 @@ const Reception = () => {
               )}
             </div>
           )}
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-items-center tw-gap-4 tw-rounded-lg tw-bg-gray-100 tw-px-2 tw-py-8 tw-text-center">
-            <h5>Services</h5>
-            <div className="tw-mt-4 tw-text-left">
-              <ReceptionService
-                services={services}
-                onUpdateServices={setServices}
-                team={currentTeam}
-                report={todaysReport}
-                dateString={startOfToday().format("YYYY-MM-DD")}
-              />
+          {Boolean(flattenedServices?.length) && (
+            <div className="tw-mb-4 tw-flex tw-flex-col tw-items-center tw-gap-4 tw-rounded-lg tw-bg-gray-100 tw-px-2 tw-py-8 tw-text-center">
+              <h5>Services</h5>
+              <div className="tw-mt-4 tw-text-left">
+                <ReceptionService
+                  services={services}
+                  onUpdateServices={setServices}
+                  team={currentTeam}
+                  report={todaysReport}
+                  dateString={startOfToday().format("YYYY-MM-DD")}
+                />
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <PassagesToday isOpen={todaysPassagesOpen} setOpen={setTodaysPassagesOpen} passages={passages} />
