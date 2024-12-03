@@ -539,7 +539,7 @@ router.delete(
 
     const recipients = ["guillaume.demirhan@sesan.fr"];
     if (organisation.responsible === "Melissa") recipients.push("melissa.saiter@sesan.fr");
-    if (organisation.responsible === "Yoann") recipients.push("yoann.kittery@sesan.fr");
+    if (organisation.responsible === "Simon") recipients.push("simon.lesgourgues@sesan.fr ?");
     await mailservice.sendEmail(
       recipients,
       "Organisation supprimée",
