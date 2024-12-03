@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, Redirect, useLocation } from "react-router-dom";
 import ChangePassword from "../../components/ChangePassword";
-import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch } from "../../services/api";
 import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 
