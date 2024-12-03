@@ -174,7 +174,6 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
     if (error) return false;
     const decryptedData = await decryptItem(response.data, { type: "consultation in modal" });
     if (decryptedData) {
-      setData(decryptedData);
       await refresh();
     }
     if (closeOnSubmit) onClose();
