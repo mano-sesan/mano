@@ -73,7 +73,8 @@ if (ENV === "production") {
     tracesSampleRate: 0.05,
     ignoreErrors: [
       "Network request failed",
-      // "Failed to fetch",
+      "Failed to fetch",
+      "Load failed",
       "NetworkError",
       // ???
       "withrealtime/messaging",
