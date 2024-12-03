@@ -30,11 +30,8 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                 <b>Essayez depuis un autre ordinateur</b>
               </li>
               <li>
-                Contactez votre chargé de déploiement&nbsp;:
+                Contactez votre chargée de déploiement&nbsp;:
                 <ul className="tw-list-disc  tw-space-y-1">
-                  <li>
-                    Yoann - <b>yoann.kittery@sesan.fr</b> (07&nbsp;45&nbsp;16&nbsp;40&nbsp;04)
-                  </li>
                   <li>
                     Melissa - <b>melissa.saiter@sesan.fr</b> (07&nbsp;49&nbsp;08&nbsp;27&nbsp;10)
                   </li>
