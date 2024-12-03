@@ -167,7 +167,7 @@ const TableCustomFields = ({
           },
           {
             title: "Activé pour l'équipe",
-            show: true,
+            show: !onlyOptionsEditable,
             style: { width: "180px" },
             dataKey: "enabled",
             render: (f) => <TableCustomFieldteamSelector field={f} onUpdate={(data) => onUpdate(f, data)} />,
