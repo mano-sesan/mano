@@ -50,10 +50,10 @@ module.exports = async ({ path, headers: { version, platform } }, res, next) => 
           `Cette mise à jour est nécessaire pour continuer à utiliser l'application.`,
           [
             { text: "Télécharger la dernière version", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
-            // {
-            //   text: "Installer",
-            //   link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk`,
-            // },
+            {
+              text: "Installer",
+              link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk`,
+            },
           ],
         ],
       });
