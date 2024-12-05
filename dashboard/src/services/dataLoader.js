@@ -641,7 +641,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setProgress(null);
       setTotal(null);
       setInitialLoadIsDone(true);
-      setIsLoading(false);
     }
     return true;
   }
@@ -669,7 +668,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     setProgress(null);
     setTotal(null);
     setInitialLoadIsDone(true);
-    setIsLoading(false);
   };
 
   return {
