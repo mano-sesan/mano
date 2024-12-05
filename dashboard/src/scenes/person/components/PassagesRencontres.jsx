@@ -191,12 +191,16 @@ export default function PassagesRencontres({ person }) {
           Aucune rencontre
         </div>
       )}
-      {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTableSmall personRencontres={personRencontres} />}
+      {selected === "passages" ? (
+        <PassagesTableSmall personPassages={personPassages} />
+      ) : (
+        <RencontresTableSmall personRencontres={personRencontres} />
+      )}
     </div>
   );
 }
 
-function PassagesTable({ personPassages }) {
+function PassagesTableSmall({ personPassages }) {
   const history = useHistory();
   return (
     <table className="table table-striped">
@@ -236,6 +240,83 @@ function PassagesTable({ personPassages }) {
         })}
       </tbody>
     </table>
+  );
+}
+
+function PassagesTable({ personPassages }) {
+  const history = useHistory();
+  const users = useRecoilValue(usersState);
+  const [sortBy, setSortBy] = useLocalStorage("person-passages-sortBy", "date");
+  const [sortOrder, setSortOrder] = useLocalStorage("person-passages-sortOrder", "DESC");
+
+  const passagesPopulated = useMemo(() => {
+    return personPassages.map((passage) => {
+      return {
+        ...passage,
+        userPopulated: passage.user ? users.find((u) => u._id === passage.user) : undefined,
+      };
+    });
+  }, [personPassages, users]);
+
+  const passagesSorted = useMemo(() => {
+    return [...passagesPopulated].sort(sortRencontres(sortBy, sortOrder));
+  }, [passagesPopulated, sortBy, sortOrder]);
+
+  return (
+    <>
+      <div className="tw-px-4 tw-py-2 print:tw-mb-4 print:tw-px-0">
+        {!!personPassages.length && (
+          <Table
+            className="Table"
+            onRowClick={(passage) => {
+              history.push(`/person/${passage.person}?passageId=${passage._id}`);
+            }}
+            data={passagesSorted}
+            rowKey={"_id"}
+            columns={[
+              {
+                title: "Date",
+                dataKey: "date",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (passage) => {
+                  return (
+                    <>
+                      <DateBloc date={passage.date} />
+                      <TimeBlock time={passage.date} />
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Enregistré par",
+                dataKey: "user",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (passage) => (passage.user ? <UserName id={passage.user} /> : null),
+              },
+              {
+                title: "Commentaire",
+                dataKey: "comment",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+              },
+              {
+                title: "Équipe en charge",
+                dataKey: "team",
+                render: (passage) => <TagTeam teamId={passage?.team} />,
+              },
+            ]}
+          />
+        )}
+      </div>
+    </>
   );
 }
 
