@@ -104,10 +104,9 @@ class ApiService {
             .map((action) => {
               if (action.text === 'Installer') {
                 this.updateLink = action.link;
-                // action.onPress = () => {
-                //   API.downloadAndInstallUpdate(action.link);
-                // };
-                return null;
+                action.onPress = () => {
+                  API.downloadAndInstallUpdate(action.link);
+                };
               } else if (action.link) {
                 action.onPress = () => {
                   Linking.openURL(action.link);

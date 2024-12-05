@@ -34,7 +34,6 @@ const APKUpdater = () => {
         }
       }
 
-
       const downloadPath = `${RNBlobUtil.fs.dirs.DownloadDir}/mano-latest-${new Date().getTime()}.apk`;
 
       const options = {
@@ -94,7 +93,7 @@ const APKUpdater = () => {
   if (downloadProgress === 0) {
     return null;
   }
-  return <ProgressBar loading="Téléchargement de la nouvelle version..." progress={downloadProgress / 100} fullScreen />;
+  return <ProgressBar loading="Téléchargement de la nouvelle version..." progress={downloadProgress / 100} fullScreen={false} />;
 };
 
 export default APKUpdater;

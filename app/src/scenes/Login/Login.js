@@ -61,10 +61,9 @@ const Login = ({ navigation }) => {
           .map((action) => {
             if (action.text === 'Installer') {
               API.updateLink = action.link;
-              // action.onPress = () => {
-              //   API.downloadAndInstallUpdate(action.link);
-              // };
-              return null;
+              action.onPress = () => {
+                API.downloadAndInstallUpdate(action.link);
+              };
             } else if (action.link) {
               action.onPress = () => {
                 Linking.openURL(action.link);
@@ -259,6 +258,19 @@ const Login = ({ navigation }) => {
             <SubTitle>
               Veuillez saisir {authViaCookie ? 'la clé de chiffrement définie par' : 'un e-mail enregistré auprès de'} votre administrateur
             </SubTitle>
+            {API.updateLink && (
+              <ButtonsContainer>
+                <Button
+                  caption="Mettre à jour Mano"
+                  onPress={() => API.downloadAndInstallUpdate(API.updateLink)}
+                  loading={loading}
+                  disabled={loading}
+                  testID="button-connect"
+                  backgroundColor={colors.app.color}
+                  color={colors.app.colorWhite}
+                />
+              </ButtonsContainer>
+            )}
             {!authViaCookie && (
               <EmailInput
                 onChange={onEmailChange}
