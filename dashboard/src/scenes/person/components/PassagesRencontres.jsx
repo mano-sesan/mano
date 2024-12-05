@@ -5,11 +5,15 @@ import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
 import TagTeam from "../../../components/TagTeam";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
-import { currentTeamState, userState, organisationState } from "../../../recoil/auth";
+import { currentTeamState, userState, organisationState, usersState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { capitalize } from "../../../utils";
 import UserName from "../../../components/UserName";
+import { useLocalStorage } from "../../../services/useLocalStorage";
+import Table from "../../../components/table";
+import DateBloc, { TimeBlock } from "../../../components/DateBloc";
+import { sortRencontres } from "../../../recoil/rencontres";
 
 export default function PassagesRencontres({ person }) {
   const organisation = useRecoilValue(organisationState);
@@ -110,7 +114,7 @@ export default function PassagesRencontres({ person }) {
           )}
         </div>
       </div>
-      <ModalContainer open={!!fullScreen} size="prose" onClose={() => setFullScreen(false)}>
+      <ModalContainer open={!!fullScreen} size="5xl" onClose={() => setFullScreen(false)}>
         <ModalHeader title={`${capitalize(selected)} de  ${person?.name} (${personPassages.length})`}></ModalHeader>
         <ModalBody>
           {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTable personRencontres={personRencontres} />}
@@ -187,7 +191,7 @@ export default function PassagesRencontres({ person }) {
           Aucune rencontre
         </div>
       )}
-      {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTable personRencontres={personRencontres} />}
+      {selected === "passages" ? <PassagesTable personPassages={personPassages} /> : <RencontresTableSmall personRencontres={personRencontres} />}
     </div>
   );
 }
@@ -236,6 +240,95 @@ function PassagesTable({ personPassages }) {
 }
 
 function RencontresTable({ personRencontres }) {
+  const history = useHistory();
+  const users = useRecoilValue(usersState);
+  const [sortBy, setSortBy] = useLocalStorage("person-rencontres-sortBy", "date");
+  const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "DESC");
+
+  const rencontresPopulated = useMemo(() => {
+    return personRencontres.map((rencontre) => {
+      return {
+        ...rencontre,
+        userPopulated: rencontre.user ? users.find((u) => u._id === rencontre.user) : undefined,
+      };
+    });
+  }, [personRencontres, users]);
+
+  const rencontresSorted = useMemo(() => {
+    return [...rencontresPopulated].sort(sortRencontres(sortBy, sortOrder));
+  }, [rencontresPopulated, sortBy, sortOrder]);
+
+  return (
+    <>
+      <div className="tw-px-4 tw-py-2 print:tw-mb-4 print:tw-px-0">
+        {!!personRencontres.length && (
+          <Table
+            className="Table"
+            onRowClick={(rencontre) => {
+              history.push(`/person/${rencontre.person}?rencontreId=${rencontre._id}`);
+            }}
+            data={rencontresSorted}
+            rowKey={"_id"}
+            columns={[
+              {
+                title: "Date",
+                dataKey: "date",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (rencontre) => {
+                  return (
+                    <>
+                      <DateBloc date={rencontre.date} />
+                      <TimeBlock time={rencontre.date} />
+                    </>
+                  );
+                },
+              },
+              {
+                title: "Enregistré par",
+                dataKey: "user",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (rencontre) => (rencontre.user ? <UserName id={rencontre.user} /> : null),
+              },
+
+              { title: "Commentaire", dataKey: "comment", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
+              {
+                title: "Territoire",
+                dataKey: "territory",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+                render: (r) => {
+                  if (!r.territoryObject) return null;
+                  return (
+                    <div className="tw-flex tw-items-center tw-justify-center">
+                      <div className="tw-truncate tw-bg-black tw-py-0.5 tw-px-1 tw-rounded tw-max-w-24 tw-w-fit tw-text-white tw-text-xs">
+                        {r.territoryObject?.name || ""}
+                      </div>
+                    </div>
+                  );
+                },
+              },
+              {
+                title: "Équipe en charge",
+                dataKey: "team",
+                render: (rencontre) => <TagTeam teamId={rencontre?.team} />,
+              },
+            ]}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+function RencontresTableSmall({ personRencontres }) {
   const history = useHistory();
   return (
     <table className="table table-striped">
