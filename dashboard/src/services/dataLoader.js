@@ -72,7 +72,10 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [medicalFiles, setMedicalFiles] = useRecoilState(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
-    if (options.refreshOnMount && !isLoading) loadOrRefreshData(false);
+    if (options.refreshOnMount && !isLoading)
+      loadOrRefreshData(false)
+        .then(() => setIsLoading(false))
+        .catch(() => setIsLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -670,8 +673,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   };
 
   return {
-    refresh: () => loadOrRefreshData(false),
-    startInitialLoad: () => loadOrRefreshData(true),
+    refresh: () =>
+      loadOrRefreshData(false)
+        .then(() => setIsLoading(false))
+        .catch(() => setIsLoading(false)),
+    startInitialLoad: () =>
+      loadOrRefreshData(true)
+        .then(() => setIsLoading(false))
+        .catch(() => setIsLoading(false)),
     cleanupLoader,
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
