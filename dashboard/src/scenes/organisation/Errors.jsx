@@ -55,43 +55,46 @@ export default function Errors() {
   const [loadingInfo, setLoadingInfo] = useState("");
   const organisation = useRecoilValue(organisationState);
 
+  async function fetchData() {
+    let res = [];
+    setLoadingInfo(`Chargement des personnes… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "person")));
+    setLoadingInfo(`Chargement des groupes… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "group")));
+    setLoadingInfo(`Chargement des rapports… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "report")));
+    setLoadingInfo(`Chargement des passages… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "passage")));
+    setLoadingInfo(`Chargement des rencontres… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "rencontre")));
+    setLoadingInfo(`Chargement des actions… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "action")));
+    setLoadingInfo(`Chargement des territoires… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "territory")));
+    setLoadingInfo(`Chargement des lieux… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "place")));
+    setLoadingInfo(`Chargement des relations personnes-lieux… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "relPersonPlace")));
+    setLoadingInfo(`Chargement des observations de territoires… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "territory-observation")));
+    setLoadingInfo(`Chargement des commentaires… (${res.length} erreurs trouvées)`);
+    res.push(...(await fetchErrored(organisation._id, "comment")));
+    setLoadingInfo(`Chargement des consultations… (${res.length} erreurs trouvées)`);
+    if (user.healthcareProfessional) {
+      res.push(...(await fetchErrored(organisation._id, "consultation")));
+      setLoadingInfo(`Chargement des traitements… (${res.length} erreurs trouvées)`);
+      res.push(...(await fetchErrored(organisation._id, "treatment")));
+      setLoadingInfo(`Chargement des dossiers médicaux… (${res.length} erreurs trouvées)`);
+      res.push(...(await fetchErrored(organisation._id, "medical-file")));
+    }
+    setLoadingInfo(`Enregistrement des données… (${res.length} erreurs trouvées)`);
+    setData(res);
+  }
+
   useEffect(() => {
-    (async () => {
-      let res = [];
-      setLoadingInfo(`Chargement des personnes… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "person")));
-      setLoadingInfo(`Chargement des groupes… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "group")));
-      setLoadingInfo(`Chargement des rapports… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "report")));
-      setLoadingInfo(`Chargement des passages… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "passage")));
-      setLoadingInfo(`Chargement des rencontres… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "rencontre")));
-      setLoadingInfo(`Chargement des actions… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "action")));
-      setLoadingInfo(`Chargement des territoires… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "territory")));
-      setLoadingInfo(`Chargement des lieux… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "place")));
-      setLoadingInfo(`Chargement des relations personnes-lieux… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "relPersonPlace")));
-      setLoadingInfo(`Chargement des observations de territoires… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "territory-observation")));
-      setLoadingInfo(`Chargement des commentaires… (${res.length} erreurs trouvées)`);
-      res.push(...(await fetchErrored(organisation._id, "comment")));
-      setLoadingInfo(`Chargement des consultations… (${res.length} erreurs trouvées)`);
-      if (user.healthcareProfessional) {
-        res.push(...(await fetchErrored(organisation._id, "consultation")));
-        setLoadingInfo(`Chargement des traitements… (${res.length} erreurs trouvées)`);
-        res.push(...(await fetchErrored(organisation._id, "treatment")));
-        setLoadingInfo(`Chargement des dossiers médicaux… (${res.length} erreurs trouvées)`);
-        res.push(...(await fetchErrored(organisation._id, "medical-file")));
-      }
-      setLoadingInfo(`Enregistrement des données… (${res.length} erreurs trouvées)`);
-      setData(res);
-    })();
-  }, [organisation._id, user.healthcareProfessional]);
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!data)
     return (
@@ -190,7 +193,24 @@ export default function Errors() {
                       };
                     }
                     if (item.type === "person") {
-                      const [errorDeletePerson] = await tryFetchExpectOk(async () => await API.delete({ path: `/person/${item.data._id}` }));
+                      const [errorDeletePerson] = await tryFetchExpectOk(
+                        async () =>
+                          await API.delete({
+                            path: `/person/${item.data._id}`,
+                            body: {
+                              actionsToTransfer: [],
+                              commentsToTransfer: [],
+                              actionIdsToDelete: [],
+                              commentIdsToDelete: [],
+                              passageIdsToDelete: [],
+                              rencontreIdsToDelete: [],
+                              consultationIdsToDelete: [],
+                              treatmentIdsToDelete: [],
+                              medicalFileIdsToDelete: [],
+                              relsPersonPlaceIdsToDelete: [],
+                            },
+                          })
+                      );
                       if (errorDeletePerson) {
                         return toast.error("Erreur lors de la suppression de la personne");
                       }
@@ -390,11 +410,13 @@ export default function Errors() {
                         return toast.error("Erreur lors de la suppression définitive du dossier médical");
                       }
                     }
+                    fetchData();
                     await refresh();
                     toast.success("L'élément a été supprimé !");
+                    await fetchData();
                   }}
                 >
-                  Supprimer
+                  Suppr.&nbsp;définitivement
                 </button>
               ),
             },
