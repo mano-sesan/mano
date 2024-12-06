@@ -36,6 +36,7 @@ export default function Comments({ person }) {
   return (
     <div className="tw-relative">
       <CommentsModule
+        hiddenColumns={["person"]}
         comments={comments}
         personId={person._id}
         typeForNewComment="person"

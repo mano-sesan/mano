@@ -25,6 +25,7 @@ const CommentsMedical = ({ person }) => {
         color="blue-900"
         canToggleShareComment
         showPanel
+        hiddenColumns={["person"]}
         onDeleteComment={async (comment) => {
           const newMedicalFile = {
             ...medicalFile,
