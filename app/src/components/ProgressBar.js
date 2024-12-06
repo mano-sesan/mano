@@ -16,7 +16,7 @@ export default function ProgressBar({ loading, progress, fullScreen }) {
   if (!loading) return null;
 
   return (
-    <SafeAreaView className={['w-full bg-main', fullScreen ? 'h-full justify-center items-center' : 'absolute top-0'].join(' ')} testID="loader">
+    <SafeAreaView className={['w-full bg-main', fullScreen ? 'h-full justify-center items-center' : 'absolute top-0 z-50'].join(' ')} testID="loader">
       {!!fullScreen && (
         <Image
           style={{
