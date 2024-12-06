@@ -408,6 +408,7 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
             <CommentsModule
               comments={data.comments.map((c) => ({ ...c, type: "treatment", treatment }))}
               color="blue-900"
+              hiddenColumns={["person"]}
               typeForNewComment="treatment"
               canToggleShareComment
               onDeleteComment={async (comment) => {

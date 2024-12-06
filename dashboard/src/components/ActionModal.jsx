@@ -869,6 +869,7 @@ function ActionContent({ onClose, isMulti = false }) {
                 .map((c) => ({ ...c, type: "action", action }))
                 .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
               color="main"
+              hiddenColumns={["person"]}
               canToggleUrgentCheck
               showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
               typeForNewComment="action"
