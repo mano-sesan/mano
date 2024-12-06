@@ -54,8 +54,6 @@ export async function encryptComment(comment, { checkRequiredFields = true } = {
   return encryptItem(prepareCommentForEncryption(comment, { checkRequiredFields }));
 }
 
-const defaultSort = (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime();
-
 export const sortComments = (sortBy, sortOrder) => (a, b) => {
   if (sortBy === "urgentOrGroup") {
     if (sortOrder === "ASC") {
