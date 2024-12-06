@@ -784,6 +784,10 @@ router.delete(
       "treatments",
       "medicalFiles",
       "relsPersonPlaces",
+      "reports",
+      "places",
+      "territoryObservations",
+      "territories",
     ];
     for (const key of arraysOfIdsToDelete) {
       try {
@@ -796,7 +800,22 @@ router.delete(
     }
 
     await sequelize.transaction(async (tx) => {
-      const { persons, groups, actions, comments, passages, rencontres, consultations, treatments, medicalFiles, relsPersonPlaces } = req.body;
+      const {
+        persons,
+        groups,
+        actions,
+        comments,
+        passages,
+        rencontres,
+        consultations,
+        treatments,
+        medicalFiles,
+        relsPersonPlaces,
+        reports,
+        places,
+        territoryObservations,
+        territories,
+      } = req.body;
       if (persons.length) {
         await sequelize.query('delete from "mano"."Person" where "deletedAt" is not null and "_id" in (:ids) and "organisation" = :organisation', {
           replacements: { ids: persons, organisation: req.user.organisation },
@@ -865,6 +884,33 @@ router.delete(
             transaction: tx,
           }
         );
+      }
+      if (reports.length) {
+        await sequelize.query('delete from "mano"."Report" where "deletedAt" is not null and "_id" in (:ids) and "organisation" = :organisation', {
+          replacements: { ids: reports, organisation: req.user.organisation },
+          transaction: tx,
+        });
+      }
+      if (places.length) {
+        await sequelize.query('delete from "mano"."Place" where "deletedAt" is not null and "_id" in (:ids) and "organisation" = :organisation', {
+          replacements: { ids: places, organisation: req.user.organisation },
+          transaction: tx,
+        });
+      }
+      if (territoryObservations.length) {
+        await sequelize.query(
+          'delete from "mano"."TerritoryObservation" where "deletedAt" is not null and "_id" in (:ids) and "organisation" = :organisation',
+          {
+            replacements: { ids: territoryObservations, organisation: req.user.organisation },
+            transaction: tx,
+          }
+        );
+      }
+      if (territories.length) {
+        await sequelize.query('delete from "mano"."Territory" where "deletedAt" is not null and "_id" in (:ids) and "organisation" = :organisation', {
+          replacements: { ids: territories, organisation: req.user.organisation },
+          transaction: tx,
+        });
       }
     });
 

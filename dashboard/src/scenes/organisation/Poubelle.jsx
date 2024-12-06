@@ -63,6 +63,11 @@ export default function Poubelle() {
       treatments: data.treatments.filter((c) => c.person === id).map((c) => c._id),
       medicalFiles: data.medicalFiles.filter((c) => c.person === id).map((c) => c._id),
       groups: data.groups.filter((c) => c.persons.includes(id)).map((c) => c._id),
+      // Empty yet required by API
+      reports: [],
+      places: [],
+      territoryObservations: [],
+      territories: [],
     };
     associatedData.comments = associatedData.comments.concat(
       data.comments.filter((c) => associatedData.actions.includes(c.action)).map((c) => c._id)
