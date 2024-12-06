@@ -2,9 +2,8 @@ import { test, expect } from "@playwright/test";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
-import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { changeReactSelectValue, clickOnEmptyReactSelect, loginWith, logOut } from "./utils";
+import { loginWith } from "./utils";
 
 dayjs.extend(utc);
 dayjs.locale("fr");
@@ -34,7 +33,8 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
-  await page.getByText("Commentaire intégré").click();
+  await page.locator('[data-test-id="Manu ChaoRésumé"]').getByText("Commentaire intégré").click();
+
   await page.getByRole("dialog", { name: "Commentaire" }).getByRole("button", { name: "Modifier" }).click();
   await page.getByLabel("Commentaire", { exact: true }).click();
   await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire intégré modifié");
