@@ -21,8 +21,8 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
   const organisation = useRecoilValue(organisationState);
   const location = useLocation();
   const history = useHistory();
-  const [sortOrder, setSortOrder] = useLocalStorage("comments-sortable-list-sortOrder", "date");
-  const [sortBy, setSortBy] = useLocalStorage("comments-sortable-list-sortBy", "ASC");
+  const [sortOrder, setSortOrder] = useLocalStorage("comments-sortable-list-sortOrder", "ASC");
+  const [sortBy, setSortBy] = useLocalStorage("comments-sortable-list-sortBy", "date");
   const dataSorted = useMemo(() => {
     return [...data].sort(sortComments(sortBy, sortOrder)).map((c) => {
       if (c.urgent) return { ...c, style: { backgroundColor: "#fecaca99" } };
