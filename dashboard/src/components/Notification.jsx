@@ -1,11 +1,11 @@
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocalStorage } from "../services/useLocalStorage";
 import { CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, userState } from "../recoil/auth";
-import { commentsState, encryptComment } from "../recoil/comments";
+import { commentsState, encryptComment, sortComments } from "../recoil/comments";
 import { personsState } from "../recoil/persons";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import Table from "./table";
@@ -250,8 +250,17 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const { refresh } = useDataLoader();
+  const [sortOrder, setSortOrder] = useLocalStorage("comments-notification-sortOrder", "ASC");
+  const [sortBy, setSortBy] = useLocalStorage("comments-notification-sortBy", "date");
 
-  if (!comments.length) return null;
+  console.log(sortBy, sortOrder);
+
+  const dataSorted = useMemo(() => {
+    return [...comments].sort(sortComments(sortBy, sortOrder));
+  }, [comments, sortBy, sortOrder]);
+
+  if (!dataSorted.length) return null;
+
   return (
     <div role="dialog" title="Commentaires urgents et vigilance" name="Commentaires urgents et vigilance">
       <h3 className="tw-mb-0 tw-flex tw-w-full tw-max-w-full tw-shrink-0 tw-items-center tw-justify-between tw-border-y tw-border-gray-200 tw-bg-white tw-px-4 tw-py-4 tw-text-lg tw-font-medium tw-leading-6 tw-text-gray-900 sm:tw-px-6">
@@ -259,7 +268,7 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
       </h3>
       <div className="tw-mx-2">
         <Table
-          data={comments}
+          data={dataSorted}
           rowKey={"_id"}
           dataTestId="comment"
           onRowClick={(comment) => {
@@ -275,6 +284,10 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
               title: "Date",
               dataKey: "date",
               style: { width: "90px" },
+              onSortOrder: setSortOrder,
+              onSortBy: setSortBy,
+              sortBy,
+              sortOrder,
               render: (comment) => {
                 return (
                   <>
@@ -287,6 +300,10 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
             {
               title: "Commentaire",
               dataKey: "comment",
+              onSortOrder: setSortOrder,
+              onSortBy: setSortBy,
+              sortBy,
+              sortOrder,
               render: (comment) => {
                 return (
                   <>
@@ -339,6 +356,10 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
             {
               title: "Utilisateur",
               dataKey: "user",
+              onSortOrder: setSortOrder,
+              onSortBy: setSortBy,
+              sortBy,
+              sortOrder,
               render: (comment) => <UserName id={comment.user} />,
             },
             ...(showTeam
@@ -347,6 +368,10 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
                     title: "Équipe en charge",
                     dataKey: "team",
                     style: { width: "180px" },
+                    onSortOrder: setSortOrder,
+                    onSortBy: setSortBy,
+                    sortBy,
+                    sortOrder,
                     render: (comment) => (
                       <div className="tw-flex tw-flex-col">
                         <TagTeam teamId={comment?.team} />
