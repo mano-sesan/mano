@@ -149,15 +149,6 @@ table.table-selego {
       border-right: 1px solid #dddddd55;
     }
   }
-
-  tbody > tr:last-child {
-    td:first-child {
-      border-bottom-left-radius: 10px;
-    }
-    td:last-child {
-      border-bottom-right-radius: 10px;
-    }
-  }
 }
 
 @media screen {
