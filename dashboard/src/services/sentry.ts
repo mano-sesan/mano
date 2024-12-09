@@ -25,7 +25,8 @@ export const capture = (err: Error, context: OptionalScopeContext = {}): void =>
   if (context.extra) {
     const newExtra: Record<string, string> = {};
     for (const extraKey of Object.keys(context.extra)) {
-      newExtra[extraKey] = typeof context.extra[extraKey] === "string" ? context.extra[extraKey] : JSON.stringify(context.extra[extraKey]);
+      newExtra[extraKey] =
+        typeof context.extra[extraKey] === "string" ? (context.extra[extraKey] as string) : JSON.stringify(context.extra[extraKey]);
     }
     context.extra = newExtra;
   }
