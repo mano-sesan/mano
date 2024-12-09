@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 const passport = require("passport");
-const { Op, fn } = require("sequelize");
+const { Op, fn, literal } = require("sequelize");
 const crypto = require("crypto");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
@@ -227,6 +227,19 @@ router.get(
 
     const countQuery = {
       group: ["organisation"],
+      attributes: [
+        "organisation",
+        [fn("SUM", literal(`CASE WHEN "updatedAt" >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)), "last30Days"],
+        [
+          fn("SUM", literal(`CASE WHEN "updatedAt" >= NOW() - INTERVAL '60 days' AND "updatedAt" < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)),
+          "previous30Days",
+        ],
+        [fn("COUNT", "*"), "countByOrg"],
+      ],
+    };
+
+    const shortCountQuery = {
+      ...countQuery,
       attributes: ["organisation", [fn("COUNT", "TagName"), "countByOrg"]],
     };
 
@@ -238,12 +251,12 @@ router.get(
     const rencontres = (await Rencontre.findAll(countQuery)).map((item) => item.toJSON());
     const consultations = (await Consultation.findAll(countQuery)).map((item) => item.toJSON());
     const observations = (await TerritoryObservation.findAll(countQuery)).map((item) => item.toJSON());
-    const usersNeverConnected = (await User.findAll({ where: { lastLoginAt: null }, ...countQuery })).map((item) => item.toJSON());
+    const usersNeverConnected = (await User.findAll({ where: { lastLoginAt: null }, ...shortCountQuery })).map((item) => item.toJSON());
     const usersConnectedToday = (
       await User.findAll({ where: { lastLoginAt: { [Op.gt]: new Date(new Date().setHours(0, 0, 0, 0)) } }, ...countQuery })
     ).map((item) => item.toJSON());
-    const usersProSante = (await User.findAll({ where: { healthcareProfessional: true }, ...countQuery })).map((item) => item.toJSON());
-    const usersDisabled = (await User.findAll({ where: { disabledAt: { [Op.ne]: null } }, ...countQuery })).map((item) => item.toJSON());
+    const usersProSante = (await User.findAll({ where: { healthcareProfessional: true }, ...shortCountQuery })).map((item) => item.toJSON());
+    const usersDisabled = (await User.findAll({ where: { disabledAt: { [Op.ne]: null } }, ...shortCountQuery })).map((item) => item.toJSON());
     const usersByRole = (
       await User.findAll({
         group: ["organisation", "role"],
@@ -273,6 +286,26 @@ router.get(
           consultations: consultationsOrg ? Number(consultationsOrg.countByOrg) : 0,
           rencontres: rencontresOrg ? Number(rencontresOrg.countByOrg) : 0,
         };
+        const last30DaysCounters = {
+          actions: actionsOrg ? Number(actionsOrg.last30Days) : 0,
+          persons: personsOrg ? Number(personsOrg.last30Days) : 0,
+          groups: groupsOrg ? Number(groupsOrg.last30Days) : 0,
+          comments: commentsOrg ? Number(commentsOrg.last30Days) : 0,
+          passages: passagesOrg ? Number(passagesOrg.last30Days) : 0,
+          observations: observationsOrg ? Number(observationsOrg.last30Days) : 0,
+          consultations: consultationsOrg ? Number(consultationsOrg.last30Days) : 0,
+          rencontres: rencontresOrg ? Number(rencontresOrg.last30Days) : 0,
+        };
+        const previous30DaysCounters = {
+          actions: actionsOrg ? Number(actionsOrg.previous30Days) : 0,
+          persons: personsOrg ? Number(personsOrg.previous30Days) : 0,
+          groups: groupsOrg ? Number(groupsOrg.previous30Days) : 0,
+          comments: commentsOrg ? Number(commentsOrg.previous30Days) : 0,
+          passages: passagesOrg ? Number(passagesOrg.previous30Days) : 0,
+          observations: observationsOrg ? Number(observationsOrg.previous30Days) : 0,
+          consultations: consultationsOrg ? Number(consultationsOrg.previous30Days) : 0,
+          rencontres: rencontresOrg ? Number(rencontresOrg.previous30Days) : 0,
+        };
         const usersByOrg = usersByRole.filter((r) => r.organisation === org._id);
         const usersByOrgAndRole = usersByOrg.reduce((acc, item) => {
           acc[item.role] = Number(item.countByOrgAndRole || 0);
@@ -282,6 +315,8 @@ router.get(
         return {
           ...org,
           counters,
+          last30DaysCounters,
+          previous30DaysCounters,
           users: usersByOrgAndRole["total"],
           usersByRole: usersByOrgAndRole,
           usersNeverConnected: Number(usersNeverConnected.find((u) => u.organisation === org._id)?.countByOrg || 0),
