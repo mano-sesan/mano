@@ -175,7 +175,7 @@ const SuperAdmin = () => {
               sortOrder,
               sortBy,
               render: (o) => (
-                <div className="tw-flex tw-flex-col tw-gap-2">
+                <div className="tw-flex tw-flex-col tw-gap-2 tw-max-w-80">
                   <div>
                     <div className="tw-font-bold">{o.name}</div>
                     <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
@@ -248,22 +248,86 @@ const SuperAdmin = () => {
               render: (o) => {
                 return (
                   <div className="tw-grid tw-grid-cols-2 tw-gap-x-1.5">
-                    <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>Personnes: {o.counters.persons || 0}</div>
+                    <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>
+                      Personnes: {o.counters.persons || 0}
+                      {o.counters.persons > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.persons > o.previous30DaysCounters.persons ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.persons || 0})
+                        </span>
+                      )}
+                    </div>
                     <div className={!o.groupsEnabled ? "tw-line-through tw-opacity-20" : !o.counters.groups ? "tw-text-gray-400" : ""}>
                       Familles: {o.counters.groups || 0}
+                      {o.counters.groups > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.groups > o.previous30DaysCounters.groups ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.groups || 0})
+                        </span>
+                      )}
                     </div>
-                    <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>Actions: {o.counters.actions || 0}</div>
+                    <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>
+                      Actions: {o.counters.actions || 0}
+                      {o.counters.actions > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.actions > o.previous30DaysCounters.actions ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.actions || 0})
+                        </span>
+                      )}
+                    </div>
                     <div className={!o.passagesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.passages ? "tw-text-gray-400" : ""}>
                       Passages: {o.counters.passages || 0}
+                      {o.counters.passages > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.passages > o.previous30DaysCounters.passages ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.passages || 0})
+                        </span>
+                      )}
                     </div>
                     <div className={!o.rencontresEnabled ? "tw-line-through tw-opacity-20" : !o.counters.rencontres ? "tw-text-gray-400" : ""}>
                       Rencontres: {o.counters.rencontres || 0}
+                      {o.counters.rencontres > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.rencontres > o.previous30DaysCounters.rencontres ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.rencontres || 0})
+                        </span>
+                      )}
                     </div>
                     <div className={!o.territoriesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.observations ? "tw-text-gray-400" : ""}>
                       Observations: {o.counters.observations || 0}
+                      {o.counters.observations > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.observations > o.previous30DaysCounters.observations ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.observations || 0})
+                        </span>
+                      )}
                     </div>
-                    <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>Commentaires: {o.counters.comments || 0}</div>
-                    <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>Consultations: {o.counters.consultations || 0}</div>
+                    <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>
+                      Commentaires: {o.counters.comments || 0}
+                      {o.counters.comments > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.comments > o.previous30DaysCounters.comments ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.comments || 0})
+                        </span>
+                      )}
+                    </div>
+                    <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>
+                      Consultations: {o.counters.consultations || 0}
+                      {o.counters.consultations > 0 && (
+                        <span
+                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.consultations > o.previous30DaysCounters.consultations ? "tw-text-green-700" : "tw-text-red-700"}`}
+                        >
+                          ({o.last30DaysCounters.consultations || 0})
+                        </span>
+                      )}
+                    </div>
                   </div>
                 );
               },
