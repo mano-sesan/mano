@@ -26,6 +26,7 @@ import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";
+import { capture } from "./sentry";
 
 // Update to flush cache.
 export const isLoadingState = atom({ key: "isLoadingState", default: false });
@@ -75,7 +76,10 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (options.refreshOnMount && !isLoading)
       loadOrRefreshData(false)
         .then(() => setIsLoading(false))
-        .catch(() => setIsLoading(false));
+        .catch((error) => {
+          capture(error);
+          setIsLoading(false);
+        });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -674,11 +678,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     refresh: () =>
       loadOrRefreshData(false)
         .then(() => setIsLoading(false))
-        .catch(() => setIsLoading(false)),
+        .catch((error) => {
+          setIsLoading(false);
+          capture(error);
+        }),
     startInitialLoad: () =>
       loadOrRefreshData(true)
         .then(() => setIsLoading(false))
-        .catch(() => setIsLoading(false)),
+        .catch((error) => {
+          setIsLoading(false);
+          capture(error);
+        }),
     cleanupLoader,
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
