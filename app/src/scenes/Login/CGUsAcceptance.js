@@ -42,7 +42,7 @@ const CGUsAcceptance = ({ navigation }) => {
       <SceneContainer backgroundColor="#fff" noPadding>
         <ScrollContainer enabled={false} noPadding>
           <Container>
-            <Title>Charte des Utilisateurs de Mano</Title>
+            <Title>Conditions générales d'utilisation</Title>
             <SubTitle>Veuillez lire et accepter les Conditions Générales d'Utilisation de Mano avant de continuer</SubTitle>
           </Container>
           <PdfContainer>
