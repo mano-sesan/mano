@@ -87,6 +87,7 @@ function ActionContent({ onClose, isMulti = false }) {
   const { refresh } = useDataLoader();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const isEditing = modalAction.isEditing;
 
   const action = useMemo(
@@ -498,7 +499,9 @@ function ActionContent({ onClose, isMulti = false }) {
         }}
       />
       <ModalBody>
-        <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
+        <div
+          className={`tw-flex tw-h-full tw-w-full tw-flex-col tw-transition-all tw-duration-300 ${isTransitioning ? "tw-opacity-0 tw-scale-x-0" : ""}`}
+        >
           <TabsNav
             className="tw-px-3 tw-py-2"
             tabs={[
@@ -776,7 +779,7 @@ function ActionContent({ onClose, isMulti = false }) {
                       </div>
                       <div className="tw-mt-2 tw-text-gray-600 tw-text-sm tw-w-full">
                         <div className="tw-font-bold tw-mb-4">Occurrences suivantes</div>
-                        <NextOccurrences action={action} />
+                        <NextOccurrences action={action} setIsTransitioning={setIsTransitioning} />
                       </div>
                     </div>
                   )}
@@ -948,7 +951,11 @@ function ActionContent({ onClose, isMulti = false }) {
                 toast.success(
                   "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
                 );
-                setActiveTab("Informations");
+                setIsTransitioning(true);
+                setTimeout(() => {
+                  setActiveTab("Informations");
+                  setIsTransitioning(false);
+                }, 300);
               }}
             />
           </div>
@@ -1169,7 +1176,7 @@ function AllOccurrences({ action, onAfterActionClick }) {
   );
 }
 
-function NextOccurrences({ action }) {
+function NextOccurrences({ action, setIsTransitioning }) {
   const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
   const actions =
     person?.actions
@@ -1193,10 +1200,14 @@ function NextOccurrences({ action }) {
             <tr
               key={a._id}
               onClick={() => {
-                setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: a });
-                toast.success(
-                  "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
-                );
+                setIsTransitioning(true);
+                setTimeout(() => {
+                  toast.success(
+                    "Vous consultez l'action du " + dayjsInstance([DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt).format("DD/MM/YYYY")
+                  );
+                  setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: a });
+                  setIsTransitioning(false);
+                }, 300);
               }}
             >
               <td className="!tw-p-1">
