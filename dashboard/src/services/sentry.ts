@@ -25,7 +25,6 @@ export const capture = (err: Error, context: OptionalScopeContext = {}): void =>
   if (context.extra) {
     const newExtra: Record<string, string> = {};
     for (const extraKey of Object.keys(context.extra)) {
-      // @ts-expect-error Type 'unknown' is not assignable to type 'string'
       newExtra[extraKey] = typeof context.extra[extraKey] === "string" ? context.extra[extraKey] : JSON.stringify(context.extra[extraKey]);
     }
     context.extra = newExtra;
