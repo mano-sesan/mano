@@ -193,27 +193,30 @@ export default function Errors() {
                       };
                     }
                     if (item.type === "person") {
-                      const [errorDeletePerson] = await tryFetchExpectOk(
-                        async () =>
-                          await API.delete({
-                            path: `/person/${item.data._id}`,
-                            body: {
-                              actionsToTransfer: [],
-                              commentsToTransfer: [],
-                              actionIdsToDelete: [],
-                              commentIdsToDelete: [],
-                              passageIdsToDelete: [],
-                              rencontreIdsToDelete: [],
-                              consultationIdsToDelete: [],
-                              treatmentIdsToDelete: [],
-                              medicalFileIdsToDelete: [],
-                              relsPersonPlaceIdsToDelete: [],
-                            },
-                          })
-                      );
-                      if (errorDeletePerson) {
-                        return toast.error("Erreur lors de la suppression de la personne");
+                      if (!item.data.deletedAt) {
+                        const [errorDeletePerson] = await tryFetchExpectOk(
+                          async () =>
+                            await API.delete({
+                              path: `/person/${item.data._id}`,
+                              body: {
+                                actionsToTransfer: [],
+                                commentsToTransfer: [],
+                                actionIdsToDelete: [],
+                                commentIdsToDelete: [],
+                                passageIdsToDelete: [],
+                                rencontreIdsToDelete: [],
+                                consultationIdsToDelete: [],
+                                treatmentIdsToDelete: [],
+                                medicalFileIdsToDelete: [],
+                                relsPersonPlaceIdsToDelete: [],
+                              },
+                            })
+                        );
+                        if (errorDeletePerson) {
+                          return toast.error("Erreur lors de la suppression de la personne");
+                        }
                       }
+
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
                           path: "/organisation/" + organisation._id + "/permanent-delete-data",
@@ -225,9 +228,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "group") {
-                      const [errorDeleteGroup] = await tryFetchExpectOk(async () => await API.delete({ path: `/group/${item.data._id}` }));
-                      if (errorDeleteGroup) {
-                        return toast.error("Erreur lors de la suppression du groupe");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteGroup] = await tryFetchExpectOk(async () => await API.delete({ path: `/group/${item.data._id}` }));
+                        if (errorDeleteGroup) {
+                          return toast.error("Erreur lors de la suppression du groupe");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -240,9 +245,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "report") {
-                      const [errorDeleteReport] = await tryFetchExpectOk(async () => await API.delete({ path: `/report/${item.data._id}` }));
-                      if (errorDeleteReport) {
-                        return toast.error("Erreur lors de la suppression du rapport");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteReport] = await tryFetchExpectOk(async () => await API.delete({ path: `/report/${item.data._id}` }));
+                        if (errorDeleteReport) {
+                          return toast.error("Erreur lors de la suppression du rapport");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -255,9 +262,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "passage") {
-                      const [errorDeletePassage] = await tryFetchExpectOk(async () => await API.delete({ path: `/passage/${item.data._id}` }));
-                      if (errorDeletePassage) {
-                        return toast.error("Erreur lors de la suppression du passage");
+                      if (!item.data.deletedAt) {
+                        const [errorDeletePassage] = await tryFetchExpectOk(async () => await API.delete({ path: `/passage/${item.data._id}` }));
+                        if (errorDeletePassage) {
+                          return toast.error("Erreur lors de la suppression du passage");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -270,9 +279,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "rencontre") {
-                      const [errorDeleteRencontre] = await tryFetchExpectOk(async () => await API.delete({ path: `/rencontre/${item.data._id}` }));
-                      if (errorDeleteRencontre) {
-                        return toast.error("Erreur lors de la suppression de la rencontre");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteRencontre] = await tryFetchExpectOk(async () => await API.delete({ path: `/rencontre/${item.data._id}` }));
+                        if (errorDeleteRencontre) {
+                          return toast.error("Erreur lors de la suppression de la rencontre");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -285,9 +296,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "action") {
-                      const [errorDeleteAction] = await tryFetchExpectOk(async () => await API.delete({ path: `/action/${item.data._id}` }));
-                      if (errorDeleteAction) {
-                        return toast.error("Erreur lors de la suppression de l'action");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteAction] = await tryFetchExpectOk(async () => await API.delete({ path: `/action/${item.data._id}` }));
+                        if (errorDeleteAction) {
+                          return toast.error("Erreur lors de la suppression de l'action");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -300,9 +313,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "territory") {
-                      const [errorDeleteTerritory] = await tryFetchExpectOk(async () => await API.delete({ path: `/territory/${item.data._id}` }));
-                      if (errorDeleteTerritory) {
-                        return toast.error("Erreur lors de la suppression du territoire");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteTerritory] = await tryFetchExpectOk(async () => await API.delete({ path: `/territory/${item.data._id}` }));
+                        if (errorDeleteTerritory) {
+                          return toast.error("Erreur lors de la suppression du territoire");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -315,9 +330,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "place") {
-                      const [errorDeletePlace] = await tryFetchExpectOk(async () => await API.delete({ path: `/place/${item.data._id}` }));
-                      if (errorDeletePlace) {
-                        return toast.error("Erreur lors de la suppression du lieu");
+                      if (!item.data.deletedAt) {
+                        const [errorDeletePlace] = await tryFetchExpectOk(async () => await API.delete({ path: `/place/${item.data._id}` }));
+                        if (errorDeletePlace) {
+                          return toast.error("Erreur lors de la suppression du lieu");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -330,11 +347,13 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "territory-observation") {
-                      const [errorDeleteTerritoryObservation] = await tryFetchExpectOk(
-                        async () => await API.delete({ path: `/territory-observation/${item.data._id}` })
-                      );
-                      if (errorDeleteTerritoryObservation) {
-                        return toast.error("Erreur lors de la suppression de l'observation de territoire");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteTerritoryObservation] = await tryFetchExpectOk(
+                          async () => await API.delete({ path: `/territory-observation/${item.data._id}` })
+                        );
+                        if (errorDeleteTerritoryObservation) {
+                          return toast.error("Erreur lors de la suppression de l'observation de territoire");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -347,9 +366,11 @@ export default function Errors() {
                       }
                     }
                     if (item.type === "comment") {
-                      const [errorDeleteComment] = await tryFetchExpectOk(async () => await API.delete({ path: `/comment/${item.data._id}` }));
-                      if (errorDeleteComment) {
-                        return toast.error("Erreur lors de la suppression du commentaire");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteComment] = await tryFetchExpectOk(async () => await API.delete({ path: `/comment/${item.data._id}` }));
+                        if (errorDeleteComment) {
+                          return toast.error("Erreur lors de la suppression du commentaire");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -362,11 +383,13 @@ export default function Errors() {
                       }
                     }
                     if (user.healthcareProfessional && item.type === "consultation") {
-                      const [errorDeleteConsultation] = await tryFetchExpectOk(
-                        async () => await API.delete({ path: `/consultation/${item.data._id}` })
-                      );
-                      if (errorDeleteConsultation) {
-                        return toast.error("Erreur lors de la suppression de la consultation");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteConsultation] = await tryFetchExpectOk(
+                          async () => await API.delete({ path: `/consultation/${item.data._id}` })
+                        );
+                        if (errorDeleteConsultation) {
+                          return toast.error("Erreur lors de la suppression de la consultation");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -379,9 +402,11 @@ export default function Errors() {
                       }
                     }
                     if (user.healthcareProfessional && item.type === "treatment") {
-                      const [errorDeleteTreatment] = await tryFetchExpectOk(async () => await API.delete({ path: `/treatment/${item.data._id}` }));
-                      if (errorDeleteTreatment) {
-                        return toast.error("Erreur lors de la suppression du traitement");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteTreatment] = await tryFetchExpectOk(async () => await API.delete({ path: `/treatment/${item.data._id}` }));
+                        if (errorDeleteTreatment) {
+                          return toast.error("Erreur lors de la suppression du traitement");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
@@ -394,11 +419,13 @@ export default function Errors() {
                       }
                     }
                     if (user.healthcareProfessional && item.type === "medical-file") {
-                      const [errorDeleteMedicalFile] = await tryFetchExpectOk(
-                        async () => await API.delete({ path: `/medical-file/${item.data._id}` })
-                      );
-                      if (errorDeleteMedicalFile) {
-                        return toast.error("Erreur lors de la suppression du dossier médical");
+                      if (!item.data.deletedAt) {
+                        const [errorDeleteMedicalFile] = await tryFetchExpectOk(
+                          async () => await API.delete({ path: `/medical-file/${item.data._id}` })
+                        );
+                        if (errorDeleteMedicalFile) {
+                          return toast.error("Erreur lors de la suppression du dossier médical");
+                        }
                       }
                       const [error] = await tryFetchExpectOk(async () =>
                         API.delete({
