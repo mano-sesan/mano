@@ -56,7 +56,7 @@ export async function encryptTerritory(territory: TerritoryInstance, { checkRequ
 
 type SortOrder = "ASC" | "DESC";
 
-type SortBy = "name" | "createdAt" | "types" | "perimeter";
+type SortBy = "name" | "createdAt" | "types" | "perimeter" | "description";
 
 const defaultSort = (a: TerritoryInstance, b: TerritoryInstance, sortOrder: SortOrder) =>
   sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name);
@@ -74,6 +74,12 @@ export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: Ter
     if (!a.perimeter?.length && !b.perimeter?.length) return defaultSort(a, b, sortOrder);
     if (!a.perimeter?.length) return sortOrder === "ASC" ? 1 : -1;
     if (!b.perimeter?.length) return sortOrder === "ASC" ? -1 : 1;
+    return sortOrder === "ASC" ? a.perimeter.localeCompare(b.perimeter) : b.perimeter.localeCompare(a.perimeter);
+  }
+  if (sortBy === "description") {
+    if (!a.description?.length && !b.description?.length) return defaultSort(a, b, sortOrder);
+    if (!a.description?.length) return sortOrder === "ASC" ? 1 : -1;
+    if (!b.description?.length) return sortOrder === "ASC" ? -1 : 1;
     return sortOrder === "ASC" ? a.perimeter.localeCompare(b.perimeter) : b.perimeter.localeCompare(a.perimeter);
   }
   if (sortBy === "createdAt") {
