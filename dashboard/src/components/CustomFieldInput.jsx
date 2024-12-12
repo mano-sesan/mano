@@ -37,7 +37,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
         key={field.name}
       >
         <div className="tw-mb-4">
-          {!hideLabel && (
+          {!["boolean"].includes(field.type) && !hideLabel && (
             <label className="tw-text-sm tw-font-semibold tw-text-gray-600" data-test-id={field.label} htmlFor={id}>
               {field.label}
             </label>
@@ -104,7 +104,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
   width: 80%;
             */
             <div className="tw-basis-full tw-p-4">
-              <label htmlFor={id}>
+              <label htmlFor={id} className="tw-flex tw-items-center">
                 <input
                   type="checkbox"
                   id={id}

@@ -323,7 +323,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                                 </div>
                               )}
                               <div className="tw-basis-full tw-p-4">
-                                <label htmlFor="person-alertness-checkbox">
+                                <label htmlFor="person-alertness-checkbox" className="tw-flex tw-items-center">
                                   <input
                                     id="person-alertness-checkbox"
                                     type="checkbox"
