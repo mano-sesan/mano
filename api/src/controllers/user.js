@@ -1000,7 +1000,13 @@ router.delete(
     // Clear user data and soft delete
     user = await clearUserData(user);
     await user.save({ transaction: tx });
-    await user.destroy({ transaction: tx }); // This will set deletedAt
+    // await user.destroy({ transaction: tx }); // This will set deletedAt
+    // FIXME: paranoid doesn't work IDK why, everything looked properly set
+    //  no documentation on sequleize nor google
+    // claude didn 't help either
+    // https://stackoverflow.com/questions/64250923/change-value-of-createdat-in-sequelize
+    user.changed("deletedAt", true);
+    user.set("deletedAt", new Date(), { raw: true });
 
     // Remove team associations
     await RelUserTeam.destroy({ where: { user: userId }, transaction: tx });
@@ -1045,7 +1051,13 @@ router.delete(
     // Clear user data and soft delete
     user = await clearUserData(user);
     await user.save({ transaction: tx });
-    await user.destroy({ transaction: tx }); // This will set deletedAt
+    // await user.destroy({ transaction: tx }); // This will set deletedAt
+    // FIXME: paranoid doesn't work IDK why, everything looked properly set
+    //  no documentation on sequleize nor google
+    // claude didn 't help either
+    // https://stackoverflow.com/questions/64250923/change-value-of-createdat-in-sequelize
+    user.changed("deletedAt", true);
+    user.set("deletedAt", new Date(), { raw: true });
 
     // Remove team associations
     await RelUserTeam.destroy({ where: { user: userId }, transaction: tx });
