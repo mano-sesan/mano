@@ -56,21 +56,21 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const { migrateData } = useDataMigrator();
 
-  const [persons, setPersons] = useRecoilState(personsState);
-  const [groups, setGroups] = useRecoilState(groupsState);
-  const [reports, setReports] = useRecoilState(reportsState);
-  const [passages, setPassages] = useRecoilState(passagesState);
-  const [rencontres, setRencontres] = useRecoilState(rencontresState);
-  const [actions, setActions] = useRecoilState(actionsState);
-  const [recurrences, setRecurrences] = useRecoilState(recurrencesState);
-  const [territories, setTerritories] = useRecoilState(territoriesState);
-  const [places, setPlaces] = useRecoilState(placesState);
-  const [relsPersonPlace, setRelsPersonPlace] = useRecoilState(relsPersonPlaceState);
-  const [territoryObservations, setTerritoryObservations] = useRecoilState(territoryObservationsState);
-  const [comments, setComments] = useRecoilState(commentsState);
-  const [consultations, setConsultations] = useRecoilState(consultationsState);
-  const [treatments, setTreatments] = useRecoilState(treatmentsState);
-  const [medicalFiles, setMedicalFiles] = useRecoilState(medicalFileState);
+  const setPersons = useSetRecoilState(personsState);
+  const setGroups = useSetRecoilState(groupsState);
+  const setReports = useSetRecoilState(reportsState);
+  const setPassages = useSetRecoilState(passagesState);
+  const setRencontres = useSetRecoilState(rencontresState);
+  const setActions = useSetRecoilState(actionsState);
+  const setRecurrences = useSetRecoilState(recurrencesState);
+  const setTerritories = useSetRecoilState(territoriesState);
+  const setPlaces = useSetRecoilState(placesState);
+  const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
+  const setTerritoryObservations = useSetRecoilState(territoryObservationsState);
+  const setComments = useSetRecoilState(commentsState);
+  const setConsultations = useSetRecoilState(consultationsState);
+  const setTreatments = useSetRecoilState(treatmentsState);
+  const setMedicalFiles = useSetRecoilState(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)
@@ -207,7 +207,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPersons(cachePersons);
       }
     } else if (newPersons.length) {
-      setPersons(mergeItems(persons, newPersons));
+      setPersons((latestPersons) => mergeItems(latestPersons, newPersons));
     }
 
     let newGroups = [];
@@ -236,7 +236,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setGroups(cacheGroups);
       }
     } else if (newGroups.length) {
-      setGroups(mergeItems(groups, newGroups));
+      setGroups((latestGroups) => mergeItems(latestGroups, newGroups));
     }
 
     let newReports = [];
@@ -265,7 +265,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setReports(cacheReports);
       }
     } else if (newReports.length) {
-      setReports(mergeItems(reports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      setReports((latestReports) => mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
     }
 
     let newPassages = [];
@@ -294,7 +294,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPassages(cachePassages);
       }
     } else if (newPassages.length) {
-      setPassages(mergeItems(passages, newPassages));
+      setPassages((latestPassages) => mergeItems(latestPassages, newPassages));
     }
 
     let newRencontres = [];
@@ -323,7 +323,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRencontres(cacheRencontres);
       }
     } else if (newRencontres.length) {
-      setRencontres(mergeItems(rencontres, newRencontres));
+      setRencontres((latestRencontres) => mergeItems(latestRencontres, newRencontres));
     }
 
     let newActions = [];
@@ -352,7 +352,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setActions(cacheActions);
       }
     } else if (newActions.length) {
-      setActions(mergeItems(actions, newActions));
+      setActions((latestActions) => mergeItems(latestActions, newActions));
     }
 
     let newRecurrences = [];
@@ -381,7 +381,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRecurrences(cacheRecurrences);
       }
     } else if (newRecurrences.length) {
-      setRecurrences(mergeItems(recurrences, newRecurrences));
+      setRecurrences((latestRecurrences) => mergeItems(latestRecurrences, newRecurrences));
     }
 
     let newTerritories = [];
@@ -410,7 +410,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setTerritories(cacheTerritories);
       }
     } else if (newTerritories.length) {
-      setTerritories(mergeItems(territories, newTerritories));
+      setTerritories((latestTerritories) => mergeItems(latestTerritories, newTerritories));
     }
 
     let newPlaces = [];
@@ -439,7 +439,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPlaces(cachePlaces);
       }
     } else if (newPlaces.length) {
-      setPlaces(mergeItems(places, newPlaces));
+      setPlaces((latestPlaces) => mergeItems(latestPlaces, newPlaces));
     }
 
     let newRelsPersonPlace = [];
@@ -468,7 +468,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRelsPersonPlace(cacheRelsPersonPlace);
       }
     } else if (newRelsPersonPlace.length) {
-      setRelsPersonPlace(mergeItems(relsPersonPlace, newRelsPersonPlace));
+      setRelsPersonPlace((latestRelsPersonPlace) => mergeItems(latestRelsPersonPlace, newRelsPersonPlace));
     }
 
     let newTerritoryObservations = [];
@@ -497,7 +497,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setTerritoryObservations(cacheTerritoryObservations);
       }
     } else if (newTerritoryObservations.length) {
-      setTerritoryObservations(mergeItems(territoryObservations, newTerritoryObservations));
+      setTerritoryObservations((latestTerritoryObservations) => mergeItems(latestTerritoryObservations, newTerritoryObservations));
     }
 
     let newComments = [];
@@ -526,7 +526,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setComments(cacheComments);
       }
     } else if (newComments.length) {
-      setComments(mergeItems(comments, newComments));
+      setComments((latestComments) => mergeItems(latestComments, newComments));
     }
 
     let newConsultations = [];
@@ -557,7 +557,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setConsultations(cacheConsultations);
       }
     } else if (newConsultations.length) {
-      setConsultations(mergeItems(consultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -590,7 +590,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           setTreatments(cacheTreatments);
         }
       } else if (newTreatments.length) {
-        setTreatments(mergeItems(treatments, newTreatments));
+        setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
       }
     }
 
@@ -624,7 +624,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           setMedicalFiles(cacheMedicalFiles);
         }
       } else if (newMedicalFiles.length) {
-        setMedicalFiles(mergeItems(medicalFiles, newMedicalFiles));
+        setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
       }
     }
 
