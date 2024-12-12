@@ -9,6 +9,7 @@ import UserName from '../../components/UserName';
 import API from '../../services/api';
 import { customFieldsObsSelector, territoryObservationsState } from '../../recoil/territoryObservations';
 import { currentTeamState } from '../../recoil/auth';
+import { dayjsInstance } from '../../services/dateDayjs';
 
 const hitSlop = {
   top: 20,
@@ -36,10 +37,10 @@ const computeCustomFieldDisplay = (field, value) => {
   if (['text', 'number'].includes(field.type)) return value;
   if (['textarea'].includes(field.type)) return value?.split('\\n')?.join('\u000A');
   if (!!['date-with-time'].includes(field.type) && !!value) {
-    return new Date(value).getLocaleDateAndTime('fr');
+    return dayjsInstance(value).format('dddd DD MMMM HH:mm');
   }
   if (!!['date', 'duration'].includes(field.type) && !!value) {
-    return new Date(value).getLocaleDate('fr');
+    return dayjsInstance(value).format('dddd DD MMMM');
   }
   if (['boolean'].includes(field.type)) return showBoolean(value);
   if (['yes-no'].includes(field.type)) return value;
@@ -96,6 +97,8 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
 
   const { observedAt, createdAt } = observation;
 
+  const date = dayjsInstance(observedAt || createdAt);
+
   return (
     <Container>
       <CaptionsContainer>
@@ -118,7 +121,8 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
         <CreationDate>
           {!!observation?.user && <UserName caption="Observation faite par" id={observation.user?._id || observation.user} />}
           {'\u000A'}
-          {new Date(observedAt || createdAt).getLocaleDateAndTime('fr')}
+          {/* Mardi 12 novembre 2024 à 10:00 */}
+          {date.format(date.format('YYYY') !== dayjsInstance().format('YYYY') ? 'dddd DD MMMM YYYY à HH:mm' : 'dddd DD MMMM à HH:mm')}
         </CreationDate>
       </CaptionsContainer>
       <OnMoreContainer hitSlop={hitSlop} onPress={onPressRequest}>

@@ -5,6 +5,7 @@ import { useRecoilValue } from 'recoil';
 import { MyText } from '../../components/MyText';
 import UserName from '../../components/UserName';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
+import { dayjsInstance } from '../../services/dateDayjs';
 
 const GroupRow = ({ relation, onMorePress, person }) => {
   const navigation = useNavigation();
@@ -42,7 +43,7 @@ const GroupRow = ({ relation, onMorePress, person }) => {
         <MyText className="italic ml-auto my-2 mr-6 text-right text-main">
           {!!user && <UserName caption="Relation créée par" id={user?._id || user} />}
           {'\u000A'}
-          {new Date(createdAt).getLocaleDateAndTime('fr')}
+          {dayjsInstance(createdAt).format('dddd DD MMMM HH:mm')}
         </MyText>
       </View>
       <TouchableOpacity className="flex-row absolute top-4 right-2" hitSlop={hitSlop} onPress={onMorePress}>
