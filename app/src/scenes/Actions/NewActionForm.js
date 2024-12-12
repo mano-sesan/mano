@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -21,6 +21,9 @@ import CheckboxLabelled from '../../components/CheckboxLabelled';
 import { groupsState } from '../../recoil/groups';
 import { useFocusEffect } from '@react-navigation/native';
 import { refreshTriggerState } from '../../components/Loader';
+import Recurrence from '../../components/Recurrence';
+import { dayjsInstance } from '../../services/dateDayjs';
+import { getOccurrences } from '../../utils/recurrence';
 
 const NewActionForm = ({ route, navigation }) => {
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
@@ -33,7 +36,10 @@ const NewActionForm = ({ route, navigation }) => {
   const [withTime, setWithTime] = useState(false);
   const [description, setDescription] = useState('');
   const [urgent, setUrgent] = useState(false);
+  const [isRecurrent, setIsRecurrent] = useState(false);
+  const [recurrenceData, setRecurrenceData] = useState({});
   const [group, setGroup] = useState(false);
+
   const [actionPersons, setActionPersons] = useState(() => (route.params?.person ? [route.params?.person] : []));
   const [categories, setCategories] = useState([]);
   const forCurrentPerson = useRef(!!route.params?.person).current;
@@ -51,6 +57,7 @@ const NewActionForm = ({ route, navigation }) => {
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation]);
 
   useFocusEffect(
@@ -64,31 +71,105 @@ const NewActionForm = ({ route, navigation }) => {
 
   const onSearchPerson = () => navigation.push('PersonsSearch', { fromRoute: 'NewActionForm' });
 
+  const onCreateActionRequest = () => {
+    const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;
+    const recurrenceDataWithDates = {
+      ...recurrenceData,
+      startDate: dayjsInstance(dueAt).startOf('day').toDate(),
+      endDate: dayjsInstance(recurrenceData.endDate).startOf('day').toDate(),
+    };
+    const occurrences = hasRecurrence ? getOccurrences(recurrenceDataWithDates) : [];
+    if (occurrences.length > 1) {
+      const total = occurrences.length * (Array.isArray(actionPersons) ? actionPersons.length : 1);
+      const text =
+        'En sauvegardant, du fait de la récurrence et du nombre de personnes, vous allez créer ' + total + ' actions. Voulez-vous continuer ?';
+      Alert.alert('Sauvegarde de multiple actions', text, [
+        {
+          text: 'Continuer',
+          onPress: onCreateAction,
+        },
+        {
+          text: 'Annuler',
+          style: 'cancel',
+        },
+      ]);
+    } else {
+      onCreateAction();
+    }
+  };
+
   const onCreateAction = async () => {
     setPosting(true);
 
+    const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;
+    const recurrenceDataWithDates = {
+      ...recurrenceData,
+      startDate: dayjsInstance(dueAt).startOf('day').toDate(),
+      endDate: dayjsInstance(recurrenceData.endDate).startOf('day').toDate(),
+    };
+    const occurrences = hasRecurrence ? getOccurrences(recurrenceDataWithDates) : [];
+
+    // Creation de la récurrence si nécessaire. Attention on doit créer une récurrence par personnes,
+    // pour pouvoir modifier une action pour une personne sans impacter les autres.
+    const recurrencesIds = [];
+    if (hasRecurrence) {
+      // eslint-disable-next-line no-unused-vars
+      for (const _personId of Array.isArray(actionPersons) ? actionPersons : [actionPersons]) {
+        const recurrenceResponse = await API.post({
+          path: '/recurrence',
+          body: recurrenceDataWithDates,
+        });
+        if (!recurrenceResponse.ok) {
+          setPosting(false);
+          Alert.alert(recurrenceResponse.error || recurrenceResponse.code);
+          return;
+        }
+        recurrencesIds.push(recurrenceResponse.data._id);
+      }
+    }
+
+    const actions = (Array.isArray(actionPersons) ? actionPersons : [actionPersons]).flatMap((person, index) => {
+      if (hasRecurrence) {
+        return occurrences.map((occurrence) =>
+          prepareActionForEncryption({
+            name,
+            person: person._id,
+            teams: [currentTeam._id],
+            description,
+            withTime,
+            urgent,
+            group,
+            status,
+            categories,
+            user: user._id,
+            completedAt: status !== TODO ? new Date().toISOString() : null,
+            recurrence: recurrencesIds[index],
+            dueAt: !withTime
+              ? occurrence
+              : dayjsInstance(occurrence).set('hour', dayjsInstance(dueAt).hour()).set('minute', dayjsInstance(dueAt).minute()).toDate(),
+          })
+        );
+      } else {
+        return prepareActionForEncryption({
+          name,
+          person: person._id,
+          teams: [currentTeam._id],
+          description,
+          dueAt,
+          withTime,
+          urgent,
+          group,
+          status,
+          categories,
+          user: user._id,
+          completedAt: status !== TODO ? new Date().toISOString() : null,
+        });
+      }
+    });
+
     const response = await API.post({
       path: '/action/multiple',
-      body: await Promise.all(
-        actionPersons
-          .map((person) =>
-            prepareActionForEncryption({
-              name,
-              person: person._id,
-              teams: [currentTeam._id],
-              description,
-              dueAt,
-              withTime,
-              urgent,
-              group,
-              status,
-              categories,
-              user: user._id,
-              completedAt: status !== TODO ? new Date().toISOString() : null,
-            })
-          )
-          .map(API.encryptItem)
-      ),
+      body: await Promise.all(actions.map(API.encryptItem)),
     });
 
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -97,10 +178,17 @@ const NewActionForm = ({ route, navigation }) => {
       if (response.status !== 401) Alert.alert(response.error || response.code);
       return;
     }
-    const actionToRedirect = response.decryptedData[0];
 
     // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
     backRequestHandledRef.current = true;
+
+    // Quand il y a récurrence, on redirige juste vers la liste des actions
+    if (hasRecurrence) {
+      navigation.replace('ActionsList');
+      return;
+    }
+
+    const actionToRedirect = response.decryptedData[0];
     Sentry.setContext('action', { _id: actionToRedirect._id });
     navigation.replace('Action', {
       actions: response.decryptedData,
@@ -133,7 +221,7 @@ const NewActionForm = ({ route, navigation }) => {
       Alert.alert('Voulez-vous enregistrer cette action ?', null, [
         {
           text: 'Enregistrer',
-          onPress: onCreateAction,
+          onPress: onCreateActionRequest,
         },
         {
           text: 'Ne pas enregistrer',
@@ -207,6 +295,22 @@ const NewActionForm = ({ route, navigation }) => {
             onPress={() => setUrgent(!urgent)}
             value={urgent}
           />
+          <CheckboxLabelled
+            label="Répéter cette action"
+            alone
+            onPress={() => {
+              if (!dueAt) {
+                Alert.alert('Veuillez sélectionner une date avant de planifier une récurrence');
+              } else {
+                setIsRecurrent(!isRecurrent);
+              }
+            }}
+            value={isRecurrent}
+          />
+
+          {Boolean(isRecurrent) && (
+            <Recurrence startDate={dueAt} initialValues={recurrenceData} onChange={(recurrenceData) => setRecurrenceData(recurrenceData)} />
+          )}
           {!!canToggleGroupCheck && (
             <CheckboxLabelled
               label="Action familiale (cette action sera à effectuer pour toute la famille)"
@@ -215,7 +319,7 @@ const NewActionForm = ({ route, navigation }) => {
               value={group}
             />
           )}
-          <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateAction} loading={posting} testID="new-action-create" />
+          <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateActionRequest} loading={posting} testID="new-action-create" />
         </View>
       </ScrollContainer>
     </SceneContainer>
