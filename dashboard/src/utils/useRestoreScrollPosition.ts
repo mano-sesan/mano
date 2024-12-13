@@ -7,7 +7,6 @@ export function useRestoreScrollPosition() {
   useEffect(() => {
     const scrollParent = document.querySelector("#main-content")!;
     const scrollPosition = localStorage.getItem(`scrollPosition-${pathname}`);
-    console.log("scrollPosition", scrollPosition);
     if (scrollPosition) {
       scrollParent.scrollTo(0, parseInt(scrollPosition));
     }
