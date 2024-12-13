@@ -8,7 +8,7 @@ import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
-import { organisationState, usersState, userState } from "../../recoil/auth";
+import { deletedUsersState, organisationState, usersState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -22,6 +22,7 @@ const View = () => {
   const history = useHistory();
   const [user, setUser] = useRecoilState(userState);
   const setUsers = useSetRecoilState(usersState);
+  const setDeletedUsers = useSetRecoilState(deletedUsersState);
   const organisation = useRecoilValue(organisationState);
   const [isReactivatingUser, setIsReactivatingUser] = useState(false);
 
@@ -194,6 +195,9 @@ const View = () => {
                     if (error) {
                       return toast.error(errorMessage(error));
                     }
+                    const { data: deletedUsers } = await API.get({ path: "/user/deleted-users" });
+                    setDeletedUsers(deletedUsers);
+                    setUsers((users) => users.filter((u) => u._id !== id));
                     toast.success("Suppression réussie");
                     history.goBack();
                   }}
