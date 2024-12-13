@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
@@ -20,6 +20,7 @@ import PersonName from "../../../components/PersonName";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
+import isEqual from "react-fast-compare";
 
 export default function TreatmentModal() {
   const [treatmentIdForModal, setTreatmentIdForModal] = useState(null);
@@ -199,7 +200,7 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
           </>
         }
         onClose={() => {
-          if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+          if (isEqual(data, initialState)) return onClose();
           setModalConfirmState({
             open: true,
             options: {
