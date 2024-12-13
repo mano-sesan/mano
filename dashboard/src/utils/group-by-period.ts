@@ -1,8 +1,8 @@
 import { dayjsInstance } from "../services/date";
 
-type groupBy = "month" | "year" | "day";
+type GroupBy = "month" | "year" | "day";
 
-export function groupByPeriod(items: Array<any>, period: groupBy, field: string = "date", groupedByKey: string = "groupedByKey") {
+export function groupByPeriod(items: Array<any>, period: GroupBy, field: string = "date", groupedByKey: string = "groupedByKey") {
   const groupedItems = [];
   const options: Set<string> = new Set();
   if (period === "year") {
