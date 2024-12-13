@@ -17,7 +17,7 @@ import { groupsState } from "./groups";
 import { territoriesState } from "./territory";
 import { extractInfosFromHistory } from "../utils/person-history";
 
-const usersObjectSelector = selector({
+export const usersObjectSelector = selector({
   key: "usersObjectSelector",
   get: ({ get }) => {
     const users = get(usersState);

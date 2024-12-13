@@ -11,8 +11,14 @@ import { personsState, sortPersons } from "../../recoil/persons";
 import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import { sortTerritories, territoriesState } from "../../recoil/territory";
 import { selector, selectorFamily, useRecoilValue } from "recoil";
-import { itemsGroupedByPersonSelector, onlyFilledObservationsTerritories, personsObjectSelector } from "../../recoil/selectors";
-import { formatBirthDate, formatDateWithFullMonth } from "../../services/date";
+import {
+  arrayOfitemsGroupedByPersonSelector,
+  itemsGroupedByPersonSelector,
+  onlyFilledObservationsTerritories,
+  personsObjectSelector,
+  usersObjectSelector,
+} from "../../recoil/selectors";
+import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth } from "../../services/date";
 import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
@@ -29,6 +35,8 @@ import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import TreatmentsSortableList from "../person/components/TreatmentsSortableList";
 import CommentsSortableList from "../../components/CommentsSortableList";
+import PersonName from "../../components/PersonName";
+import DateBloc, { TimeBlock } from "../../components/DateBloc";
 
 const personsWithFormattedBirthDateSelector = selector({
   key: "personsWithFormattedBirthDateSelector",
@@ -53,6 +61,95 @@ const personsFilteredBySearchForSearchSelector = selectorFamily({
       const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
       if (!search?.length) return [];
       return filterBySearch(search, persons, excludeFields).map((p) => personsPopulated[p._id]);
+    },
+});
+
+const documentsWithPersonSelector = selector({
+  key: "documentsWithPersonSelector",
+  get: ({ get }) => {
+    const persons = get(arrayOfitemsGroupedByPersonSelector);
+    const user = get(userState);
+    const documents = [];
+    for (const person of persons) {
+      for (const document of person.documentsForModule || []) {
+        let type;
+        if (document.linkedItem.type === "person") {
+          type = "Personne";
+        } else if (document.linkedItem.type === "action") {
+          type = "Action";
+        } else if (document.linkedItem.type === "consultation") {
+          type = "Consultation";
+        } else if (document.linkedItem.type === "treatment") {
+          type = "Traitement";
+        }
+        documents.push({
+          _id: document._id,
+          group: document.group,
+          name: document.name,
+          person: person._id,
+          type: type,
+          createdAt: document.createdAt,
+          createdBy: document.createdBy,
+        });
+      }
+      if (user.healthcareProfessional) {
+        for (const document of person.medicalFile?.documents || []) {
+          documents.push({
+            _id: document._id,
+            group: document.group,
+            name: document.name,
+            person: person._id,
+            type: "Dossier médical",
+            createdAt: document.createdAt,
+            createdBy: document.createdBy,
+          });
+        }
+        for (const consultation of person.consultations || []) {
+          for (const document of consultation.documents || []) {
+            documents.push({
+              _id: document._id,
+              group: document.group,
+              name: document.name,
+              person: person._id,
+              type: "Consultation",
+              createdAt: consultation.createdAt,
+              createdBy: document.createdBy,
+            });
+          }
+        }
+        for (const treatment of person.treatments || []) {
+          for (const document of treatment.documents || []) {
+            documents.push({
+              _id: document._id,
+              group: document.group,
+              name: document.name,
+              person: person._id,
+              type: "Traitement",
+              createdAt: document.createdAt,
+              createdBy: document.createdBy,
+            });
+          }
+        }
+      }
+    }
+    return documents;
+  },
+});
+
+const documentsFilteredBySearchForSearchSelector = selectorFamily({
+  key: "documentsFilteredBySearchForSearchSelector",
+  get:
+    ({ search }) =>
+    ({ get }) => {
+      const documents = get(documentsWithPersonSelector);
+      const users = get(usersObjectSelector);
+      const personsPopulated = get(itemsGroupedByPersonSelector);
+      if (!search?.length) return [];
+      return filterBySearch(search, documents).map((d) => ({
+        ...d,
+        personPopulated: personsPopulated[d.person],
+        userPopulated: users[d.createdBy],
+      }));
     },
 });
 
@@ -90,7 +187,6 @@ const commentsPopulatedSelector = selector({
           person: action?.person,
           type: "action",
         };
-        continue;
       }
     }
     return commentsObject;
@@ -153,8 +249,8 @@ const View = () => {
   const user = useRecoilValue(userState);
   const initTabs = useMemo(() => {
     const defaultTabs = ["Actions", "Personnes", "Commentaires non médicaux", "Lieux", "Territoires", "Observations"];
-    if (!user.healthcareProfessional) return defaultTabs;
-    return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux"];
+    if (!user.healthcareProfessional) return [...defaultTabs, "Documents"];
+    return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux", "Documents"];
   }, [user.healthcareProfessional]);
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", 0);
@@ -194,6 +290,7 @@ const View = () => {
   }, [search, allConsultations, user._id]);
 
   const persons = useRecoilValue(personsFilteredBySearchForSearchSelector({ search }));
+  const documents = useRecoilValue(documentsFilteredBySearchForSearchSelector({ search }));
   const organisation = useRecoilValue(organisationState);
   const comments = useRecoilValue(commentsFilteredBySearchSelector({ search }));
 
@@ -216,7 +313,7 @@ const View = () => {
     return (
       <>
         <TabsNav
-          className="tw-justify-center tw-px-3 tw-py-2"
+          className="tw-flex-wrap tw-justify-center tw-px-3 tw-py-2"
           tabs={[
             `Actions (${actions.length})`,
             `Personnes (${persons.length})`,
@@ -227,6 +324,7 @@ const View = () => {
             !!user.healthcareProfessional && `Consultations (${consultations.length})`,
             !!user.healthcareProfessional && `Traitements (${treatments.length})`,
             !!user.healthcareProfessional && `Dossiers médicaux (${medicalFiles.length})`,
+            `Documents (${documents.length})`,
           ].filter(Boolean)}
           onClick={(tab) => {
             if (tab.includes("Actions")) setActiveTab("Actions");
@@ -238,6 +336,7 @@ const View = () => {
             if (tab.includes("Lieux")) setActiveTab("Lieux");
             if (tab.includes("Territoires")) setActiveTab("Territoires");
             if (tab.includes("Observations")) setActiveTab("Observations");
+            if (tab.includes("Documents")) setActiveTab("Documents");
           }}
           activeTabIndex={initTabs.findIndex((tab) => tab === activeTab)}
         />
@@ -251,6 +350,7 @@ const View = () => {
           {activeTab === "Lieux" && <Places places={places} />}
           {activeTab === "Territoires" && <Territories territories={territories} />}
           {activeTab === "Observations" && <TerritoryObservations observations={observations} />}
+          {activeTab === "Documents" && <Documents documents={documents} />}
         </div>
       </>
     );
@@ -348,6 +448,131 @@ const Persons = ({ persons }) => {
           sortOrder,
           sortBy,
           render: (p) => formatDateWithFullMonth(p.followedSince || p.createdAt || ""),
+        },
+      ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
+    />
+  );
+};
+
+const Documents = ({ documents }) => {
+  const history = useHistory();
+  const organisation = useRecoilValue(organisationState);
+
+  const [sortBy, setSortBy] = useLocalStorage("documents-sortBy", "name");
+  const [sortOrder, setSortOrder] = useLocalStorage("documents-sortOrder", "ASC");
+  const data = useMemo(() => {
+    return [...documents].sort((a, b) => {
+      if (sortBy === "createdAt") {
+        return sortOrder === "ASC"
+          ? new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          : new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      if (sortBy === "type") {
+        return sortOrder === "ASC" ? a.type.localeCompare(b.type) : b.type.localeCompare(a.type);
+      }
+      if (sortBy === "createdBy") {
+        if (a.userPopulated && b.userPopulated) {
+          if (!a.userPopulated) return sortOrder === "ASC" ? 1 : -1;
+          if (!b.userPopulated) return sortOrder === "ASC" ? -1 : 1;
+          return sortOrder === "ASC"
+            ? a.userPopulated.name.localeCompare(b.userPopulated.name)
+            : b.userPopulated.name.localeCompare(a.userPopulated.name);
+        }
+      }
+      if (sortBy === "person") {
+        if (a.personPopulated && b.personPopulated) {
+          if (!a.personPopulated) return sortOrder === "ASC" ? 1 : -1;
+          if (!b.personPopulated) return sortOrder === "ASC" ? -1 : 1;
+          return sortOrder === "ASC"
+            ? a.personPopulated.name.localeCompare(b.personPopulated.name)
+            : b.personPopulated.name.localeCompare(a.personPopulated.name);
+        }
+      }
+      const nameA = String(a.name || "");
+      const nameB = String(b.name || "");
+      return sortOrder === "ASC" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+  }, [documents, sortBy, sortOrder]);
+
+  if (!data?.length) return <div />;
+  const moreThanOne = data.length > 1;
+
+  console.log(data);
+
+  return (
+    <Table
+      data={data}
+      title={`Document${moreThanOne ? "s" : ""} (${data.length})`}
+      rowKey={"_id"}
+      noData="Pas de document"
+      onRowClick={(document) => history.push(`/person/${document.person}`)}
+      columns={[
+        {
+          title: "",
+          dataKey: "group",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          small: true,
+          render: (person) => {
+            if (!person.group) return null;
+            return (
+              <div className="tw-flex tw-items-center tw-justify-center tw-gap-1">
+                <span className="tw-text-3xl" aria-label="Personne avec des liens familiaux" title="Personne avec des liens familiaux">
+                  👪
+                </span>
+              </div>
+            );
+          },
+        },
+        {
+          title: "Nom du document",
+          dataKey: "name",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+        },
+        {
+          title: "Type",
+          dataKey: "type",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+        },
+        {
+          title: "Ajouté le",
+          dataKey: "createdAt",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          render: (document) => (
+            <>
+              <DateBloc date={document.createdAt} />
+              <TimeBlock time={document.createdAt} />
+            </>
+          ),
+        },
+        {
+          title: "Créé par",
+          dataKey: "createdBy",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          render: (document) => <UserName id={document.createdBy} />,
+        },
+        {
+          title: "Pour la personne",
+          dataKey: "person",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          render: (document) => <PersonName item={document} />,
         },
       ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
     />
