@@ -37,15 +37,10 @@ Pour télécharger l’application, c’est PAR ICI !
 <br />
 <br />
 <br />
-<p>Si vous avez des questions ou avez besoin d'assistance, n'hésitez pas à nous contacter votre chargé·e de déploiement&nbsp;:</p>
+<p>Si vous avez des questions ou avez besoin d'assistance, n'hésitez pas à contacter votre chargé·e de déploiement&nbsp;:</p>
 <p>Melissa Saiter&nbsp;:<br />
 melissa.saiter@sesan.fr - 07 49 08 27 10<br />
 <span style="font-size: 12px;">Île-de-France, Hauts-de-France, Auvergne&nbsp;Rhone&nbsp;Alpes, Grand&nbsp;Est, Normandie, Bretagne, Guadeloupe et Martinique</span></p>
-<br />
-<p>Yoann Kittery&nbsp;:<br />
-yoann.kittery@sesan.fr - 07 45 16 40 04<br />
-<span style="font-size: 12px;">Île-de-france, PACA, Occitanie, Nouvelle&nbsp;Aquitaine, Pays&nbsp;de&nbsp;la&nbsp;Loire, Centre&nbsp;Val&nbsp;de&nbsp;Loire, Corse,
-Réunion</span></p>
 <br />
 <p>Nous vous conseillons vivement de rajouter le lien de connexion à Mano à votre barre de favoris (en cliquant sur la petite étoile en haut à droite de la barre de recherche): cela va devenir pour vous un outil du quotidien !</p>
 <p>Si vous n'avez pas encore été formé à Mano, inscrivez-vous à une session de formation (environ 1h30) (C'est obligatoire et gratuit !) en sélectionnant un créneau via le lien ci-dessous&nbsp;:</p>
@@ -53,11 +48,6 @@ Réunion</span></p>
 <li>
 <a href="https://cal.com/msaiter/je-souhaite-une-demonstration-de-l-outil-mano?duration=60">
 Reservez un temps de présentation de l’outil MANO (Melissa)
-</a>
-</li>
-<li>
-<a href="https://cal.com/ykittery-mano/reservez-un-temps-de-presentation-de-l-outil-mano?duration=60">
-Reservez un temps de présentation de l’outil MANO (Yoann)
 </a>
 </li>
 </ul>
