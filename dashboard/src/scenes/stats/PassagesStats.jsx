@@ -121,7 +121,6 @@ function PassagesBar({ passages }) {
     return { data, options };
   }, [passages]);
 
-  console.log("options", options);
 
   return (
     <CustomResponsiveBar
