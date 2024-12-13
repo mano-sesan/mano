@@ -141,6 +141,7 @@ export const CustomResponsiveBar = ({
   isMultiChoice,
   totalForMultiChoice,
   totalTitleForMultiChoice,
+  forcedXAxis,
   help,
 }: {
   title: string;
@@ -152,6 +153,7 @@ export const CustomResponsiveBar = ({
   totalForMultiChoice?: number;
   totalTitleForMultiChoice?: string;
   help?: string;
+  forcedXAxis?: string[];
 }) => {
   // if we have too many categories with small data, we see nothing in the chart
   // so we filter by keeping the first 15 categories whatever
@@ -250,7 +252,7 @@ export const CustomResponsiveBar = ({
           </div>
         )}
         <ResponsiveBar
-          data={chartData}
+          data={forcedXAxis ? forcedXAxis.map((x) => ({ name: x, [x]: chartData.find((c) => c.name === x)?.[x] || 0 })) : chartData}
           keys={categories}
           onClick={onClick}
           indexBy="name"

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { CustomResponsivePie } from "./Charts";
-import { getPieData } from "./utils";
-import { AgeRangeBar } from "./PersonsStats";
+import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
+import { getMultichoiceBarData, getPieData } from "./utils";
+import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import Filters from "../../components/Filters";
-import { SelectedPersonsModal } from "./PersonsStats";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/auth";
+import { groupByPeriod } from "../../utils/group-by-period";
 
 const PassagesStats = ({
   passages,
@@ -99,6 +99,7 @@ const PassagesStats = ({
           }
         />
         <AgeRangeBar persons={personsWithPassages} />
+        <PassagesBar passages={passages} />
       </div>
       <SelectedPersonsModal
         open={isPersonsModalOpened}
@@ -111,5 +112,30 @@ const PassagesStats = ({
     </>
   );
 };
+
+function PassagesBar({ passages }) {
+  // TODO: possibilité de sélectionner une période
+
+  const { data, options } = useMemo(() => {
+    const { data, options } = groupByPeriod(passages, "month", "date", "groupedByMonth");
+    return { data, options };
+  }, [passages]);
+
+  console.log("options", options);
+
+  return (
+    <CustomResponsiveBar
+      title="Répartition des passages par mois"
+      forcedXAxis={options}
+      help={`Répartition par mois des passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.`}
+      axisTitleY="File active"
+      axisTitleX="Raison de sortie de file active"
+      isMultiChoice
+      totalForMultiChoice={data.length}
+      totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
+      data={getMultichoiceBarData(data, "groupedByMonth", { options, showEmptyBars: true })}
+    />
+  );
+}
 
 export default PassagesStats;
