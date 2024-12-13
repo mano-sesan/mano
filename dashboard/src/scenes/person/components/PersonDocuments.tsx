@@ -14,6 +14,7 @@ import type { UUIDV4 } from "../../../types/uuid";
 import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
 import { useDataLoader } from "../../../services/dataLoader";
+import isEqual from "react-fast-compare";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -115,8 +116,12 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
             capture(new Error("Error while ordering documents (action not found)"), { extra: { actionId } });
             return false;
           }
-          // FIXME: pour l'instant on vérifie si les deux documents sont identiques avec JSON.stringify. Il faudrait trouver une meilleure solution.
-          if (JSON.stringify(action.documents) === JSON.stringify(actionNextDocuments.filter((d) => d.linkedItem._id === actionId))) {
+          if (
+            isEqual(
+              action.documents,
+              actionNextDocuments.filter((d) => d.linkedItem._id === actionId)
+            )
+          ) {
             continue;
           }
           const [actionError] = await tryFetchExpectOk(async () => {
