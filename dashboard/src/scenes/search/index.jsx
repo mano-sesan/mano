@@ -497,8 +497,6 @@ const Documents = ({ documents }) => {
   if (!data?.length) return <div />;
   const moreThanOne = data.length > 1;
 
-  console.log(data);
-
   return (
     <Table
       data={data}
@@ -533,6 +531,7 @@ const Documents = ({ documents }) => {
           onSortBy: setSortBy,
           sortOrder,
           sortBy,
+          render: (document) => <span className=" tw-font-bold">{document.name}</span>,
         },
         {
           title: "Type",
@@ -549,12 +548,7 @@ const Documents = ({ documents }) => {
           onSortBy: setSortBy,
           sortOrder,
           sortBy,
-          render: (document) => (
-            <>
-              <DateBloc date={document.createdAt} />
-              <TimeBlock time={document.createdAt} />
-            </>
-          ),
+          render: (document) => formatDateTimeWithNameOfDay(document.createdAt),
         },
         {
           title: "Créé par",
