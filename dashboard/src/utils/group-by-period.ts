@@ -5,10 +5,11 @@ type GroupBy = "month" | "year" | "day";
 export function groupByPeriod(items: Array<any>, period: GroupBy, field: string = "date", groupedByKey: string = "groupedByKey") {
   const groupedItems = [];
   const options: Set<string> = new Set();
+  let optionsArray: Array<string> = [];
   if (period === "year") {
     for (const item of items) {
       const year = `${dayjsInstance(item[field]).year()}`;
-      const key = `${year}-01-01`;
+      const key = year;
       options.add(key);
       groupedItems.push({ ...item, [groupedByKey]: key });
     }
@@ -18,15 +19,15 @@ export function groupByPeriod(items: Array<any>, period: GroupBy, field: string 
     let currentKey = minYear;
     while (currentKey !== maxYear) {
       if (!options.has(currentKey)) options.add(currentKey);
-      const nextDate = dayjsInstance(currentKey).add(1, "year");
-      currentKey = `${nextDate.year()}-01-01`;
+      const nextDate = dayjsInstance(`${currentKey}-01-01`).add(1, "year");
+      currentKey = `${nextDate.year()}`;
     }
   }
   if (period === "month") {
     for (const item of items) {
       const month = (dayjsInstance(item[field]).month() + 1).toString().padStart(2, "0");
       const year = dayjsInstance(item[field]).year();
-      const key = `${year}-${month}-01`;
+      const key = `${year}-${month}`;
       options.add(key);
       groupedItems.push({ ...item, [groupedByKey]: key });
     }
@@ -36,8 +37,8 @@ export function groupByPeriod(items: Array<any>, period: GroupBy, field: string 
     let currentKey = minKey;
     while (currentKey !== maxKey) {
       if (!options.has(currentKey)) options.add(currentKey);
-      const nextDate = dayjsInstance(currentKey).add(1, "month");
-      currentKey = `${nextDate.format("YYYY-MM")}-01`;
+      const nextDate = dayjsInstance(`${currentKey}-01`).add(1, "month");
+      currentKey = nextDate.format("YYYY-MM");
     }
   }
   if (period === "day") {
@@ -56,6 +57,7 @@ export function groupByPeriod(items: Array<any>, period: GroupBy, field: string 
       currentKey = nextDate.format("YYYY-MM-DD");
     }
   }
+  optionsArray = Array.from(options).sort((a, b) => dayjsInstance(a).diff(dayjsInstance(b)));
 
-  return { data: groupedItems, options: Array.from(options).sort((a, b) => dayjsInstance(a).diff(dayjsInstance(b))) };
+  return { data: groupedItems, options: optionsArray };
 }

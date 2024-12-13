@@ -121,7 +121,6 @@ function PassagesBar({ passages }) {
     return { data, options };
   }, [passages]);
 
-
   return (
     <CustomResponsiveBar
       title="Répartition des passages par mois"
@@ -132,7 +131,7 @@ function PassagesBar({ passages }) {
       isMultiChoice
       totalForMultiChoice={data.length}
       totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
-      data={getMultichoiceBarData(data, "groupedByMonth", { options, showEmptyBars: true })}
+      data={getMultichoiceBarData(data, "groupedByMonth", { options, showEmptyBars: true }).filter((d) => d.name !== "Non renseigné")}
     />
   );
 }
