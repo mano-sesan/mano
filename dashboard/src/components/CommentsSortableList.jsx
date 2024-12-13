@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import Table from "./table";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
@@ -14,21 +14,31 @@ import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import ConsultationButton from "./ConsultationButton";
 import { NoComments } from "./CommentsGeneric";
+import SelectTeamMultiple from "./SelectTeamMultiple";
 
 export default function CommentsSortableList({ data, className = "", fullScreen = false, hiddenColumns = [], onCommentClick = undefined }) {
   const setModalAction = useSetRecoilState(modalActionState);
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const organisation = useRecoilValue(organisationState);
+  const [filterTeamIds, setFilterTeamIds] = useState([]);
   const location = useLocation();
   const history = useHistory();
   const [sortOrder, setSortOrder] = useLocalStorage("comments-sortable-list-sortOrder", "ASC");
   const [sortBy, setSortBy] = useLocalStorage("comments-sortable-list-sortBy", "date");
+
+  const dataFiltered = useMemo(() => {
+    if (!filterTeamIds.length) return data;
+    return data.filter((c) => {
+      return filterTeamIds.includes(c.team);
+    });
+  }, [data, filterTeamIds]);
+
   const dataSorted = useMemo(() => {
-    return [...data].sort(sortComments(sortBy, sortOrder)).map((c) => {
+    return [...dataFiltered].sort(sortComments(sortBy, sortOrder)).map((c) => {
       if (c.urgent) return { ...c, style: { backgroundColor: "#fecaca99" } };
       return c;
     });
-  }, [data, sortBy, sortOrder]);
+  }, [dataFiltered, sortBy, sortOrder]);
 
   if (!dataSorted.length) {
     return (
@@ -232,45 +242,62 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
   }
 
   return (
-    <Table
-      className={className}
-      data={dataSorted}
-      onRowClick={(comment) => {
-        if (onCommentClick) return onCommentClick(comment);
-        const searchParams = new URLSearchParams(history.location.search);
-        if (comment.isMedicalCommentShared) return;
-        switch (comment.type) {
-          case "action":
-            setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionsObjects[comment.action] });
-            break;
-          case "person":
-            history.push(`/person/${comment.person}`);
-            break;
-          case "consultation":
-            searchParams.set("consultationId", comment.consultation._id);
-            history.push(`?${searchParams.toString()}`);
-            break;
-          case "treatment":
-            searchParams.set("treatmentId", comment.treatment._id);
-            history.push(`?${searchParams.toString()}`);
-            break;
-          case "passage":
-            history.push(`/person/${comment.person}?passageId=${comment.passage}`);
-            break;
-          case "rencontre":
-            history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
-            break;
-          case "medical-file":
-            history.push(`/person/${comment.person}?tab=Dossier+Médical`);
-            break;
-          default:
-            break;
-        }
-      }}
-      rowDisabled={(comment) => comment.isMedicalCommentShared}
-      rowKey="_id"
-      dataTestId="comment"
-      columns={columns}
-    />
+    <>
+      {fullScreen ? <CommentsFilters filterTeamIds={filterTeamIds} setFilterTeamIds={setFilterTeamIds} /> : null}
+      <Table
+        className={className}
+        data={dataSorted}
+        onRowClick={(comment) => {
+          if (onCommentClick) return onCommentClick(comment);
+          const searchParams = new URLSearchParams(history.location.search);
+          if (comment.isMedicalCommentShared) return;
+          switch (comment.type) {
+            case "action":
+              setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionsObjects[comment.action] });
+              break;
+            case "person":
+              history.push(`/person/${comment.person}`);
+              break;
+            case "consultation":
+              searchParams.set("consultationId", comment.consultation._id);
+              history.push(`?${searchParams.toString()}`);
+              break;
+            case "treatment":
+              searchParams.set("treatmentId", comment.treatment._id);
+              history.push(`?${searchParams.toString()}`);
+              break;
+            case "passage":
+              history.push(`/person/${comment.person}?passageId=${comment.passage}`);
+              break;
+            case "rencontre":
+              history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
+              break;
+            case "medical-file":
+              history.push(`/person/${comment.person}?tab=Dossier+Médical`);
+              break;
+            default:
+              break;
+          }
+        }}
+        rowDisabled={(comment) => comment.isMedicalCommentShared}
+        rowKey="_id"
+        dataTestId="comment"
+        columns={columns}
+      />
+    </>
+  );
+}
+
+function CommentsFilters({ filterTeamIds, setFilterTeamIds }) {
+  return (
+    <div className="tw-grid tw-grid-cols-2 tw-gap-2 tw-mb-2">
+      <div>
+        <label htmlFor="action-select-categories-filter" className="tw-text-xs">
+          Filtrer par équipe
+        </label>
+        <SelectTeamMultiple onChange={(teamIds) => setFilterTeamIds(teamIds)} value={filterTeamIds} colored inputId="action-team-select" />
+      </div>
+      {/* todo: ajouter le filtre "créé par" */}
+    </div>
   );
 }
