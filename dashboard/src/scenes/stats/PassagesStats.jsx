@@ -128,8 +128,8 @@ function PassagesBar({ passages }) {
       title="Répartition des passages par mois"
       forcedXAxis={options}
       help={`Répartition par mois des passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.`}
-      axisTitleY="File active"
-      axisTitleX="Raison de sortie de file active"
+      axisTitleY="Nombre de passage"
+      axisTitleX="Mois"
       isMultiChoice
       totalForMultiChoice={data.length}
       totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
