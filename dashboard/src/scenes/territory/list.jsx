@@ -83,6 +83,7 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            style: { minWidth: "200px" },
             render: (territory) => {
               return (
                 <div className="[overflow-wrap:anywhere]">
@@ -98,7 +99,19 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            render: ({ types }) => (types ? types.join(", ") : ""),
+            style: { minWidth: "200px" },
+            render: ({ types }) =>
+              types ? (
+                <div>
+                  <ul className="tw-list-inside tw-list-disc tw-p-0 tw-m-0">
+                    {types.map((type) => (
+                      <li key={type}>{type}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                ""
+              ),
           },
           {
             title: "Périmètre",
@@ -107,6 +120,16 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            render: (territory) => (territory.perimeter ? <div className="tw-text-xs">{territory.perimeter}</div> : ""),
+          },
+          {
+            title: "Description",
+            dataKey: "description",
+            onSortOrder: setSortOrder,
+            onSortBy: setSortBy,
+            sortOrder,
+            sortBy,
+            render: (territory) => (territory.description ? <div className="tw-text-xs">{territory.description}</div> : ""),
           },
           {
             title: "Créé le",
@@ -115,6 +138,7 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            style: { minWidth: "150px" },
             render: (territory) => formatDateWithFullMonth(territory.createdAt || ""),
           },
         ]}
