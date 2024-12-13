@@ -195,8 +195,10 @@ const View = () => {
                     if (error) {
                       return toast.error(errorMessage(error));
                     }
-                    const { data: deletedUsers } = await API.get({ path: "/user/deleted-users" });
-                    setDeletedUsers(deletedUsers);
+                    const response = await API.get({ path: "/user/deleted-users" });
+                    if (response.ok && response.data?.length) {
+                      setDeletedUsers(response.data);
+                    }
                     setUsers((users) => users.filter((u) => u._id !== id));
                     toast.success("Suppression réussie");
                     history.goBack();
