@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import Table from "./table";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
-import { organisationState } from "../recoil/auth";
+import { organisationState, userState } from "../recoil/auth";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
@@ -20,18 +20,26 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
   const setModalAction = useSetRecoilState(modalActionState);
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const organisation = useRecoilValue(organisationState);
+  const user = useRecoilValue(userState);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
+  const [filterOnlyMine, setFilterOnlyMine] = useState(false);
   const location = useLocation();
   const history = useHistory();
   const [sortOrder, setSortOrder] = useLocalStorage("comments-sortable-list-sortOrder", "ASC");
   const [sortBy, setSortBy] = useLocalStorage("comments-sortable-list-sortBy", "date");
 
   const dataFiltered = useMemo(() => {
-    if (!filterTeamIds.length) return data;
-    return data.filter((c) => {
-      return filterTeamIds.includes(c.team);
-    });
-  }, [data, filterTeamIds]);
+    if (!filterTeamIds.length && !filterOnlyMine) return data;
+    return data
+      .filter((c) => {
+        if (filterTeamIds.length) return filterTeamIds.includes(c.team);
+        return true;
+      })
+      .filter((c) => {
+        if (filterOnlyMine) return c.user === user._id;
+        return true;
+      });
+  }, [data, filterTeamIds, filterOnlyMine, user]);
 
   const dataSorted = useMemo(() => {
     return [...dataFiltered].sort(sortComments(sortBy, sortOrder)).map((c) => {
@@ -243,7 +251,14 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
 
   return (
     <>
-      {fullScreen ? <CommentsFilters filterTeamIds={filterTeamIds} setFilterTeamIds={setFilterTeamIds} /> : null}
+      {fullScreen ? (
+        <CommentsFilters
+          filterTeamIds={filterTeamIds}
+          setFilterTeamIds={setFilterTeamIds}
+          filterOnlyMine={filterOnlyMine}
+          setFilterOnlyMine={setFilterOnlyMine}
+        />
+      ) : null}
       <Table
         className={className}
         data={dataSorted}
@@ -288,16 +303,29 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
   );
 }
 
-function CommentsFilters({ filterTeamIds, setFilterTeamIds }) {
+function CommentsFilters({ filterTeamIds, setFilterTeamIds, filterOnlyMine, setFilterOnlyMine }) {
   return (
-    <div className="tw-grid tw-grid-cols-2 tw-gap-2 tw-mb-2">
+    <div className="tw-grid tw-grid-cols-2 tw-gap-4 tw-mb-2 tw-items-end">
       <div>
         <label htmlFor="action-select-categories-filter" className="tw-text-xs">
           Filtrer par équipe
         </label>
         <SelectTeamMultiple onChange={(teamIds) => setFilterTeamIds(teamIds)} value={filterTeamIds} colored inputId="action-team-select" />
       </div>
-      {/* todo: ajouter le filtre "créé par" */}
+      <div>
+        <div className="tw-flex tw-items-center tw-mb-2">
+          <input
+            type="checkbox"
+            id="my-comments-filter"
+            className="tw-mr-2"
+            checked={filterOnlyMine}
+            onChange={(e) => setFilterOnlyMine(e.target.checked)}
+          />
+          <label htmlFor="my-comments-filter" className="tw-mb-0 tw-text-sm">
+            Afficher uniquement mes commentaires
+          </label>
+        </div>
+      </div>
     </div>
   );
 }
