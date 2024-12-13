@@ -1,10 +1,11 @@
 import { setCacheItem } from "../services/dataManagement";
 import { atom, selector, useRecoilValue } from "recoil";
 import { organisationState } from "./auth";
+import { flattenedActionsCategoriesSelector } from "./actions";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import type { PersonInstance } from "../types/person";
-import type { PredefinedField, CustomField, CustomOrPredefinedField, Filter } from "../types/field";
+import type { PredefinedField, CustomField, CustomOrPredefinedField, FilterableField } from "../types/field";
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "person";
@@ -114,72 +115,92 @@ export const filterPersonsBaseSelector = selector({
   key: "filterPersonsBaseSelector",
   get: ({ get }) => {
     const personFields = get(personFieldsSelector) as PredefinedField[];
-    const filterPersonsBase: Array<Filter> = [];
+    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+    const filterPersonsBase: Array<FilterableField> = [];
     for (const field of personFields) {
       if (!field.filterable) continue;
       filterPersonsBase.push({
         // why ? IDK
         field: field.name,
+        name: field.name,
         ...field,
       });
       if (field.name === "birthdate") {
         filterPersonsBase.push({
           field: "age",
+          name: "age",
           label: "Age (en années)",
           type: "number",
         });
       }
     }
-    const followUpFilter: Filter = {
+    const followUpFilter: FilterableField = {
       field: "followSinceMonths",
+      name: "followSinceMonths",
       label: "Suivi depuis (en mois)",
       type: "number",
     };
     filterPersonsBase.push(followUpFilter);
-    const followBySelectedTeamDuringPeriodFilter: Filter = {
+    const followBySelectedTeamDuringPeriodFilter: FilterableField = {
       field: "startFollowBySelectedTeamDuringPeriod",
+      name: "startFollowBySelectedTeamDuringPeriod",
       label: "Début de suivi par l'équipe(s) sélectionnée(s) pendant la période définie",
       type: "boolean",
     };
     filterPersonsBase.push(followBySelectedTeamDuringPeriodFilter);
-    const hasAtLeastOneConsultationFilter: Filter = {
+    const hasAtLeastOneConsultationFilter: FilterableField = {
       field: "hasAtLeastOneConsultation",
+      name: "hasAtLeastOneConsultation",
       label: "A eu une consultation",
       type: "boolean",
     };
     filterPersonsBase.push(hasAtLeastOneConsultationFilter);
-    const numberOfConsultationsFilter: Filter = {
+    const numberOfConsultationsFilter: FilterableField = {
       field: "numberOfConsultations",
+      name: "numberOfConsultations",
       label: "Nombre de consultations",
       type: "number",
     };
     filterPersonsBase.push(numberOfConsultationsFilter);
-    const numberOfActionsFilter: Filter = {
+    const numberOfActionsFilter: FilterableField = {
       field: "numberOfActions",
+      name: "numberOfActions",
       label: "Nombre d'actions",
       type: "number",
     };
     filterPersonsBase.push(numberOfActionsFilter);
-    const numberOfTreatmentsFilter: Filter = {
+    const actionsCategoriesFilter: FilterableField = {
+      field: "actionCategories",
+      name: "actionCategories",
+      label: "A bénéficié d'une action catégoriée",
+      type: "enum",
+      options: flattenedActionsCategories,
+    };
+    filterPersonsBase.push(actionsCategoriesFilter);
+    const numberOfTreatmentsFilter: FilterableField = {
       field: "numberOfTreatments",
+      name: "numberOfTreatments",
       label: "Nombre de traitements",
       type: "number",
     };
     filterPersonsBase.push(numberOfTreatmentsFilter);
-    const numberOfPassagesFilter: Filter = {
+    const numberOfPassagesFilter: FilterableField = {
       field: "numberOfPassages",
+      name: "numberOfPassages",
       label: "Nombre de passages",
       type: "number",
     };
     filterPersonsBase.push(numberOfPassagesFilter);
-    const numberOfRencontresFilter: Filter = {
+    const numberOfRencontresFilter: FilterableField = {
       field: "numberOfRencontres",
+      name: "numberOfRencontres",
       label: "Nombre de rencontres",
       type: "number",
     };
     filterPersonsBase.push(numberOfRencontresFilter);
-    const lastUpdateCheckForGDPRFilter: Filter = {
+    const lastUpdateCheckForGDPRFilter: FilterableField = {
       field: "lastUpdateCheckForGDPR",
+      name: "lastUpdateCheckForGDPR",
       label: "Date de dernière interaction",
       type: "date",
     };
