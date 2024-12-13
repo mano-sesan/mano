@@ -11,7 +11,6 @@ export function useRestoreScrollPosition() {
       scrollParent.scrollTo(0, parseInt(scrollPosition));
     }
     function handleSaveScrollPosition() {
-      console.log("scroll", scrollParent.scrollTop.toString());
       localStorage.setItem(`scrollPosition-${pathname}`, scrollParent.scrollTop.toString());
     }
     document.querySelector("#main-content").addEventListener("scrollend", handleSaveScrollPosition);
