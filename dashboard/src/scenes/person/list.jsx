@@ -30,9 +30,9 @@ import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consult
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import PersonName, { getPersonInfo } from "../../components/PersonName";
+import PersonName from "../../components/PersonName";
 import { useDeletePerson } from "../../services/useDeletePerson";
-
+import { getPersonInfo } from "../../utils/get-person-infos";
 const limit = 20;
 
 const personsFilteredSelector = selectorFamily({
