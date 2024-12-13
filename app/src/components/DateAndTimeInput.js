@@ -5,6 +5,7 @@ import Label from './Label';
 import ButtonReset from './ButtonReset';
 import InputLabelled from './InputLabelled';
 import { MyText } from './MyText';
+import { dayjsInstance } from '../services/dateDayjs';
 
 // we want to show DD-MM-YYYY
 // but we want to save as YYYY-MM-DD
@@ -13,7 +14,7 @@ import { MyText } from './MyText';
 export const convertDate = (date, showDay) => {
   try {
     if (!date) return '';
-    return date.split('T')[0].split('-').reverse().join('-');
+    return dayjsInstance(date).format('DD-MM-YYYY');
   } catch (e) {
     console.log('cannot convert date', e);
     console.log(date);
@@ -23,7 +24,7 @@ export const convertDate = (date, showDay) => {
 const convertTime = (date) => {
   try {
     if (!date) return '';
-    return new Date(date).getLocalePureTime('fr');
+    return dayjsInstance(date).format('HH:mm');
   } catch (e) {
     console.log('cannot convert date', e);
     console.log(date);
@@ -111,7 +112,7 @@ const DateAndTimeInput = ({
 
   if (!editable) {
     const datetoShow = showDay
-      ? new Date(date).getLocaleDateAndTime('fr')
+      ? dayjsInstance(date).format('dddd DD MMMM HH:mm')
       : `${date ? convertDate(date, showDay) : 'JJ-MM-AAAA'}${showTime && withTime ? ` à ${convertTime(date)}` : ''}`;
     return <InputLabelled label={label} value={datetoShow} editable={false} />;
   }
@@ -120,8 +121,8 @@ const DateAndTimeInput = ({
     if (!date) return 'JJ-MM-AAAA';
     // eslint-disable-next-line eqeqeq
     if (new Date(date) == 'Invalid Date') return 'JJ-MM-AAAA';
-    if (showYear) return new Date(date).getLongDate('fr');
-    return new Date(date).getLocaleDate('fr');
+    if (showYear) return dayjsInstance(date).format('DD MMMM YYYY');
+    return dayjsInstance(date).format('dddd DD MMMM');
   };
 
   return (

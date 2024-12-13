@@ -22,6 +22,7 @@ import { prepareRencontreForEncryption, rencontresState } from '../../recoil/ren
 import { useFocusEffect } from '@react-navigation/native';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
 import { PersonName } from '../Persons/PersonRow';
+import { dayjsInstance } from '../../services/dateDayjs';
 
 const cleanValue = (value) => {
   if (typeof value === 'string') return (value || '').trim();
@@ -307,7 +308,7 @@ const TerritoryObservation = ({ route, navigation }) => {
           {editable && obsDB?._id ? (
             <DateAndTimeInput label="Observation faite le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
           ) : (
-            <CreatedAt>{new Date(date).getLocaleDateAndTime('fr')}</CreatedAt>
+            <CreatedAt>{dayjsInstance(date).format('dddd DD MMM HH:mm')}</CreatedAt>
           )}
           {activeTab === 'rencontres' ? (
             <View key="rencontres" className="mb-4">

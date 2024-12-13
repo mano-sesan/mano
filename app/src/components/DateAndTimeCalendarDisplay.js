@@ -3,20 +3,21 @@ import styled from 'styled-components/native';
 
 import { MyText } from './MyText';
 import colors from '../utils/colors';
+import { dayjsInstance } from '../services/dateDayjs';
 
 const DateAndTimeCalendarDisplay = ({ date, withTime, topCaption }) => {
-  date = date ? new Date(date) : null;
+  date = date ? dayjsInstance(date) : null;
 
   return (
     <DateContainer>
       {Boolean(date) && (
         <>
           {topCaption && <TopCaption>{topCaption}</TopCaption>}
-          <Day>{date.getLocaleWeekDay('fr')}</Day>
-          <DateNumber heavy>{date.getLocaleDay('fr')}</DateNumber>
-          <Month>{date.getLocaleMonth('fr')}</Month>
-          {new Date().getFullYear() !== date.getFullYear() && <Month>{date.getFullYear()}</Month>}
-          {!!withTime && <Time>{date.getLocalePureTime('fr')}</Time>}
+          <Day>{date.format('dddd')}</Day>
+          <DateNumber heavy>{date.format('D')}</DateNumber>
+          <Month>{date.format('MMMM')}</Month>
+          {date.format('YYYY') !== dayjsInstance().format('YYYY') && <Month>{date.format('YYYY')}</Month>}
+          {!!withTime && <Time>{date.format('HH:mm')}</Time>}
         </>
       )}
     </DateContainer>
