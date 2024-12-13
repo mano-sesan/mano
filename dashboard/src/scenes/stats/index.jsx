@@ -39,6 +39,7 @@ import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consult
 import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
+import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
 
 const tabs = [
   "Général",
@@ -718,6 +719,8 @@ const Stats = () => {
     }
     return true;
   });
+
+  useRestoreScrollPosition();
 
   return (
     <>
