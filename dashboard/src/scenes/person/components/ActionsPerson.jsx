@@ -19,6 +19,8 @@ import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
 import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 import ActionsSortableList from "../../../components/ActionsSortableList";
+import CommentIcon from "../../../components/CommentIcon";
+import DocumentIcon from "../../../components/DocumentIcon";
 
 const filteredPersonActionsSelector = selectorFamily({
   key: "filteredPersonActionsSelector",
@@ -247,7 +249,9 @@ const ActionsTable = ({ filteredData }) => {
                     <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
                       {action.urgent ? <ExclamationMarkButton /> : null}
                       {action.description ? <DescriptionIcon /> : null}
-                      <span>{`${date}${time}`}</span>
+                      {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}
+                      {action.comments?.length ? <CommentIcon count={action.comments.length} /> : null}
+                      <div>{`${date}${time}`}</div>
                     </div>
                     <div>
                       <ActionStatusSelect action={action} />
