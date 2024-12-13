@@ -154,7 +154,7 @@ const ChangePasswordBody = ({ onOK, children }) => {
         <PasswordHintContainer>
           {Object.keys(codesToHints).map((check, index, array) => {
             let caption = codesToHints[check];
-            if (index === 0) caption = caption?.capitalize();
+            if (index === 0) caption = caption.charAt(0).toUpperCase() + caption.slice(1);
             if (index !== array.length - 1) caption = `${caption}, `;
             return (
               <PasswordHint key={caption} disabled={!checks[check](newPassword)}>

@@ -1,7 +1,6 @@
 import 'react-native-gesture-handler';
 import { AppRegistry, LogBox } from 'react-native';
 import Navigators from './src/Navigators';
-import './src/services/polyfills';
 import { name as appName, version } from './app.json';
 import './src/services/api-interface-with-app';
 import './src/services/encryption';
