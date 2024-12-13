@@ -65,8 +65,10 @@ export function getMultichoiceBarData(
   key: string,
   {
     options = [],
+    showEmptyBars = false,
   }: {
     options?: Array<string>;
+    showEmptyBars?: boolean;
   } = {}
 ): BarData {
   const objOptions = { "Non renseigné": [] };
@@ -89,7 +91,7 @@ export function getMultichoiceBarData(
   }, objOptions);
 
   const barData = Object.keys(reducedDataPerOption)
-    .filter((key) => reducedDataPerOption[key]?.length > 0)
+    .filter((key) => reducedDataPerOption[key]?.length > 0 || showEmptyBars)
     // Je ne touche à rien mais jje n'ai pas compris pourquoi c'est transformé en string ici
     // ça provoque un bug (du coup j'ai repassé en number pour le sort)
     // Introduit ici: https://github.com/mano-sesan/mano/pull/437
