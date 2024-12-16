@@ -11,7 +11,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
         .toLowerCase()
         .replace(/ /g, "-")
         .replace(/[\\(\\)]/g, "")
-        .replace("'", "") ?? field.name;
+        .replaceAll("'", "") ?? field.name;
     if (["text", "number"].includes(field.type)) return `${model}-custom-input-${slugifiedLabel}`;
     if (["textarea"].includes(field.type)) return `${model}-custom-textarea-${slugifiedLabel}`;
     if (["date-with-time", "date", "duration"].includes(field.type)) return `${model}-custom-datepicker-${slugifiedLabel}`;
