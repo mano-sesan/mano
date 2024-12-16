@@ -203,8 +203,8 @@ export default function NewIndex() {
                 <iframe
                   width="100%"
                   height="300px"
-                  frameborder="0"
-                  allowfullscreen
+                  style={{ border: "0px" }}
+                  allowFullScreen
                   allow="geolocation"
                   src="//umap.openstreetmap.fr/fr/map/villes-utilisatrices-de-mano_1053916?scaleControl=false&miniMap=false&scrollWheelZoom=false&zoomControl=true&editMode=disabled&moreControl=false&searchControl=false&tilelayersControl=false&embedControl=false&datalayersControl=false&onLoadPanel=none&captionBar=false&captionMenus=false&locateControl=false&measureControl=false&editinosmControl=false&starControl=false#6/46.845/2.120"
                 ></iframe>
