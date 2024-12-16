@@ -16,6 +16,8 @@ import TabsNav from "./tailwind/TabsNav";
 import DescriptionIcon from "./DescriptionIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
+import DocumentIcon from "./DocumentIcon";
+import CommentIcon from "./CommentIcon";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
   const setModalAction = useSetRecoilState(modalActionState);
@@ -118,15 +120,21 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
           sortOrder,
           render: (actionOrConsult) => {
             return (
-              <div className="tw-flex tw-items-center tw-justify-center tw-gap-1">
-                {!!actionOrConsult.urgent && <ExclamationMarkButton />}
-                {!!actionOrConsult.description && <DescriptionIcon />}
-                {!!organisation.groupsEnabled && !!actionOrConsult.group && (
-                  <span className="tw-text-3xl" aria-label="Action familiale" title="Action familiale">
-                    👪
-                  </span>
-                )}
-                {!!actionOrConsult.isConsultation && <ConsultationButton />}
+              <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-2">
+                <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2 tw-mt-2">
+                  {!!actionOrConsult.description && <DescriptionIcon />}
+                  {actionOrConsult.documents?.length ? <DocumentIcon count={actionOrConsult.documents.length} /> : null}
+                  {actionOrConsult.comments?.length ? <CommentIcon count={actionOrConsult.comments.length} /> : null}
+                </div>
+                <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2">
+                  {!!actionOrConsult.urgent && <ExclamationMarkButton />}
+                  {!!organisation.groupsEnabled && !!actionOrConsult.group && (
+                    <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
+                      👪
+                    </span>
+                  )}
+                  {!!actionOrConsult.isConsultation && <ConsultationButton />}
+                </div>
               </div>
             );
           },

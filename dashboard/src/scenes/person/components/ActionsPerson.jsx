@@ -248,6 +248,11 @@ const ActionsTable = ({ filteredData }) => {
                   <div className="tw-flex">
                     <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
                       {action.urgent ? <ExclamationMarkButton /> : null}
+                      {!!organisation.groupsEnabled && !!action.group && (
+                        <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
+                          👪
+                        </span>
+                      )}
                       {action.description ? <DescriptionIcon /> : null}
                       {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}
                       {action.comments?.length ? <CommentIcon count={action.comments.length} /> : null}
@@ -259,11 +264,6 @@ const ActionsTable = ({ filteredData }) => {
                   </div>
                   <div className="tw-mt-2 tw-flex">
                     <div className="tw-flex tw-flex-1 tw-flex-row tw-items-start">
-                      {!!organisation.groupsEnabled && !!action.group && (
-                        <span className="tw-mr-2 tw-text-xl" aria-label="Action familiale" title="Action familiale">
-                          👪
-                        </span>
-                      )}
                       <div className="tw-flex tw-grow tw-flex-col tw-items-start">
                         <ActionOrConsultationName item={action} />
                         {action.recurrence && action.nextOccurrence && (

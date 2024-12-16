@@ -16,6 +16,8 @@ import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";
 import DescriptionIcon from "../../../components/DescriptionIcon";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
+import DocumentIcon from "../../../components/DocumentIcon";
+import CommentIcon from "../../../components/CommentIcon";
 
 export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -189,9 +191,11 @@ const ConsultationsTable = ({ filteredData }) => {
                     }}
                   >
                     <div className="tw-flex">
-                      <div className="tw-flex-1">
-                        {!!consultation.description && <DescriptionIcon />}
-                        {`${date}${time}`}
+                      <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
+                        {consultation.description ? <DescriptionIcon /> : null}
+                        {consultation.documents?.length ? <DocumentIcon count={consultation.documents.length} /> : null}
+                        {consultation.comments?.length ? <CommentIcon count={consultation.comments.length} /> : null}
+                        <div>{`${date}${time}`}</div>
                       </div>
                       <div>
                         <ActionStatusSelect action={consultation} />

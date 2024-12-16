@@ -20,6 +20,8 @@ import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import UserName from "./UserName";
+import DocumentIcon from "./DocumentIcon";
+import CommentIcon from "./CommentIcon";
 
 const ActionsSortableList = ({
   data,
@@ -92,14 +94,20 @@ const ActionsSortableList = ({
             render: (actionOrConsult) => {
               return (
                 <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-2">
-                  {!!actionOrConsult.urgent && <ExclamationMarkButton />}
-                  {!!actionOrConsult.description && <DescriptionIcon />}
-                  {!!organisation.groupsEnabled && !!actionOrConsult.group && (
-                    <span className="tw-text-3xl" aria-label="Action familiale" title="Action familiale">
-                      👪
-                    </span>
-                  )}
-                  {!!actionOrConsult.isConsultation && <ConsultationButton />}
+                  <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2 tw-mt-2">
+                    {!!actionOrConsult.description && <DescriptionIcon />}
+                    {actionOrConsult.documents?.length ? <DocumentIcon count={actionOrConsult.documents.length} /> : null}
+                    {actionOrConsult.comments?.length ? <CommentIcon count={actionOrConsult.comments.length} /> : null}
+                  </div>
+                  <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2">
+                    {!!actionOrConsult.urgent && <ExclamationMarkButton />}
+                    {!!organisation.groupsEnabled && !!actionOrConsult.group && (
+                      <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
+                        👪
+                      </span>
+                    )}
+                    {!!actionOrConsult.isConsultation && <ConsultationButton />}
+                  </div>
                 </div>
               );
             },
