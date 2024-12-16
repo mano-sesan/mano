@@ -60,7 +60,7 @@ test("Stats changement des personnes", async ({ page }) => {
   await page.getByRole("button", { name: "+ Ajouter un filtre" }).click();
   await page.locator(".filter-field-1__input-container").click();
   await page.locator("#filter-field-1").fill("Situation personnelle");
-  await page.locator("#react-select-10-option-22").click();
+  await page.locator("#react-select-10-option-23").click();
   await page.locator(".filter-value-1__indicator").click();
   await page.locator("#react-select-12-option-1").click();
   await page.locator('[data-test-id="nombre-de-personnes-suivies-1"]').click();
