@@ -85,7 +85,12 @@ export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
         <ModalHeader title={`${activeTab} (${data.length})`} onClose={() => setFullScreen(false)} />
         <ModalBody>
           <div className="tw-px-4 tw-py-2">
-            <CommentsSortableList fullScreen={true} data={data} className={activeTab.includes("Commentaires médicaux") ? "medical" : ""} />
+            <CommentsSortableList
+              withFilters={true}
+              fullScreen={true}
+              data={data}
+              className={activeTab.includes("Commentaires médicaux") ? "medical" : ""}
+            />
           </div>
         </ModalBody>
         <ModalFooter>
