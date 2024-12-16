@@ -264,7 +264,7 @@ export default function NewIndex() {
               <h2 className="text-2xl text-center mx-4 py-8">L’équipe</h2>
             </div>
             <div>
-              <div className="grid md:grid-cols-4 grid-cols-2 gap-y-8 gap-x-2 max-w-[800px] mx-auto">
+              <div className="grid md:grid-cols-5 grid-cols-2 gap-y-8 gap-x-2 max-w-[800px] mx-auto">
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
                   <img src="/team/a.png" alt="Logo" className="w-16 h-16" />
                   <div>
@@ -316,6 +316,20 @@ export default function NewIndex() {
                     <div className="text-sm mt-1 h-10">Chargée de déploiement</div>
                     <div className="mt-2">
                       <a href="mailto:melissa.saiter@sesan.fr" target="_blank">
+                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                <div className="mx-auto flex flex-col items-center justify-center text-center">
+                  <img src="/team/s.png" alt="Logo" className="w-16 h-16" />
+                  <div>
+                    Simon
+                    <br />
+                    LESGOURGES
+                    <div className="text-sm mt-1 h-10">Chargé de déploiement</div>
+                    <div className="mt-2">
+                      <a href="mailto:simon.lesgourgues@sesan.fr" target="_blank">
                         <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
                       </a>
                     </div>
