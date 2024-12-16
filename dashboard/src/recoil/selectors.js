@@ -101,6 +101,12 @@ export const itemsGroupedByPersonSelector = selector({
         interactions,
         assignedTeamsPeriods,
         lastUpdateCheckForGDPR: person.followedSince || person.createdAt,
+        numberOfActions: 0,
+        numberOfConsultations: 0,
+        numberOfTreatments: 0,
+        numberOfPassages: 0,
+        numberOfRencontres: 0,
+        hasAtLeastOneConsultation: false,
         // BUG FIX: we used to set an `outOfActiveListDate` even if `outOfActiveList` was false.
         // https://github.com/SocialGouv/mano/blob/34a86a3e6900b852e0b3fe828a03e6721d200973/dashboard/src/scenes/person/OutOfActiveList.js#L22
         // This was causing a bug in the "person suivies" stats, where people who were not out of active list were counted as out of active list.
