@@ -257,81 +257,55 @@ const SuperAdmin = () => {
                     <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>
                       Personnes: {o.counters.persons || 0}
                       {o.counters.persons > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.persons > o.previous30DaysCounters.persons ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.persons || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.persons} previous30Days={o.previous30DaysCounters.persons} />
                       )}
                     </div>
                     <div className={!o.groupsEnabled ? "tw-line-through tw-opacity-20" : !o.counters.groups ? "tw-text-gray-400" : ""}>
                       Familles: {o.counters.groups || 0}
                       {o.counters.groups > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.groups > o.previous30DaysCounters.groups ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.groups || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.groups} previous30Days={o.previous30DaysCounters.groups} />
                       )}
                     </div>
                     <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>
                       Actions: {o.counters.actions || 0}
                       {o.counters.actions > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.actions > o.previous30DaysCounters.actions ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.actions || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.actions} previous30Days={o.previous30DaysCounters.actions} />
                       )}
                     </div>
                     <div className={!o.passagesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.passages ? "tw-text-gray-400" : ""}>
                       Passages: {o.counters.passages || 0}
                       {o.counters.passages > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.passages > o.previous30DaysCounters.passages ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.passages || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.passages} previous30Days={o.previous30DaysCounters.passages} />
                       )}
                     </div>
                     <div className={!o.rencontresEnabled ? "tw-line-through tw-opacity-20" : !o.counters.rencontres ? "tw-text-gray-400" : ""}>
                       Rencontres: {o.counters.rencontres || 0}
                       {o.counters.rencontres > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.rencontres > o.previous30DaysCounters.rencontres ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.rencontres || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.rencontres} previous30Days={o.previous30DaysCounters.rencontres} />
                       )}
                     </div>
                     <div className={!o.territoriesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.observations ? "tw-text-gray-400" : ""}>
                       Observations: {o.counters.observations || 0}
                       {o.counters.observations > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.observations > o.previous30DaysCounters.observations ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.observations || 0})
-                        </span>
+                        <SmallEvolutionIndicator
+                          last30Days={o.last30DaysCounters.observations}
+                          previous30Days={o.previous30DaysCounters.observations}
+                        />
                       )}
                     </div>
                     <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>
                       Commentaires: {o.counters.comments || 0}
                       {o.counters.comments > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.comments > o.previous30DaysCounters.comments ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.comments || 0})
-                        </span>
+                        <SmallEvolutionIndicator last30Days={o.last30DaysCounters.comments} previous30Days={o.previous30DaysCounters.comments} />
                       )}
                     </div>
                     <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>
                       Consultations: {o.counters.consultations || 0}
                       {o.counters.consultations > 0 && (
-                        <span
-                          className={`tw-text-xs tw-ml-0.5 ${o.last30DaysCounters.consultations > o.previous30DaysCounters.consultations ? "tw-text-green-700" : "tw-text-red-700"}`}
-                        >
-                          ({o.last30DaysCounters.consultations || 0})
-                        </span>
+                        <SmallEvolutionIndicator
+                          last30Days={o.last30DaysCounters.consultations}
+                          previous30Days={o.previous30DaysCounters.consultations}
+                        />
                       )}
                     </div>
                   </div>
@@ -1000,5 +974,15 @@ const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
     </>
   );
 };
+
+function SmallEvolutionIndicator({ last30Days, previous30Days }) {
+  return (
+    <span
+      className={`tw-text-xs tw-ml-0.5 ${last30Days === previous30Days ? "tw-text-gray-500" : last30Days > previous30Days ? "tw-text-green-700" : "tw-text-red-700"}`}
+    >
+      ({last30Days || 0})
+    </span>
+  );
+}
 
 export default SuperAdmin;
