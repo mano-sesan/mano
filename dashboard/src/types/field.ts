@@ -40,7 +40,7 @@ export interface FilterableField {
   name: string; // same as field
   label: string;
   type: FieldType;
-  options: string[];
+  options?: string[];
 }
 
 export type Filter = {
