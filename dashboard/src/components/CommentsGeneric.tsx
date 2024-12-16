@@ -66,6 +66,7 @@ interface CommentsModuleProps {
   onSubmitComment: (comment: Partial<Comment>, isNew: boolean) => Promise<void>;
   hiddenColumns?: string[];
   color?: "main" | "blue-900";
+  withFilters?: boolean;
 }
 
 export function CommentsModule({
@@ -83,6 +84,7 @@ export function CommentsModule({
   onSubmitComment,
   color = "main",
   hiddenColumns = [],
+  withFilters = false,
 }: CommentsModuleProps) {
   if (!typeForNewComment) throw new Error("typeForNewComment is required");
   if (!onDeleteComment) throw new Error("onDeleteComment is required");
@@ -193,6 +195,7 @@ export function CommentsModule({
         title={title}
         color={color}
         hiddenColumns={hiddenColumns}
+        withFilters={withFilters}
       />
     </>
   );
@@ -207,9 +210,20 @@ interface CommentsFullScreenProps {
   onDisplayComment: (comment: Comment) => void;
   onAddComment: () => void;
   hiddenColumns?: string[];
+  withFilters?: boolean;
 }
 
-function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayComment, onAddComment, hiddenColumns = [] }: CommentsFullScreenProps) {
+function CommentsFullScreen({
+  open,
+  comments,
+  onClose,
+  title,
+  color,
+  onDisplayComment,
+  onAddComment,
+  hiddenColumns = [],
+  withFilters = false,
+}: CommentsFullScreenProps) {
   return (
     <ModalContainer open={open} size="5xl" onClose={onClose}>
       <ModalHeader title={title} />
@@ -221,6 +235,7 @@ function CommentsFullScreen({ open, comments, onClose, title, color, onDisplayCo
           withClickableLabel
           color={color}
           hiddenColumns={hiddenColumns}
+          withFilters={withFilters}
         />
       </ModalBody>
       <ModalFooter>
@@ -245,6 +260,7 @@ interface CommentsTableProps {
   withClickableLabel?: boolean;
   hiddenColumns?: string[];
   small?: boolean;
+  withFilters?: boolean;
 }
 
 export function NoComments() {
@@ -283,6 +299,7 @@ function CommentsTable({
   withClickableLabel,
   hiddenColumns = [],
   small = false,
+  withFilters = false,
 }: CommentsTableProps) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
@@ -358,7 +375,13 @@ function CommentsTable({
       )}
       {!small ? (
         <div className="tw-px-4 tw-py-2 print:tw-mb-4 print:tw-px-0">
-          <CommentsSortableList data={comments} fullScreen={true} hiddenColumns={hiddenColumns} onCommentClick={onCommentClick} />
+          <CommentsSortableList
+            withFilters={withFilters}
+            data={comments}
+            fullScreen={true}
+            hiddenColumns={hiddenColumns}
+            onCommentClick={onCommentClick}
+          />
         </div>
       ) : (
         <table className="table">

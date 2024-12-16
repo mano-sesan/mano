@@ -16,7 +16,14 @@ import ConsultationButton from "./ConsultationButton";
 import { NoComments } from "./CommentsGeneric";
 import SelectTeamMultiple from "./SelectTeamMultiple";
 
-export default function CommentsSortableList({ data, className = "", fullScreen = false, hiddenColumns = [], onCommentClick = undefined }) {
+export default function CommentsSortableList({
+  data,
+  className = "",
+  fullScreen = false,
+  hiddenColumns = [],
+  onCommentClick = undefined,
+  withFilters = false,
+}) {
   const setModalAction = useSetRecoilState(modalActionState);
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const organisation = useRecoilValue(organisationState);
@@ -50,9 +57,19 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
 
   if (!dataSorted.length) {
     return (
-      <div className="tw-flex tw-flex-col tw-items-center tw-gap-6">
-        <NoComments />
-      </div>
+      <>
+        {withFilters ? (
+          <CommentsFilters
+            filterTeamIds={filterTeamIds}
+            setFilterTeamIds={setFilterTeamIds}
+            filterOnlyMine={filterOnlyMine}
+            setFilterOnlyMine={setFilterOnlyMine}
+          />
+        ) : null}
+        <div className="tw-flex tw-flex-col tw-items-center tw-gap-6">
+          <NoComments />
+        </div>
+      </>
     );
   }
 
@@ -251,7 +268,7 @@ export default function CommentsSortableList({ data, className = "", fullScreen 
 
   return (
     <>
-      {fullScreen ? (
+      {withFilters ? (
         <CommentsFilters
           filterTeamIds={filterTeamIds}
           setFilterTeamIds={setFilterTeamIds}
