@@ -29,7 +29,7 @@ export default function Comments({ person }) {
   );
 
   const canToggleGroupCheck = useMemo(
-    () => !!organisation.groupsEnabled && !!person._id && groups.find((group) => group.persons.includes(person._id)),
+    () => !!organisation.groupsEnabled && !!person._id && groups.find((group) => group.persons?.includes(person._id)),
     [groups, person._id, organisation.groupsEnabled]
   );
 
