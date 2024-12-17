@@ -402,7 +402,6 @@ const SuperAdmin = () => {
 const options = [
   { value: "Guillaume", label: "Guillaume" },
   { value: "Melissa", label: "Melissa" },
-  { value: "Yoann", label: "Yoann" },
   { value: "Simon", label: "Simon" },
   { value: undefined, label: "Non renseigné" },
 ];
