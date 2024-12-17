@@ -13,6 +13,9 @@ import useSearchParamState from "../services/useSearchParamState";
 import { disableConsultationRow } from "../recoil/consultations";
 import ActionStatusSelect from "./ActionStatusSelect";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
+import DescriptionIcon from "./DescriptionIcon";
+import DocumentIcon from "./DocumentIcon";
+import CommentIcon from "./CommentIcon";
 
 export default function ActionsWeekly({ actions, isNightSession, onCreateAction }) {
   const [startOfWeek, setStartOfWeek] = useSearchParamState("startOfWeek", dayjsInstance().startOf("week").format("YYYY-MM-DD"));
@@ -182,7 +185,13 @@ function ActionsOfDay({ actions }) {
           <div>
             🧑 <PersonName item={action} />
           </div>
-          {!!organisation.groupsEnabled && !!action.group && <div>👪 Action familiale</div>}
+          <div className="tw-flex tw-flex-row tw-items-center tw-gap-2 tw-mt-1">
+            {!!organisation.groupsEnabled && !!action.group && <div className="tw-text-lg">👪</div>}
+            {!!action.description && <DescriptionIcon />}
+            {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}
+            {action.comments?.length ? <CommentIcon count={action.comments.length} /> : null}
+          </div>
+
           <ActionStatusSelect action={action} />
         </div>
       ))}
