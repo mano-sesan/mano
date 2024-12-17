@@ -10,7 +10,6 @@ interface PersonCustomFieldsProps {
   person: PersonPopulated;
   sectionName: string;
   fields: CustomField[];
-  colspan?: number | null;
   isMedicalFile?: boolean;
 }
 
@@ -39,7 +38,7 @@ export default function PersonCustomFields({ person, sectionName, fields, isMedi
       </div>
       {sectionName === "Informations sociales" && !!person.description && (
         <div className="my-4">
-          <CustomFieldDisplay type="textarea" value={person.description} />
+          <CustomFieldDisplay type="textarea" value={person.description} name="description" person={person} />
         </div>
       )}
       <div className="tw-grid tw-grid-cols-3 tw-gap-x-2">
@@ -52,6 +51,8 @@ export default function PersonCustomFields({ person, sectionName, fields, isMedi
                   <CustomFieldDisplay
                     type={field.type}
                     value={isMedicalFile ? person[field.name] || person.medicalFile?.[field.name] : person[field.name]}
+                    name={field.name}
+                    person={person}
                   />
                 </div>
               </div>

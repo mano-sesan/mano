@@ -92,7 +92,7 @@ export default function Constantes({ person }: { person: PersonPopulated }) {
   );
 }
 
-function LineChart({ data, name, scheme, unit }: { data: Datum[]; name: string; scheme: ColorSchemeId; unit: string }) {
+export function LineChart({ data, name, scheme, unit }: { data: Datum[]; name: string; scheme: ColorSchemeId; unit: string }) {
   if (data.length === 0) return;
   if (data.length === 1) {
     const d = data[0];
