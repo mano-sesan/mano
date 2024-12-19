@@ -737,6 +737,8 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
   const canSave = useMemo(() => isEditing && name !== initialName, [name, initialName, isEditing]);
   const history = useHistory();
 
+  const contentType = document.file.mimetype;
+
   return (
     <ModalContainer open className="[overflow-wrap:anywhere]" size="prose">
       <ModalHeader title={name} />
@@ -768,7 +770,7 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
               />
             </form>
           ) : (
-            <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-2">
+            <div className="tw-flex tw-w-full tw-items-center tw-justify-center tw-gap-2">
               <button
                 type="button"
                 className={`button-submit !tw-bg-${color}`}
@@ -787,30 +789,35 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
               >
                 Télécharger
               </button>
-              <button
-                type="button"
-                className={`button-submit tw-inline-flex tw-flex-col tw-items-center !tw-bg-${color}`}
-                onClick={async () => {
-                  const [error, blob] = await tryFetchBlob(() => {
-                    return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
-                  });
-                  if (error) {
-                    toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement du document");
-                    return;
-                  }
-                  const file = await decryptFile(blob, document.encryptedEntityKey, getHashedOrgEncryptionKey());
-                  const url = URL.createObjectURL(file);
+              {(contentType === "application/pdf" || contentType.startsWith("image/")) && (
+                <button
+                  type="button"
+                  className={`button-submit tw-inline-flex tw-flex-col tw-items-center !tw-bg-${color}`}
+                  onClick={async () => {
+                    const [error, blob] = await tryFetchBlob(() => {
+                      return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
+                    });
+                    if (error) {
+                      toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement du document");
+                      return;
+                    }
+                    const file = await decryptFile(blob, document.encryptedEntityKey, getHashedOrgEncryptionKey());
 
-                  try {
-                    const fileURL = await viewBlobInNewWindow(url);
-                    window.open(fileURL, "_blank");
-                    // eslint-disable-next-line no-empty
-                  } catch (_error) {}
-                }}
-              >
-                Ouvrir dans une nouvelle fenêtre
-                <small className="tw-text-center tw-text-[10px]">Fonctionnel sur Firefox seulement</small>
-              </button>
+                    // Create a new blob with the appropriate content type
+                    const viewableBlob = new Blob([file], { type: contentType });
+                    const url = URL.createObjectURL(viewableBlob);
+
+                    const newWindow = window.open(url, "_blank");
+                    if (newWindow) {
+                      newWindow.onload = () => {
+                        URL.revokeObjectURL(url);
+                      };
+                    }
+                  }}
+                >
+                  Ouvrir dans une nouvelle fenêtre
+                </button>
+              )}
             </div>
           )}
           {
