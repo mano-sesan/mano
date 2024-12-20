@@ -12,6 +12,7 @@ import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
 import { organisationState } from '../recoil/auth';
 import { itemsGroupedByPersonSelector } from '../recoil/selectors';
 import RepeatIcon from '../icons/RepeatIcon';
+import UserName from './UserName';
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = 'action' }) => {
   const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
@@ -21,6 +22,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
   const status = action?.status;
   const withTime = action?.withTime;
   const urgent = action?.urgent;
+  const user = action?.user;
   const person = useMemo(() => (action?.person ? personsObject[action.person] : null), [personsObject, action.person]);
   const pseudo = useMemo(() => action?.personName || person?.name, [action, person?.name]);
   const dueAt = action?.dueAt ? new Date(action?.dueAt) : null;
@@ -61,6 +63,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
           </PseudoContainer>
         ) : null}
         {urgent ? <Urgent bold>❗ Action prioritaire</Urgent> : null}
+        <UserContainer>{!!user && <UserName caption="Créée par" id={user?._id || user} />}</UserContainer>
       </CaptionsContainer>
       <ButtonRight onPress={onRowPress} caption=">" />
     </RowContainer>
@@ -108,6 +111,12 @@ const Pseudo = styled(MyText)`
   flex-grow: 0;
   align-self: flex-start;
   color: ${colors.app.color};
+`;
+
+const UserContainer = styled.View`
+  margin-top: 15px;
+  margin-bottom: -20px;
+  align-self: flex-start;
 `;
 
 export default ActionRow;
