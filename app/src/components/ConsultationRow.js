@@ -125,8 +125,8 @@ const Status = styled(MyText)`
 
 const ConsultationBadge = styled.View`
   position: absolute;
-  top: 3px;
-  left: 3px;
+  top: 8px;
+  right: 8px;
 
   background-color: #fef2f2;
   width: 30px;
