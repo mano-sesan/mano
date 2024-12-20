@@ -56,12 +56,14 @@ export async function encryptTerritory(territory: TerritoryInstance, { checkRequ
 
 type SortOrder = "ASC" | "DESC";
 
-type SortBy = "name" | "createdAt" | "types" | "perimeter" | "description";
+type SortBy = "name" | "createdAt" | "types" | "perimeter" | "description" | "lastObservationDate";
+
+type TerritoryWithLastObservation = TerritoryInstance & { lastObservationDate: Date | string };
 
 const defaultSort = (a: TerritoryInstance, b: TerritoryInstance, sortOrder: SortOrder) =>
   sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name);
 
-export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: TerritoryInstance, b: TerritoryInstance) => {
+export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: TerritoryWithLastObservation, b: TerritoryWithLastObservation) => {
   if (sortBy === "types") {
     if (!a.types?.length && !b.types?.length) return defaultSort(a, b, sortOrder);
     if (!a.types?.length) return sortOrder === "ASC" ? 1 : -1;
@@ -85,6 +87,14 @@ export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: Ter
   if (sortBy === "createdAt") {
     if (a.createdAt > b.createdAt) return sortOrder === "ASC" ? 1 : -1;
     if (a.createdAt < b.createdAt) return sortOrder === "ASC" ? -1 : 1;
+    return defaultSort(a, b, sortOrder);
+  }
+  if (sortBy === "lastObservationDate") {
+    if (!a.lastObservationDate && !b.lastObservationDate) return defaultSort(a, b, sortOrder);
+    if (!a.lastObservationDate) return sortOrder === "ASC" ? -1 : 1;
+    if (!b.lastObservationDate) return sortOrder === "ASC" ? 1 : -1;
+    if (a.lastObservationDate > b.lastObservationDate) return sortOrder === "ASC" ? 1 : -1;
+    if (a.lastObservationDate < b.lastObservationDate) return sortOrder === "ASC" ? -1 : 1;
     return defaultSort(a, b, sortOrder);
   }
   // default sort: name

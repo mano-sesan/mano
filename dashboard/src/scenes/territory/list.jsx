@@ -20,6 +20,29 @@ import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
+import { selector } from "recoil";
+
+const territoriesWithObservations = selector({
+  key: "territoriesWithObservations",
+  get: ({ get }) => {
+    const territories = get(territoriesState);
+    const territoryObservations = get(onlyFilledObservationsTerritories);
+
+    const observationsByTerritory = {};
+    for (const obs of territoryObservations) {
+      if (!observationsByTerritory[obs.territory]) {
+        observationsByTerritory[obs.territory] = [];
+      }
+      observationsByTerritory[obs.territory].push(obs);
+    }
+    return territories.map((t) => ({
+      ...t,
+      observations: observationsByTerritory[t._id] || [],
+      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
+        ?.createdAt,
+    }));
+  },
+});
 
 const List = () => {
   const organisation = useRecoilValue(organisationState);
@@ -30,7 +53,7 @@ const List = () => {
   const [page, setPage] = useSearchParamState("page", 0);
   const [search, setSearch] = useSearchParamState("search", "");
 
-  const territories = useRecoilValue(territoriesState);
+  const territories = useRecoilValue(territoriesWithObservations);
   const territoryObservations = useRecoilValue(onlyFilledObservationsTerritories);
   const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
@@ -88,6 +111,7 @@ const List = () => {
               return (
                 <div className="[overflow-wrap:anywhere]">
                   <b>{territory.name}</b>
+                  <div className="tw-text-xs tw-text-gray-500">{territory.observations.length} observations</div>
                 </div>
               );
             },
@@ -132,14 +156,16 @@ const List = () => {
             render: (territory) => (territory.description ? <div className="tw-text-xs">{territory.description}</div> : ""),
           },
           {
-            title: "Créé le",
-            dataKey: "createdAt",
+            title: "Dernière obs.",
+            dataKey: "lastObservationDate",
+            style: { minWidth: "150px" },
             onSortOrder: setSortOrder,
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            style: { minWidth: "150px" },
-            render: (territory) => formatDateWithFullMonth(territory.createdAt || ""),
+            render: (territory) => {
+              return territory.lastObservationDate ? formatDateWithFullMonth(territory.lastObservationDate) : "";
+            },
           },
         ]}
       />
