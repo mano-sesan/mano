@@ -128,6 +128,7 @@ const CaptionsContainer = styled.View`
 const CaptionsFirstLine = styled.View`
   flex-direction: row;
   width: 100%;
+  max-width: 100%;
   align-items: center;
 `;
 
