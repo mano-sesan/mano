@@ -33,8 +33,8 @@ const sortUsers = (sortBy, sortOrder) => (a, b) => {
   }
   if (sortBy === "lastLoginAt") {
     if (!a.lastLoginAt && !b.lastLoginAt) return defaultSort(a, b, sortOrder);
-    if (!a.lastLoginAt) return sortOrder === "ASC" ? 1 : -1;
-    if (!b.lastLoginAt) return sortOrder === "ASC" ? -1 : 1;
+    if (!a.lastLoginAt) return sortOrder === "ASC" ? -1 : 1;
+    if (!b.lastLoginAt) return sortOrder === "ASC" ? 1 : -1;
     if (a.lastLoginAt > b.lastLoginAt) return sortOrder === "ASC" ? 1 : -1;
     if (a.lastLoginAt < b.lastLoginAt) return sortOrder === "ASC" ? -1 : 1;
     return defaultSort(a, b, sortOrder);
@@ -56,29 +56,7 @@ const List = () => {
   const [sortBy, setSortBy] = useLocalStorage("users-sortBy", "createdAt");
   const [sortOrder, setSortOrder] = useLocalStorage("users-sortOrder", "ASC");
 
-  const data = useMemo(
-    () =>
-      users
-        .map((user) => {
-          const style = {};
-          if (dayjs().diff(user.lastLoginAt ?? user.createdAt, "months") > 6) {
-            style.color = "red";
-            style.fontWeight = 800;
-          }
-          if (user.decryptAttempts > 12) {
-            style.backgroundColor = "red";
-            style.color = "white";
-            style.fontWeight = 800;
-          }
-
-          return {
-            ...user,
-            style,
-          };
-        })
-        .sort(sortUsers(sortBy, sortOrder)),
-    [users, sortBy, sortOrder]
-  );
+  const data = useMemo(() => structuredClone(users).sort(sortUsers(sortBy, sortOrder)), [users, sortBy, sortOrder]);
 
   useEffect(() => {
     tryFetchExpectOk(async () => API.get({ path: "/user" })).then(([error, response]) => {
@@ -89,9 +67,10 @@ const List = () => {
       setUsers(response.data);
       setRefresh(false);
     });
-  }, [refresh]);
+  }, [refresh, setUsers]);
 
   if (!users.length) return <Loading />;
+
   return (
     <>
       <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
@@ -141,7 +120,7 @@ const List = () => {
               return (
                 <>
                   <span>{user.role}</span>
-                  {user.healthcareProfessional ? <span>🧑‍⚕️&nbsp;pro.&nbsp;de&nbsp;santé</span> : ""}
+                  {user.healthcareProfessional ? <span className="tw-text-xs">🧑‍⚕️&nbsp;pro.&nbsp;de&nbsp;santé</span> : ""}
                 </>
               );
             },
@@ -167,18 +146,52 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            style: { minWidth: "150px" },
             render: (i) => formatDateWithFullMonth(i.createdAt),
           },
           {
-            title: "Dernière connexion le",
+            title: "Dernière connexion",
             dataKey: "lastLoginAt",
             onSortOrder: setSortOrder,
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
             render: (i) => {
-              if (!i.lastLoginAt) return "Jamais connecté";
+              if (!i.lastLoginAt) return <div className="tw-text-gray-500">Jamais connecté·e</div>;
               return formatDateWithFullMonth(i.lastLoginAt);
+            },
+          },
+          {
+            title: "Statut du compte",
+            dataKey: "status",
+            render: (i) => {
+              if (i.disabledAt) {
+                return (
+                  <>
+                    <div className="tw-text-red-500 tw-font-bold">Désactivé</div>
+                    <div className="tw-text-xs tw-text-red-700">Désactivé le {formatDateWithFullMonth(i.disabledAt)} après 3 mois d'inactivité.</div>
+                  </>
+                );
+              }
+              if (i.decryptAttempts > 12) {
+                return (
+                  <>
+                    <div className="tw-text-red-500 tw-font-bold">Bloqué</div>
+                    <div className="tw-text-xs tw-text-red-700">Bloqué après 12 tentatives de déchiffrement.</div>
+                  </>
+                );
+              }
+              if (i.loginAttempts > 12) {
+                return (
+                  <>
+                    <div className="tw-text-red-500 tw-font-bold">Bloqué</div>
+                    <div className="tw-text-xs tw-text-red-700">Bloqué après 12 erreurs de mot de passe.</div>
+                  </>
+                );
+              }
+              if (!i.lastLoginAt) return <div className="tw-text-orange-900">Pas encore actif</div>;
+
+              return <div className="tw-text-main tw-font-bold">Actif</div>;
             },
           },
         ]}
