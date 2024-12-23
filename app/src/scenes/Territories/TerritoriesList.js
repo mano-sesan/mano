@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
 import Spinner from '../../components/Spinner';
@@ -7,12 +7,14 @@ import { ListEmptyTerritories, ListNoMoreTerritories } from '../../components/Li
 import FloatAddButton from '../../components/FloatAddButton';
 import { FlashListStyled } from '../../components/Lists';
 import Search from '../../components/Search';
-import Row from '../../components/Row';
-import { TerritoryIcon } from '../../icons';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { territoriesSearchSelector } from '../../recoil/selectors';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { refreshTriggerState, loadingState } from '../../components/Loader';
+import { territoriesWithObservationsSearchSelector } from '../../recoil/territory';
+import RowContainer from '../../components/RowContainer';
+import { MyText } from '../../components/MyText';
+import styled from 'styled-components/native';
+import { dayjsInstance } from '../../services/dateDayjs';
 
 const TerritoriesList = () => {
   const [search, setSearch] = useState('');
@@ -21,7 +23,7 @@ const TerritoriesList = () => {
   const navigation = useNavigation();
 
   const loading = useRecoilValue(loadingState);
-  const territories = useRecoilValue(territoriesSearchSelector({ search }));
+  const territories = useRecoilValue(territoriesWithObservationsSearchSelector({ search }));
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -29,6 +31,7 @@ const TerritoriesList = () => {
   const isFocused = useIsFocused();
   useEffect(() => {
     if (isFocused && refreshTrigger.status !== true) onRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
   const onCreateTerritoryRequest = () => navigation.navigate('NewTerritoryForm');
@@ -40,14 +43,16 @@ const TerritoriesList = () => {
   }, [territories.length]);
   const renderRow = ({ item: territory }) => {
     const { name } = territory;
+    const lastObservationDate = territory.lastObservationDate ? dayjsInstance(territory.lastObservationDate).format('DD/MM/YYYY') : null;
     return (
-      <Row
-        withNextButton
-        onPress={() => navigation.push('Territory', { territory })}
-        Icon={TerritoryIcon}
-        caption={name}
-        testID={`territory-row-${name?.split(' ').join('-').toLowerCase()}-button`}
-      />
+      <RowContainer>
+        <View>
+          <View>
+            <Name>{name}</Name>
+          </View>
+          {!!lastObservationDate && <MyText>Dernière observation le {lastObservationDate}</MyText>}
+        </View>
+      </RowContainer>
     );
   };
 
@@ -95,5 +100,10 @@ const TerritoriesList = () => {
     </SceneContainer>
   );
 };
+
+const Name = styled(MyText)`
+  font-weight: bold;
+  font-size: 17px;
+`;
 
 export default TerritoriesList;

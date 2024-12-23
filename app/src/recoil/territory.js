@@ -1,9 +1,12 @@
-import { atom, selector } from 'recoil';
+import { atom, selector, selectorFamily } from 'recoil';
 import { storage } from '../services/dataManagement';
 import { looseUuidRegex } from '../utils/regex';
 import { capture } from '../services/sentry';
 import { Alert } from 'react-native';
 import { organisationState } from './auth';
+import { territoryObservationsState } from './territoryObservations';
+import structuredClone from '@ungap/structured-clone';
+import { filterBySearch } from '../utils/search';
 
 export const territoriesState = atom({
   key: 'territoriesState',
@@ -58,4 +61,37 @@ export const flattenedTerritoriesTypesSelector = selector({
     const territoriesGroupedTypes = get(territoriesTypesSelector);
     return territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], []);
   },
+});
+
+const territoriesWithObservations = selector({
+  key: 'territoriesWithObservations',
+  get: ({ get }) => {
+    const territories = get(territoriesState);
+    const territoryObservations = get(territoryObservationsState);
+
+    const observationsByTerritory = {};
+    for (const obs of territoryObservations) {
+      if (!observationsByTerritory[obs.territory]) {
+        observationsByTerritory[obs.territory] = [];
+      }
+      observationsByTerritory[obs.territory].push(obs);
+    }
+    return territories.map((t) => ({
+      ...t,
+      observations: observationsByTerritory[t._id] || [],
+      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
+        ?.createdAt,
+    }));
+  },
+});
+
+export const territoriesWithObservationsSearchSelector = selectorFamily({
+  key: 'territoriesWithObservationsSearchSelector',
+  get:
+    ({ search = '' }) =>
+    ({ get }) => {
+      const territories = get(territoriesWithObservations);
+      if (!search?.length) return territories;
+      return filterBySearch(search, territories);
+    },
 });
