@@ -199,9 +199,8 @@ test("test", async ({ page }) => {
   await page.locator(".person-select-outOfActiveListReasons__input-container").click();
   await page.locator("#react-select-outOfActiveListReasons-option-4").click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
-  await page.locator(".alert-warning").getByText("Départ vers autre région").click();
   await page.getByText(personName + " est hors de la file active").click();
-
+  await page.locator(`[data-test-id="${personName}Résumé"]`).getByText("Départ vers autre région").click();
   await logOut(page, "User Admin Test - 1");
 
   await loginWith(page, "normal1@example.org");

@@ -1,4 +1,3 @@
-import { Alert } from "reactstrap";
 import { formatDateWithFullMonth } from "../../services/date";
 import { currentTeamState } from "../../recoil/auth";
 import { useRecoilValue } from "recoil";
@@ -9,7 +8,7 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
 
   if (person.outOfActiveList) {
     return (
-      <Alert color="warning" className="noprint">
+      <div className="noprint tw-rounded tw-border tw-border-orange-50 tw-mb-2 tw-bg-amber-100 tw-px-5 tw-py-3 tw-text-orange-900">
         {person?.name} est en dehors de la file active de l'organisation
         {person.outOfActiveListReasons?.length ? (
           <>
@@ -20,7 +19,7 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
           ""
         )}{" "}
         {person.outOfActiveListDate && ` depuis le ${formatDateWithFullMonth(person.outOfActiveListDate)}`}
-      </Alert>
+      </div>
     );
   }
 
@@ -37,7 +36,7 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
           ((history.data as unknown as HistoryEntryForOutOfTeamsInformations).outOfTeamsInformations || []) as OutOfTeamsInformation[]
         ).find((reason) => reason.team === team._id);
         return (
-          <Alert color="warning" className="noprint">
+          <div className="noprint tw-rounded tw-border tw-border-orange-50 tw-mb-2 tw-bg-amber-100 tw-px-5 tw-py-3 tw-text-orange-900">
             {person?.name} est sortie de la file active de l'équipe <b>{team.name}</b> depuis le {formatDateWithFullMonth(history.date)}
             {outOfTeamsInformations?.reasons?.length ? (
               <>
@@ -47,7 +46,7 @@ export default function OutOfActiveListBanner({ person }: { person: PersonInstan
             ) : (
               ""
             )}
-          </Alert>
+          </div>
         );
       }
     }
