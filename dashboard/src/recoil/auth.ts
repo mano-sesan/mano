@@ -59,22 +59,6 @@ export const usersState = atom<UserInstance[]>({
   default: [],
 });
 
-export const usersLastLoginMoreThan6MonthsSelector = selector<number>({
-  key: "usersLastLoginMoreThan6MonthsSelector",
-  get: ({ get }) => {
-    const users = get(usersState);
-    return users.filter((user) => dayjs().diff(user.lastLoginAt ?? user.createdAt, "months") > 6).length;
-  },
-});
-
-export const usersTooManyDecryptAttempsSelector = selector<number>({
-  key: "usersTooManyDecryptAttempsSelector",
-  get: ({ get }) => {
-    const users = get(usersState);
-    return users.filter((user) => user?.decryptAttempts > 12).length;
-  },
-});
-
 export const currentTeamState = atom<TeamInstance | null>({
   key: "currentTeamState",
   default: null,
