@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalBody, ModalContainer, ModalHeader } from "./tailwind/Modal";
 import QuestionMarkButton from "./QuestionMarkButton";
 
 const NightSessionModale = () => {
@@ -8,21 +8,25 @@ const NightSessionModale = () => {
   return (
     <>
       <QuestionMarkButton onClick={() => setOpen(true)} />
-      <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setOpen(false)}>Équipe de nuit</ModalHeader>
+      <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl">
+        <ModalHeader onClose={() => setOpen(false)} title="Équipe de nuit" />
         <ModalBody>
-          <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
-            Si vous choisissez le mode "Équipe de nuit" pour cette équipe, le rapport pour une journée affichera les commentaires/actions/observations
-            qui auront été créées entre midi de ce jour et midi du jour suivant. <br />
-            Par exemple, le rapport du 10 septembre affichera les commentaires/actions/observations entre le 10 septembre midi et le 11 septembre
-            midi.
-            <br />
-            <br />
-            Si vous ne choisissez PAS le mode "Équipe de nuit" pour cette équipe, le rapport pour une journée affichera les
-            commentaires/actions/observations qui auront été créées entre ce jour là entre minuit et minuit.
-          </span>
+          <div className="tw-p-4">
+            <p>
+              Si vous choisissez le mode <u>Équipe de nuit</u> pour cette équipe, le rapport pour une journée affichera les commentaires, actions et
+              observations qui auront été créées entre midi de ce jour et midi du jour suivant.
+            </p>
+            <p>
+              Par exemple, le rapport du 10 septembre affichera les commentaires, actions et observations entre le 10 septembre midi et le 11
+              septembre midi.
+            </p>
+            <p>
+              Si vous ne choisissez PAS le mode <u>Équipe de nuit</u> pour cette équipe, le rapport pour une journée affichera les commentaires,
+              actions et observations qui auront été créées entre ce jour là entre minuit et minuit.
+            </p>
+          </div>
         </ModalBody>
-      </Modal>
+      </ModalContainer>
     </>
   );
 };
