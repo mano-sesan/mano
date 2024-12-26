@@ -1,7 +1,21 @@
 import { atom, useRecoilState } from "recoil";
 import { ModalContainer, ModalFooter, ModalBody, ModalHeader } from "./tailwind/Modal";
 
-const closedState = {
+type ModalConfirmState = {
+  open: boolean;
+  options: {
+    title: string;
+    subTitle: string;
+    buttons: {
+      text: string;
+      onClick?: () => void;
+      style?: string;
+      className?: string;
+    }[];
+  };
+};
+
+const closedState: ModalConfirmState = {
   open: false,
   options: {
     title: "Voulez-vous enregistrer cet élément ?",
