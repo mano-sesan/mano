@@ -39,6 +39,7 @@ import ActionStatusSelect from "./ActionStatusSelect";
 import DateBloc from "./DateBloc";
 import ActionsSortableList from "./ActionsSortableList";
 import { useDataLoader } from "../services/dataLoader";
+import { isEmptyValue } from "../utils";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -147,9 +148,9 @@ function ActionContent({ onClose, isMulti = false }) {
       };
       for (const key in body) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== initialExistingAction[key]) {
-          // On ignore les changements de `null` à `""` et inversement.
-          if (!body[key] && !initialExistingAction[key]) {
+        if (!isEqual(body[key], initialExistingAction[key])) {
+          // On ignore les changements de `null` à `""` et inversement (pareil pour les tableaux vides).
+          if (isEmptyValue(body[key]) && isEmptyValue(initialExistingAction[key])) {
             continue;
           }
           historyEntry.data[key] = { oldValue: initialExistingAction[key], newValue: body[key] };

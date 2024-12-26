@@ -78,3 +78,5 @@ export function errorMessage(e) {
   }
   return message;
 }
+
+export const isEmptyValue = (value) => !value || (Array.isArray(value) && value.length === 0);
