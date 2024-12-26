@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from "reactstrap";
+import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -13,6 +12,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import dayjs from "dayjs";
 import { useDataLoader } from "../../services/dataLoader";
+import { ModalBody, ModalContainer, ModalHeader } from "../../components/tailwind/Modal";
 
 const CreatePerson = () => {
   const { refresh } = useDataLoader();
@@ -34,8 +34,8 @@ const CreatePerson = () => {
         title="Créer une personne"
         padding="12px 24px"
       />
-      <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setOpen(false)}>Créer une nouvelle personne</ModalHeader>
+      <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl">
+        <ModalHeader title="Créer une nouvelle personne" onClose={() => setOpen(false)} />
         <ModalBody>
           <Formik
             initialValues={{ name: "", assignedTeams: [currentTeam?._id] }}
@@ -62,28 +62,23 @@ const CreatePerson = () => {
             }}
           >
             {({ values, handleChange, handleSubmit, isSubmitting }) => (
-              <React.Fragment>
-                <Row>
-                  <Col md={6}>
-                    <FormGroup>
-                      <Label htmlFor="name">Nom</Label>
-                      <Input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
-                    </FormGroup>
-                  </Col>
-                  <Col md={6}>
-                    <FormGroup>
-                      <Label htmlFor="person-select-assigned-team">Équipe(s) en charge</Label>
-                      <SelectTeamMultiple
-                        onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
-                        value={values.assignedTeams}
-                        colored
-                        inputId="person-select-assigned-team"
-                        classNamePrefix="person-select-assigned-team"
-                      />
-                    </FormGroup>
-                  </Col>
-                </Row>
-                <br />
+              <div className="tw-p-4">
+                <div className="tw-grid tw-grid-cols-2 tw-gap-4">
+                  <div>
+                    <label htmlFor="name">Nom</label>
+                    <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                  </div>
+                  <div>
+                    <label htmlFor="person-select-assigned-team">Équipe(s) en charge</label>
+                    <SelectTeamMultiple
+                      onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
+                      value={values.assignedTeams}
+                      colored
+                      inputId="person-select-assigned-team"
+                      classNamePrefix="person-select-assigned-team"
+                    />
+                  </div>
+                </div>
                 <div className="tw-mt-4 tw-flex tw-justify-end">
                   <ButtonCustom
                     type="submit"
@@ -92,11 +87,11 @@ const CreatePerson = () => {
                     title={isSubmitting ? "Sauvegarde..." : "Sauvegarder"}
                   />
                 </div>
-              </React.Fragment>
+              </div>
             )}
           </Formik>
         </ModalBody>
-      </Modal>
+      </ModalContainer>
     </>
   );
 };
