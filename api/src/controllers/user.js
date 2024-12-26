@@ -1129,7 +1129,9 @@ router.post(
     }
 
     const _id = req.body._id;
-    const user = await User.findOne({ where: { _id } });
+    const query = { where: { _id } };
+    if (req.user.role !== "superadmin") query.where.organisation = req.user.organisation;
+    const user = await User.findOne(query);
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     user.disabledAt = null;
