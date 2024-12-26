@@ -97,12 +97,6 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
             </div>
           )}
           {!!["boolean"].includes(field.type) && (
-            /*
-              display: flex;
-  flex-direction: column;
-  margin-left: 20px;
-  width: 80%;
-            */
             <div className="tw-basis-full tw-p-4">
               <label htmlFor={id}>
                 <input
