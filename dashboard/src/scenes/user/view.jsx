@@ -183,7 +183,29 @@ const View = () => {
                     setUsers((users) => users.map((u) => (u._id === localUser._id ? response.user : u)));
                   }}
                 >
-                  Réactiver
+                  Réactiver 🔓
+                </button>
+              )}
+              {(localUser.decryptAttempts > 12 || localUser.loginAttempts > 12) && (
+                <button
+                  type="button"
+                  className="button-classic"
+                  disabled={isReactivatingUser}
+                  onClick={async () => {
+                    setIsReactivatingUser(localUser._id);
+                    const [error, response] = await tryFetchExpectOk(async () =>
+                      API.post({ path: `/user/release-user`, body: { _id: localUser._id } })
+                    );
+                    setIsReactivatingUser(false);
+                    if (error) {
+                      return toast.error("Erreur lors de la déblocage de l'utilisateur");
+                    }
+                    toast.success("Utilisateur réactivé");
+                    setLocalUser(response.user);
+                    setUsers((users) => users.map((u) => (u._id === localUser._id ? response.user : u)));
+                  }}
+                >
+                  Débloquer 🔓
                 </button>
               )}
               {id !== user._id && (

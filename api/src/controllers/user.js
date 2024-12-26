@@ -1088,7 +1088,7 @@ router.post(
 router.post(
   "/release-user",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["superadmin"]),
+  validateUser(["superadmin", "admin"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -1101,15 +1101,39 @@ router.post(
     }
 
     const _id = req.body._id;
-    const user = await User.findOne({ where: { _id } });
+    const query = { where: { _id } };
+    if (req.user.role !== "superadmin") query.where.organisation = req.user.organisation;
+    const user = await User.findOne(query);
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 
     user.loginAttempts = 0;
     user.decryptAttempts = 0;
     user.nextLoginAttemptAt = null;
     await user.save();
+    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
 
-    return res.status(200).send({ ok: true });
+    return res.status(200).send({
+      ok: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        role: user.role,
+        healthcareProfessional: user.healthcareProfessional,
+        lastChangePasswordAt: user.lastChangePasswordAt,
+        termsAccepted: user.termsAccepted,
+        cgusAccepted: user.cgusAccepted,
+
+        lastLoginAt: user.lastLoginAt,
+        decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
+        team: team.map((t) => t._id),
+      },
+    });
   })
 );
 
