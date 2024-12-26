@@ -18,7 +18,7 @@ import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import PersonName from "../../../components/PersonName";
 import { useDataLoader } from "../../../services/dataLoader";
-import { errorMessage } from "../../../utils";
+import { errorMessage, isEmptyValue } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 import isEqual from "react-fast-compare";
 
@@ -148,6 +148,10 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
       for (const key in body) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
         if (body[key] !== treatment[key]) historyEntry.data[key] = { oldValue: treatment[key], newValue: body[key] };
+        if (!isEqual(body[key], treatment[key])) {
+          if (isEmptyValue(body[key]) && isEmptyValue(treatment[key])) continue;
+          historyEntry.data[key] = { oldValue: treatment[key], newValue: body[key] };
+        }
       }
       if (Object.keys(historyEntry.data).length) {
         const prevHistory = Array.isArray(treatment.history) ? treatment.history : [];

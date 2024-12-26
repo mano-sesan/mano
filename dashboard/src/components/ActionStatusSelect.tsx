@@ -96,7 +96,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
             setModalConfirmState({
               open: true,
               options: {
-                title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
+                title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
                 subTitle: "Avec une date ultérieure par exemple",
                 buttons: [
                   {
@@ -113,6 +113,8 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
                           body: await encryptConsultation(organisation.consultations)({
                             ...consultation,
                             _id: undefined,
+                            completedAt: null,
+                            history: [],
                             status: TODO,
                             user: user._id,
                             teams: [currentTeam._id],
