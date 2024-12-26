@@ -81,22 +81,13 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
   }, [rencontres, observation]);
   const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
+
   const addTerritoryObs = async (obs: TerritoryObservationInstance) => {
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.post({ path: "/territory-observation", body: await encryptObs(customFieldsObs)(obs) })
-    );
-    if (!error) {
-      await refresh();
-    }
-    return response;
+    return tryFetchExpectOk(async () => API.post({ path: "/territory-observation", body: await encryptObs(customFieldsObs)(obs) }));
   };
 
   const updateTerritoryObs = async (obs: TerritoryObservationInstance) => {
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.put({ path: `/territory-observation/${obs._id}`, body: await encryptObs(customFieldsObs)(obs) })
-    );
-    if (!error) await refresh();
-    return response;
+    return tryFetchExpectOk(async () => API.put({ path: `/territory-observation/${obs._id}`, body: await encryptObs(customFieldsObs)(obs) }));
   };
 
   const onDelete = async (id: TerritoryObservationInstance["_id"]) => {
@@ -129,17 +120,18 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
       body[customField.name] = observation[customField.name];
     }
     setIsSubmitting(true);
-    const res = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
-    if (res.ok) {
+    const [error, response] = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
+    if (!error) {
+      await refresh();
       toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
       onClose();
-      if (res.data._id && rencontresInProgress.length > 0) {
+      if (response.data._id && rencontresInProgress.length > 0) {
         let rencontreSuccess = true;
         for (const rencontre of rencontresInProgress) {
           const [error] = await tryFetchExpectOk(async () =>
             API.post({
               path: "/rencontre",
-              body: await encryptRencontre({ ...rencontre, observation: res.data._id }),
+              body: await encryptRencontre({ ...rencontre, observation: response.data._id }),
             })
           );
           if (error) {
