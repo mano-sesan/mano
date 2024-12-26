@@ -518,6 +518,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         disableVoirPlus={true}
         label="Documents médicaux"
         data={allMedicalDocuments}
+        customCount={allMedicalDocuments.filter((d) => d.type === 'document').length}
         renderItem={() => null}
         ifEmpty="Pas encore de document médical">
         <DocumentsManager
