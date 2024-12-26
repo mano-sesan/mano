@@ -42,11 +42,13 @@ const GeneralStats = ({
           title="Nombre d'actions"
           help={`Nombre d'actions enregistrées dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des actions.`}
         />
-        <Block
-          data={rencontres.length}
-          title="Nombre de rencontres"
-          help={`Nombre de rencontres enregistrées dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres.`}
-        />
+        {organisation.rencontresEnabled ? (
+          <Block
+            data={rencontres.length}
+            title="Nombre de rencontres"
+            help={`Nombre de rencontres enregistrées dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres.`}
+          />
+        ) : null}
         {organisation.passagesEnabled ? (
           <Block
             data={passages.length}
