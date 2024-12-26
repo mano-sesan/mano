@@ -198,7 +198,7 @@ const Report = ({ navigation, route }) => {
             multiline
             editable={editable}
           />
-          {editable ? <Label label="Collaboration(s)" /> : <MyText className="text-main mb-4 text-base">Collaboration(s) :</MyText>}
+          {editable ? <Label label="Co-intervention(s)" /> : <MyText className="text-main mb-4 text-base">Co-intervention(s) :</MyText>}
           <Tags
             data={report.collaborations}
             key={report.collaborations}

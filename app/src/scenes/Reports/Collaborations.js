@@ -99,7 +99,7 @@ const Collaborations = ({ route, navigation }) => {
     if (!isReadyToSave) return onBack();
 
     if (isReadyToSave) {
-      Alert.alert('Voulez-vous enregistrer cette collaboration ?', null, [
+      Alert.alert('Voulez-vous enregistrer cette co-intervention ?', null, [
         {
           text: 'Enregistrer',
           onPress: onCreateCollaboration,
@@ -116,7 +116,7 @@ const Collaborations = ({ route, navigation }) => {
       ]);
       return;
     }
-    Alert.alert('Voulez-vous abandonner la création de cette collaboration ?', null, [
+    Alert.alert('Voulez-vous abandonner la création de cette co-intervention ?', null, [
       {
         text: 'Continuer la création',
       },
@@ -141,8 +141,8 @@ const Collaborations = ({ route, navigation }) => {
 
   return (
     <SceneContainer>
-      <ScreenTitle title={`Collaboration - ${getPeriodTitle(day, currentTeam?.nightSession)}`} onBack={onGoBackRequested} />
-      <Search results={data} placeholder="Rechercher une collaboration..." onChange={setCollaboration} />
+      <ScreenTitle title={`Co-intervention - ${getPeriodTitle(day, currentTeam?.nightSession)}`} onBack={onGoBackRequested} />
+      <Search results={data} placeholder="Rechercher une co-intervention..." onChange={setCollaboration} />
       <FlashListStyled
         data={data}
         estimatedItemSize={77}
