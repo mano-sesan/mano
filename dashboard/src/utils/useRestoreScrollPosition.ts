@@ -5,6 +5,7 @@ export function useRestoreScrollPosition() {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    if (!document?.querySelector("#main-content")) return;
     const scrollParent = document.querySelector("#main-content")!;
     const scrollPosition = localStorage.getItem(`scrollPosition-${pathname}`);
     if (scrollPosition) {
@@ -15,6 +16,7 @@ export function useRestoreScrollPosition() {
     }
     document.querySelector("#main-content").addEventListener("scrollend", handleSaveScrollPosition);
     return () => {
+      if (!document?.querySelector("#main-content")) return;
       document.querySelector("#main-content").removeEventListener("scrollend", handleSaveScrollPosition);
     };
   }, [pathname]);
