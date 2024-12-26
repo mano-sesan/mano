@@ -16,7 +16,7 @@ const Card = ({ title, count, unit, children, countId, dataTestId, help, onClick
             </p>
           </div>
         )}
-        <Component {...props} className={["tw-grow tw-flex tw-items-center tw-text-6xl tw-text-main tw-my-2"].join(" ")}>
+        <Component {...props} className={["tw-grow tw-flex tw-items-end tw-text-6xl tw-text-main tw-my-2"].join(" ")}>
           <div className="tw-flex tw-items-end">
             <span data-test-id={`${dataTestId}-${count}`} id={countId}>
               {count}
