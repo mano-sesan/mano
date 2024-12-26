@@ -26,6 +26,8 @@ import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
 import { decryptItem } from "../services/encryption";
 import { useDataLoader } from "../services/dataLoader";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../utils";
 
 export default function ConsultationModal() {
   const consultationsObjects = useRecoilValue(itemsGroupedByConsultationSelector);
@@ -155,7 +157,10 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       };
       for (const key in body) {
         if (!consultationsFieldsIncludingCustomFields.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== consultation[key]) historyEntry.data[key] = { oldValue: consultation[key], newValue: body[key] };
+        if (!isEqual(body[key], consultation[key])) {
+          if (isEmptyValue(body[key]) && isEmptyValue(consultation[key])) continue;
+          historyEntry.data[key] = { oldValue: consultation[key], newValue: body[key] };
+        }
       }
       if (Object.keys(historyEntry.data).length) body.history = [...(consultation.history || []), historyEntry];
     }
@@ -181,7 +186,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       setModalConfirmState({
         open: true,
         options: {
-          title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
+          title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
           subTitle: "Avec une date ultérieure par exemple",
           buttons: [
             {
@@ -197,7 +202,9 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                     path: "/consultation",
                     body: await encryptConsultation(organisation.consultations)({
                       ...decryptedData,
+                      completedAt: null,
                       _id: undefined,
+                      history: [],
                       status: TODO,
                       user: user._id,
                       teams: [currentTeam._id],
