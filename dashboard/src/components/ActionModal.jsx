@@ -149,10 +149,7 @@ function ActionContent({ onClose, isMulti = false }) {
       for (const key in body) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
         if (!isEqual(body[key], initialExistingAction[key])) {
-          // On ignore les changements de `null` à `""` et inversement (pareil pour les tableaux vides).
-          if (isEmptyValue(body[key]) && isEmptyValue(initialExistingAction[key])) {
-            continue;
-          }
+          if (isEmptyValue(body[key]) && isEmptyValue(initialExistingAction[key])) continue;
           historyEntry.data[key] = { oldValue: initialExistingAction[key], newValue: body[key] };
         }
       }

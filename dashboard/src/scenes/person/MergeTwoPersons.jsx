@@ -31,6 +31,7 @@ import { prepareTreatmentForEncryption, treatmentsState } from "../../recoil/tre
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";
+import { isEmptyValue } from "../../utils";
 
 const getRawValue = (field, value) => {
   try {
@@ -55,11 +56,6 @@ const initMergeValue = (field, originPerson = {}, personToMergeAndDelete = {}) =
     return originPerson[field.name];
   }
   return originPerson[field.name] || personToMergeAndDelete[field.name];
-};
-
-const fieldIsEmpty = (value) => {
-  if (Array.isArray(value)) return !value.length;
-  return !value;
 };
 
 const MergeTwoPersons = ({ person }) => {
@@ -235,7 +231,7 @@ const MergeTwoPersons = ({ person }) => {
                 };
                 for (const key in body) {
                   if (!allowedFieldsInHistory.includes(key)) continue;
-                  if (fieldIsEmpty(body[key]) && fieldIsEmpty(originPerson[key])) continue;
+                  if (isEmptyValue(body[key]) && isEmptyValue(originPerson[key])) continue;
                   if (JSON.stringify(body[key]) !== JSON.stringify(initMergedPerson[key])) {
                     historyEntry.data[key] = { oldValue: initMergedPerson[key], newValue: body[key] };
                   }

@@ -25,6 +25,8 @@ import { useDataLoader } from "../../../services/dataLoader";
 import { cleanHistory } from "../../../utils/person-history";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import SelectCustom from "../../../components/SelectCustom";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../../utils";
 
 export default function EditModal({ person, selectedPanel, onClose, isMedicalFile = false }) {
   const { refresh } = useDataLoader();
@@ -68,7 +70,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     };
     for (const key in body) {
       if (!allowedFieldsInHistory.includes(key)) continue;
-      if (body[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: body[key] };
+      if (!isEqual(body[key], person[key])) {
+        if (isEmptyValue(body[key]) && isEmptyValue(person[key])) continue;
+        historyEntry.data[key] = { oldValue: person[key], newValue: body[key] };
+      }
       if (key === "assignedTeams" && outOfActiveListReasons && Object.keys(outOfActiveListReasons).length) {
         historyEntry.data["outOfTeamsInformations"] = Object.entries(outOfActiveListReasons).map(([team, reasons]) => ({ team, reasons }));
       }
@@ -420,7 +425,8 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                   };
                   for (const key in bodyMedicalFile) {
                     if (!flatCustomFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
-                    if (bodyMedicalFile[key] !== medicalFile[key]) {
+                    if (!isEqual(bodyMedicalFile[key], medicalFile[key])) {
+                      if (isEmptyValue(bodyMedicalFile[key]) && isEmptyValue(medicalFile[key])) continue;
                       historyEntry.data[key] = { oldValue: medicalFile[key], newValue: bodyMedicalFile[key] };
                     }
                   }
