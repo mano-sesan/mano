@@ -237,7 +237,7 @@ function ActionContent({ onClose, isMulti = false }) {
       // On affiche le toast de mise à jour uniquement si on a fermé la modale.
       if (closeOnSubmit) toast.success("Mise à jour !");
       if (actionCancelled) {
-        const { name, person, dueAt, withTime, description, categories, urgent, teams } = action;
+        const { name, person, dueAt, withTime, description, categories, urgent, teams, documents } = action;
         const comments = action.comments.filter((c) => c.action === action._id);
         setModalConfirmState({
           open: true,
@@ -267,6 +267,7 @@ function ActionContent({ onClose, isMulti = false }) {
                         description,
                         categories,
                         urgent,
+                        documents: documents?.map((d) => ({ ...d, _id: d._id + "__" + uuidv4() })),
                       }),
                     })
                   );

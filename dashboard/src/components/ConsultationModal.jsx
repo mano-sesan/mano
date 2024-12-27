@@ -203,6 +203,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                     body: await encryptConsultation(organisation.consultations)({
                       ...decryptedData,
                       comments: (decryptedData.comments || []).map((c) => ({ ...c, _id: uuidv4() })),
+                      documents: decryptedData.documents?.map((d) => ({ ...d, _id: d._id + "__" + uuidv4() })),
                       completedAt: null,
                       _id: undefined,
                       history: [],
