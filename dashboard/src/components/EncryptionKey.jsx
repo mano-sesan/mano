@@ -472,6 +472,12 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
     toast.error(errorMessage(docResponseError || docResponse.error));
     return;
   }
+  // Si tout va bien on supprime l'ancien fichier
+  const [deleteError] = await tryFetch(() => API.delete({ path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}` }));
+  if (deleteError) {
+    toast.error(errorMessage(deleteError));
+    return;
+  }
   const { data: file } = docResponse;
   return {
     _id: file.filename,
