@@ -202,6 +202,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                     path: "/consultation",
                     body: await encryptConsultation(organisation.consultations)({
                       ...decryptedData,
+                      comments: (decryptedData.comments || []).map((c) => ({ ...c, _id: uuidv4() })),
                       completedAt: null,
                       _id: undefined,
                       history: [],
