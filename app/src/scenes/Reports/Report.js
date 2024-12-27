@@ -13,7 +13,7 @@ import Spacer from '../../components/Spacer';
 import Tags from '../../components/Tags';
 import { CANCEL, DONE } from '../../recoil/actions';
 import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { prepareReportForEncryption, reportsState } from '../../recoil/reports';
+import { flattenedServicesSelector, prepareReportForEncryption, reportsState } from '../../recoil/reports';
 import API from '../../services/api';
 import colors from '../../utils/colors';
 import {
@@ -67,6 +67,7 @@ const ReportLoading = ({ navigation, route }) => {
 const Report = ({ navigation, route }) => {
   const currentTeam = useRecoilValue(currentTeamState);
   const setReports = useSetRecoilState(reportsState);
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
   const teamsReports = useRecoilValue(currentTeamReportsSelector);
   const user = useRecoilValue(userState);
 
@@ -82,6 +83,7 @@ const Report = ({ navigation, route }) => {
   const observations = useRecoilValue(observationsForReport({ date: day }));
   const organisation = useRecoilValue(organisationState);
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const [servicesCount, setServicesCount] = useState(0);
 
   const isFocused = useIsFocused();
 
@@ -90,6 +92,16 @@ const Report = ({ navigation, route }) => {
     if (!isFocused) return;
     setReport(castToReport(reportDB));
   }, [isFocused, reportDB]);
+
+  useEffect(() => {
+    async function initServices() {
+      const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${day}` });
+      if (response.error) return Alert.alert(response.error);
+      console.log(response.data);
+      setServicesCount(response.data?.map((s) => s.count).reduce((a, b) => a + b, 0));
+    }
+    initServices();
+  }, [currentTeam._id, day]);
 
   const [updating, setUpdating] = useState(false);
   const [editable, setEditable] = useState(route?.params?.editable || false);
@@ -281,6 +293,18 @@ const Report = ({ navigation, route }) => {
               caption={`Observations (${observations.length})`}
               onPress={() => navigation.navigate('Observations', { date: day })}
               disabled={!observations.length}
+            />
+          </>
+        )}
+
+        {organisation.receptionEnabled && Boolean(flattenedServices?.length) && (
+          <>
+            <Spacer height={30} />
+            <Row
+              withNextButton
+              caption={`Services (${servicesCount})`}
+              onPress={() => navigation.navigate('Services', { date: day })}
+              disabled={!servicesCount}
             />
           </>
         )}
