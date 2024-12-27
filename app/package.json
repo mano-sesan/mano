@@ -47,6 +47,7 @@
     "nativewind": "^2.0.11",
     "prop-types": "^15.7.2",
     "react": "^18.3.1",
+    "react-fast-compare": "^3.2.2",
     "react-native": "^0.76.1",
     "react-native-base64": "^0.2.1",
     "react-native-blob-util": "^0.19.11",

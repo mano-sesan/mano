@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Alert, Animated, Keyboard, TouchableOpacity, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
+import isEqual from 'react-fast-compare';
 import styled from 'styled-components/native';
 import ScrollContainer from '../../components/ScrollContainer';
 import SceneContainer from '../../components/SceneContainer';
@@ -33,6 +34,7 @@ import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
 import { refreshTriggerState } from '../../components/Loader';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import DocumentsManager from '../../components/DocumentsManager';
+import { isEmptyValue } from '../../utils';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -415,7 +417,10 @@ const Action = ({ navigation, route }) => {
       };
       for (const key in action) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (action[key] !== oldAction[key]) historyEntry.data[key] = { oldValue: oldAction[key], newValue: action[key] };
+        if (!isEqual(action[key], oldAction[key])) {
+          if (isEmptyValue(action[key]) && isEmptyValue(oldAction[key])) continue;
+          historyEntry.data[key] = { oldValue: oldAction[key], newValue: action[key] };
+        }
       }
       if (!!Object.keys(historyEntry.data).length) action.history = [...(action.history || []), historyEntry];
 

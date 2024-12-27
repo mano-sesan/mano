@@ -8811,6 +8811,7 @@ __metadata:
     prettier: "npm:2.8.8"
     prop-types: "npm:^15.7.2"
     react: "npm:^18.3.1"
+    react-fast-compare: "npm:^3.2.2"
     react-native: "npm:^0.76.1"
     react-native-base64: "npm:^0.2.1"
     react-native-blob-util: "npm:^0.19.11"
@@ -10471,6 +10472,13 @@ __metadata:
     shell-quote: "npm:^1.6.1"
     ws: "npm:^7"
   checksum: 7165544ca5890af62e875eeda3f915e054dc734ad74f77d6490de32ba4fef6c1d30647bbb0643f769dd988913e0edc2bf2b1d6c2679e910150929a6312479cf3
+  languageName: node
+  linkType: hard
+
+"react-fast-compare@npm:^3.2.2":
+  version: 3.2.2
+  resolution: "react-fast-compare@npm:3.2.2"
+  checksum: 0bbd2f3eb41ab2ff7380daaa55105db698d965c396df73e6874831dbafec8c4b5b08ba36ff09df01526caa3c61595247e3269558c284e37646241cba2b90a367
   languageName: node
   linkType: hard
 

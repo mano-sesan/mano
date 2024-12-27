@@ -27,6 +27,8 @@ import NewCommentInput from '../Comments/NewCommentInput';
 import { Alert } from 'react-native';
 import { formatBirthDateAndAge } from '../../services/dateDayjs';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
+import isEqual from 'react-fast-compare';
+import { isEmptyValue } from '../../utils';
 
 const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, editable, onEdit, isUpdateDisabled, backgroundColor, onChange }) => {
   const organisation = useRecoilValue(organisationState);
@@ -286,7 +288,8 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     };
     for (const key in latestMedicalFile) {
       if (!customFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
-      if (latestMedicalFile[key] !== medicalFileDB[key]) {
+      if (!isEqual(latestMedicalFile[key], medicalFileDB[key])) {
+        if (isEmptyValue(latestMedicalFile[key]) && isEmptyValue(medicalFileDB[key])) continue;
         historyEntry.data[key] = { oldValue: medicalFileDB[key], newValue: latestMedicalFile[key] };
       }
     }
