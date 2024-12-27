@@ -153,6 +153,10 @@ const Consultation = ({ navigation, route }) => {
         status: TODO,
         user: user._id,
         teams: [currentTeam._id],
+        comments: (consultation.comments || []).map((c) => ({ ...c, _id: uuidv4() })),
+        documents: (consultation.documents || []).map((d) => ({ ...d, _id: d._id + '__' + uuidv4() })),
+        completedAt: null,
+        history: [],
       }),
     });
     if (!response.ok) {
