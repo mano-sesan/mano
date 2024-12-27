@@ -31,7 +31,7 @@ const getPeriodTitle = (date, nightSession) => {
       <span className="tw-m-0 tw-text-center">
         Nuit du {formatDateWithNameOfDay(date)} au {formatDateWithNameOfDay(nextDay)}
       </span>
-      <span className="tw-m-0 tw-text-center tw-text-xs tw-opacity-50">
+      <span className="tw-m-0 tw-text-center tw-text-xs tw-opacity-50 tw-ml-2">
         On affiche les actions faites/à faire entre midi de ce jour et 11h59 du jour suivant
       </span>
     </>
