@@ -14,6 +14,7 @@ export const ListEmptyPersons = () => <ListEmptyContainer text="Il n'y a pas de 
 export const ListEmptyStructures = () => <ListEmptyContainer text="Il n'y a pas de contact à afficher" />;
 export const ListEmptyTerritories = () => <ListEmptyContainer text="Il n'y a pas de territoire à afficher" />;
 export const ListEmptyObservations = () => <ListEmptyContainer text="Il n'y a pas d'observation à afficher" />;
+export const ListEmptyServices = () => <ListEmptyContainer text="Il n'y a pas de service à afficher" />;
 export const ListEmptyStructureWithName = (name) => () => <ListEmptyContainer text={`Il n'y a pas de contact incluant ${name}`} />;
 export const ListEmptyPlaceWithName = (name) => () => <ListEmptyContainer text={`Il n'y a pas de lieu incluant ${name}`} />;
 export const ListEmptyComments = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire à afficher" />;
@@ -28,6 +29,7 @@ export const ListNoMoreConsultations = () => <ListEmptyContainer opaque text="Il
 export const ListNoMoreComments = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre commentaire à afficher" />;
 export const ListNoMoreRencontres = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre rencontre à afficher" />;
 export const ListNoMoreObservations = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre observation de territoire à afficher" />;
+export const ListNoMoreServices = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre service à afficher" />;
 export const ListNoMorePersons = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre personne à afficher" />;
 export const ListNoMoreStructures = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre contact à afficher" />;
 export const ListNoMoreTerritories = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre territoire à afficher" />;
