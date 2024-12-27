@@ -10,6 +10,8 @@ import { userState } from '../../recoil/auth';
 import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from '../../recoil/persons';
 import API from '../../services/api';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
+import isEqual from 'react-fast-compare';
+import { isEmptyValue } from '../../utils';
 
 const PersonsOutOfActiveListReason = ({ navigation, route }) => {
   const [reasons, setReasons] = useState([]);
@@ -32,7 +34,10 @@ const PersonsOutOfActiveListReason = ({ navigation, route }) => {
     };
     for (const key in person) {
       if (!allowedFieldsInHistory.includes(key)) continue;
-      if (person[key] !== oldPerson[key]) historyEntry.data[key] = { oldValue: oldPerson[key], newValue: person[key] };
+      if (!isEqual(person[key], oldPerson[key])) {
+        if (isEmptyValue(person[key]) && isEmptyValue(oldPerson[key])) continue;
+        historyEntry.data[key] = { oldValue: oldPerson[key], newValue: person[key] };
+      }
     }
     if (!!Object.keys(historyEntry.data).length) person.history = [...(oldPerson.history || []), historyEntry];
 

@@ -32,6 +32,8 @@ import CommentRow from '../Comments/CommentRow';
 import SubList from '../../components/SubList';
 import NewCommentInput from '../Comments/NewCommentInput';
 import { refreshTriggerState } from '../../components/Loader';
+import isEqual from 'react-fast-compare';
+import { isEmptyValue } from '../../utils';
 
 const cleanValue = (value) => {
   if (typeof value === 'string') return (value || '').trim();
@@ -192,7 +194,8 @@ const Consultation = ({ navigation, route }) => {
         };
         for (const key in consultationToSave) {
           if (!consultationsFieldsIncludingCustomFields.map((field) => field.name).includes(key)) continue;
-          if (consultationToSave[key] !== consultationDB[key]) {
+          if (!isEqual(consultationToSave[key], consultationDB[key])) {
+            if (isEmptyValue(consultationToSave[key]) && isEmptyValue(consultationDB[key])) continue;
             historyEntry.data[key] = { oldValue: consultationDB[key], newValue: consultationToSave[key] };
           }
         }

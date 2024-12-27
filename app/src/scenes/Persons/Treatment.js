@@ -19,6 +19,8 @@ import { userState } from '../../recoil/auth';
 import SubList from '../../components/SubList';
 import CommentRow from '../Comments/CommentRow';
 import NewCommentInput from '../Comments/NewCommentInput';
+import isEqual from 'react-fast-compare';
+import { isEmptyValue } from '../../utils';
 
 const Treatment = ({ navigation, route }) => {
   const setAllTreatments = useSetRecoilState(treatmentsState);
@@ -84,7 +86,10 @@ const Treatment = ({ navigation, route }) => {
       };
       for (const key in body) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
-        if (body[key] !== treatmentDB[key]) historyEntry.data[key] = { oldValue: treatmentDB[key], newValue: body[key] };
+        if (!isEqual(body[key], treatmentDB[key])) {
+          if (isEmptyValue(body[key]) && isEmptyValue(treatmentDB[key])) continue;
+          historyEntry.data[key] = { oldValue: treatmentDB[key], newValue: body[key] };
+        }
       }
       if (!!Object.keys(historyEntry.data).length) {
         const prevHistory = Array.isArray(treatmentDB.history) ? treatmentDB.history : [];

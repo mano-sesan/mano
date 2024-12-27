@@ -28,6 +28,8 @@ import { treatmentsState } from '../../recoil/treatments';
 import { medicalFileState } from '../../recoil/medicalFiles';
 import { refreshTriggerState } from '../../components/Loader';
 import { groupsState, prepareGroupForEncryption } from '../../recoil/groups';
+import isEqual from 'react-fast-compare';
+import { isEmptyValue } from '../../utils';
 
 const TabNavigator = createMaterialTopTabNavigator();
 
@@ -145,7 +147,10 @@ const Person = ({ route, navigation }) => {
     };
     for (const key in personToUpdate) {
       if (!allowedFieldsInHistory.includes(key)) continue;
-      if (personToUpdate[key] !== oldPerson[key]) historyEntry.data[key] = { oldValue: oldPerson[key], newValue: personToUpdate[key] };
+      if (!isEqual(personToUpdate[key], oldPerson[key])) {
+        if (isEmptyValue(personToUpdate[key]) && isEmptyValue(oldPerson[key])) continue;
+        historyEntry.data[key] = { oldValue: oldPerson[key], newValue: personToUpdate[key] };
+      }
     }
     if (!!Object.keys(historyEntry.data).length) personToUpdate.history = [...(oldPerson.history || []), historyEntry];
 
