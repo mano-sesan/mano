@@ -42,6 +42,10 @@ export function formatAge(date) {
   if (!date) return null;
   const birthDate = dayjs(date);
   const months = Math.abs(dayjs().diff(birthDate, 'months'));
+  if (months < 2) {
+    const days = Math.abs(dayjs().diff(birthDate, 'days'));
+    return days + ' jour' + (days > 1 ? 's' : '');
+  }
   if (months < 24) return months + ' mois';
   const years = Math.abs(dayjs().diff(birthDate, 'years'));
   if (years < 7) {
