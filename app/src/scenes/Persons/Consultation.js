@@ -504,9 +504,11 @@ const Consultation = ({ navigation, route }) => {
                         comments: consultation.comments.filter((c) => c._id !== comment._id),
                       };
                       setConsultation(consultationToSave); // optimistic UI
-                      // need to pass `consultationToSave` if we want last comment to be taken into account
-                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                      if (!isNew) {
+                        // need to pass `consultationToSave` if we want last comment to be taken into account
+                        // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                        return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                      }
                     }}
                     onUpdate={async (commentUpdated) => {
                       const consultationToSave = {
@@ -514,9 +516,11 @@ const Consultation = ({ navigation, route }) => {
                         comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
                       };
                       setConsultation(consultationToSave); // optimistic UI
-                      // need to pass `consultationToSave` if we want last comment to be taken into account
-                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                      if (!isNew) {
+                        // need to pass `consultationToSave` if we want last comment to be taken into account
+                        // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                        return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                      }
                     }}
                   />
                 )}
@@ -531,9 +535,11 @@ const Consultation = ({ navigation, route }) => {
                       comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
                     };
                     setConsultation(consultationToSave); // optimistic UI
-                    // need to pass `consultationToSave` if we want last comment to be taken into account
-                    // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                    onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                    if (!isNew) {
+                      // need to pass `consultationToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                    }
                   }}
                 />
               </SubList>
