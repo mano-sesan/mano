@@ -235,8 +235,8 @@ const Group = ({
                 );
               })
             )}
-            <NewItemComponent groupTitle={groupTitle} />
           </div>
+          <NewItemComponent groupTitle={groupTitle} />
         </details>
       </div>
       {!!onGroupTitleChange && (
