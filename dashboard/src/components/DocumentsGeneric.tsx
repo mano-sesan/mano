@@ -450,6 +450,10 @@ export function DocumentTable({
   onAddDocuments,
 }: DocumentTableProps) {
   const organisation = useRecoilValue(organisationAuthentifiedState);
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
+  const history = useHistory();
 
   if (!documents.length) {
     return (
@@ -531,11 +535,51 @@ export function DocumentTable({
                     </div>
                     {!!withClickableLabel && !["medical-file", "person"].includes(doc.linkedItem?.type) && (
                       <div>
-                        <div className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}>
-                          {doc.linkedItem.type === "treatment" && "Traitement"}
-                          {doc.linkedItem.type === "consultation" && "Consultation"}
-                          {doc.linkedItem.type === "action" && "Action"}
-                        </div>
+                        {doc.linkedItem.type === "action" ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setModalAction({
+                                ...defaultModalActionState(),
+                                open: true,
+                                from: location.pathname,
+                                action: actionsObjects[doc.linkedItem._id],
+                              });
+                            }}
+                            type="button"
+                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+                          >
+                            Action
+                          </button>
+                        ) : doc.linkedItem.type === "consultation" ? (
+                          <button
+                            type="button"
+                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const searchParams = new URLSearchParams(history.location.search);
+                              searchParams.set("consultationId", doc.linkedItem._id);
+                              history.push(`?${searchParams.toString()}`);
+                            }}
+                          >
+                            Consultation
+                          </button>
+                        ) : doc.linkedItem.type === "treatment" ? (
+                          <button
+                            type="button"
+                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const searchParams = new URLSearchParams(history.location.search);
+                              searchParams.set("treatmentId", doc.linkedItem._id);
+                              history.push(`?${searchParams.toString()}`);
+                            }}
+                          >
+                            Traitement
+                          </button>
+                        ) : (
+                          <></>
+                        )}
                       </div>
                     )}
                   </div>
