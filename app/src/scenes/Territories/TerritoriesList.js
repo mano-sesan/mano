@@ -45,12 +45,12 @@ const TerritoriesList = () => {
     const { name } = territory;
     const lastObservationDate = territory.lastObservationDate ? dayjsInstance(territory.lastObservationDate).format('DD/MM/YYYY') : null;
     return (
-      <RowContainer>
+      <RowContainer onPress={() => navigation.push('Territory', { territory })}>
         <View>
           <View>
             <Name>{name}</Name>
           </View>
-          {!!lastObservationDate && <MyText>Dernière observation le {lastObservationDate}</MyText>}
+          {!!lastObservationDate && <MyText color="#777">Dernière observation le {lastObservationDate}</MyText>}
         </View>
       </RowContainer>
     );
