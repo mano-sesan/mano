@@ -4,19 +4,22 @@ import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
 import { refreshTriggerState } from '../../components/Loader';
 import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyServices, ListNoMoreServices } from '../../components/ListEmptyContainer';
+import { ListEmptyServices } from '../../components/ListEmptyContainer';
 import { getPeriodTitle } from './utils';
 import { currentTeamState, organisationState } from '../../recoil/auth';
 import API from '../../services/api';
-import { Alert, Text, View } from 'react-native';
+import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { servicesSelector } from '../../recoil/reports';
 const keyExtractor = (item) => item._id;
 
 const Services = ({ navigation, route }) => {
+  const groupedServices = useRecoilValue(servicesSelector);
   const { date } = route.params;
   const organisation = useRecoilValue(organisationState);
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const currentTeam = useRecoilValue(currentTeamState);
   const [services, setServices] = useState([]);
+  const [activeTab, setActiveTab] = useState(groupedServices[0]?.groupTitle || null);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -32,26 +35,40 @@ const Services = ({ navigation, route }) => {
   }, [currentTeam._id, date]);
 
   const renderItem = ({ item }) => {
-    const service = item;
     return (
       <View className="flex flex-row justify-between px-4 py-2">
-        <Text className="text-lg font-bold">{service.service}</Text>
-        <Text className="text-lg">{service.count}</Text>
+        <Text className="text-lg font-bold">{item?.service}</Text>
+        <Text className="text-lg">{item?.count}</Text>
       </View>
     );
   };
 
-  console.log(services.length);
+  if (!organisation.receptionEnabled || !organisation?.services || !groupedServices.length) return null;
 
-  if (!organisation.receptionEnabled || !organisation?.services) return null;
+  const selectedServices = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
+    const service = (services || []).find((f) => f.service === e);
+    return { service: e, _id: service?._id || e, count: service?.count || 0 };
+  });
 
   return (
     <SceneContainer backgroundColor="#fff">
       <ScreenTitle title={`Services\n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
+      <ScrollView horizontal className="flex-grow-0 gap-4 flex-shrink-0 px-2 bg-white border-b border-b-gray-300">
+        {groupedServices.map((group) => {
+          return (
+            <TouchableOpacity key={group.groupTitle} onPress={() => setActiveTab(group.groupTitle)}>
+              <View className={`p-3 bg-white ${group.groupTitle === activeTab ? 'border-b-green-700 border-b-4' : ''}`}>
+                <Text>{group.groupTitle}</Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
-        data={services}
+        data={selectedServices}
         initialNumToRender={50}
         renderItem={renderItem}
         estimatedItemSize={545}
