@@ -190,8 +190,11 @@ class ApiService {
     } else {
       const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
       if (!encryptionKeyIsValid) {
+        this.post({ path: '/user/decrypt-attempt-failure' });
         this.handleWrongKey();
         return false;
+      } else {
+        this.post({ path: '/user/decrypt-attempt-success' });
       }
     }
     this.enableEncrypt = true;
