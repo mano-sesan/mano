@@ -52,7 +52,7 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
       navigation.navigate('NewActionForm', { fromRoute: 'ActionsList' });
       return;
     }
-    const options = ['Ajouter une action', 'Ajouter une consultation', 'Ajouter un service'];
+    const options = ['Ajouter une action', 'Ajouter une consultation', 'Ajouter un service', 'Annuler'];
     showActionSheetWithOptions(
       {
         options,
