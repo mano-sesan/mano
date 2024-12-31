@@ -92,6 +92,7 @@ const ActionsNavigator = () => {
       <PersonsStack.Screen name="Treatment" component={Treatment} />
       <ActionsStack.Screen name="Consultation" component={Consultation} />
       <ActionsStack.Screen name="ActionsFilter" component={ActionsFilter} />
+      <ActionsStack.Screen name="Services" component={Services} />
     </ActionsStack.Navigator>
   );
 };
