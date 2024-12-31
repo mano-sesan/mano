@@ -180,7 +180,6 @@ test("Documents organizer", async ({ page }) => {
   await expect(
     page.locator("#social-documents").filter({ hasText: `📃image-4\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
   ).toBeVisible();
-  // await expect(page.locator("#family-person-documents").getByRole("button", { name: "📂 👪 Documents familiaux(1)" })).toBeVisible();
   await expect(
     page.locator("span").filter({ hasText: `▼📁Dossier2(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })
   ).not.toBeVisible();

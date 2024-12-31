@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { cleanHistory, extractInfosFromHistory } from "../src/utils/person-history";
-import type { PersonHistoryEntry } from "../src/types/person";
+import { extractInfosFromHistory } from "../src/utils/person-history";
 import { personPopulated } from "./mocks";
 dayjs.extend(utc);
 
