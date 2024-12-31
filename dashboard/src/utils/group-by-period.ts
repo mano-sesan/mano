@@ -2,7 +2,7 @@ import { dayjsInstance } from "../services/date";
 
 type GroupBy = "month" | "year" | "day";
 
-export function groupByPeriod(items: Array<any>, period: GroupBy, field: string = "date", groupedByKey: string = "groupedByKey") {
+export function groupByPeriod(items: Array<any>, period: GroupBy, field: string = "date", groupedByKey: string = "groupedByKey", limit: number = 12) {
   const groupedItems = [];
   const options: Set<string> = new Set();
   let optionsArray: Array<string> = [];
@@ -57,7 +57,11 @@ export function groupByPeriod(items: Array<any>, period: GroupBy, field: string 
       currentKey = nextDate.format("YYYY-MM-DD");
     }
   }
-  optionsArray = Array.from(options).sort((a, b) => dayjsInstance(a).diff(dayjsInstance(b)));
+  optionsArray = Array.from(options)
+    .sort((a, b) => dayjsInstance(a).diff(dayjsInstance(b)))
+    .slice(-limit);
 
-  return { data: groupedItems, options: optionsArray };
+  const limitedGroupedItems = groupedItems.filter((item) => optionsArray.includes(item[groupedByKey]));
+
+  return { data: limitedGroupedItems, options: optionsArray };
 }

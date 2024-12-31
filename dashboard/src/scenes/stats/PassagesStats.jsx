@@ -125,12 +125,9 @@ function PassagesBar({ passages }) {
     <CustomResponsiveBar
       title="Répartition des passages par mois"
       forcedXAxis={options}
-      help={`Répartition par mois des passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.`}
-      axisTitleY="Nombre de passage"
+      help={`Répartition par mois des passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.\n\nNombre de mois maximum pris en compte : 12`}
+      axisTitleY="Nombre de passages"
       axisTitleX="Mois"
-      isMultiChoice
-      totalForMultiChoice={data.length}
-      totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
       data={getMultichoiceBarData(data, "groupedByMonth", { options, showEmptyBars: true }).filter((d) => d.name !== "Non renseigné")}
     />
   );
