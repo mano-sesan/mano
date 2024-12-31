@@ -15,6 +15,7 @@ import Button from '../../components/Button';
 import ConsultationRow from '../../components/ConsultationRow';
 import { userState } from '../../recoil/auth';
 import { Dimensions, View } from 'react-native';
+import { dayjsInstance } from '../../services/dateDayjs';
 
 const keyExtractor = (action) => action._id;
 
@@ -51,7 +52,7 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
       navigation.navigate('NewActionForm', { fromRoute: 'ActionsList' });
       return;
     }
-    const options = ['Ajouter une action', 'Ajouter une consultation'];
+    const options = ['Ajouter une action', 'Ajouter une consultation', 'Ajouter un service'];
     showActionSheetWithOptions(
       {
         options,
@@ -63,6 +64,9 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
         }
         if (user.healthcareProfessional && options[buttonIndex] === 'Ajouter une consultation') {
           navigation.push('Consultation', { fromRoute: 'ActionsList' });
+        }
+        if (options[buttonIndex] === 'Ajouter un service') {
+          navigation.navigate('Services', { date: dayjsInstance().format('YYYY-MM-DD') });
         }
       }
     );
