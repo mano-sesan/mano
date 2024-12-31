@@ -816,9 +816,8 @@ const Stats = () => {
             rencontres={rencontresFilteredByPersons}
             passages={passagesFilteredByPersons}
             actions={actionsWithDetailedGroupAndCategories}
-            // numberOfActionsPerPersonConcernedByActions={numberOfActionsPerPersonConcernedByActions}
+            observations={observations}
             personsUpdatedWithActions={personsUpdatedWithActions}
-            // filter by persons
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
