@@ -11,6 +11,53 @@ import API from '../../services/api';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { servicesSelector } from '../../recoil/reports';
 const keyExtractor = (item) => item._id;
+import { useDebouncedCallback } from 'use-debounce';
+
+function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
+  const debounced = useDebouncedCallback(
+    function updateServiceInDatabase() {
+      if (value === initialValue) return;
+
+      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: value, service: service.service } }).then((res) => {
+        if (res.error) {
+          return Alert.alert('Erreur lors de la mise à jour du service');
+        }
+        onUpdated(res.data.count);
+      });
+    },
+    500,
+    { maxWait: 4000 }
+  );
+
+  const [value, setValue] = useState(initialValue);
+  useEffect(() => setValue(initialValue), [initialValue]);
+  useEffect(() => debounced(value), [debounced, value]);
+  useEffect(
+    () => () => {
+      debounced.flush();
+    },
+    [debounced]
+  );
+
+  return (
+    <View className="flex flex-row justify-between px-4 py-2">
+      <Text className="text-lg font-bold grow">{service?.service}</Text>
+      <View className="flex flex-row gap-4 items-center">
+        <TouchableOpacity onPress={() => setValue(value - 1)}>
+          <View className="bg-main rounded w-8 h-8 flex items-center justify-center">
+            <Text className="text-white text-lg font-bold">-</Text>
+          </View>
+        </TouchableOpacity>
+        <Text className="text-lg w-10 text-center">{value}</Text>
+        <TouchableOpacity onPress={() => setValue(value + 1)}>
+          <View className="bg-main rounded w-8 h-8 flex items-center justify-center">
+            <Text className="text-white text-lg font-bold">+</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
 
 const Services = ({ navigation, route }) => {
   const groupedServices = useRecoilValue(servicesSelector);
@@ -36,10 +83,20 @@ const Services = ({ navigation, route }) => {
 
   const renderItem = ({ item }) => {
     return (
-      <View className="flex flex-row justify-between px-4 py-2">
-        <Text className="text-lg font-bold">{item?.service}</Text>
-        <Text className="text-lg">{item?.count}</Text>
-      </View>
+      <IncrementorSmall
+        service={item}
+        date={date}
+        team={currentTeam._id}
+        initialValue={item?.count || 0}
+        onUpdated={(newCount) => {
+          if (services.find((e) => e.service === item.service)) {
+            setServices(services.map((e) => (e.service === item.service ? { ...e, count: newCount } : e)));
+          } else {
+            setServices([...services, { service: item.service, count: newCount }]);
+          }
+          return;
+        }}
+      />
     );
   };
 
