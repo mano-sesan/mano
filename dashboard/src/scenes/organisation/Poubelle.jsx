@@ -175,7 +175,7 @@ export default function Poubelle() {
             <br />
           </p>
           <div className="tw-mb-7 tw-flex tw-flex-col tw-w-full tw-px-8 tw-text-center">
-            Les données associées seront également supprimées :
+            Les données associées seront également supprimées&nbsp;:{" "}
             <ul className="tw-text-center tw-font-semibold">
               <li>{data.actions.length} actions</li>
               <li>{data.comments.length} commentaires</li>
@@ -321,8 +321,12 @@ export default function Poubelle() {
                         <br />
                         <strong className="tw-text-xl">INCAPABLE DE RÉCUPÉRER LES DONNÉES</strong>.<br />
                         <br />
-                        Les données associées seront également supprimées
-                        {associatedDataAsText.join(", ")}
+                        Les données associées seront également supprimées&nbsp;:
+                        <ul className="tw-text-center tw-font-semibold">
+                          {associatedDataAsText.map((e) => (
+                            <li key={e}>{e}</li>
+                          ))}
+                        </ul>
                       </p>
                     </DeleteButtonAndConfirmModal>
                   </>
