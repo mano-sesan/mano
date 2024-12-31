@@ -123,7 +123,7 @@ function PassagesBar({ passages }) {
 
   return (
     <CustomResponsiveBar
-      title="Répartition des passages par mois"
+      title="Répartition des passages par mois (maximum 12 mois)"
       forcedXAxis={options}
       help={`Répartition par mois des passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.\n\nNombre de mois maximum pris en compte : 12`}
       axisTitleY="Nombre de passages"
