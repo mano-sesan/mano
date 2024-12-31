@@ -13,15 +13,18 @@ import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native'
 import { refreshTriggerState, loadingState } from '../../components/Loader';
 import Button from '../../components/Button';
 import ConsultationRow from '../../components/ConsultationRow';
-import { userState } from '../../recoil/auth';
+import { organisationState, userState } from '../../recoil/auth';
 import { Dimensions, View } from 'react-native';
 import { dayjsInstance } from '../../services/dateDayjs';
+import { flattenedServicesSelector } from '../../recoil/reports';
 
 const keyExtractor = (action) => action._id;
 
 const limitSteps = 100;
 
 const ActionsList = ({ showActionSheetWithOptions }) => {
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const organisation = useRecoilValue(organisationState);
   const filters = useRecoilValue(actionsFiltersState);
   const navigation = useNavigation();
   const loading = useRecoilValue(loadingState);
@@ -48,11 +51,17 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
   }, [isFocused]);
 
   const onPressFloatingButton = async () => {
-    if (!user.healthcareProfessional) {
+    const isConsultationButtonEnabled = user.healthcareProfessional;
+    const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
+    if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
       navigation.navigate('NewActionForm', { fromRoute: 'ActionsList' });
       return;
     }
-    const options = ['Ajouter une action', 'Ajouter une consultation', 'Ajouter un service', 'Annuler'];
+
+    const options = ['Ajouter une action'];
+    if (isConsultationButtonEnabled) options.push('Ajouter une consultation');
+    if (isServiceButtonEnabled) options.push('Ajouter un service');
+    options.push('Annuler');
     showActionSheetWithOptions(
       {
         options,
@@ -62,10 +71,10 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
         if (options[buttonIndex] === 'Ajouter une action') {
           navigation.push('NewActionForm', { fromRoute: 'ActionsList' });
         }
-        if (user.healthcareProfessional && options[buttonIndex] === 'Ajouter une consultation') {
+        if (isConsultationButtonEnabled && options[buttonIndex] === 'Ajouter une consultation') {
           navigation.push('Consultation', { fromRoute: 'ActionsList' });
         }
-        if (options[buttonIndex] === 'Ajouter un service') {
+        if (isServiceButtonEnabled && options[buttonIndex] === 'Ajouter un service') {
           navigation.navigate('Services', { date: dayjsInstance().format('YYYY-MM-DD') });
         }
       }
