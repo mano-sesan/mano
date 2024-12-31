@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { selector, useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -12,7 +12,7 @@ import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import { sortPersons } from "../../recoil/persons";
+import { personsState, sortPersons } from "../../recoil/persons";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));
@@ -29,6 +29,26 @@ async function fetchPersons(organisationId) {
   return decryptedData;
 }
 
+export const mergedPersonIdsSelector = selector({
+  key: "mergedPersonIdsSelector",
+  get: ({ get }) => {
+    const persons = get(personsState);
+    const mergedIds = new Set();
+
+    for (const person of persons) {
+      if (!person.history) continue;
+
+      for (const historyEntry of person.history) {
+        if (historyEntry.data?.merge?._id) {
+          mergedIds.add(historyEntry.data.merge._id);
+        }
+      }
+    }
+
+    return Array.from(mergedIds);
+  },
+});
+
 export default function Poubelle() {
   const { refresh } = useDataLoader();
   const history = useHistory();
@@ -39,6 +59,7 @@ export default function Poubelle() {
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useRecoilValue(usersState);
+  const mergedPersonIds = useRecoilValue(mergedPersonIdsSelector);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {
@@ -270,6 +291,7 @@ export default function Poubelle() {
               sortOrder,
               sortBy,
               render: (p) => {
+                const isMerged = mergedPersonIds.includes(p._id);
                 return (
                   <>
                     <div
@@ -283,6 +305,7 @@ export default function Poubelle() {
                     {p.deletedBy ? (
                       <div className="tw-text-gray-500 tw-text-xs">par {users.find((e) => e._id === p.deletedBy)?.name || p.deletedBy}</div>
                     ) : null}
+                    {isMerged && <small className="tw-block tw-text-orange-700">Cette personne a été fusionnée</small>}
                   </>
                 );
               },
