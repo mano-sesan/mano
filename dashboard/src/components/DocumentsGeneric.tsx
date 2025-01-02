@@ -509,6 +509,7 @@ export function DocumentTableWithFolders({
               onFolderClick?.(doc);
             }
           }}
+          aria-label={`Document ${doc.name}`}
           data-test-id={doc.type === "folder" ? undefined : doc.downloadPath}
           key={doc._id}
           style={{ marginLeft: `${doc.tabLevel * 20}px` }}

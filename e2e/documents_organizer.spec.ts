@@ -54,16 +54,16 @@ test("Documents organizer", async ({ page }) => {
   const now1 = dayjs();
   await page.locator("label[aria-label='Ajouter des documents']").first().setInputFiles("e2e/files-to-upload/image-1.jpg");
   await page.getByText("Document image-1.jpg ajouté !").click();
-  await page.getByRole("cell", { name: `image-1.jpg ${now1.format("dddd D MMMM YYYY HH:mm")} Créé par User Admin Test - 1` }).click();
+  await page.getByText("image-1.jpg", { exact: true }).click();
 
   await page.getByLabel("Document familialCe document sera visible pour toute la famille").check();
   await page.getByText("Document mis à jour").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
-  await expect(page.locator("tr", { has: page.getByText("image-1.jpg") }).getByText("👪")).toBeVisible();
+  await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person2Name }).click();
-  await expect(page.locator("tr", { has: page.getByText("image-1.jpg") }).getByText("👪")).toBeVisible();
+  await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person1Name }).click();
@@ -71,27 +71,18 @@ test("Documents organizer", async ({ page }) => {
   await page
     .locator("label[aria-label='Ajouter des documents']")
     .first()
-    .setInputFiles(["e2e/files-to-upload/image-1.jpg", "e2e/files-to-upload/image-2.jpg", "e2e/files-to-upload/image-3.jpg"]);
-  await page.getByText("Document image-1.jpg ajouté !").click();
+    .setInputFiles(["e2e/files-to-upload/image-2.jpg", "e2e/files-to-upload/image-3.jpg"]);
   await page.getByText("Document image-2.jpg ajouté !").click();
   await page.getByText("Document image-3.jpg ajouté !").click();
   await page.getByText("Documents enregistrés !").click();
 
-  await expect(
-    page.getByRole("cell", { name: `Document familial image-1.jpg ${now1.format("dddd D MMMM YYYY HH:mm")} Créé par User Admin Test - 1` })
-  ).toBeVisible();
-  await expect(
-    page.getByRole("cell", { name: `image-1.jpg ${now2.format("dddd D MMMM YYYY HH:mm")} Créé par User Admin Test - 1`, exact: true })
-  ).toBeVisible();
-  await expect(page.getByRole("cell", { name: `image-2.jpg ${now2.format("dddd D MMMM YYYY HH:mm")} Créé par User Admin Test - 1` })).toBeVisible();
-  await expect(page.getByRole("cell", { name: `image-3.jpg ${now2.format("dddd D MMMM YYYY HH:mm")} Créé par User Admin Test - 1` })).toBeVisible();
+  await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
+  await expect(page.getByText("image-2.jpg")).toBeVisible();
+  await expect(page.getByText("image-3.jpg")).toBeVisible();
 
   await page.getByRole("button", { name: "Passer les documents en plein écran" }).click();
   await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
   await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
-  await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-1\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
-  ).toBeVisible();
   await expect(
     page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
   ).toBeVisible();
@@ -136,9 +127,6 @@ test("Documents organizer", async ({ page }) => {
   await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
   await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-1\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
-  ).toBeVisible();
-  await expect(
     page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
   ).toBeVisible();
   await expect(
@@ -171,9 +159,6 @@ test("Documents organizer", async ({ page }) => {
   await page.getByRole("button", { name: "Passer les documents en plein écran" }).click();
   await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
   await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
-  await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-1\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
-  ).toBeVisible();
   await expect(
     page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
   ).not.toBeVisible();

@@ -32,7 +32,7 @@ test("Merge persons", async ({ page }) => {
     await page.getByText("Création réussie !").click();
     await page.locator("label[aria-label='Ajouter des documents']").first().setInputFiles("e2e/files-to-upload/image-1.jpg");
     await page.getByText("Document image-1.jpg ajouté !").click();
-    person1DocumentLink = await page.locator("tr[aria-label='Document image-1.jpg']").getAttribute("data-test-id");
+    person1DocumentLink = await page.locator("div[aria-label='Document image-1.jpg']").getAttribute("data-test-id");
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await page.getByRole("button", { name: "Créer une personne" }).click();
@@ -42,7 +42,7 @@ test("Merge persons", async ({ page }) => {
     await page.getByText("Création réussie !").click();
     await page.locator("label[aria-label='Ajouter des documents']").first().setInputFiles("e2e/files-to-upload/image-2.jpg");
     await page.getByText("Document image-2.jpg ajouté !").click();
-    person2DocumentLink = await page.locator("tr[aria-label='Document image-2.jpg']").getAttribute("data-test-id");
+    person2DocumentLink = await page.locator("div[aria-label='Document image-2.jpg']").getAttribute("data-test-id");
   });
 
   await test.step("Merge persons", async () => {
