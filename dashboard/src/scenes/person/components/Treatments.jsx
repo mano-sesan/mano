@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useRecoilValue } from "recoil";
 import { useHistory } from "react-router-dom";
 import { userState } from "../../../recoil/auth";
-import { formatDateWithFullMonth } from "../../../services/date";
+import { dayjsInstance, formatDateWithFullMonth } from "../../../services/date";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { treatmentsState } from "../../../recoil/treatments";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
@@ -124,7 +124,10 @@ const TreatmentsTable = ({ filteredData }) => {
                     history.push(`?${searchParams.toString()}`);
                   }}
                 >
-                  <TreatmentDate treatment={treatment} />
+                  <div className="tw-flex tw-items-center tw-gap-2">
+                    <TreatmentDate treatment={treatment} />
+                    <TreatmentDateStatus treatment={treatment} />
+                  </div>
                   <div className="tw-mt-2 tw-font-semibold">{displayTreatment(treatment)}</div>
                   <div className="tw-flex tw-w-full tw-justify-between">
                     <p className="tw-mb-0 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-opacity-50 [overflow-wrap:anywhere]">
@@ -148,10 +151,24 @@ const TreatmentsTable = ({ filteredData }) => {
 function TreatmentDate({ treatment }) {
   if (treatment.endDate) {
     return (
-      <p className="tw-m-0">
+      <p className="tw-m-0 tw-grow">
         Du {formatDateWithFullMonth(treatment.startDate)} au {formatDateWithFullMonth(treatment.endDate)}
       </p>
     );
   }
-  return <p className="tw-m-0">À partir du {formatDateWithFullMonth(treatment.startDate)}</p>;
+  return <p className="tw-m-0 tw-grow">À partir du {formatDateWithFullMonth(treatment.startDate)}</p>;
+}
+
+function TreatmentDateStatus({ treatment }) {
+  const today = dayjsInstance();
+  const startDate = dayjsInstance(treatment.startDate);
+  const endDate = treatment.endDate ? dayjsInstance(treatment.endDate) : null;
+
+  if (endDate && endDate.isBefore(today)) {
+    return <span className="tw-border tw-border-[#74776b] tw-px-2 tw-py-1 tw-text-xs tw-font-medium tw-text-[#74776b]">Terminé</span>;
+  }
+  if (startDate.isAfter(today)) {
+    return <span className="tw-border tw-border-[#255c99] tw-px-2 tw-py-1 tw-text-xs tw-font-medium tw-text-[#255c99]">Non commencé</span>;
+  }
+  return <span className="tw-border tw-border-[#00c6a5] tw-px-2 tw-py-1 tw-text-xs tw-font-medium tw-text-[#00c6a5]">En cours</span>;
 }
