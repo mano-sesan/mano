@@ -34,6 +34,7 @@ interface DocumentsModuleProps<T> {
   onSaveNewOrder?: (items: T[]) => Promise<boolean>;
   onDeleteFolder?: (item: FolderWithLinkedItem) => Promise<boolean>;
   color?: "main" | "blue-900";
+  tableWithFolders?: boolean;
 }
 
 export function DocumentsModule<T extends DocumentWithLinkedItem | FolderWithLinkedItem>({
@@ -42,6 +43,7 @@ export function DocumentsModule<T extends DocumentWithLinkedItem | FolderWithLin
   socialOrMedical,
   personId,
   showPanel = false,
+  tableWithFolders = false,
   canToggleGroupCheck = false,
   showAssociatedItem = true,
   showAddDocumentButton = true,
@@ -95,17 +97,32 @@ export function DocumentsModule<T extends DocumentWithLinkedItem | FolderWithLin
               </button>
             </div>
           </div>
-          <DocumentTable
-            withClickableLabel
-            documents={onlyDocuments as DocumentWithLinkedItem[]}
-            color={color}
-            onDisplayDocument={setDocumentToEdit}
-            onAddDocuments={onAddDocuments}
-            // Already in the panel (see above)
-            // Still we want to display if no document at all.
-            showAddDocumentButton={!onlyDocuments.length}
-            personId={personId}
-          />
+          {tableWithFolders ? (
+            <DocumentTableWithFolders
+              withClickableLabel
+              documents={documents as DocumentWithLinkedItem[]}
+              color={color}
+              onDisplayDocument={setDocumentToEdit}
+              onAddDocuments={onAddDocuments}
+              onFolderClick={setFolderToEdit}
+              // Already in the panel (see above)
+              // Still we want to display if no document at all.
+              showAddDocumentButton={!onlyDocuments.length}
+              personId={personId}
+            />
+          ) : (
+            <DocumentTable
+              withClickableLabel
+              documents={onlyDocuments as DocumentWithLinkedItem[]}
+              color={color}
+              onDisplayDocument={setDocumentToEdit}
+              onAddDocuments={onAddDocuments}
+              // Already in the panel (see above)
+              // Still we want to display if no document at all.
+              showAddDocumentButton={!onlyDocuments.length}
+              personId={personId}
+            />
+          )}
         </DocumentsDropZone>
       ) : (
         <DocumentsDropZone
@@ -438,6 +455,183 @@ interface DocumentTableProps {
   color: "main" | "blue-900";
   showAddDocumentButton?: boolean;
   withClickableLabel?: boolean;
+  onFolderClick?: (folder: FolderWithLinkedItem) => void;
+}
+
+export function DocumentTableWithFolders({
+  documents,
+  onDisplayDocument,
+  personId,
+  color,
+  showAddDocumentButton,
+  withClickableLabel,
+  onFolderClick,
+  onAddDocuments,
+}: DocumentTableProps) {
+  const organisation = useRecoilValue(organisationAuthentifiedState);
+
+  const sortedDocuments: ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[] = useMemo(() => {
+    const flattenTree = (
+      items: DocumentWithLinkedItem[],
+      parentId: string = "root",
+      level: number = 0
+    ): ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[] => {
+      const children = items.filter((item) => (!item.parentId && parentId === "root") || item.parentId === parentId);
+      return children
+        .sort((a, b) => {
+          if (!a.position && a.position !== 0) return 1;
+          if (!b.position && b.position !== 0) return -1;
+          return a.position - b.position;
+        })
+        .reduce(
+          (acc, item) => {
+            return [...acc, { ...item, tabLevel: level }, ...flattenTree(items, item._id, level + 1)];
+          },
+          [] as ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[]
+        );
+    };
+
+    return flattenTree(documents);
+  }, [documents]);
+
+  if (!documents.length) {
+    return <NoDocumentsInTable showAddDocumentButton={showAddDocumentButton} color={color} onAddDocuments={onAddDocuments} personId={personId} />;
+  }
+
+  return (
+    <div className="tw-flex tw-flex-col tw-gap-2 tw-text-sm tw-px-4">
+      {sortedDocuments.map((doc) => (
+        <div
+          onClick={() => {
+            if (doc.type !== "folder") {
+              onDisplayDocument(doc);
+            } else if (doc.movable !== false) {
+              onFolderClick?.(doc);
+            }
+          }}
+          aria-label={`Document ${doc.name}`}
+          data-test-id={doc.type === "folder" ? undefined : doc.downloadPath}
+          key={doc._id}
+          style={{ marginLeft: `${doc.tabLevel * 20}px` }}
+          className={[
+            "tw-flex tw-items-center tw-gap-y-2 tw-gap-x-1 tw-text-left",
+            doc.movable !== false ? "tw-cursor-pointer hover:tw-bg-gray-100" : "tw-cursor-default",
+          ].join(" ")}
+        >
+          <div>{doc.type === "folder" ? "📁" : "📄"}</div>
+          {!!organisation.groupsEnabled && doc.type === "document" && doc.group && (
+            <div aria-label="Document familial" title="Document familial">
+              👪
+            </div>
+          )}
+          <div className="tw-flex-1 tw-grow tw-truncate">{doc.name}</div>
+          {!!withClickableLabel && doc.type === "document" && !["medical-file", "person"].includes(doc.linkedItem?.type) && (
+            <ClickableLabel doc={doc} color={color} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NoDocumentsInTable({
+  showAddDocumentButton,
+  color,
+  onAddDocuments,
+  personId,
+}: {
+  showAddDocumentButton: boolean;
+  color: "main" | "blue-900";
+  onAddDocuments: (documents: Document[]) => Promise<void>;
+  personId: UUIDV4;
+}) {
+  return (
+    <div className="tw-flex tw-flex-col tw-items-center tw-gap-6 tw-pb-6">
+      <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="tw-mx-auto tw-h-16 tw-w-16 tw-text-gray-200"
+          width={24}
+          height={24}
+          viewBox="0 0 24 24"
+          strokeWidth="2"
+          stroke="currentColor"
+          fill="none"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+          />
+        </svg>
+        Aucun document pour le moment
+      </div>
+      {showAddDocumentButton && (
+        <label aria-label="Ajouter des documents" className={`button-submit mb-0 !tw-bg-${color}`}>
+          ＋ Ajouter des documents
+          <AddDocumentInput onAddDocuments={onAddDocuments} personId={personId} />
+        </label>
+      )}
+    </div>
+  );
+}
+
+export function ClickableLabel({ doc, color }: { doc: DocumentWithLinkedItem; color: "main" | "blue-900" }) {
+  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const setModalAction = useSetRecoilState(modalActionState);
+  const location = useLocation();
+  const history = useHistory();
+  return (
+    <div>
+      {doc.linkedItem.type === "action" ? (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setModalAction({
+              ...defaultModalActionState(),
+              open: true,
+              from: location.pathname,
+              action: actionsObjects[doc.linkedItem._id],
+            });
+          }}
+          type="button"
+          className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+        >
+          Action
+        </button>
+      ) : doc.linkedItem.type === "consultation" ? (
+        <button
+          type="button"
+          className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+          onClick={(e) => {
+            e.stopPropagation();
+            const searchParams = new URLSearchParams(history.location.search);
+            searchParams.set("consultationId", doc.linkedItem._id);
+            history.push(`?${searchParams.toString()}`);
+          }}
+        >
+          Consultation
+        </button>
+      ) : doc.linkedItem.type === "treatment" ? (
+        <button
+          type="button"
+          className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
+          onClick={(e) => {
+            e.stopPropagation();
+            const searchParams = new URLSearchParams(history.location.search);
+            searchParams.set("treatmentId", doc.linkedItem._id);
+            history.push(`?${searchParams.toString()}`);
+          }}
+        >
+          Traitement
+        </button>
+      ) : (
+        <></>
+      )}
+    </div>
+  );
 }
 
 export function DocumentTable({
@@ -450,43 +644,8 @@ export function DocumentTable({
   onAddDocuments,
 }: DocumentTableProps) {
   const organisation = useRecoilValue(organisationAuthentifiedState);
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const location = useLocation();
-  const history = useHistory();
-
   if (!documents.length) {
-    return (
-      <div className="tw-flex tw-flex-col tw-items-center tw-gap-6 tw-pb-6">
-        <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="tw-mx-auto tw-h-16 tw-w-16 tw-text-gray-200"
-            width={24}
-            height={24}
-            viewBox="0 0 24 24"
-            strokeWidth="2"
-            stroke="currentColor"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-            />
-          </svg>
-          Aucun document pour le moment
-        </div>
-        {showAddDocumentButton && (
-          <label aria-label="Ajouter des documents" className={`button-submit mb-0 !tw-bg-${color}`}>
-            ＋ Ajouter des documents
-            <AddDocumentInput onAddDocuments={onAddDocuments} personId={personId} />
-          </label>
-        )}
-      </div>
-    );
+    return <NoDocumentsInTable showAddDocumentButton={showAddDocumentButton} color={color} onAddDocuments={onAddDocuments} personId={personId} />;
   }
 
   return (
@@ -533,55 +692,7 @@ export function DocumentTable({
                         Créé par <UserName id={doc.createdBy} />
                       </p>
                     </div>
-                    {!!withClickableLabel && !["medical-file", "person"].includes(doc.linkedItem?.type) && (
-                      <div>
-                        {doc.linkedItem.type === "action" ? (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setModalAction({
-                                ...defaultModalActionState(),
-                                open: true,
-                                from: location.pathname,
-                                action: actionsObjects[doc.linkedItem._id],
-                              });
-                            }}
-                            type="button"
-                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
-                          >
-                            Action
-                          </button>
-                        ) : doc.linkedItem.type === "consultation" ? (
-                          <button
-                            type="button"
-                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const searchParams = new URLSearchParams(history.location.search);
-                              searchParams.set("consultationId", doc.linkedItem._id);
-                              history.push(`?${searchParams.toString()}`);
-                            }}
-                          >
-                            Consultation
-                          </button>
-                        ) : doc.linkedItem.type === "treatment" ? (
-                          <button
-                            type="button"
-                            className={`tw-rounded tw-border tw-border-${color} tw-bg-${color} tw-bg-opacity-10 tw-px-1`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const searchParams = new URLSearchParams(history.location.search);
-                              searchParams.set("treatmentId", doc.linkedItem._id);
-                              history.push(`?${searchParams.toString()}`);
-                            }}
-                          >
-                            Traitement
-                          </button>
-                        ) : (
-                          <></>
-                        )}
-                      </div>
-                    )}
+                    {!!withClickableLabel && !["medical-file", "person"].includes(doc.linkedItem?.type) && <ClickableLabel doc={doc} color={color} />}
                   </div>
                 </td>
               </tr>

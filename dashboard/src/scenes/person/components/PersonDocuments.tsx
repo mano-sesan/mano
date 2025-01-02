@@ -81,6 +81,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
     <DocumentsModule
       showPanel
       socialOrMedical="social"
+      tableWithFolders
       documents={documents}
       onSaveNewOrder={async (nextDocuments) => {
         // Mise à jour des documents de la personne

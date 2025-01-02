@@ -133,6 +133,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
     <DocumentsModule
       showPanel
       socialOrMedical="medical"
+      tableWithFolders
       documents={allMedicalDocuments}
       color="blue-900"
       title={`Documents médicaux de ${person.name} (${allMedicalDocuments.length})`}
