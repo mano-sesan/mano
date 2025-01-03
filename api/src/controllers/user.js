@@ -182,6 +182,9 @@ router.post(
         otp: z.optional(z.string().length(6)),
       }).parse(req.body);
     } catch (e) {
+      if (e.errors?.some((err) => err.path[0] === "email")) {
+        return res.status(400).send({ ok: false, error: "L'email est invalide, vérifiez les accents ou les caractères spéciaux" });
+      }
       const error = new Error(`Invalid request in signin: ${e}`);
       error.status = 400;
       return next(error);
