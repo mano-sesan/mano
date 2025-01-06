@@ -1,0 +1,454 @@
+import { useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { addOneDay, dateForDatePicker, formatDateWithNameOfDay, dayjsInstance } from "../../services/date";
+import { TODO } from "../../recoil/actions";
+import ButtonCustom from "../../components/ButtonCustom";
+import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
+import { flattenedServicesSelector, reportsState } from "../../recoil/reports";
+import { selectorFamily, useRecoilValue } from "recoil";
+import { passagesState } from "../../recoil/passages";
+import useTitle from "../../services/useTitle";
+import SelectTeamMultiple from "../../components/SelectTeamMultiple";
+import { arrayOfitemsGroupedByPersonSelector, onlyFilledObservationsTerritories } from "../../recoil/selectors";
+import { ActionsOrConsultationsReport } from "./components/ActionsOrConsultationsReport";
+import ServicesReport from "./components/ServicesReport";
+import DateRangePickerWithPresets, { formatPeriod, reportsPresets } from "../../components/DateRangePickerWithPresets";
+import { CommentsSocialAndMedical } from "./components/CommentsReport";
+import { PassagesReport } from "./components/PassagesReport";
+import { RencontresReport } from "./components/RencontresReport";
+import { ObservationsReport } from "./components/ObservationsReport";
+import { PersonsReport } from "./components/PersonsReport";
+import Transmissions from "./components/Transmissions";
+import { useLocalStorage } from "../../services/useLocalStorage";
+import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
+import Priorites from "./components/Priorites";
+
+const getPeriodTitle = (date, nightSession) => {
+  if (!nightSession) return `Journée du ${formatDateWithNameOfDay(date)}`;
+  const nextDay = addOneDay(date);
+  return (
+    <>
+      <span className="tw-m-0 tw-text-center">
+        Nuit du {formatDateWithNameOfDay(date)} au {formatDateWithNameOfDay(nextDay)}
+      </span>
+      <span className="tw-m-0 tw-text-center tw-text-xs tw-opacity-50 tw-ml-2">
+        On affiche les actions faites/à faire entre midi de ce jour et 11h59 du jour suivant
+      </span>
+    </>
+  );
+};
+
+const itemsForReportsSelector = selectorFamily({
+  key: "itemsForReportsSelector",
+  get:
+    ({ period, viewAllOrganisationData, selectedTeamsObjectWithOwnPeriod }) =>
+    ({ get }) => {
+      const filterItemByTeam = (item, key) => {
+        if (viewAllOrganisationData) return true;
+        if (Array.isArray(item[key])) {
+          for (const team of item[key]) {
+            if (selectedTeamsObjectWithOwnPeriod[team]) return true;
+          }
+        }
+        return !!selectedTeamsObjectWithOwnPeriod[item[key]];
+      };
+
+      const allPersons = get(arrayOfitemsGroupedByPersonSelector);
+      const allObservations = get(onlyFilledObservationsTerritories);
+      const allPassages = get(passagesState);
+      const allReports = get(reportsState);
+
+      const defaultIsoDates = {
+        isoStartDate: dayjsInstance(period.startDate).toISOString(),
+        isoEndDate: dayjsInstance(period.endDate).toISOString(),
+      };
+
+      const personsCreated = {};
+      const personsUpdated = {};
+      const actions = {};
+      const actionsCreated = {};
+      const consultations = {};
+      const consultationsCreated = {};
+      const comments = {};
+      const commentsMedical = {};
+      const passages = {};
+      const rencontres = {};
+      const observations = {};
+      const reports = {};
+
+      for (let person of allPersons) {
+        // get persons for reports for period
+        const createdDate = person.followedSince || person.createdAt;
+
+        const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
+          viewAllOrganisationData,
+          selectedTeamsObjectWithOwnPeriod,
+          assignedTeamsPeriods: person.assignedTeamsPeriods,
+          isoEndDate: defaultIsoDates.isoEndDate,
+          isoStartDate: defaultIsoDates.isoStartDate,
+        });
+        if (personIsInAssignedTeamDuringPeriod) {
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[person.assignedTeams] ?? defaultIsoDates;
+          if (createdDate >= isoStartDate && createdDate < isoEndDate) {
+            personsCreated[person._id] = person;
+            personsUpdated[person._id] = person;
+          }
+          for (const date of person.interactions) {
+            if (date < isoStartDate) continue;
+            if (date >= isoEndDate) continue;
+            personsUpdated[person._id] = person;
+            break;
+          }
+        }
+        // get actions for period
+        for (const action of person.actions || []) {
+          if (!filterItemByTeam(action, "teams")) continue;
+          if (Array.isArray(action.teams)) {
+            let isIncluded = false;
+            for (const team of action.teams) {
+              const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
+              if (action.createdAt >= isoStartDate && action.createdAt < isoEndDate) {
+                actionsCreated[action._id] = action;
+              }
+              if (action.completedAt >= isoStartDate && action.completedAt < isoEndDate) {
+                isIncluded = true;
+                continue;
+              }
+              if (action.status !== TODO) continue;
+              if (action.dueAt >= isoStartDate && action.dueAt < isoEndDate) {
+                isIncluded = true;
+              }
+            }
+            if (!isIncluded) continue;
+            actions[action._id] = action;
+          }
+        }
+        for (const consultation of person.consultations || []) {
+          if (!filterItemByTeam(consultation, "teams")) continue;
+          if (Array.isArray(consultation.teams)) {
+            let isIncluded = false;
+            for (const team of consultation.teams) {
+              const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
+              if (consultation.createdAt >= isoStartDate && consultation.createdAt < isoEndDate) {
+                consultationsCreated[consultation._id] = consultation;
+              }
+              if (consultation.completedAt >= isoStartDate && consultation.completedAt < isoEndDate) {
+                isIncluded = true;
+                continue;
+              }
+              if (consultation.status !== TODO) continue;
+              if (consultation.dueAt >= isoStartDate && consultation.dueAt < isoEndDate) {
+                isIncluded = true;
+              }
+            }
+            if (!isIncluded) continue;
+            consultations[consultation._id] = consultation;
+          }
+        }
+        for (const rencontre of person.rencontres || []) {
+          if (!filterItemByTeam(rencontre, "team")) continue;
+          const date = rencontre.date;
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[rencontre.team] ?? defaultIsoDates;
+          if (date < isoStartDate) continue;
+          if (date >= isoEndDate) continue;
+          rencontres[rencontre._id] = rencontre;
+        }
+        for (const commentMedical of person.commentsMedical || []) {
+          if (!filterItemByTeam(commentMedical, "team")) continue;
+          const date = commentMedical.date;
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[commentMedical.team] ?? defaultIsoDates;
+          if (date < isoStartDate) continue;
+          if (date >= isoEndDate) continue;
+          commentsMedical[commentMedical._id] = commentMedical;
+        }
+        for (const comment of person.comments || []) {
+          if (!filterItemByTeam(comment, "team")) continue;
+          const date = comment.date;
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[comment.team] ?? defaultIsoDates;
+          if (date < isoStartDate) continue;
+          if (date >= isoEndDate) continue;
+          comments[comment._id] = { ...comment, person: person._id };
+        }
+      }
+
+      // all passages here and not above because some passages are not linked to a person
+      for (const passage of allPassages) {
+        if (!filterItemByTeam(passage, "team")) continue;
+        const date = passage.date;
+        // Je ne sais pas pourquoi, mais il semblerait que certains passages n'aient pas de date.
+        // cf: https://www.notion.so/mano-sesan/Bug-affichage-des-passage-6f539d3706c04b27b1290a39763d91e5
+        if (!date) continue;
+        const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[passage.team] ?? defaultIsoDates;
+        if (date < isoStartDate) continue;
+        if (date >= isoEndDate) continue;
+        passages[passage._id] = passage;
+      }
+
+      for (const observation of allObservations) {
+        if (!filterItemByTeam(observation, "team")) continue;
+        const date = observation.observedAt;
+        const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[observation.team] ?? defaultIsoDates;
+        if (date < isoStartDate) continue;
+        if (date >= isoEndDate) continue;
+        observations[observation._id] = observation;
+      }
+
+      // Attention à ne pas comparer des isoDates avec des dates yyyy-mm-dd
+      const startDateForReports = dayjsInstance(defaultIsoDates.isoStartDate).format("YYYY-MM-DD");
+      const endDateForReports = dayjsInstance(defaultIsoDates.isoEndDate).format("YYYY-MM-DD");
+      for (const report of allReports) {
+        if (!filterItemByTeam(report, "team")) continue;
+        const date = report.date;
+        if (date < startDateForReports) continue;
+        if (date > endDateForReports) continue;
+        reports[report._id] = report;
+      }
+
+      return {
+        personsCreated: Object.values(personsCreated),
+        personsUpdated: Object.values(personsUpdated),
+        actions: Object.values(actions),
+        actionsCreated: Object.values(actionsCreated),
+        consultations: Object.values(consultations),
+        consultationsCreated: Object.values(consultationsCreated),
+        comments: Object.values(comments),
+        commentsMedical: Object.values(commentsMedical),
+        passages: Object.values(passages).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+        rencontres: Object.values(rencontres).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+        observations: Object.values(observations).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+        reports: Object.values(reports),
+      };
+    },
+});
+
+const defaultPreset = reportsPresets[0];
+
+const View = () => {
+  const { dateString } = useParams();
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const organisation = useRecoilValue(organisationState);
+  const user = useRecoilValue(userState);
+  const currentTeam = useRecoilValue(currentTeamState);
+  const teams = useRecoilValue(teamsState);
+  const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("reports-allOrg", teams.length === 1);
+  const [selectedTeamIds, setSelectedTeamIds] = useLocalStorage("reports-teams", currentTeam?._id ? [currentTeam._id] : []);
+
+  const [preset, setPreset, removePreset] = useLocalStorage("reports-date-preset", null);
+  let [period, setPeriod] = useLocalStorage("reports-period", {
+    startDate: defaultPreset.period.startDate,
+    endDate: defaultPreset.period.endDate,
+  });
+
+  const selectedTeams = useMemo(
+    () => (viewAllOrganisationData ? teams : teams.filter((team) => selectedTeamIds.includes(team._id))),
+    [selectedTeamIds, teams, viewAllOrganisationData]
+  );
+  const selectedTeamsObject = useMemo(() => {
+    const teamsObject = {};
+    for (const team of selectedTeams) {
+      teamsObject[team._id] = team;
+    }
+    return teamsObject;
+  }, [selectedTeams]);
+  const selectedTeamsObjectWithOwnPeriod = useMemo(() => {
+    const teamsIdsObject = {};
+    for (const team of selectedTeams) {
+      const offsetHours = team.nightSession ? 12 : 0;
+      const isoStartDate = dayjsInstance(period.startDate).startOf("day").add(offsetHours, "hour").toISOString();
+      const isoEndDate = dayjsInstance(period.endDate).startOf("day").add(1, "day").add(offsetHours, "hour").toISOString();
+      teamsIdsObject[team._id] = {
+        isoStartDate,
+        isoEndDate,
+      };
+    }
+    return teamsIdsObject;
+  }, [selectedTeams, period]);
+
+  const {
+    personsCreated,
+    actions,
+    consultations,
+    comments,
+    commentsMedical,
+    passages,
+    rencontres,
+    observations,
+    reports,
+    actionsCreated,
+    consultationsCreated,
+  } = useRecoilValue(
+    itemsForReportsSelector({
+      period,
+      viewAllOrganisationData,
+      selectedTeamsObjectWithOwnPeriod,
+    })
+  );
+
+  useTitle(`${dayjsInstance(dateString).format("DD-MM-YYYY")} - Compte rendu`);
+
+  useEffect(() => {
+    // for print use only
+    document.title = `Compte rendu Mano - Organisation ${organisation.name} - ${dayjsInstance(dateString).format("DD-MM-YYYY")} - imprimé par ${user.name}`;
+    return () => {
+      document.title = "Mano";
+    };
+  });
+  const canSeeComments = ["admin", "normal"].includes(user.role);
+  return (
+    <>
+      <div>
+        <div className="printonly tw-py-8 tw-px-8 tw-text-2xl tw-font-bold" aria-hidden>
+          Compte-rendu{" "}
+          {viewAllOrganisationData ? (
+            <>global</>
+          ) : (
+            <>
+              {selectedTeams.length > 1 ? "des équipes" : "de l'équipe"} {selectedTeams.map((t) => t.name).join(", ")}
+            </>
+          )}{" "}
+          - {formatPeriod({ period, preset })}
+        </div>
+        <div className="noprint tw-flex tw-justify-start tw-items-start tw-mt-10 tw-mb-8">
+          <h1 className="tw-block tw-text-xl tw-min-w-96 tw-full tw-font-normal">
+            Comptes rendus {viewAllOrganisationData ? <>de toutes les équipes</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}
+          </h1>
+          <div className="tw-ml-4 tw-min-w-96">
+            <SelectTeamMultiple
+              onChange={(teamIds) => {
+                setSelectedTeamIds(teamIds);
+              }}
+              value={selectedTeams.map((e) => e?._id)}
+              colored
+              inputId="report-team-select"
+              classNamePrefix="report-team-select"
+              isDisabled={viewAllOrganisationData}
+            />
+            {teams.length > 1 && (
+              <label htmlFor="viewAllOrganisationData" className="tw-flex tw-items-center tw-text-sm">
+                <input
+                  id="viewAllOrganisationData"
+                  type="checkbox"
+                  className="tw-mr-2.5"
+                  checked={viewAllOrganisationData}
+                  value={viewAllOrganisationData}
+                  onChange={() => setViewAllOrganisationData(!viewAllOrganisationData)}
+                />
+                Comptes rendus de toute l'organisation
+              </label>
+            )}
+            {!selectedTeams.length && <p className="tw-mx-auto tw-w-full tw-text-center">Sélectionnez une équipe 👆</p>}
+          </div>
+        </div>
+      </div>
+      <div className="noprint date-picker-container tw-mb-5 tw-flex tw-flex-wrap tw-items-center">
+        <div className="tw-min-w-[15rem] tw-shrink-0 tw-p-0">
+          <DateRangePickerWithPresets
+            presets={reportsPresets}
+            period={{
+              startDate: dateForDatePicker(period.startDate),
+              endDate: dateForDatePicker(period.endDate),
+            }}
+            setPeriod={setPeriod}
+            preset={preset}
+            setPreset={setPreset}
+            removePreset={removePreset}
+            defaultPreset={defaultPreset}
+          />
+        </div>
+        {selectedTeams.length > 1 && selectedTeams.filter((t) => t.nightSession).length > 0 && (
+          <details className="tw-px-8 tw-py-0 tw-font-normal">
+            <summary className="tw-text-xs">
+              Certaines équipes travaillent de nuit 🌒, <u>cliquez ici</u> pour savoir la période concernée par chacune
+            </summary>
+            {selectedTeams.map((team) => (
+              <p key={team._id} className="tw-mb-0 tw-ml-5 tw-text-xs">
+                <b>
+                  {team.nightSession ? "🌒" : "☀️"} {team?.name || ""}
+                </b>{" "}
+                - {getPeriodTitle(dateString, team?.nightSession)}
+              </p>
+            ))}
+          </details>
+        )}
+        <div className="tw-ml-auto tw-flex tw-items-center tw-justify-end">
+          <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
+          {/* <ExportFormattedData
+            observations={observations}
+            passages={passagesFilteredByPersons}
+            rencontres={rencontresFilteredByPersons}
+            personCreated={personsCreated}
+            personUpdated={personsUpdated}
+            actions={actionsWithDetailedGroupAndCategories}
+            consultations={consultationsFilteredByPersons}
+          /> */}
+        </div>
+      </div>
+      {!!selectedTeams.length && (
+        <>
+          <div className="-tw-mx-12 tw-flex tw-h-full tw-flex-col print:tw-mx-0">
+            <div
+              className={[
+                "tw-mt-4 tw-flex tw-w-full tw-grow tw-basis-full tw-items-start print:tw-flex-wrap print:tw-items-stretch",
+                viewAllOrganisationData || selectedTeamIds.length ? "tw-flex" : "tw-hidden",
+              ].join(" ")}
+            >
+              <div className="tw-mb-12 tw-min-h-1/2 tw-basis-6/12 tw-overflow-auto print:tw-min-h-0 print:tw-basis-full">
+                <div className="tw-mb-4 tw-h-[60vh] tw-overflow-hidden tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow print:tw-h-auto print:tw-border-none print:tw-shadow-none">
+                  <ActionsOrConsultationsReport
+                    actions={actions}
+                    consultations={consultations}
+                    actionsCreated={actionsCreated}
+                    consultationsCreated={consultationsCreated}
+                    period={period}
+                  />
+                </div>
+                {canSeeComments && (
+                  <div className="tw-mb-4 tw-h-[60vh] tw-overflow-hidden tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow print:tw-h-auto print:tw-border-none print:tw-shadow-none">
+                    <CommentsSocialAndMedical comments={comments} commentsMedical={commentsMedical} />
+                  </div>
+                )}
+              </div>
+              <div className="tw-mx-4 tw-mb-12 tw-basis-3/12 print:tw-basis-full">
+                <div className="tw-mb-4 tw-grid tw-grid-cols-new-report-squares tw-gap-4 print:tw-flex print:tw-flex-col">
+                  {organisation.passagesEnabled && (
+                    <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-main tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
+                      <PassagesReport passages={passages} period={period} selectedTeams={selectedTeams} />
+                    </div>
+                  )}
+                  {organisation.rencontresEnabled && (
+                    <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-main tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
+                      <RencontresReport rencontres={rencontres} period={period} selectedTeams={selectedTeams} />
+                    </div>
+                  )}
+                  {organisation.territoriesEnabled && (
+                    <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-main tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
+                      <ObservationsReport observations={observations} period={period} selectedTeams={selectedTeams} />
+                    </div>
+                  )}
+                  <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-main tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
+                    <PersonsReport personsCreated={personsCreated} period={period} selectedTeams={selectedTeams} />
+                  </div>
+                </div>
+                {user.role !== "restricted-access" && (
+                  <div className="tw-flex tw-items-center tw-justify-center no-print">
+                    <Priorites period={period} selectedTeams={selectedTeams} actions={actions} comments={comments} />
+                  </div>
+                )}
+                {organisation.receptionEnabled && Boolean(flattenedServices?.length) && (
+                  <div className="tw-rounded-lg tw-border tw-border-zinc-200 tw-bg-white tw-shadow print:tw-border-none print:tw-bg-transparent print:tw-shadow-none">
+                    <ServicesReport selectedTeamsObject={selectedTeamsObject} period={period} />
+                  </div>
+                )}
+              </div>
+              <div className="tw-mb-12 tw-mr-2 tw-min-h-screen tw-basis-3/12 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow print:tw-basis-full print:tw-border-none print:tw-shadow-none">
+                <Transmissions userId={user._id} period={period} selectedTeamsObject={selectedTeamsObject} reports={reports} />
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+export default View;

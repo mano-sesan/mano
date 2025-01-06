@@ -19,6 +19,22 @@ fileignoreconfig:
   checksum: 705052edbac7a842f439e66bf6b28f9232ba50c7a19b1da058ce288d4c016405
 - filename: dashboard/src/scenes/organisation/SuperadminUsersManagement.tsx
   checksum: 2c19d1a80d3c9e50509b320c1bf294a86d3f8bc0a6ea2185d2d30ed913e5285f
+- filename: desktop/src/app.jsx
+  checksum: 64b13fe85663d6e809919beda3db2277ebe272381519a24e92f858b1b5da7a2a
+- filename: desktop/src/components/DuplicatedReportsTestChecker.jsx
+  checksum: aaef3792312407232d695cd06b9546a5fd0f85cca1d19a968fc4fa6e4b9e709e
+- filename: desktop/src/components/tailwind/Modal.tsx
+  checksum: e6b3a933e14527e37e2fd9510a2edeb1bb302f2fa9ffb26ff04f29d50f1fafa1
+- filename: desktop/src/index.scss
+  checksum: 732b84ac5ae697eba22fae7ad820e49f8663b714f97f97fb6f7d1e1dc1572c1b
+- filename: desktop/src/recoil/selectors.js
+  checksum: b2b8a1df2c5d33d4bed77dc1be9ddc3fde198b8d5ec97bcfbdd73dff4266dd5b
+- filename: desktop/src/scenes/data-import-export/ExportFormattedData.jsx
+  checksum: 824b54e2f7b1421919b835916af95cb4a65e876238645edb2c43c5b3cdd36eb5
+- filename: desktop/src/scenes/report/view.jsx
+  checksum: 7dd62008c5db51d92f87f2d774014f38561e6f2d038c1449d42d0e7c16397850
+- filename: desktop/src/services/encryption.js
+  checksum: f5b17458d9b974acfa9e97d9bcc9610448f13aafec4a26974d295636bc4881a7
 - filename: e2e/scripts/populate-db.ts
   checksum: 4dcf8959d9b95e0451eebbfa0bc372ada4b5186f8fbd65286454016c1434095d
 - filename: website/.yarnrc.yml
