@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { atom, useRecoilState, useSetRecoilState } from "recoil";
 import { toast } from "react-toastify";
+import { isTauri } from "@tauri-apps/api/core";
 
 import { personsState } from "../recoil/persons";
 import { groupsState } from "../recoil/groups";
@@ -24,9 +25,10 @@ import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCach
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
-import { errorMessage } from "../utils";
+import { camelToSnakeCase, errorMessage, kebabToSnakeCase } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";
 import { capture } from "./sentry";
+import { sqlDeleteIds, sqlExecute, sqlInsertBatch, sqlSelect } from "./sql";
 
 // Update to flush cache.
 export const isLoadingState = atom({ key: "isLoadingState", default: false });
@@ -180,6 +182,41 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       after: lastLoadValue,
       withDeleted: true,
     };
+
+    // Update table person with new columns based on organisation fields
+    if (isTauri()) {
+      const personFields = [...organisation.groupedCustomFieldsMedicalFile, ...organisation.customFieldsPersons].flatMap((e) =>
+        e.fields.map((f) => ({
+          id: kebabToSnakeCase(camelToSnakeCase(f.name)),
+        }))
+      );
+      const personTableInfos = await sqlSelect(`PRAGMA table_info(person)`);
+      const personHistoryTableInfos = await sqlSelect(`PRAGMA table_info(person_history)`);
+      for (const field of personFields) {
+        if (field.type === "boolean" || field.type === "yes-no") {
+          if (!personTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" INTEGER;`);
+          }
+          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" INTEGER;`);
+          }
+        } else if (field.type === "number") {
+          if (!personTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" INTEGER;`);
+          }
+          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" INTEGER;`);
+          }
+        } else {
+          if (!personTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" TEXT;`);
+          }
+          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" TEXT;`);
+          }
+        }
+      }
+    }
 
     let newPersons = [];
     if (stats.persons > 0) {
@@ -355,6 +392,62 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setActions((latestActions) => mergeItems(latestActions, newActions));
     }
 
+    if (newActions.length && isTauri()) {
+      const ids = newActions.map((a) => a._id);
+      await sqlDeleteIds({ table: "action_team", ids, column: "action_id" });
+      await sqlDeleteIds({ table: "action_category", ids, column: "action_id" });
+      await sqlDeleteIds({ table: "action", ids });
+      await sqlInsertBatch({
+        table: "action",
+        data: newActions,
+        values: (x) => ({
+          id: x._id,
+          name: x.name,
+          person_id: x.person,
+          group_id: !x.group ? null : x.group,
+          description: x.description,
+          with_time: Number(x.withTime),
+          urgent: Number(x.urgent),
+          documents: x.documents,
+          user_id: x.user,
+          recurrence_id: x.recurrence,
+          due_at: x.dueAt,
+          completed_at: x.completedAt,
+          status: x.status,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+        after: async (data) => {
+          await Promise.all([
+            sqlInsertBatch({
+              table: "action_category",
+              data: data.flatMap((x) =>
+                (x.categories || []).map((category) => ({
+                  action_id: x._id,
+                  category_id: category,
+                }))
+              ),
+              values: (x) => ({
+                action_id: x.action_id,
+                category_id: x.category_id,
+              }),
+            }),
+            sqlInsertBatch({
+              table: "action_team",
+              data: data.flatMap((x) =>
+                (x.teams || []).map((team) => ({
+                  action_id: x._id,
+                  team_id: team,
+                }))
+              ),
+              values: (x) => ({ action_id: x.action_id, team_id: x.team_id }),
+            }),
+          ]);
+        },
+      });
+    }
+
     let newRecurrences = [];
     if (stats.recurrences > 0) {
       setLoadingText("Chargement des actions récurrentes");
@@ -411,6 +504,25 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     } else if (newTerritories.length) {
       setTerritories((latestTerritories) => mergeItems(latestTerritories, newTerritories));
+    }
+
+    if (newTerritories.length && isTauri()) {
+      await sqlDeleteIds({ table: "territory", ids: newTerritories.map((t) => t._id) });
+      await sqlInsertBatch({
+        table: "territory",
+        data: newTerritories,
+        values: (x) => ({
+          id: x._id,
+          name: x.name,
+          perimeter: x.perimeter,
+          description: x.description,
+          types: x.types,
+          user: x.user,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
     }
 
     let newPlaces = [];
@@ -500,6 +612,24 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setTerritoryObservations((latestTerritoryObservations) => mergeItems(latestTerritoryObservations, newTerritoryObservations));
     }
 
+    if (newTerritoryObservations.length && isTauri()) {
+      await sqlDeleteIds({ table: "territory_observation", ids: newTerritoryObservations.map((t) => t._id) });
+      await sqlInsertBatch({
+        table: "territory_observation",
+        data: newTerritoryObservations,
+        values: (x) => ({
+          id: x._id,
+          territory_id: x.territory,
+          user_id: x.user,
+          team_id: x.team,
+          observed_at: x.observedAt,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
+    }
+
     let newComments = [];
     if (stats.comments > 0) {
       setLoadingText("Chargement des commentaires");
@@ -527,6 +657,32 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     } else if (newComments.length) {
       setComments((latestComments) => mergeItems(latestComments, newComments));
+    }
+
+    if (newComments.length && isTauri()) {
+      await sqlDeleteIds({ table: "comment", ids: newComments.map((c) => c._id) });
+      await sqlInsertBatch({
+        table: "comment",
+        data: newComments,
+        prepare: async (items) => await Promise.all(items.map((i) => decryptItem(i))),
+        values: (x) => ({
+          id: x._id,
+          comment: x.comment,
+          person_id: x.person,
+          action_id: x.action,
+          consultation_id: x.consultation,
+          medical_file_id: x.medicalFile,
+          group_id: x.group,
+          team_id: x.team,
+          user_id: x.user,
+          date: x.date,
+          urgent: Number(x.urgent),
+          share: Number(x.share),
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
     }
 
     let newConsultations = [];
