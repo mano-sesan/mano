@@ -56,3 +56,16 @@ export async function sqlExecute(query: string, bindValues?: unknown[]): Promise
   console.log("sqlExecute", query);
   await db.execute(query, bindValues);
 }
+
+export function fieldToSqliteValue(field: { type: string; original_id: string }, value: string) {
+  if (field.type === "yes-no") {
+    if (value === "Oui") return 1;
+    if (value === "Non") return 0;
+    return null;
+  }
+  if (field.type === "boolean") {
+    if (value) return 1;
+    return 0;
+  }
+  return value;
+}

@@ -28,7 +28,8 @@ import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { camelToSnakeCase, errorMessage, kebabToSnakeCase } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";
 import { capture } from "./sentry";
-import { sqlDeleteIds, sqlExecute, sqlInsertBatch, sqlSelect } from "./sql";
+import { fieldToSqliteValue, sqlDeleteIds, sqlExecute, sqlInsertBatch, sqlSelect } from "./sql";
+import { dayjsInstance } from "./date";
 
 // Update to flush cache.
 export const isLoadingState = atom({ key: "isLoadingState", default: false });
@@ -184,8 +185,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     };
 
     // Update table person with new columns based on organisation fields
+    let personFields = [];
     if (isTauri()) {
-      const personFields = [...organisation.groupedCustomFieldsMedicalFile, ...organisation.customFieldsPersons].flatMap((e) =>
+      personFields = [...organisation.groupedCustomFieldsMedicalFile, ...organisation.customFieldsPersons].flatMap((e) =>
         e.fields.map((f) => ({
           id: kebabToSnakeCase(camelToSnakeCase(f.name)),
         }))
@@ -247,6 +249,99 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setPersons((latestPersons) => mergeItems(latestPersons, newPersons));
     }
 
+    if (newPersons.length && isTauri()) {
+      const ids = newPersons.map((p) => p._id);
+      await sqlDeleteIds({ table: "person_history_team", ids, column: "person_id" });
+      await sqlDeleteIds({ table: "person_history", ids, column: "person_id" });
+      await sqlDeleteIds({ table: "person_team", ids, column: "person_id" });
+      await sqlDeleteIds({ table: "person", ids });
+
+      await sqlInsertBatch({
+        table: "person",
+        data: newPersons,
+        values: (x) => {
+          return {
+            id: x._id,
+            name: x.name,
+            other_names: x.otherNames,
+            gender: x.gender || null,
+            birthdate: x.birthdate,
+            description: x.description,
+            alertness: x.alertness,
+            wandering_at: x.wanderingAt,
+            phone: x.phone,
+            email: x.email,
+            followed_since: x.followedSince,
+            out_of_active_list: x.outOfActiveList,
+            out_of_active_list_date: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
+            documents: x.documents,
+            user_id: x.user,
+            ...Object.fromEntries(personFields.map((field) => [field.id, fieldToSqliteValue(field, x[field.original_id])])),
+            created_at: x.createdAt,
+            updated_at: x.updatedAt,
+            deleted_at: x.deletedAt,
+          };
+        },
+        after: async (data) => {
+          await Promise.all([
+            sqlInsertBatch({
+              table: "person_team",
+              data: data.flatMap((x) =>
+                (x.assignedTeams || []).map((team) => ({
+                  person_id: x._id,
+                  team_id: team,
+                }))
+              ),
+              values: (x) => ({ person_id: x.person_id, team_id: x.team_id }),
+            }),
+            sqlInsertBatch({
+              table: "person_history",
+              data: data.flatMap((x) => transformPersonHistory(x)),
+              values: (x) => ({
+                person_id: x._id,
+                name: x.name,
+                other_names: x.otherNames,
+                gender: x.gender,
+                birthdate: x.birthdate,
+                description: x.description,
+                alertness: x.alertness,
+                wandering_at: x.wanderingAt,
+                phone: x.phone,
+                email: x.email,
+                followed_since: x.followedSince,
+                out_of_active_list: x.outOfActiveList,
+                out_of_active_list_date: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
+                documents: x.documents,
+                user_id: x.user,
+                ...Object.fromEntries(personFields.map((field) => [field.id, fieldToSqliteValue(field, x[field.original_id])])),
+                from_date: x.from_date,
+                to_date: x.to_date,
+              }),
+              after: async (data) => {
+                return sqlInsertBatch({
+                  table: "person_history_team",
+                  data: data.flatMap((x) =>
+                    (x.assignedTeams || []).map((team) => ({
+                      person_id: x._id,
+                      team_id: team,
+                      from_date: x.from_date,
+                      to_date: x.to_date,
+                    }))
+                  ),
+                  values: (x) => ({
+                    person_id: x.person_id,
+                    team_id: x.team_id,
+                    from_date: x.from_date,
+                    to_date: x.to_date,
+                  }),
+                });
+              },
+            }),
+          ]);
+        },
+      });
+    }
+
     let newGroups = [];
     if (stats.groups > 0) {
       setLoadingText("Chargement des familles");
@@ -274,6 +369,63 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     } else if (newGroups.length) {
       setGroups((latestGroups) => mergeItems(latestGroups, newGroups));
+    }
+
+    if (newGroups.length && isTauri()) {
+      const ids = newGroups.map((g) => g._id);
+      await sqlDeleteIds({ table: "person_group", ids, column: "group_id" });
+      await sqlDeleteIds({ table: "person_group_relation", ids, column: "group_id" });
+      await sqlDeleteIds({ table: "group", ids });
+      sqlInsertBatch({
+        table: "group",
+        data: newGroups,
+        values: (x) => ({
+          id: x._id,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+        after: async (data) => {
+          await Promise.all([
+            sqlInsertBatch({
+              table: "person_group",
+              data: data.flatMap((x) =>
+                (x.persons || []).map((person) => ({
+                  group_id: x._id,
+                  person_id: person,
+                }))
+              ),
+              values: (x) => ({
+                group_id: x.group_id,
+                person_id: x.person_id,
+              }),
+            }),
+            sqlInsertBatch({
+              table: "person_group_relation",
+              data: data.flatMap((x) =>
+                (x.relations || []).map((relation) => ({
+                  group_id: x._id,
+                  person_1_id: relation.persons[0],
+                  person_2_id: relation.persons[1],
+                  description: relation.description,
+                  user_id: relation.user,
+                  created_at: relation.createdAt,
+                  updated_at: relation.updatedAt,
+                }))
+              ),
+              values: (x) => ({
+                group_id: x.group_id,
+                person_1_id: x.person_1_id,
+                person_2_id: x.person_2_id,
+                description: x.description,
+                user_id: x.user_id,
+                created_at: x.created_at,
+                updated_at: x.updated_at,
+              }),
+            }),
+          ]);
+        },
+      });
     }
 
     let newReports = [];
@@ -305,6 +457,26 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setReports((latestReports) => mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
     }
 
+    if (newReports.length && isTauri()) {
+      const ids = newReports.map((r) => r._id);
+      await sqlDeleteIds({ table: "report", ids });
+      await sqlInsertBatch({
+        table: "report",
+        data: newReports,
+        values: (x) => ({
+          id: x._id,
+          description: x.description,
+          date: x.date,
+          collaborations: x.collaborations,
+          team: x.team,
+          updated_by: x.updatedBy,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
+    }
+
     let newPassages = [];
     if (stats.passages > 0) {
       setLoadingText("Chargement des passages");
@@ -334,6 +506,26 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setPassages((latestPassages) => mergeItems(latestPassages, newPassages));
     }
 
+    if (newPassages.length && isTauri()) {
+      const ids = newPassages.map((p) => p._id);
+      await sqlDeleteIds({ table: "passage", ids });
+      sqlInsertBatch({
+        table: "passage",
+        data: newPassages,
+        values: (x) => ({
+          id: x._id,
+          comment: x.comment,
+          person_id: x.person,
+          team_id: x.team,
+          user_id: x.user,
+          date: x.date,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
+    }
+
     let newRencontres = [];
     if (stats.rencontres > 0) {
       setLoadingText("Chargement des rencontres");
@@ -361,6 +553,26 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     } else if (newRencontres.length) {
       setRencontres((latestRencontres) => mergeItems(latestRencontres, newRencontres));
+    }
+
+    if (newRencontres.length && isTauri()) {
+      const ids = newRencontres.map((r) => r._id);
+      await sqlDeleteIds({ table: "rencontre", ids });
+      sqlInsertBatch({
+        table: "rencontre",
+        data: newRencontres,
+        values: (x) => ({
+          id: x._id,
+          comment: x.comment,
+          person_id: x.person,
+          team_id: x.team,
+          user_id: x.user,
+          date: x.date,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
     }
 
     let newActions = [];
@@ -477,6 +689,27 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setRecurrences((latestRecurrences) => mergeItems(latestRecurrences, newRecurrences));
     }
 
+    if (newRecurrences.length && isTauri()) {
+      const ids = newRecurrences.map((r) => r._id);
+      await sqlDeleteIds({ table: "recurrence", ids });
+      await sqlInsertBatch({
+        table: "recurrence",
+        data: newRecurrences,
+        values: (x) => ({
+          id: x._id,
+          start_date: x.startDate,
+          end_date: x.endDate,
+          time_interval: x.timeInterval,
+          time_unit: x.timeUnit,
+          selected_days: x.selectedDays,
+          recurrence_type_for_month_and_year: x.recurrenceTypeForMonthAndYear,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
+    }
+
     let newTerritories = [];
     if (stats.territories > 0) {
       setLoadingText("Chargement des territoires");
@@ -554,6 +787,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setPlaces((latestPlaces) => mergeItems(latestPlaces, newPlaces));
     }
 
+    if (newPlaces.length && isTauri()) {
+      const ids = newPlaces.map((p) => p._id);
+      await sqlDeleteIds({ table: "place", ids });
+      await sqlInsertBatch({
+        table: "place",
+        data: newPlaces,
+        values: (x) => ({
+          id: x._id,
+          name: x.name,
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+      });
+    }
+
     let newRelsPersonPlace = [];
     if (stats.relsPersonPlace > 0) {
       setLoadingText("Chargement des relations personne-lieu");
@@ -581,6 +830,20 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
     } else if (newRelsPersonPlace.length) {
       setRelsPersonPlace((latestRelsPersonPlace) => mergeItems(latestRelsPersonPlace, newRelsPersonPlace));
+    }
+
+    if (newRelsPersonPlace.length && isTauri()) {
+      const ids = newRelsPersonPlace.map((r) => r._id);
+      await sqlDeleteIds({ table: "person_place", ids });
+      await sqlInsertBatch({
+        table: "person_place",
+        data: newRelsPersonPlace,
+        values: (x) => ({
+          person_id: x.person,
+          place_id: x.place,
+          user_id: x.user,
+        }),
+      });
     }
 
     let newTerritoryObservations = [];
@@ -716,6 +979,122 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
     }
 
+    if (newConsultations.length && isTauri()) {
+      const consultationIds = newConsultations.map((c) => c._id);
+      await sqlDeleteIds({ table: "consultation_team", ids: consultationIds, column: "consultation_id" });
+      await sqlDeleteIds({ table: "comment", ids: consultationIds, column: "consultation_id" });
+      await sqlDeleteIds({ table: "consultation", ids: consultationIds });
+      await sqlInsertBatch({
+        table: "consultation",
+        data: newConsultations,
+        values: (x) => ({
+          id: x._id,
+          person_id: x.person,
+          name: x.name,
+          type: x.type,
+          documents: x.documents,
+          constantes_poids: x["constantes-poids"],
+          constantes_frequence_cardiaque: x["constantes-frequence-cardiaque"],
+          constantes_taille: x["constantes-taille"],
+          constantes_saturation_o2: x["constantes-saturation-o2"],
+          constantes_temperature: x["constantes-temperature"],
+          constantes_glycemie_capillaire: x["constantes-glycemie-capillaire"],
+          constantes_frequence_respiratoire: x["constantes-frequence-respiratoire"],
+          constantes_tension_arterielle_systolique: x["constantes-tension-arterielle-systolique"],
+          constantes_tension_arterielle_diastolique: x["constantes-tension-arterielle-diastolique"],
+          user_id: x.user,
+          due_at: x.dueAt,
+          completed_at: x.completedAt,
+          status: x.status,
+          onlyVisibleBy: x.onlyVisibleBy,
+          custom_fields: Object.fromEntries(
+            Object.entries(x).filter(
+              ([key]) =>
+                ![
+                  "_id",
+                  "comments",
+                  "organisation",
+                  "teams",
+                  "encryptedEntityKey",
+                  "entityKey",
+                  "history",
+                  "person",
+                  "name",
+                  "type",
+                  "documents",
+                  "constantes-poids",
+                  "constantes-frequence-cardiaque",
+                  "constantes-taille",
+                  "constantes-saturation-o2",
+                  "constantes-temperature",
+                  "constantes-glycemie-capillaire",
+                  "constantes-frequence-respiratoire",
+                  "constantes-tension-arterielle-systolique",
+                  "constantes-tension-arterielle-diastolique",
+                  "user",
+                  "dueAt",
+                  "completedAt",
+                  "status",
+                  "onlyVisibleBy",
+                  "createdAt",
+                  "updatedAt",
+                  "deletedAt",
+                ].includes(key)
+            )
+          ),
+          created_at: x.createdAt,
+          updated_at: x.updatedAt,
+          deleted_at: x.deletedAt,
+        }),
+        after: async (data) => {
+          await Promise.all([
+            sqlInsertBatch({
+              table: "consultation_team",
+              data: data.flatMap((x) =>
+                (x.teams || []).map((team) => ({
+                  consultation_id: x._id,
+                  team_id: team,
+                }))
+              ),
+              values: (x) => ({
+                consultation_id: x.consultation_id,
+                team_id: x.team_id,
+              }),
+            }),
+            sqlInsertBatch({
+              table: "comment",
+              data: data.flatMap((x) =>
+                (x.comments || []).map((comment) => ({
+                  id: comment._id,
+                  comment: comment.comment,
+                  consultation_id: x._id,
+                  share: comment.share,
+                  team_id: comment.team,
+                  user_id: comment.user,
+                  date: comment.date,
+                  created_at: comment.createdAt,
+                  updated_at: comment.updatedAt,
+                  deleted_at: comment.deletedAt,
+                }))
+              ),
+              values: (x) => ({
+                id: x.id,
+                comment: x.comment,
+                consultation_id: x.consultation_id,
+                share: x.share,
+                team_id: x.team_id,
+                user_id: x.user_id,
+                date: x.date,
+                created_at: x.created_at,
+                updated_at: x.updated_at,
+                deleted_at: x.deleted_at,
+              }),
+            }),
+          ]);
+        },
+      });
+    }
+
     if (["admin", "normal"].includes(latestUser.role)) {
       let newTreatments = [];
       if (stats.treatments > 0) {
@@ -747,6 +1126,31 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         }
       } else if (newTreatments.length) {
         setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
+      }
+
+      if (newTreatments.length && isTauri()) {
+        const treatmentIds = newTreatments.map((t) => t._id);
+        await sqlDeleteIds({ table: "treatment", ids: treatmentIds });
+        await sqlInsertBatch({
+          table: "treatment",
+          data: newTreatments,
+          prepare: async (items) => await Promise.all(items.map((i) => decryptItem(i))),
+          values: (x) => ({
+            id: x._id,
+            person_id: x.person,
+            user_id: x.user,
+            startDate: x.startDate,
+            endDate: x.endDate,
+            name: x.name,
+            dosage: x.dosage,
+            frequency: x.frequency,
+            indication: x.indication,
+            documents: x.documents,
+            created_at: x.createdAt,
+            updated_at: x.updatedAt,
+            deleted_at: x.deletedAt,
+          }),
+        });
       }
     }
 
@@ -781,6 +1185,78 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         }
       } else if (newMedicalFiles.length) {
         setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
+      }
+
+      if (newMedicalFiles.length && isTauri()) {
+        const medicalFileIds = newMedicalFiles.map((m) => m._id);
+        await sqlDeleteIds({ table: "medical_file", ids: medicalFileIds });
+        await sqlDeleteIds({ table: "comment", ids: medicalFileIds, column: "medical_file_id" });
+
+        await sqlInsertBatch({
+          table: "medical_file",
+          data: newMedicalFiles,
+          values: (x) => ({
+            id: x._id,
+            person_id: x.person,
+            documents: x.documents,
+            custom_fields: Object.fromEntries(
+              Object.entries(x).filter(
+                ([key]) =>
+                  ![
+                    "_id",
+                    "comments",
+                    "organisation",
+                    "teams",
+                    "encryptedEntityKey",
+                    "entityKey",
+                    "history",
+                    "person",
+                    "name",
+                    "type",
+                    "documents",
+                    "user",
+                    "createdAt",
+                    "updatedAt",
+                    "deletedAt",
+                  ].includes(key)
+              )
+            ),
+            created_at: x.createdAt,
+            updated_at: x.updatedAt,
+            deleted_at: x.deletedAt,
+          }),
+          after: async (data) => {
+            await sqlInsertBatch({
+              table: "comment",
+              data: data.flatMap((x) =>
+                (x.comments || []).map((comment) => ({
+                  id: comment._id,
+                  comment: comment.comment,
+                  medical_file_id: x._id,
+                  share: comment.share,
+                  team_id: comment.team,
+                  user_id: comment.user,
+                  date: comment.date,
+                  created_at: comment.createdAt,
+                  updated_at: comment.updatedAt,
+                  deleted_at: comment.deletedAt,
+                }))
+              ),
+              values: (x) => ({
+                id: x.id,
+                comment: x.comment,
+                medical_file_id: x.medical_file_id,
+                share: x.share,
+                team_id: x.team_id,
+                user_id: x.user_id,
+                date: x.date,
+                created_at: x.created_at,
+                updated_at: x.updated_at,
+                deleted_at: x.deleted_at,
+              }),
+            });
+          },
+        });
       }
     }
 
@@ -877,4 +1353,69 @@ export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, fi
   }
 
   return [...oldItemsPurged, ...newItemsCleanedAndFormatted];
+}
+
+function transformPersonHistory(person) {
+  const { _id, createdAt, history, ...currentData } = person;
+
+  // Fonction pour cloner l'objet tout en conservant les autres propriétés
+  const clonePerson = (data) => ({ _id, ...data });
+
+  // Initialisation des versions avec la personne actuelle
+  const versions = [];
+
+  // Tri de l'historique par date croissante
+  const sortedHistory = (structuredClone(history) || []).sort((a, b) => dayjsInstance(a.date).diff(dayjsInstance(b.date)));
+
+  const reversedHistory = structuredClone(sortedHistory).reverse();
+
+  // Créer l'état initial en fonction des oldValue de l'historique
+  const initialState = clonePerson({ ...currentData });
+  reversedHistory.forEach((entry) => {
+    const { data } = entry;
+    Object.keys(data).forEach((key) => {
+      if (data[key].oldValue !== undefined) {
+        initialState[key] = data[key].oldValue;
+      }
+    });
+  });
+  initialState.from_date = new Date(createdAt);
+  initialState.to_date = sortedHistory.length > 0 ? new Date(sortedHistory[0].date) : null; // Jusqu'à la première modification
+
+  // Ajouter l'état initial à la liste des versions
+  versions.push({ ...initialState });
+
+  // Maintenant appliquer les changements chronologiquement
+  let previousState = { ...initialState };
+
+  sortedHistory.forEach((entry) => {
+    const { date, data } = entry;
+
+    // Créer une copie de l'état précédent pour la version actuelle
+    const newState = clonePerson({
+      ...previousState,
+      from_date: new Date(previousState.from_date), // Garder la date de début
+      to_date: new Date(date), // Clôturer cet état avec la date du changement
+    });
+
+    versions.push({ ...newState });
+
+    // Appliquer les modifications de l'historique pour créer l'état suivant
+    const modifiedState = clonePerson({
+      ...previousState,
+      ...Object.keys(data).reduce((acc, key) => {
+        acc[key] = data[key].newValue; // Appliquer les nouvelles valeurs
+        return acc;
+      }, {}),
+      from_date: new Date(date), // La nouvelle version commence à la date du changement
+    });
+
+    previousState = modifiedState; // Préparer l'état suivant
+  });
+
+  // Ajouter la version actuelle avec `to_date: null`
+  previousState.to_date = null;
+  versions.push({ ...previousState });
+
+  return versions;
 }
