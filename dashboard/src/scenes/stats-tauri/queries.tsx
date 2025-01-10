@@ -355,7 +355,9 @@ export function sqlSelectPersonnesEnRueDepuisLe(context: StatsContext, populatio
 export function sqlSelectPersonnesByGenreCount(context: StatsContext, population: StatsPopulation): Promise<{ genre: string; total: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
-  return sqlSelect(`${personnesSuiviesQuery} SELECT gender as genre, count(*) as total FROM person_filtrees group by gender;`);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT gender as genre, count(*) as total FROM person group by gender where exists (select 1 from person_filtrees where person_filtrees.id = person.id);`
+  );
 }
 
 export function sqlSelectPersonnesByGenre(
@@ -365,7 +367,10 @@ export function sqlSelectPersonnesByGenre(
 ): Promise<{ name: string; id: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
-  return sqlSelect(`${personnesSuiviesQuery} SELECT * FROM person_filtrees WHERE gender = $1;`, [genre]);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT id FROM person WHERE gender = $1 and exists (select 1 from person_filtrees where person_filtrees.id = person.id);`,
+    [genre]
+  );
 }
 
 function sqlCTEAgeGroupTable() {
