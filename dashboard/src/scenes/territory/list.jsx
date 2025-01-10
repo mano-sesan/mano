@@ -65,17 +65,17 @@ function ListDesktop() {
     const sqlTerritories = async () => {
       const territories = await sqlSelect(`
         SELECT 
-          t.id as _id,
+          t._id,
           t.name,
           t.description,
           t.perimeter,
-          t.created_at as "createdAt",
+          t.createdAt,
           t.types,
-          COUNT(tos.id) as "observationsCount",
-          MAX(tos.created_at) as "lastObservationDate"
+          COUNT(tos._id) as "observationsCount",
+          MAX(tos.createdAt) as "lastObservationDate"
         FROM territory t
-        LEFT JOIN territory_observation tos ON t.id = tos.territory_id
-        GROUP BY t.id
+        LEFT JOIN territory_observation tos ON t._id = tos.territoryId
+        GROUP BY t._id
       `);
       console.log(territories, "territories");
       setTerritories(territories.map((t) => ({ ...t, types: t.types ? JSON.parse(t.types) : [] })));

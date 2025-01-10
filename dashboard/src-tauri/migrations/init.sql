@@ -55,256 +55,256 @@ DROP TABLE IF EXISTS user;
 DROP TABLE IF EXISTS organisation_person_field;
 
 CREATE TABLE IF NOT EXISTS organisation_person_field (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   type TEXT,
   label TEXT,
   options TEXT,
-  read_only INTEGER,
+  readOnly INTEGER,
   medical INTEGER,
-  group_name TEXT,
-  original_id TEXT
+  groupName TEXT,
+  originalId TEXT
 );
 
 CREATE TABLE IF NOT EXISTS action (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
-  person_id TEXT,
-  group_id TEXT,
+  personId TEXT,
+  groupId TEXT,
   description TEXT,
-  with_time INTEGER,
+  withTime INTEGER,
   urgent INTEGER,
   documents TEXT,
-  recurrence_id TEXT,
-  user_id TEXT,
-  due_at TEXT,
-  completed_at TEXT,
+  recurrenceId TEXT,
+  userId TEXT,
+  dueAt TEXT,
+  completedAt TEXT,
   status TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS action_category (
-  action_id TEXT,
-  category_id TEXT,
-  FOREIGN KEY (action_id) REFERENCES action (id) DEFERRABLE INITIALLY DEFERRED constraint pk_action_category primary key (action_id, category_id) on conflict replace
+  actionId TEXT,
+  categoryId TEXT,
+  FOREIGN KEY (actionId) REFERENCES action (_id) DEFERRABLE INITIALLY DEFERRED constraint pk_action_category primary key (actionId, categoryId) on conflict replace
 );
 
 CREATE TABLE IF NOT EXISTS action_team (
-  action_id TEXT,
-  team_id TEXT,
-  FOREIGN KEY (action_id) REFERENCES action (id) DEFERRABLE INITIALLY DEFERRED constraint pk_action_team primary key (action_id, team_id) on conflict replace
+  actionId TEXT,
+  teamId TEXT,
+  FOREIGN KEY (actionId) REFERENCES action (_id) DEFERRABLE INITIALLY DEFERRED constraint pk_action_team primary key (actionId, teamId) on conflict replace
 );
 
 CREATE TABLE IF NOT EXISTS comment (
-  id PRIMARY KEY ON CONFLICT REPLACE,
+  _id PRIMARY KEY ON CONFLICT REPLACE,
   comment TEXT,
-  person_id TEXT,
-  action_id TEXT,
-  consultation_id TEXT,
-  medical_file_id TEXT,
-  group_id TEXT,
-  team_id TEXT,
-  user_id TEXT,
+  personId TEXT,
+  actionId TEXT,
+  consultationId TEXT,
+  medicalFileId TEXT,
+  groupId TEXT,
+  teamId TEXT,
+  userId TEXT,
   date TEXT,
   urgent INTEGER,
   share INTEGER,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS team (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
-  created_at TEXT,
-  updated_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT
 );
 
 CREATE TABLE person (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
-  other_names TEXT,
+  otherNames TEXT,
   gender TEXT,
   birthdate TEXT,
   description TEXT,
   alertness TEXT,
-  wandering_at TEXT,
+  wanderingAt TEXT,
   phone TEXT,
   email TEXT,
-  followed_since TEXT,
-  out_of_active_list TEXT,
-  out_of_active_list_date TEXT,
+  followedSince TEXT,
+  outOfActiveList TEXT,
+  outOfActiveListDate TEXT,
   documents TEXT,
-  user_id TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  userId TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE person_team (
-  person_id TEXT,
-  team_id TEXT,
-  FOREIGN KEY (person_id) REFERENCES person (id) constraint pk_person_team primary key (person_id, team_id) on conflict replace
+  personId TEXT,
+  teamId TEXT,
+  FOREIGN KEY (personId) REFERENCES person (_id) constraint pk_person_team primary key (personId, teamId) on conflict replace
 );
 
 CREATE TABLE person_history (
-  person_id TEXT,
+  personId TEXT,
   name TEXT,
-  other_names TEXT,
+  otherNames TEXT,
   gender TEXT,
   birthdate TEXT,
   description TEXT,
   alertness TEXT,
-  wandering_at TEXT,
+  wanderingAt TEXT,
   phone TEXT,
   email TEXT,
-  followed_since TEXT,
-  out_of_active_list TEXT,
-  out_of_active_list_date TEXT,
+  followedSince TEXT,
+  outOfActiveList TEXT,
+  outOfActiveListDate TEXT,
   documents TEXT,
-  user_id TEXT,
-  from_date TEXT,
-  to_date TEXT,
-  constraint pk_person_history primary key (person_id, from_date) on conflict replace
+  userId TEXT,
+  fromDate TEXT,
+  toDate TEXT,
+  constraint pk_person_history primary key (personId, fromDate) on conflict replace
 );
 
 CREATE TABLE person_history_team (
-  person_id TEXT,
-  team_id TEXT,
-  from_date TEXT,
-  to_date TEXT,
-  FOREIGN KEY (person_id, from_date) REFERENCES person_history (person_id, from_date) constraint pk_person_history_team primary key (person_id, from_date, team_id) on conflict replace
+  personId TEXT,
+  teamId TEXT,
+  fromDate TEXT,
+  toDate TEXT,
+  FOREIGN KEY (personId, fromDate) REFERENCES person_history (personId, fromDate) constraint pk_person_history_team primary key (personId, fromDate, teamId) on conflict replace
 );
 
 -- TODO: Comment ajouter les custom fields?
 CREATE TABLE IF NOT EXISTS consultation (
-  id PRIMARY KEY,
-  person_id TEXT,
+  _id PRIMARY KEY,
+  personId TEXT,
   name TEXT,
   type TEXT,
   documents TEXT,
-  constantes_poids TEXT,
-  constantes_frequence_cardiaque TEXT,
-  constantes_taille TEXT,
-  constantes_saturation_o2 TEXT,
-  constantes_temperature TEXT,
-  constantes_glycemie_capillaire TEXT,
-  constantes_frequence_respiratoire TEXT,
-  constantes_tension_arterielle_systolique TEXT,
-  constantes_tension_arterielle_diastolique TEXT,
-  user_id TEXT,
-  due_at TEXT,
-  completed_at TEXT,
+  "constantes-poids" TEXT,
+  "constantes-frequence-cardiaque" TEXT,
+  "constantes-taille" TEXT,
+  "constantes-saturation-o2" TEXT,
+  "constantes-temperature" TEXT,
+  "constantes-glycemie-capillaire" TEXT,
+  "constantes-frequence-respiratoire" TEXT,
+  "constantes-tension-arterielle-systolique" TEXT,
+  "constantes-tension-arterielle-diastolique" TEXT,
+  userId TEXT,
+  dueAt TEXT,
+  completedAt TEXT,
   status TEXT,
   onlyVisibleBy TEXT,
-  custom_fields TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  customFields TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS consultation_team (
-  consultation_id TEXT,
-  team_id TEXT,
-  FOREIGN KEY (consultation_id) REFERENCES consultation (id) constraint pk_consultation_team primary key (consultation_id, team_id) on conflict replace
+  consultationId TEXT,
+  teamId TEXT,
+  FOREIGN KEY (consultationId) REFERENCES consultation (_id) constraint pk_consultation_team primary key (consultationId, teamId) on conflict replace
 );
 
 CREATE TABLE IF NOT EXISTS medical_file (
-  id PRIMARY KEY,
-  person_id TEXT,
+  _id PRIMARY KEY,
+  personId TEXT,
   documents TEXT,
-  custom_fields TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  customFields TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "group" (
-  id PRIMARY KEY,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  _id PRIMARY KEY,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS person_group (
-  person_id TEXT,
-  group_id TEXT,
-  FOREIGN KEY (person_id) REFERENCES person (id) constraint pk_person_group primary key (person_id, group_id) on conflict replace
+  personId TEXT,
+  groupId TEXT,
+  FOREIGN KEY (personId) REFERENCES person (_id) constraint pk_person_group primary key (personId, groupId) on conflict replace
 );
 
 CREATE TABLE IF NOT EXISTS person_group_relation (
-  group_id TEXT,
-  person_1_id TEXT,
-  person_2_id TEXT,
+  groupId TEXT,
+  person1Id TEXT,
+  person2Id TEXT,
   description TEXT,
-  user_id TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  FOREIGN KEY (group_id) REFERENCES "group" (id) constraint pk_person_group_relation primary key (group_id, person_1_id, person_2_id) on conflict replace
+  userId TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  FOREIGN KEY (groupId) REFERENCES "group" (_id) constraint pk_person_group_relation primary key (groupId, person1Id, person2Id) on conflict replace
 );
 
 CREATE TABLE IF NOT EXISTS passage (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   comment TEXT,
-  person_id TEXT,
-  team_id TEXT,
-  user_id TEXT,
+  personId TEXT,
+  teamId TEXT,
+  userId TEXT,
   date TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS rencontre (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   comment TEXT,
-  person_id TEXT,
-  team_id TEXT,
-  user_id TEXT,
+  personId TEXT,
+  teamId TEXT,
+  userId TEXT,
   date TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS place (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
-CREATE TABLE IF NOT EXISTS person_place (person_id TEXT, place_id TEXT, user_id TEXT);
+CREATE TABLE IF NOT EXISTS person_place (personId TEXT, placeId TEXT, userId TEXT);
 
 CREATE TABLE IF NOT EXISTS recurrence (
-  id PRIMARY KEY,
-  start_date TEXT,
-  end_date TEXT,
-  time_interval INTEGER,
-  time_unit TEXT,
-  selected_days TEXT,
-  recurrence_type_for_month_and_year TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  _id PRIMARY KEY,
+  startDate TEXT,
+  endDate TEXT,
+  timeInterval INTEGER,
+  timeUnit TEXT,
+  selectedDays TEXT,
+  recurrenceTypeForMonthAndYear TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS report (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   description TEXT,
   date TEXT,
   collaborations TEXT,
   team TEXT,
-  updated_by TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  updatedBy TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS structure (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
   phone TEXT,
   adresse TEXT,
@@ -312,38 +312,38 @@ CREATE TABLE IF NOT EXISTS structure (
   postcode TEXT,
   description TEXT,
   categories TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS territory (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
   perimeter TEXT,
   description TEXT,
   types TEXT,
-  user TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  userId TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS territory_observation (
-  id PRIMARY KEY,
-  territory_id TEXT,
-  user_id TEXT,
-  team_id TEXT,
-  observed_at TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  _id PRIMARY KEY,
+  territoryId TEXT,
+  userId TEXT,
+  teamId TEXT,
+  observedAt TEXT,
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS treatment (
-  id PRIMARY KEY,
-  person_id TEXT,
-  user_id TEXT,
+  _id PRIMARY KEY,
+  personId TEXT,
+  userId TEXT,
   startDate TEXT,
   endDate TEXT,
   name TEXT,
@@ -351,13 +351,13 @@ CREATE TABLE IF NOT EXISTS treatment (
   frequency TEXT,
   indication TEXT,
   documents TEXT,
-  created_at TEXT,
-  updated_at TEXT,
-  deleted_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT,
+  deletedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS user (
-  id PRIMARY KEY,
+  _id PRIMARY KEY,
   name TEXT,
   phone TEXT,
   email TEXT,
@@ -369,66 +369,66 @@ CREATE TABLE IF NOT EXISTS user (
   gaveFeedbackEarly2023 INTEGER,
   lastLoginAt TEXT,
   decryptAttempts INTEGER,
-  created_at TEXT,
-  updated_at TEXT
+  createdAt TEXT,
+  updatedAt TEXT
 );
 
 CREATE TABLE IF NOT EXISTS user_team (
-  user_id TEXT,
-  team_id TEXT,
-  FOREIGN KEY (user_id) REFERENCES user (id) constraint pk_user_team primary key (user_id, team_id) on conflict replace
+  userId TEXT,
+  teamId TEXT,
+  FOREIGN KEY (userId) REFERENCES user (_id) constraint pk_user_team primary key (userId, teamId) on conflict replace
 );
 
-CREATE INDEX IF NOT EXISTS idx_action_person_id ON action (person_id);
+CREATE INDEX IF NOT EXISTS idx_action_personId ON action (personId);
 
-CREATE INDEX IF NOT EXISTS idx_action_due_at ON action (due_at);
+CREATE INDEX IF NOT EXISTS idx_action_dueAt ON action (dueAt);
 
-CREATE INDEX IF NOT EXISTS idx_action_completed_at ON action (completed_at);
+CREATE INDEX IF NOT EXISTS idx_action_completedAt ON action (completedAt);
 
-CREATE INDEX IF NOT EXISTS idx_action_created_at ON action (created_at);
+CREATE INDEX IF NOT EXISTS idx_action_createdAt ON action (createdAt);
 
 CREATE INDEX IF NOT EXISTS idx_action_status ON action (status);
 
-CREATE INDEX IF NOT EXISTS idx_person_created_at ON person (created_at);
+CREATE INDEX IF NOT EXISTS idx_person_createdAt ON person (createdAt);
 
-CREATE INDEX IF NOT EXISTS idx_person_updated_at ON person (updated_at);
+CREATE INDEX IF NOT EXISTS idx_person_updatedAt ON person (updatedAt);
 
-CREATE INDEX IF NOT EXISTS idx_person_deleted_at ON person (deleted_at);
+CREATE INDEX IF NOT EXISTS idx_person_deletedAt ON person (deletedAt);
 
-CREATE INDEX IF NOT EXISTS idx_person_followed_since ON person (followed_since);
+CREATE INDEX IF NOT EXISTS idx_person_followedSince ON person (followedSince);
 
-CREATE INDEX IF NOT EXISTS idx_person_out_of_active_list ON person (out_of_active_list);
+CREATE INDEX IF NOT EXISTS idx_person_outOfActiveList ON person (outOfActiveList);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_from_date ON person_history (from_date);
+CREATE INDEX IF NOT EXISTS idx_person_history_fromDate ON person_history (fromDate);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_to_date ON person_history (to_date);
+CREATE INDEX IF NOT EXISTS idx_person_history_toDate ON person_history (toDate);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_person_id ON person_history (person_id);
+CREATE INDEX IF NOT EXISTS idx_person_history_personId ON person_history (personId);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_team_id ON person_history_team (team_id);
+CREATE INDEX IF NOT EXISTS idx_person_history_teamId ON person_history_team (teamId);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_team_person_id ON person_history_team (person_id);
+CREATE INDEX IF NOT EXISTS idx_person_history_team_personId ON person_history_team (personId);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_team_from_date ON person_history_team (from_date);
+CREATE INDEX IF NOT EXISTS idx_person_history_team_fromDate ON person_history_team (fromDate);
 
-CREATE INDEX IF NOT EXISTS idx_person_history_team_to_date ON person_history_team (to_date);
+CREATE INDEX IF NOT EXISTS idx_person_history_team_toDate ON person_history_team (toDate);
 
-CREATE INDEX IF NOT EXISTS idx_consultation_person_id ON consultation (person_id);
+CREATE INDEX IF NOT EXISTS idx_consultation_personId ON consultation (personId);
 
-CREATE INDEX IF NOT EXISTS idx_consultation_due_at ON consultation (due_at);
+CREATE INDEX IF NOT EXISTS idx_consultation_dueAt ON consultation (dueAt);
 
-CREATE INDEX IF NOT EXISTS idx_consultation_completed_at ON consultation (completed_at);
+CREATE INDEX IF NOT EXISTS idx_consultation_completedAt ON consultation (completedAt);
 
-CREATE INDEX IF NOT EXISTS idx_consultation_created_at ON consultation (created_at);
+CREATE INDEX IF NOT EXISTS idx_consultation_createdAt ON consultation (createdAt);
 
-CREATE INDEX IF NOT EXISTS idx_passage_person_id ON passage (person_id);
+CREATE INDEX IF NOT EXISTS idx_passage_personId ON passage (personId);
 
 CREATE INDEX IF NOT EXISTS idx_passage_date ON passage (date);
 
-CREATE INDEX IF NOT EXISTS idx_passage_created_at ON passage (created_at);
+CREATE INDEX IF NOT EXISTS idx_passage_createdAt ON passage (createdAt);
 
-CREATE INDEX IF NOT EXISTS idx_rencontre_person_id ON rencontre (person_id);
+CREATE INDEX IF NOT EXISTS idx_rencontre_personId ON rencontre (personId);
 
 CREATE INDEX IF NOT EXISTS idx_rencontre_date ON rencontre (date);
 
-CREATE INDEX IF NOT EXISTS idx_rencontre_created_at ON rencontre (created_at);
+CREATE INDEX IF NOT EXISTS idx_rencontre_createdAt ON rencontre (createdAt);

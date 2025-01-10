@@ -39,7 +39,7 @@ export async function sqlInsertBatch<
     const oneLinePlaceholders = Array(keys.length).fill("?").join(", ");
     const placeholders = Array(batch.length).fill(`(${oneLinePlaceholders})`).join(", ");
     await db.execute(
-      `INSERT INTO "${table}" (${keys.join(", ")}) VALUES ${placeholders}`,
+      `INSERT INTO "${table}" ("${keys.join('", "')}") VALUES ${placeholders}`,
       prepared.flatMap((x) => Object.values(values(x)))
     );
     if (after) await after(prepared);

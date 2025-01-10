@@ -25,7 +25,7 @@ import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCach
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
-import { camelToSnakeCase, errorMessage, kebabToSnakeCase } from "../utils";
+import { errorMessage } from "../utils";
 import { recurrencesState } from "../recoil/recurrences";
 import { capture } from "./sentry";
 import { fieldToSqliteValue, sqlDeleteIds, sqlExecute, sqlInsertBatch, sqlSelect } from "./sql";
@@ -189,32 +189,32 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isTauri()) {
       personFields = [...organisation.groupedCustomFieldsMedicalFile, ...organisation.customFieldsPersons].flatMap((e) =>
         e.fields.map((f) => ({
-          id: kebabToSnakeCase(camelToSnakeCase(f.name)),
+          _id: f.name,
         }))
       );
       const personTableInfos = await sqlSelect(`PRAGMA table_info(person)`);
       const personHistoryTableInfos = await sqlSelect(`PRAGMA table_info(person_history)`);
       for (const field of personFields) {
         if (field.type === "boolean" || field.type === "yes-no") {
-          if (!personTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" INTEGER;`);
+          if (!personTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field._id}" INTEGER;`);
           }
-          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" INTEGER;`);
+          if (!personHistoryTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field._id}" INTEGER;`);
           }
         } else if (field.type === "number") {
-          if (!personTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" INTEGER;`);
+          if (!personTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field._id}" INTEGER;`);
           }
-          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" INTEGER;`);
+          if (!personHistoryTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field._id}" INTEGER;`);
           }
         } else {
-          if (!personTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field.id}" TEXT;`);
+          if (!personTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person ADD COLUMN "${field._id}" TEXT;`);
           }
-          if (!personHistoryTableInfos.find((x) => x.name === field.id)) {
-            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field.id}" TEXT;`);
+          if (!personHistoryTableInfos.find((x) => x.name === field._id)) {
+            await sqlExecute(`ALTER TABLE person_history ADD COLUMN "${field._id}" TEXT;`);
           }
         }
       }
@@ -251,9 +251,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     if (newPersons.length && isTauri()) {
       const ids = newPersons.map((p) => p._id);
-      await sqlDeleteIds({ table: "person_history_team", ids, column: "person_id" });
-      await sqlDeleteIds({ table: "person_history", ids, column: "person_id" });
-      await sqlDeleteIds({ table: "person_team", ids, column: "person_id" });
+      await sqlDeleteIds({ table: "person_history_team", ids, column: "personId" });
+      await sqlDeleteIds({ table: "person_history", ids, column: "personId" });
+      await sqlDeleteIds({ table: "person_team", ids, column: "personId" });
       await sqlDeleteIds({ table: "person", ids });
 
       await sqlInsertBatch({
@@ -261,25 +261,25 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         data: newPersons,
         values: (x) => {
           return {
-            id: x._id,
+            _id: x._id,
             name: x.name,
-            other_names: x.otherNames,
+            otherNames: x.otherNames,
             gender: x.gender || null,
             birthdate: x.birthdate,
             description: x.description,
             alertness: x.alertness,
-            wandering_at: x.wanderingAt,
+            wanderingAt: x.wanderingAt,
             phone: x.phone,
             email: x.email,
-            followed_since: x.followedSince,
-            out_of_active_list: x.outOfActiveList,
-            out_of_active_list_date: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
+            followedSince: x.followedSince,
+            outOfActiveList: x.outOfActiveList,
+            outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
             documents: x.documents,
-            user_id: x.user,
-            ...Object.fromEntries(personFields.map((field) => [field.id, fieldToSqliteValue(field, x[field.original_id])])),
-            created_at: x.createdAt,
-            updated_at: x.updatedAt,
-            deleted_at: x.deletedAt,
+            userId: x.user,
+            ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field.original_id])])),
+            createdAt: x.createdAt,
+            updatedAt: x.updatedAt,
+            deletedAt: x.deletedAt,
           };
         },
         after: async (data) => {
@@ -288,51 +288,51 @@ export function useDataLoader(options = { refreshOnMount: false }) {
               table: "person_team",
               data: data.flatMap((x) =>
                 (x.assignedTeams || []).map((team) => ({
-                  person_id: x._id,
-                  team_id: team,
+                  personId: x._id,
+                  teamId: team,
                 }))
               ),
-              values: (x) => ({ person_id: x.person_id, team_id: x.team_id }),
+              values: (x) => ({ personId: x.personId, teamId: x.teamId }),
             }),
             sqlInsertBatch({
               table: "person_history",
               data: data.flatMap((x) => transformPersonHistory(x)),
               values: (x) => ({
-                person_id: x._id,
+                personId: x._id,
                 name: x.name,
-                other_names: x.otherNames,
+                otherNames: x.otherNames,
                 gender: x.gender,
                 birthdate: x.birthdate,
                 description: x.description,
                 alertness: x.alertness,
-                wandering_at: x.wanderingAt,
+                wanderingAt: x.wanderingAt,
                 phone: x.phone,
                 email: x.email,
-                followed_since: x.followedSince,
-                out_of_active_list: x.outOfActiveList,
-                out_of_active_list_date: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
+                followedSince: x.followedSince,
+                outOfActiveList: x.outOfActiveList,
+                outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
                 documents: x.documents,
-                user_id: x.user,
-                ...Object.fromEntries(personFields.map((field) => [field.id, fieldToSqliteValue(field, x[field.original_id])])),
-                from_date: x.from_date,
-                to_date: x.to_date,
+                userId: x.user,
+                ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field.original_id])])),
+                fromDate: x.fromDate,
+                toDate: x.toDate,
               }),
               after: async (data) => {
                 return sqlInsertBatch({
                   table: "person_history_team",
                   data: data.flatMap((x) =>
                     (x.assignedTeams || []).map((team) => ({
-                      person_id: x._id,
-                      team_id: team,
-                      from_date: x.from_date,
-                      to_date: x.to_date,
+                      personId: x._id,
+                      teamId: team,
+                      fromDate: x.fromDate,
+                      toDate: x.toDate,
                     }))
                   ),
                   values: (x) => ({
-                    person_id: x.person_id,
-                    team_id: x.team_id,
-                    from_date: x.from_date,
-                    to_date: x.to_date,
+                    personId: x.personId,
+                    teamId: x.teamId,
+                    fromDate: x.fromDate,
+                    toDate: x.toDate,
                   }),
                 });
               },
@@ -373,17 +373,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     if (newGroups.length && isTauri()) {
       const ids = newGroups.map((g) => g._id);
-      await sqlDeleteIds({ table: "person_group", ids, column: "group_id" });
-      await sqlDeleteIds({ table: "person_group_relation", ids, column: "group_id" });
+      await sqlDeleteIds({ table: "person_group", ids, column: "groupId" });
+      await sqlDeleteIds({ table: "person_group_relation", ids, column: "groupId" });
       await sqlDeleteIds({ table: "group", ids });
       sqlInsertBatch({
         table: "group",
         data: newGroups,
         values: (x) => ({
-          id: x._id,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          _id: x._id,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
         after: async (data) => {
           await Promise.all([
@@ -391,36 +391,36 @@ export function useDataLoader(options = { refreshOnMount: false }) {
               table: "person_group",
               data: data.flatMap((x) =>
                 (x.persons || []).map((person) => ({
-                  group_id: x._id,
-                  person_id: person,
+                  groupId: x._id,
+                  personId: person,
                 }))
               ),
               values: (x) => ({
-                group_id: x.group_id,
-                person_id: x.person_id,
+                groupId: x.groupId,
+                personId: x.personId,
               }),
             }),
             sqlInsertBatch({
               table: "person_group_relation",
               data: data.flatMap((x) =>
                 (x.relations || []).map((relation) => ({
-                  group_id: x._id,
-                  person_1_id: relation.persons[0],
-                  person_2_id: relation.persons[1],
+                  groupId: x._id,
+                  person1Id: relation.persons[0],
+                  person2Id: relation.persons[1],
                   description: relation.description,
-                  user_id: relation.user,
-                  created_at: relation.createdAt,
-                  updated_at: relation.updatedAt,
+                  userId: relation.user,
+                  createdAt: relation.createdAt,
+                  updatedAt: relation.updatedAt,
                 }))
               ),
               values: (x) => ({
-                group_id: x.group_id,
-                person_1_id: x.person_1_id,
-                person_2_id: x.person_2_id,
+                groupId: x.groupId,
+                person1Id: x.person1Id,
+                person2Id: x.person2Id,
                 description: x.description,
-                user_id: x.user_id,
-                created_at: x.created_at,
-                updated_at: x.updated_at,
+                userId: x.userId,
+                createdAt: x.createdAt,
+                updatedAt: x.updatedAt,
               }),
             }),
           ]);
@@ -464,15 +464,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "report",
         data: newReports,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           description: x.description,
           date: x.date,
           collaborations: x.collaborations,
           team: x.team,
-          updated_by: x.updatedBy,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          updatedBy: x.updatedBy,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -513,15 +513,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "passage",
         data: newPassages,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           comment: x.comment,
-          person_id: x.person,
-          team_id: x.team,
-          user_id: x.user,
+          personId: x.person,
+          teamId: x.team,
+          userId: x.user,
           date: x.date,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -562,15 +562,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "rencontre",
         data: newRencontres,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           comment: x.comment,
-          person_id: x.person,
-          team_id: x.team,
-          user_id: x.user,
+          personId: x.person,
+          teamId: x.team,
+          userId: x.user,
           date: x.date,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -613,22 +613,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "action",
         data: newActions,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           name: x.name,
-          person_id: x.person,
-          group_id: !x.group ? null : x.group,
+          personId: x.person,
+          groupId: !x.group ? null : x.group,
           description: x.description,
-          with_time: Number(x.withTime),
+          withTime: Number(x.withTime),
           urgent: Number(x.urgent),
           documents: x.documents,
-          user_id: x.user,
-          recurrence_id: x.recurrence,
-          due_at: x.dueAt,
-          completed_at: x.completedAt,
+          userId: x.user,
+          recurrenceId: x.recurrence,
+          dueAt: x.dueAt,
+          completedAt: x.completedAt,
           status: x.status,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
         after: async (data) => {
           await Promise.all([
@@ -636,24 +636,24 @@ export function useDataLoader(options = { refreshOnMount: false }) {
               table: "action_category",
               data: data.flatMap((x) =>
                 (x.categories || []).map((category) => ({
-                  action_id: x._id,
-                  category_id: category,
+                  actionId: x._id,
+                  categoryId: category,
                 }))
               ),
               values: (x) => ({
-                action_id: x.action_id,
-                category_id: x.category_id,
+                actionId: x.actionId,
+                categoryId: x.categoryId,
               }),
             }),
             sqlInsertBatch({
               table: "action_team",
               data: data.flatMap((x) =>
                 (x.teams || []).map((team) => ({
-                  action_id: x._id,
-                  team_id: team,
+                  actionId: x._id,
+                  teamId: team,
                 }))
               ),
-              values: (x) => ({ action_id: x.action_id, team_id: x.team_id }),
+              values: (x) => ({ actionId: x.actionId, teamId: x.teamId }),
             }),
           ]);
         },
@@ -696,16 +696,16 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "recurrence",
         data: newRecurrences,
         values: (x) => ({
-          id: x._id,
-          start_date: x.startDate,
-          end_date: x.endDate,
-          time_interval: x.timeInterval,
-          time_unit: x.timeUnit,
-          selected_days: x.selectedDays,
-          recurrence_type_for_month_and_year: x.recurrenceTypeForMonthAndYear,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          _id: x._id,
+          startDate: x.startDate,
+          endDate: x.endDate,
+          timeInterval: x.timeInterval,
+          timeUnit: x.timeUnit,
+          selectedDays: x.selectedDays,
+          recurrenceTypeForMonthAndYear: x.recurrenceTypeForMonthAndYear,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -745,15 +745,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "territory",
         data: newTerritories,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           name: x.name,
           perimeter: x.perimeter,
           description: x.description,
           types: x.types,
-          user: x.user,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          userId: x.user,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -794,11 +794,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "place",
         data: newPlaces,
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           name: x.name,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -839,9 +839,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "person_place",
         data: newRelsPersonPlace,
         values: (x) => ({
-          person_id: x.person,
-          place_id: x.place,
-          user_id: x.user,
+          personId: x.person,
+          placeId: x.place,
+          userId: x.user,
         }),
       });
     }
@@ -881,14 +881,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         table: "territory_observation",
         data: newTerritoryObservations,
         values: (x) => ({
-          id: x._id,
-          territory_id: x.territory,
-          user_id: x.user,
-          team_id: x.team,
-          observed_at: x.observedAt,
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          _id: x._id,
+          territoryId: x.territory,
+          userId: x.user,
+          teamId: x.team,
+          observedAt: x.observedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -929,21 +929,21 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         data: newComments,
         prepare: async (items) => await Promise.all(items.map((i) => decryptItem(i))),
         values: (x) => ({
-          id: x._id,
+          _id: x._id,
           comment: x.comment,
-          person_id: x.person,
-          action_id: x.action,
-          consultation_id: x.consultation,
-          medical_file_id: x.medicalFile,
-          group_id: x.group,
-          team_id: x.team,
-          user_id: x.user,
+          personId: x.person,
+          actionId: x.action,
+          consultationId: x.consultation,
+          medicalFileId: x.medicalFile,
+          groupId: x.group,
+          teamId: x.team,
+          userId: x.user,
           date: x.date,
           urgent: Number(x.urgent),
           share: Number(x.share),
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
       });
     }
@@ -981,33 +981,33 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     if (newConsultations.length && isTauri()) {
       const consultationIds = newConsultations.map((c) => c._id);
-      await sqlDeleteIds({ table: "consultation_team", ids: consultationIds, column: "consultation_id" });
-      await sqlDeleteIds({ table: "comment", ids: consultationIds, column: "consultation_id" });
+      await sqlDeleteIds({ table: "consultation_team", ids: consultationIds, column: "consultationId" });
+      await sqlDeleteIds({ table: "comment", ids: consultationIds, column: "consultationId" });
       await sqlDeleteIds({ table: "consultation", ids: consultationIds });
       await sqlInsertBatch({
         table: "consultation",
         data: newConsultations,
         values: (x) => ({
-          id: x._id,
-          person_id: x.person,
+          _id: x._id,
+          personId: x.person,
           name: x.name,
           type: x.type,
           documents: x.documents,
-          constantes_poids: x["constantes-poids"],
-          constantes_frequence_cardiaque: x["constantes-frequence-cardiaque"],
-          constantes_taille: x["constantes-taille"],
-          constantes_saturation_o2: x["constantes-saturation-o2"],
-          constantes_temperature: x["constantes-temperature"],
-          constantes_glycemie_capillaire: x["constantes-glycemie-capillaire"],
-          constantes_frequence_respiratoire: x["constantes-frequence-respiratoire"],
-          constantes_tension_arterielle_systolique: x["constantes-tension-arterielle-systolique"],
-          constantes_tension_arterielle_diastolique: x["constantes-tension-arterielle-diastolique"],
-          user_id: x.user,
-          due_at: x.dueAt,
-          completed_at: x.completedAt,
+          "constantes-poids": x["constantes-poids"],
+          "constantes-frequence-cardiaque": x["constantes-frequence-cardiaque"],
+          "constantes-taille": x["constantes-taille"],
+          "constantes-saturation-o2": x["constantes-saturation-o2"],
+          "constantes-temperature": x["constantes-temperature"],
+          "constantes-glycemie-capillaire": x["constantes-glycemie-capillaire"],
+          "constantes-frequence-respiratoire": x["constantes-frequence-respiratoire"],
+          "constantes-tension-arterielle-systolique": x["constantes-tension-arterielle-systolique"],
+          "constantes-tension-arterielle-diastolique": x["constantes-tension-arterielle-diastolique"],
+          userId: x.user,
+          dueAt: x.dueAt,
+          completedAt: x.completedAt,
           status: x.status,
           onlyVisibleBy: x.onlyVisibleBy,
-          custom_fields: Object.fromEntries(
+          customFields: Object.fromEntries(
             Object.entries(x).filter(
               ([key]) =>
                 ![
@@ -1042,9 +1042,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
                 ].includes(key)
             )
           ),
-          created_at: x.createdAt,
-          updated_at: x.updatedAt,
-          deleted_at: x.deletedAt,
+          createdAt: x.createdAt,
+          updatedAt: x.updatedAt,
+          deletedAt: x.deletedAt,
         }),
         after: async (data) => {
           await Promise.all([
@@ -1052,42 +1052,42 @@ export function useDataLoader(options = { refreshOnMount: false }) {
               table: "consultation_team",
               data: data.flatMap((x) =>
                 (x.teams || []).map((team) => ({
-                  consultation_id: x._id,
-                  team_id: team,
+                  consultationId: x._id,
+                  teamId: team,
                 }))
               ),
               values: (x) => ({
-                consultation_id: x.consultation_id,
-                team_id: x.team_id,
+                consultationId: x.consultationId,
+                teamId: x.teamId,
               }),
             }),
             sqlInsertBatch({
               table: "comment",
               data: data.flatMap((x) =>
                 (x.comments || []).map((comment) => ({
-                  id: comment._id,
+                  _id: comment._id,
                   comment: comment.comment,
-                  consultation_id: x._id,
+                  consultationId: x._id,
                   share: comment.share,
-                  team_id: comment.team,
-                  user_id: comment.user,
+                  teamId: comment.team,
+                  userId: comment.user,
                   date: comment.date,
-                  created_at: comment.createdAt,
-                  updated_at: comment.updatedAt,
-                  deleted_at: comment.deletedAt,
+                  createdAt: comment.createdAt,
+                  updatedAt: comment.updatedAt,
+                  deletedAt: comment.deletedAt,
                 }))
               ),
               values: (x) => ({
-                id: x.id,
+                _id: x.id,
                 comment: x.comment,
-                consultation_id: x.consultation_id,
+                consultationId: x.consultationId,
                 share: x.share,
-                team_id: x.team_id,
-                user_id: x.user_id,
+                teamId: x.teamId,
+                userId: x.userId,
                 date: x.date,
-                created_at: x.created_at,
-                updated_at: x.updated_at,
-                deleted_at: x.deleted_at,
+                createdAt: x.createdAt,
+                updatedAt: x.updatedAt,
+                deletedAt: x.deletedAt,
               }),
             }),
           ]);
@@ -1136,9 +1136,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           data: newTreatments,
           prepare: async (items) => await Promise.all(items.map((i) => decryptItem(i))),
           values: (x) => ({
-            id: x._id,
-            person_id: x.person,
-            user_id: x.user,
+            _id: x._id,
+            personId: x.person,
+            userId: x.user,
             startDate: x.startDate,
             endDate: x.endDate,
             name: x.name,
@@ -1146,9 +1146,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             frequency: x.frequency,
             indication: x.indication,
             documents: x.documents,
-            created_at: x.createdAt,
-            updated_at: x.updatedAt,
-            deleted_at: x.deletedAt,
+            createdAt: x.createdAt,
+            updatedAt: x.updatedAt,
+            deletedAt: x.deletedAt,
           }),
         });
       }
@@ -1196,10 +1196,10 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           table: "medical_file",
           data: newMedicalFiles,
           values: (x) => ({
-            id: x._id,
-            person_id: x.person,
+            _id: x._id,
+            personId: x.person,
             documents: x.documents,
-            custom_fields: Object.fromEntries(
+            customFields: Object.fromEntries(
               Object.entries(x).filter(
                 ([key]) =>
                   ![
@@ -1221,38 +1221,38 @@ export function useDataLoader(options = { refreshOnMount: false }) {
                   ].includes(key)
               )
             ),
-            created_at: x.createdAt,
-            updated_at: x.updatedAt,
-            deleted_at: x.deletedAt,
+            createdAt: x.createdAt,
+            updatedAt: x.updatedAt,
+            deletedAt: x.deletedAt,
           }),
           after: async (data) => {
             await sqlInsertBatch({
               table: "comment",
               data: data.flatMap((x) =>
                 (x.comments || []).map((comment) => ({
-                  id: comment._id,
+                  _id: comment._id,
                   comment: comment.comment,
-                  medical_file_id: x._id,
+                  medicalFileId: x._id,
                   share: comment.share,
-                  team_id: comment.team,
-                  user_id: comment.user,
+                  teamId: comment.team,
+                  userId: comment.user,
                   date: comment.date,
-                  created_at: comment.createdAt,
-                  updated_at: comment.updatedAt,
-                  deleted_at: comment.deletedAt,
+                  createdAt: comment.createdAt,
+                  updatedAt: comment.updatedAt,
+                  deletedAt: comment.deletedAt,
                 }))
               ),
               values: (x) => ({
-                id: x.id,
+                _id: x.id,
                 comment: x.comment,
-                medical_file_id: x.medical_file_id,
+                medicalFileId: x.medicalFileId,
                 share: x.share,
-                team_id: x.team_id,
-                user_id: x.user_id,
+                teamId: x.teamId,
+                userId: x.userId,
                 date: x.date,
-                created_at: x.created_at,
-                updated_at: x.updated_at,
-                deleted_at: x.deleted_at,
+                createdAt: x.createdAt,
+                updatedAt: x.updatedAt,
+                deletedAt: x.deletedAt,
               }),
             });
           },
@@ -1379,8 +1379,8 @@ function transformPersonHistory(person) {
       }
     });
   });
-  initialState.from_date = new Date(createdAt);
-  initialState.to_date = sortedHistory.length > 0 ? new Date(sortedHistory[0].date) : null; // Jusqu'à la première modification
+  initialState.fromDate = new Date(createdAt);
+  initialState.toDate = sortedHistory.length > 0 ? new Date(sortedHistory[0].date) : null; // Jusqu'à la première modification
 
   // Ajouter l'état initial à la liste des versions
   versions.push({ ...initialState });
@@ -1394,8 +1394,8 @@ function transformPersonHistory(person) {
     // Créer une copie de l'état précédent pour la version actuelle
     const newState = clonePerson({
       ...previousState,
-      from_date: new Date(previousState.from_date), // Garder la date de début
-      to_date: new Date(date), // Clôturer cet état avec la date du changement
+      fromDate: new Date(previousState.fromDate), // Garder la date de début
+      toDate: new Date(date), // Clôturer cet état avec la date du changement
     });
 
     versions.push({ ...newState });
@@ -1407,14 +1407,14 @@ function transformPersonHistory(person) {
         acc[key] = data[key].newValue; // Appliquer les nouvelles valeurs
         return acc;
       }, {}),
-      from_date: new Date(date), // La nouvelle version commence à la date du changement
+      fromDate: new Date(date), // La nouvelle version commence à la date du changement
     });
 
     previousState = modifiedState; // Préparer l'état suivant
   });
 
   // Ajouter la version actuelle avec `to_date: null`
-  previousState.to_date = null;
+  previousState.toDate = null;
   versions.push({ ...previousState });
 
   return versions;

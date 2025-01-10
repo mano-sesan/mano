@@ -27,54 +27,54 @@ export type StatsPopulation = "personnes_creees" | "personnes_suivies";
 export type Period = { from: string; to: string };
 
 export function sqlCTEPersonnesCreees(period: Period, teams: string[]) {
-  return `with personnes_creees as (select * from person where deleted_at is null and
-        exists (select 1 from person_history_team where "from_date" < '${period.to}' and (to_date > '${
+  return `with personnes_creees as (select * from person where deletedAt is null and
+        exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
           period.from
-        }' or to_date is null) and person.id = person_history_team.person_id and person_history_team.team_id IN (${teams
+        }' or toDate is null) and person._id = person_history_team.personId and person_history_team.teamId IN (${teams
           .map((t) => `'${t}'`)
           .join(",")}))
-        and (person.followed_since between '${period.from}' and '${
+        and (person.followedSince between '${period.from}' and '${
           period.to
-        }' or (person.followed_since is null and person.created_at between '${period.from}' and '${period.to}'))) `;
+        }' or (person.followedSince is null and person.createdAt between '${period.from}' and '${period.to}'))) `;
 }
 
 export function sqlCTEPersonnesSuivies(period: Period, teams: string[]) {
-  // TODO: document (created_at). Il faudra probablement ajouter les documents dans une table à part.
-  return `with personnes_suivies as (select * from person where deleted_at is null and
-  exists (select 1 from person_history_team where "from_date" < '${period.to}' and (to_date > '${
+  // TODO: document (createdAt). Il faudra probablement ajouter les documents dans une table à part.
+  return `with personnes_suivies as (select * from person where deletedAt is null and
+  exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
     period.from
-  }' or to_date is null) and person.id = person_history_team.person_id and person_history_team.team_id IN (${teams.map((t) => `'${t}'`).join(",")}))
+  }' or toDate is null) and person._id = person_history_team.personId and person_history_team.teamId IN (${teams.map((t) => `'${t}'`).join(",")}))
   and (
     -- history
-    exists(select 1 from person_history where "from_date" between '${period.from}' and '${period.to}' and person.id = person_history.person_id)
+    exists(select 1 from person_history where fromDate between '${period.from}' and '${period.to}' and person._id = person_history.personId)
     -- action
-    or exists (select 1 from "action" where ("due_at" between '${period.from}' and '${
+    or exists (select 1 from "action" where ("dueAt" between '${period.from}' and '${
       period.to
-    }' or "completed_at" between '${period.from}' and '${period.to}' or created_at between '${period.from}' and '${
+    }' or "completedAt" between '${period.from}' and '${period.to}' or createdAt between '${period.from}' and '${
       period.to
-    }') and person.id = action.person_id)
+    }') and person._id = action.personId)
     -- consultation
-    or exists (select 1 from "consultation" where ("due_at" between '${period.from}' and '${
+    or exists (select 1 from "consultation" where ("dueAt" between '${period.from}' and '${
       period.to
-    }' or "completed_at" between '${period.from}' and '${period.to}' or created_at between '${period.from}' and '${
+    }' or "completedAt" between '${period.from}' and '${period.to}' or createdAt between '${period.from}' and '${
       period.to
-    }') and person.id = consultation.person_id)
+    }') and person._id = consultation.personId)
     -- passage
     or exists (select 1 from "passage" where ("date" between '${period.from}' and '${
       period.to
-    }' or created_at between '${period.from}' and '${period.to}') and person.id = passage.person_id)
+    }' or createdAt between '${period.from}' and '${period.to}') and person._id = passage.personId)
     -- rencontre
     or exists (select 1 from "rencontre" where ("date" between '${period.from}' and '${
       period.to
-    }' or created_at between '${period.from}' and '${period.to}') and person.id = rencontre.person_id)
+    }' or createdAt between '${period.from}' and '${period.to}') and person._id = rencontre.personId)
     -- treatment
-    or exists (select 1 from "treatment" where ("created_at" between '${period.from}' and '${period.to}') and person.id = treatment.person_id)
+    or exists (select 1 from "treatment" where ("createdAt" between '${period.from}' and '${period.to}') and person._id = treatment.personId)
     -- person_place
-    or exists (select 1 from "person_place" where ("created_at" between '${period.from}' and '${period.to}') and person.id = person_place.person_id)
+    or exists (select 1 from "person_place" where ("createdAt" between '${period.from}' and '${period.to}') and person._id = person_place.personId)
     -- comment
     or exists (select 1 from "comment" where ("date" between '${period.from}' and '${
       period.to
-    }' or created_at between '${period.from}' and '${period.to}') and person.id = comment.person_id)
+    }' or createdAt between '${period.from}' and '${period.to}') and person._id = comment.personId)
 ))`;
 }
 
@@ -86,12 +86,12 @@ export function sqlCTEPersonnesFiltrees(
   population: "personnes_creees" | "personnes_suivies" | "personnes_toutes" = "personnes_creees"
 ) {
   if (population === "personnes_toutes") {
-    const query = `with person_filtrees as (select * from person ${buildPersonFilterWhereConditions("person", filters, baseFilters, period, ["deleted_at IS null"])})`;
+    const query = `with person_filtrees as (select * from person ${buildPersonFilterWhereConditions("person", filters, baseFilters, period, ["deletedAt IS null"])})`;
     return query;
   }
   if (!period.from && !period.to) {
-    return `with ${population} as (select * from person where deleted_at is null and
-      exists (select 1 from person_history_team where person.id = person_history_team.person_id and person_history_team.team_id IN (${teams
+    return `with ${population} as (select * from person where deletedAt is null and
+      exists (select 1 from person_history_team where person._id = person_history_team.personId and person_history_team.teamId IN (${teams
         .map((t) => `'${t}'`)
         .join(",")}))), person_filtrees as (select * from ${population} ${buildPersonFilterWhereConditions(
         population,
@@ -126,15 +126,15 @@ function buildPersonFilterWhereConditions(
     if (f.id === "hasAtLeastOneConsultation" && f.value) {
       if (!period.from && !period.to) {
         whereConditions.push(
-          `${f.value === "Oui" ? "" : "not "} exists (select 1 from "consultation" where ${tableOrViewName}.id = consultation.person_id)`
+          `${f.value === "Oui" ? "" : "not "} exists (select 1 from "consultation" where ${tableOrViewName}.id = consultation.personId)`
         );
       } else {
         whereConditions.push(
-          `${f.value === "Oui" ? "" : "not "} exists (select 1 from "consultation" where ("due_at" between '${
+          `${f.value === "Oui" ? "" : "not "} exists (select 1 from "consultation" where ("dueAt" between '${
             period.from
-          }' and '${period.to}' or "completed_at" between '${period.from}' and '${period.to}' or created_at between '${
+          }' and '${period.to}' or "completedAt" between '${period.from}' and '${period.to}' or createdAt between '${
             period.from
-          }' and '${period.to}') and ${tableOrViewName}.id = consultation.person_id)`
+          }' and '${period.to}') and ${tableOrViewName}.id = consultation.personId)`
         );
       }
     } else if (filter.type === "text" || filter.type === "textarea") {
@@ -206,11 +206,11 @@ export function sqlSelectPersonnesSuiviesAuMoinsUneActionCount(context: StatsCon
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_suivies");
   if (!period.from && !period.to) {
     return sqlSelect(
-      `${personnesSuiviesQuery} select count(*) as total from person_filtrees where exists (select 1 from action where person_filtrees.id = action.person_id);`
+      `${personnesSuiviesQuery} select count(*) as total from person_filtrees where exists (select 1 from action where person_filtrees._id = action.personId);`
     );
   }
   return sqlSelect(
-    `${personnesSuiviesQuery}, actions_for_persons as (select * from action where person_filtrees.id = action.person_id) select count(1) as total from person_filtrees where exists (select 1 from "actions_for_persons" where "due_at" between '${period.from}' and '${period.to}'  or "completed_at" between '${period.from}' and '${period.to}');`
+    `${personnesSuiviesQuery}, actions_for_persons as (select * from action where person_filtrees._id = action.personId) select count(1) as total from person_filtrees where exists (select 1 from "actions_for_persons" where "dueAt" between '${period.from}' and '${period.to}'  or "completedAt" between '${period.from}' and '${period.to}');`
   );
 }
 
@@ -219,18 +219,18 @@ export function sqlSelectActionsCount(context: StatsContext) {
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
   if (!period.from && !period.to) {
     return sqlSelect(
-      `${personnesToutesQuery} SELECT count(distinct id) as total FROM "action" 
-      WHERE EXISTS (SELECT 1 FROM action_team  WHERE team_id IN (select value from json_each($1)) AND "action".id=action_team.action_id) 
-      AND exists (select 1 from person_filtrees where person_filtrees.id = action.person_id)
-      AND action.deleted_at IS NULL;`,
+      `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "action" 
+      WHERE EXISTS (SELECT 1 FROM action_team  WHERE teamId IN (select value from json_each($1)) AND action._id=action_team.actionId) 
+      AND exists (select 1 from person_filtrees where person_filtrees._id = action.personId)
+      AND action.deletedAt IS NULL;`,
       [JSON.stringify(teams)]
     );
   }
   return sqlSelect(
-    `${personnesToutesQuery} SELECT count(distinct id) as total FROM "action" 
-      WHERE EXISTS (SELECT 1 FROM action_team  WHERE team_id IN (select value from json_each($3)) AND "action".id=action_team.action_id) 
-      AND ("due_at" between $1 and $2 or "completed_at" between $1 and $2)
-      AND exists (select 1 from person_filtrees where person_filtrees.id = action.person_id);`,
+    `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "action" 
+      WHERE EXISTS (SELECT 1 FROM action_team  WHERE teamId IN (select value from json_each($3)) AND action._id=action_team.actionId) 
+      AND ("dueAt" between $1 and $2 or "completedAt" between $1 and $2)
+      AND exists (select 1 from person_filtrees where person_filtrees._id = action.personId);`,
     [period.from, period.to, JSON.stringify(teams)]
   );
 }
@@ -240,17 +240,17 @@ export function sqlSelectRencontresCount(context: StatsContext) {
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
   if (!period.from && !period.to) {
     return sqlSelect(
-      `${personnesToutesQuery} SELECT count(distinct id) as total FROM "rencontre" 
-        WHERE team_id IN (select value from json_each($1))
-        AND exists (select 1 from person_filtrees where person_filtrees.id = rencontre.person_id);`,
+      `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "rencontre" 
+        WHERE teamId IN (select value from json_each($1))
+        AND exists (select 1 from person_filtrees where person_filtrees._id = rencontre.personId);`,
       [JSON.stringify(teams)]
     );
   }
   return sqlSelect(
-    `${personnesToutesQuery} SELECT count(distinct id) as total FROM "rencontre" 
-        WHERE team_id IN (select value from json_each($3))
+    `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "rencontre" 
+        WHERE teamId IN (select value from json_each($3))
         AND "date" between $1 and $2
-        AND exists (select 1 from person_filtrees where person_filtrees.id = rencontre.person_id);`,
+        AND exists (select 1 from person_filtrees where person_filtrees._id = rencontre.personId);`,
     [period.from, period.to, JSON.stringify(teams)]
   );
 }
@@ -260,17 +260,17 @@ export function sqlSelectPassagesCount(context: StatsContext) {
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
   if (!period.from && !period.to) {
     return sqlSelect(
-      `${personnesToutesQuery} SELECT count(distinct id) as total FROM "passage" 
-        WHERE team_id IN (select value from json_each($1))
-        AND exists (select 1 from person_filtrees where person_filtrees.id = passage.person_id);`,
+      `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "passage" 
+        WHERE teamId IN (select value from json_each($1))
+        AND exists (select 1 from person_filtrees where person_filtrees._id = passage.personId);`,
       [JSON.stringify(teams)]
     );
   }
   return sqlSelect(
-    `${personnesToutesQuery} SELECT count(distinct id) as total FROM "passage" 
-        WHERE team_id IN (select value from json_each($3))
+    `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "passage" 
+        WHERE teamId IN (select value from json_each($3))
         AND "date" between $1 and $2
-        AND exists (select 1 from person_filtrees where person_filtrees.id = passage.person_id);`,
+        AND exists (select 1 from person_filtrees where person_filtrees._id = passage.personId);`,
     [period.from, period.to, JSON.stringify(teams)]
   );
 }
@@ -280,9 +280,9 @@ export function sqlSelectPersonnesSuiviesDepuisLeMoyenne(context: StatsContext, 
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
     `${personnesSuiviesQuery} SELECT AVG(
-        CASE  WHEN out_of_active_list_date IS NOT NULL THEN 
-          julianday(out_of_active_list_date) - julianday(COALESCE(followed_since, created_at))
-        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followed_since, created_at))
+        CASE  WHEN outOfActiveListDate IS NOT NULL THEN 
+          julianday(outOfActiveListDate) - julianday(COALESCE(followedSince, createdAt))
+        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followedSince, createdAt))
         END
       ) AS avg_follow_duration FROM person_filtrees;`
   );
@@ -296,11 +296,11 @@ export function sqlSelectPersonnesSuiviesDepuisLeByGroupCount(
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
     `${personnesSuiviesQuery}, duree_suivi_table as (SELECT (
-        CASE  WHEN out_of_active_list_date IS NOT NULL THEN 
-          julianday(out_of_active_list_date) - julianday(COALESCE(followed_since, created_at))
-        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followed_since, created_at))
+        CASE  WHEN outOfActiveListDate IS NOT NULL THEN 
+          julianday(outOfActiveListDate) - julianday(COALESCE(followedSince, createdAt))
+        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followedSince, createdAt))
         END
-      ) AS follow_duration, person_filtrees.id FROM person_filtrees),
+      ) AS follow_duration, person_filtrees._id FROM person_filtrees),
        duree_suivi_group_table as (
         select case when follow_duration is null then 'Non renseigné'
         when follow_duration < 180 then '0-6 mois'
@@ -324,11 +324,11 @@ export function sqlSelectPersonnesSuiviesDepuisLeByGroup(
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
     `${personnesSuiviesQuery}, duree_suivi_table as (SELECT (
-        CASE  WHEN out_of_active_list_date IS NOT NULL THEN 
-          julianday(out_of_active_list_date) - julianday(COALESCE(followed_since, created_at))
-        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followed_since, created_at))
+        CASE  WHEN outOfActiveListDate IS NOT NULL THEN 
+          julianday(outOfActiveListDate) - julianday(COALESCE(followedSince, createdAt))
+        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followedSince, createdAt))
         END
-      ) AS follow_duration, person_filtrees.id FROM person_filtrees),
+      ) AS follow_duration, person_filtrees._id FROM person_filtrees),
        duree_suivi_group_table as (
         select case when follow_duration is null then 'Non renseigné'
         when follow_duration < 180 then '0-6 mois'
@@ -337,9 +337,9 @@ export function sqlSelectPersonnesSuiviesDepuisLeByGroup(
         when follow_duration < 1825 then '2-5 ans'
         when follow_duration < 3650 then '5-10 ans'
         else '+ 10 ans'
-        end as follow_duration, count(*) as total, duree_suivi_table.id from duree_suivi_table group by follow_duration
+        end as follow_duration, count(*) as total, duree_suivi_table._id from duree_suivi_table group by follow_duration
        )
-      select * from person_filtrees where exists (select 1 from duree_suivi_group_table where duree_suivi_group_table.id = person_filtrees.id and follow_duration = $1);`,
+      select * from person_filtrees where exists (select 1 from duree_suivi_group_table where duree_suivi_group_table._id = person_filtrees._id and follow_duration = $1);`,
     [group]
   );
 }
@@ -348,7 +348,7 @@ export function sqlSelectPersonnesEnRueDepuisLe(context: StatsContext, populatio
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery} SELECT AVG(julianday(CURRENT_TIMESTAMP) - julianday(wandering_at)) as avg_en_rue FROM person_filtrees WHERE wandering_at IS NOT NULL;`
+    `${personnesSuiviesQuery} SELECT AVG(julianday(CURRENT_TIMESTAMP) - julianday(wanderingAt)) as avg_en_rue FROM person_filtrees WHERE wanderingAt IS NOT NULL;`
   );
 }
 
@@ -356,7 +356,7 @@ export function sqlSelectPersonnesByGenreCount(context: StatsContext, population
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery} SELECT gender as genre, count(*) as total FROM person group by gender where exists (select 1 from person_filtrees where person_filtrees.id = person.id);`
+    `${personnesSuiviesQuery} SELECT gender as genre, count(*) as total FROM person where exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by gender ;`
   );
 }
 
@@ -368,7 +368,7 @@ export function sqlSelectPersonnesByGenre(
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery} SELECT id FROM person WHERE gender = $1 and exists (select 1 from person_filtrees where person_filtrees.id = person.id);`,
+    `${personnesSuiviesQuery} SELECT * FROM person WHERE gender = $1 and exists (select 1 from person_filtrees where person_filtrees._id = person._id);`,
     [genre]
   );
 }
@@ -385,7 +385,7 @@ function sqlCTEAgeGroupTable() {
             WHEN strftime('%Y', 'now') - strftime('%Y', birthdate) BETWEEN 45 AND 59 THEN '45 - 59 ans'
             ELSE '60+ ans'
           END AS age_group,
-          person_filtrees.id
+          person_filtrees._id
         FROM person_filtrees
       )`;
 }
@@ -410,7 +410,7 @@ export function sqlSelectPersonnesByAgeGroup(
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery}, ${sqlCTEAgeGroupTable()} select * from person_filtrees where exists (select 1 from age_group_table where age_group_table.id = person_filtrees.id and age_group = $1);`,
+    `${personnesSuiviesQuery}, ${sqlCTEAgeGroupTable()} select * from person_filtrees where exists (select 1 from age_group_table where age_group_table._id = person_filtrees._id and age_group = $1);`,
     [ageGroup]
   );
 }
