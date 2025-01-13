@@ -14,10 +14,13 @@ import {
   StatsContext,
   StatsPopulation,
 } from "./queries";
-import ChartPie from "./components/ChartPie";
-import ChartBar from "./components/ChartBar";
 import { Block } from "../stats/Blocks";
 import { SelectedPersonsModal } from "../stats/PersonsStats";
+import { CustomResponsiveBar, CustomResponsivePie } from "../stats/Charts";
+
+type PersonLoose = {
+  [key: string]: string | undefined | null | string[] | number | boolean;
+};
 
 type StatsPersonnesProps = {
   context: StatsContext;
@@ -26,18 +29,18 @@ type StatsPersonnesProps = {
 
 export function StatsPersonnes({ context, population = "personnes_creees" }: StatsPersonnesProps) {
   const [open, setOpen] = useState(false);
-  const [slicedData, setSlicedData] = useState<{ id: string; name: string }[]>([]);
+  const [slicedData, setSlicedData] = useState<PersonLoose[]>([]);
   const [sliceTitle, setSliceTitle] = useState<string | null>(null);
   const [sliceValue, setSliceValue] = useState<string | null>(null);
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <div className="flex gap-4">
+      <div className="tw-flex tw-flex-col tw-gap-2">
+        <div className="tw-grid tw-grid-cols-2 xl:tw-grid-cols-3 2xl:tw-grid-cols-4 tw-gap-4 tw-my-8">
           <Total context={context} population={population} />
           <SuiviDepuisLe context={context} population={population} />
           <EnRueDepuisLe context={context} population={population} />
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div>
           <ByGenre
             context={context}
             population={population}
@@ -48,8 +51,26 @@ export function StatsPersonnes({ context, population = "personnes_creees" }: Sta
               setOpen(true);
             }}
           />
-          <ByTrancheDage context={context} population={population} />
-          <BySuiviDepuisLe context={context} population={population} />
+          <ByTrancheDage
+            context={context}
+            population={population}
+            onSliceClick={(value, data) => {
+              setSliceTitle("Tranche d'age");
+              setSliceValue(value);
+              setSlicedData(data);
+              setOpen(true);
+            }}
+          />
+          <BySuiviDepuisLe
+            context={context}
+            population={population}
+            onSliceClick={(value, data) => {
+              setSliceTitle("Suivi depuis le");
+              setSliceValue(value);
+              setSlicedData(data);
+              setOpen(true);
+            }}
+          />
         </div>
       </div>
       <SelectedPersonsModal
@@ -64,7 +85,7 @@ export function StatsPersonnes({ context, population = "personnes_creees" }: Sta
           setSlicedData([]);
           setSliceTitle(null);
         }}
-        title={`${sliceTitle}&nbsp;: ${sliceValue} (${slicedData.length})`}
+        title={`${sliceTitle} : ${sliceValue} (${slicedData.length})`}
       />
     </>
   );
@@ -105,7 +126,7 @@ function ByGenre({
 }: {
   context: StatsContext;
   population: StatsPopulation;
-  onSliceClick: (value: string, data: { id: string; name: string }[]) => void;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
 }) {
   const [data, setData] = useState<{ genre: string; total: string }[]>([]);
 
@@ -114,114 +135,85 @@ function ByGenre({
   }, [context, population]);
 
   return (
-    <>
-      <div className="border p-2">
-        <div className="text-sm font-bold">Total par genre</div>
-        <div className="h-80">
-          <ChartPie
-            data={data.map((d) => ({
-              label: d.genre || "Non renseigné",
-              value: Number(d.total),
-              id: d.genre || "Non renseigné",
-            }))}
-          />
-        </div>
-        {data.map((d) => (
-          <div
-            key={d.genre}
-            onClick={() => {
-              sqlSelectPersonnesByGenre(context, population, d.genre).then((res) => onSliceClick(d.genre, res));
-            }}
-          >
-            {d.genre || "Non renseigné"}: {d.total}
-          </div>
-        ))}
-      </div>
-    </>
+    <CustomResponsivePie
+      title="Total par genre"
+      onItemClick={(genre) => {
+        sqlSelectPersonnesByGenre(context, population, genre).then((res) => {
+          onSliceClick(
+            genre,
+            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
+          );
+        });
+      }}
+      data={data.map((d) => ({
+        label: d.genre || "Non renseigné",
+        value: Number(d.total),
+        id: d.genre || "Non renseigné",
+      }))}
+    />
   );
 }
 
-function ByTrancheDage({ context, population }: { context: StatsContext; population: StatsPopulation }) {
-  const [data, setData] = useState<{ count: string; age_group: string }[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string | null>(null);
-  const [selectedAgeGroupData, setSelectedAgeGroupData] = useState<{ id: string; name: string }[]>([]);
+function ByTrancheDage({
+  context,
+  population,
+  onSliceClick,
+}: {
+  context: StatsContext;
+  population: StatsPopulation;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
+}) {
+  const [data, setData] = useState<{ age_group: string; total: string }[]>([]);
 
   useEffect(() => {
     sqlSelectPersonnesByAgeGroupCount(context, population).then((res) => setData(res));
   }, [context, population]);
 
-  useEffect(() => {
-    if (selectedAgeGroup) {
-      sqlSelectPersonnesByAgeGroup(context, population, selectedAgeGroup).then((res) => setSelectedAgeGroupData(res));
-    }
-  }, [selectedAgeGroup, context, population]);
-
   return (
-    <>
-      <div className="border p-2">
-        <div className="text-sm font-bold">Tranches d'age</div>
-        <div className="h-80">
-          <ChartPie data={data.map((d) => ({ label: d.age_group || "Non renseigné", value: Number(d.count), id: d.age_group }))} />
-        </div>
-        {data.map((d) => (
-          <div
-            key={d.age_group}
-            onClick={() => {
-              setSelectedAgeGroup(d.age_group);
-              setOpen(true);
-            }}
-          >
-            {d.age_group || "non renseigné"}: {d.count}
-          </div>
-        ))}
-      </div>
-      {/* <ModalPersons open={open} setOpen={setOpen} persons={selectedAgeGroupData} title={selectedAgeGroup || "Age"} /> */}
-    </>
+    <CustomResponsivePie
+      title="Total par tranche d'age"
+      onItemClick={(ageGroup) => {
+        sqlSelectPersonnesByAgeGroup(context, population, ageGroup).then((res) => {
+          onSliceClick(
+            ageGroup,
+            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
+          );
+        });
+      }}
+      data={data.map((d) => ({
+        label: d.age_group || "Non renseigné",
+        value: Number(d.total),
+        id: d.age_group || "Non renseigné",
+      }))}
+    />
   );
 }
 
-function BySuiviDepuisLe({ context, population }: { context: StatsContext; population: StatsPopulation }) {
+function BySuiviDepuisLe({
+  context,
+  population,
+  onSliceClick,
+}: {
+  context: StatsContext;
+  population: StatsPopulation;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
+}) {
   const [data, setData] = useState<{ total: string; follow_duration: string }[]>([]);
-  const [open, setOpen] = useState(false);
-  const [selectedFollowDuration, setSelectedFollowDuration] = useState<string | null>(null);
-  const [selectedFollowDurationData, setSelectedFollowDurationData] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     sqlSelectPersonnesSuiviesDepuisLeByGroupCount(context, population).then((res) => setData(res));
   }, [context, population]);
 
-  useEffect(() => {
-    if (selectedFollowDuration) {
-      sqlSelectPersonnesSuiviesDepuisLeByGroup(context, population, selectedFollowDuration).then((res) => setSelectedFollowDurationData(res));
-    }
-  }, [selectedFollowDuration, context, population]);
-
   return (
-    <>
-      <div className="border p-2">
-        <div className="text-sm font-bold">Suivi depuis le</div>
-        <div className="h-80">
-          <ChartBar data={data.map((d) => ({ label: d.follow_duration, value: Number(d.total), id: d.follow_duration }))} />
-        </div>
-        {data.map((d) => (
-          <div
-            key={d.follow_duration}
-            onClick={() => {
-              setSelectedFollowDuration(d.follow_duration);
-              setOpen(true);
-            }}
-          >
-            {d.follow_duration}: {d.total}
-          </div>
-        ))}
-      </div>
-      {/* <ModalPersons
-        open={open}
-        setOpen={setOpen}
-        persons={selectedFollowDurationData}
-        title={selectedFollowDuration || "Suivi depuis le"}
-      /> */}
-    </>
+    <CustomResponsiveBar
+      title="Total par suivi depuis le"
+      data={data.map((d) => ({ name: d.follow_duration, [d.follow_duration]: d.total }))}
+      axisTitleY="Nombre de personnes"
+      onItemClick={(followDuration) => {
+        sqlSelectPersonnesSuiviesDepuisLeByGroup(context, population, followDuration).then((res) => {
+          onSliceClick(followDuration, res);
+        });
+      }}
+    />
   );
 }

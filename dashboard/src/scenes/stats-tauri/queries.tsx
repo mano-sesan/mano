@@ -1,6 +1,8 @@
 import { dayjsInstance } from "../../services/date";
 import { sqlSelect } from "../../services/sql";
 
+const NON_RENSEIGNE = "Non renseigné";
+
 export type FieldType = "text" | "textarea" | "number" | "date" | "duration" | "date-with-time" | "yes-no" | "enum" | "multi-choice" | "boolean";
 
 export type Filter = {
@@ -113,9 +115,7 @@ function buildPersonFilterWhereConditions(
   period: Period,
   initialWhereConditions?: string[]
 ) {
-  const NON_RENSEIGNE = "Non renseigné";
   const whereConditions = initialWhereConditions || [];
-  console.log("filters", filters);
   for (const f of filters) {
     const filter = baseFilters.find((bf) => bf.id === f.id);
     if (!filter) {
@@ -288,42 +288,8 @@ export function sqlSelectPersonnesSuiviesDepuisLeMoyenne(context: StatsContext, 
   );
 }
 
-export function sqlSelectPersonnesSuiviesDepuisLeByGroupCount(
-  context: StatsContext,
-  population: StatsPopulation
-): Promise<{ total: string; follow_duration: string }[]> {
-  const { period, teams, filters, baseFilters } = context;
-  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
-  return sqlSelect(
-    `${personnesSuiviesQuery}, duree_suivi_table as (SELECT (
-        CASE  WHEN outOfActiveListDate IS NOT NULL THEN 
-          julianday(outOfActiveListDate) - julianday(COALESCE(followedSince, createdAt))
-        ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followedSince, createdAt))
-        END
-      ) AS follow_duration, person_filtrees._id FROM person_filtrees),
-       duree_suivi_group_table as (
-        select case when follow_duration is null then 'Non renseigné'
-        when follow_duration < 180 then '0-6 mois'
-        when follow_duration < 365 then '6-12 mois'
-        when follow_duration < 730 then '1-2 ans'
-        when follow_duration < 1825 then '2-5 ans'
-        when follow_duration < 3650 then '5-10 ans'
-        else '+ 10 ans'
-        end as follow_duration, count(*) as total from duree_suivi_table group by follow_duration
-       )
-      SELECT count(*) as total, follow_duration FROM duree_suivi_group_table GROUP BY follow_duration;`
-  );
-}
-
-export function sqlSelectPersonnesSuiviesDepuisLeByGroup(
-  context: StatsContext,
-  population: StatsPopulation,
-  group: string
-): Promise<{ id: string; name: string }[]> {
-  const { period, teams, filters, baseFilters } = context;
-  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
-  return sqlSelect(
-    `${personnesSuiviesQuery}, duree_suivi_table as (SELECT (
+function sqlCTEDureeSuiviGroupTable() {
+  return `duree_suivi_table as (SELECT (
         CASE  WHEN outOfActiveListDate IS NOT NULL THEN 
           julianday(outOfActiveListDate) - julianday(COALESCE(followedSince, createdAt))
         ELSE julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(followedSince, createdAt))
@@ -338,7 +304,30 @@ export function sqlSelectPersonnesSuiviesDepuisLeByGroup(
         when follow_duration < 3650 then '5-10 ans'
         else '+ 10 ans'
         end as follow_duration, count(*) as total, duree_suivi_table._id from duree_suivi_table group by follow_duration
-       )
+       )`;
+}
+
+export function sqlSelectPersonnesSuiviesDepuisLeByGroupCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; follow_duration: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, ${sqlCTEDureeSuiviGroupTable()}
+      SELECT count(*) as total, follow_duration FROM duree_suivi_group_table GROUP BY follow_duration;`
+  );
+}
+
+export function sqlSelectPersonnesSuiviesDepuisLeByGroup(
+  context: StatsContext,
+  population: StatsPopulation,
+  group: string
+): Promise<{ id: string; name: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, ${sqlCTEDureeSuiviGroupTable()}
       select * from person_filtrees where exists (select 1 from duree_suivi_group_table where duree_suivi_group_table._id = person_filtrees._id and follow_duration = $1);`,
     [group]
   );
@@ -364,11 +353,13 @@ export function sqlSelectPersonnesByGenre(
   context: StatsContext,
   population: StatsPopulation,
   genre: string
-): Promise<{ name: string; id: string }[]> {
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery} SELECT * FROM person WHERE gender = $1 and exists (select 1 from person_filtrees where person_filtrees._id = person._id);`,
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE ${
+      genre === NON_RENSEIGNE ? "gender IS NULL" : `gender = $1`
+    } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`,
     [genre]
   );
 }
@@ -393,12 +384,12 @@ function sqlCTEAgeGroupTable() {
 export function sqlSelectPersonnesByAgeGroupCount(
   context: StatsContext,
   population: StatsPopulation
-): Promise<{ count: string; age_group: string }[]> {
+): Promise<{ total: string; age_group: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
     `${personnesSuiviesQuery}, ${sqlCTEAgeGroupTable()}
-      SELECT age_group, COUNT(*) as count FROM age_group_table GROUP BY age_group;`
+      SELECT age_group, COUNT(*) as total FROM age_group_table GROUP BY age_group;`
   );
 }
 
@@ -406,11 +397,14 @@ export function sqlSelectPersonnesByAgeGroup(
   context: StatsContext,
   population: StatsPopulation,
   ageGroup: string
-): Promise<{ name: string; id: string }[]> {
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery}, ${sqlCTEAgeGroupTable()} select * from person_filtrees where exists (select 1 from age_group_table where age_group_table._id = person_filtrees._id and age_group = $1);`,
+    `${personnesSuiviesQuery}, ${sqlCTEAgeGroupTable()} 
+    SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId 
+    where exists (select 1 from person_filtrees where person_filtrees._id = person._id) 
+    and exists (select 1 from age_group_table where age_group_table._id = person._id and age_group = $1) group by person._id;`,
     [ageGroup]
   );
 }
