@@ -128,12 +128,13 @@ CREATE TABLE person (
   gender TEXT,
   birthdate TEXT,
   description TEXT,
-  alertness TEXT,
+  alertness INTEGER,
   wanderingAt TEXT,
   phone TEXT,
   email TEXT,
   followedSince TEXT,
-  outOfActiveList TEXT,
+  outOfActiveList INTEGER,
+  outOfActiveListReasons TEXT,
   outOfActiveListDate TEXT,
   documents TEXT,
   userId TEXT,
@@ -155,17 +156,21 @@ CREATE TABLE person_history (
   gender TEXT,
   birthdate TEXT,
   description TEXT,
-  alertness TEXT,
+  alertness INTEGER,
   wanderingAt TEXT,
   phone TEXT,
   email TEXT,
   followedSince TEXT,
-  outOfActiveList TEXT,
+  outOfActiveList INTEGER,
+  outOfActiveListReasons TEXT,
   outOfActiveListDate TEXT,
   documents TEXT,
   userId TEXT,
   fromDate TEXT,
   toDate TEXT,
+  createdAt TEXT,
+  --   updatedAt TEXT, ???
+  --   deletedAt TEXT, ???
   constraint pk_person_history primary key (personId, fromDate) on conflict replace
 );
 
@@ -227,11 +232,7 @@ CREATE TABLE IF NOT EXISTS "group" (
   deletedAt TEXT
 );
 
-CREATE TABLE IF NOT EXISTS person_group (
-  personId TEXT,
-  groupId TEXT,
-  FOREIGN KEY (personId) REFERENCES person (_id) constraint pk_person_group primary key (personId, groupId) on conflict replace
-);
+CREATE TABLE IF NOT EXISTS person_group (personId TEXT, groupId TEXT);
 
 CREATE TABLE IF NOT EXISTS person_group_relation (
   groupId TEXT,

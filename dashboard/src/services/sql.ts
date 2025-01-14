@@ -10,7 +10,7 @@ if (isTauri()) {
 
 const batchSize = 500;
 
-export async function sqlDeleteIds({ table, ids, column = "id" }: { table: string; ids: string[]; column?: string }) {
+export async function sqlDeleteIds({ table, ids, column = "_id" }: { table: string; ids: string[]; column?: string }) {
   console.log("sqlDeleteIds", table, ids.length);
   await db.execute(`DELETE FROM "${table}" WHERE "${column}" IN (${ids.map((id) => `'${id}'`).join(", ")})`);
 }

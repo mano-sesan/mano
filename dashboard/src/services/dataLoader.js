@@ -267,12 +267,13 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             gender: x.gender || null,
             birthdate: x.birthdate,
             description: x.description,
-            alertness: x.alertness,
+            alertness: Number(x.alertness || 0),
             wanderingAt: x.wanderingAt,
             phone: x.phone,
             email: x.email,
             followedSince: x.followedSince,
-            outOfActiveList: x.outOfActiveList,
+            outOfActiveList: Number(x.outOfActiveList || 0),
+            outOfActiveListReasons: x.outOfActiveListReasons,
             outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
             documents: x.documents,
             userId: x.user,
@@ -304,18 +305,20 @@ export function useDataLoader(options = { refreshOnMount: false }) {
                 gender: x.gender,
                 birthdate: x.birthdate,
                 description: x.description,
-                alertness: x.alertness,
+                alertness: Number(x.alertness || 0),
                 wanderingAt: x.wanderingAt,
                 phone: x.phone,
                 email: x.email,
                 followedSince: x.followedSince,
-                outOfActiveList: x.outOfActiveList,
+                outOfActiveList: Number(x.outOfActiveList || 0),
+                outOfActiveListReasons: x.outOfActiveListReasons,
                 outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
                 documents: x.documents,
                 userId: x.user,
                 ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field.original_id])])),
                 fromDate: x.fromDate,
                 toDate: x.toDate,
+                createdAt: x.createdAt,
               }),
               after: async (data) => {
                 return sqlInsertBatch({
@@ -1359,7 +1362,7 @@ function transformPersonHistory(person) {
   const { _id, createdAt, history, ...currentData } = person;
 
   // Fonction pour cloner l'objet tout en conservant les autres propriétés
-  const clonePerson = (data) => ({ _id, ...data });
+  const clonePerson = (data) => ({ _id, createdAt, ...data });
 
   // Initialisation des versions avec la personne actuelle
   const versions = [];

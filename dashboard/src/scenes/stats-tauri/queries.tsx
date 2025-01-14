@@ -29,54 +29,64 @@ export type StatsPopulation = "personnes_creees" | "personnes_suivies";
 export type Period = { from: string; to: string };
 
 export function sqlCTEPersonnesCreees(period: Period, teams: string[]) {
-  return `with personnes_creees as (select * from person where deletedAt is null and
+  return `with recursive dernier_etat_personnes_creees as (
+        SELECT ph.*, ph.personId as _id, ROW_NUMBER() OVER (PARTITION BY ph.personId ORDER BY ph.fromDate DESC) as rn
+        FROM person_history ph
+        WHERE (ph.toDate IS NULL OR ph.toDate >= '${period.from}')
+    ), personnes_creees as (select * from dernier_etat_personnes_creees p where deletedAt is null and
         exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
           period.from
-        }' or toDate is null) and person._id = person_history_team.personId and person_history_team.teamId IN (${teams
-          .map((t) => `'${t}'`)
-          .join(",")}))
-        and (person.followedSince between '${period.from}' and '${
+        }' or toDate is null) and p._id = person_history_team.personId and person_history_team.teamId IN (${teams.map((t) => `'${t}'`).join(",")}))
+        and (p.followedSince between '${period.from}' and '${
           period.to
-        }' or (person.followedSince is null and person.createdAt between '${period.from}' and '${period.to}'))) `;
+        }' or (p.followedSince is null and p.createdAt between '${period.from}' and '${period.to}'))) `;
 }
 
 export function sqlCTEPersonnesSuivies(period: Period, teams: string[]) {
   // TODO: document (createdAt). Il faudra probablement ajouter les documents dans une table à part.
-  return `with personnes_suivies as (select * from person where deletedAt is null and
-  exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
+  // TODO: réfléchir au deletedAt sur les history
+  // TODO: il manque le createdAt et le updatedAt
+  return `with recursive dernier_etat_personnes_suivies as (
+    SELECT ph.*, ph.personId as _id, ROW_NUMBER() OVER (PARTITION BY ph.personId ORDER BY ph.fromDate DESC) as rn
+    FROM person_history ph
+    WHERE (ph.toDate IS NULL OR ph.toDate >= '${period.from}')
+), personnes_suivies as (select * from dernier_etat_personnes_suivies p where rn = 1
+  and exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
     period.from
-  }' or toDate is null) and person._id = person_history_team.personId and person_history_team.teamId IN (${teams.map((t) => `'${t}'`).join(",")}))
+  }' or toDate is null) and p._id = person_history_team.personId and person_history_team.teamId IN (${teams.map((t) => `'${t}'`).join(",")}))
   and (
+    -- followedSince
+    p.followedSince between '${period.from}' and '${period.to}'
     -- history
-    exists(select 1 from person_history where fromDate between '${period.from}' and '${period.to}' and person._id = person_history.personId)
+    or exists(select 1 from person_history where fromDate between '${period.from}' and '${period.to}' and p._id = person_history.personId)
     -- action
     or exists (select 1 from "action" where ("dueAt" between '${period.from}' and '${
       period.to
     }' or "completedAt" between '${period.from}' and '${period.to}' or createdAt between '${period.from}' and '${
       period.to
-    }') and person._id = action.personId)
+    }') and p._id = action.personId)
     -- consultation
     or exists (select 1 from "consultation" where ("dueAt" between '${period.from}' and '${
       period.to
     }' or "completedAt" between '${period.from}' and '${period.to}' or createdAt between '${period.from}' and '${
       period.to
-    }') and person._id = consultation.personId)
+    }') and p._id = consultation.personId)
     -- passage
     or exists (select 1 from "passage" where ("date" between '${period.from}' and '${
       period.to
-    }' or createdAt between '${period.from}' and '${period.to}') and person._id = passage.personId)
+    }' or createdAt between '${period.from}' and '${period.to}') and p._id = passage.personId)
     -- rencontre
     or exists (select 1 from "rencontre" where ("date" between '${period.from}' and '${
       period.to
-    }' or createdAt between '${period.from}' and '${period.to}') and person._id = rencontre.personId)
+    }' or createdAt between '${period.from}' and '${period.to}') and p._id = rencontre.personId)
     -- treatment
-    or exists (select 1 from "treatment" where ("createdAt" between '${period.from}' and '${period.to}') and person._id = treatment.personId)
+    or exists (select 1 from "treatment" where ("createdAt" between '${period.from}' and '${period.to}') and p._id = treatment.personId)
     -- person_place
-    or exists (select 1 from "person_place" where ("createdAt" between '${period.from}' and '${period.to}') and person._id = person_place.personId)
+    or exists (select 1 from "person_place" where ("createdAt" between '${period.from}' and '${period.to}') and p._id = person_place.personId)
     -- comment
     or exists (select 1 from "comment" where ("date" between '${period.from}' and '${
       period.to
-    }' or createdAt between '${period.from}' and '${period.to}') and person._id = comment.personId)
+    }' or createdAt between '${period.from}' and '${period.to}') and p._id = comment.personId)
 ))`;
 }
 
@@ -88,11 +98,11 @@ export function sqlCTEPersonnesFiltrees(
   population: "personnes_creees" | "personnes_suivies" | "personnes_toutes" = "personnes_creees"
 ) {
   if (population === "personnes_toutes") {
-    const query = `with person_filtrees as (select * from person ${buildPersonFilterWhereConditions("person", filters, baseFilters, period, ["deletedAt IS null"])})`;
+    const query = `with recursive person_filtrees as (select * from person ${buildPersonFilterWhereConditions("person", filters, baseFilters, period, ["deletedAt IS null"])})`;
     return query;
   }
   if (!period.from && !period.to) {
-    return `with ${population} as (select * from person where deletedAt is null and
+    return `with recursive ${population} as (select * from person where deletedAt is null and
       exists (select 1 from person_history_team where person._id = person_history_team.personId and person_history_team.teamId IN (${teams
         .map((t) => `'${t}'`)
         .join(",")}))), person_filtrees as (select * from ${population} ${buildPersonFilterWhereConditions(
@@ -341,6 +351,47 @@ export function sqlSelectPersonnesEnRueDepuisLe(context: StatsContext, populatio
   );
 }
 
+function sqlCTEEnRueGroupTable() {
+  return `en_rue_table as (
+        SELECT julianday(CURRENT_TIMESTAMP) - julianday(COALESCE(wanderingAt, createdAt)) AS en_rue_duration, person_filtrees._id FROM person_filtrees WHERE wanderingAt IS NOT NULL),
+       en_rue_group_table as (
+        select case when en_rue_duration is null then 'Non renseigné'
+        when en_rue_duration < 180 then '0-6 mois'
+        when en_rue_duration < 365 then '6-12 mois'
+        when en_rue_duration < 730 then '1-2 ans'
+        when en_rue_duration < 1825 then '2-5 ans'
+        when en_rue_duration < 3650 then '5-10 ans'
+        else '+ 10 ans'
+        end as en_rue_duration, count(*) as total, en_rue_table._id from en_rue_table group by en_rue_duration
+       )`;
+}
+
+export function sqlSelectPersonnesEnRueByGroupCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; en_rue_duration: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, ${sqlCTEEnRueGroupTable()}
+      SELECT count(*) as total, en_rue_duration FROM en_rue_group_table GROUP BY en_rue_duration;`
+  );
+}
+
+export function sqlSelectPersonnesEnRueByGroup(
+  context: StatsContext,
+  population: StatsPopulation,
+  group: string
+): Promise<{ id: string; name: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, ${sqlCTEEnRueGroupTable()}
+      select * from person_filtrees where exists (select 1 from en_rue_group_table where en_rue_group_table._id = person_filtrees._id and en_rue_duration = $1);`,
+    [group]
+  );
+}
+
 export function sqlSelectPersonnesByGenreCount(context: StatsContext, population: StatsPopulation): Promise<{ genre: string; total: string }[]> {
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
@@ -406,6 +457,84 @@ export function sqlSelectPersonnesByAgeGroup(
     where exists (select 1 from person_filtrees where person_filtrees._id = person._id) 
     and exists (select 1 from age_group_table where age_group_table._id = person._id and age_group = $1) group by person._id;`,
     [ageGroup]
+  );
+}
+
+export function sqlSelectPersonnesVulnerablesCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; alertness: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}
+      SELECT CASE alertness WHEN 1 THEN 'Oui' ELSE 'Non' END as alertness, COUNT(*) as total FROM person_filtrees group by alertness;`
+  );
+}
+
+export function sqlSelectPersonnesVulnerables(
+  context: StatsContext,
+  population: StatsPopulation,
+  alertness: boolean
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE ${
+      alertness ? "alertness = 1" : "alertness IS NULL"
+    } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
+  );
+}
+
+export function sqlSelectPersonnesSortiesDeFileActiveCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; outOfActiveList: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT CASE outOfActiveList WHEN 1 THEN 'Oui' ELSE 'Non' END as outOfActiveList, COUNT(*) as total FROM person_filtrees group by outOfActiveList;`
+  );
+}
+
+export function sqlSelectPersonnesSortiesDeFileActive(
+  context: StatsContext,
+  population: StatsPopulation,
+  outOfActiveList: boolean
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE ${
+      outOfActiveList ? "outOfActiveList = 1" : "(outOfActiveList IS NULL OR outOfActiveList = 0)"
+    } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`,
+    [outOfActiveList]
+  );
+}
+
+export function sqlSelectPersonnesSortiesDeFileActiveReasonsCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; outOfActiveListReason: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, split(value) AS (
+  SELECT json_each.value
+  FROM person_filtrees, json_each(person_filtrees.outOfActiveListReasons)
+) SELECT value as outOfActiveListReason, COUNT(*) as total FROM split group by value;`
+  );
+}
+
+export function sqlSelectPersonnesSortiesDeFileActiveReasons(
+  context: StatsContext,
+  population: StatsPopulation,
+  outOfActiveListReason: string
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE ${outOfActiveListReason} and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
   );
 }
 

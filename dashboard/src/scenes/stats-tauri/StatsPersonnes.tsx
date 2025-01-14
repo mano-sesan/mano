@@ -6,11 +6,18 @@ import {
   sqlSelectPersonnesByGenre,
   sqlSelectPersonnesByGenreCount,
   sqlSelectPersonnesCreesCount,
+  sqlSelectPersonnesEnRueByGroup,
+  sqlSelectPersonnesEnRueByGroupCount,
   sqlSelectPersonnesEnRueDepuisLe,
+  sqlSelectPersonnesSortiesDeFileActive,
+  sqlSelectPersonnesSortiesDeFileActiveCount,
+  sqlSelectPersonnesSortiesDeFileActiveReasonsCount,
   sqlSelectPersonnesSuiviesCount,
   sqlSelectPersonnesSuiviesDepuisLeByGroup,
   sqlSelectPersonnesSuiviesDepuisLeByGroupCount,
   sqlSelectPersonnesSuiviesDepuisLeMoyenne,
+  sqlSelectPersonnesVulnerables,
+  sqlSelectPersonnesVulnerablesCount,
   StatsContext,
   StatsPopulation,
 } from "./queries";
@@ -32,6 +39,14 @@ export function StatsPersonnes({ context, population = "personnes_creees" }: Sta
   const [slicedData, setSlicedData] = useState<PersonLoose[]>([]);
   const [sliceTitle, setSliceTitle] = useState<string | null>(null);
   const [sliceValue, setSliceValue] = useState<string | null>(null);
+
+  const openModal = (title: string, value: string, data: PersonLoose[]) => {
+    setSliceTitle(title);
+    setSliceValue(value);
+    setSlicedData(data);
+    setOpen(true);
+  };
+
   return (
     <>
       <div className="tw-flex tw-flex-col tw-gap-2">
@@ -40,37 +55,50 @@ export function StatsPersonnes({ context, population = "personnes_creees" }: Sta
           <SuiviDepuisLe context={context} population={population} />
           <EnRueDepuisLe context={context} population={population} />
         </div>
-        <div>
+        <div className="tw-flex tw-flex-col tw-gap-4">
           <ByGenre
             context={context}
             population={population}
             onSliceClick={(value, data) => {
-              setSliceTitle("Genre");
-              setSliceValue(value);
-              setSlicedData(data);
-              setOpen(true);
+              openModal("Genre", value, data);
             }}
           />
           <ByTrancheDage
             context={context}
             population={population}
             onSliceClick={(value, data) => {
-              setSliceTitle("Tranche d'age");
-              setSliceValue(value);
-              setSlicedData(data);
-              setOpen(true);
+              openModal("Tranche d'age", value, data);
             }}
           />
           <BySuiviDepuisLe
             context={context}
             population={population}
             onSliceClick={(value, data) => {
-              setSliceTitle("Suivi depuis le");
-              setSliceValue(value);
-              setSlicedData(data);
-              setOpen(true);
+              openModal("Suivi depuis le", value, data);
             }}
           />
+          <ByEnRue
+            context={context}
+            population={population}
+            onSliceClick={(value, data) => {
+              openModal("Temps d'errance", value, data);
+            }}
+          />
+          <ByVulnerabilite
+            context={context}
+            population={population}
+            onSliceClick={(value, data) => {
+              openModal("Vulnérabilité", value, data);
+            }}
+          />
+          <BySortiesDeFileActive
+            context={context}
+            population={population}
+            onSliceClick={(value, data) => {
+              openModal("Sorties de file active", value, data);
+            }}
+          />
+          <BySortiesDeFileActiveReasons context={context} population={population} />
         </div>
       </div>
       <SelectedPersonsModal
@@ -213,6 +241,117 @@ function BySuiviDepuisLe({
         sqlSelectPersonnesSuiviesDepuisLeByGroup(context, population, followDuration).then((res) => {
           onSliceClick(followDuration, res);
         });
+      }}
+    />
+  );
+}
+
+function ByEnRue({
+  context,
+  population,
+  onSliceClick,
+}: {
+  context: StatsContext;
+  population: StatsPopulation;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
+}) {
+  const [data, setData] = useState<{ total: string; en_rue_duration: string }[]>([]);
+
+  useEffect(() => {
+    sqlSelectPersonnesEnRueByGroupCount(context, population).then((res) => setData(res));
+  }, [context, population]);
+
+  return (
+    <CustomResponsiveBar
+      title="Total par temps d'errance"
+      data={data.map((d) => ({ name: d.en_rue_duration, [d.en_rue_duration]: d.total }))}
+      axisTitleY="Nombre de personnes"
+      onItemClick={(enRueDuration) => {
+        sqlSelectPersonnesEnRueByGroup(context, population, enRueDuration).then((res) => {
+          onSliceClick(enRueDuration, res);
+        });
+      }}
+    />
+  );
+}
+
+function ByVulnerabilite({
+  context,
+  population,
+  onSliceClick,
+}: {
+  context: StatsContext;
+  population: StatsPopulation;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
+}) {
+  const [data, setData] = useState<{ total: string; alertness: string }[]>([]);
+
+  useEffect(() => {
+    sqlSelectPersonnesVulnerablesCount(context, population).then((res) => setData(res));
+  }, [context, population]);
+
+  return (
+    <CustomResponsivePie
+      title="Total par vulnérabilité"
+      onItemClick={(alertness) => {
+        sqlSelectPersonnesVulnerables(context, population, alertness === "Oui").then((res) => {
+          onSliceClick(
+            alertness,
+            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
+          );
+        });
+      }}
+      data={data.map((d) => ({ label: d.alertness, value: Number(d.total), id: d.alertness }))}
+    />
+  );
+}
+
+function BySortiesDeFileActive({
+  context,
+  population,
+  onSliceClick,
+}: {
+  context: StatsContext;
+  population: StatsPopulation;
+  onSliceClick: (value: string, data: PersonLoose[]) => void;
+}) {
+  const [data, setData] = useState<{ total: string; outOfActiveList: string }[]>([]);
+
+  useEffect(() => {
+    sqlSelectPersonnesSortiesDeFileActiveCount(context, population).then((res) => setData(res));
+  }, [context, population]);
+
+  return (
+    <CustomResponsivePie
+      title="Total par sorties de file active"
+      data={data.map((d) => ({ label: d.outOfActiveList, value: Number(d.total), id: d.outOfActiveList }))}
+      onItemClick={(outOfActiveList) => {
+        sqlSelectPersonnesSortiesDeFileActive(context, population, outOfActiveList === "Oui").then((res) => {
+          onSliceClick(
+            outOfActiveList,
+            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
+          );
+        });
+      }}
+    />
+  );
+}
+
+function BySortiesDeFileActiveReasons({ context, population }: { context: StatsContext; population: StatsPopulation }) {
+  const [data, setData] = useState<{ total: string; outOfActiveListReason: string }[]>([]);
+
+  useEffect(() => {
+    sqlSelectPersonnesSortiesDeFileActiveReasonsCount(context, population).then((res) => setData(res));
+  }, [context, population]);
+
+  console.log("BySortiesDeFileActiveReasons", data);
+
+  return (
+    <CustomResponsivePie
+      title="Total par raison de sortie de file active"
+      data={data.map((d) => ({ label: d.outOfActiveListReason, value: Number(d.total), id: d.outOfActiveListReason }))}
+      onItemClick={() => {
+        // TODO: faire un truc
       }}
     />
   );
