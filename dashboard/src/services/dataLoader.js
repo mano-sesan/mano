@@ -190,10 +190,13 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       personFields = [...organisation.groupedCustomFieldsMedicalFile, ...organisation.customFieldsPersons].flatMap((e) =>
         e.fields.map((f) => ({
           _id: f.name,
+          ...f,
         }))
       );
+      console.log("personFields", personFields);
       const personTableInfos = await sqlSelect(`PRAGMA table_info(person)`);
       const personHistoryTableInfos = await sqlSelect(`PRAGMA table_info(person_history)`);
+      // TODO: gérer les changements de types de colonnes
       for (const field of personFields) {
         if (field.type === "boolean" || field.type === "yes-no") {
           if (!personTableInfos.find((x) => x.name === field._id)) {
@@ -277,7 +280,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
             documents: x.documents,
             userId: x.user,
-            ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field.original_id])])),
+            ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field._id])])),
             createdAt: x.createdAt,
             updatedAt: x.updatedAt,
             deletedAt: x.deletedAt,
@@ -315,7 +318,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
                 outOfActiveListDate: x.outOfActiveListDate ? dayjsInstance(x.outOfActiveListDate).toISOString() : null,
                 documents: x.documents,
                 userId: x.user,
-                ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field.original_id])])),
+                ...Object.fromEntries(personFields.map((field) => [field._id, fieldToSqliteValue(field, x[field._id])])),
                 fromDate: x.fromDate,
                 toDate: x.toDate,
                 createdAt: x.createdAt,
@@ -1362,7 +1365,7 @@ function transformPersonHistory(person) {
   const { _id, createdAt, history, ...currentData } = person;
 
   // Fonction pour cloner l'objet tout en conservant les autres propriétés
-  const clonePerson = (data) => ({ _id, createdAt, ...data });
+  const clonePerson = (data) => ({ _id, ...data, createdAt }); // Peut-être conserver gender et followedSince
 
   // Initialisation des versions avec la personne actuelle
   const versions = [];

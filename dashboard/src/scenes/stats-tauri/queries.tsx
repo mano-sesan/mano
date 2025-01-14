@@ -1,5 +1,6 @@
 import { dayjsInstance } from "../../services/date";
 import { sqlSelect } from "../../services/sql";
+import { CustomField } from "../../types/field";
 
 const NON_RENSEIGNE = "Non renseigné";
 
@@ -29,11 +30,13 @@ export type StatsPopulation = "personnes_creees" | "personnes_suivies";
 export type Period = { from: string; to: string };
 
 export function sqlCTEPersonnesCreees(period: Period, teams: string[]) {
+  // TODO: réfléchir au deletedAt sur les history
+  // TODO: il manque le createdAt et le updatedAt
   return `with recursive dernier_etat_personnes_creees as (
         SELECT ph.*, ph.personId as _id, ROW_NUMBER() OVER (PARTITION BY ph.personId ORDER BY ph.fromDate DESC) as rn
         FROM person_history ph
         WHERE (ph.toDate IS NULL OR ph.toDate >= '${period.from}')
-    ), personnes_creees as (select * from dernier_etat_personnes_creees p where deletedAt is null and
+    ), personnes_creees as (select * from dernier_etat_personnes_creees p where rn = 1 and
         exists (select 1 from person_history_team where fromDate < '${period.to}' and (toDate > '${
           period.from
         }' or toDate is null) and p._id = person_history_team.personId and person_history_team.teamId IN (${teams.map((t) => `'${t}'`).join(",")}))
@@ -534,8 +537,98 @@ export function sqlSelectPersonnesSortiesDeFileActiveReasons(
   const { period, teams, filters, baseFilters } = context;
   const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
   return sqlSelect(
-    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE ${outOfActiveListReason} and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE exists (select 1 from json_each(person.outOfActiveListReasons) where value = $1) and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`,
+    [outOfActiveListReason]
   );
+}
+
+export function sqlSelectPersonnesByFamilyCount(
+  context: StatsContext,
+  population: StatsPopulation
+): Promise<{ total: string; familySize: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}, grouped_families as (SELECT groupId, COUNT(personId) AS familySize FROM person_group where exists (select 1 from person_filtrees where person_filtrees._id = person_group.personId) GROUP BY groupId)
+    SELECT familySize, COUNT(*) as total FROM grouped_families group by familySize;`
+  );
+}
+
+export function sqlSelectPersonnesByBooleanCustomFieldCount(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string
+): Promise<{ total: string; field: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}
+     SELECT CASE "${fieldName}" WHEN 1 THEN 'Oui' ELSE 'Non' END as field, COUNT(*) as total FROM person_filtrees group by field;`
+  );
+}
+
+export function sqlSelectPersonnesByBooleanCustomField(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string,
+  value: string
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE "${fieldName}" = $1 and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`,
+    [value === "Oui" ? 1 : 0]
+  );
+}
+
+export function sqlSelectPersonnesByChoiceCustomFieldCount(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string
+): Promise<{ total: string; field: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}
+     SELECT CASE "${fieldName}" WHEN 1 THEN 'Oui' WHEN 0 THEN 'Non' ELSE coalesce("${fieldName}", 'Non renseigné') END as field, COUNT(*) as total FROM person_filtrees group by field;`
+  );
+}
+
+export function sqlSelectPersonnesByChoiceCustomField(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string,
+  value: string
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE "${fieldName}" ${
+      value === "Oui" ? "= 1" : value === "Non" ? "= 0" : "IS NULL"
+    } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
+  );
+}
+
+export function sqlSelectPersonnesNumberCustomFieldCount(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string
+): Promise<{ total: string; avg: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(`${personnesSuiviesQuery} SELECT SUM("${fieldName}") as total, AVG("${fieldName}") as avg FROM person_filtrees;`);
+}
+
+export function sqlSelectPersonnesDateCustomFieldAvg(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string
+): Promise<{ avg: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(`${personnesSuiviesQuery},
+    differences AS (SELECT julianday('now') - julianday("${fieldName}") AS days_difference FROM person_filtrees)
+    SELECT AVG(days_difference) AS "avg" FROM differences;`);
 }
 
 export function dayCountToHumanReadable(days: number) {

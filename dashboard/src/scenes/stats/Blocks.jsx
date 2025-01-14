@@ -49,3 +49,28 @@ export const BlockTotal = ({ title, unit, data, field, help }) => {
     </Card>
   );
 };
+
+export const SimpleBlockTotal = ({ title, unit, total, avg = undefined, help, withDecimals = true }) => {
+  if (!total) {
+    return (
+      <div>
+        <Card title={title} unit={unit} help={help}>
+          <div className="mx-auto tw-pb-4 tw-text-center tw-text-gray-400">
+            <p className="w-full tw-text-lg tw-font-bold">Pas de donnée à afficher</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <Card title={title} unit={unit} count={withDecimals ? twoDecimals(total) : total} help={help}>
+        {avg !== undefined ? (
+          <span className="font-weight-normal">
+            Moyenne: <strong>{!avg ? "-" : withDecimals ? twoDecimals(avg) : avg}</strong>
+          </span>
+        ) : null}
+      </Card>
+    </div>
+  );
+};
