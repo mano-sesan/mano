@@ -581,7 +581,7 @@ export function sqlSelectPersonnesByBooleanCustomField(
   );
 }
 
-export function sqlSelectPersonnesByChoiceCustomFieldCount(
+export function sqlSelectPersonnesByYesNoCustomFieldCount(
   context: StatsContext,
   population: StatsPopulation,
   fieldName: string
@@ -594,7 +594,7 @@ export function sqlSelectPersonnesByChoiceCustomFieldCount(
   );
 }
 
-export function sqlSelectPersonnesByChoiceCustomField(
+export function sqlSelectPersonnesByYesNoCustomField(
   context: StatsContext,
   population: StatsPopulation,
   fieldName: string,
@@ -605,6 +605,34 @@ export function sqlSelectPersonnesByChoiceCustomField(
   return sqlSelect(
     `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE "${fieldName}" ${
       value === "Oui" ? "= 1" : value === "Non" ? "= 0" : "IS NULL"
+    } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
+  );
+}
+
+export function sqlSelectPersonnesByEnumCustomFieldCount(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string
+): Promise<{ total: string; field: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery}
+     SELECT coalesce("${fieldName}", 'Non renseigné') as field, COUNT(*) as total FROM person_filtrees group by field;`
+  );
+}
+
+export function sqlSelectPersonnesByEnumCustomField(
+  context: StatsContext,
+  population: StatsPopulation,
+  fieldName: string,
+  value: string
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, population);
+  return sqlSelect(
+    `${personnesSuiviesQuery} SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE "${fieldName}" ${
+      value ? `= '${value}'` : "IS NULL"
     } and exists (select 1 from person_filtrees where person_filtrees._id = person._id) group by person._id;`
   );
 }

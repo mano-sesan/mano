@@ -16,6 +16,7 @@ import { fieldsPersonsCustomizableOptionsSelector, filterPersonsBaseSelector, fl
 import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { StatsPersonnes } from "./StatsPersonnes";
+import { StatsMedicales } from "./StatsMedicales";
 
 const tabs = [
   "Général",
@@ -225,6 +226,8 @@ export default function Stats() {
       {activeTab === "Général" && <StatsGeneral context={context} />}
       {activeTab === "Personnes créées" && <StatsPersonnes context={context} population="personnes_creees" />}
       {activeTab === "Personnes suivies" && <StatsPersonnes context={context} population="personnes_suivies" />}
+      {activeTab === "Dossiers médicaux des personnes créées" && <StatsMedicales context={context} population="personnes_creees" />}
+      {activeTab === "Dossiers médicaux des personnes suivies" && <StatsMedicales context={context} population="personnes_suivies" />}
       <div className="tw-pb-[75vh] print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4"></div>
       {/* HACK: this last div is because Chrome crop the end of the page - I didn't find any better solution */}
       <div className="printonly tw-h-screen" aria-hidden />

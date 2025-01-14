@@ -3,19 +3,13 @@ import {
   dayCountToHumanReadable,
   sqlSelectPersonnesByAgeGroup,
   sqlSelectPersonnesByAgeGroupCount,
-  sqlSelectPersonnesByBooleanCustomField,
-  sqlSelectPersonnesByBooleanCustomFieldCount,
-  sqlSelectPersonnesByChoiceCustomField,
-  sqlSelectPersonnesByChoiceCustomFieldCount,
   sqlSelectPersonnesByFamilyCount,
   sqlSelectPersonnesByGenre,
   sqlSelectPersonnesByGenreCount,
   sqlSelectPersonnesCreesCount,
-  sqlSelectPersonnesDateCustomFieldAvg,
   sqlSelectPersonnesEnRueByGroup,
   sqlSelectPersonnesEnRueByGroupCount,
   sqlSelectPersonnesEnRueDepuisLe,
-  sqlSelectPersonnesNumberCustomFieldCount,
   sqlSelectPersonnesSortiesDeFileActive,
   sqlSelectPersonnesSortiesDeFileActiveCount,
   sqlSelectPersonnesSortiesDeFileActiveReasons,
@@ -29,12 +23,12 @@ import {
   StatsContext,
   StatsPopulation,
 } from "./queries";
-import { Block, BlockDateWithTime, SimpleBlockTotal } from "../stats/Blocks";
+import { Block } from "../stats/Blocks";
 import { SelectedPersonsModal } from "../stats/PersonsStats";
 import { CustomResponsiveBar, CustomResponsivePie } from "../stats/Charts";
 import { customFieldsPersonsSelector } from "../../recoil/persons";
 import { useRecoilValue } from "recoil";
-import { CustomField } from "../../types/field";
+import { CustomFieldBlock } from "./StatsCustomFields";
 
 type PersonLoose = {
   [key: string]: string | undefined | null | string[] | number | boolean;
@@ -124,44 +118,17 @@ export function StatsPersonnes({ context, population = "personnes_creees" }: Sta
                 <h1>{section.name}</h1>
                 <div className="tw-flex tw-flex-wrap tw-justify-center tw-items-stretch tw-gap-4">
                   {section.fields.map((field) => {
-                    if (field.type === "number") {
-                      return <NumberCustomField key={field.name} context={context} population={population} field={field} />;
-                    }
-                    if (field.type === "date" || field.type === "date-with-time" || field.type === "duration") {
-                      return <DateCustomField key={field.name} context={context} population={population} field={field} />;
-                    }
-                    if (field.type === "boolean") {
-                      return (
-                        <BooleanCustomField
-                          context={context}
-                          population={population}
-                          key={field.name}
-                          field={field}
-                          onSliceClick={(value, data) => {
-                            openModal(field.label, value, data);
-                          }}
-                        />
-                      );
-                    }
-                    if (["yes-no", "enum"].includes(field.type)) {
-                      return (
-                        <SingleChoiceCustomField
-                          context={context}
-                          population={population}
-                          key={field.name}
-                          field={field}
-                          onSliceClick={(value, data) => {
-                            openModal(field.label, value, data);
-                          }}
-                        />
-                      );
-                    }
-                    /*
-                    if (field.type === "multi-choice") {
-                      return <CustomResponsivePie key={field.name} title={field.label} data={[]} />;
-                    }
-                    */
-                    return null;
+                    return (
+                      <CustomFieldBlock
+                        key={field.name}
+                        context={context}
+                        population={population}
+                        field={field}
+                        onSliceClick={(label, value, data) => {
+                          openModal(label, value, data);
+                        }}
+                      />
+                    );
                   })}
                 </div>
               </>
@@ -450,98 +417,4 @@ function ByFamilySize({ context, population }: { context: StatsContext; populati
       axisTitleY="Nombre de personnes"
     />
   );
-}
-
-export function BooleanCustomField({
-  context,
-  population,
-  field,
-  onSliceClick,
-}: {
-  context: StatsContext;
-  population: StatsPopulation;
-  field: CustomField;
-  onSliceClick: (value: string, data: PersonLoose[]) => void;
-}) {
-  const [data, setData] = useState<{ total: string; field: string }[]>([]);
-  useEffect(() => {
-    sqlSelectPersonnesByBooleanCustomFieldCount(context, population, field.name).then((res) => setData(res));
-  }, [context, population, field.name]);
-  return (
-    <CustomResponsivePie
-      title={field.label}
-      data={data.map((d) => ({ label: d.field, value: Number(d.total), id: d.field }))}
-      onItemClick={(f) => {
-        sqlSelectPersonnesByBooleanCustomField(context, population, field.name, f).then((res) => {
-          onSliceClick(
-            f,
-            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
-          );
-        });
-      }}
-    />
-  );
-}
-
-export function SingleChoiceCustomField({
-  context,
-  population,
-  field,
-  onSliceClick,
-}: {
-  context: StatsContext;
-  population: StatsPopulation;
-  field: CustomField;
-  onSliceClick: (value: string, data: PersonLoose[]) => void;
-}) {
-  const [data, setData] = useState<{ total: string; field: string }[]>([]);
-
-  useEffect(() => {
-    sqlSelectPersonnesByChoiceCustomFieldCount(context, population, field.name).then((res) => setData(res));
-  }, [context, population, field.name]);
-
-  return (
-    <CustomResponsivePie
-      title={field.label}
-      data={data.map((d) => ({ label: d.field, value: Number(d.total), id: d.field }))}
-      onItemClick={(f) => {
-        sqlSelectPersonnesByChoiceCustomField(context, population, field.name, f).then((res) => {
-          onSliceClick(
-            f,
-            res.map((r) => ({ ...r, assignedTeams: (r.assignedTeams || "").split(",") }))
-          );
-        });
-      }}
-    />
-  );
-}
-
-const getDuration = (days: number) => {
-  if (days < 90) return [days, "jours"];
-  const months = days / (365 / 12);
-  if (months < 24) return [Math.round(months), "mois"];
-  const years = days / 365.25;
-  return [Math.round(years), "années"];
-};
-
-function DateCustomField({ context, population, field }: { context: StatsContext; population: StatsPopulation; field: CustomField }) {
-  const [data, setData] = useState<{ avg: string }[]>([]);
-  useEffect(() => {
-    sqlSelectPersonnesDateCustomFieldAvg(context, population, field.name).then((res) => setData(res));
-  }, [context, population, field.name]);
-
-  const [count, unit] = data[0]?.avg ? getDuration(Number(data[0].avg)) : [null, null];
-  return <SimpleBlockTotal title={field.label} total={count} unit={unit} help={null} withDecimals={false} />;
-}
-
-function NumberCustomField({ context, population, field }: { context: StatsContext; population: StatsPopulation; field: CustomField }) {
-  const [data, setData] = useState<{ total: string; avg: string }[]>([]);
-
-  useEffect(() => {
-    sqlSelectPersonnesNumberCustomFieldCount(context, population, field.name).then((res) => setData(res));
-  }, [context, population, field.name]);
-
-  const [total, avg] = data[0]?.total ? [data[0].total, data[0].avg] : [null, null];
-
-  return <SimpleBlockTotal title={field.label} total={total} unit={null} avg={avg} help={null} />;
 }
