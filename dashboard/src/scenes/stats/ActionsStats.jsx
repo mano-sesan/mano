@@ -182,7 +182,7 @@ const ActionsStats = ({
       </div>
       <div className="tw-flex tw-flex-col tw-gap-4">
         <CustomResponsiveBar
-          title="Répartition des actions par groupe"
+          title="Répartition des catégories d'actions par groupe"
           help={`Si une action a plusieurs catégories appartenant à plusieurs groupes, elle est comptabilisée dans chaque groupe.\n\nSi une action a plusieurs catégories appartenant au même groupe, elle est comptabilisée autant de fois dans ce groupe.\n\nAinsi, le total affiché peut être supérieur au nombre total d'actions.`}
           onItemClick={
             user.role === "stats-only"
