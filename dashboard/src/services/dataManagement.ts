@@ -71,7 +71,6 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
     await sqlExecute("DELETE FROM report;");
     await sqlExecute("DELETE FROM team;");
     await sqlExecute("DELETE FROM user;");
-    await sqlExecute("DELETE FROM organisation_person_field;");
   }
   await deleteDB().catch(capture);
   window.localStorage?.clear();

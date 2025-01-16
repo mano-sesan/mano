@@ -612,8 +612,8 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     if (newActions.length && isTauri()) {
       const ids = newActions.map((a) => a._id);
-      await sqlDeleteIds({ table: "action_team", ids, column: "action_id" });
-      await sqlDeleteIds({ table: "action_category", ids, column: "action_id" });
+      await sqlDeleteIds({ table: "action_team", ids, column: "actionId" });
+      await sqlDeleteIds({ table: "action_category", ids, column: "actionId" });
       await sqlDeleteIds({ table: "action", ids });
       await sqlInsertBatch({
         table: "action",

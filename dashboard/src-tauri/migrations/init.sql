@@ -52,19 +52,6 @@ DROP TABLE IF EXISTS team;
 
 DROP TABLE IF EXISTS user;
 
-DROP TABLE IF EXISTS organisation_person_field;
-
-CREATE TABLE IF NOT EXISTS organisation_person_field (
-  _id PRIMARY KEY,
-  type TEXT,
-  label TEXT,
-  options TEXT,
-  readOnly INTEGER,
-  medical INTEGER,
-  groupName TEXT,
-  originalId TEXT
-);
-
 CREATE TABLE IF NOT EXISTS action (
   _id PRIMARY KEY,
   name TEXT,

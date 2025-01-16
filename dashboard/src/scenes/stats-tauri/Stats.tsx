@@ -17,6 +17,8 @@ import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { StatsPersonnes } from "./StatsPersonnes";
 import { StatsMedicales } from "./StatsMedicales";
+import ServicesStats from "../stats/ServicesStats";
+import { StatsActions } from "./StatsActions";
 
 const tabs = [
   "Général",
@@ -35,6 +37,7 @@ const tabs = [
 
 const tabsWithPersonFilter = [
   "Général",
+  "Actions",
   "Personnes créées",
   "Personnes suivies",
   "Passages",
@@ -224,6 +227,8 @@ export default function Stats() {
         />
       )}
       {activeTab === "Général" && <StatsGeneral context={context} />}
+      {activeTab === "Services" && <ServicesStats period={{ startDate: period.from, endDate: period.to }} teamIds={context.teams} />}
+      {activeTab === "Actions" && <StatsActions context={context} />}
       {activeTab === "Personnes créées" && <StatsPersonnes context={context} population="personnes_creees" />}
       {activeTab === "Personnes suivies" && <StatsPersonnes context={context} population="personnes_suivies" />}
       {activeTab === "Dossiers médicaux des personnes créées" && <StatsMedicales context={context} population="personnes_creees" />}

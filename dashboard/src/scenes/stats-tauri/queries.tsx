@@ -659,6 +659,62 @@ export function sqlSelectPersonnesDateCustomFieldAvg(
     SELECT AVG(days_difference) AS "avg" FROM differences;`);
 }
 
+export function sqlSelectActionByActionCategoryCount(
+  context: StatsContext,
+  categories: string[],
+  statuses: string[]
+): Promise<{ actionCategory: string; total: string }[]> {
+  console.log(categories, statuses);
+  const { period, teams, filters, baseFilters } = context;
+  const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
+
+  return sqlSelect(
+    `${personnesToutesQuery}, actions_with_categories AS (
+        SELECT a._id, ac.categoryId, a.personId
+        FROM action a
+        LEFT JOIN action_category ac ON ac.actionId = a._id
+        WHERE EXISTS (SELECT 1 FROM action_team WHERE teamId IN (select value from json_each($1)) AND a._id=action_team.actionId)
+        ${period.from && period.to ? `AND (a."dueAt" between '${period.from}' and '${period.to}' or a."completedAt" between '${period.from}' and '${period.to}')` : ""}
+        ${statuses?.length ? `AND a.status IN (${statuses.map((status) => `'${status}'`).join(",")})` : ""}
+        AND EXISTS (select 1 from person_filtrees where person_filtrees._id = a.personId)
+        AND a.deletedAt IS NULL
+      )
+      SELECT 
+        CASE 
+          WHEN categoryId IS NULL THEN 'Non renseigné'
+          ELSE categoryId
+        END as actionCategory,
+        COUNT(DISTINCT _id) as total
+      FROM actions_with_categories
+      WHERE ${!categories?.length || categories.includes("-- Aucune --") ? "1=1" : `categoryId IN (${categories.map((category) => `'${category}'`).join(",")})`}
+      GROUP BY actionCategory;`,
+    [JSON.stringify(teams)]
+  );
+}
+
+export function sqlSelectPersonnesByActionCategoryCount(
+  context: StatsContext,
+  categories: string[],
+  statuses: string[]
+): Promise<{ actionCategory: string; total: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
+  return sqlSelect(
+    `${personnesToutesQuery} 
+      SELECT ac.categoryId as actionCategory, COUNT(DISTINCT a.personId) as total 
+      FROM action a
+      JOIN action_category ac ON ac.actionId = a._id
+      WHERE EXISTS (SELECT 1 FROM action_team WHERE teamId IN (select value from json_each($1)) AND a._id=action_team.actionId)
+      ${period.from && period.to ? `AND (a."dueAt" between '${period.from}' and '${period.to}' or a."completedAt" between '${period.from}' and '${period.to}')` : ""}
+      ${statuses?.length ? `AND a.status IN (${statuses.map((status) => `'${status}'`).join(",")})` : ""}
+      ${categories?.length ? `AND ac.categoryId IN (${categories.map((category) => `'${category}'`).join(",")})` : ""}
+      AND EXISTS (select 1 from person_filtrees where person_filtrees._id = a.personId)
+      AND a.deletedAt IS NULL 
+      GROUP BY ac.categoryId;`,
+    [JSON.stringify(teams)]
+  );
+}
+
 export function dayCountToHumanReadable(days: number) {
   if (days < 90) return `${Math.round(days)} jours`;
   const months = days / (365.25 / 12);
