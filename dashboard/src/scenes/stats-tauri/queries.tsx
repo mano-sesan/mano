@@ -1,6 +1,5 @@
 import { dayjsInstance } from "../../services/date";
 import { sqlSelect } from "../../services/sql";
-import { CustomField } from "../../types/field";
 
 const NON_RENSEIGNE = "Non renseigné";
 
@@ -659,36 +658,53 @@ export function sqlSelectPersonnesDateCustomFieldAvg(
     SELECT AVG(days_difference) AS "avg" FROM differences;`);
 }
 
+function sqlCTEActionWithCategories(period: Period, statuses: string[], teams: string[]) {
+  return `actions_with_categories AS (
+        SELECT a._id, ac.categoryId, a.personId
+        FROM action a
+        LEFT JOIN action_category ac ON ac.actionId = a._id
+        WHERE EXISTS (SELECT 1 FROM action_team WHERE teamId IN (${teams.map((t) => `'${t}'`).join(",")}) AND a._id=action_team.actionId)
+        ${period.from && period.to ? `AND (a."dueAt" between '${period.from}' and '${period.to}' or a."completedAt" between '${period.from}' and '${period.to}')` : ""}
+        ${statuses?.length ? `AND a.status IN (${statuses.map((status) => `'${status}'`).join(",")})` : ""}
+        AND EXISTS (select 1 from person_filtrees where person_filtrees._id = a.personId)
+        AND a.deletedAt IS NULL
+      )`;
+}
+
 export function sqlSelectActionByActionCategoryCount(
   context: StatsContext,
   categories: string[],
   statuses: string[]
 ): Promise<{ actionCategory: string; total: string }[]> {
-  console.log(categories, statuses);
   const { period, teams, filters, baseFilters } = context;
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
 
   return sqlSelect(
-    `${personnesToutesQuery}, actions_with_categories AS (
-        SELECT a._id, ac.categoryId, a.personId
-        FROM action a
-        LEFT JOIN action_category ac ON ac.actionId = a._id
-        WHERE EXISTS (SELECT 1 FROM action_team WHERE teamId IN (select value from json_each($1)) AND a._id=action_team.actionId)
-        ${period.from && period.to ? `AND (a."dueAt" between '${period.from}' and '${period.to}' or a."completedAt" between '${period.from}' and '${period.to}')` : ""}
-        ${statuses?.length ? `AND a.status IN (${statuses.map((status) => `'${status}'`).join(",")})` : ""}
-        AND EXISTS (select 1 from person_filtrees where person_filtrees._id = a.personId)
-        AND a.deletedAt IS NULL
-      )
-      SELECT 
-        CASE 
-          WHEN categoryId IS NULL THEN 'Non renseigné'
-          ELSE categoryId
-        END as actionCategory,
-        COUNT(DISTINCT _id) as total
+    `${personnesToutesQuery}, ${sqlCTEActionWithCategories(period, statuses, teams)}
+      SELECT CASE WHEN categoryId IS NULL THEN 'Non renseigné' ELSE categoryId END as actionCategory, COUNT(DISTINCT _id) as total
       FROM actions_with_categories
       WHERE ${!categories?.length || categories.includes("-- Aucune --") ? "1=1" : `categoryId IN (${categories.map((category) => `'${category}'`).join(",")})`}
-      GROUP BY actionCategory;`,
-    [JSON.stringify(teams)]
+      GROUP BY actionCategory;`
+  );
+}
+
+export function sqlSelectActionByActionCategory(
+  context: StatsContext,
+  categories: string[],
+  statuses: string[],
+  category: string | string[]
+): Promise<{ actionCategory: string; total: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
+
+  return sqlSelect(
+    `${personnesToutesQuery}, ${sqlCTEActionWithCategories(period, statuses, teams)}
+      SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM action left join action_team on action._id = action_team.actionId WHERE exists (select 1 from person_filtrees where person_filtrees._id = action.personId)
+      and exists (
+        SELECT 1 from actions_with_categories
+        WHERE ${!categories?.length || categories.includes("-- Aucune --") ? "1=1" : `categoryId IN (${categories.map((category) => `'${category}'`).join(",")})`}
+        AND categoryId ${Array.isArray(category) ? `IN (${category.map((c) => `'${c}'`).join(",")})` : `= '${category}'`} and action._id = actions_with_categories._id
+      ) group by action._id;`
   );
 }
 
@@ -700,18 +716,32 @@ export function sqlSelectPersonnesByActionCategoryCount(
   const { period, teams, filters, baseFilters } = context;
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
   return sqlSelect(
-    `${personnesToutesQuery} 
-      SELECT ac.categoryId as actionCategory, COUNT(DISTINCT a.personId) as total 
-      FROM action a
-      JOIN action_category ac ON ac.actionId = a._id
-      WHERE EXISTS (SELECT 1 FROM action_team WHERE teamId IN (select value from json_each($1)) AND a._id=action_team.actionId)
-      ${period.from && period.to ? `AND (a."dueAt" between '${period.from}' and '${period.to}' or a."completedAt" between '${period.from}' and '${period.to}')` : ""}
-      ${statuses?.length ? `AND a.status IN (${statuses.map((status) => `'${status}'`).join(",")})` : ""}
-      ${categories?.length ? `AND ac.categoryId IN (${categories.map((category) => `'${category}'`).join(",")})` : ""}
-      AND EXISTS (select 1 from person_filtrees where person_filtrees._id = a.personId)
-      AND a.deletedAt IS NULL 
-      GROUP BY ac.categoryId;`,
-    [JSON.stringify(teams)]
+    `${personnesToutesQuery}, ${sqlCTEActionWithCategories(period, statuses, teams)}
+      SELECT CASE WHEN categoryId IS NULL THEN 'Non renseigné' ELSE categoryId END as actionCategory, COUNT(DISTINCT personId) as total
+      FROM actions_with_categories
+      WHERE ${!categories?.length || categories.includes("-- Aucune --") ? "1=1" : `categoryId IN (${categories.map((category) => `'${category}'`).join(",")})`}
+      GROUP BY actionCategory;`
+  );
+}
+
+export function sqlSelectPersonnesByActionCategory(
+  context: StatsContext,
+  categories: string[],
+  statuses: string[],
+  category: string
+): Promise<{ name: string; id: string; assignedTeams: string }[]> {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
+
+  return sqlSelect(
+    `${personnesToutesQuery}, ${sqlCTEActionWithCategories(period, statuses, teams)}
+      SELECT *, GROUP_CONCAT(teamId) as assignedTeams FROM person left join person_team on person._id = person_team.personId WHERE exists (select 1 from person_filtrees where person_filtrees._id = person._id) 
+      and exists (
+        SELECT 1 from actions_with_categories
+        WHERE ${!categories?.length || categories.includes("-- Aucune --") ? "1=1" : `categoryId IN (${categories.map((category) => `'${category}'`).join(",")})`}
+        AND categoryId = $1 and person._id = actions_with_categories.personId
+      ) group by person._id;`,
+    [category]
   );
 }
 
