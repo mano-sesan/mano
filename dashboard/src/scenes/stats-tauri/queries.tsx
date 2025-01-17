@@ -247,6 +247,40 @@ export function sqlSelectActionsCount(context: StatsContext) {
   );
 }
 
+export function sqlSelectPersonnesSuiviesAuMoinsUneConsultationCount(context: StatsContext) {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesSuiviesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_suivies");
+  if (!period.from && !period.to) {
+    return sqlSelect(
+      `${personnesSuiviesQuery} select count(*) as total from person_filtrees where exists (select 1 from consultation where person_filtrees._id = consultation.personId);`
+    );
+  }
+  return sqlSelect(
+    `${personnesSuiviesQuery}, consultations_for_persons as (select * from consultation where person_filtrees._id = consultation.personId) select count(1) as total from person_filtrees where exists (select 1 from "consultations_for_persons" where "date" between '${period.from}' and '${period.to}');`
+  );
+}
+
+export function sqlSelectConsultationsCount(context: StatsContext) {
+  const { period, teams, filters, baseFilters } = context;
+  const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
+  if (!period.from && !period.to) {
+    return sqlSelect(
+      `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "consultation" 
+      WHERE EXISTS (SELECT 1 FROM consultation_team  WHERE teamId IN (select value from json_each($1)) AND consultation._id=consultation_team.consultationId) 
+      AND exists (select 1 from person_filtrees where person_filtrees._id = consultation.personId)
+      AND consultation.deletedAt IS NULL;`,
+      [JSON.stringify(teams)]
+    );
+  }
+  return sqlSelect(
+    `${personnesToutesQuery} SELECT count(distinct _id) as total FROM "consultation" 
+      WHERE EXISTS (SELECT 1 FROM consultation_team  WHERE teamId IN (select value from json_each($3)) AND consultation._id=consultation_team.consultationId) 
+      AND ("dueAt" between $1 and $2 or "completedAt" between $1 and $2)
+      AND exists (select 1 from person_filtrees where person_filtrees._id = consultation.personId);`,
+    [period.from, period.to, JSON.stringify(teams)]
+  );
+}
+
 export function sqlSelectRencontresCount(context: StatsContext) {
   const { period, teams, filters, baseFilters } = context;
   const personnesToutesQuery = sqlCTEPersonnesFiltrees(period, teams, filters, baseFilters, "personnes_toutes");
