@@ -19,9 +19,15 @@ const categoriesSortedByMostUsedSelector = selector({
   get: ({ get }) => {
     const actions = get(actionsState);
     const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+    if (!actions?.length) return [];
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     const categories = {};
     for (const action of actions) {
       if (!action.categories) continue;
+      if (new Date(action.createdAt) < thirtyDaysAgo) continue;
       for (const category of action.categories) {
         if (!categories[category]) categories[category] = 0;
         categories[category]++;
