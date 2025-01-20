@@ -131,7 +131,7 @@ test("Documents organizer", async ({ page }) => {
     page.locator("#social-documents").filter({ hasText: `📃image-4\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
   ).toBeVisible();
   // await expect(page.getByRole("button", { name: "📂 👪 Documents familiaux(1)" })).toBeVisible();
-  await expect(page.locator("span").filter({ hasText: `▶📁Dossier2(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })).toBeVisible();
+  await expect(page.locator("span").filter({ hasText: `►📁Dossier2(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })).toBeVisible();
   await page.getByRole("button", { name: "📃 image-2.jpg" }).click();
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe(`Voulez-vous vraiment supprimer ce document ?`);

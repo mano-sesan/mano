@@ -236,7 +236,7 @@ function Branch({
                 }}
               >
                 {/* open ? arrow down : arrow right */}
-                {open ? "\u25BC" : "\u25B6"}
+                {open ? "▼" : "►"}
               </small>
               <button
                 type="button"
