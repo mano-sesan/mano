@@ -18,7 +18,7 @@ import {
   personsObjectSelector,
   usersObjectSelector,
 } from "../../recoil/selectors";
-import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth } from "../../services/date";
+import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth, formatDateWithNameOfDay } from "../../services/date";
 import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
@@ -36,7 +36,7 @@ import ActionsSortableList from "../../components/ActionsSortableList";
 import TreatmentsSortableList from "../person/components/TreatmentsSortableList";
 import CommentsSortableList from "../../components/CommentsSortableList";
 import PersonName from "../../components/PersonName";
-import DateBloc, { TimeBlock } from "../../components/DateBloc";
+import { reportsState } from "../../recoil/reports";
 
 const personsWithFormattedBirthDateSelector = selector({
   key: "personsWithFormattedBirthDateSelector",
@@ -249,8 +249,8 @@ const View = () => {
   const user = useRecoilValue(userState);
   const initTabs = useMemo(() => {
     const defaultTabs = ["Actions", "Personnes", "Commentaires non médicaux", "Lieux", "Territoires", "Observations"];
-    if (!user.healthcareProfessional) return [...defaultTabs, "Documents"];
-    return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux", "Documents"];
+    if (!user.healthcareProfessional) return [...defaultTabs, "Documents", "Comptes rendus"];
+    return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux", "Documents", "Comptes rendus"];
   }, [user.healthcareProfessional]);
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", 0);
@@ -261,6 +261,7 @@ const View = () => {
   const allTreatments = useRecoilValue(treatmentsState);
   const allTerritories = useRecoilValue(territoriesState);
   const allPlaces = useRecoilValue(placesState);
+  const allReports = useRecoilValue(reportsState);
   const personsObject = useRecoilValue(personsObjectSelector);
 
   const actions = useMemo(() => {
@@ -299,6 +300,11 @@ const View = () => {
     return filterBySearch(search, allPlaces);
   }, [search, allPlaces]);
 
+  const reports = useMemo(() => {
+    if (!search?.length) return [];
+    return filterBySearch(search, allReports);
+  }, [search, allReports]);
+
   const territories = useMemo(() => {
     if (!search?.length) return [];
     return filterBySearch(search, allTerritories);
@@ -325,6 +331,7 @@ const View = () => {
             !!user.healthcareProfessional && `Traitements (${treatments.length})`,
             !!user.healthcareProfessional && `Dossiers médicaux (${medicalFiles.length})`,
             `Documents (${documents.length})`,
+            `Comptes rendus (${reports.length})`,
           ].filter(Boolean)}
           onClick={(tab) => {
             if (tab.includes("Actions")) setActiveTab("Actions");
@@ -337,6 +344,7 @@ const View = () => {
             if (tab.includes("Territoires")) setActiveTab("Territoires");
             if (tab.includes("Observations")) setActiveTab("Observations");
             if (tab.includes("Documents")) setActiveTab("Documents");
+            if (tab.includes("Comptes rendus")) setActiveTab("Comptes rendus");
           }}
           activeTabIndex={initTabs.findIndex((tab) => tab === activeTab)}
         />
@@ -351,6 +359,7 @@ const View = () => {
           {activeTab === "Territoires" && <Territories territories={territories} />}
           {activeTab === "Observations" && <TerritoryObservations observations={observations} />}
           {activeTab === "Documents" && <Documents documents={documents} />}
+          {activeTab === "Comptes rendus" && <Reports reports={reports} />}
         </div>
       </>
     );
@@ -732,6 +741,54 @@ const TerritoryObservations = ({ observations }) => {
             </div>
           ),
           left: true,
+        },
+      ]}
+    />
+  );
+};
+
+const Reports = ({ reports }) => {
+  const [sortBy, setSortBy] = useLocalStorage("report-search-sortBy", "date");
+  const [sortOrder, setSortOrder] = useLocalStorage("report-search-sortOrder", "ASC");
+
+  const data = useMemo(() => {
+    return [...reports].sort((a, b) => {
+      if (sortBy === "date") {
+        return sortOrder === "ASC"
+          ? new Date(a.date).getTime() - new Date(b.date).getTime()
+          : new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      return sortOrder === "ASC"
+        ? (a.description || "").localeCompare(b.description || "")
+        : (b.description || "").localeCompare(a.description || "");
+    });
+  }, [reports, sortBy, sortOrder]);
+
+  return (
+    <Table
+      className="Table"
+      noData="Pas de compte rendu"
+      data={data}
+      rowKey="_id"
+      columns={[
+        {
+          title: "Date",
+          dataKey: "date",
+
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          render: (report) => formatDateWithNameOfDay(report.date),
+        },
+        {
+          title: "Contenu",
+          dataKey: "description",
+          onSortOrder: setSortOrder,
+          onSortBy: setSortBy,
+          sortOrder,
+          sortBy,
+          render: (report) => <div className="tw-text-xs tw-whitespace-pre-line">{report.description}</div>,
         },
       ]}
     />
