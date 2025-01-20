@@ -247,7 +247,7 @@ function PassagesTable({ personPassages }) {
   const history = useHistory();
   const users = useRecoilValue(usersState);
   const [sortBy, setSortBy] = useLocalStorage("person-passages-sortBy", "date");
-  const [sortOrder, setSortOrder] = useLocalStorage("person-passages-sortOrder", "DESC");
+  const [sortOrder, setSortOrder] = useLocalStorage("person-passages-sortOrder", "ASC");
 
   const passagesPopulated = useMemo(() => {
     return personPassages.map((passage) => {
@@ -324,7 +324,7 @@ function RencontresTable({ personRencontres }) {
   const history = useHistory();
   const users = useRecoilValue(usersState);
   const [sortBy, setSortBy] = useLocalStorage("person-rencontres-sortBy", "date");
-  const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "DESC");
+  const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "ASC");
 
   const rencontresPopulated = useMemo(() => {
     return personRencontres.map((rencontre) => {
