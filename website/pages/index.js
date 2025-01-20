@@ -51,13 +51,6 @@ export default function NewIndex() {
                     melissa.saiter@sesan.fr
                   </a>
                 </div>
-                <div className="flex items-center justify-center">
-                  <a href="tel:+33749082710" className="hover:underline">
-                    07 49 08 27 10
-                  </a>
-                  <span className="text-[10px] text-white bg-mano rounded px-1 ml-2">nouveau</span>
-                </div>
-
                 <div className="text-xs mt-4 max-w-sm mx-auto">
                   Île-de-France, Hauts-de-France, Bretagne, Auvergne&nbsp;Rhone&nbsp;Alpes, Grand&nbsp;Est, Normandie, Guadeloupe et Martinique
                 </div>
@@ -272,11 +265,6 @@ export default function NewIndex() {
                     <br />
                     AMBROSELLI
                     <div className="text-sm mt-1 h-10">Développeur </div>
-                    <div className="mt-2">
-                      <a href="mailto:arnaud@ambroselli.io" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
                   </div>
                 </div>
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
@@ -286,11 +274,6 @@ export default function NewIndex() {
                     <br />
                     DEMIRHAN
                     <div className="text-sm mt-1 h-10">Porteur du projet</div>
-                    <div className="mt-2">
-                      <a href="mailto:guillaume.demirhan@sesan.fr" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
                   </div>
                 </div>
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
@@ -300,11 +283,6 @@ export default function NewIndex() {
                     <br />
                     HUCHET
                     <div className="text-sm mt-1 h-10">Développeur</div>
-                    <div className="mt-2">
-                      <a href="mailto:raph@selego.co" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
                   </div>
                 </div>
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
@@ -314,11 +292,6 @@ export default function NewIndex() {
                     <br />
                     SAITER
                     <div className="text-sm mt-1 h-10">Chargée de déploiement</div>
-                    <div className="mt-2">
-                      <a href="mailto:melissa.saiter@sesan.fr" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
                   </div>
                 </div>
                 <div className="mx-auto flex flex-col items-center justify-center text-center">
@@ -328,11 +301,6 @@ export default function NewIndex() {
                     <br />
                     LESGOURGES
                     <div className="text-sm mt-1 h-10">Chargé de déploiement</div>
-                    <div className="mt-2">
-                      <a href="mailto:simon.lesgourgues@sesan.fr" target="_blank">
-                        <img src="/message.png" alt="Mail" className="hover:brightness-125 inline-block w-8 h-8" />
-                      </a>
-                    </div>
                   </div>
                 </div>
               </div>
