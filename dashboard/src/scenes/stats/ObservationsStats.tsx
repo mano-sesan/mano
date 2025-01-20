@@ -7,7 +7,7 @@ import { currentTeamState, teamsState, usersState, userState } from "../../recoi
 import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
 import { dayjsInstance } from "../../services/date";
-import { customFieldsObsSelector } from "../../recoil/territoryObservations";
+import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../recoil/territoryObservations";
 import Filters, { filterData } from "../../components/Filters";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
@@ -46,6 +46,7 @@ const ObservationsStats = ({
   personsWithRencontres,
 }: ObservationsStatsProps) => {
   const currentTeam = useRecoilValue(currentTeamState);
+  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
   const selectedTerritories = useMemo(() => {
     return territories.filter((t) => filterObs.find((f) => f.field === "territory")?.value?.includes(t.name));
   }, [territories, filterObs]);
@@ -124,8 +125,21 @@ const ObservationsStats = ({
     <>
       <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>
       <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />
-      <div className="tw-flex tw-flex-col tw-gap-4">
-        <div className="tw-py-2">
+
+      <details
+        open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("observation-stats-general-open") === "true"}
+        onToggle={(e) => {
+          if ((e.target as HTMLDetailsElement).open) {
+            window.localStorage.setItem("observation-stats-general-open", "true");
+          } else {
+            window.localStorage.removeItem("observation-stats-general-open");
+          }
+        }}
+      >
+        <summary className="tw-mx-0 tw-my-8">
+          <h4 className="tw-inline tw-text-xl tw-text-black75">Général</h4>
+        </summary>
+        <div className="tw-flex tw-flex-col tw-gap-4">
           <Card
             title="Nombre d'observations de territoire"
             count={observations.length}
@@ -144,35 +158,61 @@ const ObservationsStats = ({
           >
             <></>
           </Card>
+          <CustomResponsivePie
+            title="Nombre de personnes suivies différentes rencontrées (sur les territoires)"
+            help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
+            data={Object.entries(filteredPersonsRencontresByTerritories).map(([territory, persons]) => ({
+              id: territory,
+              label: territory,
+              value: Object.keys(persons).length,
+            }))}
+          />
+          <CustomResponsivePie
+            title="Nombre de rencontres de personnes suivies (dans les territoires)"
+            help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
+            data={Object.entries(filteredRencontresByTerritories).map(([territory, rencontres]) => ({
+              id: territory,
+              label: territory,
+              value: Number(rencontres || 0),
+            }))}
+          />
         </div>
-        <CustomFieldsStats
-          data={observations}
-          customFields={customFieldsObs}
-          onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
-          help={(label) =>
-            `${capitalize(label)} des observations des territoires sélectionnés, dans la période définie.\n\nLa moyenne de cette données est basée sur le nombre d'observations faites.`
-          }
-          totalTitleForMultiChoice={<span className="tw-font-bold">Nombre d'observations concernées</span>}
-        />
-        <CustomResponsivePie
-          title="Nombre de personnes suivies différentes rencontrées (sur les territoires)"
-          help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
-          data={Object.entries(filteredPersonsRencontresByTerritories).map(([territory, persons]) => ({
-            id: territory,
-            label: territory,
-            value: Object.keys(persons).length,
-          }))}
-        />
-        <CustomResponsivePie
-          title="Nombre de rencontres de personnes suivies (dans les territoires)"
-          help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
-          data={Object.entries(filteredRencontresByTerritories).map(([territory, rencontres]) => ({
-            id: territory,
-            label: territory,
-            value: Number(rencontres || 0),
-          }))}
-        />
-      </div>
+      </details>
+
+      {groupedCustomFieldsObs.length > 0 &&
+        groupedCustomFieldsObs.map((group) => (
+          <>
+            <details
+              key={group.name}
+              className="print:tw-break-before-page"
+              open={
+                import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
+                window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"
+              }
+              onToggle={(e) => {
+                if ((e.target as HTMLDetailsElement).open) {
+                  window.localStorage.setItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
+                } else {
+                  window.localStorage.removeItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`);
+                }
+              }}
+            >
+              <summary className="tw-mx-0 tw-my-8">
+                <h4 className="tw-inline tw-text-xl tw-text-black75">{group.name}</h4>
+              </summary>
+              <CustomFieldsStats
+                data={observations}
+                customFields={group.fields}
+                onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
+                help={(label) =>
+                  `${capitalize(label)} des observations des territoires sélectionnés, dans la période définie.\n\nLa moyenne de cette données est basée sur le nombre d'observations faites.`
+                }
+                totalTitleForMultiChoice={<span className="tw-font-bold">Nombre d'observations concernées</span>}
+              />
+            </details>
+          </>
+        ))}
+
       <SelectedObsModal
         open={obsModalOpened}
         onClose={() => {
