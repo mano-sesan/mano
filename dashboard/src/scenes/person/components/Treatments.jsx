@@ -149,14 +149,22 @@ const TreatmentsTable = ({ filteredData }) => {
 };
 
 function TreatmentDate({ treatment }) {
-  if (treatment.endDate) {
+  if (treatment.startDate && treatment.endDate) {
     return (
       <p className="tw-m-0 tw-grow">
         Du {formatDateWithFullMonth(treatment.startDate)} au {formatDateWithFullMonth(treatment.endDate)}
       </p>
     );
   }
-  return <p className="tw-m-0 tw-grow">À partir du {formatDateWithFullMonth(treatment.startDate)}</p>;
+  if (treatment.startDate && !treatment.endDate) {
+    return <p className="tw-m-0 tw-grow">À partir du {formatDateWithFullMonth(treatment.startDate)}</p>;
+  }
+  if (!treatment.startDate && treatment.endDate) {
+    return <p className="tw-m-0 tw-grow">Jusqu'au {formatDateWithFullMonth(treatment.endDate)}</p>;
+  }
+  if (!treatment.startDate && !treatment.endDate) {
+    return <p className="tw-m-0 tw-grow">Aucune date indiquée</p>;
+  }
 }
 
 function TreatmentDateStatus({ treatment }) {

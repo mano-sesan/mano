@@ -84,7 +84,7 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
     }
     return {
       _id: null,
-      startDate: new Date(),
+      startDate: null,
       endDate: null,
       name: "",
       dosage: "",
@@ -122,11 +122,7 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
       toast.error("Le nom est obligatoire");
       return false;
     }
-    if (!body.startDate) {
-      toast.error("La date de début est obligatoire");
-      return false;
-    }
-    if (outOfBoundariesDate(body.startDate)) {
+    if (body.startDate && outOfBoundariesDate(body.startDate)) {
       setActiveTab("Informations");
       toast.error("La date de début de traitement est hors limites (entre 1900 et 2100)");
       return false;
@@ -333,7 +329,6 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
                     name="startDate"
                     defaultValue={data.startDate}
                     onChange={handleChange}
-                    required
                     onInvalid={() => setActiveTab("Informations")}
                   />
                 ) : (
