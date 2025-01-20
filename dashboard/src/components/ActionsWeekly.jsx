@@ -2,7 +2,7 @@ import { forwardRef, useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import DatePicker from "react-datepicker";
-import { CANCEL, DONE } from "../recoil/actions";
+import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { dayjsInstance, formatTime } from "../services/date";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
@@ -155,7 +155,7 @@ function ActionsOfDay({ actions }) {
             }
           }}
           className={[
-            action.isConsultation ? "tw-bg-[#DDF4FF99]" : action.urgent ? "tw-bg-[#fecaca99]" : "tw-bg-[#fafafa]",
+            action.isConsultation ? "tw-bg-[#DDF4FF99]" : action.urgent && action.status === TODO ? "tw-bg-[#fecaca99]" : "tw-bg-[#fafafa]",
             "tw-flex tw-cursor-pointer tw-flex-col tw-gap-2 tw-rounded-sm tw-border tw-border-gray-300 tw-p-1 tw-text-xs",
             disableConsultationRow(action, user) ? "tw-cursor-not-allowed" : "",
           ].join(" ")}

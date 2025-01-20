@@ -5,7 +5,7 @@ import Table from "./table";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import PersonName from "./PersonName";
-import { CANCEL, DONE, sortActionsOrConsultations } from "../recoil/actions";
+import { CANCEL, DONE, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, organisationState, userState } from "../recoil/auth";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import useTitle from "../services/useTitle";
@@ -44,7 +44,7 @@ const ActionsSortableList = ({
 
   const dataSorted = useMemo(() => {
     return [...data].sort(sortActionsOrConsultations(sortBy, sortOrder)).map((a) => {
-      if (a.urgent) return { ...a, style: { backgroundColor: "#fecaca99" } };
+      if (a.urgent && a.status === TODO) return { ...a, style: { backgroundColor: "#fecaca99" } };
       if (a.isConsultation) return { ...a, style: { backgroundColor: "#DDF4FF99" } };
       return a;
     });

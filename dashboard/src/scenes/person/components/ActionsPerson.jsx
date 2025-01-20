@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
-import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../../recoil/actions";
+import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels, TODO } from "../../../recoil/actions";
 import { useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
@@ -53,7 +53,7 @@ const filteredPersonActionsSelector = selectorFamily({
       }
       return [...actionsToSet]
         .sort((p1, p2) => ((p1.completedAt || p1.dueAt) > (p2.completedAt || p2.dueAt) ? -1 : 1))
-        .map((a) => (a.urgent ? { ...a, style: { backgroundColor: "#fecaca99" } } : a));
+        .map((a) => (a.urgent && a.status === TODO ? { ...a, style: { backgroundColor: "#fecaca99" } } : a));
     },
 });
 
