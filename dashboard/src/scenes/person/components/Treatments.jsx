@@ -90,15 +90,16 @@ const TreatmentsTable = ({ filteredData }) => {
 
   const displayTreatment = (treatment) => {
     let base = treatment.name;
-    if (treatment.indication) {
-      base += ` - ${treatment.indication}`;
-    }
     if (treatment.dosage) {
       base += ` - ${treatment.dosage}`;
     }
     if (treatment.frequency) {
       base += ` - ${treatment.frequency}`;
     }
+    if (treatment.indication) {
+      base += ` - ${treatment.indication}`;
+    }
+
     return base;
   };
 
