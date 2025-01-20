@@ -470,13 +470,14 @@ export function DocumentTableWithFolders({
 }: DocumentTableProps) {
   const organisation = useRecoilValue(organisationAuthentifiedState);
 
-  const sortedDocuments: ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[] = useMemo(() => {
+  const sortedDocuments = useMemo(() => {
     const flattenTree = (
       items: DocumentWithLinkedItem[],
       parentId: string = "root",
       level: number = 0
-    ): ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[] => {
+    ): ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number; isEmpty?: boolean })[] => {
       const children = items.filter((item) => (!item.parentId && parentId === "root") || item.parentId === parentId);
+
       return children
         .sort((a, b) => {
           if (!a.position && a.position !== 0) return 1;
@@ -485,9 +486,11 @@ export function DocumentTableWithFolders({
         })
         .reduce(
           (acc, item) => {
-            return [...acc, { ...item, tabLevel: level }, ...flattenTree(items, item._id, level + 1)];
+            const subItems = flattenTree(items, item._id, level + 1);
+            const isEmpty = !items.some((doc) => doc.parentId === item._id);
+            return [...acc, { ...item, tabLevel: level, isEmpty }, ...subItems];
           },
-          [] as ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number })[]
+          [] as ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number; isEmpty?: boolean })[]
         );
     };
 
@@ -524,7 +527,15 @@ export function DocumentTableWithFolders({
               👪
             </div>
           )}
-          <div className="tw-flex-1 tw-grow tw-truncate">{doc.name}</div>
+          <div className="tw-flex-1 tw-grow tw-truncate">
+            {doc.type === "folder" && doc.isEmpty ? (
+              <div className="tw-ml-1 tw-text-gray-500">
+                {doc.name} <span className="tw-italic tw-text-xs">[vide]</span>
+              </div>
+            ) : (
+              doc.name
+            )}
+          </div>
           {!!withClickableLabel && doc.type === "document" && !["medical-file", "person"].includes(doc.linkedItem?.type) && (
             <ClickableLabel doc={doc} color={color} />
           )}
@@ -1035,7 +1046,7 @@ function DocumentModal<T extends DocumentWithLinkedItem>({
               }}
               className="button-classic"
             >
-              Voir l’action associée
+              Voir l'action associée
             </button>
           )}
           {!!showAssociatedItem && document?.linkedItem?.type === "consultation" && (
