@@ -33,6 +33,7 @@ import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirm
 import PersonName from "../../components/PersonName";
 import { useDeletePerson } from "../../services/useDeletePerson";
 import { getPersonInfo } from "../../utils/get-person-infos";
+import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
 const limit = 20;
 
 const personsFilteredSelector = selectorFamily({
@@ -137,6 +138,8 @@ const List = () => {
   const total = useMemo(() => personsFilteredBySearch.length, [personsFilteredBySearch]);
 
   const history = useHistory();
+
+  useRestoreScrollPosition();
 
   function onDeleteMultiple() {
     setDeleteMultiple(true);
