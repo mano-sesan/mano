@@ -72,7 +72,7 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
 
   const canToggleGroupCheck = useMemo(() => {
     if (!organisation.groupsEnabled) return false;
-    const group = groups.find((group) => group.persons.includes(person._id));
+    const group = groups.find((group) => (group.persons || []).includes(person._id));
     if (!group) return false;
     return true;
   }, [groups, person._id, organisation.groupsEnabled]);
