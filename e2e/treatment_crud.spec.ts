@@ -47,7 +47,7 @@ test("Traitement", async ({ page }) => {
   await page.getByPlaceholder("Angine").fill("Grosse toux");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Traitement mis à jour !").click();
-  await page.getByText("Paracétamol - Grosse toux - 3mg - 2 fois par jour").click();
+  await page.getByText("Paracétamol - 3mg - 2 fois par jour - Grosse toux").click();
   await page
     .getByRole("dialog", { name: "Traitement: Paracétamol (créée par User Admin Test - 1)" })
     .getByRole("button", { name: "Historique" })

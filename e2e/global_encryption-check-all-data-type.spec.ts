@@ -140,7 +140,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Fermer" }).first().click();
   await page.locator('[data-test-id="La consultation"]').getByText(premier).click();
   await page.getByRole("button", { name: "Dossier Médical" }).click();
-  await page.getByText("le traitement - Rhume - 1mg - 12 fois").click();
+  await page.getByText("le traitement - 1mg - 12 fois - Rhume").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
   await page.getByText("La consultation- Médicale").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
