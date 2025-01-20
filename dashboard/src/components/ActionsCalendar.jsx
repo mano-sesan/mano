@@ -9,7 +9,7 @@ import ConsultationButton from "./ConsultationButton";
 import { organisationState, userState } from "../recoil/auth";
 import { disableConsultationRow } from "../recoil/consultations";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
-import { CANCEL, DONE, sortActionsOrConsultations } from "../recoil/actions";
+import { CANCEL, DONE, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import TagTeam from "./TagTeam";
 import { useLocalStorage } from "../services/useLocalStorage";
 import TabsNav from "./tailwind/TabsNav";
@@ -93,7 +93,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
       className="Table"
       noData={`Pas d'action à faire le ${formatDateTimeWithNameOfDay(date)}`}
       data={actions.map((a) => {
-        if (a.urgent) return { ...a, style: { backgroundColor: "#fecaca99" } };
+        if (a.urgent && a.status === TODO) return { ...a, style: { backgroundColor: "#fecaca99" } };
         if (a.isConsultation) return { ...a, style: { backgroundColor: "#DDF4FF99" } };
         return a;
       })}
