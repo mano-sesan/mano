@@ -7,6 +7,7 @@ import * as Sentry from "@sentry/react";
 import { fr } from "date-fns/esm/locale";
 import { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { isTauri } from "@tauri-apps/api/core";
 import Account from "./scenes/account";
 import Auth from "./scenes/auth";
 import Organisation from "./scenes/organisation";
@@ -15,6 +16,7 @@ import Territory from "./scenes/territory";
 import Structure from "./scenes/structure";
 import Team from "./scenes/team";
 import Stats from "./scenes/stats";
+import TauriStats from "./scenes/stats-tauri/Stats";
 import SearchView from "./scenes/search";
 import User from "./scenes/user";
 import Report from "./scenes/report";
@@ -171,7 +173,7 @@ const App = () => {
           <RestrictedRoute path="/structure" component={Structure} />
           <RestrictedRoute path="/team" component={Team} />
           <RestrictedRoute path="/organisation" component={Organisation} />
-          <RestrictedRoute path="/stats" component={Stats} />
+          {isTauri() ? <RestrictedRoute path="/stats" component={TauriStats} /> : <RestrictedRoute path="/stats" component={Stats} />}
           <RestrictedRoute path="/reception" component={Reception} />
           <RestrictedRoute path="/search" component={SearchView} />
           <RestrictedRoute path="/report" component={Report} />

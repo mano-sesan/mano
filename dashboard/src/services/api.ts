@@ -4,6 +4,14 @@ import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 import { capture } from "./sentry";
 import { toast } from "react-toastify";
+import { isTauri } from "@tauri-apps/api/core";
+import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+
+// Use tauri fetch if tauri is enabled
+const fetch = isTauri() ? tauriFetch : window.fetch;
+
+console.log(import.meta.env.VITE_DEFAULT_EMAIL);
+
 class AuthError extends Error {
   constructor() {
     super("Connexion expirée");

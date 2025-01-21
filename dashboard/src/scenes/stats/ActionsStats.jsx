@@ -271,7 +271,7 @@ const ActionsStats = ({
   );
 };
 
-const SelectedActionsModal = ({ open, onClose, data, title, onAfterLeave }) => {
+export const SelectedActionsModal = ({ open, onClose, data, title, onAfterLeave }) => {
   return (
     <ModalContainer open={open} size="full" onClose={onClose} onAfterLeave={onAfterLeave}>
       <ModalHeader title={title} />

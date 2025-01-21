@@ -53,7 +53,19 @@ const SignIn = () => {
   const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
   const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
 
-  const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
+  const [signinForm, setSigninForm] = useState(
+    import.meta.env.MODE === "development"
+      ? {
+          email: import.meta.env.VITE_DEFAULT_EMAIL || "",
+          password: import.meta.env.VITE_DEFAULT_PASSWORD || "",
+          orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "",
+        }
+      : {
+          email: "",
+          password: "",
+          orgEncryptionKey: "",
+        }
+  );
   const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "", otp: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isDesktop = useMinimumWidth("sm");
