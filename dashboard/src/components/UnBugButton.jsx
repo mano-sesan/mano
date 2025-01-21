@@ -2,6 +2,7 @@ import React from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { useRecoilValue } from "recoil";
 import { organisationState } from "../recoil/auth";
+import AgendaIcon from "../assets/icons/AgendaIcon";
 
 export default function UnBugButton({ onResetCacheAndLogout }) {
   const organisation = useRecoilValue(organisationState);
@@ -33,9 +34,22 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                   <li>
                     Contactez votre chargée de déploiement&nbsp;:
                     <div className="tw-ml-4 tw-my-2 tw-font-bold">
-                      <div>Melissa SAITER</div>
-                      <div>melissa.saiter@sesan.fr</div>
-                      <div>07&nbsp;49&nbsp;08&nbsp;27&nbsp;10</div>
+                      <div>
+                        <div>Melissa SAITER</div>
+                        <div>melissa.saiter@sesan.fr</div>
+                        <div>07&nbsp;49&nbsp;08&nbsp;27&nbsp;10</div>
+                      </div>
+                      <div className="-tw-ml-2">
+                        <a
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
+                          href="https://cal.com/msaiter/j-ai-besoin-d-une-nouvelle-formation-mano"
+                        >
+                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <AgendaIcon size={42} />
+                        </a>
+                      </div>
                     </div>
                   </li>
                   <li>
@@ -51,9 +65,22 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                   <li>
                     Contactez votre chargée de déploiement&nbsp;:
                     <div className="tw-ml-4 tw-my-2 tw-font-bold">
-                      <div>Simon LESGOURGUES</div>
-                      <div>simon.lesgourgues@sesan.fr</div>
-                      <div>06&nbsp;62&nbsp;94&nbsp;76&nbsp;88</div>
+                      <div>
+                        <div>Simon LESGOURGUES</div>
+                        <div>simon.lesgourgues@sesan.fr</div>
+                        <div>06&nbsp;62&nbsp;94&nbsp;76&nbsp;88</div>
+                      </div>
+                      <div className="-tw-ml-2">
+                        <a
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
+                          href="https://cal.com/simon-lesgourgues/formation-de-mano"
+                        >
+                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <AgendaIcon size={42} />
+                        </a>
+                      </div>
                     </div>
                   </li>
                   <li>
