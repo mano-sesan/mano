@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "main": "index.js",
   "repository": "https://github.com/mano-sesan/mano.git",
-  "author": "Raphaël Huchet <raphael.huchet@beta.gouv.fr>, Arnaud Ambroselli <arnaud@ambroselli.io>",
+  "author": "Raphaël Huchet <raph@selego.co>, Arnaud Ambroselli <arnaud@ambroselli.io>",
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.47.2",
