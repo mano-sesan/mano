@@ -6,7 +6,7 @@ import { dayjsInstance } from "../services/date";
 import { getValueByField } from "./person-get-value-by-field";
 import { forbiddenPersonFieldsInHistory } from "../recoil/persons";
 
-const fixedInTimeFields = ["birthdate", "gender"];
+const fixedInTimeFields = ["birthdate", "gender", "followedSince"];
 
 export function getPersonSnapshotAtDate({
   person,
