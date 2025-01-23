@@ -22,6 +22,7 @@ const CommentsMedical = ({ person }) => {
       <CommentsModule
         comments={commentsMedical}
         typeForNewComment="medical-file"
+        title="Commentaires médicaux"
         color="blue-900"
         canToggleShareComment
         showPanel
