@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatDuration } from "../services/date";
-import HelpButtonAndModal from "./HelpButtonAndModal";
+import { TimeModalButton } from "./HelpButtonAndModal";
 import UserName from "./UserName";
 import { selector, selectorFamily, useRecoilValue } from "recoil";
 import { personFieldsIncludingCustomFieldsSelector } from "../recoil/persons";
@@ -14,7 +14,8 @@ const showBoolean = (value) => {
   return "Oui";
 };
 
-export default function CustomFieldDisplay({ type, value, name = null, person = null }) {
+export default function CustomFieldDisplay({ type, value, name = null, showHistory = false, person = null }) {
+  if (value === undefined || value === null) return <span className="tw-text-gray-300">Non renseigné</span>;
   return (
     <div className="tw-flex tw-gap-2 tw-relative">
       {!!["text", "number"].includes(type) && <span>{value}</span>}
@@ -40,7 +41,7 @@ export default function CustomFieldDisplay({ type, value, name = null, person = 
       {!!["enum"].includes(type) && <span>{value}</span>}
       {!!["multi-choice"].includes(type) &&
         (Array.isArray(value) ? (
-          <ul className="tw-list-disc tw-pl-4">
+          <ul className="tw-list-disc tw-pl-4 tw-mb-0">
             {value.map((v) => (
               <li key={v}>
                 <span className="tw-overflow-ellipsis tw-break-words">{v || "-"}</span>
@@ -50,7 +51,7 @@ export default function CustomFieldDisplay({ type, value, name = null, person = 
         ) : (
           <p className="tw-overflow-ellipsis tw-break-words">{String(value || "-")}</p>
         ))}
-      {name && <FieldHistory name={name} person={person} />}
+      {name && showHistory && <FieldHistory name={name} person={person} />}
     </div>
   );
 }
@@ -113,8 +114,8 @@ function FieldHistory({ name = null, person = null }) {
   if (!name || !fieldHistory?.length) return null;
 
   return (
-    <div className="tw-absolute -tw-top-6 tw-right-4 tw-z-10">
-      <HelpButtonAndModal title={`Historique du champ ${personField?.label}`} size="3xl">
+    <div className="tw-absolute -tw-top-5 tw-right-0 tw-z-10">
+      <TimeModalButton title={`Historique du champ ${personField?.label}`} size="3xl">
         {personField?.type === "number" ? (
           <LineChart data={fieldHistory} name={personField?.label} scheme="set1" unit="" />
         ) : (
@@ -168,7 +169,7 @@ function FieldHistory({ name = null, person = null }) {
             </tbody>
           </table>
         )}
-      </HelpButtonAndModal>
+      </TimeModalButton>
     </div>
   );
 }
