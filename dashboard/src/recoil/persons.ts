@@ -172,7 +172,7 @@ export const filterPersonsBaseSelector = selector({
     const actionsCategoriesFilter: FilterableField = {
       field: "actionCategories",
       name: "actionCategories",
-      label: "A bénéficié d'une action catégoriée",
+      label: "A bénéficié d'une catégorie d'action",
       type: "enum",
       options: flattenedActionsCategories,
     };
