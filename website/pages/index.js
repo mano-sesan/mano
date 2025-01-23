@@ -17,6 +17,7 @@ const AgendaIcon = ({ size = 30 }) => (
 
 export default function NewIndex() {
   const [showMenu, setShowMenu] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   return (
     <>
       <Header showMenu={showMenu} setShowMenu={setShowMenu} />
@@ -31,7 +32,7 @@ export default function NewIndex() {
             <h1 className="text-4xl p-4 max-w-[640px] text-center">Faciliter votre travail, mieux agir auprès de vos publics</h1>
           </div>
           <div className="max-w-[600px] text-center mx-auto my-8 sm:block hidden">
-            Mano, l’outil numérique pour les professionnels accompagnant des publics précaires. Un service gratuit, sécurisé, personnalisable, pensé
+            Mano, l'outil numérique pour les professionnels accompagnant des publics précaires. Un service gratuit, sécurisé, personnalisable, pensé
             par et pour le terrain.
           </div>
           <img src="/mano-tel.png" alt="Screenshot" className="mx-auto w-[600px]" />
@@ -40,43 +41,20 @@ export default function NewIndex() {
           <img src="/mano-tel.png" alt="Screenshot" className="mx-auto w-[600px] border" />
           <div className="w-full text-center mx-auto -mt-32 h-32 bg-red-500 -z-10">frfr</div>
       </div> */}
-        <div className="bg-slate-100 py-8">
+        <div className="bg-slate-100 pt-8 pb-4">
           <h2 className="text-2xl text-center mx-4">Vous souhaitez en savoir plus&nbsp;? Contactez nous&nbsp;!</h2>
-          <div className="grid sm:grid-cols-2 gap-8 max-w-[800px] mx-auto my-8">
-            <div className="border rounded shadow p-4 bg-white md:mx-0 mx-2 flex flex-col">
-              <div className="text-center grid gap-2 grow">
-                <div>Mélissa Saiter</div>
-                <div>
-                  <a href="mailto:melissa.saiter@sesan.fr" className="text-mano hover:underline">
-                    melissa.saiter@sesan.fr
-                  </a>
-                </div>
-                <div className="text-xs mt-4 max-w-sm mx-auto">
-                  Île-de-France, Hauts-de-France, Bretagne, Auvergne&nbsp;Rhone&nbsp;Alpes, Grand&nbsp;Est, Normandie, Guadeloupe et Martinique
-                </div>
-              </div>
-              <div className="pt-4">
-                <a
-                  target="_blank"
-                  className="flex my-4 bg-sky-600 text-white px-4 py-2 rounded shadow text-sm max-w-72 mx-auto"
-                  href="https://cal.com/msaiter/je-souhaite-une-demonstration-de-l-outil-mano?duration=60"
-                >
-                  <div className="text-left">Reservez un temps de présentation de l’outil MANO</div>
-                  <AgendaIcon size={42} />
-                </a>
-              </div>
-            </div>
-            <div className="border rounded shadow px-8 py-4 gap-6 text-center bg-white md:mx-0 mx-2 flex flex-col text-sm items-center justify-center">
-              <div>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-              </div>
-              <div>
-                Pour les régions Île-de-france, PACA, Occitanie, Nouvelle Aquitaine, Pays de la Loire, Centre Val de Loire, Corse et Réunion,
-                patientez un peu, nous revenons bientôt&nbsp;!
-              </div>
-              <div>En cas de question pour le déploiement, vous pouvez contacter Guillaume ou Mélissa.</div>
+          <div className="text-center mx-auto">
+            {!showForm && (
+              <button onClick={() => setShowForm(true)} className="inline-block my-4 bg-sky-600 text-white px-4 py-2 rounded shadow text-base">
+                Contactez nous&nbsp;!
+              </button>
+            )}
+            <div
+              className={`overflow-hidden my-4 transition-all duration-500 ease-in-out ${
+                showForm ? "max-h-[1440px] opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <iframe width="500" height="1440" className="mx-auto" src="https://beta.framaforms.org/embed/mano-contactez-nous"></iframe>
             </div>
           </div>
         </div>
@@ -93,7 +71,7 @@ export default function NewIndex() {
                   Forgez une mémoire collective en regroupant toutes les données essentielles concernant le suivi de vos bénéficiaires dans un dossier
                   personnel, facilement accessible par tous les membres de votre équipe.
                 </FaqBox>
-                <FaqBox title="N’oubliez plus vos tâches et rendez-vous">
+                <FaqBox title="N'oubliez plus vos tâches et rendez-vous">
                   Évitez les oublis et gardez le fil de toutes vos actions, suivis et soins à fournir à vos bénéficiaires.
                 </FaqBox>
                 <FaqBox title="Comprenez votre activité et votre public">
@@ -172,10 +150,10 @@ export default function NewIndex() {
                   Vos données sont chiffrées de bout en bout, ce qui signifie que vous êtes les seuls à pouvoir y accéder. Votre confidentialité est
                   notre priorité.
                 </FaqBox>
-                <FaqBox title="Procédure d’effacement de vos données">
+                <FaqBox title="Procédure d'effacement de vos données">
                   Un bouton dédié autorise les administrateurs à effacer instantanément toutes les données de la plateforme en cas d'urgence.
                 </FaqBox>
-                <FaqBox title="Une charte d’utilisation co-écrite avec nos utilisateurs">
+                <FaqBox title="Une charte d'utilisation co-écrite avec nos utilisateurs">
                   Avec nos utilisateurs, nous avons élaboré une charte destinée à encadrer l'usage de la plateforme. Elle établit les règles pour la
                   saisie de données, assure le consentement des bénéficiaires, renforce la sécurité et promeut les bonnes pratiques. Notre
                   collaboration vise à améliorer l'expérience pour tous.
@@ -227,9 +205,9 @@ export default function NewIndex() {
             <div className="bg-mano rounded p-6 text-white md:mx-0 mx-2">
               <h3 className="text-lg font-semibold mb-4">Notre histoire</h3>
               <div>
-                Mano, c’est un service public numérique dont la mission est de proposer un outil adapté aux pratiques de ses utilisateurs, pensé par
-                et pour ces derniers, afin d’aider à améliorer l’accompagnement proposé aux plus précaires d’entre nous. L’histoire commence avec le
-                CAARUD EGO de l’Association Aurore à Paris, continue à travers la France en étant incubé à la Fabrique numérique des ministères
+                Mano, c'est un service public numérique dont la mission est de proposer un outil adapté aux pratiques de ses utilisateurs, pensé par
+                et pour ces derniers, afin d'aider à améliorer l'accompagnement proposé aux plus précaires d'entre nous. L'histoire commence avec le
+                CAARUD EGO de l'Association Aurore à Paris, continue à travers la France en étant incubé à la Fabrique numérique des ministères
                 sociaux, et attérit au GIP Sesan pour pérenniser son action au long cours.
               </div>
             </div>
@@ -238,23 +216,23 @@ export default function NewIndex() {
               <div>
                 <ul className="list-disc ml-4 space-y-2">
                   <li>Utilité et simplicité de la plateforme</li>
-                  <li>Pilotés par l’Impact et les besoins identifiés par le terrain</li>
+                  <li>Pilotés par l'Impact et les besoins identifiés par le terrain</li>
                   <li>Travail en transparence et en partenariat avec les équipes utilisatrices </li>
-                  <li>Un accompagnement à l’utilisation global pour chaque équipe utilisatrice</li>
+                  <li>Un accompagnement à l'utilisation global pour chaque équipe utilisatrice</li>
                 </ul>
               </div>
             </div>
             <div className="bg-mano rounded p-6 text-white md:mx-0 mx-2">
               <h3 className="text-lg font-semibold mb-4">Qui nous finance</h3>
               <div>
-                Mano est financé par les agences régionales de santé (ARS) d’Île-de-France, de Bretagne, de Normandie, d’Occitanie, de
+                Mano est financé par les agences régionales de santé (ARS) d'Île-de-France, de Bretagne, de Normandie, d'Occitanie, de
                 Bourgogne-Franche-Conté, et du Grand Est.
               </div>
             </div>
           </div>
           <div className="my-8">
             <div className="max-w-[1000px] mx-auto">
-              <h2 className="text-2xl text-center mx-4 py-8">L’équipe</h2>
+              <h2 className="text-2xl text-center mx-4 py-8">L'équipe</h2>
             </div>
             <div>
               <div className="grid md:grid-cols-5 grid-cols-2 gap-y-8 gap-x-2 max-w-[800px] mx-auto">
@@ -346,7 +324,7 @@ function Carousel() {
   const [current, setCurrent] = useState(0);
   const data = [
     {
-      quote: "C’est excellent de pouvoir participer développement de l'outil en tant que professionnel du terrain",
+      quote: "C'est excellent de pouvoir participer développement de l'outil en tant que professionnel du terrain",
       author: ["Valentin Rault", "Maraude Equipe Mobile", "EGO"],
     },
     {
@@ -355,19 +333,19 @@ function Carousel() {
     },
     {
       quote: "C'est une petite révolution pour nous",
-      author: ["Inès", "Cheffe de service", "Maraude d’intervention Sociale"],
+      author: ["Inès", "Cheffe de service", "Maraude d'intervention Sociale"],
     },
     {
-      quote: "L’outil est rapide à remplir, il permet de ne pas passer trop de temps administratif pour privilégier le face à face.",
+      quote: "L'outil est rapide à remplir, il permet de ne pas passer trop de temps administratif pour privilégier le face à face.",
       author: ["Claire", "Coordinatrice", "CAARUD"],
     },
     {
-      quote: "Je mettais 4 jours à sortir mes statistiques pour mes rapports d’activité. Maintenant ça me prends 4 minutes.",
+      quote: "Je mettais 4 jours à sortir mes statistiques pour mes rapports d'activité. Maintenant ça me prends 4 minutes.",
       author: ["Françoise", "Cheffe de service CHU", "Veille sociale"],
     },
     {
       quote:
-        "Mano me permet de n’avoir qu’un seul outil de travail, où je peux transmettre toutes les informations nécessaires, et d’y stocker tous les documents importants.",
+        "Mano me permet de n'avoir qu'un seul outil de travail, où je peux transmettre toutes les informations nécessaires, et d'y stocker tous les documents importants.",
       author: ["Jérémie", "Educateur spécialisé", "CAARUD"],
     },
   ];
