@@ -205,6 +205,13 @@ export const filterPersonsBaseSelector = selector({
       type: "date",
     };
     filterPersonsBase.push(lastUpdateCheckForGDPRFilter);
+    const belongsToAFamilyFilter: FilterableField = {
+      field: "group",
+      name: "belongsToAFamily",
+      label: "Appartient à une famille",
+      type: "boolean",
+    };
+    filterPersonsBase.push(belongsToAFamilyFilter);
     return filterPersonsBase;
   },
 });
