@@ -163,6 +163,13 @@ const Login = ({ navigation }) => {
     }
     if (response.ok) {
       Keyboard.dismiss();
+
+      if (response.user.organisation.disabledAt) {
+        setLoading(false);
+        navigation.navigate('OrganisationDesactivee');
+        return;
+      }
+
       API.token = response.token;
       API.onLogIn();
       await AsyncStorage.setItem('persistent_token', response.token);
