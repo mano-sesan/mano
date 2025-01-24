@@ -116,7 +116,7 @@ function FieldHistory({ name = null, person = null }) {
   return (
     <div className="tw-absolute -tw-top-5 tw-right-0 tw-z-10">
       <TimeModalButton title={`Historique du champ ${personField?.label}`} size="3xl">
-        {personField?.type === "number" && fieldHistory?.length > 1 ?  ? (
+        {personField?.type === "number" && fieldHistory?.length > 1 ? (
           <LineChart data={fieldHistory} name={personField?.label} scheme="set1" unit="" />
         ) : (
           <table className="table table-striped table-bordered">
