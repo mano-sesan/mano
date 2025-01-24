@@ -176,14 +176,14 @@ const SignIn = () => {
     window.localStorage.removeItem("automaticReload"); //  to enable automatiq reload when outdated version is used
     const { user, token, ok, askForOtp } = response;
     if (!ok) return setIsSubmitting(false);
-    if (user.organisation.disabledAt) {
-      return (window.location.href = "/organisation-desactivee");
-    }
     if (askForOtp) {
       setShowOtp(true);
       return setIsSubmitting(false);
     }
     const { organisation } = user;
+    if (organisation?.disabledAt) {
+      return (window.location.href = "/organisation-desactivee");
+    }
     setOrganisation(organisation);
     setUser(user);
     if (!!organisation.encryptionEnabled && !showEncryption && !["superadmin"].includes(user.role)) {
