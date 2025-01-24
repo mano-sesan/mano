@@ -376,6 +376,11 @@ router.post(
     const user = await User.findOne({ where: { email } });
     if (!user) return res.status(200).send({ ok: true });
 
+    const organisation = await Organisation.findOne({ where: { _id: user.organisation } });
+    if (organisation && organisation.disabledAt) {
+      return res.status(200).send({ ok: true });
+    }
+
     const { password } = await User.scope("withPassword").findOne({ where: { email }, attributes: ["password"] });
     if (!password) return res.status(200).send({ ok: true });
 
@@ -427,6 +432,16 @@ router.post(
       });
       return res.status(400).send({ ok: false, error: "Le lien est non valide ou expiré" });
     }
+    if (user.organisation) {
+      const organisation = await Organisation.findOne({ where: { _id: user.organisation } });
+      if (organisation && organisation.disabledAt) {
+        return res.status(403).send({
+          ok: false,
+          error: "Cette organisation a été temporairement désactivée. Veuillez contacter votre administrateur pour plus d'informations.",
+        });
+      }
+    }
+
     UserLog.create({
       organisation: user.organisation,
       user: user.id,

@@ -48,6 +48,7 @@ module.exports = (sequelize, DataTypes) => {
     migrating: { type: DataTypes.BOOLEAN, default: false },
     migrations: DataTypes.ARRAY(DataTypes.TEXT),
     migrationLastUpdateAt: DataTypes.DATE,
+    disabledAt: DataTypes.DATE,
   };
 
   class Organisation extends Model {

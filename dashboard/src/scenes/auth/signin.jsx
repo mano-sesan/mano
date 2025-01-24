@@ -176,6 +176,9 @@ const SignIn = () => {
     window.localStorage.removeItem("automaticReload"); //  to enable automatiq reload when outdated version is used
     const { user, token, ok, askForOtp } = response;
     if (!ok) return setIsSubmitting(false);
+    if (user.organisation.disabledAt) {
+      return (window.location.href = "/organisation-desactivee");
+    }
     if (askForOtp) {
       setShowOtp(true);
       return setIsSubmitting(false);
