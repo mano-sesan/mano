@@ -44,6 +44,7 @@ import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState
 import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
+import OrganisationDesactivee from "./scenes/organisation-desactivee";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -160,6 +161,7 @@ const App = () => {
       <Router history={history}>
         <ScrollToTop />
         <Switch>
+          <SentryRoute path="/organisation-desactivee" component={OrganisationDesactivee} />
           <SentryRoute path="/auth" component={Auth} />
           <SentryRoute path="/bac-a-sable" component={Sandbox} />
           <RestrictedRoute path="/charte" component={Charte} />

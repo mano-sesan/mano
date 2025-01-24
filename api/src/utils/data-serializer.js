@@ -31,6 +31,7 @@ function serializeOrganisation(organisation) {
     encryptedVerificationKey: organisation.encryptedVerificationKey,
     migrations: organisation.migrations,
     migrationLastUpdateAt: organisation.migrationLastUpdateAt,
+    disabledAt: organisation.disabledAt,
 
     /* for family/groups */
     groupsEnabled: organisation.groupsEnabled,
