@@ -86,7 +86,7 @@ function FieldHistory({ name = null, person = null }) {
   const fieldHistory = useMemo(() => {
     const _fieldHistory = [];
     if (!person?.history?.length) return _fieldHistory;
-    if (personField?.type === "number") {
+    if (personField?.type === "number" && person.history.filter((h) => h.data[name]).length > 1) {
       // return [
       //   { x: "2024-12-14", y: 10 },
       //   { x: "2024-12-07", y: 20 },
@@ -116,7 +116,7 @@ function FieldHistory({ name = null, person = null }) {
   return (
     <div className="tw-absolute -tw-top-5 tw-right-0 tw-z-10">
       <TimeModalButton title={`Historique du champ ${personField?.label}`} size="3xl">
-        {personField?.type === "number" ? (
+        {personField?.type === "number" && fieldHistory?.length > 1 ?  ? (
           <LineChart data={fieldHistory} name={personField?.label} scheme="set1" unit="" />
         ) : (
           <table className="table table-striped table-bordered">
