@@ -118,6 +118,17 @@ export const DataLoader = () => {
       if (JSON.stringify(userResponse.user) !== JSON.stringify(user)) {
         setUser(userResponse.user);
       }
+      if (userResponse.user.organisation.disabledAt) {
+        setLoading('');
+        setProgress(0);
+        setFullScreen(false);
+        setRefreshTrigger({
+          status: false,
+          options: { showFullScreen: false, initialLoad: false },
+        });
+        API.logout();
+        return;
+      }
     }
 
     const serverDateResponse = await API.get({ path: '/now' });

@@ -70,6 +70,7 @@ import Passage from './scenes/Persons/Passage';
 import ProgressBar from './components/ProgressBar';
 import APKUpdater from './components/APKUpdater';
 import ActionsFilter from './scenes/Actions/ActionsFilter';
+import OrganisationDesactivee from './scenes/Login/OrganisationDesactivee';
 
 const ActionsStack = createStackNavigator();
 const ActionsNavigator = () => {
@@ -296,6 +297,7 @@ const LoginNavigator = () => (
     <LoginStack.Screen name="CGUsAcceptance" component={CGUsAcceptance} />
     <LoginStack.Screen name="ForceChangePassword" component={ForceChangePassword} />
     <LoginStack.Screen name="ForgetPassword" component={ForgetPassword} />
+    <LoginStack.Screen name="OrganisationDesactivee" component={OrganisationDesactivee} />
   </LoginStack.Navigator>
 );
 
