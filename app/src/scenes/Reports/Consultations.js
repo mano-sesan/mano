@@ -12,6 +12,7 @@ import { CANCEL, DONE } from '../../recoil/actions';
 import { currentTeamState } from '../../recoil/auth';
 import { getPeriodTitle } from './utils';
 import ConsultationRow from '../../components/ConsultationRow';
+import FloatAddButton from '../../components/FloatAddButton';
 
 const keyExtractor = (consultation) => consultation._id;
 
@@ -20,6 +21,8 @@ const Consultations = ({ route, navigation }) => {
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const currentTeam = useRecoilValue(currentTeamState);
   const { status, date } = route.params;
+
+  const onCreateConsultation = useCallback(() => navigation.navigate('Consultation', { fromRoute: 'Consultations' }), [navigation]);
 
   const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useRecoilValue(consultationsForReport({ date }));
 
@@ -76,6 +79,7 @@ const Consultations = ({ route, navigation }) => {
         onEndReachedThreshold={0.3}
         ListFooterComponent={consultationsToShow.length > 0 ? ListNoMoreConsultations : null}
       />
+      <FloatAddButton onPress={onCreateConsultation} />
     </SceneContainer>
   );
 };
