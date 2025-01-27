@@ -37,7 +37,7 @@ test("Stats changement des personnes", async ({ page }) => {
 
   // La personne devient une femme isolée (en février 2021)
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByText("Personne Test").click();
+  await page.getByRole("cell", { name: "Personne Test" }).click();
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.locator('[data-test-id="modal"]').getByText("Informations sociales").click();
   await page.locator(".person-custom-select-situation-personnelle__input-container").click();

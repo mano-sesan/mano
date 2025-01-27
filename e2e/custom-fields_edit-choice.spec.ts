@@ -270,7 +270,7 @@ test("test", async ({ page }) => {
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
 
-    await page.getByText("personne1").click();
+    await page.getByRole("cell", { name: "personne1" }).click();
 
     await expect(page.getByText("Pétard seulement")).toBeVisible();
     await expect(page.getByText("CDI seulement")).toBeVisible();
