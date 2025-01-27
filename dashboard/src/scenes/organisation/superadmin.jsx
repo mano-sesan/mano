@@ -177,7 +177,10 @@ const SuperAdmin = () => {
               render: (o) => (
                 <div className="tw-flex tw-flex-col tw-gap-2 tw-max-w-80">
                   <div>
-                    <div className="tw-font-bold">{o.name}</div>
+                    <div className="tw-font-bold">
+                      {o.name}
+                      {o.disabledAt ? <div className="tw-text-red-500">(désactivée)</div> : ""}
+                    </div>
                     <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
                   </div>
                   <div>
@@ -361,6 +364,57 @@ const SuperAdmin = () => {
                         ➕
                       </button>
                     </div>
+                    {!organisation.disabledAt ? (
+                      <div>
+                        <button
+                          type="button"
+                          className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
+                          data-testid={`Désactiver l'organisation ${organisation.name}`}
+                          data-tooltip={"Désactiver"}
+                          onClick={async () => {
+                            if (
+                              confirm(
+                                "Voulez-vous vraiment désactiver l'organisation " +
+                                  organisation.name +
+                                  " ? Plus personne ne pourra se connecter. Cette action doit être faite uniquement en cas d'attaque (piratage ou autre)"
+                              )
+                            ) {
+                              const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/disable` }));
+                              if (!error) {
+                                toast.success("Organisation désactivée");
+                                setRefresh(true);
+                              } else {
+                                toast.error(errorMessage(error));
+                              }
+                            }
+                          }}
+                        >
+                          😴
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <button
+                          type="button"
+                          className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
+                          data-testid={`Réactiver l'organisation ${organisation.name}`}
+                          data-tooltip={"Réactiver"}
+                          onClick={async () => {
+                            if (confirm("Voulez-vous vraiment réactiver l'organisation " + organisation.name + " ?")) {
+                              const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/enable` }));
+                              if (!error) {
+                                toast.success("Organisation réactivée");
+                                setRefresh(true);
+                              } else {
+                                toast.error(errorMessage(error));
+                              }
+                            }
+                          }}
+                        >
+                          ⏰
+                        </button>
+                      </div>
+                    )}
                     <div>
                       <DeleteButtonAndConfirmModal
                         title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
