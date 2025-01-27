@@ -162,6 +162,9 @@ const Passage = ({ passage, personId, onFinished }) => {
                         <label htmlFor="number-of-anonymous-passages">Nombre de passages anonymes</label>
                         <input
                           name="anonymousNumberOfPassages"
+                          className="tailwindui !tw-mt-0"
+                          min={1}
+                          max={100}
                           type="number"
                           value={values.anonymousNumberOfPassages}
                           onChange={handleChange}
