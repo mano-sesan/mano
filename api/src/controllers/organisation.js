@@ -1266,4 +1266,21 @@ router.post(
   })
 );
 
+router.post(
+  "/:id/enable",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    const { id } = req.params;
+    const organisation = await Organisation.findOne({ where: { _id: id } });
+    if (!organisation) {
+      const error = new Error("Organisation not found");
+      error.status = 404;
+      return next(error);
+    }
+    await organisation.update({ disabledAt: null });
+    res.status(200).send({ ok: true });
+  })
+);
+
 module.exports = router;
