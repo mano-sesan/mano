@@ -113,6 +113,7 @@ const List = () => {
   const filterPersonsWithAllFields = useRecoilValue(filterPersonsWithAllFieldsSelector);
 
   const [search, setSearch] = useSearchParamState("search", "");
+  const [lastPersonsViewed, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
   const [alertness, setFilterAlertness] = useLocalStorage("person-alertness", false);
   const [viewAllOrganisationDataChecked, setViewAllOrganisationData] = useLocalStorage("person-allOrg", true);
   const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
@@ -149,7 +150,7 @@ const List = () => {
 
   return (
     <>
-      <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
+      <div className={`tw-flex tw-w-full tw-items-center tw-mt-8 ${lastPersonsViewed.length > 0 ? "" : "tw-mb-12"}`}>
         <div className="tw-grow tw-text-xl">
           Personnes suivies par{" "}
           {viewAllOrganisationData ? (
@@ -166,6 +167,37 @@ const List = () => {
           <CreatePerson />
         </div>
       </div>
+      {lastPersonsViewed.length > 0 && (
+        <div className="tw-flex tw-w-full tw-items-center tw-mb-8 tw-gap-2 tw-text-xs">
+          <div className="tw-text-slate-400 tw-w-4 tw-h-4 tw-flex tw-items-center tw-justify-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-history"
+            >
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M12 7v5l4 2" />
+            </svg>
+          </div>
+          {lastPersonsViewed.map((personId) => (
+            <div key={personId} className="tw-bg-slate-100 tw-border tw-border-slate-300 tw-rounded-md tw-px-1.5 tw-py-0.5">
+              <PersonName item={{ person: personId }} />
+              <button
+                className="tw-text-xs tw-border-slate-300 tw-border-l tw-pl-1 tw-ml-1"
+                onClick={() => setLastPersonsViewed(lastPersonsViewed.filter((id) => id !== personId))}
+              >
+                x
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
       <details open={isDesktop} className="-tw-mx-4 tw-px-4 tw-mb-4 tw-py-2 tw-rounded-lg tw-border tw-border-zinc-100  tw-shadow">
         <summary className="tw-text-main">
           <span className="tw-ml-2">Recherche et filtres...</span>
