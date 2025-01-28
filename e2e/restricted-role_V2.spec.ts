@@ -169,7 +169,7 @@ test("test", async ({ page }) => {
 
   // personnes suivies
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByRole("link", { name: "testrestrict" }).click();
+  await page.getByRole("cell", { name: "testrestrict" }).click();
 
   await expect(page.getByRole("heading", { name: "Informations sociales" })).not.toBeVisible();
   await expect(page.getByRole("heading", { name: "Informations de santé" })).not.toBeVisible();
