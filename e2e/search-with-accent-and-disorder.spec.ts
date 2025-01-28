@@ -24,11 +24,11 @@ test("search in reception and user list using different order and accent", async
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.locator("#search").click();
   await page.locator("#search").fill("qsDFghç AZrtyé");
-  await page.getByText("azertyé qsdfghç").click();
+  await page.getByRole("cell", { name: "azertyé qsdfghç" }).click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.locator("#search").click();
   await page.locator("#search").fill("wxcvbn");
-  await page.getByText("azertyé wxcvbn").click();
+  await page.getByRole("cell", { name: "azertyé wxcvbn" }).click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.locator("#search").click();
   await page.locator("#search").fill("azertyé");

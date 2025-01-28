@@ -201,7 +201,7 @@ test("Create action with comments", async ({ page }) => {
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
 
-  await page.getByText(person1Name).click();
+  await page.getByRole("cell", { name: person1Name }).click();
   await expect(page.getByText("commentaire prioritaire pour une personne")).toBeVisible();
 
   await expect(page.getByRole("button", { name: "Actions et commentaires urgents et vigilance" })).not.toBeVisible();

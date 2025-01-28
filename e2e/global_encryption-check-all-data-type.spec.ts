@@ -38,7 +38,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Mettre à jour" }).first().click();
   await page.getByText("Mise à jour !").click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
-  await page.getByText(premier).click();
+  await page.getByRole("cell", { name: premier }).click();
   await page.getByRole("button", { name: "Ajouter un commentaire" }).first().click();
   await page.getByRole("textbox", { name: "Commentaire" }).fill("commentaire test");
   await page.getByRole("button", { name: "Enregistrer" }).click();

@@ -18,6 +18,8 @@ import { useDataLoader } from "../../services/dataLoader";
 import SearchInPerson from "./components/SearchInPerson";
 import { errorMessage } from "../../utils";
 import OutOfActiveListBanner from "./OutOfActiveListBanner";
+import { useEffect } from "react";
+import { useLocalStorage } from "../../services/useLocalStorage";
 
 export default function View() {
   const { personId } = useParams();
@@ -25,6 +27,7 @@ export default function View() {
   const location = useLocation();
   const { refresh } = useDataLoader();
 
+  const [, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
   const organisation = useRecoilValue(organisationState);
   const person = useRecoilValue(itemsGroupedByPersonSelector)[personId];
   const personGroup = useRecoilValue(groupSelector({ personId }));
@@ -37,6 +40,15 @@ export default function View() {
   };
 
   const { encryptPerson } = usePreparePersonForEncryption();
+
+  useEffect(() => {
+    setLastPersonsViewed((prev) => {
+      let newPrev = prev.filter((id) => id !== personId);
+      newPrev.unshift(personId);
+      newPrev.splice(4);
+      return newPrev;
+    });
+  }, [personId, setLastPersonsViewed]);
 
   if (!person) {
     history.push("/person");

@@ -182,7 +182,7 @@ test("test", async ({ page }) => {
   await page.locator('[data-test-id="Numéro de sécurité sociale\\: \\"\\" ➔ \\"082\\""]').click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
-  await page.getByText(personName).click();
+  await page.getByRole("cell", { name: personName }).click();
   await page.getByText("hello action").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
