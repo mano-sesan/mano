@@ -9,7 +9,7 @@ import { FullScreenIcon } from "../assets/icons/FullScreenIcon";
 import UserName from "./UserName";
 import type { DocumentWithLinkedItem, Document, FileMetadata, FolderWithLinkedItem, Folder } from "../types/document";
 import API, { tryFetch, tryFetchBlob } from "../services/api";
-import { download, errorMessage, viewBlobInNewWindow } from "../utils";
+import { download, errorMessage } from "../utils";
 import type { UUIDV4 } from "../types/uuid";
 import PersonName from "./PersonName";
 import { toast } from "react-toastify";
