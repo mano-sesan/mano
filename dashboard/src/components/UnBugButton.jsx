@@ -91,6 +91,37 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                     </ul>
                   </li>
                 </>
+              ) : organisation.responsible === "Guillaume" ? (
+                <>
+                  <li>
+                    Contactez votre chargée de déploiement&nbsp;:
+                    <div className="tw-ml-4 tw-my-2 tw-font-bold">
+                      <div>
+                        <div>Guillaume DEMIRHAN</div>
+                        <div>guillaume.demirhan@sesan.fr</div>
+                        <div>07&nbsp;68&nbsp;55&nbsp;81&nbsp;48</div>
+                      </div>
+                      <div className="-tw-ml-2">
+                        <a
+                          target="_blank"
+                          rel="noreferrer"
+                          className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
+                          href="https://cal.com/g-demirhan/1h"
+                        >
+                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <AgendaIcon size={42} />
+                        </a>
+                      </div>
+                    </div>
+                  </li>
+                  <li>
+                    Votre référent n'est pas disponible&nbsp;?
+                    <ul className="tw-list-disc tw-space-y-1 tw-mt-2">
+                      <li>Melissa - 07&nbsp;49&nbsp;08&nbsp;27&nbsp;10 - melissa.saiter@sesan.fr</li>
+                      <li>Simon - 06&nbsp;62&nbsp;94&nbsp;76&nbsp;88 - simon.lesgourgues@sesan.fr</li>
+                    </ul>
+                  </li>
+                </>
               ) : (
                 <>
                   <li>
