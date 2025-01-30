@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocation, useHistory } from "react-router-dom";
 import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
@@ -14,6 +14,8 @@ import { useLocalStorage } from "../../../services/useLocalStorage";
 import Table from "../../../components/table";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import { sortRencontres } from "../../../recoil/rencontres";
+import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
+import { territoryObservationsState } from "../../../recoil/territoryObservations";
 
 export default function PassagesRencontres({ person }) {
   const organisation = useRecoilValue(organisationState);
@@ -323,6 +325,8 @@ function PassagesTable({ personPassages }) {
 function RencontresTable({ personRencontres }) {
   const history = useHistory();
   const users = useRecoilValue(usersState);
+  const setModalObservation = useSetRecoilState(modalObservationState);
+  const allObservations = useRecoilValue(territoryObservationsState);
   const [sortBy, setSortBy] = useLocalStorage("person-rencontres-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "ASC");
 
@@ -389,7 +393,18 @@ function RencontresTable({ personRencontres }) {
                   if (!r.territoryObject) return null;
                   return (
                     <div className="tw-flex tw-items-center tw-justify-center">
-                      <div className="tw-truncate tw-bg-black tw-py-0.5 tw-px-1 tw-rounded tw-max-w-24 tw-w-fit tw-text-white tw-text-xs">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalObservation({
+                            ...defaultModalObservationState(),
+                            open: true,
+                            observation: allObservations.find((o) => o._id === r.observation),
+                            from: location.pathname,
+                          });
+                        }}
+                        className="tw-truncate tw-bg-black tw-py-0.5 tw-px-1 tw-rounded tw-max-w-24 tw-w-fit tw-text-white tw-text-xs"
+                      >
                         {r.territoryObject?.name || ""}
                       </div>
                     </div>
@@ -411,10 +426,13 @@ function RencontresTable({ personRencontres }) {
 
 function RencontresTableSmall({ personRencontres }) {
   const history = useHistory();
+  const setModalObservation = useSetRecoilState(modalObservationState);
+  const allObservations = useRecoilValue(territoryObservationsState);
   return (
     <table className="table table-striped">
       <tbody className="small">
         {(personRencontres || []).map((rencontre) => {
+          console.log(rencontre);
           return (
             <tr
               key={rencontre._id}
@@ -425,9 +443,20 @@ function RencontresTableSmall({ personRencontres }) {
               <td>
                 <div className="tw-flex tw-text-black50 tw-capitalize tw-mb-1 tw-text-xs tw-items-center">
                   <div className="tw-grow">{formatDateTimeWithNameOfDay(rencontre.date || rencontre.createdAt)}</div>
-                  {rencontre.territoryObject ? (
+                  {rencontre.territoryObject && rencontre.observation ? (
                     <div>
-                      <div className="tw-truncate	 tw-max-w-24	tw-bg-black tw-py-0.5 tw-px-1 tw-rounded tw-text-white tw-text-xs">
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalObservation({
+                            ...defaultModalObservationState(),
+                            open: true,
+                            observation: allObservations.find((o) => o._id === rencontre.observation),
+                            from: location.pathname,
+                          });
+                        }}
+                        className="tw-truncate	 tw-max-w-24	tw-bg-black tw-py-0.5 tw-px-1 tw-rounded tw-text-white tw-text-xs"
+                      >
                         {rencontre.territoryObject.name}
                       </div>
                     </div>
