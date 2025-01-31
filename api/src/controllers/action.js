@@ -256,7 +256,9 @@ router.put(
 router.delete(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
+  // Bien que la suppression d'une action soit impossible via l'interface pour un compte restreint,
+  // il est possible de la faire via l'API pour permettre de replanifier une action récurrente.
+  validateUser(["admin", "normal", "restricted-access"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -284,7 +286,12 @@ router.delete(
           organisation: req.user.organisation,
         },
       });
-      if (action) await action.destroy({ transaction: tx });
+      if (action) {
+        if (req.user.role === "restricted-access" && !action.recurrence) {
+          throw new Error("Action récurrente non supprimable par un compte restreint");
+        }
+        await action.destroy({ transaction: tx });
+      }
 
       if (req.body.commentIdsToDelete?.length) {
         await Comment.destroy({
