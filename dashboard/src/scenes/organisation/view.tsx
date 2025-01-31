@@ -44,6 +44,7 @@ import Errors from "./Errors";
 import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
 import DownloadStructuresImportExample from "../data-import-export/DownloadStructuresImportExample";
 import ImportStructures from "../data-import-export/ImportStructures";
+import ExportFiles from "../data-import-export/ExportFiles";
 
 const getSettingTitle = (tabId) => {
   if (tabId === "infos") return "Informations";
@@ -509,15 +510,13 @@ const View = () => {
                 case "export":
                   return (
                     <>
-                      <TabTitle>Exporter des données</TabTitle>
-                      <div className="tw-flex tw-flex-wrap -tw-mx-4">
-                        <div className="tw-basis-10/12 tw-w-full tw-px-4">
-                          <p>Vous pouvez exporter l'ensemble de vos données dans un fichier Excel.</p>
-                        </div>
+                      <TabTitle>Exporter des données et les fichiers</TabTitle>
+                      <div className="tw-mb-8">
+                        Vous pouvez exporter l'ensemble de vos données brutes dans un fichier Excel et exporter les fichiers liés à vos personnes
+                        suivies. Le temps de génération peut prendre plusieurs minutes.
                       </div>
-                      <div className="tw-mb-10 tw-flex tw-justify-end">
-                        <ExportData />
-                      </div>
+                      <ExportData />
+                      <ExportFiles />
                     </>
                   );
                 case "import-configuration":
