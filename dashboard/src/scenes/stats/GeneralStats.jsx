@@ -9,6 +9,7 @@ const GeneralStats = ({
   rencontres,
   passages,
   actions,
+  observations,
   personsUpdatedWithActions,
   filterBase,
   filterPersons,
@@ -54,6 +55,13 @@ const GeneralStats = ({
             data={passages.length}
             title="Nombre de passages"
             help={`Nombre de passages enregistrés dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des passages.`}
+          />
+        ) : null}
+        {organisation.territoriesEnabled ? (
+          <Block
+            data={observations.length}
+            title="Nombre d'observations"
+            help={`Nombre d'observations enregistrées dans la période définie.\n\nLes observations ne sont pas liées à une personne, mais à un territoire, le filtre sélectionné est donc ignoré.`}
           />
         ) : null}
       </div>
