@@ -1,4 +1,4 @@
-const { z } = require("zod");
+const { z, ZodError } = require("zod");
 const { looseUuidRegex } = require("../utils");
 
 /**
@@ -14,6 +14,17 @@ function validateUser(roles = ["admin", "normal"], options = { healthcareProfess
         ...(options && options.healthcareProfessional ? { healthcareProfessional: z.literal(true) } : {}),
       }).parse(req.user);
     } catch (e) {
+      if (e instanceof ZodError) {
+        try {
+          if (e.issues.length > 0) {
+            const error = new Error(`Invalid user: ${e.issues.map((issue) => issue.message || "").join("\n")}`);
+            error.status = 400;
+            return next(error);
+          }
+        } catch (e) {
+          // Go to generic error
+        }
+      }
       const error = new Error(`Invalid user: ${e}`);
       error.status = 400;
       return next(error);
