@@ -170,6 +170,9 @@ function ActionContent({ onClose, isMulti = false }) {
       }
 
       if (modalAction.isEditingAllNextOccurences && initialExistingAction.recurrence) {
+        if (!body.recurrenceData.endDate) {
+          return toast.error("La date de fin de la récurrence est obligatoire");
+        }
         // Mise à jour de la récurrence.
         const recurrenceDataWithDates = {
           ...body.recurrenceData,
@@ -308,6 +311,10 @@ function ActionContent({ onClose, isMulti = false }) {
     } else {
       // On prévient l'utilisateur si la récurrence est activée qu'il y aura plusieurs actions créées.
       const hasRecurrence = body.recurrenceData?.timeUnit && body.isRecurrent;
+      // La date de fin de la récurrence est obligatoire.
+      if (hasRecurrence && !body.recurrenceData.endDate) {
+        return toast.error("La date de fin de la récurrence est obligatoire");
+      }
       const recurrenceDataWithDates = {
         ...body.recurrenceData,
         startDate: dayjsInstance(body.dueAt).startOf("day").toDate(),

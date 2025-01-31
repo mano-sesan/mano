@@ -55,8 +55,8 @@ const customFieldSchema = z
 
 const recurrenceSchema = z
   .object({
-    startDate: z.preprocess((input) => new Date(input), z.date()),
-    endDate: z.preprocess((input) => new Date(input), z.date()),
+    startDate: z.preprocess((input) => (input ? new Date(input) : null), z.date()),
+    endDate: z.preprocess((input) => (input ? new Date(input) : null), z.date()),
     timeUnit: z.enum(["day", "week", "month", "year"]),
     timeInterval: z.number(),
     selectedDays: z.array(z.enum(["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"])).optional(),
