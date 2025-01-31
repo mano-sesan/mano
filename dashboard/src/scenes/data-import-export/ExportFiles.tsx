@@ -113,11 +113,15 @@ export default function ExportFiles() {
                   await zipWriter.add(`${person.name}/${doc.fullName}`, new BlobReader(file));
                 } catch (err) {
                   // Créer un fichier avec écrit "Erreur lors du décryptage"
-                  await zipWriter.add(
-                    `${person.name}/${doc.fullName}.txt`,
-                    new BlobReader(new Blob(["Erreur lors du décryptage"], { type: "text/plain" }))
-                  );
-                  console.error("Une erreur est survenue lors du décryptage d'un document", err);
+                  try {
+                    console.error("Une erreur est survenue lors du déchiffrement d'un document", err);
+                    await zipWriter.add(
+                      `${person.name}/${doc.fullName}.txt`,
+                      new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
+                    );
+                  } catch (err) {
+                    console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
+                  }
                 }
               }
             }
