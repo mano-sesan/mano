@@ -902,6 +902,7 @@ const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
           onSubmit={async (body, actions) => {
             try {
               if (!body.email) return toast.error("L'email est obligatoire");
+              if (!body.name) return toast.error("Le nom est obligatoire");
               if (!emailRegex.test(body.email)) return toast.error("L'email est invalide");
               if (!body.role) return toast.error("Le rôle est obligatoire");
 
