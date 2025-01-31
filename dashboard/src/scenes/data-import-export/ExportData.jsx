@@ -183,15 +183,9 @@ const ExportData = () => {
   if (!["admin"].includes(user.role)) return null;
 
   return (
-    <ButtonCustom
-      color="primary"
-      onClick={onExportToCSV}
-      title="Exporter les données en .xlsx"
-      type="button"
-      padding="12px 24px"
-      loading={isExporting}
-      disabled={isExporting}
-    />
+    <button className="button-submit" disabled={isExporting} type="button" onClick={onExportToCSV}>
+      {isExporting ? "Export des donnes en cours..." : "Exporter les données en .xlsx"}
+    </button>
   );
 };
 
