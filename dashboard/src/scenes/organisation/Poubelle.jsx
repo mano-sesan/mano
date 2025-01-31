@@ -29,7 +29,7 @@ async function fetchPersons(organisationId) {
   return decryptedData;
 }
 
-export const mergedPersonIdsSelector = selector({
+const mergedPersonIdsSelector = selector({
   key: "mergedPersonIdsSelector",
   get: ({ get }) => {
     const persons = get(personsState);
