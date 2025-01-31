@@ -92,6 +92,7 @@ export function filterPersonByAssignedTeamDuringQueryPeriod({
       }
       for (const [teamId, teamPeriods] of Object.entries(assignedTeamsPeriods)) {
         if (teamId === "all") continue;
+        if (teamPeriods.length === 0) continue;
         const earliestPeriod = teamPeriods[0];
         if (earliestPeriod.isoStartDate > isoEndDate) continue;
         if (earliestPeriod.isoStartDate < isoStartDate) continue;
@@ -108,6 +109,7 @@ export function filterPersonByAssignedTeamDuringQueryPeriod({
       }
       for (const [teamId, teamPeriods] of Object.entries(assignedTeamsPeriods)) {
         if (teamId === "all") continue;
+        if (teamPeriods.length === 0) continue;
         const earliestPeriod = teamPeriods[0];
         if (earliestPeriod.isoStartDate > isoEndDate) return true;
         if (earliestPeriod.isoStartDate < isoStartDate) return true;
