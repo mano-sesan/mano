@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRecoilState, useRecoilValue } from "recoil";
+import structuredClone from "@ungap/structured-clone";
 import { teamsState, usersState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth } from "../../services/date";
@@ -14,7 +15,6 @@ import Table from "../../components/table";
 import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
 import { emailRegex, errorMessage } from "../../utils";
-import dayjs from "dayjs";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
