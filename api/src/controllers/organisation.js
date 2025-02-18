@@ -588,6 +588,25 @@ router.delete(
 );
 
 router.get(
+  "/:id",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation get`);
+      error.status = 400;
+      return next(error);
+    }
+    const data = await Organisation.findOne({ where: { _id: req.params.id } });
+    return res.status(200).send({ ok: true, data });
+  })
+);
+
+router.get(
   "/:id/teams",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),

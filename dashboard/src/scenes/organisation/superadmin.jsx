@@ -33,6 +33,7 @@ const SuperAdmin = () => {
   const [openMergeModal, setOpenMergeModal] = useState(false);
   const [openOrgSettingsModal, setOpenOrgSettingsModal] = useState(false);
   const [openCreateUserModal, setOpenCreateUserModal] = useState(false);
+  const [openRawDataModal, setOpenRawDataModal] = useState(false);
   const [editUser, setEditUser] = useState(null);
   const [openEditUserModal, setOpenEditUserModal] = useState(false);
   const [openUserListModal, setOpenUserListModal] = useState(false);
@@ -110,6 +111,7 @@ const SuperAdmin = () => {
         }}
       />
       <CreateUser onChange={() => setRefresh(true)} open={openCreateUserModal} setOpen={setOpenCreateUserModal} organisation={selectedOrganisation} />
+      <RawDataModal open={openRawDataModal} setOpen={setOpenRawDataModal} organisation={selectedOrganisation} />
       <EditUser
         editUser={editUser}
         onChange={() => setRefresh(true)}
@@ -416,6 +418,20 @@ const SuperAdmin = () => {
                       </div>
                     )}
                     <div>
+                      <button
+                        type="button"
+                        className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
+                        data-testid={`Infos brutes`}
+                        data-tooltip={"Infos brutes"}
+                        onClick={() => {
+                          setSelectedOrganisation(organisation);
+                          setOpenRawDataModal(true);
+                        }}
+                      >
+                        🔨
+                      </button>
+                    </div>
+                    <div>
                       <DeleteButtonAndConfirmModal
                         title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
                         buttonText="🗑️"
@@ -595,6 +611,36 @@ const Create = ({ onChange, open, setOpen }) => {
   );
 };
 
+const RawDataModal = ({ open, setOpen, organisation }) => {
+  const [organisationData, setOrganisationData] = useState(null);
+
+  useEffect(() => {
+    if (!organisation?._id) return;
+    (async () => {
+      const response = await API.get({ path: `/organisation/${organisation._id}` });
+      if (response.ok) {
+        setOrganisationData(response.data);
+      }
+    })();
+  }, [organisation]);
+
+  if (!organisationData) return null;
+  return (
+    <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
+      <ModalHeader title={`Infos brutes de l'organisation ${organisationData.name}`} />
+      <ModalBody className="tw-px-4 tw-py-2">
+        <div className="tw-py-4">
+          <pre className="tw-text-xs tw-whitespace-pre-wrap">{JSON.stringify(organisationData, null, 2)}</pre>
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
+          Fermer
+        </button>
+      </ModalFooter>
+    </ModalContainer>
+  );
+};
 const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
   const [selectedOrganisationMain, setSelectedOrganisationMain] = useState(null);
   const [selectedOrganisationSecondary, setSelectedOrganisationSecondary] = useState(null);
