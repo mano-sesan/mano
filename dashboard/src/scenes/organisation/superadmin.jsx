@@ -122,7 +122,9 @@ const SuperAdmin = () => {
       <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
         <div>
           <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
-          <div className="tw-text-xs tw-text-gray-500">Superadmins: {superadmins || "-"}</div>
+          <div className="tw-text-xs tw-text-gray-500">
+            Superadmins: <b>{superadmins || "-"}</b>
+          </div>
         </div>
         <div>
           <button
