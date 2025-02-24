@@ -114,7 +114,7 @@ export const itemsGroupedByPersonSelector = selector({
       };
     }
 
-    const actions = Object.values(get(actionsWithCommentsSelector));
+    const actions = get(actionsWithCommentsSelector);
     const comments = get(commentsState);
 
     const consultations = get(consultationsState);
@@ -172,7 +172,7 @@ export const itemsGroupedByPersonSelector = selector({
     // to help adding action categories to persons efficiently
     const personAactionCategoriesObject = {};
 
-    for (const action of actions) {
+    for (const action of Object.values(actions)) {
       if (!personsObject[action.person]) continue;
       personPerAction[action._id] = action.person;
       personsObject[action.person].actions = personsObject[action.person].actions || [];
@@ -247,6 +247,15 @@ export const itemsGroupedByPersonSelector = selector({
         if (!personsObject[person]) continue;
         personsObject[person].comments = personsObject[person].comments || [];
         personsObject[person].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+        // Dans le cas où l'action est liée à un groupe, on doit ajouter les commentaires aux personnes du groupe.
+        const actionPersonGroup = personsObject[actions[comment.action].person].group;
+        if (actionPersonGroup) {
+          for (const person of actionPersonGroup.persons) {
+            if (!personsObject[person]) continue;
+            personsObject[person].comments = personsObject[person].comments || [];
+            personsObject[person].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+          }
+        }
         continue;
       }
       if (!personsObject[comment.person]) continue;
