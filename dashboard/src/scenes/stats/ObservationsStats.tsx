@@ -90,10 +90,24 @@ const ObservationsStats = ({
     setObsModalOpened(true);
   };
 
+  const personsWithRencontresInSelectedObservations = useMemo(() => {
+    const persons = [];
+    for (const p of personsWithRencontres) {
+      for (const r of p.rencontres) {
+        if (r.observation) {
+          if (observations.find((o) => o._id === r.observation)) {
+            persons.push(p);
+          }
+        }
+      }
+    }
+    return persons;
+  }, [personsWithRencontres, observations]);
+
   const [personsRencontresByTerritories, rencontresByTerritories] = useMemo(() => {
     const personsRencontresByTerritories = {};
     const rencontresByTerritories = {};
-    for (const p of personsWithRencontres) {
+    for (const p of personsWithRencontresInSelectedObservations) {
       for (const r of p.rencontres) {
         if (r.territoryObject?.name) {
           if (!personsRencontresByTerritories[r.territoryObject.name]) personsRencontresByTerritories[r.territoryObject.name] = {};
@@ -103,7 +117,7 @@ const ObservationsStats = ({
       }
     }
     return [personsRencontresByTerritories, rencontresByTerritories];
-  }, [personsWithRencontres]);
+  }, [personsWithRencontresInSelectedObservations]);
 
   const filteredPersonsRencontresByTerritories = useMemo(() => {
     return Object.entries(personsRencontresByTerritories).reduce((acc, [territory, persons]) => {
