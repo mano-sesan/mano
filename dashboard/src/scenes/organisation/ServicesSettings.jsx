@@ -207,7 +207,7 @@ const Service = ({ item: service, groupTitle }) => {
     const { newService } = Object.fromEntries(new FormData(e.target));
     const oldService = service;
     if (!newService) return toast.error("Vous devez saisir un nom pour le service");
-    if (newService.trim() === oldService.trim()) return toast.error("Le nom de le service n'a pas changé");
+    if (newService === oldService) return toast.error("Le nom de le service n'a pas changé");
     if (flattenedServices.includes(newService)) {
       const existingGroupTitle = groupedServices.find(({ services }) => services.includes(newService)).groupTitle;
       return toast.error(`Ce service existe déjà: ${existingGroupTitle} > ${newService}`);
@@ -216,7 +216,7 @@ const Service = ({ item: service, groupTitle }) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: [...new Set((group.services || []).map((cat) => (cat === oldService ? newService.trim() : cat)))],
+        services: [...new Set((group.services || []).map((cat) => (cat === oldService ? newService : cat)))],
       };
     });
     const oldOrganisation = organisation;
