@@ -231,6 +231,10 @@ router.put(
     const { oldService, newService } = req.body;
     const organisation = req.user.organisation;
 
+    if (newService === oldService) {
+      return res.status(200).send({ ok: true });
+    }
+
     await Service.update({ service: newService }, { where: { service: oldService, organisation } });
 
     return res.status(200).send({ ok: true });
