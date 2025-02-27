@@ -569,37 +569,43 @@ const Stats = () => {
   }, [actionsCategoriesGroups, allCategories, groupsCategories]);
 
   const actionsWithDetailedGroupAndCategories = useMemo(() => {
-    const actionsDetailed = [];
+    const statusLookup = Object.fromEntries(actionsStatuses.map((status) => [status, true]));
+    const categoryLookup = Object.fromEntries(actionsCategories.map((cat) => [cat, true]));
+    const groupLookup = Object.fromEntries(actionsCategoriesGroups.map((group) => [group, true]));
+
+    // Pre-compute categories mapping
     const categoriesGroupObject = {};
-    for (const groupCategory of groupsCategories) {
-      for (const category of groupCategory.categories) {
-        categoriesGroupObject[category] = groupCategory.groupTitle;
+    for (const group of groupsCategories) {
+      for (const category of group.categories) {
+        categoriesGroupObject[category] = group.groupTitle;
       }
     }
+
+    const actionsDetailed = [];
+    const hasStatusFilter = actionsStatuses.length > 0;
+    const hasCategoryFilter = actionsCategories.length > 0;
+    const hasGroupFilter = actionsCategoriesGroups.length > 0;
+    const noCategory = actionsCategories.length === 1 && categoryLookup["-- Aucune --"];
+
     for (const action of actionsFilteredByPersons) {
-      if (!!actionsStatuses.length && !actionsStatuses.includes(action.status)) {
-        continue;
-      }
+      if (hasStatusFilter && !statusLookup[action.status]) continue;
       if (action.categories?.length) {
         for (const category of action.categories) {
+          const categoryGroup = categoriesGroupObject[category] ?? "Catégories supprimées";
+          if (hasGroupFilter && !groupLookup[categoryGroup]) continue;
+          if (hasCategoryFilter && (noCategory || !categoryLookup[category])) continue;
           actionsDetailed.push({
             ...action,
             category,
-            categoryGroup: categoriesGroupObject[category] ?? "Catégories supprimées",
+            categoryGroup,
           });
         }
-      } else {
+      } else if (!hasCategoryFilter || noCategory) {
         actionsDetailed.push(action);
       }
     }
-    const _actionsWithDetailedGroupAndCategories = actionsDetailed
-      .filter((a) => !actionsCategoriesGroups.length || actionsCategoriesGroups.includes(a.categoryGroup))
-      .filter((a) => {
-        if (!actionsCategories.length) return true;
-        if (actionsCategories.length === 1 && actionsCategories[0] === "-- Aucune --") return !a.categories?.length;
-        return actionsCategories.includes(a.category);
-      });
-    return _actionsWithDetailedGroupAndCategories;
+
+    return actionsDetailed;
   }, [actionsFilteredByPersons, groupsCategories, actionsCategoriesGroups, actionsCategories, actionsStatuses]);
 
   const passages = useMemo(() => {
