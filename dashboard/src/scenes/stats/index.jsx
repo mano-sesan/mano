@@ -91,7 +91,9 @@ const StatsLoader = () => {
 
 const personsForStatsSelector = selectorFamily({
   key: "personsForStatsSelector",
-  cachePolicy_UNSTABLE: "most-recent",
+  cachePolicy_UNSTABLE: {
+    eviction: "most-recent",
+  },
   get:
     ({ period }) =>
     ({ get }) => {
@@ -123,7 +125,9 @@ const personsForStatsSelector = selectorFamily({
 
 const itemsForStatsSelector = selectorFamily({
   key: "itemsForStatsSelector",
-  cachePolicy_UNSTABLE: "most-recent",
+  cachePolicy_UNSTABLE: {
+    eviction: "most-recent",
+  },
   get:
     ({ period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData }) =>
     ({ get }) => {
