@@ -250,10 +250,11 @@ export const itemsGroupedByPersonSelector = selector({
         // Dans le cas où l'action est liée à un groupe, on doit ajouter les commentaires aux personnes du groupe.
         const actionPersonGroup = personsObject[actions[comment.action].person].group;
         if (actionPersonGroup) {
-          for (const person of actionPersonGroup.persons) {
-            if (!personsObject[person]) continue;
-            personsObject[person].comments = personsObject[person].comments || [];
-            personsObject[person].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+          for (const personOfGroup of actionPersonGroup.persons) {
+            if (!personsObject[personOfGroup]) continue;
+            if (personOfGroup === person) continue;
+            personsObject[personOfGroup].comments = personsObject[personOfGroup].comments || [];
+            personsObject[personOfGroup].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
           }
         }
         continue;
@@ -488,6 +489,7 @@ export const itemsGroupedByPersonSelector = selector({
 
       personsObject[personId].lastUpdateCheckForGDPR = personsObject[personId].interactions.filter((a) => a < endOfToday)[0];
     }
+
     return personsObject;
   },
 });
