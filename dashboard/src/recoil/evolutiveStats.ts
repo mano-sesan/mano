@@ -1,4 +1,4 @@
-import { selector, selectorFamily } from "recoil";
+import { selector } from "recoil";
 import structuredClone from "@ungap/structured-clone";
 import { capture } from "../services/sentry";
 import type { PersonPopulated } from "../types/person";
@@ -245,36 +245,3 @@ export function computeEvolutiveStatsForPersons({
     personsIdsSwitchedByValue,
   };
 }
-
-export const evolutiveStatsForPersonsSelector = selectorFamily({
-  key: "evolutiveStatsForPersonsSelector",
-  get:
-    ({
-      startDate,
-      endDate,
-      persons,
-      evolutiveStatsIndicators,
-      viewAllOrganisationData,
-      selectedTeamsObjectWithOwnPeriod,
-    }: {
-      startDate: string | null;
-      endDate: string | null;
-      persons: Array<PersonPopulated>;
-      evolutiveStatsIndicators: IndicatorsSelection;
-      viewAllOrganisationData: boolean;
-      selectedTeamsObjectWithOwnPeriod: Record<UUIDV4, PeriodISODate>;
-    }) =>
-    ({ get }) => {
-      const evolutiveStatsIndicatorsBase = get(evolutiveStatsIndicatorsBaseSelector);
-
-      return computeEvolutiveStatsForPersons({
-        startDate,
-        endDate,
-        persons,
-        evolutiveStatsIndicators,
-        evolutiveStatsIndicatorsBase,
-        viewAllOrganisationData,
-        selectedTeamsObjectWithOwnPeriod,
-      });
-    },
-});
