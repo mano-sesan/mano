@@ -60,3 +60,7 @@ export function errorMessage(e) {
 }
 
 export const isEmptyValue = (value) => !value || (Array.isArray(value) && value.length === 0);
+
+export const camelToSnakeCase = (str) => str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+
+export const kebabToSnakeCase = (str) => str.replace(/-/g, "_");

@@ -96,7 +96,7 @@ export const CustomResponsivePie = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
           onItemClick ? "[&_path]:tw-cursor-pointer" : "",
         ].join(" ")}
       >
@@ -240,7 +240,7 @@ export const CustomResponsiveBar = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",
         ].join(" ")}
       >

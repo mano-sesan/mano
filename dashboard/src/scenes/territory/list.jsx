@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import { useRecoilValue } from "recoil";
+import { isTauri } from "@tauri-apps/api/core";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Loading from "../../components/loading";
@@ -21,6 +22,7 @@ import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
 import { selector } from "recoil";
+import { sqlSelect } from "../../services/sql";
 
 const territoriesWithObservations = selector({
   key: "territoriesWithObservations",
@@ -37,26 +39,75 @@ const territoriesWithObservations = selector({
     }
     return territories.map((t) => ({
       ...t,
-      observations: observationsByTerritory[t._id] || [],
+      observationsCount: (observationsByTerritory[t._id] || []).length,
       lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
         ?.createdAt,
     }));
   },
 });
 
-const List = () => {
-  const organisation = useRecoilValue(organisationState);
-  const history = useHistory();
-  useTitle("Territoires");
-  useDataLoader({ refreshOnMount: true });
+function List() {
+  if (isTauri()) {
+    return <ListDesktop />;
+  } else {
+    return <ListWeb />;
+  }
+}
 
+function ListDesktop() {
   const [page, setPage] = useSearchParamState("page", 0);
   const [search, setSearch] = useSearchParamState("search", "");
+  const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
+  const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
+  const [territories, setTerritories] = useState([]);
+  const limit = 20;
+  useEffect(() => {
+    const sqlTerritories = async () => {
+      const territories = await sqlSelect(`
+        SELECT 
+          t._id,
+          t.name,
+          t.description,
+          t.perimeter,
+          t.createdAt,
+          t.types,
+          COUNT(tos._id) as "observationsCount",
+          MAX(tos.createdAt) as "lastObservationDate"
+        FROM territory t
+        LEFT JOIN territory_observation tos ON t._id = tos.territoryId
+        GROUP BY t._id
+      `);
+      console.log(territories, "territories");
+      setTerritories(territories.map((t) => ({ ...t, types: t.types ? JSON.parse(t.types) : [] })));
+    };
+    sqlTerritories();
+  }, []);
+
+  return (
+    <ListView
+      data={territories}
+      setSearch={setSearch}
+      search={search}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+      sortOrder={sortOrder}
+      setSortOrder={setSortOrder}
+      page={page}
+      limit={limit}
+      total={territories.length}
+      setPage={setPage}
+    />
+  );
+}
+
+function ListWeb() {
+  const [page, setPage] = useSearchParamState("page", 0);
+  const [search, setSearch] = useSearchParamState("search", "");
+  const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
+  const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
 
   const territories = useRecoilValue(territoriesWithObservations);
   const territoryObservations = useRecoilValue(onlyFilledObservationsTerritories);
-  const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
-  const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
 
   const filteredTerritories = useMemo(() => {
     if (!search.length) return [...territories].sort(sortTerritories(sortBy, sortOrder));
@@ -75,7 +126,28 @@ const List = () => {
   const total = filteredTerritories?.length;
 
   if (!territories) return <Loading />;
+  return (
+    <ListView
+      data={data}
+      setSearch={setSearch}
+      search={search}
+      sortBy={sortBy}
+      setSortBy={setSortBy}
+      sortOrder={sortOrder}
+      setSortOrder={setSortOrder}
+      page={page}
+      limit={limit}
+      total={total}
+      setPage={setPage}
+    />
+  );
+}
 
+const ListView = ({ data, setSearch, search, sortBy, setSortBy, sortOrder, setSortOrder, page, limit, total, setPage }) => {
+  const organisation = useRecoilValue(organisationState);
+  const history = useHistory();
+  useTitle("Territoires");
+  useDataLoader({ refreshOnMount: true });
   return (
     <>
       <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
@@ -111,7 +183,7 @@ const List = () => {
               return (
                 <div className="[overflow-wrap:anywhere]">
                   <b>{territory.name}</b>
-                  <div className="tw-text-xs tw-text-gray-500">{territory.observations.length} observations</div>
+                  <div className="tw-text-xs tw-text-gray-500">{territory.observationsCount} observations</div>
                 </div>
               );
             },
