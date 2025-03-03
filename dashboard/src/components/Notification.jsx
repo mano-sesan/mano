@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocalStorage } from "../services/useLocalStorage";
 import { CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, userState } from "../recoil/auth";
@@ -21,65 +21,70 @@ import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } fro
 import { actionsWithoutFutureRecurrences } from "../utils/recurrence";
 import { useDataLoader } from "../services/dataLoader";
 
-const actionsUrgentSelector = selectorFamily({
-  key: "actionsUrgentSelector",
-  get:
-    ({ actionsSortBy, actionsSortOrder }) =>
-    ({ get }) => {
-      const actions = get(arrayOfitemsGroupedByActionSelector);
-      const currentTeam = get(currentTeamState);
-      return actionsWithoutFutureRecurrences(
-        actions.filter((action) => {
-          return (
-            (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) &&
-            action.status === TODO &&
-            action.urgent
-          );
-        })
-      ).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
-    },
-});
-
-const commentsUrgentSelector = selectorFamily({
-  key: "commentsUrgentSelector",
-  get:
-    () =>
-    ({ get }) => {
-      const actions = get(itemsGroupedByActionSelector);
-      const persons = get(personsState);
-      const comments = get(commentsState);
-      const currentTeam = get(currentTeamState);
-      return comments
-        .filter((c) => c.urgent && (Array.isArray(c.teams) ? c.teams.includes(currentTeam?._id) : c.team === currentTeam?._id))
-        .map((comment) => {
-          const commentPopulated = { ...comment };
-          if (comment.person) {
-            const id = comment?.person;
-            commentPopulated.personPopulated = persons.find((p) => p._id === id);
-            commentPopulated.type = "person";
-          }
-          if (comment.action) {
-            const id = comment?.action;
-            const action = actions[id];
-            commentPopulated.actionPopulated = action;
-            commentPopulated.personPopulated = persons.find((p) => p._id === action?.person);
-            commentPopulated.type = "action";
-          }
-          return commentPopulated;
-        })
-        .filter((c) => c.actionPopulated || c.personPopulated)
-        .sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt)));
-    },
-});
-
 export default function Notification() {
   const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
   const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
   const [showModal, setShowModal] = useState(false);
-  const actions = useRecoilValue(actionsUrgentSelector({ actionsSortBy, actionsSortOrder }));
-  const comments = useRecoilValue(commentsUrgentSelector());
 
-  if (!actions.length && !comments.length) return null;
+  const arrayOfActions = useRecoilValue(arrayOfitemsGroupedByActionSelector);
+  const currentTeam = useRecoilValue(currentTeamState);
+
+  const actions = useMemo(() => {
+    return actionsWithoutFutureRecurrences(
+      arrayOfActions.filter((action) => {
+        return (
+          (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) &&
+          action.status === TODO &&
+          action.urgent
+        );
+      })
+    ).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
+  }, [arrayOfActions, currentTeam, actionsSortBy, actionsSortOrder]);
+
+  const itemsGrouped = useRecoilValue(itemsGroupedByActionSelector);
+  const persons = useRecoilValue(personsState);
+  const comments = useRecoilValue(commentsState);
+
+  const urgentComments = useMemo(() => {
+    const result = [];
+
+    for (const comment of comments) {
+      if (!comment.urgent || !(Array.isArray(comment.teams) ? comment.teams.includes(currentTeam?._id) : comment.team === currentTeam?._id)) {
+        continue;
+      }
+
+      const commentPopulated = { ...comment };
+      let hasValidReference = false;
+
+      if (comment.person) {
+        const id = comment.person;
+        commentPopulated.personPopulated = persons.find((p) => p._id === id);
+        commentPopulated.type = "person";
+        if (commentPopulated.personPopulated) {
+          hasValidReference = true;
+        }
+      }
+
+      if (comment.action) {
+        const id = comment.action;
+        const action = itemsGrouped[id];
+        commentPopulated.actionPopulated = action;
+        if (action?.person) {
+          commentPopulated.personPopulated = persons.find((p) => p._id === action.person);
+        }
+        commentPopulated.type = "action";
+        if (commentPopulated.actionPopulated) {
+          hasValidReference = true;
+        }
+      }
+      if (hasValidReference) {
+        result.push(commentPopulated);
+      }
+    }
+    return result.sort((a, b) => dayjs(a.createdAt).diff(dayjs(b.createdAt)));
+  }, [comments, currentTeam, persons, itemsGrouped]);
+
+  if (!actions.length && !urgentComments.length) return null;
   return (
     <>
       <button
@@ -88,7 +93,7 @@ export default function Notification() {
         className="tw-flex tw-self-center"
         onClick={() => setShowModal(true)}
       >
-        <BellIconWithNotifications size={24} notificationsNumber={actions.length + comments.length} />
+        <BellIconWithNotifications size={24} notificationsNumber={actions.length + urgentComments.length} />
       </button>
       <ModalContainer open={showModal} onClose={() => setShowModal(false)} size="full">
         <ModalBody className="relative tw-mb-6">
@@ -100,7 +105,7 @@ export default function Notification() {
             sortBy={actionsSortBy}
             sortOrder={actionsSortOrder}
           />
-          <NotificationCommentList setShowModal={setShowModal} comments={comments} />
+          <NotificationCommentList setShowModal={setShowModal} comments={urgentComments} />
         </ModalBody>
         <ModalFooter>
           <button type="button" name="cancel" className="button-cancel" onClick={() => setShowModal(false)}>
