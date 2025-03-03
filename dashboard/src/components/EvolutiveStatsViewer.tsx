@@ -1,8 +1,8 @@
 import { useRecoilValue } from "recoil";
-import { evolutiveStatsForPersonsSelector } from "../recoil/evolutiveStats";
+import { computeEvolutiveStatsForPersons, evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
 import type { PersonPopulated } from "../types/person";
 import type { IndicatorsSelection } from "../types/evolutivesStats";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { capture } from "../services/sentry";
 import type { FilterableField } from "../types/field";
 import { SelectedPersonsModal } from "../scenes/stats/PersonsStats";
@@ -34,17 +34,28 @@ export default function EvolutiveStatsViewer({
   const [modalValueEnd, setModalValueEnd] = useState<string | null>(null);
   const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
   const user = useRecoilValue(userAuthentifiedState);
+  const evolutiveStatsIndicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
 
-  const evolutiveStatsPerson = useRecoilValue(
-    evolutiveStatsForPersonsSelector({
-      persons,
+  const evolutiveStatsPerson = useMemo(() => {
+    return computeEvolutiveStatsForPersons({
       startDate: period.startDate,
       endDate: period.endDate,
+      persons,
       evolutiveStatsIndicators,
+      evolutiveStatsIndicatorsBase,
       viewAllOrganisationData,
       selectedTeamsObjectWithOwnPeriod,
-    })
-  );
+    });
+  }, [
+    period.startDate,
+    period.endDate,
+    persons,
+    evolutiveStatsIndicators,
+    evolutiveStatsIndicatorsBase,
+    viewAllOrganisationData,
+    selectedTeamsObjectWithOwnPeriod,
+  ]);
+
   try {
     const {
       startDateConsolidated,
