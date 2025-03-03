@@ -145,17 +145,18 @@ const AddService = ({ groupTitle }) => {
   const onAddService = async (e) => {
     e.preventDefault();
     const { newService } = Object.fromEntries(new FormData(e.target));
-    if (!newService) return toast.error("Vous devez saisir un nom pour le service");
-    if (flattenedServices.includes(newService)) {
-      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(newService)).groupTitle;
+    const trimmedNewService = newService?.trim();
+    if (!trimmedNewService) return toast.error("Vous devez saisir un nom pour le service");
+    if (flattenedServices.includes(trimmedNewService)) {
+      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(trimmedNewService)).groupTitle;
       // eslint-disable-next-line no-irregular-whitespace
-      return toast.error(`Ce service existe déjà : ${existingGroupTitle} > ${newService}`);
+      return toast.error(`Ce service existe déjà : ${existingGroupTitle} > ${trimmedNewService}`);
     }
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: [...new Set([...(group.services || []), newService])],
+        services: [...new Set([...(group.services || []), trimmedNewService])],
       };
     });
 
@@ -206,17 +207,18 @@ const Service = ({ item: service, groupTitle }) => {
     e.preventDefault();
     const { newService } = Object.fromEntries(new FormData(e.target));
     const oldService = service;
-    if (!newService) return toast.error("Vous devez saisir un nom pour le service");
-    if (newService.trim() === oldService.trim()) return toast.error("Le nom de le service n'a pas changé");
-    if (flattenedServices.includes(newService)) {
-      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(newService)).groupTitle;
-      return toast.error(`Ce service existe déjà: ${existingGroupTitle} > ${newService}`);
+    const trimmedNewService = newService?.trim();
+    if (!trimmedNewService) return toast.error("Vous devez saisir un nom pour le service");
+    if (trimmedNewService === oldService) return toast.error("Le nom de le service n'a pas changé");
+    if (flattenedServices.includes(trimmedNewService)) {
+      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(trimmedNewService)).groupTitle;
+      return toast.error(`Ce service existe déjà: ${existingGroupTitle} > ${trimmedNewService}`);
     }
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: [...new Set((group.services || []).map((cat) => (cat === oldService ? newService.trim() : cat)))],
+        services: [...new Set((group.services || []).map((cat) => (cat === oldService ? trimmedNewService : cat)))],
       };
     });
     const oldOrganisation = organisation;
@@ -234,7 +236,7 @@ const Service = ({ item: service, groupTitle }) => {
       const [error] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/service/update-service-name`,
-          body: { oldService, newService },
+          body: { oldService, newService: trimmedNewService },
         })
       );
 
@@ -253,11 +255,12 @@ const Service = ({ item: service, groupTitle }) => {
 
   const onDeleteService = async () => {
     if (!window.confirm("Voulez-vous vraiment supprimer ce service ? Cette opération est irréversible")) return;
+    const trimmedService = service.trim();
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: group.services.filter((cat) => cat !== service),
+        services: group.services.filter((cat) => cat !== trimmedService),
       };
     });
 
