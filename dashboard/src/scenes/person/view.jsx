@@ -12,13 +12,13 @@ import { usePreparePersonForEncryption } from "../../recoil/persons";
 import { toast } from "react-toastify";
 import { organisationState, userState } from "../../recoil/auth";
 import PersonFamily from "./PersonFamily";
-import { groupSelector } from "../../recoil/groups";
+import { groupsState } from "../../recoil/groups";
 import TabsNav from "../../components/tailwind/TabsNav";
 import { useDataLoader } from "../../services/dataLoader";
 import SearchInPerson from "./components/SearchInPerson";
 import { errorMessage } from "../../utils";
 import OutOfActiveListBanner from "./OutOfActiveListBanner";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
 export default function View() {
@@ -30,7 +30,12 @@ export default function View() {
   const [, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
   const organisation = useRecoilValue(organisationState);
   const person = useRecoilValue(itemsGroupedByPersonSelector)[personId];
-  const personGroup = useRecoilValue(groupSelector({ personId }));
+  const groups = useRecoilValue(groupsState);
+
+  const personGroup = useMemo(() => {
+    return groups.find((group) => group?.persons?.includes?.(personId)) || { persons: [], relations: [] };
+  }, [groups, personId]);
+
   const user = useRecoilValue(userState);
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get("tab") || "Résumé";
