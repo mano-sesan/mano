@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
@@ -7,7 +7,7 @@ import UserName from "../../components/UserName";
 import { userState } from "../../recoil/auth";
 import { dayjsInstance } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { groupSelector, groupsState, encryptGroup } from "../../recoil/groups";
+import { groupsState, encryptGroup } from "../../recoil/groups";
 import SelectPerson from "../../components/SelectPerson";
 import { useDataLoader } from "../../services/dataLoader";
 import PersonName from "../../components/PersonName";
@@ -24,11 +24,14 @@ interface PersonFamilyProps {
 const PersonFamily = ({ person }: PersonFamilyProps) => {
   const [groups] = useRecoilState(groupsState);
   const user = useRecoilValue(userState);
-  const personGroup = useRecoilValue(groupSelector({ personId: person?._id }));
   const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
   const [newRelationModalOpen, setNewRelationModalOpen] = useState(false);
   const [relationToEdit, setRelationToEdit] = useState(null);
   const { refresh } = useDataLoader();
+
+  const personGroup = useMemo(() => {
+    return groups.find((group) => group?.persons?.includes?.(person?._id)) || ({ persons: [], relations: [] } as GroupInstance);
+  }, [groups, person?._id]);
 
   const onAddFamilyLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
