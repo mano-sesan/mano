@@ -112,6 +112,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
   const newConsultationInitialStateRef = useRef(newConsultationInitialState(organisation._id, personId, user._id, date, teams));
 
   const [isEditing, setIsEditing] = useState(!consultation || searchParams.get("isEditing") === "true");
+  const [isFetching, setIsFetching] = useState(false);
 
   const initialState = useMemo(() => {
     if (consultation) {
@@ -165,6 +166,8 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       if (Object.keys(historyEntry.data).length) body.history = [...(consultation.history || []), historyEntry];
     }
 
+    setIsFetching(true);
+
     const [error, response] = await tryFetchExpectOk(async () =>
       isNewConsultation
         ? API.post({
@@ -176,12 +179,19 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
             body: await encryptConsultation(organisation.consultations)(body),
           })
     );
-    if (error) return false;
+
+    if (error) {
+      setIsFetching(false);
+      return false;
+    }
     const decryptedData = await decryptItem(response.data, { type: "consultation in modal" });
     if (decryptedData) {
       await refresh();
     }
-    if (closeOnSubmit) onClose();
+    if (closeOnSubmit) {
+      setIsFetching(false);
+      onClose();
+    }
     if (!isNewConsultation && closeOnSubmit && consultation && consultation.status !== CANCEL && body.status === CANCEL) {
       setModalConfirmState({
         open: true,
@@ -222,12 +232,14 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                 searchParams.set("consultationId", consultationReponse.data._id);
                 searchParams.set("isEditing", "true");
                 history.replace(`?${searchParams.toString()}`);
+                setIsFetching(false);
               },
             },
           ],
         },
       });
     }
+    setIsFetching(false);
     return true;
   }
 
@@ -811,24 +823,34 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
             name="cancel"
             title="Supprimer cette consultation - seul le créateur peut supprimer une consultation"
             className="button-destructive"
+            disabled={isFetching}
             onClick={async (e) => {
               e.stopPropagation();
               if (!window.confirm("Voulez-vous supprimer cette consultation ?")) return;
+              setIsFetching(true);
               const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/consultation/${consultation._id}` }));
               if (error) {
+                setIsFetching(false);
                 toast.error("Impossible de supprimer cette consultation");
                 return;
               }
               await refresh();
               toast.success("Consultation supprimée !");
               onClose();
+              setIsFetching(false);
             }}
           >
             Supprimer
           </button>
         )}
         {(isEditing || canSave) && (
-          <button title="Sauvegarder cette consultation" type="submit" className="button-submit !tw-bg-blue-900" form="add-consultation-form">
+          <button
+            disabled={isFetching}
+            title="Sauvegarder cette consultation"
+            type="submit"
+            className="button-submit !tw-bg-blue-900"
+            form="add-consultation-form"
+          >
             Sauvegarder
           </button>
         )}
