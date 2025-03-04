@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import structuredClone from "@ungap/structured-clone";
 import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
