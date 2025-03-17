@@ -39,10 +39,11 @@ const ConfirmModal = ({ open, onClose, title, children, textToConfirm, onConfirm
             e.preventDefault();
             const _textToConfirm = String(Object.fromEntries(new FormData(e.currentTarget))?.textToConfirm);
             if (!_textToConfirm) return toast.error("Veuillez rentrer le texte demandé");
-            if (_textToConfirm.trim().toLocaleLowerCase() !== textToConfirm.trim().toLocaleLowerCase()) {
+            // On accepte les espaces multiples (et de toutes sortes)
+            if (_textToConfirm.trim().toLocaleLowerCase().replace(/\s+/g, " ") !== textToConfirm.trim().toLocaleLowerCase().replace(/\s+/g, " ")) {
               return toast.error("Le texte renseigné est incorrect");
             }
-            if (_textToConfirm.trim() !== textToConfirm.trim()) {
+            if (_textToConfirm.trim().replace(/\s+/g, " ") !== textToConfirm.trim().replace(/\s+/g, " ")) {
               return toast.error("Veuillez respecter les minuscules/majuscules");
             }
             setIsDeleting(true);
