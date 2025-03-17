@@ -367,7 +367,7 @@ function removeOldDefaultFolders(docsOrFolders: Array<FolderWithLinkedItem | Doc
       validItems.push(item);
       continue;
     }
-    // Mous avons donc à faire avec un dossier par défaut de l'ancienne configuration
+    // Nous avons donc à faire avec un dossier par défaut de l'ancienne configuration
     // qui n'est plus présent dans la configuration actuelle
     // il faut voir s'il a des documents dedans
     foldersFromPreviousDefaultFolders.push(item);
