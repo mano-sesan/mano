@@ -15,16 +15,19 @@ export const filterItem =
       if (!filter.field || !filter.value) continue;
       const itemValue = item[filter.field];
       if (["number"].includes(filter.type)) {
-        const itemNumber = Number(itemValue);
         const { number, number2, comparator } = filter.value;
+        // Handle unfilled case first
         if (comparator === "unfilled") {
-          if (typeof itemNumber === "number") return false;
+          if (itemValue !== null && itemValue !== undefined) return false;
           continue;
         }
-        // be careful:
-        // now we want to exclude everything that is not a number
-        // BUT we can't use `isNaN` here because if itemValue is `null`, isNaN(null) === false, because `Number(null) === 0`
-        if (typeof itemNumber !== "number") return false;
+        // Handle null/undefined values for all other comparators
+        if (itemValue === null || itemValue === undefined) return false;
+
+        const itemNumber = Number(itemValue);
+        // Check if it's a valid number after conversion
+        if (Number.isNaN(itemNumber)) return false;
+
         if (comparator === "between") {
           if (Number(number) < Number(number2)) {
             if (Number(itemNumber) >= Number(number) && Number(itemNumber) <= Number(number2)) continue;
