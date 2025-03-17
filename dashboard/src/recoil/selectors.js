@@ -248,13 +248,15 @@ export const itemsGroupedByPersonSelector = selector({
         personsObject[person].comments = personsObject[person].comments || [];
         personsObject[person].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
         // Dans le cas où l'action est liée à un groupe, on doit ajouter les commentaires aux personnes du groupe.
-        const actionPersonGroup = personsObject[actions[comment.action].person].group;
-        if (actionPersonGroup) {
-          for (const personOfGroup of actionPersonGroup.persons) {
-            if (!personsObject[personOfGroup]) continue;
-            if (personOfGroup === person) continue;
-            personsObject[personOfGroup].comments = personsObject[personOfGroup].comments || [];
-            personsObject[personOfGroup].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+        if (actions[comment.action]?.group) {
+          const actionPersonGroup = personsObject[actions[comment.action].person].group;
+          if (actionPersonGroup) {
+            for (const personOfGroup of actionPersonGroup.persons) {
+              if (!personsObject[personOfGroup]) continue;
+              if (personOfGroup === person) continue;
+              personsObject[personOfGroup].comments = personsObject[personOfGroup].comments || [];
+              personsObject[personOfGroup].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+            }
           }
         }
         continue;
