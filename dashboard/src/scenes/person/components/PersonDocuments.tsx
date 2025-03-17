@@ -56,19 +56,18 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
     } as LinkedItem,
   }));
 
-  const cleanedDocs = removeOldDefaultFolders(
-    // Les documents et dossiers de la personne...
-    [
-      ...(person.documentsForModule || []),
-      // Les documents et dossier du groupe (famille)
-      ...(person.groupDocuments || []),
-    ],
-    defaultFolders
-  );
   const documents = [
     // Le dossier "Actions" est ajouté si nécessaire, il s'affichera toujours en premier
     needsActionsFolder ? actionsFolder : undefined,
-    ...cleanedDocs,
+    ...removeOldDefaultFolders(
+      [
+        // Les documents et dossiers de la personne...
+        ...(person.documentsForModule || []),
+        // Les documents et dossier du groupe (famille)
+        ...(person.groupDocuments || []),
+      ],
+      defaultFolders
+    ),
     // Les dossiers par défaut configurés par l'organisation
   ]
     .filter((e) => e)
