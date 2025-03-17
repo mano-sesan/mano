@@ -3,12 +3,13 @@ import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../../components/DeleteButtonAndConfirmModal";
 import { useDataLoader } from "../../../services/dataLoader";
 import { useDeletePerson } from "../../../services/useDeletePerson";
+import { useLocalStorage } from "../../../services/useLocalStorage";
 
 export default function DeletePersonButton({ person }) {
   const history = useHistory();
   const { refresh } = useDataLoader();
   const deletePerson = useDeletePerson();
-
+  const [lastPersonsViewed, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
   return (
     <DeleteButtonAndConfirmModal
       title={`Voulez-vous vraiment supprimer la personne ${person.name}`}
@@ -18,6 +19,7 @@ export default function DeletePersonButton({ person }) {
       onConfirm={async () => {
         const [_error, response] = await deletePerson(person._id);
         if (response.ok) {
+          setLastPersonsViewed(lastPersonsViewed.filter((id) => id !== person._id));
           toast.success("Suppression réussie");
           await refresh();
           history.goBack();

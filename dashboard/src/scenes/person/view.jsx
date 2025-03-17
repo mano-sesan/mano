@@ -42,13 +42,14 @@ export default function View() {
   const { encryptPerson } = usePreparePersonForEncryption();
 
   useEffect(() => {
+    if (!person) return;
     setLastPersonsViewed((prev) => {
       let newPrev = prev.filter((id) => id !== personId);
       newPrev.unshift(personId);
       newPrev.splice(4);
       return newPrev;
     });
-  }, [personId, setLastPersonsViewed]);
+  }, [personId, setLastPersonsViewed, person]);
 
   if (!person) {
     history.push("/person");
