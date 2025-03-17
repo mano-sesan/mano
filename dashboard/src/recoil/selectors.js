@@ -518,18 +518,6 @@ export const personsWithMedicalFileAndConsultationsMergedSelector = selector({
   },
 });
 
-export const personsForStatsSelector = selector({
-  key: "personsForStatsSelector",
-  get: ({ get }) => {
-    const persons = get(arrayOfitemsGroupedByPersonSelector);
-    return persons.map((p) => ({
-      ...(p.medicalFile || {}),
-      ...(p.flattenedConsultations || {}),
-      ...p,
-    }));
-  },
-});
-
 const personsWithPlacesSelector = selector({
   key: "personsWithPlacesSelector",
   get: ({ get }) => {
