@@ -136,15 +136,18 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
                     ? undefined
                     : (newSlice, field) => {
                         setConsultationssModalOpened(true);
-                        if (newSlice === "Non renseigné") {
-                          setSlicedData(consultationsByType[c.name].data.filter((c) => !c[field]));
-                        } else {
-                          setSlicedData(
-                            consultationsByType[c.name].data.filter((c) =>
-                              Array.isArray(c[field]) ? c[field].includes(newSlice) : c[field] === newSlice
-                            )
-                          );
-                        }
+                        const fieldType = filterBase.find((f) => f.name === field)?.type;
+                        setSlicedData(
+                          consultationsByType[c.name].data.filter((c) => {
+                            if (newSlice === "Non renseigné") {
+                              return !c[field];
+                            }
+                            if (fieldType === "boolean") {
+                              return newSlice === "Oui" ? c[field] : !c[field];
+                            }
+                            return Array.isArray(c[field]) ? c[field].includes(newSlice) : c[field] === newSlice;
+                          })
+                        );
                       }
                 }
                 help={(label) => `${capitalize(label)} des consultations réalisées dans la période définie.`}
