@@ -68,7 +68,7 @@ function DefaultFolders({
               items
                 .filter((item) => item._id !== folderToEdit?._id)
                 .map((item) => {
-                  if (item.parentId === folderToEdit._id) return { ...item, parentId: "" };
+                  if (item.parentId === folderToEdit._id) return { ...item, parentId: "root" };
                   return item;
                 })
             );
