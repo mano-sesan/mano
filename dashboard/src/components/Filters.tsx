@@ -204,6 +204,13 @@ const Filters = ({
             // filter: field, value, type
             const filterValues = getFilterOptionsByField(filter.field, base, index);
             const onChangeField = (newField: FilterableField) => {
+              if (!newField) {
+                onChange(
+                  filters.filter((_filter, i) => i !== index),
+                  saveInURLParams
+                );
+                return;
+              }
               onChange(
                 filters.map((_filter, i) => (i === index ? { field: newField?.field, value: null, type: newField?.type } : _filter)),
                 saveInURLParams
