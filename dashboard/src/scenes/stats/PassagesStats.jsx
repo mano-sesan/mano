@@ -11,6 +11,7 @@ const PassagesStats = ({
   passages,
   personFields,
   personsWithPassages,
+  personsUpdated,
   personsInPassagesBeforePeriod,
   filterBase,
   filterPersons,
@@ -22,10 +23,9 @@ const PassagesStats = ({
   const user = useRecoilValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
-    if (personsWithPassages.length === 1)
-      return `Filtrer par personnes suivies (${personsWithPassages.length} personne concernée par le filtre actuel) :`;
-    return `Filtrer par personnes suivies (${personsWithPassages.length} personnes concernées par le filtre actuel) :`;
-  }, [filterPersons, personsWithPassages]);
+    if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;
+    return `Filtrer par personnes suivies (${personsUpdated.length} personnes concernées par le filtre actuel) :`;
+  }, [filterPersons, personsUpdated]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {

@@ -10,7 +10,7 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../compo
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { capitalize } from "../../utils";
 
-export default function ConsultationsStats({ consultations, personsWithConsultations, filterBase, filterPersons, setFilterPersons }) {
+export default function ConsultationsStats({ consultations, personsWithConsultations, personsUpdated, filterBase, filterPersons, setFilterPersons }) {
   const organisation = useRecoilValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
   const [slicedData, setSlicedData] = useState([]);
@@ -18,10 +18,9 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
 
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
-    if (personsWithConsultations === 1)
-      return `Filtrer par personnes suivies (${personsWithConsultations} personne concernée par le filtre actuel) :`;
-    return `Filtrer par personnes suivies (${personsWithConsultations} personnes concernées par le filtre actuel) :`;
-  }, [filterPersons, personsWithConsultations]);
+    if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;
+    return `Filtrer par personnes suivies (${personsUpdated.length} personnes concernées par le filtre actuel) :`;
+  }, [filterPersons, personsUpdated.length]);
 
   const consultationsByType = useMemo(() => {
     const _consultationsByType = {};
@@ -64,7 +63,7 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
             />
             <Block
               data={personsWithConsultations}
-              title="Nombre de personnes suivies"
+              title="Nombre de personnes suivies ayant eu une consultation"
               help={`Nombre de personnes suivies ayant eu une consultation dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des consultations.`}
             />
           </div>
