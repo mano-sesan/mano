@@ -15,6 +15,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";
+import { sanitize } from "../../utils/sanitize";
 
 const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HTMLDivElement> }) => {
   const fileDialogRef = useRef<HTMLInputElement>(null);
@@ -603,11 +604,11 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
     if (sheetData.globalErrors.length > 0) continue;
     if (sheetName === "Infos social et médical") {
       const customFields = sheetData.data.reduce((acc, curr) => {
-        const rubrique = curr.rubrique as string;
-        const intitule = curr.intitule as string;
-        const type = curr.type as TypeOptionLabel;
-        const options = curr.choix as string[];
-        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id);
+        const rubrique = sanitize(curr.rubrique as string);
+        const intitule = sanitize(curr.intitule as string);
+        const type = sanitize(curr.type as string) as TypeOptionLabel;
+        const options = (curr.choix as string[]).map(sanitize);
+        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id).map(sanitize);
         const rubriqueIndex = acc.findIndex((e) => e.name === rubrique);
 
         const previousOrganisationField = organisation.customFieldsPersons
@@ -639,11 +640,11 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
 
     if (sheetName === "Dossier médical") {
       const customFields = sheetData.data.reduce((acc, curr) => {
-        const rubrique = curr.rubrique as string;
-        const intitule = curr.intitule as string;
-        const type = curr.type as TypeOptionLabel;
-        const options = curr.choix as string[];
-        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id);
+        const rubrique = sanitize(curr.rubrique as string);
+        const intitule = sanitize(curr.intitule as string);
+        const type = sanitize(curr.type as string) as TypeOptionLabel;
+        const options = (curr.choix as string[]).map(sanitize);
+        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id).map(sanitize);
         const rubriqueIndex = acc.findIndex((e) => e.name === rubrique);
 
         const previousOrganisationField = organisation.groupedCustomFieldsMedicalFile
@@ -675,11 +676,11 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
 
     if (sheetName === "Consultation") {
       const customFields = sheetData.data.reduce((acc, curr) => {
-        const rubrique = curr.rubrique as string;
-        const intitule = curr.intitule as string;
-        const type = curr.type as TypeOptionLabel;
-        const options = curr.choix as string[];
-        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id);
+        const rubrique = sanitize(curr.rubrique as string);
+        const intitule = sanitize(curr.intitule as string);
+        const type = sanitize(curr.type as string) as TypeOptionLabel;
+        const options = (curr.choix as string[]).map(sanitize);
+        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id).map(sanitize);
         const rubriqueIndex = acc.findIndex((e) => e.name === rubrique);
 
         const previousOrganisationField = organisation.consultations?.find((e) => e.name === rubrique)?.fields.find((f) => f.label === intitule);
@@ -709,11 +710,11 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
 
     if (sheetName === "Observation de territoire") {
       const customFields = sheetData.data.reduce((acc, curr) => {
-        const rubrique = curr.rubrique as string;
-        const intitule = curr.intitule as string;
-        const type = curr.type as TypeOptionLabel;
-        const options = curr.choix as string[];
-        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id);
+        const rubrique = sanitize(curr.rubrique as string);
+        const intitule = sanitize(curr.intitule as string);
+        const type = sanitize(curr.type as string) as TypeOptionLabel;
+        const options = (curr.choix as string[]).map(sanitize);
+        const enabledTeams = (curr.enabledTeams as TeamInstance[]).map((t) => t._id).map(sanitize);
         const rubriqueIndex = acc.findIndex((e) => e.name === rubrique);
 
         const previousOrganisationField = organisation.groupedCustomFieldsObs
@@ -746,8 +747,8 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
     if (sheetName === "Liste des services") {
       const services = sheetData.data.reduce(
         (acc, curr) => {
-          const service = curr.service as string;
-          const groupe = curr.groupe as string;
+          const service = sanitize(curr.service as string);
+          const groupe = sanitize(curr.groupe as string);
           const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
           if (groupeIndex === -1) {
@@ -765,8 +766,8 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
     if (sheetName === "Catégories d action") {
       const categories = sheetData.data.reduce(
         (acc, curr) => {
-          const categorie = curr.categorie as string;
-          const groupe = curr.groupe as string;
+          const categorie = sanitize(curr.categorie as string);
+          const groupe = sanitize(curr.groupe as string);
           const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
           if (groupeIndex === -1) {
