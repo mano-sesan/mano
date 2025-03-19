@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
 import CustomFieldsStats from "./CustomFieldsStats";
@@ -9,12 +9,27 @@ import { userState } from "../../recoil/auth";
 import { useRecoilValue } from "recoil";
 import { capitalize } from "../../utils";
 
-const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, personsForStats, customFieldsMedicalFile, personFields, title }) => {
+const MedicalFilesStats = ({
+  filterBase,
+  filterPersons,
+  personsUpdated,
+  setFilterPersons,
+  personsForStats,
+  customFieldsMedicalFile,
+  personFields,
+  title,
+}) => {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
   const user = useRecoilValue(userState);
+
+  const filterTitle = useMemo(() => {
+    if (!filterPersons.length) return `Filtrer par personnes suivies :`;
+    if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;
+    return `Filtrer par personnes suivies (${personsUpdated.length} personnes concernées par le filtre actuel) :`;
+  }, [filterPersons, personsUpdated.length]);
 
   const onSliceClick = (newSlice, fieldName, personConcerned = personsForStats) => {
     if (["stats-only"].includes(user.role)) return;
@@ -40,7 +55,7 @@ const MedicalFilesStats = ({ filterBase, filterPersons, setFilterPersons, person
     <>
       <h3 className="tw-my-5 tw-text-xl">Statistiques des dossiers médicaux des {title}</h3>
       <div className="tw-flex tw-flex-col tw-gap-4">
-        <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} title={filterTitle} />
         <AgeRangeBar
           persons={personsForStats}
           onItemClick={

@@ -883,6 +883,7 @@ const Stats = () => {
             passages={passages}
             personFields={personFields}
             personsInPassagesBeforePeriod={personsInPassagesBeforePeriod}
+            personsUpdated={personsUpdated}
             // filter by persons
             personsWithPassages={personsWithPassages}
             filterBase={filterPersonsWithAllFields}
@@ -896,6 +897,7 @@ const Stats = () => {
             personFields={personFields}
             personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
             // filter by persons
+            personsUpdated={personsUpdated}
             personsWithRencontres={personsWithRencontres}
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
@@ -919,6 +921,7 @@ const Stats = () => {
           <ConsultationsStats
             consultations={consultationsFilteredByPersons} // filter by persons
             // filter by persons
+            personsUpdated={personsUpdated}
             personsWithConsultations={personsWithConsultations}
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
@@ -929,6 +932,7 @@ const Stats = () => {
           <MedicalFilesStats
             filterBase={filterPersonsWithAllFields}
             title="personnes créées"
+            personsUpdated={personsUpdated}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
             personsForStats={personsCreated}
@@ -939,6 +943,7 @@ const Stats = () => {
         {activeTab === "Dossiers médicaux des personnes suivies" && (
           <MedicalFilesStats
             title="personnes suivies"
+            personsUpdated={personsUpdated}
             personsForStats={personsUpdated}
             customFieldsMedicalFile={customFieldsMedicalFile}
             personFields={personFields}

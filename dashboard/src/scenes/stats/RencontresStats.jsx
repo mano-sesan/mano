@@ -11,6 +11,7 @@ const RencontresStats = ({
   rencontres,
   personFields,
   personsWithRencontres,
+  personsUpdated,
   personsInRencontresBeforePeriod,
   // filter by persons
   filterBase,
@@ -23,10 +24,9 @@ const RencontresStats = ({
   const user = useRecoilValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
-    if (personsWithRencontres.length === 1)
-      return `Filtrer par personnes suivies (${personsWithRencontres.length} personne concernée par le filtre actuel) :`;
-    return `Filtrer par personnes suivies (${personsWithRencontres.length} personnes concernées par le filtre actuel) :`;
-  }, [filterPersons, personsWithRencontres.length]);
+    if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;
+    return `Filtrer par personnes suivies (${personsUpdated.length} personnes concernées par le filtre actuel) :`;
+  }, [filterPersons, personsUpdated.length]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {
