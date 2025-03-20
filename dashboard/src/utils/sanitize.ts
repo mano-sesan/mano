@@ -1,6 +1,6 @@
+//  remove backslash \
+//  remove tabs \t
+//  removes whitespace from both the beginning and end of the string.
 export function sanitize(input: string) {
-  // replce \/ with /
-  // replace \t with nothing
-  // trim
-  return input.trim().replace(/\//g, "").replace(/\t/g, "");
+  return input.trim().replace(/\\/g, "").replace(/\t/g, "");
 }
