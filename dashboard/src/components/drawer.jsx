@@ -132,7 +132,7 @@ const Drawer = () => {
                   Utilisateurs
                 </NavLink>
               </li>
-              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && (
+              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && (
                 <>
                   <hr />
                   <li>
