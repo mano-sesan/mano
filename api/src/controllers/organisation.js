@@ -362,7 +362,10 @@ router.put(
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     if (req.body.hasOwnProperty("collaborations")) {
-      await organisation.update({ collaborations: req.body.collaborations });
+      await sequelize.transaction(async (t) => {
+        t.userId = req.user._id;
+        await organisation.update({ collaborations: req.body.collaborations }, { transaction: t });
+      });
     }
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
   })
@@ -539,7 +542,10 @@ router.put(
     if (req.body.hasOwnProperty("emailDirection")) updateOrg.emailDirection = req.body.emailDirection;
     if (req.body.hasOwnProperty("emailDpo")) updateOrg.emailDpo = req.body.emailDpo;
 
-    await organisation.update(updateOrg);
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      await organisation.update(updateOrg, { transaction: t });
+    });
 
     return res.status(200).send({
       ok: true,
@@ -998,6 +1004,7 @@ router.post(
 
     const { mainId, secondaryId } = req.body;
     await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
       await sequelize.query(`UPDATE "mano"."Action" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
@@ -1287,7 +1294,10 @@ router.post(
       error.status = 404;
       return next(error);
     }
-    await organisation.update({ disabledAt: new Date() });
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      await organisation.update({ disabledAt: new Date() }, { transaction: t });
+    });
     res.status(200).send({ ok: true });
   })
 );
@@ -1304,7 +1314,10 @@ router.post(
       error.status = 404;
       return next(error);
     }
-    await organisation.update({ disabledAt: null });
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      await organisation.update({ disabledAt: null }, { transaction: t });
+    });
     res.status(200).send({ ok: true });
   })
 );
