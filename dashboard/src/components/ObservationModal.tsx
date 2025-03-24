@@ -30,8 +30,6 @@ export default function ObservationModal() {
   const location = useLocation();
   const open = modalObservation.open && location.pathname === modalObservation.from;
 
-  console.log({ modalObservation });
-
   return (
     <ModalContainer
       open={open}
@@ -73,7 +71,7 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
-  console.log({ parametres: organisation.territoriesGroupedTypes });
+
   const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
