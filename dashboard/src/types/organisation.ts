@@ -22,6 +22,11 @@ export interface OrganisationInstance {
   city: string;
   region: string;
 
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  lockedForEncryption?: boolean;
+
   collaborations?: string[];
 
   encryptionEnabled?: boolean;
@@ -45,6 +50,8 @@ export interface OrganisationInstance {
 
   customFieldsObs: CustomField[];
   groupedCustomFieldsObs?: CustomFieldsGroup[];
+  customFieldsPersonsSocial: CustomField[]; // deprecated
+  customFieldsPersonsMedical: CustomField[]; // deprecated
   personFields: PredefinedField[];
   customFieldsPersons: CustomFieldsGroup[];
   customFieldsMedicalFile: CustomField[];
@@ -52,6 +59,7 @@ export interface OrganisationInstance {
   fieldsPersonsCustomizableOptions: CustomField[];
   consultations: CustomFieldsGroup[];
 
+  categories?: string[]; // deprecated
   actionsGroupedCategories?: GroupedCategories[];
   structuresGroupedCategories?: GroupedCategories[];
   territoriesGroupedTypes?: GroupedTypes[];
