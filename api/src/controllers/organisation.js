@@ -441,51 +441,58 @@ router.put(
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     if (req.user.role !== "admin") {
-      await organisation.update({ collaborations: req.body.collaborations });
+      await sequelize.transaction(async (t) => {
+        t.userId = req.user._id;
+        await organisation.update({ collaborations: req.body.collaborations }, { transaction: t });
+      });
       return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
     }
 
     const updateOrg = {};
-    if (req.body.hasOwnProperty("name")) updateOrg.name = req.body.name;
-    if (req.body.hasOwnProperty("actionsGroupedCategories")) updateOrg.actionsGroupedCategories = req.body.actionsGroupedCategories;
-    if (req.body.hasOwnProperty("structuresGroupedCategories")) updateOrg.structuresGroupedCategories = req.body.structuresGroupedCategories;
-    if (req.body.hasOwnProperty("territoriesGroupedTypes")) updateOrg.territoriesGroupedTypes = req.body.territoriesGroupedTypes;
-    if (req.body.hasOwnProperty("defaultPersonsFolders")) updateOrg.defaultPersonsFolders = req.body.defaultPersonsFolders;
-    if (req.body.hasOwnProperty("defaultMedicalFolders")) updateOrg.defaultMedicalFolders = req.body.defaultMedicalFolders;
-    if (req.body.hasOwnProperty("groupedServices")) updateOrg.groupedServices = req.body.groupedServices;
-    if (req.body.hasOwnProperty("collaborations")) updateOrg.collaborations = req.body.collaborations;
-    if (req.body.hasOwnProperty("groupedCustomFieldsObs"))
-      updateOrg.groupedCustomFieldsObs =
-        typeof req.body.groupedCustomFieldsObs === "string" ? JSON.parse(req.body.groupedCustomFieldsObs) : req.body.groupedCustomFieldsObs;
-    if (req.body.hasOwnProperty("fieldsPersonsCustomizableOptions"))
-      updateOrg.fieldsPersonsCustomizableOptions =
-        typeof req.body.fieldsPersonsCustomizableOptions === "string"
-          ? JSON.parse(req.body.fieldsPersonsCustomizableOptions)
-          : req.body.fieldsPersonsCustomizableOptions;
-    if (req.body.hasOwnProperty("customFieldsPersons"))
-      updateOrg.customFieldsPersons =
-        typeof req.body.customFieldsPersons === "string" ? JSON.parse(req.body.customFieldsPersons) : req.body.customFieldsPersons;
-    if (req.body.hasOwnProperty("groupedCustomFieldsMedicalFile"))
-      updateOrg.groupedCustomFieldsMedicalFile =
-        typeof req.body.groupedCustomFieldsMedicalFile === "string"
-          ? JSON.parse(req.body.groupedCustomFieldsMedicalFile)
-          : req.body.groupedCustomFieldsMedicalFile;
-    if (req.body.hasOwnProperty("consultations"))
-      updateOrg.consultations = typeof req.body.consultations === "string" ? JSON.parse(req.body.consultations) : req.body.consultations;
-    if (req.body.hasOwnProperty("encryptedVerificationKey")) updateOrg.encryptedVerificationKey = req.body.encryptedVerificationKey;
-    if (req.body.hasOwnProperty("encryptionEnabled")) updateOrg.encryptionEnabled = req.body.encryptionEnabled;
-    if (req.body.hasOwnProperty("encryptionLastUpdateAt")) updateOrg.encryptionLastUpdateAt = req.body.encryptionLastUpdateAt;
-    if (req.body.hasOwnProperty("receptionEnabled")) updateOrg.receptionEnabled = req.body.receptionEnabled;
-    if (req.body.hasOwnProperty("territoriesEnabled")) updateOrg.territoriesEnabled = req.body.territoriesEnabled;
-    if (req.body.hasOwnProperty("groupsEnabled")) updateOrg.groupsEnabled = req.body.groupsEnabled;
-    if (req.body.hasOwnProperty("rencontresEnabled")) updateOrg.rencontresEnabled = req.body.rencontresEnabled;
-    if (req.body.hasOwnProperty("passagesEnabled")) updateOrg.passagesEnabled = req.body.passagesEnabled;
-    if (req.body.hasOwnProperty("checkboxShowAllOrgaPersons")) updateOrg.checkboxShowAllOrgaPersons = req.body.checkboxShowAllOrgaPersons;
-    if (req.body.hasOwnProperty("lockedForEncryption")) updateOrg.lockedForEncryption = req.body.lockedForEncryption;
-    if (req.body.hasOwnProperty("lockedBy")) updateOrg.lockedBy = req.body.lockedBy;
-    if (req.body.hasOwnProperty("services")) updateOrg.services = req.body.services;
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
 
-    await organisation.update(updateOrg);
+      if (req.body.hasOwnProperty("name")) updateOrg.name = req.body.name;
+      if (req.body.hasOwnProperty("actionsGroupedCategories")) updateOrg.actionsGroupedCategories = req.body.actionsGroupedCategories;
+      if (req.body.hasOwnProperty("structuresGroupedCategories")) updateOrg.structuresGroupedCategories = req.body.structuresGroupedCategories;
+      if (req.body.hasOwnProperty("territoriesGroupedTypes")) updateOrg.territoriesGroupedTypes = req.body.territoriesGroupedTypes;
+      if (req.body.hasOwnProperty("defaultPersonsFolders")) updateOrg.defaultPersonsFolders = req.body.defaultPersonsFolders;
+      if (req.body.hasOwnProperty("defaultMedicalFolders")) updateOrg.defaultMedicalFolders = req.body.defaultMedicalFolders;
+      if (req.body.hasOwnProperty("groupedServices")) updateOrg.groupedServices = req.body.groupedServices;
+      if (req.body.hasOwnProperty("collaborations")) updateOrg.collaborations = req.body.collaborations;
+      if (req.body.hasOwnProperty("groupedCustomFieldsObs"))
+        updateOrg.groupedCustomFieldsObs =
+          typeof req.body.groupedCustomFieldsObs === "string" ? JSON.parse(req.body.groupedCustomFieldsObs) : req.body.groupedCustomFieldsObs;
+      if (req.body.hasOwnProperty("fieldsPersonsCustomizableOptions"))
+        updateOrg.fieldsPersonsCustomizableOptions =
+          typeof req.body.fieldsPersonsCustomizableOptions === "string"
+            ? JSON.parse(req.body.fieldsPersonsCustomizableOptions)
+            : req.body.fieldsPersonsCustomizableOptions;
+      if (req.body.hasOwnProperty("customFieldsPersons"))
+        updateOrg.customFieldsPersons =
+          typeof req.body.customFieldsPersons === "string" ? JSON.parse(req.body.customFieldsPersons) : req.body.customFieldsPersons;
+      if (req.body.hasOwnProperty("groupedCustomFieldsMedicalFile"))
+        updateOrg.groupedCustomFieldsMedicalFile =
+          typeof req.body.groupedCustomFieldsMedicalFile === "string"
+            ? JSON.parse(req.body.groupedCustomFieldsMedicalFile)
+            : req.body.groupedCustomFieldsMedicalFile;
+      if (req.body.hasOwnProperty("consultations"))
+        updateOrg.consultations = typeof req.body.consultations === "string" ? JSON.parse(req.body.consultations) : req.body.consultations;
+      if (req.body.hasOwnProperty("encryptedVerificationKey")) updateOrg.encryptedVerificationKey = req.body.encryptedVerificationKey;
+      if (req.body.hasOwnProperty("encryptionEnabled")) updateOrg.encryptionEnabled = req.body.encryptionEnabled;
+      if (req.body.hasOwnProperty("encryptionLastUpdateAt")) updateOrg.encryptionLastUpdateAt = req.body.encryptionLastUpdateAt;
+      if (req.body.hasOwnProperty("receptionEnabled")) updateOrg.receptionEnabled = req.body.receptionEnabled;
+      if (req.body.hasOwnProperty("territoriesEnabled")) updateOrg.territoriesEnabled = req.body.territoriesEnabled;
+      if (req.body.hasOwnProperty("groupsEnabled")) updateOrg.groupsEnabled = req.body.groupsEnabled;
+      if (req.body.hasOwnProperty("rencontresEnabled")) updateOrg.rencontresEnabled = req.body.rencontresEnabled;
+      if (req.body.hasOwnProperty("passagesEnabled")) updateOrg.passagesEnabled = req.body.passagesEnabled;
+      if (req.body.hasOwnProperty("checkboxShowAllOrgaPersons")) updateOrg.checkboxShowAllOrgaPersons = req.body.checkboxShowAllOrgaPersons;
+      if (req.body.hasOwnProperty("lockedForEncryption")) updateOrg.lockedForEncryption = req.body.lockedForEncryption;
+      if (req.body.hasOwnProperty("lockedBy")) updateOrg.lockedBy = req.body.lockedBy;
+      if (req.body.hasOwnProperty("services")) updateOrg.services = req.body.services;
+
+      await organisation.update(updateOrg, { transaction: t });
+    });
 
     return res.status(200).send({
       ok: true,
