@@ -39,7 +39,7 @@ function serializeOrganisation(organisation) {
 
     // Cela peut rester dans le doute pour le front, mais c'est l'ancienne facçon d'appeler les
     // actionsGroupedCategories. La colonne n'exite plus dans la base de données.
-    categories: (organisation.actionsGroupedCategories || [{ groupTitle: "Toutes mes catégories", categories: [] }]).reduce(
+    categories: (organisation.actionsGroupedCategories || []).reduce(
       (flattenedCategories, group) => [...flattenedCategories, ...group.categories],
       []
     ),
@@ -67,7 +67,7 @@ function serializeOrganisation(organisation) {
     defaultMedicalFolders: organisation.defaultMedicalFolders || [],
 
     /* services settings */
-    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: [] }],
+    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: organisation.services || [] }],
     // eslint-disable-next-line no-extra-boolean-cast
     services: !!organisation.groupedServices
       ? organisation.groupedServices.reduce((flattenedServices, group) => [...flattenedServices, ...group.services], [])
@@ -79,7 +79,7 @@ function serializeOrganisation(organisation) {
     /* custom fields consultations */
     consultations: organisation.consultations,
     /* custom fields observations */
-    groupedCustomFieldsObs: organisation.groupedCustomFieldsObs || defaultObservationFields,
+    groupedCustomFieldsObs: organisation.groupedCustomFieldsObs?.length ? organisation.groupedCustomFieldsObs : defaultObservationFields,
     // This works as usual (before the migration) because the default group is the only one
     // Autrement dit, si quelqu'un n'a pas mis à jour l'app ou le dashboard, il a tous ses champs
     // d'observation en vrac comme avant.

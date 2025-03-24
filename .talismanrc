@@ -13,6 +13,8 @@ fileignoreconfig:
   checksum: 5a6da61da0549a02ea89b3fc899e9c655a4455a72d33b0b80024b6af85e1a897
 - filename: dashboard/.yarnrc.yml
   checksum: 6b12c3fee90382d0b475cdd6e33b78871ba826a1e50564ee3ef4e2ab4100c3f6
+- filename: dashboard/__tests__/import-config/mocks/clean-organisation.ts
+  checksum: 4be3b71a5da6f9959484f211769597fb50a1ad5976333de9cfb410c05f11ae4e
 - filename: dashboard/src/components/drawer.js
   checksum: fb4bb430f0756b68a9be72fc54e29bfbcd8a22a5a87661fd9cc033f4632dd254
 - filename: dashboard/src/recoil/evolutiveStats.ts
