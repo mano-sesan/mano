@@ -196,7 +196,10 @@ router.put(
       );
 
       organisation.set({ structuresGroupedCategories });
-      await organisation.save({ transaction: tx });
+      await organisation.save({
+        transaction: tx,
+        context: { userId: req.user._id },
+      });
     });
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
   })

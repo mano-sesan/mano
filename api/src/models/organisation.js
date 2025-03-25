@@ -63,8 +63,8 @@ module.exports = (sequelize, DataTypes) => {
     freezeTableName: true,
     hooks: {
       beforeUpdate: async (instance, options) => {
-        // Get the current user from the transaction metadata
-        const userId = options?.transaction?.userId;
+        // Get the current user from either transaction metadata or request context
+        const userId = options?.transaction?.userId || options?.context?.userId;
         if (!userId) return;
 
         const OrganisationLog = require("./organisationLog")(sequelize, sequelize.constructor.DataTypes);

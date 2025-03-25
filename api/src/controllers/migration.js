@@ -34,7 +34,9 @@ router.put(
     const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
     organisation.set({ migrating: true });
-    await organisation.save();
+    await organisation.save({
+      context: { userId: req.user._id },
+    });
 
     try {
       await sequelize.transaction(async (tx) => {
@@ -96,12 +98,17 @@ router.put(
         }
 
         organisation.set({ migrating: false });
-        await organisation.save({ transaction: tx });
+        await organisation.save({
+          transaction: tx,
+          context: { userId: req.user._id },
+        });
       });
     } catch (e) {
       capture("error migrating", e);
       organisation.set({ migrating: false });
-      await organisation.save();
+      await organisation.save({
+        context: { userId: req.user._id },
+      });
       return next(e);
     }
     return res.status(200).send({
