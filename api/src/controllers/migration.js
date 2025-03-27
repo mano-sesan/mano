@@ -8,7 +8,7 @@ const { looseUuidRegex } = require("../utils");
 const { capture } = require("../sentry");
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
-const { Organisation, TerritoryObservation, sequelize } = require("../db/sequelize");
+const { Organisation, TerritoryObservation, Person, sequelize } = require("../db/sequelize");
 
 router.put(
   "/:migrationName",
@@ -70,7 +70,7 @@ router.put(
         }
         // End of example of migration.
         */
-        if (req.params.migrationName === "reformat-observedAt-observations-fixed") {
+        if (req.params.migrationName === "fix-custom-field-divergence-after-import") {
           try {
             z.array(
               z.object({
@@ -79,17 +79,23 @@ router.put(
                 encryptedEntityKey: z.string(),
               })
             ).parse(req.body.encryptedObservations);
-            z.array(z.string().regex(looseUuidRegex)).parse(req.body.observationIdsToDelete);
+            z.array(
+              z.object({
+                _id: z.string().regex(looseUuidRegex),
+                encrypted: z.string(),
+                encryptedEntityKey: z.string(),
+              })
+            ).parse(req.body.encryptedPersons);
           } catch (e) {
             const error = new Error(`Invalid request in ${req.params.migrationName}: ${e}`);
             error.status = 400;
             throw error;
           }
-          for (const _id of req.body.observationIdsToDelete) {
-            await TerritoryObservation.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
-          }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedObservations) {
             await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          }
+          for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedPersons) {
+            await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
           }
           organisation.set({
             migrations: [...(organisation.migrations || []), req.params.migrationName],
