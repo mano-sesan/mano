@@ -3,7 +3,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { organisationState, userState } from "../recoil/auth";
 import { usePreparePersonForEncryption } from "../recoil/persons";
 import { loadingTextState } from "../services/dataLoader";
-import { prepareObsForEncryption } from "../recoil/territoryObservations";
+import { encryptObs } from "../recoil/territoryObservations";
 import { OrganisationInstance } from "../types/organisation";
 import API from "../services/api";
 import { decryptItem, encryptItem } from "../services/encryption";
@@ -15,9 +15,9 @@ export default function useDataMigrator() {
   const setLoadingText = useSetRecoilState(loadingTextState);
   const user = useRecoilValue(userState);
   const setOrganisation = useSetRecoilState(organisationState);
-  
+
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
-  
+
   return {
     // One "if" for each migration.
     // `migrationLastUpdateAt` should be set after each migration and send in every PUT/POST/PATCH request to server.
@@ -56,16 +56,22 @@ export default function useDataMigrator() {
       // End of example of migration.
       */
       if (!organisation.migrations?.includes("fix-custom-field-divergence-after-import")) {
-        if (organisation._id !== '0812e4b8-7ad5-4f91-a52c-8e4481fc3c4f') {
+        if (
+          process.env.NODE_ENV === "development" ||
+          import.meta.env.VITE_TEST_PLAYWRIGHT ||
+          organisation._id === "0812e4b8-7ad5-4f91-a52c-8e4481fc3c4f"
+        ) {
           setLoadingText(LOADING_TEXT);
           // observations
           const observationsRes = await API.get({
             path: "/territory-observation",
-            query: { organisation: organisationId, after: '0', withDeleted: false },
+            query: { organisation: organisationId, after: "0", withDeleted: false },
           });
-          
-          const decryptedObservations = (await Promise.all(observationsRes.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
-          
+
+          const decryptedObservations = (
+            await Promise.all(observationsRes.data.map((p) => decryptItem(p, { type: "territoryObservations" })))
+          ).filter((e) => e);
+
           const mapOldCustomObsFieldToNew = {
             personsMale: "custom-2025-02-07T12-48-36-475Z-cbc2e0e3-1f4b-4a6f-82a4-1b8bc0c16df2",
             personsFemale: "custom-2025-02-07T12-48-36-475Z-cccef3c4-09e8-48d7-bce8-210c70d30418",
@@ -78,10 +84,9 @@ export default function useDataMigrator() {
             "custom-2021-11-29T15-33-39-206Z": "custom-2025-02-07T12-48-36-475Z-003bbe6f-2ba6-44e7-8bc4-7239efdd521c",
             "custom-2021-11-29T16-17-54-202Z": "custom-2025-02-07T12-48-36-475Z-1a4f510b-dd14-4c9a-a8f8-acb9641b2fd6",
             "custom-2022-04-29T14-34-27-570Z": "custom-2025-02-07T12-48-36-475Z-f6a83cf9-b1b2-407e-b931-9e65f6da6608",
-            "custom-2022-04-29T14-35-06-465Z": "custom-2025-02-07T12-48-36-475Z-87d932a4-b790-469a-8ada-bf601b2a3d74"
-          }
-          
-          
+            "custom-2022-04-29T14-35-06-465Z": "custom-2025-02-07T12-48-36-475Z-87d932a4-b790-469a-8ada-bf601b2a3d74",
+          };
+
           const obsToUpdate = decryptedObservations.map((obs) => {
             const nextObs = { ...obs };
             for (const [oldCustomFieldName, newCustomFieldName] of Object.entries(mapOldCustomObsFieldToNew)) {
@@ -91,20 +96,20 @@ export default function useDataMigrator() {
             }
             return nextObs;
           });
-          
-          const encryptedObservations = await Promise.all(obsToUpdate.map(prepareObsForEncryption).map(encryptItem));
+
+          const encryptedObservations = await Promise.all(obsToUpdate.map((obs) => encryptObs(organisation.customFieldsObs)(obs)).map(encryptItem));
 
           // persons
-          const personsRes = await API.get({  
+          const personsRes = await API.get({
             path: "/person",
-            query: { organisation: organisationId, after: '0', withDeleted: false },
+            query: { organisation: organisationId, after: "0", withDeleted: false },
           });
 
-          const decryptedPersons = (await Promise.all(personsRes.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
-          
+          const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
+
           const mapOldCustomPersonFieldToNew = {
-            "custom-2024-04-22T08-16-31-736Z": "custom-2025-02-07T12-48-36-473Z-84465f04-8b85-4df8-ac3b-c6f91fc8cc19"
-          }
+            "custom-2024-04-22T08-16-31-736Z": "custom-2025-02-07T12-48-36-473Z-84465f04-8b85-4df8-ac3b-c6f91fc8cc19",
+          };
 
           const personsToUpdate = decryptedPersons.map((person) => {
             const nextPerson = { ...person };
@@ -116,7 +121,8 @@ export default function useDataMigrator() {
             return nextPerson;
           });
 
-          const encryptedPersons = await Promise.all(personsToUpdate.map(p => preparePersonForEncryption(p)).map(encryptItem));
+          const encryptedPersons = await Promise.all(personsToUpdate.map((p) => preparePersonForEncryption(p)).map(encryptItem));
+
           const response = await API.put({
             path: `/migration/fix-custom-field-divergence-after-import`,
             body: { encryptedObservations, encryptedPersons },
