@@ -1,4 +1,5 @@
 const { defaultMedicalFileCustomFields } = require("./custom-fields/medicalFile");
+const { defaultObservationFields } = require("./custom-fields/observation");
 const { fieldsPersonsCustomizableOptions, personFields } = require("./custom-fields/person");
 
 function serializeOrganisation(organisation) {
@@ -42,13 +43,8 @@ function serializeOrganisation(organisation) {
       (flattenedCategories, group) => [...flattenedCategories, ...group.categories],
       []
     ),
-    actionsGroupedCategories: organisation.actionsGroupedCategories,
-    structuresGroupedCategories: organisation.structuresGroupedCategories || [
-      {
-        groupTitle: "Toutes mes catégories",
-        categories: [],
-      },
-    ],
+    actionsGroupedCategories: organisation.actionsGroupedCategories || [{ groupTitle: "Toutes mes catégories", categories: [] }],
+    structuresGroupedCategories: organisation.structuresGroupedCategories || [{ groupTitle: "Toutes mes catégories", categories: [] }],
     territoriesGroupedTypes: organisation.territoriesGroupedTypes || [
       {
         groupTitle: "Tous mes types",
@@ -71,7 +67,7 @@ function serializeOrganisation(organisation) {
     defaultMedicalFolders: organisation.defaultMedicalFolders || [],
 
     /* services settings */
-    groupedServices: organisation.groupedServices,
+    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: organisation.services || [] }],
     // eslint-disable-next-line no-extra-boolean-cast
     services: !!organisation.groupedServices
       ? organisation.groupedServices.reduce((flattenedServices, group) => [...flattenedServices, ...group.services], [])
@@ -83,7 +79,7 @@ function serializeOrganisation(organisation) {
     /* custom fields consultations */
     consultations: organisation.consultations,
     /* custom fields observations */
-    groupedCustomFieldsObs: organisation.groupedCustomFieldsObs,
+    groupedCustomFieldsObs: organisation.groupedCustomFieldsObs?.length ? organisation.groupedCustomFieldsObs : defaultObservationFields,
     // This works as usual (before the migration) because the default group is the only one
     // Autrement dit, si quelqu'un n'a pas mis à jour l'app ou le dashboard, il a tous ses champs
     // d'observation en vrac comme avant.

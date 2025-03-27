@@ -2,18 +2,30 @@ import { UUIDV4 } from "./uuid";
 
 export type CustomFieldName = string; // `custom-${new Date().toISOString().split('.').join('-').split(':').join('-')}`
 
-export type FieldType = "text" | "textarea" | "number" | "date" | "duration" | "date-with-time" | "yes-no" | "enum" | "multi-choice" | "boolean";
+export type FieldType =
+  | "text"
+  | "textarea"
+  | "number"
+  | "date"
+  | "duration"
+  | "date-with-time"
+  | "yes-no"
+  | "enum"
+  | "multi-choice"
+  | "boolean"
+  | "technical";
 
 export interface CustomField {
   name: CustomFieldName; // `custom-${new Date().toISOString().split('.').join('-').split(':').join('-')}`
   label: string;
   type: FieldType;
   enabled: boolean;
-  required: boolean;
+  required?: boolean;
   showInStats: boolean;
   options?: string[];
   enabledTeams?: UUIDV4[];
   allowCreateOption?: boolean;
+  importable?: boolean;
 }
 
 export interface PredefinedField {
@@ -24,7 +36,7 @@ export interface PredefinedField {
   encrypted?: boolean;
   importable?: boolean;
   filterable?: boolean;
-  enabled: boolean;
+  enabled?: boolean;
   enabledTeams?: UUIDV4[];
 }
 

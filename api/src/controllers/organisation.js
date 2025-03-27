@@ -37,6 +37,7 @@ const { serializeOrganisation } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
+const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
 
 router.get(
   "/stats",
@@ -159,6 +160,7 @@ router.post(
             fields: defaultMedicalCustomFields,
           },
         ],
+        consultations: defaultConsultationsFields,
         migrations: ["custom-fields-persons-setup", "custom-fields-persons-refacto-regroup"],
       },
       { returning: true }

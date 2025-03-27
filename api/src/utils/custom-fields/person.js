@@ -18,8 +18,8 @@ const personFields = [
   { name: "phone", type: "text", label: "Téléphone", encrypted: true, importable: true, filterable: true },
   { name: "email", type: "text", label: "Email", encrypted: true, importable: true, filterable: true },
   { name: "assignedTeams", type: "multi-choice", label: "Équipes en charge", encrypted: true, importable: true, filterable: false },
-  { name: "_id", label: "", encrypted: false, importable: false, filterable: false },
-  { name: "organisation", label: "", encrypted: false, importable: false, filterable: false },
+  { name: "_id", type: "technical", label: "", encrypted: false, importable: false, filterable: false },
+  { name: "organisation", type: "technical", label: "", encrypted: false, importable: false, filterable: false },
   { name: "followedSince", type: "date", label: "Suivi(e) depuis le / Créé(e) le", encrypted: true, importable: true, filterable: true },
   { name: "createdAt", type: "date", label: "", encrypted: false, importable: false, filterable: false },
   { name: "updatedAt", type: "date", label: "", encrypted: false, importable: false, filterable: false },
@@ -33,8 +33,8 @@ const personFields = [
     filterable: true,
   },
   { name: "outOfActiveListDate", type: "date", label: "Date de sortie de file active", encrypted: true, importable: true, filterable: true },
-  { name: "documents", type: "files", label: "Documents", encrypted: true, importable: false, filterable: false },
-  { name: "history", type: "history", label: "Historique", encrypted: true, importable: false, filterable: false },
+  { name: "documents", type: "technical", label: "Documents", encrypted: true, importable: false, filterable: false },
+  { name: "history", type: "technical", label: "Historique", encrypted: true, importable: false, filterable: false },
 ];
 
 const fieldsPersonsCustomizableOptions = [
