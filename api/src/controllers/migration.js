@@ -8,7 +8,7 @@ const { looseUuidRegex } = require("../utils");
 const { capture } = require("../sentry");
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
-const { Organisation, TerritoryObservation, Person, sequelize } = require("../db/sequelize");
+const { Organisation, TerritoryObservation, Person, Action, sequelize } = require("../db/sequelize");
 
 router.put(
   "/:migrationName",
@@ -96,6 +96,28 @@ router.put(
           }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedPersons) {
             await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          }
+          organisation.set({
+            migrations: [...(organisation.migrations || []), req.params.migrationName],
+            migrationLastUpdateAt: new Date(),
+          });
+        }
+        if (req.params.migrationName === "fix-backslash-in-action-category") {
+          try {
+            z.array(
+              z.object({
+                _id: z.string().regex(looseUuidRegex),
+                encrypted: z.string(),
+                encryptedEntityKey: z.string(),
+              })
+            ).parse(req.body.encryptedActions);
+          } catch (e) {
+            const error = new Error(`Invalid request in ${req.params.migrationName}: ${e}`);
+            error.status = 400;
+            throw error;
+          }
+          for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedActions) {
+            await Action.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
           }
           organisation.set({
             migrations: [...(organisation.migrations || []), req.params.migrationName],
