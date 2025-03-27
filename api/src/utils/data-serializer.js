@@ -67,7 +67,7 @@ function serializeOrganisation(organisation) {
     defaultMedicalFolders: organisation.defaultMedicalFolders || [],
 
     /* services settings */
-    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: [] }],
+    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: organisation.services || [] }],
     // eslint-disable-next-line no-extra-boolean-cast
     services: !!organisation.groupedServices
       ? organisation.groupedServices.reduce((flattenedServices, group) => [...flattenedServices, ...group.services], [])
