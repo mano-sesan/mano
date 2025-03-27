@@ -57,6 +57,36 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  Organisation.init(schema, { sequelize, modelName: "Organisation", freezeTableName: true });
+  Organisation.init(schema, {
+    sequelize,
+    modelName: "Organisation",
+    freezeTableName: true,
+    hooks: {
+      beforeUpdate: async (instance, options) => {
+        // Get the current user from either transaction metadata or request context
+        const userId = options?.transaction?.userId || options?.context?.userId;
+        if (!userId) return;
+
+        const OrganisationLog = require("./organisationLog")(sequelize, sequelize.constructor.DataTypes);
+        const changes = instance.changed();
+
+        if (!changes) return;
+
+        // Log each changed field
+        for (const field of changes) {
+          await OrganisationLog.create(
+            {
+              organisation: instance._id,
+              user: userId,
+              field,
+              oldValue: instance.previous(field),
+              newValue: instance.get(field),
+            },
+            { transaction: options.transaction }
+          );
+        }
+      },
+    },
+  });
   return Organisation;
 };

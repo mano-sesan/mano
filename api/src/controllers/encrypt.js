@@ -89,7 +89,9 @@ router.post(
       return res.status(403).send({ ok: false, error: "L'organisation est déjà en cours de chiffrement" });
     }
     organisation.set({ encrypting: true });
-    await organisation.save();
+    await organisation.save({
+      context: { userId: req.user._id },
+    });
 
     UserLog.create({
       organisation: req.user.organisation,
@@ -189,12 +191,17 @@ router.post(
           lockedBy: null,
           encryptedVerificationKey,
         });
-        await organisation.save({ transaction: tx });
+        await organisation.save({
+          transaction: tx,
+          context: { userId: req.user._id },
+        });
       });
     } catch (e) {
       capture("error encrypting", e);
       organisation.set({ encrypting: false, lockedForEncryption: false, lockedBy: null });
-      await organisation.save();
+      await organisation.save({
+        context: { userId: req.user._id },
+      });
       throw e;
     }
 

@@ -98,7 +98,10 @@ router.post(
             typeof customFields.consultations === "string" ? JSON.parse(customFields.consultations) : customFields.consultations;
 
         organisation.set(updateOrg);
-        await organisation.save({ transaction: tx });
+        await organisation.save({
+          transaction: tx,
+          context: { userId: req.user._id },
+        });
       });
     } catch (e) {
       capture("error updating custom-field choice", e);

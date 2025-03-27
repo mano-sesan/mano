@@ -265,7 +265,9 @@ router.put(
     try {
       const { groupedServices = [] } = req.body;
       organisation.set({ groupedServices });
-      await organisation.save();
+      await organisation.save({
+        context: { userId: req.user._id },
+      });
     } catch (e) {
       capture("error updating service", e);
       throw e;
