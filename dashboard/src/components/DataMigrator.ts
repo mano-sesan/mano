@@ -65,7 +65,8 @@ export default function useDataMigrator() {
         if (
           process.env.NODE_ENV === "development" ||
           import.meta.env.VITE_TEST_PLAYWRIGHT ||
-          organisation._id === "d0396d00-4996-49ba-951a-fa95a3526022"
+          organisation._id === "d0396d00-4996-49ba-951a-fa95a3526022" ||
+          organisation._id === "35ab29fd-1175-44f8-af55-66ba6b8bdb59"
         ) {
           setLoadingText(LOADING_TEXT);
           // observations
@@ -80,11 +81,60 @@ export default function useDataMigrator() {
             return {
               ...action,
               categories: (action.categories || []).map((category) => {
-                if (category === `Accueil\\/Refuge\\/lien`) {
-                  return "Accueil/Refuge/lien";
+                if (organisation._id === "d0396d00-4996-49ba-951a-fa95a3526022") {
+                  if (category === `Accueil\\/Refuge\\/lien`) {
+                    return "Accueil/Refuge/lien";
+                  }
+                  if (category === `RdR Drog\\/Sex\\/Ethylo`) {
+                    return "RdR Drog/Sex/Ethylo";
+                  }
                 }
-                if (category === `RdR Drog\\/Sex\\/Ethylo`) {
-                  return "RdR Drog/Sex/Ethylo";
+                if (organisation._id === "35ab29fd-1175-44f8-af55-66ba6b8bdb59") {
+                  if (category === `Or. vers Urgences (15\\/18)`) {
+                    return "Or. vers Urgences (15/18)";
+                  }
+                  if (category === `SMS envoyé \\/ reçu`) {
+                    return "SMS envoyé / reçu";
+                  }
+                  if (category === `Mail envoyé \\/ reçu`) {
+                    return "Mail envoyé / reçu";
+                  }
+                  if (category === `Lien Accueil de Jour\\/Maraude COLIBRI`) {
+                    return "Lien COLIBRI Accueil de jour et Maraude";
+                  }
+                  if (category === `AllerVers sur Signalement \\/ Première rencontre`) {
+                    return "AllerVers sur Signalement OU Première rencontre";
+                  }
+                  if (category === `Permanence Centre d'Hébergement\\/PF`) {
+                    return "Permanence Centre d'Hébergement OU PF";
+                  }
+                  if (category === `Ecrit professionnel \\/ Note sociale`) {
+                    return "Ecrit Professionnel OU Note sociale";
+                  }
+                  if (category === `Demande CSS\\/AME\\/CPAM`) {
+                    return "Demande CSS AME CPAM";
+                  }
+                  if (category === `Maraude de journée \\/ Première rencontre`) {
+                    return "Maraude de journée OU Première rencontre";
+                  }
+                  if (category === `Réservation VSL\\/Taxi\\/Ambulance`) {
+                    return "Réservation VSL Taxi Ambulance";
+                  }
+                  if (category === `Demande MDPH\\/MDA`) {
+                    return "Demande MDPH MDA";
+                  }
+                  if (category === `Rencontre \\/ Aller Vers de suivi \\/ Point sur la situation`) {
+                    return "Rencontre OU AllerVers de suivi OU Point sur la situation";
+                  }
+                  if (category === `Lien CPAM\\/Espace Partenaire`) {
+                    return "Lien CPAM/Espace Partenaire";
+                  }
+                  if (category === `Exploration\\/Premières Rencontres`) {
+                    return "Exploration/Premières Rencontres";
+                  }
+                  if (category === `Lien Curatelle\\/Tutelle\\/Mandataires`) {
+                    return "Lien Curatelles Tutelles Mandataires";
+                  }
                 }
                 return category;
               }),
