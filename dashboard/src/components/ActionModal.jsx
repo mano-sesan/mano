@@ -157,6 +157,7 @@ function ActionContent({ onClose, isMulti = false }) {
 
       setIsSubmitting(true);
 
+      console.log("ENREGISTREMENT");
       const [actionError] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/action/${initialExistingAction._id}`,

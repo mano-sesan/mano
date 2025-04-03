@@ -336,6 +336,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     let newActions = [];
     if (stats.actions > 0) {
       setLoadingText("Chargement des actions");
+      console.log("LOADER");
       async function loadActions(page = 0) {
         const [error, res] = await tryFetchExpectOk(async () => {
           return API.getAbortable({ path: "/action", query: { ...query, page: String(page) } });

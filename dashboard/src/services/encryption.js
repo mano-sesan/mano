@@ -188,6 +188,10 @@ export const checkEncryptedVerificationKey = async (encryptedVerificationKey, ma
 export const encryptItem = async (item) => {
   if (item.decrypted) {
     if (!item.entityKey) item.entityKey = await generateEntityKey();
+    if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+      console.log("item.decrypted", item.decrypted);
+      console.log("JSON.stringify(item.decrypted)", JSON.stringify(item.decrypted));
+    }
     const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, hashedOrgEncryptionKey);
     item.encrypted = encryptedContent;
     item.encryptedEntityKey = encryptedEntityKey;
@@ -209,7 +213,13 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
 
   let decryptedItem = {};
   try {
+    if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+      console.log("item", item);
+    }
     decryptedItem = await decrypt(item.encrypted, item.encryptedEntityKey, getHashedOrgEncryptionKey());
+    if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+      console.log("decryptedItem.content", decryptedItem.content);
+    }
   } catch (errorDecrypt) {
     toast.error(
       "Un élément n'a pas pu être déchiffré. Peut-être est-il chiffré avec une ancienne clé ? Un admin peut essayer de le déchiffrer en allant dans Organisation > Données en erreur",
@@ -230,9 +240,11 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
   const { content, entityKey } = decryptedItem;
   delete item.encrypted;
   let decryptedContent = {};
-
   try {
     decryptedContent = JSON.parse(content);
+    if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+      console.log("decryptedContent", decryptedContent);
+    }
   } catch (errorDecryptParsing) {
     toast.error("Une erreur est survenue lors de la récupération des données déchiffrées: " + errorDecryptParsing);
     capture("ERROR PARSING CONTENT", { extra: { errorDecryptParsing, content } });
@@ -249,13 +261,22 @@ export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, new
   // Some old (mostly deleted) items don't have encrypted content. We ignore them forever to avoid crash.
   if (!item.encrypted) return null;
   // Decrypt items
+  if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+    console.log("item", item);
+  }
   let { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, oldHashedOrgEncryptionKey);
   // If we need to alterate the content, we do it here.
+  if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+    console.log("content", content);
+  }
   if (updateContentCallback) {
     // No try/catch here: if something is not decryptable, it should crash and stop the process.
     content = JSON.stringify(await updateContentCallback(JSON.parse(content), item));
   } else {
     content = JSON.stringify(JSON.parse(content));
+  }
+  if (item._id === "00ccacaf-fea3-4073-8e92-08cd61715821") {
+    console.log("content after srtingify/parse", content);
   }
   const { encryptedContent, encryptedEntityKey } = await encrypt(content, entityKey, newHashedOrgEncryptionKey);
   item.encrypted = encryptedContent;
