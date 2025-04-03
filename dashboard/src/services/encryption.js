@@ -254,6 +254,8 @@ export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, new
   if (updateContentCallback) {
     // No try/catch here: if something is not decryptable, it should crash and stop the process.
     content = JSON.stringify(await updateContentCallback(JSON.parse(content), item));
+  } else {
+    content = JSON.stringify(JSON.parse(content));
   }
   const { encryptedContent, encryptedEntityKey } = await encrypt(content, entityKey, newHashedOrgEncryptionKey);
   item.encrypted = encryptedContent;
