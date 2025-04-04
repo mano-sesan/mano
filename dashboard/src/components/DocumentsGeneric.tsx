@@ -18,6 +18,7 @@ import { decryptFile, encryptFile, getHashedOrgEncryptionKey } from "../services
 import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
+import { capture } from "../services/sentry";
 
 interface DocumentsModuleProps<T> {
   documents: T[];
@@ -474,8 +475,23 @@ export function DocumentTableWithFolders({
     const flattenTree = (
       items: DocumentWithLinkedItem[],
       parentId: string = "root",
-      level: number = 0
+      level: number = 0,
+      visitedIds: Set<string> = new Set()
     ): ((DocumentWithLinkedItem | FolderWithLinkedItem) & { tabLevel: number; isEmpty?: boolean })[] => {
+      // If we've seen this parentId before, we have a cycle - stop recursing
+      if (visitedIds.has(parentId)) {
+        console.warn(`Detected circular reference in document structure with ID: ${parentId}`);
+        capture(new Error(`Detected circular reference in document structure with ID: ${parentId}`), {
+          extra: {
+            documents,
+          },
+        });
+        return [];
+      }
+
+      // Add current parentId to visited set
+      visitedIds.add(parentId);
+
       const children = items.filter((item) => (!item.parentId && parentId === "root") || item.parentId === parentId);
 
       return children
@@ -486,7 +502,8 @@ export function DocumentTableWithFolders({
         })
         .reduce(
           (acc, item) => {
-            const subItems = flattenTree(items, item._id, level + 1);
+            // Pass the visited set to track the path
+            const subItems = flattenTree(items, item._id, level + 1, new Set(visitedIds));
             const isEmpty = !items.some((doc) => doc.parentId === item._id);
             return [...acc, { ...item, tabLevel: level, isEmpty }, ...subItems];
           },
