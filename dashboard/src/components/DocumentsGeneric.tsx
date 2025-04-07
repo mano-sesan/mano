@@ -483,7 +483,12 @@ export function DocumentTableWithFolders({
         console.warn(`Detected circular reference in document structure with ID: ${parentId}`);
         capture(new Error(`Detected circular reference in document structure with ID: ${parentId}`), {
           extra: {
-            documents,
+            documents: documents.map((doc) => ({
+              _id: doc._id,
+              name: doc.name,
+              parentId: doc.parentId,
+              position: doc.position,
+            })),
           },
         });
         return [];
