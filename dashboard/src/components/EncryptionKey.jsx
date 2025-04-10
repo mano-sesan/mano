@@ -189,28 +189,34 @@ const EncryptionKey = ({ isMain }) => {
         return encryptedItems;
       }
 
-      const encryptedPersons = await recrypt("/person", async (decryptedData, item) =>
-        recryptPersonRelatedDocuments(decryptedData, item._id, previousKey.current, hashedOrgEncryptionKey)
-      );
-      const encryptedConsultations = await recrypt("/consultation", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
-      );
-      const encryptedTreatments = await recrypt("/treatment", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
-      );
-      const encryptedMedicalFiles = await recrypt("/medical-file", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
-      );
+      // const encryptedPersons = await recrypt("/person", async (decryptedData, item) =>
+      //   recryptPersonRelatedDocuments(decryptedData, item._id, previousKey.current, hashedOrgEncryptionKey)
+      // );
+      // const encryptedConsultations = await recrypt("/consultation", async (decryptedData) =>
+      //   recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
+      // );
+      // const encryptedTreatments = await recrypt("/treatment", async (decryptedData) =>
+      //   recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
+      // );
+      // const encryptedMedicalFiles = await recrypt("/medical-file", async (decryptedData) =>
+      //   recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey)
+      // );
+      console.log("ENCRYPTION");
+      const encryptedPersons = [];
+      const encryptedConsultations = [];
+      const encryptedTreatments = [];
+      const encryptedMedicalFiles = [];
       const encryptedGroups = await recrypt("/group");
       const encryptedActions = await recrypt("/action");
-      const encryptedComments = await recrypt("/comment");
-      const encryptedPassages = await recrypt("/passage");
-      const encryptedRencontres = await recrypt("/rencontre");
-      const encryptedTerritories = await recrypt("/territory");
-      const encryptedTerritoryObservations = await recrypt("/territory-observation");
-      const encryptedPlaces = await recrypt("/place");
-      const encryptedRelsPersonPlace = await recrypt("/relPersonPlace");
-      const encryptedReports = await recrypt("/report");
+      // const encryptedComments = await recrypt("/comment");
+      // const encryptedPassages = await recrypt("/passage");
+      // const encryptedRencontres = await recrypt("/rencontre");
+      // const encryptedTerritories = await recrypt("/territory");
+      // const encryptedTerritoryObservations = await recrypt("/territory-observation");
+      // const encryptedPlaces = await recrypt("/place");
+      // const encryptedRelsPersonPlace = await recrypt("/relPersonPlace");
+      // const encryptedReports = await recrypt("/report");
+      return;
 
       setEncryptingStatus(
         "Sauvegarde des données nouvellement chiffrées en base de donnée. Ne fermez pas votre fenêtre, cela peut prendre quelques minutes..."
