@@ -12,7 +12,7 @@ test.setTimeout(120000);
 test("test", async ({ page }) => {
   const premier = "premier-" + nanoid();
   const deuxieme = "deuxieme-" + nanoid();
-  const monAction = "monAction-" + nanoid();
+  const monAction = "monAction/Avec/Un/Slash-" + nanoid();
   const testTerritoire = "testTerritoire-" + nanoid();
 
   await loginWith(page, "admin1@example.org", "secret", "plouf");
