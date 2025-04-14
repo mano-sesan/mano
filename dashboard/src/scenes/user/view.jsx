@@ -76,6 +76,9 @@ const View = () => {
             if (!body.email) return toast.error("L'email est obligatoire");
             if (body.email && !emailRegex.test(body.email)) return toast.error("Email invalide");
             if (!body.name) return toast.error("Le nom doit faire au moins un caractère");
+            if (user._id === id && body.role !== "admin") {
+              return toast.error("Vous ne pouvez pas modifier votre rôle : déconnectez-vous et demandez à un autre administrateur de le faire");
+            }
             body.organisation = organisation._id;
             const [error, response] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));
             if (error) {
