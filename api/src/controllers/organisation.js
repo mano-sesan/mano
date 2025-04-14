@@ -232,9 +232,9 @@ router.get(
       group: ["organisation"],
       attributes: [
         "organisation",
-        [fn("SUM", literal(`CASE WHEN "updatedAt" >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)), "last30Days"],
+        [fn("SUM", literal(`CASE WHEN "createdAt" >= NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)), "last30Days"],
         [
-          fn("SUM", literal(`CASE WHEN "updatedAt" >= NOW() - INTERVAL '60 days' AND "updatedAt" < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)),
+          fn("SUM", literal(`CASE WHEN "createdAt" >= NOW() - INTERVAL '60 days' AND "createdAt" < NOW() - INTERVAL '30 days' THEN 1 ELSE 0 END`)),
           "previous30Days",
         ],
         [fn("COUNT", "*"), "countByOrg"],
