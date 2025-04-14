@@ -437,6 +437,7 @@ function ButtonDownloadAll({ documents }: { documents: DocumentWithLinkedItem[] 
           download(new File([zipBlob], "documents.zip", { type: "application/zip" }), "documents.zip");
           setIsDownloading(false);
         } catch (err) {
+          capture(err);
           console.error("Une erreur est survenue", err);
           toast.error("Une erreur est survenue lors de la création du fichier zip.");
           setIsDownloading(false);
