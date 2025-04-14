@@ -1,4 +1,4 @@
-import { currentTeamState, organisationState, userState, usersState } from "./auth";
+import { currentTeamState, userState, usersState } from "./auth";
 import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
@@ -16,7 +16,6 @@ import { rencontresState } from "./rencontres";
 import { groupsState } from "./groups";
 import { territoriesState } from "./territory";
 import { extractInfosFromHistory } from "../utils/person-history";
-import { MANO_TEST_ORG_ID } from "../config";
 
 export const usersObjectSelector = selector({
   key: "usersObjectSelector",
@@ -88,13 +87,6 @@ export const itemsGroupedByPersonSelector = selector({
     const persons = get(personsState);
     const personsObject = {};
     const user = get(userState);
-    const organisation = get(organisationState);
-    // C'est quoi `withNewInteractions` ?
-    // On exclut tous les champs techniques (createdAt, updatedAt, etc.) des interactions.
-    // Une MAJ administrative d'un dossier n'est pas une interaction.
-    // Un passage/rencontre/action/commentaire en revanche est une interaction.
-    // "Suivi depuis le" est aussi une interaction.
-    const withNewInteractions = organisation._id === MANO_TEST_ORG_ID;
     const usersObject = get(usersObjectSelector);
     for (const person of persons) {
       const { interactions, assignedTeamsPeriods } = extractInfosFromHistory(person);
@@ -106,7 +98,7 @@ export const itemsGroupedByPersonSelector = selector({
         formattedBirthDate: formatBirthDate(person.birthdate),
         age: ageFromBirthdateAsYear(person.birthdate),
         formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
-        interactions: withNewInteractions ? [person.followedSince] : interactions,
+        interactions,
         assignedTeamsPeriods,
         lastUpdateCheckForGDPR: person.followedSince || person.createdAt,
         numberOfActions: 0,
@@ -160,9 +152,7 @@ export const itemsGroupedByPersonSelector = selector({
           },
         };
         documentsForModule.push(documentForModule);
-        if (!withNewInteractions) {
-          personsObject[person._id].interactions.push(document.createdAt);
-        }
+        personsObject[person._id].interactions.push(document.createdAt);
         if (!document.group) continue;
         if (!personsObject[person._id].group) continue;
         for (const personIdInGroup of personsObject[person._id].group.persons) {
@@ -190,10 +180,8 @@ export const itemsGroupedByPersonSelector = selector({
       if (!personsObject[action.person].numberOfActions) personsObject[action.person].numberOfActions = 0;
       personsObject[action.person].numberOfActions++;
       personsObject[action.person].interactions.push(action.dueAt);
+      personsObject[action.person].interactions.push(action.createdAt);
       personsObject[action.person].interactions.push(action.completedAt);
-      if (!withNewInteractions) {
-        personsObject[action.person].interactions.push(action.createdAt);
-      }
       if (action.categories) {
         for (const category of action.categories) {
           personAactionCategoriesObject[action.person] = personAactionCategoriesObject[action.person] || {}; //
@@ -321,10 +309,8 @@ export const itemsGroupedByPersonSelector = selector({
       if (!personsObject[consultation.person].numberOfConsultations) personsObject[consultation.person].numberOfConsultations = 0;
       personsObject[consultation.person].numberOfConsultations++;
       personsObject[consultation.person].interactions.push(consultation.dueAt);
+      personsObject[consultation.person].interactions.push(consultation.createdAt);
       personsObject[consultation.person].interactions.push(consultation.completedAt);
-      if (!withNewInteractions) {
-        personsObject[consultation.person].interactions.push(consultation.createdAt);
-      }
       const consultationIsVisibleByMe = consultation.onlyVisibleBy.length === 0 || consultation.onlyVisibleBy.includes(user._id);
       for (const comment of consultation.comments || []) {
         personsObject[consultation.person].interactions.push(comment.date);
@@ -344,9 +330,7 @@ export const itemsGroupedByPersonSelector = selector({
       personsObject[treatment.person].treatments.push(treatment);
       if (!personsObject[treatment.person].numberOfTreatments) personsObject[treatment.person].numberOfTreatments = 0;
       personsObject[treatment.person].numberOfTreatments++;
-      if (!withNewInteractions) {
-        personsObject[treatment.person].interactions.push(treatment.createdAt);
-      }
+      personsObject[treatment.person].interactions.push(treatment.createdAt);
       for (const comment of treatment.comments || []) {
         personsObject[treatment.person].interactions.push(comment.date);
         personsObject[treatment.person].commentsMedical = personsObject[treatment.person].commentsMedical || [];
@@ -385,9 +369,7 @@ export const itemsGroupedByPersonSelector = selector({
       } else {
         personsObject[medicalFile.person].medicalFile = medicalFile;
       }
-      if (!withNewInteractions) {
-        personsObject[medicalFile.person].interactions.push(medicalFile.createdAt);
-      }
+      personsObject[medicalFile.person].interactions.push(medicalFile.createdAt);
       for (const comment of medicalFile.comments || []) {
         personsObject[medicalFile.person].interactions.push(comment.date);
         personsObject[medicalFile.person].commentsMedical = personsObject[medicalFile.person].commentsMedical || [];
