@@ -4,13 +4,8 @@ import { toast } from "react-toastify";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import ButtonCustom from "../../components/ButtonCustom";
-import { customFieldsPersonsSelector } from "../../recoil/persons";
 import { newCustomField, typeOptions } from "../../utils";
-import { groupedCustomFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import { organisationState, teamsState } from "../../recoil/auth";
-import { groupedCustomFieldsObsSelector } from "../../recoil/territoryObservations";
-import { servicesSelector } from "../../recoil/reports";
-import { actionsCategoriesSelector } from "../../recoil/actions";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
@@ -23,16 +18,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
 
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const teams = useRecoilValue(teamsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
 
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-
-  const groupedServices = useRecoilValue(servicesSelector);
-  const actionsGroupedCategories = useRecoilValue(actionsCategoriesSelector);
-  const consultationFields = organisation!.consultations;
-
-  const verifyFile = (e: any) => {
+  const verifyFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];
     const reader = new FileReader();
 
@@ -122,110 +109,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
             <ButtonCustom
               type="button"
               onClick={() => {
-                const workbook = utils.book_new();
-
-                // Création de chaque onglet
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
-                    ...customFieldsPersons.reduce((acc, curr) => {
-                      return [
-                        ...acc,
-                        ...curr.fields.map((e) => [
-                          curr.name,
-                          e.label,
-                          typeOptions.find((t) => t.value === e.type)!.label,
-                          (e.options || []).join(","),
-                          ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
-                        ]),
-                      ];
-                    }, [] as string[][]),
-                  ]),
-                  "Infos social et médical"
-                );
-
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
-                    ...groupedCustomFieldsMedicalFile.reduce((acc, curr) => {
-                      return [
-                        ...acc,
-                        ...curr.fields.map((e) => [
-                          curr.name,
-                          e.label,
-                          typeOptions.find((t) => t.value === e.type)!.label,
-                          (e.options || []).join(","),
-                          ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
-                        ]),
-                      ];
-                    }, [] as string[][]),
-                  ]),
-                  "Dossier médical"
-                );
-
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Consultation type pour", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
-                    ...consultationFields.reduce((acc, curr) => {
-                      return [
-                        ...acc,
-                        ...curr.fields.map((e) => [
-                          curr.name,
-                          e.label,
-                          typeOptions.find((t) => t.value === e.type)!.label,
-                          (e.options || []).join(","),
-                          ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
-                        ]),
-                      ];
-                    }, [] as string[][]),
-                  ]),
-                  "Consultation"
-                );
-
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
-                    ...groupedCustomFieldsObs.reduce((acc, curr) => {
-                      return [
-                        ...acc,
-                        ...curr.fields.map((e) => [
-                          curr.name,
-                          e.label,
-                          typeOptions.find((t) => t.value === e.type)!.label,
-                          (e.options || []).join(","),
-                          ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
-                        ]),
-                      ];
-                    }, [] as string[][]),
-                  ]),
-                  "Observation de territoire"
-                );
-
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Liste des services", "Groupe"],
-                    ...groupedServices.reduce((acc, curr) => {
-                      return [...acc, ...curr.services.map((e: string) => [e, curr.groupTitle])];
-                    }, [] as string[][]),
-                  ]),
-                  "Liste des services"
-                );
-
-                utils.book_append_sheet(
-                  workbook,
-                  utils.aoa_to_sheet([
-                    ["Liste des catégories d'action", "Groupe d'action"],
-                    ...actionsGroupedCategories.reduce((acc, curr) => {
-                      return [...acc, ...curr.categories.map((e: string) => [e, curr.groupTitle])];
-                    }, [] as string[][]),
-                  ]),
-                  "Catégories d action"
-                );
+                const workbook = createWorkbookForDownload(organisation, teams);
 
                 // Écriture du fichier XLSX
                 writeFile(workbook, "data.xlsx");
@@ -368,7 +252,7 @@ const typeOptionsLabels = [
 type TypeOptionLabel = (typeof typeOptionsLabels)[number];
 
 function isTypeOptionLabel(type: string): type is TypeOptionLabel {
-  return typeOptionsLabels.includes(type as any);
+  return typeOptionsLabels.includes(type as TypeOptionLabel);
 }
 
 function toFieldType(label: TypeOptionLabel): FieldType {
@@ -420,7 +304,7 @@ function trimAllValues<R extends Record<string, string | string[] | TeamInstance
 }
 
 // Parse le fichier Excel et retourne un objet contenant les données et les erreurs
-function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): WorkbookData {
+export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): WorkbookData {
   const data: WorkbookData = sheetNames.reduce((acc, sheetName) => {
     return { ...acc, [sheetName]: { data: [], globalErrors: [], errors: [], withTeams: false } };
   }, {} as WorkbookData);
@@ -585,17 +469,25 @@ function mergeFieldWithPrevious(field: Partial<CustomField>, previousField?: Cus
   const nextField = {
     ...(newCustomField() as CustomField),
     name: `custom-${new Date().toISOString().split(".").join("-").split(":").join("-")}-${uuidv4()}`,
-    ...field,
     enabled: !field.enabledTeams?.length ? true : false, // enabled stands for "enabled for the whole organisation if no team is selected"
-    ...(previousField ? { required: previousField.required } : {}),
-    ...(previousField ? { showInStats: previousField.showInStats } : {}),
-    ...(previousField ? { name: previousField.name } : {}),
+    type: field.type,
+    label: field.label,
   };
+  if (field.options?.length) nextField.options = field.options;
+  if (field.enabledTeams?.length) nextField.enabledTeams = field.enabledTeams;
+  // eslint-disable-next-line no-prototype-builtins
+  if (previousField?.hasOwnProperty("required")) nextField.required = previousField.required;
+  // eslint-disable-next-line no-prototype-builtins
+  if (previousField?.hasOwnProperty("showInStats")) nextField.showInStats = previousField.showInStats;
+  // eslint-disable-next-line no-prototype-builtins
+  if (previousField?.hasOwnProperty("name")) nextField.name = previousField.name;
+  // eslint-disable-next-line no-prototype-builtins
+  if (previousField?.hasOwnProperty("allowCreateOption")) nextField.allowCreateOption = previousField.allowCreateOption;
   return nextField;
 }
 
 // Importe les données dans l'organisation
-function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstance, workbookData: WorkbookData): OrganisationInstance {
+export function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstance, workbookData: WorkbookData): OrganisationInstance {
   const updatedOrganisation = { ...organisation };
 
   for (const sheetName of sheetNames) {
@@ -782,6 +674,121 @@ function getUpdatedOrganisationFromWorkbookData(organisation: OrganisationInstan
     }
   }
   return updatedOrganisation;
+}
+
+export function createWorkbookForDownload(organisation: OrganisationInstance, teams: Array<TeamInstance>): WorkBook {
+  const workbook = utils.book_new();
+  const customFieldsPersons = organisation.customFieldsPersons;
+  const groupedCustomFieldsMedicalFile = organisation.groupedCustomFieldsMedicalFile;
+  const consultationFields = organisation.consultations;
+  const groupedCustomFieldsObs = organisation.groupedCustomFieldsObs;
+  const groupedServices = organisation.groupedServices;
+  const actionsGroupedCategories = organisation.actionsGroupedCategories;
+
+  // Création de chaque onglet
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ...customFieldsPersons.reduce((acc, curr) => {
+        return [
+          ...acc,
+          ...curr.fields.map((e) => [
+            curr.name,
+            e.label,
+            typeOptions.find((t) => t.value === e.type)!.label,
+            (e.options || []).join(","),
+            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+          ]),
+        ];
+      }, [] as string[][]),
+    ]),
+    "Infos social et médical"
+  );
+
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ...groupedCustomFieldsMedicalFile.reduce((acc, curr) => {
+        return [
+          ...acc,
+          ...curr.fields.map((e) => [
+            curr.name,
+            e.label,
+            typeOptions.find((t) => t.value === e.type)!.label,
+            (e.options || []).join(","),
+            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+          ]),
+        ];
+      }, [] as string[][]),
+    ]),
+    "Dossier médical"
+  );
+
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Consultation type pour", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ...consultationFields.reduce((acc, curr) => {
+        return [
+          ...acc,
+          ...curr.fields.map((e) => [
+            curr.name,
+            e.label,
+            typeOptions.find((t) => t.value === e.type)!.label,
+            (e.options || []).join(","),
+            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+          ]),
+        ];
+      }, [] as string[][]),
+    ]),
+    "Consultation"
+  );
+
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ...groupedCustomFieldsObs.reduce((acc, curr) => {
+        return [
+          ...acc,
+          ...curr.fields.map((e) => [
+            curr.name,
+            e.label,
+            typeOptions.find((t) => t.value === e.type)!.label,
+            (e.options || []).join(","),
+            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+          ]),
+        ];
+      }, [] as string[][]),
+    ]),
+    "Observation de territoire"
+  );
+
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Liste des services", "Groupe"],
+      ...groupedServices.reduce((acc, curr) => {
+        return [...acc, ...curr.services.map((e: string) => [e, curr.groupTitle])];
+      }, [] as string[][]),
+    ]),
+    "Liste des services"
+  );
+
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([
+      ["Liste des catégories d'action", "Groupe d'action"],
+      ...actionsGroupedCategories.reduce((acc, curr) => {
+        return [...acc, ...curr.categories.map((e: string) => [e, curr.groupTitle])];
+      }, [] as string[][]),
+    ]),
+    "Catégories d action"
+  );
+
+  return workbook;
 }
 
 export default ExcelParser;

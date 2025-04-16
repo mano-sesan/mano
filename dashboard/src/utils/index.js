@@ -32,7 +32,6 @@ export const newCustomField = () => ({
   label: "",
   type: "text",
   enabled: true,
-  required: false,
   showInStats: true,
 });
 
