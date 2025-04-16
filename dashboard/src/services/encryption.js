@@ -127,8 +127,7 @@ export const _encrypt_and_prepend_nonce_uint8array = async (message_string_or_ui
 export const encodeContent = (content) => {
   const purifiedContent = content
     // https://stackoverflow.com/a/31652607/5225096
-    .replace(/[\u007F-\uFFFF]/g, (chr) => "\\u" + ("0000" + chr.charCodeAt(0).toString(16)).substr(-4))
-    .replace(/\//g, "\\/");
+    .replace(/[\u007F-\uFFFF]/g, (chr) => "\\u" + ("0000" + chr.charCodeAt(0).toString(16)).substr(-4));
   const base64PurifiedContent = window.btoa(purifiedContent);
   return base64PurifiedContent;
 };
@@ -254,6 +253,12 @@ export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, new
   if (updateContentCallback) {
     // No try/catch here: if something is not decryptable, it should crash and stop the process.
     content = JSON.stringify(await updateContentCallback(JSON.parse(content), item));
+  } else {
+    // Ce code est nécessaire pour les éléments qui ont été chiffrés avec les slashes jusqu'à "aujourd'hui" (avril 2025).
+    // En effet, les slashes étaient échappés dans le content, et donc ne sont pas déchiffrés correctement.
+    // On déchiffre donc le content, on le parse, et on le rechiffre (ce qui a pour effet d'échapper les slashes).
+    // Consulter le commit de ce commentaire pour comprendre les changements.
+    content = JSON.stringify(JSON.parse(content));
   }
   const { encryptedContent, encryptedEntityKey } = await encrypt(content, entityKey, newHashedOrgEncryptionKey);
   item.encrypted = encryptedContent;

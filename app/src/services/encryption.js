@@ -91,9 +91,7 @@ const _encrypt_and_prepend_nonce = async (message_string_or_uint8array, key_uint
 
 const encodeContent = (content) => {
   try {
-    const purifiedContent = content
-      .replace(/[\u007F-\uFFFF]/g, (chr) => '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).substr(-4))
-      .replace(/\//g, '\\/');
+    const purifiedContent = content.replace(/[\u007F-\uFFFF]/g, (chr) => '\\u' + ('0000' + chr.charCodeAt(0).toString(16)).substr(-4));
     const base64PurifiedContent = rnBase64.encode(purifiedContent);
     return base64PurifiedContent;
   } catch (e) {
