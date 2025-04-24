@@ -13,6 +13,10 @@ import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { personsState, sortPersons } from "../../recoil/persons";
+import PersonName from "../../components/PersonName";
+import ActionOrConsultationName from "../../components/ActionOrConsultationName";
+import DateBloc, { TimeBlock } from "../../components/DateBloc";
+import { CANCEL, DONE } from "../../recoil/actions";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));
@@ -359,6 +363,83 @@ export default function Poubelle() {
           ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
         />
       </div>
+      <div className="tw-mt-8">
+        <h2 className="tw-text-xl tw-font-bold tw-mb-4">Actions supprimées</h2>
+        <DisclaimerActions />
+        <Table
+          data={data?.actions || []}
+          rowKey={"_id"}
+          noData="Aucune action supprimée"
+          columns={[
+            {
+              title: "Date",
+              dataKey: "dueAt",
+              onSortOrder: setSortOrder,
+              onSortBy: setSortBy,
+              sortBy,
+              sortOrder,
+              style: { width: "90px" },
+              small: true,
+              render: (action) => {
+                return (
+                  <>
+                    <DateBloc date={[DONE, CANCEL].includes(action.status) ? action.completedAt || action.dueAt : action.dueAt} />
+                    {!action.dueAt || !action.withTime ? null : <TimeBlock time={action.dueAt} />}
+                  </>
+                );
+              },
+            },
+            {
+              title: "Nom",
+              dataKey: "name",
+              render: (action) => (
+                <>
+                  <ActionOrConsultationName item={action} />
+                  <div className="tw-text-gray-500 tw-text-xs">{action.description}</div>
+                </>
+              ),
+            },
+            {
+              title: "Personne suivie",
+              dataKey: "person",
+              render: (action) => <PersonName item={action} />,
+            },
+            {
+              title: "Équipe(s) en charge",
+              dataKey: "team",
+              render: (a) => {
+                if (!Array.isArray(a?.teams)) return <TagTeam teamId={a?.team} />;
+                return (
+                  <div className="tw-flex tw-flex-col">
+                    {a.teams.map((e) => (
+                      <TagTeam key={e} teamId={e} />
+                    ))}
+                  </div>
+                );
+              },
+            },
+            {
+              title: "Date de suppression",
+              dataKey: "deletedAt",
+              render: (action) => (
+                <>
+                  <div
+                    className={
+                      dayjsInstance(action.deletedAt).isAfter(dayjsInstance().add(-2, "year")) ? "tw-font-bold" : "tw-font-bold tw-text-red-500"
+                    }
+                  >
+                    {formatDateWithFullMonth(action.deletedAt)}
+                  </div>
+                  <div className="tw-text-gray-500 tw-text-xs">il y a {action.deletedAt ? formatAge(action.deletedAt) : "un certain temps"}</div>
+                  {action.deletedBy ? (
+                    <div className="tw-text-gray-500 tw-text-xs">par {users.find((e) => e._id === action.deletedBy)?.name || action.deletedBy}</div>
+                  ) : null}
+                </>
+              ),
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 }
@@ -369,6 +450,15 @@ function Disclaimer() {
       Vous retrouvez ici les dossiers des personnes supprimeés, uniquement accessibles par les comptes administrateurs. Vous devez les supprimer
       définitivement après une période de rétention de 2 ans, conformément à la réglementation RGPD. Vous pouvez également restaurer les dossiers
       supprimés par erreur.
+    </div>
+  );
+}
+
+function DisclaimerActions() {
+  return (
+    <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
+      Vous retrouvez ici toutre les actions supprimées à titre d'information. Les actions sont définitivement supprimées lors de la suppression
+      définitive de la personne suivie associée. Vous ne pouvez ni les restaurer, ni les supprimer définitivement depuis cette liste.
     </div>
   );
 }
