@@ -18,6 +18,7 @@ import DescriptionIcon from "../../../components/DescriptionIcon";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import DocumentIcon from "../../../components/DocumentIcon";
 import CommentIcon from "../../../components/CommentIcon";
+import ActionsSortableList from "../../../components/ActionsSortableList";
 
 export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -77,12 +78,9 @@ export const Consultations = ({ person }) => {
           setConsultationStatuses={setConsultationStatuses}
           consultationStatuses={consultationStatuses}
         />
-        <ModalContainer open={!!fullScreen} size="prose" onClose={() => setFullScreen(false)}>
-          <ModalBody>
-            <ConsultationsTable filteredData={filteredData} person={person} />
-          </ModalBody>
+        <ModalContainer open={!!fullScreen} size="5xl" onClose={() => setFullScreen(false)}>
           <ModalHeader title={`Consultations de  ${person?.name} (${filteredData.length})`}>
-            <div className="tw-mt-2 tw-w-full tw-max-w-2xl">
+            <div className="tw-mt-2 tw-w-full tw-px-8">
               <ConsultationsFilters
                 data={data}
                 filteredData={filteredData}
@@ -93,6 +91,11 @@ export const Consultations = ({ person }) => {
               />
             </div>
           </ModalHeader>
+          <ModalBody>
+            <div className="tw-px-4">
+              <ActionsSortableList data={filteredData} columns={["urgentOrGroupOrConsultation", "dueAt", "createdBy", "name", "status", "team"]} />
+            </div>
+          </ModalBody>
           <ModalFooter>
             <button type="button" name="cancel" className="button-cancel" onClick={() => setFullScreen(false)}>
               Fermer
@@ -125,7 +128,9 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
       {data.length ? (
         <div className="tw-mb-4 tw-flex tw-basis-full tw-justify-between tw-gap-2 tw-px-3">
           <div className="tw-shrink-0 tw-flex-grow">
-            <label htmlFor="consultation-select-types-filter">Filtrer par type</label>
+            <label htmlFor="consultation-select-types-filter" className="tw-text-xs">
+              Filtrer par type
+            </label>
             <SelectCustom
               options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
               value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => consultationTypes.includes(s._id))}
@@ -139,7 +144,9 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
             />
           </div>
           <div className="tw-shrink-0 tw-flex-grow">
-            <label htmlFor="consultation-select-status-filter">Filtrer par statut</label>
+            <label htmlFor="consultation-select-status-filter" className="tw-text-xs">
+              Filtrer par statut
+            </label>
             <SelectCustom
               inputId="consultation-select-status-filter"
               options={mappedIdsToLabels}
