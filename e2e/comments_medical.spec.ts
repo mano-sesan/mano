@@ -47,7 +47,7 @@ test("test", async ({ page }) => {
   await new Promise((r) => setTimeout(r, 300)); // time for dialog to close
   await expect(page.getByText("Avec un commentaire avant d'enregistrer modifié")).toBeVisible();
   await page.getByRole("button", { name: "Passer les consultations en plein écran" }).click();
-  await page.getByRole("dialog", { name: "Consultations de Manu Chao (1)" }).getByText("Une consultation- Médicale").click();
+  await page.getByRole("dialog", { name: "Consultations de Manu Chao (1)" }).getByRole("cell", { name: "Une consultation Médicale" }).click();
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page.getByRole("button", { name: "＋ Ajouter un commentaire" }).click();
   await page.getByLabel("Commentaire", { exact: true }).click();
