@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { capture } from "../../services/sentry";
+import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 
 /**
  * @typedef {Object} DragAndDropSettingsProps
@@ -190,12 +191,6 @@ const Group = ({
     setIsEditingGroupTitle(false);
   };
 
-  const onDeleteGroupRequest = async () => {
-    if (!window.confirm("Voulez-vous vraiment supprimer ce groupe et tout son contenu ? Cette opération est irréversible")) return;
-    await onDeleteGroup(groupTitle);
-    setIsEditingGroupTitle(false);
-  };
-
   return (
     <>
       <div className={["tw-min-h-full tw-break-all tw-p-1 ", isAlone ? "" : "tw-basis-1/2 xl:tw-basis-1/3"].join(" ")}>
@@ -257,9 +252,20 @@ const Group = ({
               Annuler
             </button>
             {!!onDeleteGroup && (
-              <button type="button" className="button-destructive" onClick={onDeleteGroupRequest}>
-                Supprimer
-              </button>
+              <DeleteButtonAndConfirmModal
+                title={`Voulez-vous vraiment supprimer le groupe ${groupTitle}`}
+                textToConfirm={groupTitle}
+                onConfirm={async () => {
+                  await onDeleteGroup(groupTitle);
+                  setIsEditingGroupTitle(false);
+                }}
+              >
+                <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
+                  Cette opération est irréversible
+                  <br />
+                  et entrainera la suppression définitive de tous les éléments du groupe.
+                </span>
+              </DeleteButtonAndConfirmModal>
             )}
             <button type="submit" className="button-submit" form="edit-category-group-form">
               Enregistrer
