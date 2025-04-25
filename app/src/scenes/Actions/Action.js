@@ -76,7 +76,7 @@ const ActionInformation = ({
   canDelete,
   canSetUrgent,
 }) => {
-  const { name, dueAt, withTime, description, categories, status, urgent, group } = action;
+  const { name, dueAt, withTime, description, categories, status, urgent, group, completedAt } = action;
 
   return (
     <ScrollContainer noRadius>
@@ -126,6 +126,18 @@ const ActionInformation = ({
         setWithTime={(withTime) => setAction((a) => ({ ...a, withTime }))}
         editable={editable}
       />
+      {status !== TODO ? (
+        <DateAndTimeInput
+          label={status === DONE ? 'Faite le' : 'Annulée le'}
+          setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt }))}
+          date={completedAt || new Date().toISOString()}
+          showTime
+          showDay
+          withTime={withTime}
+          setWithTime={(withTime) => setAction((a) => ({ ...a, withTime }))}
+          editable={editable}
+        />
+      ) : null}
       <InputLabelled
         label="Description"
         onChangeText={(description) => setAction((a) => ({ ...a, description }))}
@@ -403,7 +415,7 @@ const Action = ({ navigation, route }) => {
     try {
       if (statusChanged) {
         if ([DONE, CANCEL].includes(action.status)) {
-          action.completedAt = new Date().toISOString();
+          action.completedAt = action.completedAt || new Date().toISOString();
         } else {
           action.completedAt = null;
         }
