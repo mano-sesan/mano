@@ -21,9 +21,29 @@ export const defaultModalActionState = (): ModalActionState => ({
   action: null,
 });
 
+const localStorageEffect =
+  <T>(key: string) =>
+  ({
+    setSelf,
+    onSet,
+  }: {
+    setSelf: (value: T) => void;
+    onSet: (callback: (newValue: T, oldValue: T | undefined, isReset: boolean) => void) => void;
+  }) => {
+    const savedValue = localStorage.getItem(key);
+    if (savedValue != null) {
+      setSelf(JSON.parse(savedValue));
+    }
+
+    onSet((newValue, _, isReset) => {
+      isReset ? localStorage.removeItem(key) : localStorage.setItem(key, JSON.stringify(newValue));
+    });
+  };
+
 export const modalActionState = atom<ModalActionState>({
   key: "modalAction",
   default: defaultModalActionState(),
+  effects: [localStorageEffect("modalActionValue")],
 });
 
 type ModalObservationState = {
@@ -45,4 +65,5 @@ export const defaultModalObservationState = (): ModalObservationState => ({
 export const modalObservationState = atom<ModalObservationState>({
   key: "modalObservation",
   default: defaultModalObservationState(),
+  effects: [localStorageEffect("modalObservationValue")],
 });
