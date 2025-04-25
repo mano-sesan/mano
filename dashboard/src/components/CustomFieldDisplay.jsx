@@ -44,7 +44,7 @@ export default function CustomFieldDisplay({ type, value, name = null, showHisto
           <ul className="tw-list-disc tw-pl-4 tw-mb-0">
             {value.map((v) => (
               <li key={v}>
-                <span className="tw-overflow-ellipsis tw-break-words">{v || "-"}</span>
+                <span className="tw-overflow-ellipsis [overflow-wrap:anywhere]">{v || "-"}</span>
               </li>
             ))}
           </ul>
