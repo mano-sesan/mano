@@ -44,12 +44,12 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
     if (person._id === personId) {
       return toast.error("Le lien avec cette personne est vite vu : c'est elle !");
     }
-    if (personGroup.persons.find((_personId) => _personId === personId)) {
+    if (personGroup.persons?.find((_personId) => _personId === personId)) {
       return toast.error("Il y a déjà un lien entre ces deux personnes");
     }
     const personDoesntBelongToAGroupYet = !personGroup?.persons?.length;
     const personAlreadyBelongToAGroup = !personDoesntBelongToAGroupYet;
-    const otherPersonAlreadyBelongToAGroup = groups.find((group) => group.persons.find((_personId) => _personId === personId));
+    const otherPersonAlreadyBelongToAGroup = groups.find((group) => group.persons?.find((_personId) => _personId === personId));
     if (personAlreadyBelongToAGroup && otherPersonAlreadyBelongToAGroup) {
       return toast.error(
         "Cette personne fait déjà partie d'une autre famille.\nVous ne pouvez pour l'instant pas ajouter une personne à plusieurs familles.\nN'hésitez pas à nous contacter si vous souhaitez faire évoluer cette fonctionnalité."

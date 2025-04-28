@@ -63,7 +63,7 @@ export function useDeletePerson() {
         persons: person.group.persons.filter((p) => p !== person._id),
         relations: person.group.relations.filter((r) => !r.persons?.includes(person._id)),
       };
-      const personTransferId = person.group.persons.find((p) => p !== person._id);
+      const personTransferId = person.group.persons?.find((p) => p !== person._id);
       if (updatedGroup.relations.length === 0) {
         body.groupIdToDelete = person.group._id;
       } else {
