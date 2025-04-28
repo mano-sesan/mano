@@ -6,7 +6,7 @@ import RowContainer from './RowContainer';
 import { MyText } from './MyText';
 import colors from '../utils/colors';
 
-import { DONE } from '../recoil/actions';
+import { DONE, TODO } from '../recoil/actions';
 import UserName from './UserName';
 import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
 import { useRecoilValue } from 'recoil';
@@ -37,6 +37,7 @@ const ConsultationRow = ({
   const visibleByMe = consultationIsVisibleByMe(consultation, me);
 
   const dueAt = consultation?.dueAt ? new Date(consultation?.dueAt) : null;
+  const completedAt = consultation?.completedAt ? new Date(consultation?.completedAt) : null;
 
   const onRowPress = useCallback(() => {
     if (!visibleByMe) return;
@@ -58,7 +59,7 @@ const ConsultationRow = ({
           <MyText>🩺</MyText>
         </ConsultationBadge>
       )}
-      <DateAndTimeCalendarDisplay date={dueAt} withTime />
+      <DateAndTimeCalendarDisplay date={status === TODO ? dueAt : completedAt} withTime />
       <CaptionsContainer>
         <Name>{name}</Name>
         <Type>{type}</Type>

@@ -260,9 +260,9 @@ Actions and consultations
 */
 
 const sortDoneOrCancel = (a, b) => {
-  if (!a.dueAt) return -1;
-  if (!b.dueAt) return 1;
-  if (a.dueAt > b.dueAt) return -1;
+  if (!a.completedAt) return -1;
+  if (!b.completedAt) return 1;
+  if (a.completedAt > b.completedAt) return -1;
   return 1;
 };
 
