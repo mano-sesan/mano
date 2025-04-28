@@ -213,6 +213,7 @@ export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>
     console.log("signal aborted", API.abortController.signal.aborted);
     console.log("signal aborted reason", API.abortController.signal.reason); // Aborted by navigation
     if (error instanceof AuthError) {
+      window.sessionStorage.setItem("redirectPath", window.location.pathname);
       window.location.href = "/auth?disconnected=1";
     } else if (error.name === "BeforeUnloadAbortError") {
       console.log("BeforeUnloadAbortError", error);
