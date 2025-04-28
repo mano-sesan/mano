@@ -17,7 +17,7 @@ const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editabl
     return (
       <Container>
         <SelectLabelled
-          label="Status"
+          label="Statut"
           values={statuses}
           mappedIdsToLabels={mappedIdsToLabels}
           value={value}
