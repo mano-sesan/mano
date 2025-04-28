@@ -16,9 +16,6 @@ export default function Summary({ person }) {
   const user = useRecoilValue(userState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
   const organisation = useRecoilValue(organisationState);
-
-  console.log({ person });
-
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}

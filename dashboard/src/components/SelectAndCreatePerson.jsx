@@ -121,7 +121,6 @@ const SelectAndCreatePerson = ({ value, onChange }) => {
           );
         }
         if (person.__isNew__) return <span>Création de {person.name}...</span>;
-        console.log(person);
         return (
           <div className="tw-flex tw-items-center">
             {person?.name}

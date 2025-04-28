@@ -933,8 +933,6 @@ const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
 
   if (!organisation || !user) return;
 
-  console.log("user", user);
-
   return (
     <>
       <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
