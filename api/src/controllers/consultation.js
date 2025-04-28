@@ -104,6 +104,7 @@ router.get(
       query.where.updatedAt = { [Op.gte]: new Date(Number(after)) };
     }
 
+    // TODO: Ce n'est peut-être plus vrai, à voir s'il faut ajouter plutôt un ordre sur completedAt
     const sortDoneOrCancel = (a, b) => {
       if (!a.dueAt) return -1;
       if (!b.dueAt) return 1;

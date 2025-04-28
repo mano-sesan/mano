@@ -7,7 +7,7 @@ import RowContainer from './RowContainer';
 import { MyText } from './MyText';
 import colors from '../utils/colors';
 import TeamsTags from './TeamsTags';
-import { DONE } from '../recoil/actions';
+import { DONE, TODO } from '../recoil/actions';
 import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
 import { organisationState } from '../recoil/auth';
 import { itemsGroupedByPersonSelector } from '../recoil/selectors';
@@ -26,6 +26,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
   const person = useMemo(() => (action?.person ? personsObject[action.person] : null), [personsObject, action.person]);
   const pseudo = useMemo(() => action?.personName || person?.name, [action, person?.name]);
   const dueAt = action?.dueAt ? new Date(action?.dueAt) : null;
+  const completedAt = action?.completedAt ? new Date(action?.completedAt) : null;
 
   const onPseudoContainerPress = useCallback(() => {
     onPseudoPress(person);
@@ -37,7 +38,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
 
   return (
     <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(' ').join('-').toLowerCase()}-button`}>
-      <DateAndTimeCalendarDisplay date={dueAt} withTime={withTime} />
+      <DateAndTimeCalendarDisplay date={status === TODO ? dueAt : completedAt} withTime={withTime} />
       <CaptionsContainer>
         <View className="flex-row items-center">
           {!!organisation.groupsEnabled && !!action.group && (
