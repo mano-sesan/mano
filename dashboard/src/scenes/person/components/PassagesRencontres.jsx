@@ -432,7 +432,6 @@ function RencontresTableSmall({ personRencontres }) {
     <table className="table table-striped">
       <tbody className="small">
         {(personRencontres || []).map((rencontre) => {
-          console.log(rencontre);
           return (
             <tr
               key={rencontre._id}
