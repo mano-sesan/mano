@@ -13,7 +13,7 @@ import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
 import Label from '../../components/Label';
 import Tags from '../../components/Tags';
 import { MyText } from '../../components/MyText';
-import { prepareActionForEncryption, TODO } from '../../recoil/actions';
+import { DONE, prepareActionForEncryption, TODO } from '../../recoil/actions';
 import { currentTeamState, organisationState, userState } from '../../recoil/auth';
 import API from '../../services/api';
 import ActionCategoriesModalSelect from '../../components/ActionCategoriesModalSelect';
@@ -34,6 +34,7 @@ const NewActionForm = ({ route, navigation }) => {
   const [name, setName] = useState('');
   const [dueAt, setDueAt] = useState(null);
   const [withTime, setWithTime] = useState(false);
+  const [completedAt, setCompletedAt] = useState(null);
   const [description, setDescription] = useState('');
   const [urgent, setUrgent] = useState(false);
   const [isRecurrent, setIsRecurrent] = useState(false);
@@ -142,7 +143,7 @@ const NewActionForm = ({ route, navigation }) => {
             status,
             categories,
             user: user._id,
-            completedAt: status !== TODO ? new Date().toISOString() : null,
+            completedAt: status !== TODO ? completedAt : null,
             recurrence: recurrencesIds[index],
             dueAt: !withTime
               ? occurrence
@@ -162,7 +163,7 @@ const NewActionForm = ({ route, navigation }) => {
           status,
           categories,
           user: user._id,
-          completedAt: status !== TODO ? new Date().toISOString() : null,
+          completedAt: status !== TODO ? completedAt : null,
         });
       }
     });
@@ -287,6 +288,18 @@ const NewActionForm = ({ route, navigation }) => {
             setWithTime={setWithTime}
             testID="new-action-dueAt"
           />
+          {status !== TODO ? (
+            <DateAndTimeInput
+              label={status === DONE ? 'Faite le' : 'Annulée le'}
+              setDate={setCompletedAt}
+              date={completedAt}
+              showTime
+              showDay
+              withTime={withTime}
+              setWithTime={setWithTime}
+              testID="new-action-completedAt"
+            />
+          ) : null}
           <InputLabelled label="Description" onChangeText={setDescription} value={description} placeholder="Description" multiline editable />
           <ActionCategoriesModalSelect withMostUsed onChange={setCategories} values={categories} editable />
           <CheckboxLabelled
