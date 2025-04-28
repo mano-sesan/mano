@@ -282,11 +282,12 @@ const MergeTwoPersons = ({ person }) => {
                   .filter((r) => r.person === personToMergeAndDelete._id)
                   .map((rencontre) => prepareRencontreForEncryption({ ...rencontre, person: originPerson._id }));
 
-                const existingGroups = groups.filter((r) => r.persons.includes(personToMergeAndDelete._id) || r.persons.includes(originPerson._id));
+                const existingGroups = groups.filter((r) => r.persons?.includes(personToMergeAndDelete._id) || r.persons?.includes(originPerson._id));
                 const groupToDeleteId =
                   existingGroups.length === 2
-                    ? existingGroups.find((group) => group.persons.includes(personToMergeAndDelete._id) && !group.persons.includes(originPerson._id))
-                        ?._id
+                    ? existingGroups.find(
+                        (group) => group.persons?.includes(personToMergeAndDelete._id) && !group.persons?.includes(originPerson._id)
+                      )?._id
                     : undefined;
                 const mergedGroup = existingGroups?.length
                   ? prepareGroupForEncryption(
@@ -296,13 +297,14 @@ const MergeTwoPersons = ({ person }) => {
                           const newRelations = group.relations
                             .filter((relation) => {
                               // on retire la relation entre les deux personnes à fusionner
-                              if (relation.persons.includes(personToMergeAndDelete._id) && relation.persons.includes(originPerson._id)) return false;
+                              if (relation.persons?.includes(personToMergeAndDelete._id) && relation.persons?.includes(originPerson._id))
+                                return false;
                               // on garde toutes les autres relations...
                               // quitte à ce que les doublons existent et qu'ils soient triés manuellement par les utilisateurs
                               return true;
                             })
                             .map((relation) => {
-                              if (!relation.persons.includes(personToMergeAndDelete._id)) return relation;
+                              if (!relation.persons?.includes(personToMergeAndDelete._id)) return relation;
                               return {
                                 ...relation,
                                 persons: relation.persons.map((personId) => (personId === personToMergeAndDelete._id ? originPerson._id : personId)),

@@ -244,7 +244,7 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
 
   const alreadyExistingNewRelation =
     !isSamePerson && newRelationExistingGroup?.persons?.filter((personId) => personId === person?._id)?.length
-      ? newRelationExistingGroup.relations.find((rel) => rel.persons.includes(newPersonId) && rel.persons.includes(person._id))
+      ? newRelationExistingGroup.relations.find((rel) => rel.persons?.includes(newPersonId) && rel.persons?.includes(person._id))
       : null;
 
   return (
