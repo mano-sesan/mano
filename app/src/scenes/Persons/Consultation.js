@@ -435,14 +435,25 @@ const Consultation = ({ navigation, route }) => {
             testID="consultation-status"
           />
           <DateAndTimeInput
-            label="Date"
+            label="À faire le"
             date={consultation.dueAt}
             setDate={(dueAt) => onChange({ dueAt })}
             editable={editable}
-            showYear
+            showDay
             showTime
             withTime
           />
+          {consultation.status !== TODO ? (
+            <DateAndTimeInput
+              label={consultation.status === DONE ? 'Faite le' : 'Annulée le'}
+              setDate={(completedAt) => onChange({ completedAt })}
+              date={consultation.completedAt || new Date().toISOString()}
+              showTime
+              showDay
+              withTime
+              editable={editable}
+            />
+          ) : null}
           {canEditAllFields && consultationDB?.user === user._id ? (
             <CheckboxLabelled
               label="Seulement visible par moi"
