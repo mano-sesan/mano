@@ -427,7 +427,10 @@ const Consultation = ({ navigation, route }) => {
           <ActionStatusSelect
             value={consultation.status}
             onSelect={(status) => onChange({ status })}
-            onSelectAndSave={(status) => onChange({ status })}
+            onSelectAndSave={(status) => {
+              if (!status) onChange({ status: TODO });
+              else onChange({ status });
+            }}
             editable={editable}
             testID="consultation-status"
           />
