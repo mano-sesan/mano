@@ -557,14 +557,13 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!consultationsSuccess) return false;
     }
     if (isStartingInitialLoad) {
-      const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
       if (newConsultations.length) {
-        setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+        setConsultations(newConsultations);
       } else {
-        setConsultations(cacheConsultations);
+        setConsultations([]);
       }
     } else if (newConsultations.length) {
-      setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations));
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -590,11 +589,10 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
         if (newTreatments.length) {
-          setTreatments(mergeItems(cacheTreatments, newTreatments));
+          setTreatments(newTreatments);
         } else {
-          setTreatments(cacheTreatments);
+          setTreatments([]);
         }
       } else if (newTreatments.length) {
         setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
@@ -624,11 +622,10 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
         if (newMedicalFiles.length) {
-          setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
+          setMedicalFiles(newMedicalFiles);
         } else {
-          setMedicalFiles(cacheMedicalFiles);
+          setMedicalFiles([]);
         }
       } else if (newMedicalFiles.length) {
         setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
