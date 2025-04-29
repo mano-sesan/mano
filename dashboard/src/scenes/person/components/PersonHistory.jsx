@@ -13,8 +13,8 @@ function UserName({ id, name }) {
 
   const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
   if (user) return user.name || "Utilisateur sans nom";
-  else if (name) return name + " (utilisateur supprimé)";
-  else return "Utilisateur supprimé";
+  else if (name) return name;
+  else return "-";
 }
 
 export default function PersonHistory({ person }) {
