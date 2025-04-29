@@ -34,7 +34,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
       const bstr = evt.target.result;
       const workbook = read(bstr, { type: "binary" });
 
-      const data = processConfigWorkbook(workbook, teams);
+      const data = processConfigWorkbook(workbook, teams, organisation);
       setWorkbookData(data);
       scrollContainer.current.scrollTo({ top: 0 });
     };
@@ -43,6 +43,13 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
   };
 
   async function handleImport() {
+    if (
+      !confirm(
+        "Relisez attentivement le compte rendu avant de valider l'import. Vous ne pourrez plus revenir en arrière, en cas de champs supprimés ou au contenu modifié, toutes les informations seront perdues"
+      )
+    )
+      return;
+
     if (!workbookData || !organisation) return;
     // Update organisation
     const updatedOrganisation = getUpdatedOrganisationFromWorkbookData(organisation, workbookData);
@@ -56,6 +63,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
   }
 
   const workbookHasErrors = workbookData && Object.values(workbookData).some((sheet) => sheet.errors.length > 0 || sheet.globalErrors.length > 0);
+  const workbookHasFieldsToDelete = workbookData && Object.values(workbookData).some((sheet) => (sheet.fieldsToDelete?.length || 0) > 0);
 
   return (
     <div>
@@ -142,12 +150,31 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
             Le fichier a été analysé. Relisez attentivement le compte rendu pour vérifier que c'est bien ce qui est attendu. Quand tout vous semble
             bon, cliquez sur le bouton "Valider l'import" en bas (pas de retour arrière possible).
           </div>
-          {Object.entries(workbookData).map(([sheetName, { data, globalErrors, errors, withTeams }]) => (
+          {workbookHasFieldsToDelete && (
+            <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
+              <p className="tw-font-bold tw-mb-0">Attention : Des champs existants vont être supprimés lors de l'import</p>
+              <p className="tw-mb-0">
+                Les champs qui ne sont pas présents dans le fichier seront supprimés de la configuration. Vous devez conserver les champs existants
+                dans le fichier, surtout si vous avez déjà des éléments pour lesquels ces champs sont renseignés.
+              </p>
+            </div>
+          )}
+          {Object.entries(workbookData).map(([sheetName, { data, globalErrors, errors, withTeams, fieldsToDelete }]) => (
             <div key={sheetName}>
               <h4 className="tw-mb-4 tw-mt-10 tw-flex tw-justify-between tw-text-lg tw-font-bold">{sheetName}</h4>
-              {!globalErrors.length && !errors.length && data.length > 0 && (
+              {!globalErrors.length && !errors.length && data.length > 0 && !fieldsToDelete?.length && (
                 <div className="tw-mb-8 tw-border-l-4 tw-border-green-500 tw-bg-green-100 tw-p-4 tw-text-green-700" role="alert">
                   Bonne nouvelle, aucune erreur n'a été trouvée ; relisez quand même !
+                </div>
+              )}
+              {!globalErrors.length && !errors.length && data.length > 0 && fieldsToDelete?.length > 0 && (
+                <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
+                  <p className="tw-mb-0">Aucune erreur n'a été trouvée, mais notez que les champs suivants vont être supprimés :</p>
+                  <ul className="tw-list-disc tw-pl-5 tw-mb-0">
+                    {fieldsToDelete.map((field, index) => (
+                      <li key={index}>{field}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
               {!globalErrors.length && errors.length > 0 && data.length > 0 && (
@@ -290,6 +317,7 @@ type WorkbookData = Record<
     globalErrors: string[];
     errors: { line: number; col: number; message: string }[];
     withTeams?: boolean;
+    fieldsToDelete?: string[];
   }
 >;
 
@@ -304,10 +332,172 @@ function trimAllValues<R extends Record<string, string | string[] | TeamInstance
 }
 
 // Parse le fichier Excel et retourne un objet contenant les données et les erreurs
-export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>): WorkbookData {
+export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>, organisation?: OrganisationInstance): WorkbookData {
   const data: WorkbookData = sheetNames.reduce((acc, sheetName) => {
-    return { ...acc, [sheetName]: { data: [], globalErrors: [], errors: [], withTeams: false } };
+    return { ...acc, [sheetName]: { data: [], globalErrors: [], errors: [], withTeams: false, fieldsToDelete: [] } };
   }, {} as WorkbookData);
+
+  // Cette partie permet de détecter les champs existants dans l'organisation
+  // et de signaler qu'elle a été marquée pour suppression.
+  // Elle est codée en grande partie par cursor, j'ai rajouté les trim (parce qu'à priori on trim par ailleurs)
+  if (organisation) {
+    // Check for fields in customFieldsPersons
+    if (organisation.customFieldsPersons?.length) {
+      const importedFields = new Set<string>();
+
+      if (workbook.SheetNames.includes("Infos social et médical")) {
+        const sheet = workbook.Sheets["Infos social et médical"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row.Rubrique && row["Intitulé du champ"]) {
+            importedFields.add(`${row.Rubrique.trim()}:::${row["Intitulé du champ"].trim()}`);
+          }
+        });
+      }
+      const existingFields: string[] = [];
+      organisation.customFieldsPersons.forEach((group) => {
+        group.fields.forEach((field) => {
+          const fieldKey = `${group.name.trim()}:::${field.label.trim()}`;
+          if (!importedFields.has(fieldKey)) {
+            existingFields.push(`${group.name.trim()} > ${field.label.trim()}`);
+          }
+        });
+      });
+      if (existingFields.length) {
+        data["Infos social et médical"].fieldsToDelete = existingFields;
+      }
+    }
+
+    // Check for fields in groupedCustomFieldsMedicalFile
+    if (organisation.groupedCustomFieldsMedicalFile?.length) {
+      const importedFields = new Set<string>();
+      if (workbook.SheetNames.includes("Dossier médical")) {
+        const sheet = workbook.Sheets["Dossier médical"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row.Rubrique && row["Intitulé du champ"]) {
+            importedFields.add(`${row.Rubrique.trim()}:::${row["Intitulé du champ"].trim()}`);
+          }
+        });
+      }
+      const existingFields: string[] = [];
+      organisation.groupedCustomFieldsMedicalFile.forEach((group) => {
+        group.fields.forEach((field) => {
+          const fieldKey = `${group.name.trim()}:::${field.label.trim()}`;
+          if (!importedFields.has(fieldKey)) {
+            existingFields.push(`${group.name.trim()} > ${field.label.trim()}`);
+          }
+        });
+      });
+      if (existingFields.length) {
+        data["Dossier médical"].fieldsToDelete = existingFields;
+      }
+    }
+
+    // Check for fields in consultations
+    if (organisation.consultations?.length) {
+      const importedFields = new Set<string>();
+      if (workbook.SheetNames.includes("Consultation")) {
+        const sheet = workbook.Sheets["Consultation"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row["Consultation type pour"] && row["Intitulé du champ"]) {
+            importedFields.add(`${row["Consultation type pour"].trim()}:::${row["Intitulé du champ"].trim()}`);
+          }
+        });
+      }
+      const existingFields: string[] = [];
+      organisation.consultations.forEach((group) => {
+        group.fields.forEach((field) => {
+          const fieldKey = `${group.name.trim()}:::${field.label.trim()}`;
+          if (!importedFields.has(fieldKey)) {
+            existingFields.push(`${group.name.trim()} > ${field.label.trim()}`);
+          }
+        });
+      });
+      if (existingFields.length) {
+        data["Consultation"].fieldsToDelete = existingFields;
+      }
+    }
+
+    // Check for fields in groupedCustomFieldsObs
+    if (organisation.groupedCustomFieldsObs?.length) {
+      const importedFields = new Set<string>();
+      if (workbook.SheetNames.includes("Observation de territoire")) {
+        const sheet = workbook.Sheets["Observation de territoire"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row.Rubrique && row["Intitulé du champ"]) {
+            importedFields.add(`${row.Rubrique.trim()}:::${row["Intitulé du champ"].trim()}`);
+          }
+        });
+      }
+      const existingFields: string[] = [];
+      organisation.groupedCustomFieldsObs.forEach((group) => {
+        group.fields.forEach((field) => {
+          const fieldKey = `${group.name.trim()}:::${field.label.trim()}`;
+          if (!importedFields.has(fieldKey)) {
+            existingFields.push(`${group.name.trim()} > ${field.label.trim()}`);
+          }
+        });
+      });
+      if (existingFields.length) {
+        data["Observation de territoire"].fieldsToDelete = existingFields;
+      }
+    }
+
+    // Check for services
+    if (organisation.groupedServices?.length) {
+      const importedServices = new Set<string>();
+      if (workbook.SheetNames.includes("Liste des services")) {
+        const sheet = workbook.Sheets["Liste des services"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row["Liste des services"]) {
+            importedServices.add(row["Liste des services"].trim());
+          }
+        });
+      }
+      const existingServices: string[] = [];
+      organisation.groupedServices.forEach((group) => {
+        group.services.forEach((service) => {
+          if (!importedServices.has(service.trim())) {
+            existingServices.push(service.trim());
+          }
+        });
+      });
+      if (existingServices.length) {
+        data["Liste des services"].fieldsToDelete = existingServices;
+      }
+    }
+
+    // Check for action categories
+    if (organisation.actionsGroupedCategories?.length) {
+      const importedCategories = new Set<string>();
+      if (workbook.SheetNames.includes("Catégories d action")) {
+        const sheet = workbook.Sheets["Catégories d action"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row["Liste des catégories d'action"]) {
+            importedCategories.add(row["Liste des catégories d'action"].trim());
+          }
+        });
+      }
+      const existingCategories: string[] = [];
+      organisation.actionsGroupedCategories.forEach((group) => {
+        group.categories.forEach((category) => {
+          if (!importedCategories.has(category.trim())) {
+            existingCategories.push(category.trim());
+          }
+        });
+      });
+      if (existingCategories.length) {
+        data["Catégories d action"].fieldsToDelete = existingCategories;
+      }
+    }
+  }
+  // Fin de la partie qui détecte les champs existants dans l'organisation.
+
   for (const sheetName of sheetNames) {
     const withTeams =
       sheetName === "Infos social et médical" ||
