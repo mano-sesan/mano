@@ -15,7 +15,7 @@ import Table from "../../components/table";
 import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
 import { emailRegex, errorMessage } from "../../utils";
-
+import UserStatus from "../../components/UserStatus";
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
 const sortUsers = (sortBy, sortOrder) => (a, b) => {
@@ -164,35 +164,7 @@ const List = () => {
           {
             title: "Statut du compte",
             dataKey: "status",
-            render: (i) => {
-              if (i.disabledAt) {
-                return (
-                  <>
-                    <div className="tw-text-red-500 tw-font-bold">Désactivé</div>
-                    <div className="tw-text-xs tw-text-red-700">Désactivé le {formatDateWithFullMonth(i.disabledAt)} après 3 mois d'inactivité.</div>
-                  </>
-                );
-              }
-              if (i.decryptAttempts > 12) {
-                return (
-                  <>
-                    <div className="tw-text-red-500 tw-font-bold">Bloqué</div>
-                    <div className="tw-text-xs tw-text-red-700">Bloqué après 12 tentatives de déchiffrement.</div>
-                  </>
-                );
-              }
-              if (i.loginAttempts > 12) {
-                return (
-                  <>
-                    <div className="tw-text-red-500 tw-font-bold">Bloqué</div>
-                    <div className="tw-text-xs tw-text-red-700">Bloqué après 12 erreurs de mot de passe.</div>
-                  </>
-                );
-              }
-              if (!i.lastLoginAt) return <div className="tw-text-orange-900">Pas encore actif</div>;
-
-              return <div className="tw-text-main tw-font-bold">Actif</div>;
-            },
+            render: (i) => <UserStatus user={i} />,
           },
         ]}
       />

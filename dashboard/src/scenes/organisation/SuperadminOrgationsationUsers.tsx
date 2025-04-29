@@ -7,6 +7,7 @@ import { formatDateWithFullMonth } from "../../services/date";
 import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../components/tailwind/Modal";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
+import UserStatus from "../../components/UserStatus";
 
 export default function SuperadminOrganisationUsers({
   organisation,
@@ -59,6 +60,7 @@ export default function SuperadminOrganisationUsers({
           <thead>
             <tr>
               <th>Nom</th>
+              <th>Statut</th>
               <th>Email</th>
               <th>Rôle</th>
               <th>Équipes</th>
@@ -73,10 +75,6 @@ export default function SuperadminOrganisationUsers({
                   <div className="tw-mt-1 tw-text-xs tw-text-gray-500">
                     Créé·e le {formatDateWithFullMonth(user.createdAt)} -{" "}
                     {user.lastLoginAt ? `Dernière connexion le ${formatDateWithFullMonth(user.lastLoginAt)}` : "Jamais connecté·e"}
-                    {user.disabledAt && <span className="tw-ml-1 tw-text-red-500">- Désactivé</span>}
-                    {(user.loginAttempts > 12 || user.decryptAttempts > 12) && (
-                      <span className="tw-ml-2 tw-rounded tw-bg-red-500 tw-px-2 tw-py-0.5 tw-text-white">Bloqué</span>
-                    )}
                   </div>
                   <div className="tw-mt-1 tw-text-xs">
                     <div>
@@ -169,6 +167,9 @@ export default function SuperadminOrganisationUsers({
                       )}
                     </div>
                   </div>
+                </td>
+                <td>
+                  <UserStatus user={user} />
                 </td>
                 <td>
                   {user.email}
