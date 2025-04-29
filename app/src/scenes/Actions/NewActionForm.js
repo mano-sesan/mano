@@ -185,7 +185,16 @@ const NewActionForm = ({ route, navigation }) => {
 
     // Quand il y a récurrence, on redirige juste vers la liste des actions
     if (hasRecurrence) {
-      navigation.replace('ActionsList');
+      // Check if this action was created from a Person view or PersonsList
+      if ((route.params?.fromRoute === 'Person' || route.params?.fromRoute === 'PersonsList') && route.params?.person) {
+        if (route.params?.fromRoute === 'Person') {
+          navigation.replace('Person', { person: route.params.person });
+        } else {
+          navigation.replace('PersonsList');
+        }
+      } else {
+        navigation.replace('ActionsList');
+      }
       return;
     }
 
@@ -257,7 +266,7 @@ const NewActionForm = ({ route, navigation }) => {
       <ScreenTitle title="Nouvelle action" onBack={onGoBackRequested} testID="new-action" />
       <ScrollContainer keyboardShouldPersistTaps="handled" testID="new-action-form">
         <View>
-          <InputLabelled label="Nom de l’action" onChangeText={setName} value={name} placeholder="Rdv chez le dentiste" testID="new-action-name" />
+          <InputLabelled label="Nom de l'action" onChangeText={setName} value={name} placeholder="Rdv chez le dentiste" testID="new-action-name" />
           {forCurrentPerson ? (
             <InputFromSearchList
               label="Personne concernée"
