@@ -668,7 +668,9 @@ router.get(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         lastLoginAt: user.lastLoginAt,
+        disabledAt: user.disabledAt,
         decryptAttempts: user.decryptAttempts,
+        loginAttempts: user.loginAttempts,
         teams: user.Teams ? user.Teams.map(serializeTeam) : [],
         organisationPopulated: user.Organisation,
       };

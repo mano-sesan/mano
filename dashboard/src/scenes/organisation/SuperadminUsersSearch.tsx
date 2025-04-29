@@ -5,10 +5,10 @@ import { TeamInstance } from "../../types/team";
 import { OrganisationInstance } from "../../types/organisation";
 import { formatDateWithFullMonth } from "../../services/date";
 import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../components/tailwind/Modal";
-import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import Search from "../../components/search";
+import UserStatus from "../../components/UserStatus";
 
 export default function SuperadminUsersSearch({
   open,
@@ -18,13 +18,10 @@ export default function SuperadminUsersSearch({
   open: boolean;
   setOpen: (open: boolean) => void;
   setSelectedOrganisation: (organisation: OrganisationInstance) => void;
-  setSearchUserModal: (open: boolean) => void;
 }) {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGeneratingLinkForUser, setIsGeneratingLinkForUser] = useState<false | string>(false);
-  const [generatedLink, setGeneratedLink] = useState<[string, string] | undefined>();
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -73,9 +70,11 @@ export default function SuperadminUsersSearch({
             </div>
           )}
           {users.length > 0 && (
-            <div>
-              <div className="tw-font-bold tw-p-4 tw-text-center">
-                {users.length} utilisateur(rice){users.length > 1 ? "s" : ""} 🤩
+            <div className="tw-p-4 tw-w-full">
+              {users.length} utilisateur(rice){users.length > 1 ? "s" : ""} trouvé{users.length > 1 ? "s" : ""}
+              <div className="tw-text-sm tw-opacity-70 tw-font-normal">
+                <b>Cliquez sur un utilisateur</b> pour pouvoir faire des actions (modifier, supprimer, activer, lien de connexion, etc.) depuis son
+                organisation.
               </div>
             </div>
           )}
@@ -84,50 +83,32 @@ export default function SuperadminUsersSearch({
               <thead>
                 <tr>
                   <th>Nom</th>
+                  <th>Statut</th>
                   <th>Email</th>
                   <th>Rôle</th>
                   <th>Équipes</th>
                   <th>Organisation</th>
-                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map((user: UserInstance & { teams: TeamInstance[] }) => (
-                  <tr key={user._id}>
+                  <tr
+                    key={user._id}
+                    className="tw-hover:tw-bg-gray-100"
+                    onClick={() => {
+                      setSelectedOrganisation(user.organisationPopulated);
+                      setOpen(true);
+                    }}
+                  >
                     <td>
                       {user.name || "Pas de nom renseigné"}
+                      <div className="tw-mt-1 tw-text-xs tw-text-gray-500">Créé·e le {formatDateWithFullMonth(user.createdAt)}</div>
                       <div className="tw-mt-1 tw-text-xs tw-text-gray-500">
-                        Créé·e le {formatDateWithFullMonth(user.createdAt)} -{" "}
                         {user.lastLoginAt ? `Dernière connexion le ${formatDateWithFullMonth(user.lastLoginAt)}` : "Jamais connecté·e"}
                       </div>
-                      <div className="tw-mt-1 tw-text-xs">
-                        {isGeneratingLinkForUser === user._id ? (
-                          <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Génération du lien de connexion en cours…</div>
-                        ) : (
-                          <>
-                            {generatedLink && generatedLink[0] === user._id && (
-                              <div className="tw-flex tw-cursor-default tw-items-center tw-text-green-700">✅ {generatedLink[1]}</div>
-                            )}
-                            <button
-                              className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
-                              onClick={() => {
-                                setIsGeneratingLinkForUser(user._id);
-                                setGeneratedLink(undefined);
-                                (async () => {
-                                  const [error, response] = await tryFetchExpectOk(async () =>
-                                    API.post({ path: `/user/generate-link`, body: { _id: user._id } })
-                                  );
-                                  if (error) return toast.error("Erreur lors de la génération du lien de connexion");
-                                  setGeneratedLink([user._id, response.data.link]);
-                                  setIsGeneratingLinkForUser(false);
-                                })();
-                              }}
-                            >
-                              {generatedLink && generatedLink[0] === user._id ? "🔄 Régénérer" : "Générer un lien de connexion"}
-                            </button>
-                          </>
-                        )}
-                      </div>
+                    </td>
+                    <td>
+                      <UserStatus user={user} />
                     </td>
                     <td>
                       {user.email}
@@ -166,22 +147,6 @@ export default function SuperadminUsersSearch({
                       >
                         {user.organisationPopulated?.name}
                       </button>
-                    </td>
-                    <td>
-                      <div className="tw-grid tw-gap-1">
-                        <DeleteButtonAndConfirmModal
-                          title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
-                          textToConfirm={user.email}
-                          onConfirm={async () => {
-                            const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/user/${user._id}` }));
-                            if (error) return;
-                            toast.success("Suppression réussie");
-                            setUsers(users.filter((u) => u._id !== user._id));
-                          }}
-                        >
-                          <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
-                        </DeleteButtonAndConfirmModal>
-                      </div>
                     </td>
                   </tr>
                 ))}
