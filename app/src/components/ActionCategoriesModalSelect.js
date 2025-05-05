@@ -68,9 +68,14 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
   }, [search, values, allGroups]);
 
   const categories = useMemo(() => {
+    if (search) {
+      // When searching, show results from all groups
+      return groups.flatMap((group) => group.categories).filter((category) => !values.includes(category));
+    }
+    // Otherwise show only the selected group's categories
     const group = groups.find((group) => group.groupTitle === groupSelected);
     return group?.categories || [];
-  }, [groupSelected, groups]);
+  }, [groupSelected, groups, search, values]);
 
   const selectedCategoriesRef = useRef(null);
 
@@ -112,18 +117,20 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
                 className="min-h-0 m-0"
               />
             </ScrollView>
-            <ScrollView contentContainerStyle={{ paddingVertical: 16 }} horizontal className="flex-grow-0 flex-shrink-0">
-              {groups.map((group) => (
-                <TouchableOpacity
-                  onPress={() => setGroupSelected(group.groupTitle)}
-                  className={['rounded-full ml-2 px-2 py-1 border border-main', groupSelected === group.groupTitle ? 'bg-main' : ''].join(' ')}
-                  key={group.groupTitle}>
-                  <MyText className={[groupSelected === group.groupTitle ? 'text-white' : ''].join(' ')}>
-                    {group.groupTitle} ({group.categories.length})
-                  </MyText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+            {!search && (
+              <ScrollView contentContainerStyle={{ paddingVertical: 16 }} horizontal className="flex-grow-0 flex-shrink-0">
+                {groups.map((group) => (
+                  <TouchableOpacity
+                    onPress={() => setGroupSelected(group.groupTitle)}
+                    className={['rounded-full ml-2 px-2 py-1 border border-main', groupSelected === group.groupTitle ? 'bg-main' : ''].join(' ')}
+                    key={group.groupTitle}>
+                    <MyText className={[groupSelected === group.groupTitle ? 'text-white' : ''].join(' ')}>
+                      {group.groupTitle} ({group.categories.length})
+                    </MyText>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
             <View className="flex-grow flex-shrink h-96">
               <FlashList
                 data={categories}
