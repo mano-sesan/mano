@@ -119,7 +119,7 @@ const SuperAdmin = () => {
         setOpen={setOpenEditUserModal}
         organisation={selectedOrganisation}
       />
-      <div className="tw-mb-10 tw-mt-4 tw-flex tw-w-full tw-justify-between">
+      <div className="tw-fixed tw-top-16 tw-left-0 tw-right-0 tw-bg-white tw-z-10 tw-py-4 tw-px-8 tw-flex tw-justify-between tw-shadow-sm">
         <div>
           <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
           <div className="tw-text-xs tw-text-gray-500">
@@ -162,6 +162,7 @@ const SuperAdmin = () => {
           </button>
         </div>
       </div>
+      <div className="tw-h-24"></div>
       {!organisations?.length ? (
         refresh ? (
           <Loading />
@@ -452,7 +453,7 @@ const SuperAdmin = () => {
                         <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
                           Cette opération est irréversible
                           <br />
-                          et entrainera la suppression définitive de toutes les données liées à l’organisation&nbsp;:
+                          et entrainera la suppression définitive de toutes les données liées à l'organisation&nbsp;:
                           <br />
                           équipes, utilisateurs, personnes suivies, actions, territoires, commentaires et observations, comptes-rendus...
                         </span>
@@ -559,12 +560,12 @@ const Create = ({ onChange, open, setOpen }) => {
                   </div>
                   <div className="-tw-mx-4 tw-flex tw-flex-row tw-flex-wrap tw-mb-2">
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <label htmlFor="name">Nom de l’administrateur</label>
+                      <label htmlFor="name">Nom de l'administrateur</label>
                       <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
                       {touched.name && errors.name && <span className="tw-text-xs tw-text-red-500">{errors.name}</span>}
                     </div>
                     <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                      <label htmlFor="email">Email de l’administrateur</label>
+                      <label htmlFor="email">Email de l'administrateur</label>
                       <input className="tailwindui" autoComplete="off" name="email" id="email" value={values.email} onChange={handleChange} />
                       {touched.email && errors.email && <span className="tw-text-xs tw-text-red-500">{errors.email}</span>}
                     </div>
@@ -693,7 +694,7 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
           />
         </div>
         <div className="tw-py-4">
-          Clé de l’orga (les deux clés doivent être identiques)
+          Clé de l'orga (les deux clés doivent être identiques)
           <input
             className="tailwindui"
             autoComplete="off"
