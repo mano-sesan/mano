@@ -257,6 +257,29 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
     setIsEditing(true);
   };
 
+  const handleCheckBeforeClose = () => {
+    if (!isEditing && !canSave) return onClose();
+    if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+    setModalConfirmState({
+      open: true,
+      options: {
+        title: "Quitter la consultation sans enregistrer ?",
+        subTitle: "Toutes les modifications seront perdues.",
+        buttons: [
+          {
+            text: "Annuler",
+            className: "button-cancel",
+          },
+          {
+            text: "Oui",
+            className: "button-destructive",
+            onClick: () => onClose(),
+          },
+        ],
+      },
+    });
+  };
+
   return (
     <>
       <ModalHeader
@@ -274,27 +297,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
             )}
           </div>
         }
-        onClose={() => {
-          if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
-          setModalConfirmState({
-            open: true,
-            options: {
-              title: "Quitter la consultation sans enregistrer ?",
-              subTitle: "Toutes les modifications seront perdues.",
-              buttons: [
-                {
-                  text: "Annuler",
-                  className: "button-cancel",
-                },
-                {
-                  text: "Oui",
-                  className: "button-destructive",
-                  onClick: () => onClose(),
-                },
-              ],
-            },
-          });
-        }}
+        onClose={handleCheckBeforeClose}
       />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
@@ -814,7 +817,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()}>
+        <button name="Fermer" type="button" className="button-cancel" onClick={handleCheckBeforeClose}>
           Fermer
         </button>
         {!isNewConsultation && !!isEditing && user.role !== "restricted-access" && (
