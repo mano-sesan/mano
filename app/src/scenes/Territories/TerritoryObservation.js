@@ -293,7 +293,7 @@ const TerritoryObservation = ({ route, navigation }) => {
           );
         })}
         <TouchableOpacity key="rencontres" onPress={() => setActiveTab('rencontres')}>
-          <View className={`p-3 bg-white ${activeTab === 'rencontres' ? 'border-b-green-700 border-b-4' : ''}`}>
+          <View className={`p-4 bg-white ${activeTab === 'rencontres' ? 'border-b-green-700 border-b-4' : ''}`}>
             <Text>Rencontres</Text>
           </View>
         </TouchableOpacity>
