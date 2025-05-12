@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@babel/runtime": "^7.14.5",
+    "@babel/runtime": "^7.26.10",
     "@e965/xlsx": "^0.20.1",
     "@headlessui/react": "^1.7.4",
     "@nivo/bar": "^0.85.1",
