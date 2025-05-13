@@ -14,6 +14,8 @@ ENV SHA $SHA
 ENV NODE_OPTIONS=--max-old-space-size=4096
 ENV SENTRY_AUTH_TOKEN_FILE $SENTRY_AUTH_TOKEN_FILE
 ENV SENTRY_RELEASE $SHA
+ENV HTTP_PROXY=http://sesclaprx-vip.grita.fr:3128
+ENV HTTPS_PROXY=http://sesclaprx-vip.grita.fr:3128
 
 WORKDIR /usr/src/app
 COPY yarn.lock .yarnrc.yml ./
