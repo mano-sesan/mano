@@ -12,6 +12,8 @@ ENV APP_ENV production
 ENV NODE_ENV production
 ENV SHA $SHA
 ENV NODE_OPTIONS=--max-old-space-size=4096
+ENV SENTRY_AUTH_TOKEN_FILE $SENTRY_AUTH_TOKEN
+ENV SENTRY_RELEASE $SHA
 
 WORKDIR /usr/src/app
 COPY yarn.lock .yarnrc.yml ./
