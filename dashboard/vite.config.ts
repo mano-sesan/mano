@@ -13,10 +13,6 @@ export default defineConfig({
       project: "mano-espace",
       telemetry: false,
       disable: Boolean(process.env.CI),
-      debug: true,
-      authToken: process.env.SENTRY_AUTH_TOKEN_FILE
-        ? fs.readFileSync(process.env.SENTRY_AUTH_TOKEN_FILE, "utf8").trim().replace(/\n/g, "")
-        : undefined,
     }),
     !process.env.VITEST ? checker({ typescript: true }) : undefined,
   ],

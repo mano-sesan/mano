@@ -19,7 +19,6 @@ services:
         VITE_SCHEME: ${VITE_SCHEME}
         VITE_HOST: ${VITE_HOST}
         VITE_USE_HTTP: ${VITE_USE_HTTP}
-        SENTRY_AUTH_TOKEN_FILE: /run/secrets/sentry_auth_token
     environment:
       - NODE_ENV=production
       - VIRTUAL_HOST=espace-mano.localhost,espace-mano.sesan.fr,preprod-espace-mano.sesan.fr
@@ -30,8 +29,6 @@ services:
       - no_proxy=ad.sesan.fr,.gcsidf.local,localhost,127.0.0.1
       - https_proxy=http://sesclaprx-vip.grita.fr:3128
       - http_proxy=http://sesclaprx-vip.grita.fr:3128
-    secrets:
-      - sentry_auth_token
 
   api:
     restart: always
@@ -106,5 +103,3 @@ secrets:
     file: ./.secrets/mb_db_user
   mb_db_password:
     file: ./.secrets/mb_db_password
-  sentry_auth_token:
-    file: ./.secrets/sentry_auth_token
