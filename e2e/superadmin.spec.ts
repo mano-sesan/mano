@@ -51,8 +51,8 @@ test("Super admin", async ({ page }) => {
   await page.getByLabel("Ville").fill("Rezé");
   await page.getByText("Rezé (44)", { exact: true }).click();
   await changeReactSelectValue(page, "organisation-responsible", "Guillaume");
-  await page.getByLabel("Nom de l’administrateur").fill("raph");
-  await page.getByLabel("Email de l’administrateur").fill("admin-raph@example.org");
+  await page.getByLabel("Nom de l'administrateur").fill("raph");
+  await page.getByLabel("Email de l'administrateur").fill("admin-raph@example.org");
   await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Créer" }).click();
   await page.getByText("Création réussie !").click();
 
