@@ -217,11 +217,14 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
 
   // Do not show content if loading state is fullscreen and user is logged in.
   if (user && fullScreen) return <div></div>;
+
+  if (user && ["superadmin"].includes(user.role)) return <SentryRoute {...rest} render={(props) => <Component {...props} />} />;
+
   return (
     <>
       {!!user && <TopBar />}
       <div className="main">
-        {!!user && !["superadmin", "stats-only"].includes(user.role) && <Drawer />}
+        {!!user && !["stats-only"].includes(user.role) && <Drawer />}
         <main
           id="main-content"
           className="tw-relative tw-flex tw-grow tw-basis-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible print:tw-p-0"
@@ -229,7 +232,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
           <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
         </main>
       </div>
-      {!!user && !["superadmin", "stats-only"].includes(user.role) && <BottomBar />}
+      {!!user && !["stats-only"].includes(user.role) && <BottomBar />}
     </>
   );
 };
