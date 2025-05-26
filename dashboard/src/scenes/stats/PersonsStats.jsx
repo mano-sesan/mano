@@ -568,6 +568,14 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
     return [...persons].sort(sortPersons(sortBy, sortOrder));
   }, [persons, sortBy, sortOrder]);
 
+  // Helper function to safely truncate text values for Excel export
+  const truncateForExcel = (value, maxLength = 32000) => {
+    if (value == null) return value;
+    const stringValue = String(value);
+    if (stringValue.length <= maxLength) return stringValue;
+    return stringValue.substring(0, maxLength) + "... [TRONQUÉ]";
+  };
+
   const exportXlsx = () => {
     const wb = utils.book_new();
     const ws = utils.json_to_sheet(
@@ -577,14 +585,17 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
           ...personFieldsIncludingCustomFields
             .filter((person) => !["_id", "organisation", "user", "createdAt", "updatedAt", "documents", "history"].includes(person.name))
             .reduce((fields, field) => {
+              let value;
               if (field.name === "assignedTeams") {
-                fields[field.label] = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+                value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
               } else if (["date", "date-with-time", "duration"].includes(field.type))
-                fields[field.label || field.name] = person[field.name] ? dayjsInstance(person[field.name]).format("YYYY-MM-DD") : "";
-              else if (["boolean"].includes(field.type)) fields[field.label || field.name] = person[field.name] ? "Oui" : "Non";
-              else if (["yes-no"].includes(field.type)) fields[field.label || field.name] = person[field.name];
-              else if (Array.isArray(person[field.name])) fields[field.label || field.name] = person[field.name].join(", ");
-              else fields[field.label || field.name] = person[field.name];
+                value = person[field.name] ? dayjsInstance(person[field.name]).format("YYYY-MM-DD") : "";
+              else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";
+              else if (["yes-no"].includes(field.type)) value = person[field.name];
+              else if (Array.isArray(person[field.name])) value = person[field.name].join(", ");
+              else value = person[field.name];
+
+              fields[field.label || field.name] = truncateForExcel(value);
               return fields;
             }, {}),
           "Créé le": dayjsInstance(person.createdAt).format("YYYY-MM-DD"),
