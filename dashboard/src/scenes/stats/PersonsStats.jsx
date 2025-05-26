@@ -587,7 +587,7 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
             .reduce((fields, field) => {
               let value;
               if (field.name === "assignedTeams") {
-                value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+                value = (person[field.name] || []).map((t) => teams.find((team) => team._id === t)?.name)?.join(", ");
               } else if (["date", "date-with-time", "duration"].includes(field.type))
                 value = person[field.name] ? dayjsInstance(person[field.name]).format("YYYY-MM-DD") : "";
               else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";

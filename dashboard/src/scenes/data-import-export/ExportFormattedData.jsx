@@ -49,7 +49,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         .reduce((fields, field) => {
           let value;
           if (field.name === "assignedTeams") {
-            value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+            value = (person[field.name] || []).map((t) => teams.find((team) => team._id === t)?.name)?.join(", ");
           } else if (field.name === "user") {
             //
           } else if (["date", "date-with-time", "duration"].includes(field.type))
@@ -79,7 +79,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
       ].reduce((fields, field) => {
         let value;
         if (field.name === "assignedTeams") {
-          value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+          value = (person[field.name] || []).map((t) => teams.find((team) => team._id === t)?.name)?.join(", ");
         } else if (["date", "date-with-time", "duration"].includes(field.type))
           value = person[field.name] ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm") : "";
         else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";
