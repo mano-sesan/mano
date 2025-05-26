@@ -17,6 +17,7 @@ import { errorMessage } from "../../utils";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
 const List = () => {
+  const user = useRecoilValue(userState);
   const [structures, setStructures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useLocalStorage("structures-sortBy", "dueAt");
@@ -54,19 +55,21 @@ const List = () => {
     <>
       <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
         <div className="tw-grow tw-text-xl">{`Contacts (${filteredStructures?.length})`}</div>
-        <div>
-          <Structure
-            key={currentStructure}
-            structure={currentStructure}
-            open={currentStructureOpen}
-            onOpen={() => setCurrentStructureOpen(true)}
-            onClose={() => {
-              setCurrentStructureOpen(false);
-              getStructures();
-            }}
-            onAfterLeave={() => setCurrentStructure(null)}
-          />
-        </div>
+        {["admin", "user"].includes(user.role) && (
+          <div>
+            <Structure
+              key={currentStructure}
+              structure={currentStructure}
+              open={currentStructureOpen}
+              onOpen={() => setCurrentStructureOpen(true)}
+              onClose={() => {
+                setCurrentStructureOpen(false);
+                getStructures();
+              }}
+              onAfterLeave={() => setCurrentStructure(null)}
+            />
+          </div>
+        )}
       </div>
       <div className="tw-mb-10 tw-flex tw-flex-wrap tw-border-b tw-border-gray-200">
         <div className="tw-mb-5 tw-flex tw-w-full tw-items-center tw-px-2">
