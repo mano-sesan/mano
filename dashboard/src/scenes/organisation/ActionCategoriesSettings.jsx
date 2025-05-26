@@ -203,7 +203,7 @@ const Category = ({ item: category, groupTitle }) => {
           ...action,
           categories: [...new Set(action.categories.map((cat) => (cat === oldCategory ? newCategory.trim() : cat)))],
         }))
-        .map((action) => encryptAction({ ...action, user: action.user || user._id }))
+        .map((action) => encryptAction({ ...action, user: action.user || user._id }, { checkRequiredFields: false }))
     );
     const newActionsGroupedCategories = actionsGroupedCategories.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
