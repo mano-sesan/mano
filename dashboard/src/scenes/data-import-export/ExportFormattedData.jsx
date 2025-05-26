@@ -23,6 +23,14 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const consultationsFields = useRecoilValue(consultationFieldsSelector);
   const [users, setUsers] = useState([]);
 
+  // Helper function to safely truncate text values for Excel export
+  const truncateForExcel = (value, maxLength = 32000) => {
+    if (value == null) return value;
+    const stringValue = String(value);
+    if (stringValue.length <= maxLength) return stringValue;
+    return stringValue.substring(0, maxLength) + "... [TRONQUÉ]";
+  };
+
   async function fetchUsers() {
     if (users.length) return users;
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/user" }));
@@ -39,21 +47,22 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
       ...personFieldsIncludingCustomFields
         .filter((field) => !["_id", "user", "organisation", "createdAt", "updatedAt", "documents", "history"].includes(field.name))
         .reduce((fields, field) => {
+          let value;
           if (field.name === "assignedTeams") {
-            fields[field.label] = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+            value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
           } else if (field.name === "user") {
             //
           } else if (["date", "date-with-time", "duration"].includes(field.type))
-            fields[field.label || field.name] = person[field.name]
-              ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
-              : "";
-          else if (["boolean"].includes(field.type)) fields[field.label || field.name] = person[field.name] ? "Oui" : "Non";
-          else if (["yes-no"].includes(field.type)) fields[field.label || field.name] = person[field.name];
-          else if (Array.isArray(person[field.name])) fields[field.label || field.name] = person[field.name].join(", ");
-          else fields[field.label || field.name] = person[field.name];
+            value = person[field.name] ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm") : "";
+          else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";
+          else if (["yes-no"].includes(field.type)) value = person[field.name];
+          else if (Array.isArray(person[field.name])) value = person[field.name].join(", ");
+          else value = person[field.name];
+
+          fields[field.label || field.name] = truncateForExcel(value);
           return fields;
         }, {}),
-      "Créée par": loadedUsers.find((u) => u._id === person.user)?.name,
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === person.user)?.name),
       "Créée le": dayjsInstance(person.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(person.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -68,19 +77,20 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         // Et on prend tous les champs du dossier médical
         ...customFieldsMedicalFile,
       ].reduce((fields, field) => {
+        let value;
         if (field.name === "assignedTeams") {
-          fields[field.label] = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
+          value = (person[field.name] || []).map((t) => teams.find((person) => person._id === t)?.name)?.join(", ");
         } else if (["date", "date-with-time", "duration"].includes(field.type))
-          fields[field.label || field.name] = person[field.name]
-            ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
-            : "";
-        else if (["boolean"].includes(field.type)) fields[field.label || field.name] = person[field.name] ? "Oui" : "Non";
-        else if (["yes-no"].includes(field.type)) fields[field.label || field.name] = person[field.name];
-        else if (Array.isArray(person[field.name])) fields[field.label || field.name] = person[field.name].join(", ");
-        else fields[field.label || field.name] = person[field.name];
+          value = person[field.name] ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm") : "";
+        else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";
+        else if (["yes-no"].includes(field.type)) value = person[field.name];
+        else if (Array.isArray(person[field.name])) value = person[field.name].join(", ");
+        else value = person[field.name];
+
+        fields[field.label || field.name] = truncateForExcel(value);
         return fields;
       }, {}),
-      "Créée par": loadedUsers.find((u) => u._id === person.user)?.name,
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === person.user)?.name),
       "Créée le": dayjsInstance(person.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(person.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -89,19 +99,19 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const transformAction = (loadedUsers) => (action) => {
     return {
       id: action._id,
-      Nom: action.name,
-      Description: action.description,
-      Catégories: (action.categories || []).join(", "),
-      "Personne suivie - Nom": persons.find((p) => p._id === action.person)?.name,
+      Nom: truncateForExcel(action.name),
+      Description: truncateForExcel(action.description),
+      Catégories: truncateForExcel((action.categories || []).join(", ")),
+      "Personne suivie - Nom": truncateForExcel(persons.find((p) => p._id === action.person)?.name),
       "Personne suivie - id": persons.find((p) => p._id === action.person)?._id,
-      Groupe: action.group,
+      Groupe: truncateForExcel(action.group),
       "Avec heure": action.withTime ? "Oui" : "Non",
-      Équipe: action.teams?.length ? action.teams.map((t) => teams.find((team) => team._id === t)?.name).join(", ") : action.team,
+      Équipe: truncateForExcel(action.teams?.length ? action.teams.map((t) => teams.find((team) => team._id === t)?.name).join(", ") : action.team),
       Urgent: action.urgent ? "Oui" : "Non",
-      Statut: action.status,
+      Statut: truncateForExcel(action.status),
       "Complétée le": action.completedAt ? dayjsInstance(action.completedAt).format("YYYY-MM-DD HH:mm") : "",
       "À faire le": action.dueAt ? dayjsInstance(action.dueAt).format(action.withTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD") : "",
-      "Créée par": loadedUsers.find((u) => u._id === action.user)?.name,
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === action.user)?.name),
       "Créée le": dayjsInstance(action.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(action.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -110,32 +120,37 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const transformConsultation = (loadedUsers) => (consultation) => {
     return {
       id: consultation._id,
-      Équipe: consultation.teams?.length ? consultation.teams.map((t) => teams.find((team) => team._id === t)?.name).join(", ") : consultation.team,
+      Équipe: truncateForExcel(
+        consultation.teams?.length ? consultation.teams.map((t) => teams.find((team) => team._id === t)?.name).join(", ") : consultation.team
+      ),
       "Avec heure": consultation.withTime ? "Oui" : "Non",
-      Statut: consultation.status,
-      "Personne suivie - Nom": persons.find((p) => p._id === consultation.person)?.name,
+      Statut: truncateForExcel(consultation.status),
+      "Personne suivie - Nom": truncateForExcel(persons.find((p) => p._id === consultation.person)?.name),
       "Personne suivie - id": persons.find((p) => p._id === consultation.person)?._id,
-      Type: consultation.type,
+      Type: truncateForExcel(consultation.type),
       ...consultationsFields.reduce((fields, type) => {
         for (const field of type.fields) {
           // On a besoin de préciser le nom du type de consultation, pour éviter les doublons de clés.
           // Par exemple, certains champs ont le même nom dans plusieurs types de consultation (sans parler des champs qui s'appellent "Type")
           // See: https://www.notion.so/mano-sesan/Bug-export-des-consultations-Les-champs-sont-bien-remplis-dans-la-consultation-mais-dans-l-export-l-71e2c677536544d1abb757235f966f15?pvs=4
           const key = `${field.label || field.name} - ${type.name}`;
+          let value;
           if (["date", "date-with-time", "duration"].includes(field.type))
-            fields[key] = consultation[field.name]
+            value = consultation[field.name]
               ? dayjsInstance(consultation[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
               : "";
-          else if (["boolean"].includes(field.type)) fields[key] = consultation[field.name] ? "Oui" : "Non";
-          else if (["yes-no"].includes(field.type)) fields[key] = consultation[field.name];
-          else if (Array.isArray(consultation[field.name])) fields[key] = consultation[field.name].join(", ");
-          else fields[key] = consultation[field.name];
+          else if (["boolean"].includes(field.type)) value = consultation[field.name] ? "Oui" : "Non";
+          else if (["yes-no"].includes(field.type)) value = consultation[field.name];
+          else if (Array.isArray(consultation[field.name])) value = consultation[field.name].join(", ");
+          else value = consultation[field.name];
+
+          fields[key] = truncateForExcel(value);
         }
         return fields;
       }, {}),
       "Complétée le": consultation.completedAt ? dayjsInstance(consultation.completedAt).format("YYYY-MM-DD HH:mm") : "",
       "À faire le": consultation.dueAt ? dayjsInstance(consultation.dueAt).format(consultation.withTime ? "YYYY-MM-DD HH:mm" : "YYYY-MM-DD") : "",
-      "Créée par": loadedUsers.find((u) => u._id === consultation.user)?.name,
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === consultation.user)?.name),
       "Créée le": dayjsInstance(consultation.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(consultation.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -144,12 +159,12 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const transformRencontre = (loadedUsers) => (rencontre) => {
     return {
       id: rencontre._id,
-      "Personne suivie - Nom": persons.find((p) => p._id === rencontre.person)?.name,
+      "Personne suivie - Nom": truncateForExcel(persons.find((p) => p._id === rencontre.person)?.name),
       "Personne suivie - id": persons.find((p) => p._id === rencontre.person)?._id,
-      Équipe: rencontre.team ? teams.find((t) => t._id === rencontre.team)?.name : "",
+      Équipe: truncateForExcel(rencontre.team ? teams.find((t) => t._id === rencontre.team)?.name : ""),
       Date: dayjsInstance(rencontre.date).format("YYYY-MM-DD HH:mm"),
-      Commentaire: rencontre.comment,
-      "Créée par": loadedUsers.find((u) => u._id === rencontre.user)?.name,
+      Commentaire: truncateForExcel(rencontre.comment),
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === rencontre.user)?.name),
       "Créée le": dayjsInstance(rencontre.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(rencontre.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -158,12 +173,12 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const transformPassage = (loadedUsers) => (passage) => {
     return {
       id: passage._id,
-      "Personne suivie - Nom": persons.find((p) => p._id === passage.person)?.name,
+      "Personne suivie - Nom": truncateForExcel(persons.find((p) => p._id === passage.person)?.name),
       "Personne suivie - id": persons.find((p) => p._id === passage.person)?._id,
-      Équipe: passage.team ? teams.find((t) => t._id === passage.team)?.name : "",
+      Équipe: truncateForExcel(passage.team ? teams.find((t) => t._id === passage.team)?.name : ""),
       Date: dayjsInstance(passage.date).format("YYYY-MM-DD HH:mm"),
-      Commentaire: passage.comment,
-      "Créée par": loadedUsers.find((u) => u._id === passage.user)?.name,
+      Commentaire: truncateForExcel(passage.comment),
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === passage.user)?.name),
       "Créée le": dayjsInstance(passage.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(passage.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
@@ -172,21 +187,24 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
   const transformObservation = (loadedUsers) => (observation) => {
     return {
       id: observation._id,
-      "Territoire - Nom": territories.find((t) => t._id === observation.territory)?.name,
+      "Territoire - Nom": truncateForExcel(territories.find((t) => t._id === observation.territory)?.name),
       "Observé le": dayjsInstance(observation.observedAt).format("YYYY-MM-DD HH:mm"),
-      Équipe: observation.team ? teams.find((t) => t._id === observation.team)?.name : "",
+      Équipe: truncateForExcel(observation.team ? teams.find((t) => t._id === observation.team)?.name : ""),
       ...customFieldsObs.reduce((fields, field) => {
+        let value;
         if (["date", "date-with-time", "duration"].includes(field.type))
-          fields[field.label || field.name] = observation[field.name]
+          value = observation[field.name]
             ? dayjsInstance(observation[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm")
             : "";
-        else if (["boolean"].includes(field.type)) fields[field.label || field.name] = observation[field.name] ? "Oui" : "Non";
-        else if (["yes-no"].includes(field.type)) fields[field.label || field.name] = observation[field.name];
-        else if (Array.isArray(observation[field.name])) fields[field.label || field.name] = observation[field.name].join(", ");
-        else fields[field.label || field.name] = observation[field.name];
+        else if (["boolean"].includes(field.type)) value = observation[field.name] ? "Oui" : "Non";
+        else if (["yes-no"].includes(field.type)) value = observation[field.name];
+        else if (Array.isArray(observation[field.name])) value = observation[field.name].join(", ");
+        else value = observation[field.name];
+
+        fields[field.label || field.name] = truncateForExcel(value);
         return fields;
       }, {}),
-      "Créée par": loadedUsers.find((u) => u._id === observation.user)?.name,
+      "Créée par": truncateForExcel(loadedUsers.find((u) => u._id === observation.user)?.name),
       "Créée le": dayjsInstance(observation.createdAt).format("YYYY-MM-DD HH:mm"),
       "Mise à jour le": dayjsInstance(observation.updatedAt).format("YYYY-MM-DD HH:mm"),
     };
