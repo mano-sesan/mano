@@ -20,6 +20,7 @@ import SuperadminUsersSearch from "./SuperadminUsersSearch";
 import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/auth";
 import { Redirect } from "react-router-dom";
+import TopBar from "../../components/TopBar";
 
 const SuperAdmin = () => {
   const user = useRecoilValue(userState);
@@ -72,54 +73,8 @@ const SuperAdmin = () => {
 
   return (
     <>
-      <Create onChange={() => setRefresh(true)} open={openCreateModal} setOpen={setOpenCreateModal} />
-      <MergeOrganisations onChange={() => setRefresh(true)} open={openMergeModal} setOpen={setOpenMergeModal} organisations={organisations} />
-      <SuperadminOrganisationUsers
-        open={openUserListModal}
-        setOpen={setOpenUserListModal}
-        setOpenCreateUserModal={setOpenCreateUserModal}
-        setOpenEditUserModal={setOpenEditUserModal}
-        setEditUser={setEditUser}
-        openCreateUserModal={openCreateUserModal}
-        openEditUserModal={openEditUserModal}
-        organisation={selectedOrganisation}
-        setSelectedOrganisation={setSelectedOrganisation}
-      />
-      <SuperadminUsersSearch
-        open={searchUserModal}
-        setOpen={setSearchUserModal}
-        setSelectedOrganisation={(o) => {
-          setSelectedOrganisation(o);
-          setOpenUserListModal(true);
-        }}
-      />
-      <SuperadminOrganisationSettings
-        key={selectedOrganisation?._id}
-        organisation={selectedOrganisation}
-        open={openOrgSettingsModal}
-        setOpen={setOpenOrgSettingsModal}
-        updateOrganisation={(nextOrg) => {
-          setOrganisations(
-            organisations.map((orga) => {
-              if (orga._id !== nextOrg._id) return orga;
-              return {
-                ...orga,
-                ...nextOrg,
-              };
-            })
-          );
-        }}
-      />
-      <CreateUser onChange={() => setRefresh(true)} open={openCreateUserModal} setOpen={setOpenCreateUserModal} organisation={selectedOrganisation} />
-      <RawDataModal open={openRawDataModal} setOpen={setOpenRawDataModal} organisation={selectedOrganisation} />
-      <EditUser
-        editUser={editUser}
-        onChange={() => setRefresh(true)}
-        open={openEditUserModal}
-        setOpen={setOpenEditUserModal}
-        organisation={selectedOrganisation}
-      />
-      <div className="tw-fixed tw-top-16 tw-left-0 tw-right-0 tw-bg-white tw-z-10 tw-py-4 tw-px-8 tw-flex tw-justify-between tw-shadow-sm">
+      <TopBar />
+      <div className="tw-bg-white tw-z-10 tw-pb-4 tw-pt-2 tw-px-8 tw-flex tw-justify-between tw-shadow tw-w-full">
         <div>
           <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
           <div className="tw-text-xs tw-text-gray-500">
@@ -162,317 +117,375 @@ const SuperAdmin = () => {
           </button>
         </div>
       </div>
-      <div className="tw-mt-24">
-        {!organisations?.length ? (
-          refresh ? (
-            <Loading />
-          ) : null
-        ) : (
-          <Table
-            data={organisations}
-            key={updateKey}
-            columns={[
-              {
-                title: "Nom",
-                dataKey: "name",
-                onSortOrder: setSortOrder,
-                onSortBy: setSortBy,
-                sortOrder,
-                sortBy,
-                render: (o) => (
-                  <div className="tw-flex tw-flex-col tw-gap-2 tw-max-w-80">
-                    <div>
-                      <div className="tw-font-bold">
-                        {o.name}
-                        {o.disabledAt ? <div className="tw-text-red-500">(désactivée)</div> : ""}
-                      </div>
-                      <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
-                    </div>
-                    <div>
-                      <div className="tw-text-xs tw-text-gray-600 tw-font-bold">{o.city?.split?.(" - ")?.[0] || "non renseignée"}</div>
-                      <div className="tw-text-xs tw-text-gray-500">{o.region || ""}</div>
-                    </div>
-                    <div className="tw-text-gray-500 tw-text-xs">
-                      Responsable&nbsp;: <b>{o.responsible}</b>
-                      <br />
-                      {o.encryptionLastUpdateAt
-                        ? "Dernier chiffrement : " + formatDateWithFullMonth(o.encryptionLastUpdateAt)
-                        : "Pas encore chiffrée"}
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                title: "Créée le",
-                dataKey: "createdAt",
-                render: (o) => (
-                  <div>
-                    {formatDateWithFullMonth(o.createdAt || "")}
-                    <br />
-                    <small className="tw-text-gray-500">il y a {o.createdAt ? formatAge(o.createdAt) : "un certain temps"}</small>
-                  </div>
-                ),
-                onSortOrder: setSortOrder,
-                onSortBy: setSortBy,
-                sortOrder,
-                sortBy,
-              },
-              {
-                title: "Utilisateurs",
-                dataKey: "users",
-                sortableKey: "users",
-                onSortOrder: setSortOrder,
-                onSortBy: setSortBy,
-                sortOrder,
-                sortBy,
-                render: (o) => {
-                  return (
-                    <>
-                      <div>Utilisateurs: {o.users || 0}</div>
-                      <div className="tw-grid tw-grid-cols-2 tw-text-xs tw-mt-2 tw-text-gray-600">
-                        <div className={!o.usersByRole["admin"] ? "tw-text-gray-400" : ""}>Admin: {o.usersByRole["admin"] || 0}</div>
-                        <div className={!o.usersByRole["restricted-access"] ? "tw-text-gray-400" : ""}>
-                          Restreint: {o.usersByRole["restricted-access"] || 0}
+      <div className="main">
+        <main
+          id="main-content"
+          className="tw-relative tw-flex tw-grow tw-basis-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible print:tw-p-0"
+        >
+          <Create onChange={() => setRefresh(true)} open={openCreateModal} setOpen={setOpenCreateModal} />
+          <MergeOrganisations onChange={() => setRefresh(true)} open={openMergeModal} setOpen={setOpenMergeModal} organisations={organisations} />
+          <SuperadminOrganisationUsers
+            open={openUserListModal}
+            setOpen={setOpenUserListModal}
+            setOpenCreateUserModal={setOpenCreateUserModal}
+            setOpenEditUserModal={setOpenEditUserModal}
+            setEditUser={setEditUser}
+            openCreateUserModal={openCreateUserModal}
+            openEditUserModal={openEditUserModal}
+            organisation={selectedOrganisation}
+            setSelectedOrganisation={setSelectedOrganisation}
+          />
+          <SuperadminUsersSearch
+            open={searchUserModal}
+            setOpen={setSearchUserModal}
+            setSelectedOrganisation={(o) => {
+              setSelectedOrganisation(o);
+              setOpenUserListModal(true);
+            }}
+          />
+          <SuperadminOrganisationSettings
+            key={selectedOrganisation?._id}
+            organisation={selectedOrganisation}
+            open={openOrgSettingsModal}
+            setOpen={setOpenOrgSettingsModal}
+            updateOrganisation={(nextOrg) => {
+              setOrganisations(
+                organisations.map((orga) => {
+                  if (orga._id !== nextOrg._id) return orga;
+                  return {
+                    ...orga,
+                    ...nextOrg,
+                  };
+                })
+              );
+            }}
+          />
+          <CreateUser
+            onChange={() => setRefresh(true)}
+            open={openCreateUserModal}
+            setOpen={setOpenCreateUserModal}
+            organisation={selectedOrganisation}
+          />
+          <RawDataModal open={openRawDataModal} setOpen={setOpenRawDataModal} organisation={selectedOrganisation} />
+          <EditUser
+            editUser={editUser}
+            onChange={() => setRefresh(true)}
+            open={openEditUserModal}
+            setOpen={setOpenEditUserModal}
+            organisation={selectedOrganisation}
+          />
+
+          {!organisations?.length ? (
+            refresh ? (
+              <Loading />
+            ) : null
+          ) : (
+            <Table
+              data={organisations}
+              key={updateKey}
+              columns={[
+                {
+                  title: "Nom",
+                  dataKey: "name",
+                  onSortOrder: setSortOrder,
+                  onSortBy: setSortBy,
+                  sortOrder,
+                  sortBy,
+                  render: (o) => (
+                    <div className="tw-flex tw-flex-col tw-gap-2 tw-max-w-80">
+                      <div>
+                        <div className="tw-font-bold">
+                          {o.name}
+                          {o.disabledAt ? <div className="tw-text-red-500">(désactivée)</div> : ""}
                         </div>
-                        <div className={!o.usersByRole["normal"] ? "tw-text-gray-400" : ""}>Normal: {o.usersByRole["normal"] || 0}</div>
-                        <div className={!o.usersByRole["stats-only"] ? "tw-text-gray-400" : ""}>Stats: {o.usersByRole["stats-only"] || 0}</div>
+                        <div className="tw-text-xs tw-text-gray-500">ID: {o.orgId}</div>
                       </div>
-                      <div className="tw-mt-2 tw-text-xs tw-text-gray-600">
-                        <div className={!o.usersProSante ? "tw-text-gray-400" : ""}>Pro de santé: {o.usersProSante || 0}</div>
-                        <div className={!o.usersDisabled ? "tw-text-gray-400" : ""}>
-                          {o.usersDisabled > 0 && o.users === o.usersDisabled ? (
-                            <span className="tw-text-red-500 tw-font-bold">Désactivé: {o.usersDisabled || 0} 👻 ⚠️</span>
-                          ) : (
-                            `Désactivé: ${o.usersDisabled || 0}`
+                      <div>
+                        <div className="tw-text-xs tw-text-gray-600 tw-font-bold">{o.city?.split?.(" - ")?.[0] || "non renseignée"}</div>
+                        <div className="tw-text-xs tw-text-gray-500">{o.region || ""}</div>
+                      </div>
+                      <div className="tw-text-gray-500 tw-text-xs">
+                        Responsable&nbsp;: <b>{o.responsible}</b>
+                        <br />
+                        {o.encryptionLastUpdateAt
+                          ? "Dernier chiffrement : " + formatDateWithFullMonth(o.encryptionLastUpdateAt)
+                          : "Pas encore chiffrée"}
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  title: "Créée le",
+                  dataKey: "createdAt",
+                  render: (o) => (
+                    <div>
+                      {formatDateWithFullMonth(o.createdAt || "")}
+                      <br />
+                      <small className="tw-text-gray-500">il y a {o.createdAt ? formatAge(o.createdAt) : "un certain temps"}</small>
+                    </div>
+                  ),
+                  onSortOrder: setSortOrder,
+                  onSortBy: setSortBy,
+                  sortOrder,
+                  sortBy,
+                },
+                {
+                  title: "Utilisateurs",
+                  dataKey: "users",
+                  sortableKey: "users",
+                  onSortOrder: setSortOrder,
+                  onSortBy: setSortBy,
+                  sortOrder,
+                  sortBy,
+                  render: (o) => {
+                    return (
+                      <>
+                        <div>Utilisateurs: {o.users || 0}</div>
+                        <div className="tw-grid tw-grid-cols-2 tw-text-xs tw-mt-2 tw-text-gray-600">
+                          <div className={!o.usersByRole["admin"] ? "tw-text-gray-400" : ""}>Admin: {o.usersByRole["admin"] || 0}</div>
+                          <div className={!o.usersByRole["restricted-access"] ? "tw-text-gray-400" : ""}>
+                            Restreint: {o.usersByRole["restricted-access"] || 0}
+                          </div>
+                          <div className={!o.usersByRole["normal"] ? "tw-text-gray-400" : ""}>Normal: {o.usersByRole["normal"] || 0}</div>
+                          <div className={!o.usersByRole["stats-only"] ? "tw-text-gray-400" : ""}>Stats: {o.usersByRole["stats-only"] || 0}</div>
+                        </div>
+                        <div className="tw-mt-2 tw-text-xs tw-text-gray-600">
+                          <div className={!o.usersProSante ? "tw-text-gray-400" : ""}>Pro de santé: {o.usersProSante || 0}</div>
+                          <div className={!o.usersDisabled ? "tw-text-gray-400" : ""}>
+                            {o.usersDisabled > 0 && o.users === o.usersDisabled ? (
+                              <span className="tw-text-red-500 tw-font-bold">Désactivé: {o.usersDisabled || 0} 👻 ⚠️</span>
+                            ) : (
+                              `Désactivé: ${o.usersDisabled || 0}`
+                            )}
+                          </div>
+                          <div className={!o.usersNeverConnected ? "tw-text-gray-400" : ""}>Jamais connecté: {o.usersNeverConnected || 0}</div>
+                          <div className={!o.usersConnectedToday ? "tw-text-gray-400" : ""}>Connecté aujourd'hui: {o.usersConnectedToday || 0}</div>
+                        </div>
+                      </>
+                    );
+                  },
+                },
+                {
+                  title: "Compteurs",
+                  dataKey: "counters",
+                  sortableKey: "countersTotal",
+                  onSortOrder: setSortOrder,
+                  onSortBy: setSortBy,
+                  sortOrder,
+                  sortBy,
+                  render: (o) => {
+                    return (
+                      <div className="tw-grid tw-grid-cols-2 tw-gap-x-1.5">
+                        <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>
+                          Personnes: {o.counters.persons || 0}
+                          {o.counters.persons > 0 && (
+                            <SmallEvolutionIndicator last30Days={o.last30DaysCounters.persons} previous30Days={o.previous30DaysCounters.persons} />
                           )}
                         </div>
-                        <div className={!o.usersNeverConnected ? "tw-text-gray-400" : ""}>Jamais connecté: {o.usersNeverConnected || 0}</div>
-                        <div className={!o.usersConnectedToday ? "tw-text-gray-400" : ""}>Connecté aujourd'hui: {o.usersConnectedToday || 0}</div>
+                        <div className={!o.groupsEnabled ? "tw-line-through tw-opacity-20" : !o.counters.groups ? "tw-text-gray-400" : ""}>
+                          Familles: {o.counters.groups || 0}
+                          {o.counters.groups > 0 && (
+                            <SmallEvolutionIndicator last30Days={o.last30DaysCounters.groups} previous30Days={o.previous30DaysCounters.groups} />
+                          )}
+                        </div>
+                        <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>
+                          Actions: {o.counters.actions || 0}
+                          {o.counters.actions > 0 && (
+                            <SmallEvolutionIndicator last30Days={o.last30DaysCounters.actions} previous30Days={o.previous30DaysCounters.actions} />
+                          )}
+                        </div>
+                        <div className={!o.passagesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.passages ? "tw-text-gray-400" : ""}>
+                          Passages: {o.counters.passages || 0}
+                          {o.counters.passages > 0 && (
+                            <SmallEvolutionIndicator last30Days={o.last30DaysCounters.passages} previous30Days={o.previous30DaysCounters.passages} />
+                          )}
+                        </div>
+                        <div className={!o.rencontresEnabled ? "tw-line-through tw-opacity-20" : !o.counters.rencontres ? "tw-text-gray-400" : ""}>
+                          Rencontres: {o.counters.rencontres || 0}
+                          {o.counters.rencontres > 0 && (
+                            <SmallEvolutionIndicator
+                              last30Days={o.last30DaysCounters.rencontres}
+                              previous30Days={o.previous30DaysCounters.rencontres}
+                            />
+                          )}
+                        </div>
+                        <div className={!o.territoriesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.observations ? "tw-text-gray-400" : ""}>
+                          Observations: {o.counters.observations || 0}
+                          {o.counters.observations > 0 && (
+                            <SmallEvolutionIndicator
+                              last30Days={o.last30DaysCounters.observations}
+                              previous30Days={o.previous30DaysCounters.observations}
+                            />
+                          )}
+                        </div>
+                        <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>
+                          Commentaires: {o.counters.comments || 0}
+                          {o.counters.comments > 0 && (
+                            <SmallEvolutionIndicator last30Days={o.last30DaysCounters.comments} previous30Days={o.previous30DaysCounters.comments} />
+                          )}
+                        </div>
+                        <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>
+                          Consultations: {o.counters.consultations || 0}
+                          {o.counters.consultations > 0 && (
+                            <SmallEvolutionIndicator
+                              last30Days={o.last30DaysCounters.consultations}
+                              previous30Days={o.previous30DaysCounters.consultations}
+                            />
+                          )}
+                        </div>
                       </div>
-                    </>
-                  );
+                    );
+                  },
                 },
-              },
-              {
-                title: "Compteurs",
-                dataKey: "counters",
-                sortableKey: "countersTotal",
-                onSortOrder: setSortOrder,
-                onSortBy: setSortBy,
-                sortOrder,
-                sortBy,
-                render: (o) => {
-                  return (
-                    <div className="tw-grid tw-grid-cols-2 tw-gap-x-1.5">
-                      <div className={!o.counters.persons ? "tw-text-gray-400" : ""}>
-                        Personnes: {o.counters.persons || 0}
-                        {o.counters.persons > 0 && (
-                          <SmallEvolutionIndicator last30Days={o.last30DaysCounters.persons} previous30Days={o.previous30DaysCounters.persons} />
-                        )}
-                      </div>
-                      <div className={!o.groupsEnabled ? "tw-line-through tw-opacity-20" : !o.counters.groups ? "tw-text-gray-400" : ""}>
-                        Familles: {o.counters.groups || 0}
-                        {o.counters.groups > 0 && (
-                          <SmallEvolutionIndicator last30Days={o.last30DaysCounters.groups} previous30Days={o.previous30DaysCounters.groups} />
-                        )}
-                      </div>
-                      <div className={!o.counters.actions ? "tw-text-gray-400" : ""}>
-                        Actions: {o.counters.actions || 0}
-                        {o.counters.actions > 0 && (
-                          <SmallEvolutionIndicator last30Days={o.last30DaysCounters.actions} previous30Days={o.previous30DaysCounters.actions} />
-                        )}
-                      </div>
-                      <div className={!o.passagesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.passages ? "tw-text-gray-400" : ""}>
-                        Passages: {o.counters.passages || 0}
-                        {o.counters.passages > 0 && (
-                          <SmallEvolutionIndicator last30Days={o.last30DaysCounters.passages} previous30Days={o.previous30DaysCounters.passages} />
-                        )}
-                      </div>
-                      <div className={!o.rencontresEnabled ? "tw-line-through tw-opacity-20" : !o.counters.rencontres ? "tw-text-gray-400" : ""}>
-                        Rencontres: {o.counters.rencontres || 0}
-                        {o.counters.rencontres > 0 && (
-                          <SmallEvolutionIndicator
-                            last30Days={o.last30DaysCounters.rencontres}
-                            previous30Days={o.previous30DaysCounters.rencontres}
-                          />
-                        )}
-                      </div>
-                      <div className={!o.territoriesEnabled ? "tw-line-through tw-opacity-20" : !o.counters.observations ? "tw-text-gray-400" : ""}>
-                        Observations: {o.counters.observations || 0}
-                        {o.counters.observations > 0 && (
-                          <SmallEvolutionIndicator
-                            last30Days={o.last30DaysCounters.observations}
-                            previous30Days={o.previous30DaysCounters.observations}
-                          />
-                        )}
-                      </div>
-                      <div className={!o.counters.comments ? "tw-text-gray-400" : ""}>
-                        Commentaires: {o.counters.comments || 0}
-                        {o.counters.comments > 0 && (
-                          <SmallEvolutionIndicator last30Days={o.last30DaysCounters.comments} previous30Days={o.previous30DaysCounters.comments} />
-                        )}
-                      </div>
-                      <div className={!o.counters.consultations ? "tw-text-gray-400" : ""}>
-                        Consultations: {o.counters.consultations || 0}
-                        {o.counters.consultations > 0 && (
-                          <SmallEvolutionIndicator
-                            last30Days={o.last30DaysCounters.consultations}
-                            previous30Days={o.previous30DaysCounters.consultations}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  );
-                },
-              },
-              {
-                title: "Action",
-                dataKey: "delete",
-                style: { width: "100px" },
-                render: (organisation) => {
-                  return (
-                    <div className="tw-grid tw-grid-cols-2 tw-gap-1.5">
-                      <div>
-                        <button
-                          className="button-classic !tw-ml-0 !tw-px-3 my-tooltip"
-                          data-tooltip={"Modifier"}
-                          type="button"
-                          data-testid={`Modifier l'organisation ${organisation.name}`}
-                          onClick={() => {
-                            setSelectedOrganisation(organisation);
-                            setOpenOrgSettingsModal(true);
-                          }}
-                        >
-                          ✏️
-                        </button>
-                      </div>
-                      <div>
-                        <button
-                          className="button-classic !tw-ml-0 !tw-px-3  my-tooltip"
-                          data-tooltip={"Utilisateurs"}
-                          type="button"
-                          data-testid={`Voir les utilisateurs ${organisation.name}`}
-                          onClick={() => {
-                            setSelectedOrganisation(organisation);
-                            setOpenUserListModal(true);
-                          }}
-                        >
-                          🧑‍💻
-                        </button>
-                      </div>
-                      <div>
-                        <button
-                          type="button"
-                          className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
-                          data-testid={`Ajouter utilisateur ${organisation.name}`}
-                          data-tooltip={"Ajouter utilisateur"}
-                          onClick={() => {
-                            setSelectedOrganisation(organisation);
-                            setOpenCreateUserModal(true);
-                          }}
-                        >
-                          ➕
-                        </button>
-                      </div>
-                      {!organisation.disabledAt ? (
+                {
+                  title: "Action",
+                  dataKey: "delete",
+                  style: { width: "100px" },
+                  render: (organisation) => {
+                    return (
+                      <div className="tw-grid tw-grid-cols-2 tw-gap-1.5">
+                        <div>
+                          <button
+                            className="button-classic !tw-ml-0 !tw-px-3 my-tooltip"
+                            data-tooltip={"Modifier"}
+                            type="button"
+                            data-testid={`Modifier l'organisation ${organisation.name}`}
+                            onClick={() => {
+                              setSelectedOrganisation(organisation);
+                              setOpenOrgSettingsModal(true);
+                            }}
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                        <div>
+                          <button
+                            className="button-classic !tw-ml-0 !tw-px-3  my-tooltip"
+                            data-tooltip={"Utilisateurs"}
+                            type="button"
+                            data-testid={`Voir les utilisateurs ${organisation.name}`}
+                            onClick={() => {
+                              setSelectedOrganisation(organisation);
+                              setOpenUserListModal(true);
+                            }}
+                          >
+                            🧑‍💻
+                          </button>
+                        </div>
                         <div>
                           <button
                             type="button"
                             className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
-                            data-testid={`Désactiver l'organisation ${organisation.name}`}
-                            data-tooltip={"Désactiver"}
-                            onClick={async () => {
-                              if (
-                                confirm(
-                                  "Voulez-vous vraiment désactiver l'organisation " +
-                                    organisation.name +
-                                    " ? Plus personne ne pourra se connecter. Cette action doit être faite uniquement en cas d'attaque (piratage ou autre)"
-                                )
-                              ) {
-                                const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/disable` }));
-                                if (!error) {
-                                  toast.success("Organisation désactivée");
-                                  setRefresh(true);
-                                } else {
-                                  toast.error(errorMessage(error));
-                                }
-                              }
+                            data-testid={`Ajouter utilisateur ${organisation.name}`}
+                            data-tooltip={"Ajouter utilisateur"}
+                            onClick={() => {
+                              setSelectedOrganisation(organisation);
+                              setOpenCreateUserModal(true);
                             }}
                           >
-                            😴
+                            ➕
                           </button>
                         </div>
-                      ) : (
+                        {!organisation.disabledAt ? (
+                          <div>
+                            <button
+                              type="button"
+                              className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
+                              data-testid={`Désactiver l'organisation ${organisation.name}`}
+                              data-tooltip={"Désactiver"}
+                              onClick={async () => {
+                                if (
+                                  confirm(
+                                    "Voulez-vous vraiment désactiver l'organisation " +
+                                      organisation.name +
+                                      " ? Plus personne ne pourra se connecter. Cette action doit être faite uniquement en cas d'attaque (piratage ou autre)"
+                                  )
+                                ) {
+                                  const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/disable` }));
+                                  if (!error) {
+                                    toast.success("Organisation désactivée");
+                                    setRefresh(true);
+                                  } else {
+                                    toast.error(errorMessage(error));
+                                  }
+                                }
+                              }}
+                            >
+                              😴
+                            </button>
+                          </div>
+                        ) : (
+                          <div>
+                            <button
+                              type="button"
+                              className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
+                              data-testid={`Réactiver l'organisation ${organisation.name}`}
+                              data-tooltip={"Réactiver"}
+                              onClick={async () => {
+                                if (confirm("Voulez-vous vraiment réactiver l'organisation " + organisation.name + " ?")) {
+                                  const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/enable` }));
+                                  if (!error) {
+                                    toast.success("Organisation réactivée");
+                                    setRefresh(true);
+                                  } else {
+                                    toast.error(errorMessage(error));
+                                  }
+                                }
+                              }}
+                            >
+                              ⏰
+                            </button>
+                          </div>
+                        )}
                         <div>
                           <button
                             type="button"
                             className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
-                            data-testid={`Réactiver l'organisation ${organisation.name}`}
-                            data-tooltip={"Réactiver"}
-                            onClick={async () => {
-                              if (confirm("Voulez-vous vraiment réactiver l'organisation " + organisation.name + " ?")) {
-                                const [error] = await tryFetchExpectOk(async () => API.post({ path: `/organisation/${organisation._id}/enable` }));
-                                if (!error) {
-                                  toast.success("Organisation réactivée");
-                                  setRefresh(true);
-                                } else {
-                                  toast.error(errorMessage(error));
-                                }
+                            data-testid={`Infos brutes`}
+                            data-tooltip={"Infos brutes"}
+                            onClick={() => {
+                              setSelectedOrganisation(organisation);
+                              setOpenRawDataModal(true);
+                            }}
+                          >
+                            🔨
+                          </button>
+                        </div>
+                        <div>
+                          <DeleteButtonAndConfirmModal
+                            title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
+                            buttonText="🗑️"
+                            className="!tw-ml-0 !tw-px-3"
+                            textToConfirm={organisation.name}
+                            onConfirm={async () => {
+                              const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/organisation/${organisation._id}` }));
+                              if (!error) {
+                                toast.success("Organisation supprimée");
+                                setRefresh(true);
+                              } else {
+                                toast.error(errorMessage(error));
                               }
                             }}
                           >
-                            ⏰
-                          </button>
+                            <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
+                              Cette opération est irréversible
+                              <br />
+                              et entrainera la suppression définitive de toutes les données liées à l'organisation&nbsp;:
+                              <br />
+                              équipes, utilisateurs, personnes suivies, actions, territoires, commentaires et observations, comptes-rendus...
+                            </span>
+                          </DeleteButtonAndConfirmModal>
                         </div>
-                      )}
-                      <div>
-                        <button
-                          type="button"
-                          className="button-classic tw-text-left !tw-ml-0 !tw-px-3  my-tooltip"
-                          data-testid={`Infos brutes`}
-                          data-tooltip={"Infos brutes"}
-                          onClick={() => {
-                            setSelectedOrganisation(organisation);
-                            setOpenRawDataModal(true);
-                          }}
-                        >
-                          🔨
-                        </button>
                       </div>
-                      <div>
-                        <DeleteButtonAndConfirmModal
-                          title={`Voulez-vous vraiment supprimer l'organisation ${organisation.name}`}
-                          buttonText="🗑️"
-                          className="!tw-ml-0 !tw-px-3"
-                          textToConfirm={organisation.name}
-                          onConfirm={async () => {
-                            const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/organisation/${organisation._id}` }));
-                            if (!error) {
-                              toast.success("Organisation supprimée");
-                              setRefresh(true);
-                            } else {
-                              toast.error(errorMessage(error));
-                            }
-                          }}
-                        >
-                          <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
-                            Cette opération est irréversible
-                            <br />
-                            et entrainera la suppression définitive de toutes les données liées à l'organisation&nbsp;:
-                            <br />
-                            équipes, utilisateurs, personnes suivies, actions, territoires, commentaires et observations, comptes-rendus...
-                          </span>
-                        </DeleteButtonAndConfirmModal>
-                      </div>
-                    </div>
-                  );
+                    );
+                  },
                 },
-              },
-            ]}
-            rowKey={"_id"}
-            onRowClick={null}
-          />
-        )}
+              ]}
+              rowKey={"_id"}
+              onRowClick={null}
+            />
+          )}
+        </main>
       </div>
     </>
   );
