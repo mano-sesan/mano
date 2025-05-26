@@ -201,7 +201,7 @@ const SignIn = () => {
         // Si c'est une erreur de dom sur `window.btoa`, on ne peut pas continuer
         if (e instanceof DOMException) {
           toast.error("La clé ne peut pas être chiffrée, elle contient des caractères invalides");
-          capture(e);
+          // Pas besoin de capturer, parce que c'est juste un caractère invalide
           return setIsSubmitting(false);
         }
         throw e;
