@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
-import { formatAge, formatDateWithFullMonth } from "../../services/date";
+import { formatAge, formatDateWithFullMonth, formatTime } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { download, emailRegex, errorMessage } from "../../utils";
 import { getUmapGeoJSONFromOrgs } from "./utils";
@@ -635,6 +635,9 @@ const Create = ({ onChange, open, setOpen }) => {
 
 const RawDataModal = ({ open, setOpen, organisation }) => {
   const [organisationData, setOrganisationData] = useState(null);
+  const [organisationLogs, setOrganisationLogs] = useState(null);
+  const [showLogs, setShowLogs] = useState(false);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   useEffect(() => {
     if (!organisation?._id) return;
@@ -642,17 +645,110 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
       const response = await API.get({ path: `/organisation/${organisation._id}` });
       if (response.ok) {
         setOrganisationData(response.data);
+        setOrganisationLogs(null);
+        setShowLogs(false);
       }
     })();
   }, [organisation]);
 
+  const fetchLogs = async () => {
+    if (!organisation?._id || organisationLogs) return;
+    setLoadingLogs(true);
+    try {
+      const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/organisation/${organisation._id}/logs` }));
+      if (error) {
+        toast.error(errorMessage(error));
+        return;
+      }
+      setOrganisationLogs(response.data);
+    } catch (_err) {
+      toast.error("Erreur lors du chargement des logs");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
+
+  const handleToggleLogs = () => {
+    if (!showLogs) {
+      fetchLogs();
+    }
+    setShowLogs(!showLogs);
+  };
+
+  const formatLogValue = (value) => {
+    if (value === null || value === undefined) return "null";
+    if (typeof value === "object") return JSON.stringify(value, null, 2);
+    return String(value);
+  };
+
   if (!organisationData) return null;
   return (
-    <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
+    <ModalContainer open={open} onClose={() => setOpen(false)} size="5xl" blurryBackground>
       <ModalHeader title={`Infos brutes de l'organisation ${organisationData.name}`} />
       <ModalBody className="tw-px-4 tw-py-2">
         <div className="tw-py-4">
-          <pre className="tw-text-xs tw-whitespace-pre-wrap">{JSON.stringify(organisationData, null, 2)}</pre>
+          <div className="tw-flex tw-justify-between tw-items-center tw-mb-4">
+            <h3 className="tw-text-lg tw-font-semibold">Données de l'organisation</h3>
+            <button
+              type="button"
+              className={`tw-px-4 tw-py-2 tw-rounded tw-text-sm tw-font-medium tw-bg-main tw-text-white`}
+              onClick={handleToggleLogs}
+              disabled={loadingLogs}
+            >
+              {loadingLogs ? "Chargement..." : showLogs ? "Masquer les modifications" : "Voir les modifications"}
+            </button>
+          </div>
+
+          {!showLogs ? (
+            <pre className="tw-text-xs tw-whitespace-pre-wrap">{JSON.stringify(organisationData, null, 2)}</pre>
+          ) : (
+            <div>
+              {organisationLogs && organisationLogs.length > 0 ? (
+                <div className="tw-overflow-x-auto">
+                  <table className="tw-min-w-full tw-border tw-border-gray-300">
+                    <thead className="tw-bg-gray-50">
+                      <tr>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Informations
+                        </th>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Ancienne valeur
+                        </th>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Nouvelle valeur
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="tw-bg-white tw-divide-y tw-divide-gray-200">
+                      {organisationLogs.map((log) => (
+                        <tr key={log._id} className="hover:tw-bg-gray-50">
+                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-900 tw-border-b tw-border-gray-200 tw-align-top">
+                            <div>
+                              <div className="tw-text-sm tw-font-bold">{log.field}</div>
+                              <div className="tw-font-medium">{log.User?.name || "Utilisateur supprimé"}</div>
+                              <div className="tw-text-gray-500">{log.User?.email || "-"}</div>
+                              <div>
+                                {formatDateWithFullMonth(log.createdAt)} {formatTime(log.createdAt)}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
+                            <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.oldValue)}</pre>
+                          </td>
+                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
+                            <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.newValue)}</pre>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : organisationLogs && organisationLogs.length === 0 ? (
+                <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune modification enregistrée pour cette organisation.</div>
+              ) : null}
+              {loadingLogs && <div className="tw-text-center tw-text-gray-500 tw-py-8">Chargement des logs...</div>}
+            </div>
+          )}
         </div>
       </ModalBody>
       <ModalFooter>
@@ -663,6 +759,7 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
     </ModalContainer>
   );
 };
+
 const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
   const [selectedOrganisationMain, setSelectedOrganisationMain] = useState(null);
   const [selectedOrganisationSecondary, setSelectedOrganisationSecondary] = useState(null);
