@@ -32,6 +32,7 @@ db.TerritoryObservation = require("../models/territoryObservation")(sequelize, S
 db.Treatment = require("../models/treatment")(sequelize, Sequelize);
 db.User = require("../models/user")(sequelize, Sequelize);
 db.UserLog = require("../models/userLog")(sequelize, Sequelize);
+db.OrganisationLog = require("../models/organisationLog")(sequelize, Sequelize);
 db.Recurrence = require("../models/recurrence")(sequelize, Sequelize);
 
 Object.keys(db).forEach((modelName) => {

@@ -26,6 +26,7 @@ const {
   User,
   TerritoryObservation,
   UserLog,
+  OrganisationLog,
   Team,
   sequelize,
   Recurrence,
@@ -1321,6 +1322,49 @@ router.post(
       await organisation.update({ disabledAt: null }, { transaction: t });
     });
     res.status(200).send({ ok: true });
+  })
+);
+
+router.get(
+  "/:id/logs",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation logs get: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const { id } = req.params;
+
+    const organisation = await Organisation.findOne({ where: { _id: id } });
+    if (!organisation) {
+      const error = new Error("Organisation not found");
+      error.status = 404;
+      return next(error);
+    }
+
+    const logs = await OrganisationLog.findAll({
+      where: { organisation: id },
+      include: [
+        {
+          model: User,
+          attributes: ["name", "email"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit: 100, // Limit to last 100 changes
+    });
+
+    return res.status(200).send({
+      ok: true,
+      data: logs,
+    });
   })
 );
 
