@@ -55,7 +55,7 @@ const List = () => {
     <>
       <div className="tw-flex tw-w-full tw-items-center tw-mt-8 tw-mb-12">
         <div className="tw-grow tw-text-xl">{`Contacts (${filteredStructures?.length})`}</div>
-        {["admin", "user"].includes(user.role) && (
+        {["admin", "normal"].includes(user.role) && (
           <div>
             <Structure
               key={currentStructure}
