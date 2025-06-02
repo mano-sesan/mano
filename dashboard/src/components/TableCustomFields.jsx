@@ -23,16 +23,7 @@ const sanitizeFields = (field) => {
   return sanitizedField;
 };
 
-const TableCustomFields = ({
-  data,
-  fields,
-  customFields,
-  mergeData = null,
-  extractData = null,
-  keyPrefix = null,
-  onEditChoice,
-  onlyOptionsEditable,
-}) => {
+const TableCustomFields = ({ data, fields, customFields, extractData = null, keyPrefix = null, onEditChoice, onlyOptionsEditable }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mutableData, setMutableData] = useState(fields);
   const [editingField, setEditingField] = useState(null);
@@ -75,7 +66,7 @@ const TableCustomFields = ({
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
         path: `/organisation/${organisation._id}`,
-        body: { [customFields]: mergeData ? mergeData(newData) : newData },
+        body: { [customFields]: newData },
       })
     );
     if (error) {
@@ -95,7 +86,7 @@ const TableCustomFields = ({
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
         path: `/organisation/${organisation._id}`,
-        body: { [customFields]: mergeData ? mergeData(dataForApi) : dataForApi },
+        body: { [customFields]: dataForApi },
       })
     );
     if (!error) {
