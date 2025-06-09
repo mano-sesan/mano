@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { RecoilEnv, RecoilRoot, useRecoilValue } from "recoil";
 import RecoilNexus from "recoil-nexus";
 import { Router, Switch, Redirect } from "react-router-dom";
@@ -45,6 +45,7 @@ import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
+import { dbReadyPromise } from "./services/dataManagement"; // Import the promise
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -112,6 +113,18 @@ const App = () => {
   const initialLoadIsDone = useRecoilValue(initialLoadIsDoneState);
   const { refresh } = useDataLoader();
   const apiToken = API.getToken();
+  const [isDBReady, setIsDBReady] = useState(false);
+
+  useEffect(() => {
+    dbReadyPromise
+      .then(() => {
+        setIsDBReady(true);
+      })
+      .catch((error) => {
+        console.error("Critical: DB initialization failed.", error);
+        // Handle critical error, maybe show a persistent message
+      });
+  }, []); // Run only once on mount
 
   // Abort all pending requests (that listen to this signal)
   useEffect(() => {
@@ -143,6 +156,15 @@ const App = () => {
   const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
   const deploymentCommit = useRecoilValue(deploymentCommitState);
   const deploymentDate = useRecoilValue(deploymentDateState);
+
+  if (!isDBReady) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', fontSize: '18px', padding: '20px', textAlign: 'center', backgroundColor: '#f0f0f0', color: '#333' }}>
+        <p>Mano se prépare...</p>
+        <p style={{ fontSize: '14px', marginTop: '10px' }}>Cela peut prendre quelques instants.</p>
+      </div>
+    );
+  }
 
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     abortRequests();
