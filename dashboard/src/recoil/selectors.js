@@ -90,8 +90,20 @@ export const itemsGroupedByPersonSelector = selector({
     const usersObject = get(usersObjectSelector);
     for (const person of persons) {
       const { interactions, assignedTeamsPeriods } = extractInfosFromHistory(person);
+      
+      // Ensure person name is a string
+      let processedName = '';
+      const originalName = person.name;
+
+      if (typeof originalName === 'string') {
+        processedName = originalName;
+      } else if (originalName != null) {
+        processedName = String(originalName);
+      }
+      
       personsObject[person._id] = {
         ...person,
+        name: processedName,
         followedSince: person.followedSince || person.createdAt,
         followSinceMonths: dayjsInstance().diff(person.followedSince || person.createdAt, "months"),
         userPopulated: usersObject[person.user],
