@@ -636,8 +636,11 @@ const Create = ({ onChange, open, setOpen }) => {
 const RawDataModal = ({ open, setOpen, organisation }) => {
   const [organisationData, setOrganisationData] = useState(null);
   const [organisationLogs, setOrganisationLogs] = useState(null);
+  const [tableSizes, setTableSizes] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [showTableSizes, setShowTableSizes] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [loadingTableSizes, setLoadingTableSizes] = useState(false);
 
   useEffect(() => {
     if (!organisation?._id) return;
@@ -646,7 +649,9 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
       if (response.ok) {
         setOrganisationData(response.data);
         setOrganisationLogs(null);
+        setTableSizes(null);
         setShowLogs(false);
+        setShowTableSizes(false);
       }
     })();
   }, [organisation]);
@@ -668,11 +673,37 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
     }
   };
 
+  const fetchTableSizes = async () => {
+    if (!organisation?._id || tableSizes) return;
+    setLoadingTableSizes(true);
+    try {
+      const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/organisation/${organisation._id}/table-sizes` }));
+      if (error) {
+        toast.error(errorMessage(error));
+        return;
+      }
+      setTableSizes(response.data);
+    } catch (_err) {
+      toast.error("Erreur lors du chargement des tailles de tables");
+    } finally {
+      setLoadingTableSizes(false);
+    }
+  };
+
   const handleToggleLogs = () => {
     if (!showLogs) {
       fetchLogs();
     }
     setShowLogs(!showLogs);
+    setShowTableSizes(false);
+  };
+
+  const handleToggleTableSizes = () => {
+    if (!showTableSizes) {
+      fetchTableSizes();
+    }
+    setShowTableSizes(!showTableSizes);
+    setShowLogs(false);
   };
 
   const formatLogValue = (value) => {
@@ -689,18 +720,68 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
         <div className="tw-py-4">
           <div className="tw-flex tw-justify-between tw-items-center tw-mb-4">
             <h3 className="tw-text-lg tw-font-semibold">Données de l'organisation</h3>
-            <button
-              type="button"
-              className={`tw-px-4 tw-py-2 tw-rounded tw-text-sm tw-font-medium tw-bg-main tw-text-white`}
-              onClick={handleToggleLogs}
-              disabled={loadingLogs}
-            >
-              {loadingLogs ? "Chargement..." : showLogs ? "Masquer les modifications" : "Voir les modifications"}
-            </button>
+            <div className="tw-flex tw-gap-2">
+              <button
+                type="button"
+                className={`tw-px-4 tw-py-2 tw-rounded tw-text-sm tw-font-medium tw-bg-main tw-text-white`}
+                onClick={handleToggleLogs}
+                disabled={loadingLogs}
+              >
+                {loadingLogs ? "Chargement..." : showLogs ? "Masquer les modifications" : "Voir les modifications"}
+              </button>
+              <button
+                type="button"
+                className={`tw-px-4 tw-py-2 tw-rounded tw-text-sm tw-font-medium tw-bg-blue-600 tw-text-white`}
+                onClick={handleToggleTableSizes}
+                disabled={loadingTableSizes}
+              >
+                {loadingTableSizes ? "Chargement..." : showTableSizes ? "Masquer les tailles" : "Voir les tailles de tables"}
+              </button>
+            </div>
           </div>
 
-          {!showLogs ? (
+          {!showLogs && !showTableSizes ? (
             <pre className="tw-text-xs tw-whitespace-pre-wrap">{JSON.stringify(organisationData, null, 2)}</pre>
+          ) : showTableSizes ? (
+            <div>
+              {tableSizes && tableSizes.tablesSizes && tableSizes.tablesSizes.length > 0 ? (
+                <div className="tw-overflow-x-auto">
+                  <div className="tw-mb-4">
+                    <h4 className="tw-text-lg tw-font-semibold tw-mb-2">Tailles des tables pour {tableSizes.organisation.name}</h4>
+                    <p className="tw-text-sm tw-text-gray-600">ID: {tableSizes.organisation.orgId}</p>
+                  </div>
+                  <table className="tw-min-w-full tw-border tw-border-gray-300">
+                    <thead className="tw-bg-gray-50">
+                      <tr>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Table
+                        </th>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Nombre de lignes
+                        </th>
+                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                          Taille des données
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="tw-bg-white tw-divide-y tw-divide-gray-200">
+                      {tableSizes.tablesSizes.map((table) => (
+                        <tr key={table.table_name} className="hover:tw-bg-gray-50">
+                          <td className="tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-gray-900 tw-border-b tw-border-gray-200">
+                            {table.table_name}
+                          </td>
+                          <td className="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-700 tw-border-b tw-border-gray-200">{table.row_count}</td>
+                          <td className="tw-px-4 tw-py-2 tw-text-sm tw-text-gray-700 tw-border-b tw-border-gray-200">{table.data_size}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : tableSizes && tableSizes.tablesSizes && tableSizes.tablesSizes.length === 0 ? (
+                <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune donnée trouvée pour cette organisation.</div>
+              ) : null}
+              {loadingTableSizes && <div className="tw-text-center tw-text-gray-500 tw-py-8">Chargement des tailles de tables...</div>}
+            </div>
           ) : (
             <div>
               {organisationLogs && organisationLogs.length > 0 ? (

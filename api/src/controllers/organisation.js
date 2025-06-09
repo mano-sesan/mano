@@ -1368,4 +1368,187 @@ router.get(
   })
 );
 
+router.get(
+  "/:id/table-sizes",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation table-sizes get: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const { id } = req.params;
+
+    const organisation = await Organisation.findOne({ where: { _id: id } });
+    if (!organisation) {
+      const error = new Error("Organisation not found");
+      error.status = 404;
+      return next(error);
+    }
+
+    // Query to get actual data sizes for this organisation's data
+    // Calculate real size using pg_column_size() directly on row data (faster than JSON conversion)
+    const tableSizeQuery = `
+      SELECT 'Action' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Action".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Action" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Person' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Person".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Person" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Group' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Group".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Group" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Comment' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Comment".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Comment" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Passage' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Passage".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Passage" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Rencontre' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Rencontre".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Rencontre" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Consultation' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Consultation".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Consultation" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'TerritoryObservation' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("TerritoryObservation".*::text)::bigint), 0)) as data_size
+      FROM "mano"."TerritoryObservation" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Treatment' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Treatment".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Treatment" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'MedicalFile' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("MedicalFile".*::text)::bigint), 0)) as data_size
+      FROM "mano"."MedicalFile" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Report' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Report".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Report" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Territory' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Territory".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Territory" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Place' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Place".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Place" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'RelPersonPlace' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("RelPersonPlace".*::text)::bigint), 0)) as data_size
+      FROM "mano"."RelPersonPlace" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'User' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("User".*::text)::bigint), 0)) as data_size
+      FROM "mano"."User" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'Team' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Team".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Team" 
+      WHERE organisation = :orgId
+      
+      UNION ALL
+      
+      SELECT 'UserLog' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("UserLog".*::text)::bigint), 0)) as data_size
+      FROM "mano"."UserLog" 
+      WHERE organisation = :orgId
+      
+      ORDER BY table_name;
+    `;
+
+    const tablesSizes = await sequelize.query(tableSizeQuery, {
+      replacements: { orgId: id },
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    return res.status(200).send({
+      ok: true,
+      data: {
+        organisation: {
+          _id: organisation._id,
+          name: organisation.name,
+          orgId: organisation.orgId,
+        },
+        tablesSizes,
+      },
+    });
+  })
+);
+
 module.exports = router;
