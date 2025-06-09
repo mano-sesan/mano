@@ -17,13 +17,35 @@ if (savedCacheKey !== dashboardCurrentCacheKey) {
 }
 
 function setupDB() {
-  // Vidage du store historique qui ne sert plus à rien, mais qui peut-être encore présent
-  const legacyStore = createStore(legacyManoDB, legacyStoreName);
-  clear(legacyStore).catch(capture);
+  try {
+    // Vidage du store historique qui ne sert plus à rien, mais qui peut-être encore présent
+    const legacyStore = createStore(legacyManoDB, legacyStoreName);
+    clear(legacyStore).catch((clearError) => {
+      capture(clearError, { 
+        tags: { errorContext: "legacy_store_clear_failed_in_setupDB" },
+        extra: { legacyManoDB, legacyStoreName }
+      });
+    });
+  } catch (legacyStoreError) {
+    capture(legacyStoreError, { 
+      tags: { errorContext: "legacy_store_create_failed_in_setupDB" },
+      extra: { legacyManoDB, legacyStoreName }
+    });
+  }
+  
   // Pour plus tard, quand on sera sûr qu'elle n'est plus utilisée, on devrait même pouvoir la supprimer !
   // Fin du legacy
   window.localStorage.setItem("mano-currentCacheKey", dashboardCurrentCacheKey);
-  customStore = createStore(manoDB, storeName);
+  
+  try {
+    customStore = createStore(manoDB, storeName);
+  } catch (customStoreError) {
+    capture(customStoreError, { 
+      tags: { errorContext: "customStore_create_failed_in_setupDB" },
+      extra: { manoDB, storeName }
+    });
+    customStore = null;
+  }
 }
 
 async function deleteDB() {
@@ -63,42 +85,92 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
 
 export async function setCacheItem(key: string, value: any) {
   try {
-    if (customStore) await set(key, value, customStore);
+    if (!customStore) {
+      capture(new Error("customStore is null in setCacheItem"), { 
+        tags: { key, errorContext: "customStore_null_before_set" } 
+      });
+      return;
+    }
+    await set(key, value, customStore);
   } catch (error) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {
       // Si on a une erreur de type "connection is closing", on va essayer de réinitialiser
       // la connexion à la base de données et de sauvegarder la donnée à nouveau
+      const originalErrorMessage = error.message;
+      capture(error, { 
+        tags: { key, errorContext: "connection_closing_initial_attempt" },
+        extra: { originalErrorMessage }
+      });
+      
       setupDB();
       try {
+        if (!customStore) {
+          capture(new Error("customStore is null after setupDB in setCacheItem retry"), { 
+            tags: { key, errorContext: "customStore_null_after_setupDB_retry" },
+            extra: { originalErrorMessage }
+          });
+          return;
+        }
         await set(key, value, customStore);
-      } catch (error) {
-        capture(error, { tags: { key } });
+      } catch (retryError) {
+        capture(retryError, { 
+          tags: { key, errorContext: "set_retry_failed_after_connection_closing" },
+          extra: { originalErrorMessage, retryErrorMessage: retryError instanceof Error ? retryError.message : String(retryError) }
+        });
         return;
       }
+    } else {
+      capture(error, { 
+        tags: { key, errorContext: "general_set_error" },
+        extra: { errorMessage: error instanceof Error ? error.message : String(error) }
+      });
     }
-    capture(error, { tags: { key } });
   }
 }
 
 export async function getCacheItem(key: string) {
   try {
-    if (customStore === null) return null;
+    if (customStore === null) {
+      capture(new Error("customStore is null in getCacheItem"), { 
+        tags: { key, errorContext: "customStore_null_before_get" } 
+      });
+      return null;
+    }
     const data = await get(key, customStore);
     return data;
   } catch (error) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {
       // Si on a une erreur de type "connection is closing", on va essayer de réinitialiser
       // la connexion à la base de données et de récupérer la donnée à nouveau
+      const originalErrorMessage = error.message;
+      capture(error, { 
+        tags: { key, errorContext: "connection_closing_initial_attempt" },
+        extra: { originalErrorMessage }
+      });
+      
       setupDB();
       try {
+        if (customStore === null) {
+          capture(new Error("customStore is null after setupDB in getCacheItem retry"), { 
+            tags: { key, errorContext: "customStore_null_after_setupDB_retry" },
+            extra: { originalErrorMessage }
+          });
+          return null;
+        }
         const data = await get(key, customStore);
         return data;
-      } catch (error) {
-        capture(error, { tags: { key } });
+      } catch (retryError) {
+        capture(retryError, { 
+          tags: { key, errorContext: "get_retry_failed_after_connection_closing" },
+          extra: { originalErrorMessage, retryErrorMessage: retryError instanceof Error ? retryError.message : String(retryError) }
+        });
         return null;
       }
     }
-    capture(error, { tags: { key } });
+    capture(error, { 
+      tags: { key, errorContext: "general_get_error" },
+      extra: { errorMessage: error instanceof Error ? error.message : String(error) }
+    });
     return null;
   }
 }
