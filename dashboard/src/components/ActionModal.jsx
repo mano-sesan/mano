@@ -512,9 +512,11 @@ function ActionContent({ onClose, isMulti = false }) {
             className="tw-px-3 tw-py-2"
             tabs={[
               "Informations",
-              `Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`,
-              `Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`,
-              ...(isNewAction ? [] : ["Historique"]),
+              ...(!["restricted-access"].includes(user.role) ? [`Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`] : []),
+              ...(!["restricted-access"].includes(user.role)
+                ? [`Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`]
+                : []),
+              ...(!["restricted-access"].includes(user.role) && !isNewAction ? ["Historique"] : []),
               ...(!DISABLED_FEATURES["action-recurrentes"] && action.recurrence && action.recurrenceData.timeUnit
                 ? ["Voir toutes les occurrences"]
                 : []),
@@ -821,128 +823,136 @@ function ActionContent({ onClose, isMulti = false }) {
               </div>
             </div>
           </form>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Documents" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <DocumentsModule
-              personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
-              showAssociatedItem={false}
-              showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
-              documents={action.documents.map((doc) => ({
-                ...doc,
-                type: doc.type ?? "document", // or 'folder'
-                linkedItem: { _id: action?._id, type: "action" },
-              }))}
-              onAddDocuments={async (nextDocuments) => {
-                const newData = {
-                  ...action,
-                  documents: [...action.documents, ...nextDocuments],
-                };
-                setModalAction({ ...modalAction, action: newData });
-                if (isNewAction) return;
-                const ok = await handleSubmit({ newData });
-                if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-              }}
-              onDeleteDocument={async (document) => {
-                const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
-                setModalAction({ ...modalAction, action: newData });
-                if (isNewAction) return true;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document supprimé");
-                return ok;
-              }}
-              onSubmitDocument={async (document) => {
-                const newData = {
-                  ...action,
-                  documents: action.documents.map((d) => {
-                    if (d._id === document._id) return document;
-                    return d;
-                  }),
-                };
-                setModalAction({ ...modalAction, action: newData });
-                if (isNewAction) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document mis à jour");
-              }}
-            />
-          </div>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <CommentsModule
-              comments={action.comments
-                .map((c) => ({ ...c, type: "action", action }))
-                .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
-              color="main"
-              hiddenColumns={["person"]}
-              canToggleUrgentCheck
-              showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
-              typeForNewComment="action"
-              actionId={action?._id}
-              onDeleteComment={async (comment) => {
-                const newData = { ...action, comments: action.comments.filter((c) => c._id !== comment._id) };
-                setModalAction({ ...modalAction, action: newData });
-                if (!isNewAction) {
-                  const [error] = await tryFetchExpectOk(() => API.delete({ path: `/comment/${comment._id}` }));
-                  if (error) {
-                    toast.error("Erreur lors de la suppression du commentaire");
-                    return false;
-                  }
+          {!["restricted-access"].includes(user.role) && (
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Documents" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <DocumentsModule
+                personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
+                showAssociatedItem={false}
+                showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
+                documents={action.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: action?._id, type: "action" },
+                }))}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...action,
+                    documents: [...action.documents, ...nextDocuments],
+                  };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return;
                   const ok = await handleSubmit({ newData });
-                  if (ok) toast.success("Suppression réussie");
-                  return true;
-                }
-              }}
-              onSubmitComment={async (comment, isNewComment) => {
-                if (isNewComment) {
-                  if (isNewAction) {
-                    // On a besoin d'un identifiant temporaire pour les nouveaux commentaires dans une nouvelle action
-                    // Car on peut ajouter, supprimer, éditer des commentaires qui n'existent pas en base de données.
-                    // Cet identifiant sera remplacé par l'identifiant de l'objet créé par le serveur.
-                    setModalAction({ ...modalAction, action: { ...action, comments: [{ ...comment, _id: uuidv4() }, ...action.comments] } });
-                    return;
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return true;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...action,
+                    documents: action.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
+            </div>
+          )}
+          {!["restricted-access"].includes(user.role) && (
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <CommentsModule
+                comments={action.comments
+                  .map((c) => ({ ...c, type: "action", action }))
+                  .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
+                color="main"
+                hiddenColumns={["person"]}
+                canToggleUrgentCheck
+                showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
+                typeForNewComment="action"
+                actionId={action?._id}
+                onDeleteComment={async (comment) => {
+                  const newData = { ...action, comments: action.comments.filter((c) => c._id !== comment._id) };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (!isNewAction) {
+                    const [error] = await tryFetchExpectOk(() => API.delete({ path: `/comment/${comment._id}` }));
+                    if (error) {
+                      toast.error("Erreur lors de la suppression du commentaire");
+                      return false;
+                    }
+                    const ok = await handleSubmit({ newData });
+                    if (ok) toast.success("Suppression réussie");
+                    return true;
+                  }
+                }}
+                onSubmitComment={async (comment, isNewComment) => {
+                  if (isNewComment) {
+                    if (isNewAction) {
+                      // On a besoin d'un identifiant temporaire pour les nouveaux commentaires dans une nouvelle action
+                      // Car on peut ajouter, supprimer, éditer des commentaires qui n'existent pas en base de données.
+                      // Cet identifiant sera remplacé par l'identifiant de l'objet créé par le serveur.
+                      setModalAction({ ...modalAction, action: { ...action, comments: [{ ...comment, _id: uuidv4() }, ...action.comments] } });
+                      return;
+                    } else {
+                      const [error, response] = await tryFetchExpectOk(async () =>
+                        API.post({ path: "/comment", body: await encryptComment(comment) })
+                      );
+                      if (error) {
+                        toast.error("Erreur lors de l'ajout du commentaire");
+                        return;
+                      }
+                      const newData = { ...action, comments: [{ ...comment, _id: response.data._id }, ...action.comments] };
+                      setModalAction({ ...modalAction, action: newData });
+                      const ok = await handleSubmit({ newData });
+                      if (ok) toast.success("Commentaire ajouté !");
+                    }
                   } else {
-                    const [error, response] = await tryFetchExpectOk(async () => API.post({ path: "/comment", body: await encryptComment(comment) }));
+                    const newData = { ...action, comments: action.comments.map((c) => (c._id === comment._id ? comment : c)) };
+                    setModalAction({ ...modalAction, action: newData });
+                    if (isNewAction) return;
+                    const [error] = await tryFetchExpectOk(async () =>
+                      API.put({
+                        path: `/comment/${comment._id}`,
+                        body: await encryptComment(comment),
+                      })
+                    );
                     if (error) {
                       toast.error("Erreur lors de l'ajout du commentaire");
                       return;
                     }
-                    const newData = { ...action, comments: [{ ...comment, _id: response.data._id }, ...action.comments] };
-                    setModalAction({ ...modalAction, action: newData });
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Commentaire ajouté !");
+                    toast.success("Commentaire mis à jour");
+                    refresh();
                   }
-                } else {
-                  const newData = { ...action, comments: action.comments.map((c) => (c._id === comment._id ? comment : c)) };
-                  setModalAction({ ...modalAction, action: newData });
-                  if (isNewAction) return;
-                  const [error] = await tryFetchExpectOk(async () =>
-                    API.put({
-                      path: `/comment/${comment._id}`,
-                      body: await encryptComment(comment),
-                    })
-                  );
-                  if (error) {
-                    toast.error("Erreur lors de l'ajout du commentaire");
-                    return;
-                  }
-                  toast.success("Commentaire mis à jour");
-                  refresh();
-                }
-              }}
-            />
-          </div>
-          <div
-            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Historique" && "tw-hidden"]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            <ActionHistory action={action} />
-          </div>
+                }}
+              />
+            </div>
+          )}
+          {!["restricted-access"].includes(user.role) && (
+            <div
+              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Historique" && "tw-hidden"]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              <ActionHistory action={action} />
+            </div>
+          )}
           <div
             className={[
               "tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto",
