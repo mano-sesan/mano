@@ -238,17 +238,12 @@ const ActionsStats = ({
                   setCategorySlice(null);
                 }
           }
-          isMultiChoice
           axisTitleY="Actions"
           axisTitleX="Groupe"
           data={getMultichoiceBarData(actionsWithDetailedGroupAndCategories, "categoryGroup", {
             options: groupsCategories.map((group) => group.groupTitle),
             debug: true,
           })}
-          // here we decide that the total is NOT the total of actions
-          // but the total of actions splitted by category
-          totalForMultiChoice={actionsWithDetailedGroupAndCategories.length}
-          totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
         />
         <CustomResponsiveBar
           title="Répartition des actions par catégorie"
@@ -262,14 +257,9 @@ const ActionsStats = ({
                   setGroupSlice(null);
                 }
           }
-          isMultiChoice
           axisTitleY="Actions"
           axisTitleX="Catégorie"
           data={getMultichoiceBarData(actionsWithDetailedGroupAndCategories, "category")}
-          // here we decide that the total is NOT the total of actions
-          // but the total of actions splitted by category
-          totalForMultiChoice={actionsWithDetailedGroupAndCategories.length}
-          totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
         />
         <CustomResponsiveBar
           title="Nombre de personnes concernées par groupe de catégories d'actions"
@@ -283,14 +273,9 @@ const ActionsStats = ({
                   setCategorySlice(null);
                 }
           }
-          isMultiChoice
           axisTitleY="Personnes"
           axisTitleX="Groupe"
           data={personsByActionCategoryGroupForChart}
-          // here we decide that the total is NOT the total of actions
-          // but the total of actions splitted by category
-          totalForMultiChoice={personsByActionCategoryGroupForChart.reduce((acc, cur) => acc + Number(cur[cur.name]), 0)}
-          totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
         />
         <CustomResponsiveBar
           title="Nombre de personnes concernées par catégorie d'action"
@@ -304,14 +289,9 @@ const ActionsStats = ({
                   setGroupSlice(null);
                 }
           }
-          isMultiChoice
           axisTitleY="Personnes"
           axisTitleX="Catégorie"
           data={personsByActionCategoryForChart}
-          // here we decide that the total is NOT the total of actions
-          // but the total of actions splitted by category
-          totalForMultiChoice={personsByActionCategoryForChart.reduce((acc, cur) => acc + Number(cur[cur.name]), 0)}
-          totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
         />
       </div>
       <SelectedActionsModal
