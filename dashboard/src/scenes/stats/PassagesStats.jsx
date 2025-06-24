@@ -121,6 +121,18 @@ function PassagesBar({ passages }) {
     return { data, options };
   }, [passages]);
 
+  // Count unique persons across all the grouped data
+  const uniquePersonsCount = useMemo(() => {
+    const uniquePersonIds = new Set();
+    data.forEach((passage) => {
+      // Only count passages that have a person (exclude anonymous passages)
+      if (passage.person) {
+        uniquePersonIds.add(passage.person);
+      }
+    });
+    return uniquePersonIds.size;
+  }, [data]);
+
   return (
     <CustomResponsiveBar
       title="Répartition des passages par mois"
@@ -129,7 +141,7 @@ function PassagesBar({ passages }) {
       axisTitleY="Nombre de passage"
       axisTitleX="Mois"
       isMultiChoice
-      totalForMultiChoice={data.length}
+      totalForMultiChoice={uniquePersonsCount}
       totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
       data={getMultichoiceBarData(data, "groupedByMonth", { options, showEmptyBars: true }).filter((d) => d.name !== "Non renseigné")}
     />
