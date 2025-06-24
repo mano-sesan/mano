@@ -119,6 +119,16 @@ export const CustomResponsivePie = ({
           onClick={onClick}
           arcLabelsTextColor="#333333"
           valueFormat={(value) => `${value} (${Math.round((value / total) * 1000) / 10}%)`}
+          tooltip={({ datum }) => {
+            const percentage = Math.round((datum.value / total) * 1000) / 10;
+            return (
+              <div className="tw-bg-white tw-py-2 tw-px-3 tw-border tw-border-gray-300 tw-font-normal tw-rounded tw-shadow tw-text-xs">
+                <strong>{datum.label}</strong>
+                <br />
+                {datum.value} ({percentage}%)
+              </div>
+            );
+          }}
         />
       </div>
     </div>
@@ -296,6 +306,16 @@ export const CustomResponsiveBar = ({
           labelSkipHeight={0}
           labelTextColor={{ from: "color", modifiers: [["darker", 1.6]] }}
           animate={true}
+          tooltip={({ value, indexValue }) => {
+            const percentage = Math.round((value / (isMultiChoice ? totalForMultiChoice : total)) * 1000) / 10;
+            return (
+              <div className="tw-bg-white tw-py-2 tw-px-3 tw-border tw-border-gray-300 tw-font-normal tw-rounded tw-shadow tw-text-xs">
+                <strong>{indexValue}</strong>
+                <br />
+                {value} ({percentage}%)
+              </div>
+            );
+          }}
         />
       </div>
     </div>
