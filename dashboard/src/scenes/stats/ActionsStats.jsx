@@ -89,6 +89,22 @@ const ActionsStats = ({
     return personsByActionCategory;
   }, [actionsWithDetailedGroupAndCategories]);
 
+  // Nombre de personnes par groupe de catégories d'action
+  const personsByActionCategoryGroup = useMemo(() => {
+    const personsByActionCategoryGroup = {};
+    for (const action of actionsWithDetailedGroupAndCategories) {
+      const group = action.categoryGroup || "Non renseigné";
+      if (!personsByActionCategoryGroup[group]) personsByActionCategoryGroup[group] = new Set();
+      // Je ne sais pas pourquoi certaines actions ont plusieurs "person".
+      if (Array.isArray(action.person)) {
+        action.person.forEach((p) => personsByActionCategoryGroup[group].add(p));
+      } else {
+        personsByActionCategoryGroup[group].add(action.person);
+      }
+    }
+    return personsByActionCategoryGroup;
+  }, [actionsWithDetailedGroupAndCategories]);
+
   const personsByActionCategoryForChart = useMemo(() => {
     return Object.entries(personsByActionCategory)
       .map(([category, persons]) => {
@@ -101,6 +117,19 @@ const ActionsStats = ({
       .filter(Boolean)
       .sort((a, b) => (Number(b[b.name]) > Number(a[a.name]) ? 1 : -1));
   }, [personsByActionCategory]);
+
+  const personsByActionCategoryGroupForChart = useMemo(() => {
+    return Object.entries(personsByActionCategoryGroup)
+      .map(([group, persons]) => {
+        if (!persons.size) return null;
+        return {
+          name: group,
+          [group]: String(persons.size),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (Number(b[b.name]) > Number(a[a.name]) ? 1 : -1));
+  }, [personsByActionCategoryGroup]);
 
   const filteredPersonsByCategorySlice = useMemo(() => {
     if (categorySlice) {
@@ -117,6 +146,22 @@ const ActionsStats = ({
     }
     return [];
   }, [categorySlice, personsByActionCategory, persons]);
+
+  const filteredPersonsByGroupSlice = useMemo(() => {
+    if (groupSlice) {
+      let withGroupSlice = [];
+      for (const [group, personsIds] of Object.entries(personsByActionCategoryGroup)) {
+        if (groupSlice === "Non renseigné" && !group) {
+          withGroupSlice = [...personsIds].map((p) => persons[p]);
+        }
+        if (group === groupSlice) {
+          withGroupSlice = [...personsIds].map((p) => persons[p]);
+        }
+      }
+      return withGroupSlice;
+    }
+    return [];
+  }, [groupSlice, personsByActionCategoryGroup, persons]);
 
   return (
     <>
@@ -190,6 +235,7 @@ const ActionsStats = ({
               : (newGroupSlice) => {
                   setActionsModalOpened(true);
                   setGroupSlice(newGroupSlice);
+                  setCategorySlice(null);
                 }
           }
           isMultiChoice
@@ -213,6 +259,7 @@ const ActionsStats = ({
               : (newCategorySlice) => {
                   setActionsModalOpened(true);
                   setCategorySlice(newCategorySlice);
+                  setGroupSlice(null);
                 }
           }
           isMultiChoice
@@ -225,6 +272,27 @@ const ActionsStats = ({
           totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
         />
         <CustomResponsiveBar
+          title="Nombre de personnes concernées par groupe de catégories d'actions"
+          help={`Si une personne est concernée par plusieurs groupes de catégories, elle est comptabilisée dans chaque groupe.\n\nSi une personne a plusieurs actions d'un même groupe, elle ne sera comptabilisée qu'une fois par groupe.\n\nAinsi, le total affiché peut être supérieur au nombre total de personnes.`}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (newGroupSlice) => {
+                  setPersonsModalOpened(true);
+                  setGroupSlice(newGroupSlice);
+                  setCategorySlice(null);
+                }
+          }
+          isMultiChoice
+          axisTitleY="Personnes"
+          axisTitleX="Groupe"
+          data={personsByActionCategoryGroupForChart}
+          // here we decide that the total is NOT the total of actions
+          // but the total of actions splitted by category
+          totalForMultiChoice={personsByActionCategoryGroupForChart.reduce((acc, cur) => acc + Number(cur[cur.name]), 0)}
+          totalTitleForMultiChoice={<span className="tw-font-bold">Total</span>}
+        />
+        <CustomResponsiveBar
           title="Nombre de personnes concernées par catégorie d'action"
           help={`Si une personne est concernée par plusieurs catégories, elle est comptabilisée dans chaque catégorie.\n\nSi une personne a plusieurs actions d'une même catégorie, elle ne sera comptabilisée qu'une fois par action.\n\nAinsi, le total affiché peut être supérieur au nombre total de personnes.`}
           onItemClick={
@@ -233,6 +301,7 @@ const ActionsStats = ({
               : (newCategorySlice) => {
                   setPersonsModalOpened(true);
                   setCategorySlice(newCategorySlice);
+                  setGroupSlice(null);
                 }
           }
           isMultiChoice
@@ -264,8 +333,12 @@ const ActionsStats = ({
         onClose={() => {
           setPersonsModalOpened(false);
         }}
-        persons={filteredPersonsByCategorySlice}
-        title={`Personnes concernées par la catégorie ${categorySlice} (${filteredPersonsByCategorySlice.length})`}
+        persons={groupSlice ? filteredPersonsByGroupSlice : filteredPersonsByCategorySlice}
+        title={
+          groupSlice
+            ? `Personnes concernées par le groupe ${groupSlice} (${filteredPersonsByGroupSlice.length})`
+            : `Personnes concernées par la catégorie ${categorySlice} (${filteredPersonsByCategorySlice.length})`
+        }
       />
     </>
   );
