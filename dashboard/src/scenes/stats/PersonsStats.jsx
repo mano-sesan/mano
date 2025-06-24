@@ -21,6 +21,7 @@ import { groupsState } from "../../recoil/groups";
 import EvolutiveStatsSelector from "../../components/EvolutiveStatsSelector";
 import EvolutiveStatsViewer from "../../components/EvolutiveStatsViewer";
 import { capitalize } from "../../utils";
+import { mergedPersonAssignedTeamPeriodsWithQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 
 export default function PersonStats({
   title,
@@ -159,6 +160,12 @@ export default function PersonStats({
                         setPersonsModalOpened(true);
                       }
                 }
+              />
+              <FollowTimeByTeamBar
+                persons={personsForStats}
+                selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
+                viewAllOrganisationData={viewAllOrganisationData}
+                period={period}
               />
               <StatsWanderingAtRangeBar
                 persons={personsForStats}
@@ -725,3 +732,174 @@ function StatsPersonsByFamille({ groupsForPersons }) {
     />
   );
 }
+
+const FollowTimeByTeamBar = ({ persons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, period }) => {
+  const teams = useRecoilValue(teamsState);
+
+  // Calculate average follow time per team
+  const followTimeByTeam = useMemo(() => {
+    const teamFollowTimes = {};
+    const teamPersonCounts = {};
+
+    // Initialize for selected teams
+    const selectedTeamIds = Object.keys(selectedTeamsObjectWithOwnPeriod);
+    selectedTeamIds.forEach((teamId) => {
+      teamFollowTimes[teamId] = 0;
+      teamPersonCounts[teamId] = 0;
+    });
+
+    // If viewing all organisation data, add all teams
+    if (viewAllOrganisationData) {
+      teams.forEach((team) => {
+        teamFollowTimes[team._id] = 0;
+        teamPersonCounts[team._id] = 0;
+      });
+    }
+
+    persons.forEach((person) => {
+      if (!person.assignedTeamsPeriods) return;
+
+      const defaultIsoDates = {
+        isoStartDate: period.startDate ? dayjsInstance(period.startDate).startOf("day").toISOString() : null,
+        isoEndDate: period.endDate ? dayjsInstance(period.endDate).startOf("day").add(1, "day").toISOString() : null,
+      };
+
+      // Get the periods where this person was assigned to teams during the query period
+      const mergedPeriods = mergedPersonAssignedTeamPeriodsWithQueryPeriod({
+        viewAllOrganisationData,
+        isoStartDate: defaultIsoDates.isoStartDate,
+        isoEndDate: defaultIsoDates.isoEndDate,
+        selectedTeamsObjectWithOwnPeriod,
+        assignedTeamsPeriods: person.assignedTeamsPeriods,
+      });
+
+      if (mergedPeriods.length === 0) return;
+
+      // For each team, calculate the time this person was assigned during the query period
+      Object.entries(person.assignedTeamsPeriods).forEach(([teamId, teamPeriods]) => {
+        if (teamId === "all") return;
+
+        // Skip if team is not selected (unless viewing all org data)
+        if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) return;
+
+        // Calculate total time for this person in this team during the query period
+        let totalTimeInTeam = 0;
+
+        teamPeriods.forEach((teamPeriod) => {
+          const periodStart = teamPeriod.isoStartDate;
+          const periodEnd = teamPeriod.isoEndDate || dayjsInstance().toISOString();
+
+          const queryStart = defaultIsoDates.isoStartDate;
+          const queryEnd = defaultIsoDates.isoEndDate;
+
+          // If no query period is defined, use the full team period
+          if (!queryStart || !queryEnd) {
+            const startTime = dayjsInstance(periodStart);
+            const endTime = dayjsInstance(periodEnd);
+            totalTimeInTeam += endTime.diff(startTime, "milliseconds");
+            return;
+          }
+
+          // Calculate intersection between team period and query period
+          const intersectionStart = dayjsInstance(periodStart).isAfter(dayjsInstance(queryStart))
+            ? dayjsInstance(periodStart)
+            : dayjsInstance(queryStart);
+          const intersectionEnd = dayjsInstance(periodEnd).isBefore(dayjsInstance(queryEnd)) ? dayjsInstance(periodEnd) : dayjsInstance(queryEnd);
+
+          if (intersectionStart.isBefore(intersectionEnd)) {
+            totalTimeInTeam += intersectionEnd.diff(intersectionStart, "milliseconds");
+          }
+        });
+
+        if (totalTimeInTeam > 0) {
+          if (!teamFollowTimes[teamId]) teamFollowTimes[teamId] = 0;
+          if (!teamPersonCounts[teamId]) teamPersonCounts[teamId] = 0;
+
+          teamFollowTimes[teamId] += totalTimeInTeam;
+          teamPersonCounts[teamId] += 1;
+        }
+      });
+    });
+
+    return { teamFollowTimes, teamPersonCounts };
+  }, [persons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, period, teams]);
+
+  const chartData = useMemo(() => {
+    const { teamFollowTimes, teamPersonCounts } = followTimeByTeam;
+
+    // First, calculate all average times in milliseconds
+    const averageTimes = Object.entries(teamFollowTimes)
+      .map(([teamId, totalTime]) => {
+        const team = teams.find((t) => t._id === teamId);
+        if (!team || teamPersonCounts[teamId] === 0) return null;
+        return {
+          teamId,
+          team,
+          averageTimeMs: totalTime / teamPersonCounts[teamId],
+          personCount: teamPersonCounts[teamId],
+        };
+      })
+      .filter(Boolean);
+
+    if (averageTimes.length === 0) return [];
+
+    // Determine the appropriate unit based on the largest value (max = months)
+    const maxAverageTime = Math.max(...averageTimes.map((item) => item.averageTimeMs));
+    const maxInDays = Math.round(maxAverageTime / 1000 / 60 / 60 / 24);
+
+    let targetUnit, unitLabel;
+    if (maxInDays < 90) {
+      // Use days if max is less than 90 days
+      targetUnit = "days";
+      unitLabel = "jours";
+    } else {
+      // Use months for everything else (max unit as requested)
+      targetUnit = "months";
+      unitLabel = "mois";
+    }
+
+    // Convert all values to the same unit
+    return (
+      averageTimes
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        .map(({ teamId, team, averageTimeMs, personCount }) => {
+          let value;
+          if (targetUnit === "days") {
+            value = Math.round(averageTimeMs / 1000 / 60 / 60 / 24);
+          } else {
+            // months
+            const inDays = averageTimeMs / 1000 / 60 / 60 / 24;
+            value = Math.round(inDays / (365.25 / 12));
+          }
+
+          return {
+            name: team.name,
+            [team.name]: value,
+            unit: unitLabel,
+            personCount,
+            averageTimeMs,
+            displayValue: `${value} ${unitLabel}`,
+          };
+        })
+        .sort((a, b) => b.averageTimeMs - a.averageTimeMs)
+    ); // Sort by average time descending
+  }, [followTimeByTeam, teams]);
+
+  const axisTitleY = chartData.length > 0 ? `Temps de suivi moyen (en ${chartData[0].unit})` : "Temps de suivi moyen";
+
+  return (
+    <CustomResponsiveBar
+      title="Temps moyen de présence dans les équipes sélectionnées"
+      help={`Cette donnée correspond au temps de présence moyen des personnes dans une équipe entre le moment où la personne a été assignée à l'équipe et le moment où elle en a été retirée, durant la période sélectionnée et pour les équipes sélectionnées.\n\nSi aucune période n'est définie, on considère l'ensemble des périodes d'assignation.`}
+      axisTitleY={axisTitleY}
+      axisTitleX="Équipe"
+      data={chartData}
+      tableHeaderTitles={{
+        name: "Équipe",
+        value: axisTitleY,
+        percentage: "%",
+      }}
+      showTotal={false}
+    />
+  );
+};

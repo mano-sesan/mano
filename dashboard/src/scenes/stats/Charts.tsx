@@ -143,6 +143,8 @@ export const CustomResponsiveBar = ({
   totalTitleForMultiChoice,
   forcedXAxis,
   help,
+  tableHeaderTitles,
+  showTotal = true,
 }: {
   title: string;
   data: BarData;
@@ -154,6 +156,12 @@ export const CustomResponsiveBar = ({
   totalTitleForMultiChoice?: string;
   help?: string;
   forcedXAxis?: string[];
+  tableHeaderTitles?: {
+    name: string;
+    value: string;
+    percentage: string;
+  };
+  showTotal?: boolean;
 }) => {
   // if we have too many categories with small data, we see nothing in the chart
   // so we filter by keeping the first 15 categories whatever
@@ -196,10 +204,10 @@ export const CustomResponsiveBar = ({
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
               </th>
-              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">Nb</th>
-              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">%</th>
+              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
+              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th>
             </tr>
           </thead>
           <tbody>
@@ -214,7 +222,7 @@ export const CustomResponsiveBar = ({
                 </tr>
               );
             })}
-            {!isMultiChoice && (
+            {showTotal && !isMultiChoice && (
               <tr>
                 <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-font-bold ">Total</td>
                 <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold ">{total}</td>
@@ -228,11 +236,13 @@ export const CustomResponsiveBar = ({
                   <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold">{totalForMultiChoice}</td>
                   <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2"></td>
                 </tr>
-                <tr>
-                  <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-font-bold">Total des valeurs</td>
-                  <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold">{total}</td>
-                  <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2"></td>
-                </tr>
+                {showTotal && (
+                  <tr>
+                    <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-font-bold">Total des valeurs</td>
+                    <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold">{total}</td>
+                    <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2"></td>
+                  </tr>
+                )}
               </>
             )}
           </tbody>
