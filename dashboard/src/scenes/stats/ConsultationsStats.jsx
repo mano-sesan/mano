@@ -9,8 +9,20 @@ import Filters from "../../components/Filters";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { capitalize } from "../../utils";
+import { mappedIdsToLabels } from "../../recoil/actions";
+import SelectCustom from "../../components/SelectCustom";
 
-export default function ConsultationsStats({ consultations, personsWithConsultations, personsUpdated, filterBase, filterPersons, setFilterPersons }) {
+export default function ConsultationsStats({
+  consultations,
+  personsWithConsultations,
+  personsUpdated,
+  filterBase,
+  filterPersons,
+  setFilterPersons,
+  // status filtering props
+  consultationsStatuses = [],
+  setConsultationsStatuses = () => {},
+}) {
   const organisation = useRecoilValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
   const [slicedData, setSlicedData] = useState([]);
@@ -40,6 +52,26 @@ export default function ConsultationsStats({ consultations, personsWithConsultat
       <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>
       <div className="tw-flex tw-basis-full tw-items-center">
         <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+      </div>
+      <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
+        <div>
+          <label htmlFor="filter-by-status" className="tw-m-0">
+            Filtrer par statut
+          </label>
+          <div>
+            <SelectCustom
+              inputId="consultation-select-status-filter"
+              options={mappedIdsToLabels}
+              getOptionValue={(s) => s._id}
+              getOptionLabel={(s) => s.name}
+              name="consultation-status"
+              onChange={(s) => setConsultationsStatuses(s.map((s) => s._id))}
+              isClearable
+              isMulti
+              value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
+            />
+          </div>
+        </div>
       </div>
       <details
         open={window.localStorage.getItem("consultations-stats-general-open") === "true"}
