@@ -15,6 +15,7 @@ import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
 import { useDataLoader } from "../../../services/dataLoader";
 import isEqual from "react-fast-compare";
+import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -153,7 +154,14 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         // D'après le commentaire plus bas, on charge la personne liée au cas où c'est un dossier de groupe.
         // On a un edge case ici: si on a ajouté des documents pour quelqu'un d'autre, on les laisse dedans
         // et donc on les perds. Il faudrait probablement vérifier pour toutes les personnes du groupe.
-        const _person = persons[folder.linkedItem._id];
+
+        // Load fresh person data to prevent race conditions
+        const _person = await loadFreshPersonData(folder.linkedItem._id);
+        if (!_person) {
+          toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+          return false;
+        }
+
         const [personError] = await tryFetchExpectOk(async () => {
           return API.put({
             path: `/person/${_person._id}`,
@@ -209,7 +217,14 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
       onDeleteDocument={async (document) => {
         // the document can be a group document, or a person document
         // so we need to get the person to update
-        const _person = persons[document.linkedItem._id];
+
+        // Load fresh person data to prevent race conditions
+        const _person = await loadFreshPersonData(document.linkedItem._id);
+        if (!_person) {
+          toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+          return false;
+        }
+
         const [documentError] = await tryFetchExpectOk(async () => {
           return API.delete({ path: document.downloadPath ?? `/person/${_person._id}/document/${document.file.filename}` });
         });
@@ -287,7 +302,14 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         } else {
           // the document can be a group document, or a person document, or a folder
           // so we need to get the person to update
-          const _person = persons[documentOrFolder.linkedItem._id];
+
+          // Load fresh person data to prevent race conditions
+          const _person = await loadFreshPersonData(documentOrFolder.linkedItem._id);
+          if (!_person) {
+            toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+            return;
+          }
+
           const [personError] = await tryFetchExpectOk(async () => {
             return API.put({
               path: `/person/${_person._id}`,
@@ -311,12 +333,20 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         refresh();
       }}
       onAddDocuments={async (newDocuments) => {
+        // Load fresh person data to prevent race conditions during long uploads
+        const freshPerson = await loadFreshPersonData(person._id);
+        if (!freshPerson) {
+          toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+          return;
+        }
+
         const [personError] = await tryFetchExpectOk(async () => {
-          const oldDocuments = person.documents?.length ? [...person.documents] : [...defaultFolders];
+          // Use fresh person data instead of stale prop
+          const oldDocuments = freshPerson.documents?.length ? [...freshPerson.documents] : [...defaultFolders];
           return API.put({
             path: `/person/${person._id}`,
             body: await encryptPerson({
-              ...person,
+              ...freshPerson, // Use fresh person data
               // If there are no document yet and default documents are present,
               // we save the default documents since they are modified by the user.
               documents: [...oldDocuments, ...newDocuments],

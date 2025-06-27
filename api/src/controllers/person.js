@@ -284,6 +284,38 @@ router.get(
   })
 );
 
+router.get(
+  "/:_id",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "restricted-access"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        _id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in person get by id: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
+    const person = await Person.findOne({
+      ...query,
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+    });
+
+    if (!person) {
+      return res.status(404).send({ ok: false, error: "Person not found" });
+    }
+
+    return res.status(200).send({
+      ok: true,
+      data: person.toJSON(),
+    });
+  })
+);
+
 router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
