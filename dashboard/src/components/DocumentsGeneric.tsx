@@ -412,7 +412,36 @@ function ButtonDownloadAll({ documents }: { documents: DocumentWithLinkedItem[] 
               ...document,
               fullName: buildFullName(document, itemsMap),
             }));
-          return documents;
+
+          // Handle duplicate names by adding a numeric suffix
+          const usedNames = new Set<string>();
+          const documentsWithUniqueNames = documents.map((document) => {
+            let fullName = document.fullName;
+            let counter = 2;
+
+            // If name is already used, add a suffix
+            while (usedNames.has(fullName)) {
+              const lastDotIndex = document.fullName.lastIndexOf(".");
+              if (lastDotIndex !== -1) {
+                // File has an extension
+                const nameWithoutExt = document.fullName.substring(0, lastDotIndex);
+                const extension = document.fullName.substring(lastDotIndex);
+                fullName = `${nameWithoutExt} (${counter})${extension}`;
+              } else {
+                // File has no extension
+                fullName = `${document.fullName} (${counter})`;
+              }
+              counter++;
+            }
+
+            usedNames.add(fullName);
+            return {
+              ...document,
+              fullName,
+            };
+          });
+
+          return documentsWithUniqueNames;
         }
 
         // Un gros try catch pour l'instant, on verra si on peut améliorer ça plus tard
