@@ -626,6 +626,7 @@ function CommentModal({
   const organisation = useRecoilValue(organisationState);
   const currentTeam = useRecoilValue(currentTeamState);
   const teams = useRecoilValue(teamsState);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isEditable = useMemo(() => {
     if (isNewComment) return true;
@@ -798,6 +799,7 @@ function CommentModal({
                   type="button"
                   name="cancel"
                   className="button-cancel"
+                  disabled={isDeleting || isSubmitting}
                   onClick={() => {
                     window.sessionStorage.removeItem("currentComment");
                     onClose();
@@ -809,24 +811,27 @@ function CommentModal({
                   <button
                     type="button"
                     className="button-destructive"
-                    disabled={isSubmitting || !isEditable}
+                    disabled={isSubmitting || !isEditable || isDeleting}
                     onClick={async () => {
-                      if (!window.confirm("Voulez-vous vraiment supprimer ce commentaire ?")) return;
-                      window.sessionStorage.removeItem("currentComment");
-                      await onDelete(comment);
-                      onClose();
+                      setIsDeleting(true);
+                      if (window.confirm("Voulez-vous vraiment supprimer ce commentaire ?")) {
+                        window.sessionStorage.removeItem("currentComment");
+                        await onDelete(comment);
+                        onClose();
+                      }
+                      setIsDeleting(false);
                     }}
                   >
-                    Supprimer
+                    {isDeleting ? "Suppression en cours..." : "Supprimer"}
                   </button>
                 )}
                 <button
                   type="submit"
                   onClick={handleSubmit as (e: unknown) => void}
                   className={`button-submit !tw-bg-${color}`}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isDeleting}
                 >
-                  Enregistrer
+                  {isSubmitting ? "Enregistrement en cours..." : "Enregistrer"}
                 </button>
               </ModalFooter>
             </React.Fragment>
