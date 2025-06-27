@@ -45,6 +45,7 @@ import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
+import { UploadProgressProvider } from "./components/DocumentsGeneric";
 
 RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
@@ -184,6 +185,7 @@ const App = () => {
         <ConsultationModal />
         <TreatmentModal />
         <ModalConfirm />
+        <UploadProgressProvider />
         {!!user && <DataLoader />}
       </Router>
     </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuid } from "uuid";
@@ -19,6 +19,44 @@ import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import { capture } from "../services/sentry";
+
+// Upload progress state
+interface UploadProgress {
+  fileName: string;
+  status: "pending" | "uploading" | "completed" | "error";
+  error?: string;
+}
+
+// Global upload state
+const uploadProgressModal: {
+  isOpen: boolean;
+  files: UploadProgress[];
+  setFiles: (files: UploadProgress[]) => void;
+  setIsOpen: (isOpen: boolean) => void;
+} = {
+  isOpen: false,
+  files: [],
+  setFiles: () => {},
+  setIsOpen: () => {},
+};
+
+export function setUploadProgressHandlers(setFiles: (files: UploadProgress[]) => void, setIsOpen: (isOpen: boolean) => void) {
+  uploadProgressModal.setFiles = setFiles;
+  uploadProgressModal.setIsOpen = setIsOpen;
+}
+
+// Global Upload Progress Provider Component
+export function UploadProgressProvider() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [files, setFiles] = useState<UploadProgress[]>([]);
+
+  // Connect to global handlers
+  useEffect(() => {
+    setUploadProgressHandlers(setFiles, setIsOpen);
+  }, []);
+
+  return <UploadProgressModal isOpen={isOpen} files={files} />;
+}
 
 interface DocumentsModuleProps<T> {
   documents: T[];
@@ -893,35 +931,80 @@ async function handleFilesUpload({ files, personId, user }) {
     toast.error("Veuillez sélectionner une personne auparavant");
     return;
   }
+
+  // Initialize upload progress
+  const uploadFiles: UploadProgress[] = Array.from(files).map((file: any) => ({
+    fileName: file.name,
+    status: "pending" as const,
+  }));
+
+  // Show upload modal
+  uploadProgressModal.setFiles(uploadFiles);
+  uploadProgressModal.setIsOpen(true);
+
   const docsResponses = [];
+  let hasError = false;
+
   for (let i = 0; i < files.length; i++) {
     const fileToUpload = files[i] as any;
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(fileToUpload, getHashedOrgEncryptionKey());
-    const [docResponseError, docResponse] = await tryFetch(() => {
-      return API.upload({ path: `/person/${personId}/document`, encryptedFile });
-    });
-    if (docResponseError || !docResponse.ok || !docResponse.data) {
-      toast.error(`Une erreur est survenue lors de l'envoi du document ${fileToUpload?.filename}`);
-      return;
+
+    // Update status to uploading
+    uploadFiles[i].status = "uploading";
+    uploadProgressModal.setFiles([...uploadFiles]);
+
+    try {
+      const { encryptedEntityKey, encryptedFile } = await encryptFile(fileToUpload, getHashedOrgEncryptionKey());
+      const [docResponseError, docResponse] = await tryFetch(() => {
+        return API.upload({ path: `/person/${personId}/document`, encryptedFile });
+      });
+
+      if (docResponseError || !docResponse.ok || !docResponse.data) {
+        uploadFiles[i].status = "error";
+        uploadFiles[i].error = `Erreur lors de l'envoi du document ${fileToUpload.name}`;
+        uploadProgressModal.setFiles([...uploadFiles]);
+        hasError = true;
+        continue;
+      }
+
+      const fileUploaded = docResponse.data as FileMetadata;
+      const document: Document = {
+        _id: fileUploaded.filename,
+        name: fileToUpload.name,
+        encryptedEntityKey: encryptedEntityKey,
+        createdAt: new Date(),
+        createdBy: user?._id ?? "",
+        downloadPath: `/person/${personId}/document/${fileUploaded.filename}`,
+        file: fileUploaded,
+        group: false,
+        parentId: undefined,
+        position: undefined,
+        type: "document",
+      };
+
+      docsResponses.push(document);
+      uploadFiles[i].status = "completed";
+      uploadProgressModal.setFiles([...uploadFiles]);
+    } catch (_error) {
+      uploadFiles[i].status = "error";
+      uploadFiles[i].error = `Erreur lors du traitement du fichier ${fileToUpload.name}`;
+      uploadProgressModal.setFiles([...uploadFiles]);
+      hasError = true;
     }
-    const fileUploaded = docResponse.data as FileMetadata;
-    toast.success(`Document ${fileToUpload.name} ajouté !`);
-    const document: Document = {
-      _id: fileUploaded.filename,
-      name: fileToUpload.name, // On garde le nom original du fichier avant upload, parce que pour une raison qui m'échappe il est abimé dans le transport.
-      encryptedEntityKey: encryptedEntityKey,
-      createdAt: new Date(),
-      createdBy: user?._id ?? "",
-      downloadPath: `/person/${personId}/document/${fileUploaded.filename}`,
-      file: fileUploaded,
-      group: false,
-      parentId: undefined, // it will be 'treatment', 'consultation', 'action' or 'root'
-      position: undefined,
-      type: "document",
-    };
-    docsResponses.push(document);
   }
-  return docsResponses;
+
+  // Wait a moment to show completion state, then close modal
+  setTimeout(() => {
+    uploadProgressModal.setIsOpen(false);
+    if (!hasError && docsResponses.length > 0) {
+      if (docsResponses.length === 1) {
+        toast.success(`Document ${docsResponses[0].name} ajouté !`);
+      } else {
+        toast.success(`${docsResponses.length} documents ajoutés !`);
+      }
+    }
+  }, 1000);
+
+  return docsResponses.length > 0 ? docsResponses : undefined;
 }
 
 interface DocumentModalProps<T extends DocumentWithLinkedItem> {
@@ -1275,5 +1358,97 @@ export function FolderModal<T extends FolderWithLinkedItem | Folder>({
         </ModalFooter>
       </ModalContainer>
     </>
+  );
+}
+
+// Upload Progress Modal Component
+interface UploadProgressModalProps {
+  isOpen: boolean;
+  files: UploadProgress[];
+  onClose?: () => void;
+}
+
+export function UploadProgressModal({ isOpen, files, onClose }: UploadProgressModalProps) {
+  const completedFiles = files.filter((f) => f.status === "completed").length;
+  const totalFiles = files.length;
+  const hasErrors = files.some((f) => f.status === "error");
+  const isComplete = files.every((f) => f.status === "completed" || f.status === "error");
+
+  return (
+    <ModalContainer
+      open={isOpen}
+      size="lg"
+      blurryBackground
+      onClose={null} // Prevent closing during upload
+    >
+      <ModalHeader title="Téléversement en cours..." />
+      <ModalBody>
+        <div className="tw-px-8 tw-py-4">
+          <div className="tw-mb-4">
+            <div className="tw-flex tw-justify-between tw-text-sm tw-text-gray-600 tw-mb-2">
+              <span>Progression</span>
+              <span>
+                {completedFiles}/{totalFiles}
+              </span>
+            </div>
+            <div className="tw-w-full tw-bg-gray-200 tw-rounded-full tw-h-2">
+              <div
+                className={`tw-h-2 tw-rounded-full tw-transition-all tw-duration-300 ${hasErrors ? "tw-bg-red-500" : "tw-bg-main"}`}
+                style={{ width: `${totalFiles > 0 ? (completedFiles / totalFiles) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="tw-space-y-2 tw-max-h-64 tw-overflow-y-auto">
+            {files.map((file, index) => (
+              <div key={index} className="tw-flex tw-items-center tw-gap-3 tw-p-2 tw-rounded tw-bg-gray-50">
+                <div className="tw-flex-shrink-0">
+                  {file.status === "pending" && <div className="tw-w-4 tw-h-4 tw-rounded-full tw-border-2 tw-border-gray-300" />}
+                  {file.status === "uploading" && (
+                    <div className="tw-w-4 tw-h-4 tw-rounded-full tw-border-2 tw-border-main tw-border-t-transparent tw-animate-spin" />
+                  )}
+                  {file.status === "completed" && (
+                    <div className="tw-w-4 tw-h-4 tw-rounded-full tw-bg-green-500 tw-flex tw-items-center tw-justify-center">
+                      <svg className="tw-w-2.5 tw-h-2.5 tw-text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                  {file.status === "error" && (
+                    <div className="tw-w-4 tw-h-4 tw-rounded-full tw-bg-red-500 tw-flex tw-items-center tw-justify-center">
+                      <svg className="tw-w-2.5 tw-h-2.5 tw-text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="tw-flex-1 tw-min-w-0">
+                  <div className="tw-text-sm tw-font-medium tw-text-gray-900 tw-truncate">{file.fileName}</div>
+                  {file.status === "uploading" && <div className="tw-text-xs tw-text-gray-500">Téléversement...</div>}
+                  {file.status === "completed" && <div className="tw-text-xs tw-text-green-600">Terminé</div>}
+                  {file.status === "error" && file.error && <div className="tw-text-xs tw-text-red-600">{file.error}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </ModalBody>
+      <ModalFooter>
+        {isComplete && onClose && (
+          <button type="button" className="button-submit" onClick={onClose}>
+            Fermer
+          </button>
+        )}
+        {!isComplete && <div className="tw-text-sm tw-text-gray-500">Veuillez patienter pendant le téléversement...</div>}
+      </ModalFooter>
+    </ModalContainer>
   );
 }
