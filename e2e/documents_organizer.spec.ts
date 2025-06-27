@@ -72,8 +72,7 @@ test("Documents organizer", async ({ page }) => {
     .locator("label[aria-label='Ajouter des documents']")
     .first()
     .setInputFiles(["e2e/files-to-upload/image-2.jpg", "e2e/files-to-upload/image-3.jpg"]);
-  await page.getByText("Document image-2.jpg ajouté !").click();
-  await page.getByText("Document image-3.jpg ajouté !").click();
+  await page.getByText("2 documents ajoutés !").click();
   await page.getByText("Documents enregistrés !").click();
 
   await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
