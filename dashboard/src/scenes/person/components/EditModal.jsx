@@ -534,7 +534,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
             )}
           </div>
           {isMedicalFile && (
-            <>
+            <div className="tw-p-4">
               {groupedCustomFieldsMedicalFileWithLegacyFields.map(({ name, fields }) => {
                 const key = name !== "Groupe par défaut" ? name : "Dossier Médical";
                 return (
@@ -585,7 +585,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                   </div>
                 );
               })}
-            </>
+            </div>
           )}
         </ModalBody>
       </ModalContainer>
