@@ -2,7 +2,6 @@ import dayjs from "dayjs";
 import { Formik } from "formik";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { Button, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
@@ -12,6 +11,7 @@ import SelectCustom from "../../components/SelectCustom";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import UserName from "../../components/UserName";
 import Table from "../../components/table";
+import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
@@ -171,46 +171,42 @@ const MergeTwoPersons = ({ person }) => {
   return (
     <>
       <ButtonCustom title="Fusionner avec un autre dossier" color="link" type="button" onClick={() => setOpen(true)} />
-      <StyledModal isOpen={open} toggle={() => setOpen(false)} size="xl" centered>
-        <ModalHeader toggle={() => setOpen(false)} color="danger">
-          <Row style={{ justifyContent: "center", marginTop: 10 }}>
-            <Col style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }} md={4}>
-              Fusionner
-            </Col>
-            <Col md={6}>
-              <SelectCustom
-                options={personsToMergeWith}
-                inputId="origin-person-with-select"
-                classNamePrefix="origin-person-with-select"
-                isClearable
-                isSearchable
-                onChange={setOriginPerson}
-                value={originPerson}
-                getOptionValue={(i) => i._id}
-                getOptionLabel={(i) => i?.name || ""}
-              />
-            </Col>
-            <Col md={2} />
-          </Row>
-          <Row style={{ justifyContent: "center", marginTop: 10 }}>
-            <Col style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }} md={4}>
-              avec
-            </Col>
-            <Col md={6}>
-              <SelectCustom
-                options={personsToMergeWith}
-                inputId="person-to-merge-with-select"
-                classNamePrefix="person-to-merge-with-select"
-                isClearable
-                isSearchable
-                onChange={setPersonToMergeAndDelete}
-                value={personToMergeAndDelete}
-                getOptionValue={(i) => i._id}
-                getOptionLabel={(i) => i?.name || ""}
-              />
-            </Col>
-            <Col md={2} />
-          </Row>
+      <ModalContainer open={open} onClose={() => setOpen(false)} size="5xl">
+        <ModalHeader>
+          <div className="tw-flex tw-flex-col tw-gap-4 tw-py-4">
+            <div className="tw-flex tw-items-center tw-justify-center tw-gap-4">
+              <div className="tw-flex tw-items-center tw-w-20 tw-justify-end">Fusionner</div>
+              <div className="tw-flex-1 tw-max-w-md">
+                <SelectCustom
+                  options={personsToMergeWith}
+                  inputId="origin-person-with-select"
+                  classNamePrefix="origin-person-with-select"
+                  isClearable
+                  isSearchable
+                  onChange={setOriginPerson}
+                  value={originPerson}
+                  getOptionValue={(i) => i._id}
+                  getOptionLabel={(i) => i?.name || ""}
+                />
+              </div>
+            </div>
+            <div className="tw-flex tw-items-center tw-justify-center tw-gap-4">
+              <div className="tw-flex tw-items-center tw-w-20 tw-justify-end">avec</div>
+              <div className="tw-flex-1 tw-max-w-md">
+                <SelectCustom
+                  options={personsToMergeWith}
+                  inputId="person-to-merge-with-select"
+                  classNamePrefix="person-to-merge-with-select"
+                  isClearable
+                  isSearchable
+                  onChange={setPersonToMergeAndDelete}
+                  value={personToMergeAndDelete}
+                  getOptionValue={(i) => i._id}
+                  getOptionLabel={(i) => i?.name || ""}
+                />
+              </div>
+            </div>
+          </div>
         </ModalHeader>
         <ModalBody>
           {!!initMergedPerson && (
@@ -413,117 +409,109 @@ const MergeTwoPersons = ({ person }) => {
             >
               {({ values, handleChange, handleSubmit, isSubmitting }) => (
                 <>
-                  <Table
-                    data={[...fields, ...(user.healthcareProfessional ? medicalFields : [])]}
-                    // use this key prop to reset table and reset sortablejs on each element added/removed
-                    rowKey="name"
-                    columns={[
-                      {
-                        dataKey: "field",
-                        render: (field) => {
-                          return <Field>{field.name === "user" ? "Créé(e) par" : field.label}</Field>;
+                  <div className="tw-px-4 tw-py-4">
+                    <Table
+                      data={[...fields, ...(user.healthcareProfessional ? medicalFields : [])]}
+                      // use this key prop to reset table and reset sortablejs on each element added/removed
+                      rowKey="name"
+                      columns={[
+                        {
+                          dataKey: "field",
+                          render: (field) => {
+                            return <Field>{field.name === "user" ? "Créé(e) par" : field.label}</Field>;
+                          },
                         },
-                      },
-                      {
-                        title: originPerson?.name,
-                        dataKey: "originPerson",
-                        render: (field) => {
-                          if (field.name === "user")
-                            return (
-                              <Col md={12}>
-                                <UserName id={originPerson.user} />
-                              </Col>
-                            );
-                          if (field.name === "assignedTeams") {
-                            return <Col md={12}>{originPerson?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}</Col>;
-                          }
-                          return getRawValue(field, originPerson[field.name] || originPersonMedicalFile?.[field.name]);
+                        {
+                          title: originPerson?.name,
+                          dataKey: "originPerson",
+                          render: (field) => {
+                            if (field.name === "user")
+                              return (
+                                <div className="tw-w-full">
+                                  <UserName id={originPerson.user} />
+                                </div>
+                              );
+                            if (field.name === "assignedTeams") {
+                              return (
+                                <div className="tw-w-full">
+                                  {originPerson?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
+                                </div>
+                              );
+                            }
+                            return getRawValue(field, originPerson[field.name] || originPersonMedicalFile?.[field.name]);
+                          },
                         },
-                      },
-                      {
-                        title: personToMergeAndDelete?.name,
-                        dataKey: "personToMergeAndDelete",
-                        render: (field) => {
-                          if (field.name === "user")
-                            return (
-                              <Col md={12}>
-                                <UserName id={personToMergeAndDelete?.user} />
-                              </Col>
-                            );
-                          if (field.name === "assignedTeams") {
-                            return (
-                              <Col md={12}>
-                                {personToMergeAndDelete?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
-                              </Col>
-                            );
-                          }
-                          return getRawValue(field, personToMergeAndDelete?.[field.name] || personToMergeMedicalFile?.[field.name]);
+                        {
+                          title: personToMergeAndDelete?.name,
+                          dataKey: "personToMergeAndDelete",
+                          render: (field) => {
+                            if (field.name === "user")
+                              return (
+                                <div className="tw-w-full">
+                                  <UserName id={personToMergeAndDelete?.user} />
+                                </div>
+                              );
+                            if (field.name === "assignedTeams") {
+                              return (
+                                <div className="tw-w-full">
+                                  {personToMergeAndDelete?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
+                                </div>
+                              );
+                            }
+                            return getRawValue(field, personToMergeAndDelete?.[field.name] || personToMergeMedicalFile?.[field.name]);
+                          },
                         },
-                      },
-                      {
-                        title: "Je garde :",
-                        dataKey: "keeping",
-                        render: (field) => {
-                          if (field.name === "user")
+                        {
+                          title: "Je garde :",
+                          dataKey: "keeping",
+                          render: (field) => {
+                            if (field.name === "user")
+                              return (
+                                <div className="tw-w-full">
+                                  <UserName
+                                    id={values.user}
+                                    canAddUser
+                                    handleChange={async (newUser) => handleChange({ currentTarget: { name: "user", value: newUser } })}
+                                  />
+                                </div>
+                              );
+                            if (field.name === "assignedTeams")
+                              return (
+                                <div className="tw-w-full">
+                                  <SelectTeamMultiple
+                                    onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
+                                    value={values.assignedTeams}
+                                    colored
+                                    inputId="person-select-assigned-team"
+                                    classNamePrefix="person-select-assigned-team"
+                                  />
+                                </div>
+                              );
                             return (
-                              <Col md={12}>
-                                <UserName
-                                  id={values.user}
-                                  canAddUser
-                                  handleChange={async (newUser) => handleChange({ currentTarget: { name: "user", value: newUser } })}
-                                />
-                              </Col>
+                              <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} hideLabel colWidth={12} />
                             );
-                          if (field.name === "assignedTeams")
-                            return (
-                              <Col md={12}>
-                                <SelectTeamMultiple
-                                  onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
-                                  value={values.assignedTeams}
-                                  colored
-                                  inputId="person-select-assigned-team"
-                                  classNamePrefix="person-select-assigned-team"
-                                />
-                              </Col>
-                            );
-                          return (
-                            <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} hideLabel colWidth={12} />
-                          );
+                          },
                         },
-                      },
-                    ]}
-                  />
-                  <Row style={{ justifyContent: "center", gap: "1rem", marginTop: "1rem" }}>
-                    <Button color="link" onClick={() => setOpen(false)}>
+                      ]}
+                    />
+                  </div>
+                  <ModalFooter>
+                    <button type="button" className="button-cancel" onClick={() => setOpen(false)}>
                       Annuler
-                    </Button>
-                    <Button disabled={isSubmitting} onClick={() => !isSubmitting && handleSubmit()}>
+                    </button>
+                    <button type="button" disabled={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} className="button-submit">
                       {isSubmitting ? "Fusion en cours" : "Fusionner"}
-                    </Button>
-                  </Row>
+                    </button>
+                  </ModalFooter>
                 </>
               )}
             </Formik>
           )}
         </ModalBody>
-      </StyledModal>
+      </ModalContainer>
     </>
   );
 };
-
-const StyledModal = styled(Modal)`
-  align-items: center;
-  .modal-title {
-    width: 100%;
-    flex-grow: 1;
-    padding: auto;
-    font-size: 16px;
-  }
-
-  .form-group {
-    margin-bottom: 0;
-  }
-`;
 
 const Field = styled.p`
   font-weight: bold;
