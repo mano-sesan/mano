@@ -16,7 +16,6 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import CustomFieldInput from "../../../components/CustomFieldInput";
 import { useMemo, useState } from "react";
 import ButtonCustom from "../../../components/ButtonCustom";
-import { Formik } from "formik";
 import { toast } from "react-toastify";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import DatePicker from "../../../components/DatePicker";
@@ -42,6 +41,178 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   const [isOutOfTeamsModalOpen, setIsOutOfTeamsModalOpen] = useState(false);
   const [updatedPersonFormValues, setUpdatedPersonFormValues] = useState();
   const medicalFile = person.medicalFile;
+
+  // Form state for person data
+  const [personFormData, setPersonFormData] = useState(() => updatedPersonFormValues || person);
+  const [isPersonSubmitting, setIsPersonSubmitting] = useState(false);
+
+  // Form state for medical file data
+  const [medicalFileFormData, setMedicalFileFormData] = useState(() => ({
+    ...medicalFile,
+    structureMedical: person.structureMedical,
+    healthInsurances: person.healthInsurances,
+  }));
+  const [isMedicalFileSubmitting, setIsMedicalFileSubmitting] = useState(false);
+
+  // Update form data when updatedPersonFormValues changes
+  if (updatedPersonFormValues && personFormData !== updatedPersonFormValues) {
+    setPersonFormData(updatedPersonFormValues);
+  }
+
+  // Handle person form change
+  const handlePersonChange = (event) => {
+    const target = event.currentTarget || event.target;
+    const { name, value, type, checked } = target;
+    const newValue = type === "checkbox" ? checked : value;
+    setPersonFormData((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  // Handle medical file form change
+  const handleMedicalFileChange = (event) => {
+    const target = event.currentTarget || event.target;
+    const { name, value, type, checked } = target;
+    const newValue = type === "checkbox" ? checked : value;
+    setMedicalFileFormData((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  // Handle person form submission
+  const handlePersonSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const body = { ...personFormData };
+
+    if (!body.name?.trim()?.length) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("Une personne doit avoir un nom");
+    }
+    const existingPerson = persons.find((p) => p.name === body.name && p._id !== person._id);
+    if (existingPerson) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("Une personne existe déjà à ce nom");
+    }
+    if (!body.followedSince) body.followedSince = person.createdAt;
+    if (!body.assignedTeams?.length) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("Une personne doit être suivie par au moins une équipe");
+    }
+    if (outOfBoundariesDate(body.followedSince)) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("La date de suivi est hors limites (entre 1900 et 2100)");
+    }
+    if (body.birthdate && outOfBoundariesDate(body.birthdate)) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("La date de naissance est hors limites (entre 1900 et 2100)");
+    }
+    if (body.birthdate && dayjsInstance(body.birthdate).isAfter(dayjsInstance())) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("La date de naissance ne peut pas être dans le futur");
+    }
+    if (body.wanderingAt && outOfBoundariesDate(body.wanderingAt)) {
+      setOpenPanels(["main"]);
+      setIsPersonSubmitting(false);
+      return toast.error("La date temps passé en rue est hors limites (entre 1900 et 2100)");
+    }
+
+    // Ce state a deux utilités:
+    // 1. Eviter un flash des anciennes valeurs au moment de l'enregistrement
+    // 2. Retrouver les valeurs si on est passé par la modale de motifs de sortie
+    setUpdatedPersonFormValues(body);
+
+    // Ouverture de la modale si et seulement si il y a des équipes qui ont été retirées
+    const teamsRemoved = (person.assignedTeams || []).filter((t) => !body.assignedTeams.includes(t));
+    if (teamsRemoved.length) {
+      setIsPersonSubmitting(false);
+      return setIsOutOfTeamsModalOpen(true);
+    } else {
+      await saveAndClose(body);
+      setIsPersonSubmitting(false);
+    }
+  };
+
+  // Handle medical file form submission
+  const handleMedicalFileSubmit = async (e) => {
+    if (e) e.preventDefault();
+    const body = { ...medicalFileFormData };
+
+    setIsMedicalFileSubmitting(true);
+    body.entityKey = medicalFile.entityKey;
+    const bodyMedicalFile = body;
+
+    const historyEntry = {
+      date: new Date(),
+      user: user._id,
+      data: {},
+    };
+    for (const key in bodyMedicalFile) {
+      if (!flatCustomFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
+      if (!isEqual(bodyMedicalFile[key], medicalFile[key])) {
+        if (isEmptyValue(bodyMedicalFile[key]) && isEmptyValue(medicalFile[key])) continue;
+        historyEntry.data[key] = { oldValue: medicalFile[key], newValue: bodyMedicalFile[key] };
+      }
+    }
+    if (Object.keys(historyEntry.data).length) {
+      bodyMedicalFile.history = [...(medicalFile.history || []), historyEntry];
+    }
+
+    const [mfError] = await tryFetchExpectOk(async () =>
+      API.put({
+        path: `/medical-file/${medicalFile._id}`,
+        body: await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
+      })
+    );
+    let success = !mfError;
+    if (success) {
+      await refresh();
+    }
+
+    // We have to save legacy fields in person
+    const structureMedical = flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical");
+    const healthInsurances = flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances");
+    if (structureMedical || healthInsurances) {
+      const bodySocial = {
+        ...person,
+        structureMedical: structureMedical ? body.structureMedical : undefined,
+        healthInsurances: healthInsurances ? body.healthInsurances : undefined,
+      };
+
+      const historyEntry = {
+        date: new Date(),
+        user: user._id,
+        data: {},
+      };
+      for (const key in bodySocial) {
+        if (!allowedFieldsInHistory.includes(key)) continue;
+        if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
+        if (Object.keys(historyEntry.data).length) bodySocial.history = [...cleanHistory(person.history || []), historyEntry];
+      }
+      if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
+
+      const [personError] = await tryFetchExpectOk(async () =>
+        API.put({
+          path: `/person/${person._id}`,
+          body: await encryptPerson(bodySocial),
+        })
+      );
+      if (!personError) {
+        await refresh();
+      } else {
+        success = false;
+      }
+    }
+
+    setIsMedicalFileSubmitting(false);
+    if (!success) {
+      toast.error("Les données médicales n'ont pas été enregistrées");
+    } else {
+      toast.success("Mis à jour !");
+      onClose();
+    }
+  };
 
   const groupedCustomFieldsMedicalFileWithLegacyFields = useMemo(() => {
     const c = structuredClone(groupedCustomFieldsMedicalFile);
@@ -108,439 +279,314 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
         <ModalHeader title={`Modifier ${person.name}`} onClose={() => onClose()} />
         <ModalBody>
           <div className="tw-p-4">
-            <Formik
-              enableReinitialize
-              initialValues={updatedPersonFormValues || person}
-              onSubmit={async (body) => {
-                if (!body.name?.trim()?.length) {
-                  setOpenPanels(["main"]);
-                  return toast.error("Une personne doit avoir un nom");
-                }
-                const existingPerson = persons.find((p) => p.name === body.name && p._id !== person._id);
-                if (existingPerson) {
-                  setOpenPanels(["main"]);
-                  return toast.error("Une personne existe déjà à ce nom");
-                }
-                if (!body.followedSince) body.followedSince = person.createdAt;
-                if (!body.assignedTeams?.length) {
-                  setOpenPanels(["main"]);
-                  return toast.error("Une personne doit être suivie par au moins une équipe");
-                }
-                if (outOfBoundariesDate(body.followedSince)) {
-                  setOpenPanels(["main"]);
-                  return toast.error("La date de suivi est hors limites (entre 1900 et 2100)");
-                }
-                if (body.birthdate && outOfBoundariesDate(body.birthdate)) {
-                  setOpenPanels(["main"]);
-                  return toast.error("La date de naissance est hors limites (entre 1900 et 2100)");
-                }
-                if (body.birthdate && dayjsInstance(body.birthdate).isAfter(dayjsInstance())) {
-                  setOpenPanels(["main"]);
-                  return toast.error("La date de naissance ne peut pas être dans le futur");
-                }
-                if (body.wanderingAt && outOfBoundariesDate(body.wanderingAt)) {
-                  setOpenPanels(["main"]);
-                  return toast.error("La date temps passé en rue est hors limites (entre 1900 et 2100)");
-                }
-
-                // Ce state a deux utilités:
-                // 1. Eviter un flash des anciennes valeurs au moment de l'enregistrement
-                // 2. Retrouver les valeurs si on est passé par la modale de motifs de sortie
-                setUpdatedPersonFormValues(body);
-
-                // Ouverture de la modale si et seulement si il y a des équipes qui ont été retirées
-                const teamsRemoved = (person.assignedTeams || []).filter((t) => !body.assignedTeams.includes(t));
-                if (teamsRemoved.length) {
-                  return setIsOutOfTeamsModalOpen(true);
-                } else {
-                  await saveAndClose(body);
-                }
-              }}
-            >
-              {({ values, handleChange, handleSubmit, isSubmitting }) => {
-                return (
+            <div className="tw-text-sm">
+              <div>
+                <div
+                  className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
+                  onClick={() => {
+                    if (openPanels.includes("main")) {
+                      setOpenPanels(openPanels.filter((p) => p !== "main"));
+                    } else {
+                      setOpenPanels([...openPanels, "main"]);
+                    }
+                  }}
+                >
+                  <div className="tw-flex-1">Informations principales</div>
+                  <div>{!openPanels.includes("main") ? "+" : "-"}</div>
+                </div>
+                {openPanels.includes("main") && (
                   <>
-                    <div className="tw-text-sm">
-                      <div>
-                        <div
-                          className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
-                          onClick={() => {
-                            if (openPanels.includes("main")) {
-                              setOpenPanels(openPanels.filter((p) => p !== "main"));
-                            } else {
-                              setOpenPanels([...openPanels, "main"]);
-                            }
-                          }}
-                        >
-                          <div className="tw-flex-1">Informations principales</div>
-                          <div>{!openPanels.includes("main") ? "+" : "-"}</div>
+                    <div className="tw-flex -tw-mx-4 tw-flex-wrap">
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="name">
+                            Nom prénom ou Pseudonyme
+                          </label>
+                          <input
+                            className="tailwindui"
+                            autoComplete="off"
+                            name="name"
+                            id="name"
+                            value={personFormData.name || ""}
+                            onChange={handlePersonChange}
+                          />
                         </div>
-                        {openPanels.includes("main") && (
-                          <>
-                            <div className="tw-flex -tw-mx-4 tw-flex-wrap">
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="name">
-                                    Nom prénom ou Pseudonyme
-                                  </label>
-                                  <input
-                                    className="tailwindui"
-                                    autoComplete="off"
-                                    name="name"
-                                    id="name"
-                                    value={values.name || ""}
-                                    onChange={handleChange}
-                                  />
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="otherNames">
-                                    Autres pseudos
-                                  </label>
-                                  <input
-                                    autoComplete="off"
-                                    className="tailwindui"
-                                    name="otherNames"
-                                    id="otherNames"
-                                    value={values.otherNames || ""}
-                                    onChange={handleChange}
-                                  />
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-select-gender">
-                                  Genre
-                                </label>
-                                <SelectAsInput
-                                  options={personFields.find((f) => f.name === "gender").options}
-                                  name="gender"
-                                  value={values.gender || ""}
-                                  onChange={handleChange}
-                                  inputId="person-select-gender"
-                                  classNamePrefix="person-select-gender"
-                                />
-                              </div>
-
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-birthdate">
-                                    Date de naissance
-                                  </label>
-                                  <div>
-                                    <DatePicker name="birthdate" id="person-birthdate" defaultValue={values.birthdate} onChange={handleChange} />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-wanderingAt">
-                                    En rue depuis le
-                                  </label>
-                                  <div>
-                                    <DatePicker
-                                      name="wanderingAt"
-                                      id="person-wanderingAt"
-                                      defaultValue={values.wanderingAt}
-                                      onChange={handleChange}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-followedSince">
-                                    Suivi(e) depuis le / Créé(e) le
-                                  </label>
-                                  <div>
-                                    <DatePicker
-                                      id="person-followedSince"
-                                      name="followedSince"
-                                      defaultValue={values.followedSince || values.createdAt}
-                                      onChange={handleChange}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-select-assigned-team">
-                                    Équipe(s) en charge
-                                  </label>
-                                  <div>
-                                    <SelectTeamMultiple
-                                      onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
-                                      value={values.assignedTeams}
-                                      colored
-                                      inputId="person-select-assigned-team"
-                                      classNamePrefix="person-select-assigned-team"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="phone">
-                                    Téléphone
-                                  </label>
-                                  <input
-                                    className="tailwindui"
-                                    autoComplete="off"
-                                    name="phone"
-                                    id="phone"
-                                    value={values.phone || ""}
-                                    onChange={handleChange}
-                                  />
-                                </div>
-                              </div>
-                              <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
-                                <div className="tw-mb-4">
-                                  <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="email">
-                                    Email
-                                  </label>
-                                  <input
-                                    className="tailwindui"
-                                    autoComplete="off"
-                                    type="email"
-                                    name="email"
-                                    id="email"
-                                    value={values.email || ""}
-                                    onChange={handleChange}
-                                  />
-                                </div>
-                              </div>
-                              {!["restricted-access"].includes(user.role) && (
-                                <div className="tw-basis-full tw-w-full tw-px-4">
-                                  <div className="tw-mb-4">
-                                    <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="description">
-                                      Description
-                                    </label>
-                                    <textarea
-                                      className="!tw-text-sm tailwindui"
-                                      rows={5}
-                                      name="description"
-                                      id="description"
-                                      value={values.description || ""}
-                                      onChange={handleChange}
-                                    />
-                                  </div>
-                                </div>
-                              )}
-                              <div className="tw-basis-full tw-p-4">
-                                <label htmlFor="person-alertness-checkbox">
-                                  <input
-                                    id="person-alertness-checkbox"
-                                    type="checkbox"
-                                    name="alertness"
-                                    checked={values.alertness}
-                                    onChange={() => handleChange({ target: { value: !values.alertness, name: "alertness" } })}
-                                    className="tw-mr-2"
-                                  />
-                                  Personne très vulnérable, ou ayant besoin d'une attention particulière
-                                </label>
-                              </div>
-                            </div>
-                            {isMedicalFile && (
-                              <div className="tw-flex tw-w-full tw-items-end tw-justify-end tw-gap-2">
-                                <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
-                                <ButtonCustom
-                                  disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
-                                  color="primary"
-                                  type="submit"
-                                  onClick={handleSubmit}
-                                  title="Enregistrer"
-                                />
-                              </div>
-                            )}
-                          </>
-                        )}
                       </div>
-                      {!isMedicalFile &&
-                        !["restricted-access"].includes(user.role) &&
-                        customFieldsPersons.map(({ name, fields }, index) => {
-                          if (!fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)).length) return null;
-                          return (
-                            <div key={name + index}>
-                              <div
-                                className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
-                                onClick={() => {
-                                  if (openPanels.includes(name)) {
-                                    setOpenPanels(openPanels.filter((p) => p !== name));
-                                  } else {
-                                    setOpenPanels([...openPanels, name]);
-                                  }
-                                }}
-                              >
-                                <div className="tw-flex-1">{name}</div>
-                                <div>{!openPanels.includes(name) ? "+" : "-"}</div>
-                              </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="otherNames">
+                            Autres pseudos
+                          </label>
+                          <input
+                            autoComplete="off"
+                            className="tailwindui"
+                            name="otherNames"
+                            id="otherNames"
+                            value={personFormData.otherNames || ""}
+                            onChange={handlePersonChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-select-gender">
+                          Genre
+                        </label>
+                        <SelectAsInput
+                          options={personFields.find((f) => f.name === "gender").options}
+                          name="gender"
+                          value={personFormData.gender || ""}
+                          onChange={handlePersonChange}
+                          inputId="person-select-gender"
+                          classNamePrefix="person-select-gender"
+                        />
+                      </div>
 
-                              <div className="[overflow-wrap:anywhere]">
-                                {openPanels.includes(name) && (
-                                  <div className="tw-flex -tw-mx-4 tw-flex-wrap">
-                                    {fields
-                                      .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
-                                      .map((field) => (
-                                        <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} key={field.name} />
-                                      ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-birthdate">
+                            Date de naissance
+                          </label>
+                          <div>
+                            <DatePicker
+                              name="birthdate"
+                              id="person-birthdate"
+                              defaultValue={personFormData.birthdate}
+                              onChange={handlePersonChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-wanderingAt">
+                            En rue depuis le
+                          </label>
+                          <div>
+                            <DatePicker
+                              name="wanderingAt"
+                              id="person-wanderingAt"
+                              defaultValue={personFormData.wanderingAt}
+                              onChange={handlePersonChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-followedSince">
+                            Suivi(e) depuis le / Créé(e) le
+                          </label>
+                          <div>
+                            <DatePicker
+                              id="person-followedSince"
+                              name="followedSince"
+                              defaultValue={personFormData.followedSince || personFormData.createdAt}
+                              onChange={handlePersonChange}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="person-select-assigned-team">
+                            Équipe(s) en charge
+                          </label>
+                          <div>
+                            <SelectTeamMultiple
+                              onChange={(teamIds) => handlePersonChange({ target: { name: "assignedTeams", value: teamIds } })}
+                              value={personFormData.assignedTeams}
+                              colored
+                              inputId="person-select-assigned-team"
+                              classNamePrefix="person-select-assigned-team"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="phone">
+                            Téléphone
+                          </label>
+                          <input
+                            className="tailwindui"
+                            autoComplete="off"
+                            name="phone"
+                            id="phone"
+                            value={personFormData.phone || ""}
+                            onChange={handlePersonChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="tw-basis-1/3 tw-w-1/3 tw-px-4">
+                        <div className="tw-mb-4">
+                          <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="email">
+                            Email
+                          </label>
+                          <input
+                            className="tailwindui"
+                            autoComplete="off"
+                            type="email"
+                            name="email"
+                            id="email"
+                            value={personFormData.email || ""}
+                            onChange={handlePersonChange}
+                          />
+                        </div>
+                      </div>
+                      {!["restricted-access"].includes(user.role) && (
+                        <div className="tw-basis-full tw-w-full tw-px-4">
+                          <div className="tw-mb-4">
+                            <label className="tw-text-sm tw-font-semibold tw-text-gray-600" htmlFor="description">
+                              Description
+                            </label>
+                            <textarea
+                              className="!tw-text-sm tailwindui"
+                              rows={5}
+                              name="description"
+                              id="description"
+                              value={personFormData.description || ""}
+                              onChange={handlePersonChange}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <div className="tw-basis-full tw-p-4">
+                        <label htmlFor="person-alertness-checkbox">
+                          <input
+                            id="person-alertness-checkbox"
+                            type="checkbox"
+                            name="alertness"
+                            checked={personFormData.alertness}
+                            onChange={handlePersonChange}
+                            className="tw-mr-2"
+                          />
+                          Personne très vulnérable, ou ayant besoin d'une attention particulière
+                        </label>
+                      </div>
                     </div>
-                    {!isMedicalFile && (
-                      <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                        <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                    {isMedicalFile && (
+                      <div className="tw-flex tw-w-full tw-items-end tw-justify-end tw-gap-2">
+                        <ButtonCustom type="button" disabled={isPersonSubmitting} color="secondary" onClick={onClose} title="Annuler" />
                         <ButtonCustom
-                          disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
+                          disabled={isPersonSubmitting || isEqual(person, personFormData)}
                           color="primary"
                           type="submit"
-                          onClick={handleSubmit}
+                          onClick={handlePersonSubmit}
                           title="Enregistrer"
                         />
                       </div>
                     )}
                   </>
-                );
-              }}
-            </Formik>
-            {isMedicalFile && (
-              <Formik
-                enableReinitialize
-                initialValues={{
-                  ...medicalFile,
-                  structureMedical: person.structureMedical,
-                  healthInsurances: person.healthInsurances,
-                }}
-                onSubmit={async (body) => {
-                  body.entityKey = medicalFile.entityKey;
-                  const bodyMedicalFile = body;
-
-                  const historyEntry = {
-                    date: new Date(),
-                    user: user._id,
-                    data: {},
-                  };
-                  for (const key in bodyMedicalFile) {
-                    if (!flatCustomFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
-                    if (!isEqual(bodyMedicalFile[key], medicalFile[key])) {
-                      if (isEmptyValue(bodyMedicalFile[key]) && isEmptyValue(medicalFile[key])) continue;
-                      historyEntry.data[key] = { oldValue: medicalFile[key], newValue: bodyMedicalFile[key] };
-                    }
-                  }
-                  if (Object.keys(historyEntry.data).length) {
-                    bodyMedicalFile.history = [...(medicalFile.history || []), historyEntry];
-                  }
-
-                  const [mfError] = await tryFetchExpectOk(async () =>
-                    API.put({
-                      path: `/medical-file/${medicalFile._id}`,
-                      body: await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
-                    })
-                  );
-                  let success = !mfError;
-                  if (success) {
-                    await refresh();
-                  }
-
-                  // We have to save legacy fields in person
-                  const structureMedical = flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical");
-                  const healthInsurances = flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances");
-                  if (structureMedical || healthInsurances) {
-                    const bodySocial = {
-                      ...person,
-                      structureMedical: structureMedical ? body.structureMedical : undefined,
-                      healthInsurances: healthInsurances ? body.healthInsurances : undefined,
-                    };
-
-                    const historyEntry = {
-                      date: new Date(),
-                      user: user._id,
-                      data: {},
-                    };
-                    for (const key in bodySocial) {
-                      if (!allowedFieldsInHistory.includes(key)) continue;
-                      if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
-                      if (Object.keys(historyEntry.data).length) bodySocial.history = [...cleanHistory(person.history || []), historyEntry];
-                    }
-                    if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
-
-                    const [personError] = await tryFetchExpectOk(async () =>
-                      API.put({
-                        path: `/person/${person._id}`,
-                        body: await encryptPerson(bodySocial),
-                      })
-                    );
-                    if (!personError) {
-                      await refresh();
-                    } else {
-                      success = false;
-                    }
-                  }
-
-                  if (!success) {
-                    toast.error("Les données médicales n'ont pas été enregistrées");
-                  } else {
-                    toast.success("Mis à jour !");
-                    onClose();
-                  }
-                }}
-              >
-                {({ values, handleChange, handleSubmit, isSubmitting }) => {
+                )}
+              </div>
+              {!isMedicalFile &&
+                !["restricted-access"].includes(user.role) &&
+                customFieldsPersons.map(({ name, fields }, index) => {
+                  if (!fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)).length) return null;
                   return (
-                    <>
-                      {groupedCustomFieldsMedicalFileWithLegacyFields.map(({ name, fields }) => {
-                        const key = name !== "Groupe par défaut" ? name : "Dossier Médical";
-                        return (
-                          <div key={key}>
-                            <div
-                              className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
-                              onClick={() => {
-                                if (openPanels.includes(key)) {
-                                  setOpenPanels(openPanels.filter((p) => p !== key));
-                                } else {
-                                  setOpenPanels([...openPanels, key]);
-                                }
-                              }}
-                            >
-                              <div className="tw-flex-1">{key}</div>
-                              <div>{!openPanels.includes(key) ? "+" : "-"}</div>
-                            </div>
+                    <div key={name + index}>
+                      <div
+                        className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
+                        onClick={() => {
+                          if (openPanels.includes(name)) {
+                            setOpenPanels(openPanels.filter((p) => p !== name));
+                          } else {
+                            setOpenPanels([...openPanels, name]);
+                          }
+                        }}
+                      >
+                        <div className="tw-flex-1">{name}</div>
+                        <div>{!openPanels.includes(name) ? "+" : "-"}</div>
+                      </div>
 
-                            <div className="[overflow-wrap:anywhere]">
-                              {openPanels.includes(key) && (
-                                <>
-                                  <div className="tw-flex -tw-mx-4 tw-flex-wrap">
-                                    {fields
-                                      .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
-                                      .map((field) => (
-                                        <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} key={field.name} />
-                                      ))}
-                                  </div>
-                                  <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                                    <ButtonCustom type="button" disabled={isSubmitting} color="secondary" onClick={onClose} title="Annuler" />
-                                    <ButtonCustom
-                                      disabled={isSubmitting || JSON.stringify(person) === JSON.stringify(values)}
-                                      color="primary"
-                                      type="submit"
-                                      onClick={handleSubmit}
-                                      title="Enregistrer"
-                                    />
-                                  </div>
-                                </>
-                              )}
-                            </div>
+                      <div className="[overflow-wrap:anywhere]">
+                        {openPanels.includes(name) && (
+                          <div className="tw-flex -tw-mx-4 tw-flex-wrap">
+                            {fields
+                              .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
+                              .map((field) => (
+                                <CustomFieldInput
+                                  model="person"
+                                  values={personFormData}
+                                  handleChange={handlePersonChange}
+                                  field={field}
+                                  key={field.name}
+                                />
+                              ))}
                           </div>
-                        );
-                      })}
-                    </>
+                        )}
+                      </div>
+                    </div>
                   );
-                }}
-              </Formik>
+                })}
+            </div>
+            {!isMedicalFile && (
+              <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
+                <ButtonCustom type="button" disabled={isPersonSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                <ButtonCustom
+                  disabled={isPersonSubmitting || isEqual(person, personFormData)}
+                  color="primary"
+                  type="submit"
+                  onClick={handlePersonSubmit}
+                  title="Enregistrer"
+                />
+              </div>
             )}
           </div>
+          {isMedicalFile && (
+            <div className="tw-p-4">
+              {groupedCustomFieldsMedicalFileWithLegacyFields.map(({ name, fields }) => {
+                const key = name !== "Groupe par défaut" ? name : "Dossier Médical";
+                return (
+                  <div key={key}>
+                    <div
+                      className="tw-mb-4 tw-flex tw-cursor-pointer tw-border-b tw-pb-2 tw-text-lg tw-font-semibold"
+                      onClick={() => {
+                        if (openPanels.includes(key)) {
+                          setOpenPanels(openPanels.filter((p) => p !== key));
+                        } else {
+                          setOpenPanels([...openPanels, key]);
+                        }
+                      }}
+                    >
+                      <div className="tw-flex-1">{key}</div>
+                      <div>{!openPanels.includes(key) ? "+" : "-"}</div>
+                    </div>
+
+                    <div className="[overflow-wrap:anywhere]">
+                      {openPanels.includes(key) && (
+                        <>
+                          <div className="tw-flex -tw-mx-4 tw-flex-wrap">
+                            {fields
+                              .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
+                              .map((field) => (
+                                <CustomFieldInput
+                                  model="person"
+                                  values={medicalFileFormData}
+                                  handleChange={handleMedicalFileChange}
+                                  field={field}
+                                  key={field.name}
+                                />
+                              ))}
+                          </div>
+                          <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
+                            <ButtonCustom type="button" disabled={isMedicalFileSubmitting} color="secondary" onClick={onClose} title="Annuler" />
+                            <ButtonCustom
+                              disabled={isMedicalFileSubmitting || isEqual(medicalFile, medicalFileFormData)}
+                              color="primary"
+                              type="submit"
+                              onClick={handleMedicalFileSubmit}
+                              title="Enregistrer"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </ModalBody>
       </ModalContainer>
     </>
