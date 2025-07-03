@@ -38,8 +38,8 @@ const getRawValue = (field, value) => {
     if (field.type === "text") return <span>{value}</span>;
     if (field.type === "textarea") return <span>{value}</span>;
     if (field.type === "number") return <span>{value}</span>;
-    if (field.type === "date") return <span>{dayjs(value).format("DD/MM/YYYY")}</span>;
-    if (field.type === "date-with-time") return <span>{dayjs(value).format("DD/MM/YYYY HH:mm")}</span>;
+    if (field.type === "date") return <span>{value && dayjs(value).isValid() ? dayjs(value).format("DD/MM/YYYY") : ""}</span>;
+    if (field.type === "date-with-time") return <span>{value && dayjs(value).isValid() ? dayjs(value).format("DD/MM/YYYY HH:mm") : ""}</span>;
     if (field.type === "duration") return <span>{formatAge(value)}</span>;
     if (field.type === "yes-no") return <span>{value}</span>;
     if (field.type === "enum") return <span>{value}</span>;
