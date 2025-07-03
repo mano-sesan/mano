@@ -78,7 +78,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   // Handle person form submission
   const handlePersonSubmit = async (e) => {
     if (e) e.preventDefault();
-    const body = personFormData;
+    const body = { ...personFormData };
 
     if (!body.name?.trim()?.length) {
       setOpenPanels(["main"]);
@@ -137,7 +137,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   // Handle medical file form submission
   const handleMedicalFileSubmit = async (e) => {
     if (e) e.preventDefault();
-    const body = medicalFileFormData;
+    const body = { ...medicalFileFormData };
 
     setIsMedicalFileSubmitting(true);
     body.entityKey = medicalFile.entityKey;
