@@ -86,6 +86,12 @@ const MergeTwoPersons = ({ person }) => {
   const [values, setValues] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const handleClose = () => {
+    setOpen(false);
+    setPersonToMergeAndDelete(null);
+    setValues({});
+  };
+
   const allFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
   const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
 
@@ -349,7 +355,7 @@ const MergeTwoPersons = ({ person }) => {
 
     refresh();
 
-    setOpen(false);
+    handleClose();
     setIsSubmitting(false);
   };
 
@@ -379,8 +385,8 @@ const MergeTwoPersons = ({ person }) => {
   return (
     <>
       <ButtonCustom title="Fusionner avec un autre dossier" color="link" type="button" onClick={() => setOpen(true)} />
-      <ModalContainer open={open} onClose={() => setOpen(false)} size="5xl">
-        <ModalHeader onClose={() => setOpen(false)}>
+      <ModalContainer open={open} onClose={handleClose} size="5xl">
+        <ModalHeader onClose={handleClose}>
           <div className="tw-flex tw-flex-col tw-gap-4 tw-py-4">
             <div className="tw-flex tw-items-center tw-justify-center tw-gap-4">
               <div className="tw-flex tw-items-center tw-w-20 tw-justify-end">Fusionner</div>
@@ -506,7 +512,7 @@ const MergeTwoPersons = ({ person }) => {
         </ModalBody>
         {!!initMergedPerson && (
           <ModalFooter>
-            <button type="button" className="button-cancel" onClick={() => setOpen(false)}>
+            <button type="button" className="button-cancel" onClick={handleClose}>
               Annuler
             </button>
             <button type="button" disabled={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} className="button-submit">
