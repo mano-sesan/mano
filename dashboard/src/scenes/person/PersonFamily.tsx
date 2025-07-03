@@ -41,6 +41,9 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
     personId = String(personId);
     description = String(description);
 
+    if (!personId) {
+      return toast.error("Veuillez sélectionner une personne pour créer le lien familial");
+    }
     if (person._id === personId) {
       return toast.error("Le lien avec cette personne est vite vu : c'est elle !");
     }
