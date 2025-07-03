@@ -102,7 +102,7 @@ test("merging normal user with health data", async ({ page }) => {
     await expect(page.getByRole("cell", { name: "Numéro de sécurité sociale" })).toBeVisible();
     await changeReactSelectValue(page, "person-to-merge-with-select", "3");
     await expect(page.getByRole("cell", { name: "Multi-champ" })).toBeVisible();
-    await page.getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Fermer" }).click();
   });
 
   await test.step("login as normal user and try to merge", async () => {
