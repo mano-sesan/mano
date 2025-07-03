@@ -172,7 +172,7 @@ const MergeTwoPersons = ({ person }) => {
     <>
       <ButtonCustom title="Fusionner avec un autre dossier" color="link" type="button" onClick={() => setOpen(true)} />
       <ModalContainer open={open} onClose={() => setOpen(false)} size="5xl">
-        <ModalHeader>
+        <ModalHeader onClose={() => setOpen(false)}>
           <div className="tw-flex tw-flex-col tw-gap-4 tw-py-4">
             <div className="tw-flex tw-items-center tw-justify-center tw-gap-4">
               <div className="tw-flex tw-items-center tw-w-20 tw-justify-end">Fusionner</div>
