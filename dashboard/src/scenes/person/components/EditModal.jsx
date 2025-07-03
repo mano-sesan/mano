@@ -59,6 +59,16 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     setPersonFormData(updatedPersonFormValues);
   }
 
+  // Helper function to check if any data has changed
+  const hasDataChanged = () => {
+    const personHasChanged = !isEqual(person, personFormData);
+    if (!isMedicalFile) return personHasChanged;
+
+    const { structureMedical, healthInsurances, ...medicalFileDataWithoutLegacy } = medicalFileFormData;
+    const medicalFileHasChanged = !isEqual(medicalFile, medicalFileDataWithoutLegacy);
+    return personHasChanged || medicalFileHasChanged;
+  };
+
   // Handle person form change
   const handlePersonChange = (event) => {
     const target = event.currentTarget || event.target;
@@ -75,142 +85,208 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     setMedicalFileFormData((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // Handle person form submission
-  const handlePersonSubmit = async (e) => {
+  // Unified submit handler for both person and medical file data
+  const handleUnifiedSubmit = async (e) => {
     if (e) e.preventDefault();
-    const body = { ...personFormData };
 
-    if (!body.name?.trim()?.length) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("Une personne doit avoir un nom");
-    }
-    const existingPerson = persons.find((p) => p.name === body.name && p._id !== person._id);
-    if (existingPerson) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("Une personne existe déjà à ce nom");
-    }
-    if (!body.followedSince) body.followedSince = person.createdAt;
-    if (!body.assignedTeams?.length) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("Une personne doit être suivie par au moins une équipe");
-    }
-    if (outOfBoundariesDate(body.followedSince)) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("La date de suivi est hors limites (entre 1900 et 2100)");
-    }
-    if (body.birthdate && outOfBoundariesDate(body.birthdate)) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("La date de naissance est hors limites (entre 1900 et 2100)");
-    }
-    if (body.birthdate && dayjsInstance(body.birthdate).isAfter(dayjsInstance())) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("La date de naissance ne peut pas être dans le futur");
-    }
-    if (body.wanderingAt && outOfBoundariesDate(body.wanderingAt)) {
-      setOpenPanels(["main"]);
-      setIsPersonSubmitting(false);
-      return toast.error("La date temps passé en rue est hors limites (entre 1900 et 2100)");
+    if (!hasDataChanged()) {
+      return onClose();
     }
 
-    // Ce state a deux utilités:
-    // 1. Eviter un flash des anciennes valeurs au moment de l'enregistrement
-    // 2. Retrouver les valeurs si on est passé par la modale de motifs de sortie
-    setUpdatedPersonFormValues(body);
+    const personHasChanged = !isEqual(person, personFormData);
 
-    // Ouverture de la modale si et seulement si il y a des équipes qui ont été retirées
-    const teamsRemoved = (person.assignedTeams || []).filter((t) => !body.assignedTeams.includes(t));
-    if (teamsRemoved.length) {
-      setIsPersonSubmitting(false);
-      return setIsOutOfTeamsModalOpen(true);
-    } else {
-      await saveAndClose(body);
-      setIsPersonSubmitting(false);
+    // For medical file comparison, we need to exclude legacy fields that are stored in person
+    let medicalFileHasChanged = false;
+    if (isMedicalFile) {
+      const { structureMedical, healthInsurances, ...medicalFileDataWithoutLegacy } = medicalFileFormData;
+      medicalFileHasChanged = !isEqual(medicalFile, medicalFileDataWithoutLegacy);
     }
-  };
 
-  // Handle medical file form submission
-  const handleMedicalFileSubmit = async (e) => {
-    if (e) e.preventDefault();
-    const body = { ...medicalFileFormData };
+    setIsPersonSubmitting(true);
+    if (isMedicalFile) setIsMedicalFileSubmitting(true);
 
-    setIsMedicalFileSubmitting(true);
-    body.entityKey = medicalFile.entityKey;
-    const bodyMedicalFile = body;
+    let success = true;
+    let personSuccess = true;
+    let medicalFileSuccess = true;
 
-    const historyEntry = {
-      date: new Date(),
-      user: user._id,
-      data: {},
-    };
-    for (const key in bodyMedicalFile) {
-      if (!flatCustomFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
-      if (!isEqual(bodyMedicalFile[key], medicalFile[key])) {
-        if (isEmptyValue(bodyMedicalFile[key]) && isEmptyValue(medicalFile[key])) continue;
-        historyEntry.data[key] = { oldValue: medicalFile[key], newValue: bodyMedicalFile[key] };
+    // Save person data if it has changed
+    if (personHasChanged) {
+      const body = { ...personFormData };
+
+      // Person validation
+      if (!body.name?.trim()?.length) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("Une personne doit avoir un nom");
+      }
+      const existingPerson = persons.find((p) => p.name === body.name && p._id !== person._id);
+      if (existingPerson) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("Une personne existe déjà à ce nom");
+      }
+      if (!body.followedSince) body.followedSince = person.createdAt;
+      if (!body.assignedTeams?.length) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("Une personne doit être suivie par au moins une équipe");
+      }
+      if (outOfBoundariesDate(body.followedSince)) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("La date de suivi est hors limites (entre 1900 et 2100)");
+      }
+      if (body.birthdate && outOfBoundariesDate(body.birthdate)) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("La date de naissance est hors limites (entre 1900 et 2100)");
+      }
+      if (body.birthdate && dayjsInstance(body.birthdate).isAfter(dayjsInstance())) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("La date de naissance ne peut pas être dans le futur");
+      }
+      if (body.wanderingAt && outOfBoundariesDate(body.wanderingAt)) {
+        setOpenPanels(["main"]);
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return toast.error("La date temps passé en rue est hors limites (entre 1900 et 2100)");
+      }
+
+      setUpdatedPersonFormValues(body);
+
+      // Check for teams removed
+      const teamsRemoved = (person.assignedTeams || []).filter((t) => !body.assignedTeams.includes(t));
+      if (teamsRemoved.length) {
+        setIsPersonSubmitting(false);
+        if (isMedicalFile) setIsMedicalFileSubmitting(false);
+        return setIsOutOfTeamsModalOpen(true);
+      }
+
+      // Save person data
+      body.entityKey = person.entityKey;
+      const historyEntry = {
+        date: new Date(),
+        user: user._id,
+        userName: user.name,
+        data: {},
+      };
+      for (const key in body) {
+        if (!allowedFieldsInHistory.includes(key)) continue;
+        if (!isEqual(body[key], person[key])) {
+          if (isEmptyValue(body[key]) && isEmptyValue(person[key])) continue;
+          historyEntry.data[key] = { oldValue: person[key], newValue: body[key] };
+        }
+      }
+      if (Object.keys(historyEntry.data).length) body.history = [...cleanHistory(person.history || []), historyEntry];
+
+      const [personError] = await tryFetchExpectOk(async () =>
+        API.put({
+          path: `/person/${person._id}`,
+          body: await encryptPerson(body),
+        })
+      );
+
+      if (personError) {
+        personSuccess = false;
+        success = false;
       }
     }
-    if (Object.keys(historyEntry.data).length) {
-      bodyMedicalFile.history = [...(medicalFile.history || []), historyEntry];
-    }
 
-    const [mfError] = await tryFetchExpectOk(async () =>
-      API.put({
-        path: `/medical-file/${medicalFile._id}`,
-        body: await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
-      })
-    );
-    let success = !mfError;
-    if (success) {
-      await refresh();
-    }
-
-    // We have to save legacy fields in person
-    const structureMedical = flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical");
-    const healthInsurances = flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances");
-    if (structureMedical || healthInsurances) {
-      const bodySocial = {
-        ...person,
-        structureMedical: structureMedical ? body.structureMedical : undefined,
-        healthInsurances: healthInsurances ? body.healthInsurances : undefined,
-      };
+    // Save medical file data if it has changed and we're in medical file mode
+    if (medicalFileHasChanged) {
+      const body = { ...medicalFileFormData };
+      body.entityKey = medicalFile.entityKey;
+      const bodyMedicalFile = body;
 
       const historyEntry = {
         date: new Date(),
         user: user._id,
         data: {},
       };
-      for (const key in bodySocial) {
-        if (!allowedFieldsInHistory.includes(key)) continue;
-        if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
-        if (Object.keys(historyEntry.data).length) bodySocial.history = [...cleanHistory(person.history || []), historyEntry];
+      for (const key in bodyMedicalFile) {
+        if (!flatCustomFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
+        if (!isEqual(bodyMedicalFile[key], medicalFile[key])) {
+          if (isEmptyValue(bodyMedicalFile[key]) && isEmptyValue(medicalFile[key])) continue;
+          historyEntry.data[key] = { oldValue: medicalFile[key], newValue: bodyMedicalFile[key] };
+        }
       }
-      if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
+      if (Object.keys(historyEntry.data).length) {
+        bodyMedicalFile.history = [...(medicalFile.history || []), historyEntry];
+      }
 
-      const [personError] = await tryFetchExpectOk(async () =>
+      const [mfError] = await tryFetchExpectOk(async () =>
         API.put({
-          path: `/person/${person._id}`,
-          body: await encryptPerson(bodySocial),
+          path: `/medical-file/${medicalFile._id}`,
+          body: await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
         })
       );
-      if (!personError) {
-        await refresh();
-      } else {
+
+      if (mfError) {
+        medicalFileSuccess = false;
         success = false;
+      }
+
+      // Save legacy fields in person
+      const structureMedical = flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical");
+      const healthInsurances = flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances");
+      if (structureMedical || healthInsurances) {
+        const bodySocial = {
+          ...person,
+          structureMedical: structureMedical ? body.structureMedical : undefined,
+          healthInsurances: healthInsurances ? body.healthInsurances : undefined,
+        };
+
+        const historyEntry = {
+          date: new Date(),
+          user: user._id,
+          data: {},
+        };
+        for (const key in bodySocial) {
+          if (!allowedFieldsInHistory.includes(key)) continue;
+          if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
+        }
+        if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
+
+        const [personError] = await tryFetchExpectOk(async () =>
+          API.put({
+            path: `/person/${person._id}`,
+            body: await encryptPerson(bodySocial),
+          })
+        );
+
+        if (personError) {
+          success = false;
+        }
       }
     }
 
-    setIsMedicalFileSubmitting(false);
-    if (!success) {
-      toast.error("Les données médicales n'ont pas été enregistrées");
-    } else {
+    // Refresh data if any save was successful
+    if (success || personSuccess || medicalFileSuccess) {
+      await refresh();
+    }
+
+    setIsPersonSubmitting(false);
+    if (isMedicalFile) setIsMedicalFileSubmitting(false);
+
+    // Show appropriate success/error messages
+    if (success) {
       toast.success("Mis à jour !");
       onClose();
+    } else {
+      if (!personSuccess && !medicalFileSuccess) {
+        toast.error("Erreur de l'enregistrement, les données n'ont pas été enregistrées");
+      } else if (!personSuccess) {
+        toast.error("Erreur de l'enregistrement des données de la personne");
+      } else if (!medicalFileSuccess) {
+        toast.error("Erreur de l'enregistrement des données médicales");
+      }
     }
   };
 
@@ -269,9 +345,13 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     <>
       <OutOfTeamsModal
         open={isOutOfTeamsModalOpen}
-        onClose={(outOfActiveListReasons) => {
+        onClose={async (outOfActiveListReasons) => {
           setIsOutOfTeamsModalOpen(false);
-          saveAndClose(updatedPersonFormValues, outOfActiveListReasons);
+          if (outOfActiveListReasons) {
+            await saveAndClose(updatedPersonFormValues, outOfActiveListReasons);
+          } else {
+            await saveAndClose(updatedPersonFormValues);
+          }
         }}
         removedTeams={isOutOfTeamsModalOpen ? person.assignedTeams.filter((t) => !updatedPersonFormValues.assignedTeams.includes(t)) : []}
       />
@@ -464,18 +544,6 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                         </label>
                       </div>
                     </div>
-                    {isMedicalFile && (
-                      <div className="tw-flex tw-w-full tw-items-end tw-justify-end tw-gap-2">
-                        <ButtonCustom type="button" disabled={isPersonSubmitting} color="secondary" onClick={onClose} title="Annuler" />
-                        <ButtonCustom
-                          disabled={isPersonSubmitting || isEqual(person, personFormData)}
-                          color="primary"
-                          type="submit"
-                          onClick={handlePersonSubmit}
-                          title="Enregistrer"
-                        />
-                      </div>
-                    )}
                   </>
                 )}
               </div>
@@ -520,18 +588,6 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                   );
                 })}
             </div>
-            {!isMedicalFile && (
-              <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                <ButtonCustom type="button" disabled={isPersonSubmitting} color="secondary" onClick={onClose} title="Annuler" />
-                <ButtonCustom
-                  disabled={isPersonSubmitting || isEqual(person, personFormData)}
-                  color="primary"
-                  type="submit"
-                  onClick={handlePersonSubmit}
-                  title="Enregistrer"
-                />
-              </div>
-            )}
           </div>
           {isMedicalFile && (
             <div className="tw-p-4">
@@ -569,16 +625,6 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                                 />
                               ))}
                           </div>
-                          <div className="tw-flex tw-items-end tw-justify-end tw-gap-2">
-                            <ButtonCustom type="button" disabled={isMedicalFileSubmitting} color="secondary" onClick={onClose} title="Annuler" />
-                            <ButtonCustom
-                              disabled={isMedicalFileSubmitting || isEqual(medicalFile, medicalFileFormData)}
-                              color="primary"
-                              type="submit"
-                              onClick={handleMedicalFileSubmit}
-                              title="Enregistrer"
-                            />
-                          </div>
                         </>
                       )}
                     </div>
@@ -588,6 +634,22 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
             </div>
           )}
         </ModalBody>
+        <ModalFooter>
+          <ButtonCustom
+            type="button"
+            disabled={isPersonSubmitting || (isMedicalFile && isMedicalFileSubmitting)}
+            color="secondary"
+            onClick={onClose}
+            title="Annuler"
+          />
+          <ButtonCustom
+            disabled={isPersonSubmitting || (isMedicalFile && isMedicalFileSubmitting) || !hasDataChanged()}
+            color="primary"
+            type="submit"
+            onClick={handleUnifiedSubmit}
+            title="Enregistrer"
+          />
+        </ModalFooter>
       </ModalContainer>
     </>
   );
