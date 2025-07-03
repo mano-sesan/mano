@@ -418,102 +418,102 @@ const MergeTwoPersons = ({ person }) => {
         </ModalHeader>
         <ModalBody>
           {!!initMergedPerson && (
-            <>
-              <div className="tw-px-4 tw-py-4">
-                <Table
-                  data={[...fields, ...(user.healthcareProfessional ? medicalFields : [])]}
-                  // use this key prop to reset table and reset sortablejs on each element added/removed
-                  rowKey="name"
-                  columns={[
-                    {
-                      dataKey: "field",
-                      render: (field) => {
-                        return <Field>{field.name === "user" ? "Créé(e) par" : field.label}</Field>;
-                      },
+            <div className="tw-px-4 tw-py-4">
+              <Table
+                data={[...fields, ...(user.healthcareProfessional ? medicalFields : [])]}
+                // use this key prop to reset table and reset sortablejs on each element added/removed
+                rowKey="name"
+                columns={[
+                  {
+                    dataKey: "field",
+                    render: (field) => {
+                      return <Field>{field.name === "user" ? "Créé(e) par" : field.label}</Field>;
                     },
-                    {
-                      title: originPerson?.name,
-                      dataKey: "originPerson",
-                      render: (field) => {
-                        if (field.name === "user")
-                          return (
-                            <div className="tw-w-full">
-                              <UserName id={originPerson.user} />
-                            </div>
-                          );
-                        if (field.name === "assignedTeams") {
-                          return (
-                            <div className="tw-w-full">
-                              {originPerson?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
-                            </div>
-                          );
-                        }
-                        return getRawValue(field, originPerson[field.name] || originPersonMedicalFile?.[field.name]);
-                      },
+                  },
+                  {
+                    title: originPerson?.name,
+                    dataKey: "originPerson",
+                    render: (field) => {
+                      if (field.name === "user")
+                        return (
+                          <div className="tw-w-full">
+                            <UserName id={originPerson.user} />
+                          </div>
+                        );
+                      if (field.name === "assignedTeams") {
+                        return (
+                          <div className="tw-w-full">
+                            {originPerson?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
+                          </div>
+                        );
+                      }
+                      return getRawValue(field, originPerson[field.name] || originPersonMedicalFile?.[field.name]);
                     },
-                    {
-                      title: personToMergeAndDelete?.name,
-                      dataKey: "personToMergeAndDelete",
-                      render: (field) => {
-                        if (field.name === "user")
-                          return (
-                            <div className="tw-w-full">
-                              <UserName id={personToMergeAndDelete?.user} />
-                            </div>
-                          );
-                        if (field.name === "assignedTeams") {
-                          return (
-                            <div className="tw-w-full">
-                              {personToMergeAndDelete?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
-                            </div>
-                          );
-                        }
-                        return getRawValue(field, personToMergeAndDelete?.[field.name] || personToMergeMedicalFile?.[field.name]);
-                      },
+                  },
+                  {
+                    title: personToMergeAndDelete?.name,
+                    dataKey: "personToMergeAndDelete",
+                    render: (field) => {
+                      if (field.name === "user")
+                        return (
+                          <div className="tw-w-full">
+                            <UserName id={personToMergeAndDelete?.user} />
+                          </div>
+                        );
+                      if (field.name === "assignedTeams") {
+                        return (
+                          <div className="tw-w-full">
+                            {personToMergeAndDelete?.assignedTeams?.map((id) => teams.find((t) => t._id === id)?.name).join(", ")}
+                          </div>
+                        );
+                      }
+                      return getRawValue(field, personToMergeAndDelete?.[field.name] || personToMergeMedicalFile?.[field.name]);
                     },
-                    {
-                      title: "Je garde :",
-                      dataKey: "keeping",
-                      render: (field) => {
-                        if (field.name === "user")
-                          return (
-                            <div className="tw-w-full">
-                              <UserName
-                                id={values.user}
-                                canAddUser
-                                handleChange={async (newUser) => handleChange({ currentTarget: { name: "user", value: newUser } })}
-                              />
-                            </div>
-                          );
-                        if (field.name === "assignedTeams")
-                          return (
-                            <div className="tw-w-full">
-                              <SelectTeamMultiple
-                                onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
-                                value={values.assignedTeams}
-                                colored
-                                inputId="person-select-assigned-team"
-                                classNamePrefix="person-select-assigned-team"
-                              />
-                            </div>
-                          );
-                        return <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} hideLabel colWidth={12} />;
-                      },
+                  },
+                  {
+                    title: "Je garde :",
+                    dataKey: "keeping",
+                    render: (field) => {
+                      if (field.name === "user")
+                        return (
+                          <div className="tw-w-full">
+                            <UserName
+                              id={values.user}
+                              canAddUser
+                              handleChange={async (newUser) => handleChange({ currentTarget: { name: "user", value: newUser } })}
+                            />
+                          </div>
+                        );
+                      if (field.name === "assignedTeams")
+                        return (
+                          <div className="tw-w-full">
+                            <SelectTeamMultiple
+                              onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
+                              value={values.assignedTeams}
+                              colored
+                              inputId="person-select-assigned-team"
+                              classNamePrefix="person-select-assigned-team"
+                            />
+                          </div>
+                        );
+                      return <CustomFieldInput model="person" values={values} handleChange={handleChange} field={field} hideLabel colWidth={12} />;
                     },
-                  ]}
-                />
-              </div>
-              <ModalFooter>
-                <button type="button" className="button-cancel" onClick={() => setOpen(false)}>
-                  Annuler
-                </button>
-                <button type="button" disabled={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} className="button-submit">
-                  {isSubmitting ? "Fusion en cours" : "Fusionner"}
-                </button>
-              </ModalFooter>
-            </>
+                  },
+                ]}
+              />
+            </div>
           )}
         </ModalBody>
+        {!!initMergedPerson && (
+          <ModalFooter>
+            <button type="button" className="button-cancel" onClick={() => setOpen(false)}>
+              Annuler
+            </button>
+            <button type="button" disabled={isSubmitting} onClick={() => !isSubmitting && handleSubmit()} className="button-submit">
+              {isSubmitting ? "Fusion en cours" : "Fusionner"}
+            </button>
+          </ModalFooter>
+        )}
       </ModalContainer>
     </>
   );
