@@ -240,6 +240,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
   const teamId = team?._id;
   const users = useRecoilValue(usersState);
   const { refresh } = useDataLoader();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const initialDescription = report?.description;
   const [remoteDescription, setRemoteDescription] = useState(initialDescription);
@@ -279,6 +280,9 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
           className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8"
           onSubmit={async (e) => {
             e.preventDefault();
+            if (isSubmitting) return;
+
+            setIsSubmitting(true);
             const form = e.target;
             const formData = new FormData(form);
             const description = hasBeenModified ? concatTransmissions(remoteDescription, formData.get("description")) : formData.get("description");
@@ -298,6 +302,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
             );
             if (error) {
               toast.error(errorMessage(error));
+              setIsSubmitting(false);
               return;
             }
             await refresh();
@@ -340,14 +345,15 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
           type="button"
           name="cancel"
           className="button-cancel"
+          disabled={isSubmitting}
           onClick={() => {
             onClose();
           }}
         >
           Annuler
         </button>
-        <button type="submit" className="button-submit" form={`edit-transmission-${day}-${teamId}`}>
-          Enregistrer
+        <button type="submit" className="button-submit" disabled={isSubmitting} form={`edit-transmission-${day}-${teamId}`}>
+          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
         </button>
       </ModalFooter>
     </ModalContainer>
