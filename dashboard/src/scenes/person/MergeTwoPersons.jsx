@@ -482,7 +482,7 @@ const MergeTwoPersons = ({ person }) => {
                     render: (field) => {
                       if (field.name === "user")
                         return (
-                          <div className="tw-w-full">
+                          <div className="tw-w-full tw-px-4">
                             <UserName
                               id={values.user}
                               canAddUser
@@ -492,7 +492,7 @@ const MergeTwoPersons = ({ person }) => {
                         );
                       if (field.name === "assignedTeams")
                         return (
-                          <div className="tw-w-full">
+                          <div className="tw-w-full tw-px-4">
                             <SelectTeamMultiple
                               onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "assignedTeams" } })}
                               value={values.assignedTeams}
