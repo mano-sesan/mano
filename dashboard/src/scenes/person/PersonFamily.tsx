@@ -286,7 +286,7 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting }) =
       : null;
 
   return (
-    <ModalContainer open={open} size="3xl">
+    <ModalContainer open={open} size="3xl" onAfterLeave={() => setNewPersonId(null)}>
       <ModalHeader
         title={
           newRelationExistingGroup?.persons?.length > 0
