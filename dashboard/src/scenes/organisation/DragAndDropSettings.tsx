@@ -5,26 +5,31 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { capture } from "../../services/sentry";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import { CustomField } from "../../types/field";
 
-/**
- * @typedef {Object} DragAndDropSettingsProps
- * @property {Array<{groupTitle: string, items: Array}>} data
- * @property {string} title
- * @property {function} onDragAndDrop
- * @property {string} addButtonCaption
- * @property {JSX.Element} ItemComponent
- * @property {function} onGroupTitleChange
- * @property {JSX.Element} NewItemComponent
- * @property {function} dataItemKey
- * @property {string} sectionId
- * @property {function} onAddGroup
- * @property {function} onDeleteGroup
- */
-/**
- * @param {DragAndDropSettingsProps} props
- * @returns {JSX.Element}
- */
-const DragAndDropSettings = ({
+type Item = CustomField | string;
+
+interface DragAndDropGroup {
+  groupTitle: string;
+  items: Item[];
+  editable?: boolean;
+}
+
+interface DragAndDropSettingsProps {
+  data: DragAndDropGroup[];
+  title: string;
+  onDragAndDrop: (groups: DragAndDropGroup[]) => Promise<void>;
+  addButtonCaption?: string;
+  ItemComponent: React.ComponentType<{ item: Item; groupTitle: string }>;
+  onGroupTitleChange?: (oldTitle: string, newTitle: string) => Promise<void>;
+  NewItemComponent: React.ComponentType<{ groupTitle: string }>;
+  dataItemKey?: (item: Item) => string;
+  sectionId?: string;
+  onAddGroup?: (groupTitle: string) => Promise<void>;
+  onDeleteGroup?: (groupTitle: string) => Promise<void>;
+}
+
+const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
   title,
   data,
   onDragAndDrop,
@@ -32,7 +37,7 @@ const DragAndDropSettings = ({
   ItemComponent,
   onGroupTitleChange,
   NewItemComponent,
-  dataItemKey = (item) => item._id,
+  dataItemKey = (item: Item) => (typeof item === "string" ? item : item.name),
   sectionId = "drag-and-drop-setting",
   onAddGroup = null,
   onDeleteGroup = null,
@@ -46,46 +51,69 @@ const DragAndDropSettings = ({
   const [addGroupModalVisible, setAddGroupModalVisible] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
 
-  const onAddGroupRequest = async (e) => {
+  const onAddGroupRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { groupTitle } = Object.fromEntries(new FormData(e.target));
-    if (!groupTitle) return toast.error("Le titre du groupe est obligatoire");
-    if (data.find((group) => group.groupTitle === groupTitle)) return toast.error("Ce groupe existe déjà");
-    await onAddGroup(groupTitle);
+    const formData = new FormData(e.currentTarget);
+    const groupTitle = formData.get("groupTitle") as string;
+    if (!groupTitle) {
+      toast.error("Le titre du groupe est obligatoire");
+      return;
+    }
+    if (data.find((group) => group.groupTitle === groupTitle)) {
+      toast.error("Ce groupe existe déjà");
+      return;
+    }
+    if (onAddGroup) {
+      await onAddGroup(groupTitle);
+    }
     setAddGroupModalVisible(false);
   };
 
   const onDragAndDropRequest = useCallback(async () => {
-    const groupsElements = gridRef.current.querySelectorAll("[data-group]");
-    const groups = [...groupsElements].map((group) => group.dataset.group).map((groupTitle) => ({ groupTitle, items: [] }));
+    const groupsElements = gridRef.current?.querySelectorAll("[data-group]");
+    if (!groupsElements) return;
+
+    const groups = Array.from(groupsElements).map((group) => {
+      const groupTitle = (group as HTMLElement).dataset.group!;
+      return { groupTitle, items: [] as string[] };
+    });
+
     for (const group of groups) {
-      const categoriesElements = gridRef.current.querySelectorAll(`[data-group="${group.groupTitle}"] [data-item]`);
-      group.items = [...categoriesElements].map((category) => category.dataset.item);
+      const categoriesElements = gridRef.current?.querySelectorAll(`[data-group="${group.groupTitle}"] [data-item]`);
+      if (categoriesElements) {
+        group.items = Array.from(categoriesElements).map((category) => (category as HTMLElement).dataset.item!);
+      }
     }
+
     if (groups.length !== data.length) {
-      capture("Drag and drop group error", { extra: { groups, data, title } });
-      return toast.error("Désolé, une erreur est survenue lors du glisser/déposer. L'équipe technique a été prévenue. Vous pouvez réessayer");
+      capture(new Error("Drag and drop group error"), { extra: { groups, data, title } });
+      toast.error("Désolé, une erreur est survenue lors du glisser/déposer. L'équipe technique a été prévenue. Vous pouvez réessayer");
+      return;
     }
     if (
-      groups.reduce((allItems, group) => [...allItems, ...group.items], []).length !==
-      data.reduce((allItems, group) => [...allItems, ...group.items], []).length
+      groups.reduce((allItems, group) => [...allItems, ...group.items], [] as string[]).length !==
+      data.reduce((allItems, group) => [...allItems, ...group.items], [] as any[]).length
     ) {
-      capture("Drag and drop categories error", { extra: { groups, data, title } });
-      return toast.error("Désolé, une erreur est survenue lors du glisser/déposer. L'équipe technique a été prévenue. Vous pouvez réessayer");
+      capture(new Error("Drag and drop categories error"), { extra: { groups, data, title } });
+      toast.error("Désolé, une erreur est survenue lors du glisser/déposer. L'équipe technique a été prévenue. Vous pouvez réessayer");
+      return;
     }
     setIsDisabled(true);
     await onDragAndDrop(groups);
     setIsDisabled(false);
   }, [onDragAndDrop, data, title]);
 
-  const gridRef = useRef(null);
-  const sortableRef = useRef(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const sortableRef = useRef<SortableJS | null>(null);
+
   useEffect(() => {
-    sortableRef.current = SortableJS.create(gridRef.current, {
-      animation: 150,
-      group: sectionId,
-      onEnd: onDragAndDropRequest,
-    });
+    if (gridRef.current) {
+      sortableRef.current = SortableJS.create(gridRef.current, {
+        animation: 150,
+        group: sectionId,
+        onEnd: onDragAndDropRequest,
+      });
+    }
   }, [data, onDragAndDropRequest, sectionId]);
 
   return (
@@ -116,6 +144,7 @@ const DragAndDropSettings = ({
               onGroupTitleChange={onGroupTitleChange}
               onDeleteGroup={onDeleteGroup}
               NewItemComponent={NewItemComponent}
+              sectionId={sectionId}
               isAlone={data.length === 1}
             />
           ))}
@@ -146,7 +175,22 @@ const DragAndDropSettings = ({
   );
 };
 
-const Group = ({
+interface GroupProps {
+  groupTitle: string;
+  items: any[];
+  editable?: boolean;
+  onDragAndDrop: () => Promise<void>;
+  groupTitles: string[];
+  onGroupTitleChange?: (oldTitle: string, newTitle: string) => Promise<void>;
+  onDeleteGroup?: (groupTitle: string) => Promise<void>;
+  ItemComponent: React.ComponentType<{ item: any; groupTitle: string }>;
+  sectionId: string;
+  NewItemComponent: React.ComponentType<{ groupTitle: string }>;
+  dataItemKey: (item: any) => string;
+  isAlone: boolean;
+}
+
+const Group: React.FC<GroupProps> = ({
   groupTitle,
   items,
   editable = true,
@@ -167,27 +211,41 @@ const Group = ({
   if (!ItemComponent) throw new Error("ItemComponent is required");
   if (!NewItemComponent) throw new Error("NewItemComponent is required");
 
-  const listRef = useRef(null);
-  const sortableRef = useRef(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const sortableRef = useRef<SortableJS | null>(null);
   const [isEditingGroupTitle, setIsEditingGroupTitle] = useState(false);
 
   useEffect(() => {
-    sortableRef.current = SortableJS.create(listRef.current, {
-      animation: 150,
-      group: `${sectionId}-items`,
-      onEnd: onDragAndDrop,
-    });
+    if (listRef.current) {
+      sortableRef.current = SortableJS.create(listRef.current, {
+        animation: 150,
+        group: `${sectionId}-items`,
+        onEnd: onDragAndDrop,
+      });
+    }
   }, [onDragAndDrop, groupTitle, sectionId]);
 
-  const onEditGroupTitle = async (e) => {
+  const onEditGroupTitle = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const { newGroupTitle } = Object.fromEntries(new FormData(e.target));
+    const formData = new FormData(e.currentTarget);
+    const newGroupTitle = formData.get("newGroupTitle") as string;
     const oldGroupTitle = groupTitle;
-    if (!newGroupTitle) return toast.error("Vous devez saisir un nom pour le groupe");
-    if (newGroupTitle.trim() === oldGroupTitle.trim()) return toast.error("Le nom du groupe n'a pas changé");
-    if (groupTitles.find((title) => title === newGroupTitle)) return toast.error("Ce groupe existe déjà");
+    if (!newGroupTitle) {
+      toast.error("Vous devez saisir un nom pour le groupe");
+      return;
+    }
+    if (newGroupTitle.trim() === oldGroupTitle.trim()) {
+      toast.error("Le nom du groupe n'a pas changé");
+      return;
+    }
+    if (groupTitles.find((title) => title === newGroupTitle)) {
+      toast.error("Ce groupe existe déjà");
+      return;
+    }
 
-    await onGroupTitleChange(oldGroupTitle, newGroupTitle);
+    if (onGroupTitleChange) {
+      await onGroupTitleChange(oldGroupTitle, newGroupTitle);
+    }
     setIsEditingGroupTitle(false);
   };
 
