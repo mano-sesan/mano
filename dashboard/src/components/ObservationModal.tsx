@@ -95,7 +95,10 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
     if (confirm) {
       setIsDeleting(true);
       const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
-      if (error) return;
+      if (error) {
+        setIsDeleting(false);
+        return;
+      }
       await refresh();
       toast.success("Suppression réussie");
       setIsDeleting(false);
@@ -363,11 +366,16 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <button className="button-cancel" type="button" onClick={() => onClose()}>
+        <button className="button-cancel" type="button" onClick={() => onClose()} disabled={isDeleting || isSubmitting}>
           Annuler
         </button>
         {observation?._id ? (
-          <button className="button-destructive !tw-ml-0" type="button" onClick={() => onDelete(observation._id)}>
+          <button
+            className="button-destructive !tw-ml-0"
+            type="button"
+            onClick={() => onDelete(observation._id)}
+            disabled={isDeleting || isSubmitting}
+          >
             {isDeleting ? "Suppression..." : "Supprimer"}
           </button>
         ) : null}
