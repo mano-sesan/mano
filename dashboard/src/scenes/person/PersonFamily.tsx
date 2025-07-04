@@ -27,6 +27,8 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
   const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
   const [newRelationModalOpen, setNewRelationModalOpen] = useState(false);
   const [relationToEdit, setRelationToEdit] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingRelationId, setDeletingRelationId] = useState(null);
   const { refresh } = useDataLoader();
 
   const personGroup = useMemo(() => {
@@ -35,6 +37,8 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
 
   const onAddFamilyLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     // eslint-disable-next-line prefer-const
     let { personId, description, ...otherNewRelations } = Object.fromEntries(new FormData(e.currentTarget));
     // If you need to ensure that personId and description are strings:
@@ -42,18 +46,22 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
     description = String(description);
 
     if (!personId) {
+      setIsSubmitting(false);
       return toast.error("Veuillez sélectionner une personne pour créer le lien familial");
     }
     if (person._id === personId) {
+      setIsSubmitting(false);
       return toast.error("Le lien avec cette personne est vite vu : c'est elle !");
     }
     if (personGroup.persons?.find((_personId) => _personId === personId)) {
+      setIsSubmitting(false);
       return toast.error("Il y a déjà un lien entre ces deux personnes");
     }
     const personDoesntBelongToAGroupYet = !personGroup?.persons?.length;
     const personAlreadyBelongToAGroup = !personDoesntBelongToAGroupYet;
     const otherPersonAlreadyBelongToAGroup = groups.find((group) => group.persons?.find((_personId) => _personId === personId));
     if (personAlreadyBelongToAGroup && otherPersonAlreadyBelongToAGroup) {
+      setIsSubmitting(false);
       return toast.error(
         "Cette personne fait déjà partie d'une autre famille.\nVous ne pouvez pour l'instant pas ajouter une personne à plusieurs familles.\nN'hésitez pas à nous contacter si vous souhaitez faire évoluer cette fonctionnalité."
       );
@@ -97,14 +105,17 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
         : API.put({ path: `/group/${groupToEdit._id}`, body: await encryptGroup(nextGroup) })
     );
     if (!error) {
-      await refresh();
       setNewRelationModalOpen(false);
       toast.success("Le lien familial a été ajouté");
+      await refresh();
     }
+    setIsSubmitting(false);
   };
 
   const onEditRelation = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     let { _id, description } = Object.fromEntries(new FormData(e.target));
     _id = String(_id);
     description = String(description);
@@ -121,9 +132,12 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
       setRelationToEdit(null);
       toast.success("Le lien familial a été modifié");
     }
+    setIsSubmitting(false);
   };
 
   const onDeleteRelation = async (relation: Relation) => {
+    setDeletingRelationId(relation._id);
+
     const personId1 = relation?.persons[0];
     const personId1Name = itemsGroupedByPerson[personId1]?.name;
     const personId2 = relation?.persons[1];
@@ -133,6 +147,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
         `Voulez-vous vraiment supprimer le lien familial entre ${personId1Name} et ${personId2Name} ? Cette opération est irréversible.`
       )
     ) {
+      setDeletingRelationId(null);
       return;
     }
     const nextRelations = personGroup.relations.filter((_relation) => _relation._id !== relation._id);
@@ -142,6 +157,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
         await refresh();
         setRelationToEdit(null);
         toast.success("Le lien familial a été supprimé");
+        setDeletingRelationId(null);
         return;
       }
     }
@@ -155,6 +171,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
       setRelationToEdit(null);
       toast.success("Le lien familial a été supprimé");
     }
+    setDeletingRelationId(null);
   };
 
   return (
@@ -170,7 +187,13 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
             setNewRelationModalOpen(true);
           }}
         />
-        <NewRelation open={newRelationModalOpen} setOpen={setNewRelationModalOpen} onAddFamilyLink={onAddFamilyLink} person={person} />
+        <NewRelation
+          open={newRelationModalOpen}
+          setOpen={setNewRelationModalOpen}
+          onAddFamilyLink={onAddFamilyLink}
+          person={person}
+          isSubmitting={isSubmitting}
+        />
       </div>
       {!personGroup.persons.length ? (
         <div className="tw-py-10 tw-text-center tw-text-gray-300">
@@ -207,11 +230,21 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
                   <td width="15%">{dayjsInstance(createdAt).format("DD/MM/YYYY HH:mm")}</td>
                   <td width="15%">
                     <div className="tw-flex tw-flex-col tw-items-center tw-gap-2">
-                      <button type="button" className="button-classic" onClick={() => setRelationToEdit(_relation)}>
+                      <button
+                        type="button"
+                        className="button-classic"
+                        onClick={() => setRelationToEdit(_relation)}
+                        disabled={isSubmitting || deletingRelationId === _relation._id}
+                      >
                         Modifier
                       </button>
-                      <button type="button" className="button-destructive" onClick={() => onDeleteRelation(_relation)}>
-                        Supprimer
+                      <button
+                        type="button"
+                        className="button-destructive"
+                        onClick={() => onDeleteRelation(_relation)}
+                        disabled={isSubmitting || deletingRelationId === _relation._id}
+                      >
+                        {deletingRelationId === _relation._id ? "Suppression..." : "Supprimer"}
                       </button>
                     </div>
                   </td>
@@ -225,6 +258,8 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
             onEditRelation={onEditRelation}
             onDeleteRelation={onDeleteRelation}
             relationToEdit={relationToEdit}
+            isSubmitting={isSubmitting}
+            deletingRelationId={deletingRelationId}
           />
         </table>
       )}
@@ -232,7 +267,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
   );
 };
 
-const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
+const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting }) => {
   const [newPersonId, setNewPersonId] = useState(null);
   const persons = useRecoilValue(itemsGroupedByPersonSelector);
   const newRelationExistingGroup = persons[newPersonId]?.group as GroupInstance;
@@ -356,18 +391,18 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person }) => {
         </form>
       </ModalBody>
       <ModalFooter>
-        <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
+        <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)} disabled={isSubmitting}>
           Annuler
         </button>
-        <button type="submit" className="button-submit" form="new-family-relation">
-          Enregistrer
+        <button type="submit" className="button-submit" form="new-family-relation" disabled={isSubmitting}>
+          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
         </button>
       </ModalFooter>
     </ModalContainer>
   );
 };
 
-const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit }) => {
+const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit, isSubmitting, deletingRelationId }) => {
   const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
 
   const personId1 = relationToEdit?.persons[0];
@@ -403,14 +438,30 @@ const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relatio
         </form>
       </ModalBody>
       <ModalFooter>
-        <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(null)}>
+        <button
+          type="button"
+          name="cancel"
+          className="button-cancel"
+          onClick={() => setOpen(null)}
+          disabled={isSubmitting || deletingRelationId === relationToEdit?._id}
+        >
           Annuler
         </button>
-        <button type="button" className="button-destructive" onClick={() => onDeleteRelation(relationToEdit)}>
-          Supprimer
+        <button
+          type="button"
+          className="button-destructive"
+          onClick={() => onDeleteRelation(relationToEdit)}
+          disabled={isSubmitting || deletingRelationId === relationToEdit?._id}
+        >
+          {deletingRelationId === relationToEdit?._id ? "Suppression..." : "Supprimer"}
         </button>
-        <button type="submit" className="button-submit" form="edit-family-relation">
-          Enregistrer
+        <button
+          type="submit"
+          className="button-submit"
+          form="edit-family-relation"
+          disabled={isSubmitting || deletingRelationId === relationToEdit?._id}
+        >
+          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
         </button>
       </ModalFooter>
     </ModalContainer>
