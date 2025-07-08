@@ -40,7 +40,7 @@ export default function Summary({ person }) {
               })}
             </div>
 
-            <div className="tw-col-span-4 tw-flex tw-h-screen tw-flex-col tw-gap-4 tw-self-stretch tw-overflow-auto">
+            <div className="tw-col-span-4 tw-flex tw-h-screen tw-flex-col tw-gap-4 tw-self-stretch tw-overflow-auto pb-1">
               {(organisation.rencontresEnabled === true || organisation.passagesEnabled === true) && (
                 <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
                   <PassagesRencontres person={person} />
