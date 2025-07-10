@@ -145,6 +145,7 @@ const Reception = () => {
   const [addingPassage, setAddingPassage] = useState(false);
 
   const onAddAnonymousPassage = async () => {
+    setAddingPassage(true);
     const optimisticId = Date.now();
     const newPassage = {
       user: user._id,
@@ -156,6 +157,7 @@ const Reception = () => {
     if (response.ok) {
       await refresh();
     }
+    setAddingPassage(false);
   };
 
   const onAddPassageForPersons = async () => {
@@ -284,6 +286,7 @@ const Reception = () => {
                 icon={plusIcon}
                 title="Passage anonyme"
                 id="add-anonymous-passage"
+                disabled={addingPassage}
               />
               {!!passages.length && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
