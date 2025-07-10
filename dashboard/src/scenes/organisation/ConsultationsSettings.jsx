@@ -154,7 +154,7 @@ const AddField = ({ groupTitle: typeName }) => {
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
-  const onAddField = async (newField) => {
+  const onAddField = async (newField, onFinish) => {
     const newConsultationFields = consultationFields.map((type) => {
       if (type.name !== typeName) return type;
       return {
@@ -172,8 +172,10 @@ const AddField = ({ groupTitle: typeName }) => {
       toast.success("Mise à jour !");
       setOrganisation(res.data);
       refresh();
+      onFinish();
     } else {
-      return toast.error(errorMessage(error));
+      toast.error(errorMessage(error));
+      onFinish();
     }
     setIsAddingField(false);
   };
@@ -231,7 +233,7 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
 
   const { refresh } = useDataLoader();
 
-  const onSaveField = async (editedField) => {
+  const onSaveField = async (editedField, onFinish) => {
     const newConsultationFields = consultationFields.map((type) => {
       if (type.name !== typeName) return type;
       return {
@@ -249,8 +251,10 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
       toast.success("Mise à jour !");
       setOrganisation(res.data);
       refresh();
+      onFinish();
     } else {
-      return toast.error(errorMessage(error));
+      toast.error(errorMessage(error));
+      onFinish();
     }
     setIsEditingField(false);
   };
