@@ -98,10 +98,39 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
       toast.error("Désolé, une erreur est survenue lors du glisser/déposer. L'équipe technique a été prévenue. Vous pouvez réessayer");
       return;
     }
+
+    // Check if the order actually changed before saving
+    const hasOrderChanged = () => {
+      // Compare group order
+      if (groups.length !== data.length) return true;
+      for (let i = 0; i < groups.length; i++) {
+        if (groups[i].groupTitle !== data[i].groupTitle) return true;
+      }
+
+      // Compare items order within each group
+      for (const group of groups) {
+        const originalGroup = data.find((g) => g.groupTitle === group.groupTitle);
+        if (!originalGroup) return true;
+
+        const originalItems = originalGroup.items.map(dataItemKey);
+        if (group.items.length !== originalItems.length) return true;
+
+        for (let i = 0; i < group.items.length; i++) {
+          if (group.items[i] !== originalItems[i]) return true;
+        }
+      }
+
+      return false;
+    };
+
+    if (!hasOrderChanged()) {
+      return; // No changes detected, skip saving
+    }
+
     setIsDisabled(true);
     await onDragAndDrop(groups);
     setIsDisabled(false);
-  }, [onDragAndDrop, data, title]);
+  }, [onDragAndDrop, data, title, dataItemKey]);
 
   const gridRef = useRef<HTMLDivElement>(null);
   const sortableRef = useRef<SortableJS | null>(null);
