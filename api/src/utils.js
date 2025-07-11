@@ -2,6 +2,7 @@ const passwordValidator = require("password-validator");
 const bcrypt = require("bcryptjs");
 const { z } = require("zod");
 const sanitizeHtml = require("sanitize-html");
+const { capture } = require("./sentry");
 
 function validatePassword(password) {
   const schema = new passwordValidator();
@@ -90,6 +91,87 @@ function sanitizeAll(text) {
   return sanitizeHtml(text || "", { allowedTags: [], allowedAttributes: {} });
 }
 
+/**
+ * Detects and logs race conditions for encrypted entities
+ * @param {Object} params - Detection parameters
+ * @param {string} params.entityType - Type of entity (e.g., 'person', 'action', 'comment')
+ * @param {string} params.entityId - ID of the entity being updated
+ * @param {string|Date} params.clientUpdatedAt - updatedAt timestamp from client (what client thinks is current)
+ * @param {Object} params.currentEntity - Current entity from database
+ * @param {Object} params.user - User making the update
+ * @param {Object} params.req - Express request object for additional context
+ * @param {string} [params.component] - Frontend component where update originated
+ * @returns {boolean} - True if race condition detected, false otherwise
+ */
+function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, currentEntity, user, req, component = "unknown" }) {
+  if (!currentEntity) {
+    // Entity doesn't exist, no race condition possible
+    return false;
+  }
+
+  const clientTimestamp = new Date(clientUpdatedAt);
+  const dbTimestamp = new Date(currentEntity.updatedAt);
+
+  // Check if timestamps are different (race condition detected)
+  const isRaceCondition = clientTimestamp.getTime() !== dbTimestamp.getTime();
+
+  if (isRaceCondition) {
+    const timeDifferenceMs = dbTimestamp.getTime() - clientTimestamp.getTime();
+    const timeDifferenceSeconds = Math.abs(timeDifferenceMs / 1000);
+
+    // Prepare comprehensive context for Sentry
+    const raceContext = {
+      entityType,
+      entityId,
+      clientUpdatedAt: clientTimestamp.toISOString(),
+      dbUpdatedAt: dbTimestamp.toISOString(),
+      timeDifferenceMs,
+      timeDifferenceSeconds,
+      isClientBehind: timeDifferenceMs > 0,
+      component,
+      organisation: user.organisation,
+      userId: user._id,
+      userName: user.name,
+      userRole: user.role,
+      userAgent: req.headers["user-agent"],
+      platform: req.headers.platform,
+      version: req.headers.version,
+      requestPath: req.path,
+      requestMethod: req.method,
+      sessionId: req.headers["x-session-id"], // if available
+      timestamp: new Date().toISOString(),
+    };
+
+    // Log to Sentry with detailed context
+    capture("Race condition detected in encrypted entity update", {
+      level: "warning",
+      tags: {
+        entityType,
+        component,
+        platform: req.headers.platform || "unknown",
+        organisation: user.organisation,
+      },
+      extra: raceContext,
+      user: {
+        id: user._id,
+        username: user.name,
+        role: user.role,
+        organisation: user.organisation,
+      },
+    });
+
+    // Also log to console for development
+    console.warn(`Race condition detected: ${entityType} ${entityId}`, {
+      client: clientTimestamp.toISOString(),
+      db: dbTimestamp.toISOString(),
+      diff: `${timeDifferenceSeconds}s`,
+      component,
+    });
+  }
+
+  return isRaceCondition;
+}
+
 const folderSchema = z.object({
   _id: z.string().min(1),
   name: z.string().min(1),
@@ -117,5 +199,6 @@ module.exports = {
   recurrenceSchema,
   existingRecurrenceSchema,
   sanitizeAll,
+  detectAndLogRaceCondition,
   folderSchema,
 };

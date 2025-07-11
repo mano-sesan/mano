@@ -190,6 +190,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
         API.put({
           path: `/person/${person._id}`,
           body: await encryptPerson(body),
+          raceDetection: {
+            originalUpdatedAt: person.updatedAt,
+            component: "EditModal",
+          },
         })
       );
 
@@ -225,6 +229,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
         API.put({
           path: `/medical-file/${medicalFile._id}`,
           body: await encryptMedicalFile(flatCustomFieldsMedicalFile)({ ...medicalFile, ...bodyMedicalFile }),
+          raceDetection: {
+            originalUpdatedAt: medicalFile.updatedAt,
+            component: "EditModal-MedicalFile",
+          },
         })
       );
 
@@ -258,6 +266,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
           API.put({
             path: `/person/${person._id}`,
             body: await encryptPerson(bodySocial),
+            raceDetection: {
+              originalUpdatedAt: person.updatedAt,
+              component: "EditModal-LegacyFields",
+            },
           })
         );
 
@@ -330,6 +342,10 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
       API.put({
         path: `/person/${person._id}`,
         body: await encryptPerson(body),
+        raceDetection: {
+          originalUpdatedAt: person.updatedAt,
+          component: "EditModal-SaveAndClose",
+        },
       })
     );
     if (!error) {
