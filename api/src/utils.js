@@ -161,7 +161,9 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
     });
 
     // Also log to console for development
-    console.warn(`Race condition detected: ${entityType} ${entityId}`, {
+    console.warn(`Race condition detected`, {
+      entityType,
+      entityId,
       client: clientTimestamp.toISOString(),
       db: dbTimestamp.toISOString(),
       diff: `${timeDifferenceSeconds}s`,
