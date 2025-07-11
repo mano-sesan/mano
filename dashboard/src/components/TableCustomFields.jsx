@@ -41,12 +41,13 @@ const TableCustomFields = ({ data, fields, customFields, extractData = null, key
     setMutableData(mutableData.map((field) => (field.name !== fieldToUpdate.name ? field : { ...fieldToUpdate, showInStats })));
   };
 
-  const onSaveField = async (editedField) => {
+  const onSaveField = async (editedField, onFinish) => {
     const isUpdate = !!mutableData.find((f) => f.name === editedField.name);
     const newData = isUpdate ? mutableData.map((field) => (field.name !== editedField.name ? field : editedField)) : [...mutableData, editedField];
     await handleSubmit(newData);
     setIsNewField(false);
     setEditingField(null);
+    onFinish();
   };
 
   const onDelete = (fieldToDelete) => {
@@ -247,11 +248,13 @@ const TableCustomFields = ({ data, fields, customFields, extractData = null, key
 
 export const EditCustomField = ({ open, onDelete, data, editingField, onClose, onSaveField, isNewField, onEditChoice, onlyOptionsEditable }) => {
   const [field, setField] = useState(() => editingField || newCustomField());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fieldIsUsed = useMemo(() => !isNewField && !!data.find((p) => p[field?.name]), [data, field?.name, isNewField]);
   const bodyRef = useRef(null);
 
   const onSubmit = (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     const formData = new FormData(e.target);
     const editedField = {
       ...field,
@@ -261,7 +264,7 @@ export const EditCustomField = ({ open, onDelete, data, editingField, onClose, o
       showInStats: formData.get("showInStats") === "on",
       options: formData.getAll("options"),
     };
-    onSaveField(editedField);
+    onSaveField(editedField, () => setIsSubmitting(false));
   };
 
   const typeIsDisabled = useMemo(() => {
@@ -441,9 +444,10 @@ export const EditCustomField = ({ open, onDelete, data, editingField, onClose, o
         </button>
         {!isNewField && !onlyOptionsEditable && (
           <DeleteButtonAndConfirmModal
+            disabled={isSubmitting}
             title={`Voulez-vous vraiment supprimer le champ ${editingField?.label}`}
             textToConfirm={editingField?.label}
-            onConfirm={async () => onDelete(editingField)}
+            onConfirm={async () => onDelete(editingField, () => setIsSubmitting(false))}
           >
             <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
               Cette opération est irréversible
@@ -452,8 +456,8 @@ export const EditCustomField = ({ open, onDelete, data, editingField, onClose, o
             </span>
           </DeleteButtonAndConfirmModal>
         )}
-        <button type="submit" className="button-submit" form="custom-field-form">
-          Enregistrer
+        <button type="submit" className="button-submit" form="custom-field-form" disabled={isSubmitting}>
+          {isSubmitting ? "Enregistrement..." : "Enregistrer"}
         </button>
       </ModalFooter>
     </ModalContainer>

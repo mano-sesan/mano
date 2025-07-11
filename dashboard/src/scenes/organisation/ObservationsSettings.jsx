@@ -143,7 +143,7 @@ const AddField = ({ groupTitle: typeName }) => {
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
-  const onAddField = async (newField) => {
+  const onAddField = async (newField, onFinish) => {
     if (flatCustomFieldsObs.map((e) => e.label).includes(newField.label)) {
       return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
     }
@@ -165,8 +165,10 @@ const AddField = ({ groupTitle: typeName }) => {
       toast.success("Mise à jour !");
       setOrganisation(response.data);
       refresh();
+      onFinish();
     } else {
-      return toast.error(errorMessage(error));
+      toast.error(errorMessage(error));
+      onFinish();
     }
 
     setIsAddingField(false);
@@ -225,7 +227,7 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
 
   const { refresh } = useDataLoader();
 
-  const onSaveField = async (editedField) => {
+  const onSaveField = async (editedField, onFinish) => {
     const newCustomFieldsObs = groupedCustomFieldsObs.map((type) => {
       if (type.name !== typeName) return type;
       return {
@@ -243,10 +245,11 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
       toast.success("Mise à jour !");
       setOrganisation(response.data);
       refresh();
+      onFinish();
     } else {
-      return toast.error(errorMessage(error));
+      toast.error(errorMessage(error));
+      onFinish();
     }
-
     setIsEditingField(false);
   };
 
