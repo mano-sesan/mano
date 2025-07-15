@@ -268,6 +268,7 @@ router.get(
       })
     ).map((item) => item.toJSON());
     const superadmins = await User.count({ where: { role: "superadmin" } });
+    const usersConnectedLast24h = await User.count({ where: { lastLoginAt: { [Op.gt]: new Date(Date.now() - 24 * 60 * 60 * 1000) } } });
 
     const data = organisations
       .map((org) => org.toJSON())
@@ -335,6 +336,7 @@ router.get(
       ok: true,
       data,
       superadmins,
+      usersConnectedLast24h,
     });
   })
 );
