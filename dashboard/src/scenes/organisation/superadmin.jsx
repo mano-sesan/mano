@@ -40,6 +40,7 @@ const SuperAdmin = () => {
   const [openUserListModal, setOpenUserListModal] = useState(false);
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
   const [superadmins, setSuperadmins] = useState(null);
+  const [usersConnectedLast24h, setUsersConnectedLast24h] = useState(null);
   useTitle("Organisations");
 
   useEffect(() => {
@@ -54,6 +55,7 @@ const SuperAdmin = () => {
       const sortedDataAscendant = response.data?.sort((org1, org2) => (org1[sortBy] > org2[sortBy] ? 1 : -1));
       setOrganisations(sortOrder === "ASC" ? sortedDataAscendant : [...(sortedDataAscendant || [])].reverse());
       setSuperadmins(response.superadmins);
+      setUsersConnectedLast24h(response.usersConnectedLast24h);
       setUpdateKey((k) => k + 1);
       setRefresh(false);
     })();
@@ -78,7 +80,7 @@ const SuperAdmin = () => {
         <div>
           <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
           <div className="tw-text-xs tw-text-gray-500">
-            Superadmins: <b>{superadmins || "-"}</b>
+            <b>{superadmins || "-"}</b> superadmins • <b>{usersConnectedLast24h || "-"}</b> users connectés ces dernières 24h
           </div>
         </div>
         <div>
