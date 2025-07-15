@@ -183,7 +183,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     const query = {
       organisation: organisationId,
-      limit: String(organisationId === "8007248d-cd58-4a64-bf6d-1272b40dbf57" ? 2500 : 10000),
+      limit: String(
+        organisationId === "8007248d-cd58-4a64-bf6d-1272b40dbf57" ? 2500 : organisationId === "041dbc7d-c383-488a-baf0-79d2e6a54294" ? 1000 : 10000
+      ),
       after: lastLoadValue,
       withDeleted: true,
     };
