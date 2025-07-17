@@ -2,18 +2,23 @@ import { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { dayjsInstance, formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
-import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector, currentTeamReportsSelector } from "../../recoil/selectors";
+import {
+  arrayOfitemsGroupedByActionSelector,
+  arrayOfitemsGroupedByConsultationSelector,
+  currentTeamReportsSelector,
+  personsObjectSelector,
+} from "../../recoil/selectors";
 import SelectAndCreatePersonForReception from "./SelectAndCreatePersonForReception";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
 import { defaultActionForModal, TODO } from "../../recoil/actions";
-import { currentTeamState, userState, organisationState, teamsState } from "../../recoil/auth";
+import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../recoil/auth";
 import { personsState } from "../../recoil/persons";
 import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
-import { passagesState, encryptPassage } from "../../recoil/passages";
+import { passagesState, encryptPassage, sortPassages } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
 import plusIcon from "../../assets/icons/plus-icon.svg";
 import PersonName from "../../components/PersonName";
@@ -25,6 +30,7 @@ import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import { defaultModalActionState, modalActionState } from "../../recoil/modal";
 import { flattenedServicesSelector } from "../../recoil/reports";
+import { useLocalStorage } from "../../services/useLocalStorage";
 
 const actionsForCurrentTeamSelector = selector({
   key: "actionsForCurrentTeamSelector",
@@ -323,7 +329,25 @@ const Reception = () => {
 };
 
 const PassagesToday = ({ passages, isOpen, setOpen }) => {
+  const persons = useRecoilValue(personsObjectSelector);
+  const users = useRecoilValue(usersState);
   const [passageToEdit, setPassageToEdit] = useState(null);
+  const [sortBy, setSortBy] = useLocalStorage("reception-passage-sortBy", "date");
+  const [sortOrder, setSortOrder] = useLocalStorage("reception-passage-sortOrder", "ASC");
+
+  const passagesPopulated = useMemo(() => {
+    return passages.map((passage) => {
+      return {
+        ...passage,
+        personPopulated: persons[passage.person],
+        userPopulated: users.find((u) => u._id === passage.user),
+      };
+    });
+  }, [passages, persons, users]);
+
+  const passagesSorted = useMemo(() => {
+    return [...passagesPopulated].sort(sortPassages(sortBy, sortOrder));
+  }, [passagesPopulated, sortBy, sortOrder]);
 
   return (
     <ModalContainer open={isOpen} onAfterLeave={() => setOpen(false)} size="4xl">
@@ -334,33 +358,57 @@ const PassagesToday = ({ passages, isOpen, setOpen }) => {
           <Table
             className="Table"
             onRowClick={setPassageToEdit}
-            data={passages}
+            data={passagesSorted}
             rowKey={"_id"}
             columns={[
               {
                 title: "Heure",
                 dataKey: "date",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
                 render: (passage) => {
                   const time = dayjs(passage.date).format("HH:mm");
                   // anonymous comment migrated from `report.passages`
                   // have no time
                   // have no user assigned either
                   if (time === "00:00" && !passage.user) return null;
-                  return <span>{time}</span>;
+                  return (
+                    <>
+                      <div>{time}</div>
+                      <div className="tw-text-xs tw-text-gray-500">{dayjs(passage.date).fromNow()}</div>
+                    </>
+                  );
                 },
               },
               {
                 title: "Personne suivie",
                 dataKey: "person",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
                 render: (passage) =>
                   passage.person ? <PersonName item={passage} /> : <span style={{ opacity: 0.3, fontStyle: "italic" }}>Anonyme</span>,
               },
               {
                 title: "Enregistré par",
                 dataKey: "user",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
                 render: (passage) => (passage.user ? <UserName id={passage.user} /> : null),
               },
-              { title: "Commentaire", dataKey: "comment" },
+              {
+                title: "Commentaire",
+                dataKey: "comment",
+                onSortOrder: setSortOrder,
+                onSortBy: setSortBy,
+                sortBy,
+                sortOrder,
+              },
             ]}
           />
         )}
