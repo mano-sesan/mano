@@ -61,17 +61,27 @@ class Api {
     return response.status === 401;
   }
 
-  protected fetchParams(): RequestInit {
+  protected fetchParams(options?: { raceDetection?: { originalUpdatedAt: string | Date; component?: string } }): RequestInit {
+    const headers: Record<string, string> = {
+      ...(this.token ? { Authorization: `JWT ${this.token}` } : {}),
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      platform: "dashboard",
+      version: "2.1.0",
+    };
+
+    // Add race condition detection headers if provided
+    if (options?.raceDetection) {
+      headers["x-race-detection-original-updated-at"] = new Date(options.raceDetection.originalUpdatedAt).toISOString();
+      if (options.raceDetection.component) {
+        headers["x-race-detection-component"] = options.raceDetection.component;
+      }
+    }
+
     return {
       mode: "cors",
       credentials: "include",
-      headers: {
-        ...(this.token ? { Authorization: `JWT ${this.token}` } : {}),
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        platform: "dashboard",
-        version: "2.1.0",
-      },
+      headers,
     };
   }
 
@@ -83,9 +93,19 @@ class Api {
     return this.token;
   }
 
-  async post({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+  async post({
+    path,
+    body = {},
+    query = {},
+    raceDetection,
+  }: {
+    path: string;
+    body?: unknown;
+    query?: Record<string, string | Date | boolean>;
+    raceDetection?: { originalUpdatedAt: string | Date; component?: string };
+  }) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
-      ...this.fetchParams(),
+      ...this.fetchParams({ raceDetection }),
       method: "POST",
       body: typeof body === "string" ? body : JSON.stringify(body),
     });
@@ -94,9 +114,19 @@ class Api {
     return response.json();
   }
 
-  async put({ path, body = {}, query = {} }: { path: string; body?: unknown; query?: Record<string, string | Date | boolean> }) {
+  async put({
+    path,
+    body = {},
+    query = {},
+    raceDetection,
+  }: {
+    path: string;
+    body?: unknown;
+    query?: Record<string, string | Date | boolean>;
+    raceDetection?: { originalUpdatedAt: string | Date; component?: string };
+  }) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), {
-      ...this.fetchParams(),
+      ...this.fetchParams({ raceDetection }),
       method: "PUT",
       body: typeof body === "string" ? body : JSON.stringify(body),
     });

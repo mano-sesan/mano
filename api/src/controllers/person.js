@@ -24,7 +24,7 @@ const {
 const { STORAGE_DIRECTORY } = require("../config");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex } = require("../utils");
+const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex, detectAndLogRaceCondition } = require("../utils");
 const { capture } = require("../sentry");
 
 // Return the basedir to store persons' documents.
@@ -341,6 +341,22 @@ router.put(
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
     const person = await Person.findOne(query);
     if (!person) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    // Check for race condition before updating
+    const clientUpdatedAt = req.headers["x-race-detection-original-updated-at"];
+    const component = req.headers["x-race-detection-component"];
+
+    if (clientUpdatedAt) {
+      detectAndLogRaceCondition({
+        entityType: "person",
+        entityId: req.params._id,
+        clientUpdatedAt,
+        currentEntity: person,
+        user: req.user,
+        req,
+        component,
+      });
+    }
 
     const { encrypted, encryptedEntityKey } = req.body;
     const updatePerson = {
