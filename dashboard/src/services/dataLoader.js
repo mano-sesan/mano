@@ -135,6 +135,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!migrationIsSuccessful) return resetLoaderOnError();
     }
 
+    // Get date from server BEFORE any data operations to prevent miss window
+    // Any data created during loading will be caught in the next refresh cycle
+    const [serverDateError, serverDateResponse] = await tryFetchExpectOk(() => {
+      return API.getAbortable({ path: "/now" });
+    });
+    if (serverDateError) return resetLoaderOnError(serverDateError);
+    const serverDate = serverDateResponse.data;
+
     const [statsError, statsResponse] = await tryFetchExpectOk(() => {
       return API.getAbortable({
         path: "/organisation/stats",
@@ -149,14 +157,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     });
 
     if (statsError) return false;
-
-    // Get date from server just after getting all the stats
-    // We'll set the `lastLoadValue` to this date after all the data is downloaded
-    const [serverDateError, serverDateResponse] = await tryFetchExpectOk(() => {
-      return API.getAbortable({ path: "/now" });
-    });
-    if (serverDateError) return resetLoaderOnError(serverDateError);
-    const serverDate = serverDateResponse.data;
 
     const stats = statsResponse.data;
     let itemsCount =
