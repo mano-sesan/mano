@@ -24,7 +24,7 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
     ...removeOldDefaultFolders(
       [
         // Les documents et dossiers de la personne...
-        ...(personDB.documentsForModule || []),
+        ...(personDB.documents || []),
         // Les documents et dossier du groupe (famille) ne sont pas pris en compte côté mobile.
         // TODO: les prendre en compte (mais nécessite de faire évoluer les sélecteurs recoil)
         // ...(personDB.groupDocuments || []),
