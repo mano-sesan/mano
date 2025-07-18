@@ -21,6 +21,7 @@ import { useRecoilValue } from "recoil";
 import { userState } from "../../recoil/auth";
 import { Redirect } from "react-router-dom";
 import TopBar from "../../components/TopBar";
+import ReactDiffViewer from "react-diff-viewer-continued";
 
 const SuperAdmin = () => {
   const user = useRecoilValue(userState);
@@ -643,6 +644,7 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
   const [showTableSizes, setShowTableSizes] = useState(false);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [loadingTableSizes, setLoadingTableSizes] = useState(false);
+  const [isDiffMode, setIsDiffMode] = useState(false);
 
   useEffect(() => {
     if (!organisation?._id) return;
@@ -654,6 +656,7 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
         setTableSizes(null);
         setShowLogs(false);
         setShowTableSizes(false);
+        setIsDiffMode(false);
       }
     })();
   }, [organisation]);
@@ -698,6 +701,7 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
     }
     setShowLogs(!showLogs);
     setShowTableSizes(false);
+    setIsDiffMode(false);
   };
 
   const handleToggleTableSizes = () => {
@@ -706,6 +710,7 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
     }
     setShowTableSizes(!showTableSizes);
     setShowLogs(false);
+    setIsDiffMode(false);
   };
 
   const formatLogValue = (value) => {
@@ -739,6 +744,15 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
               >
                 {loadingTableSizes ? "Chargement..." : showTableSizes ? "Masquer les tailles" : "Voir les tailles de tables"}
               </button>
+              {showLogs && (
+                <button
+                  type="button"
+                  className={`tw-px-4 tw-py-2 tw-rounded tw-text-sm tw-font-medium tw-bg-gray-600 tw-text-white`}
+                  onClick={() => setIsDiffMode(!isDiffMode)}
+                >
+                  {isDiffMode ? "Vue complète" : "Vue diff"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -788,43 +802,81 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
             <div>
               {organisationLogs && organisationLogs.length > 0 ? (
                 <div className="tw-overflow-x-auto">
-                  <table className="tw-min-w-full tw-border tw-border-gray-300">
-                    <thead className="tw-bg-gray-50">
-                      <tr>
-                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
-                          Informations
-                        </th>
-                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
-                          Ancienne valeur
-                        </th>
-                        <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
-                          Nouvelle valeur
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="tw-bg-white tw-divide-y tw-divide-gray-200">
-                      {organisationLogs.map((log) => (
-                        <tr key={log._id} className="hover:tw-bg-gray-50">
-                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-900 tw-border-b tw-border-gray-200 tw-align-top">
-                            <div>
-                              <div className="tw-text-sm tw-font-bold">{log.field}</div>
-                              <div className="tw-font-medium">{log.User?.name || "Utilisateur supprimé"}</div>
-                              <div className="tw-text-gray-500">{log.User?.email || "-"}</div>
+                  {!isDiffMode ? (
+                    <table className="tw-min-w-full tw-border tw-border-gray-300">
+                      <thead className="tw-bg-gray-50">
+                        <tr>
+                          <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                            Informations
+                          </th>
+                          <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                            Ancienne valeur
+                          </th>
+                          <th className="tw-px-4 tw-py-2 tw-text-left tw-text-xs tw-font-medium tw-text-gray-500 tw-uppercase tw-tracking-wider tw-border-b tw-border-gray-300">
+                            Nouvelle valeur
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="tw-bg-white tw-divide-y tw-divide-gray-200">
+                        {organisationLogs.map((log) => (
+                          <tr key={log._id} className="hover:tw-bg-gray-50">
+                            <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-900 tw-border-b tw-border-gray-200 tw-align-top">
                               <div>
+                                <div className="tw-text-sm tw-font-bold">{log.field}</div>
+                                <div className="tw-font-medium">{log.User?.name || "Utilisateur supprimé"}</div>
+                                <div className="tw-text-gray-500">{log.User?.email || "-"}</div>
+                                <div>
+                                  {formatDateWithFullMonth(log.createdAt)} {formatTime(log.createdAt)}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
+                              <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.oldValue)}</pre>
+                            </td>
+                            <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
+                              <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.newValue)}</pre>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="tw-space-y-6">
+                      {organisationLogs.map((log) => (
+                        <div key={log._id} className="tw-border tw-border-gray-300 tw-rounded-lg tw-overflow-hidden">
+                          <div className="tw-bg-gray-50 tw-px-4 tw-py-3 tw-border-b tw-border-gray-300">
+                            <div className="tw-flex tw-justify-between tw-items-start">
+                              <div>
+                                <div className="tw-text-sm tw-font-bold tw-text-gray-900">{log.field}</div>
+                                <div className="tw-text-xs tw-text-gray-600">
+                                  {log.User?.name || "Utilisateur supprimé"} ({log.User?.email || "-"})
+                                </div>
+                              </div>
+                              <div className="tw-text-xs tw-text-gray-500">
                                 {formatDateWithFullMonth(log.createdAt)} {formatTime(log.createdAt)}
                               </div>
                             </div>
-                          </td>
-                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
-                            <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.oldValue)}</pre>
-                          </td>
-                          <td className="tw-px-4 tw-py-2 tw-text-xs tw-text-gray-700 tw-border-b tw-border-gray-200 tw-align-top">
-                            <pre className="tw-whitespace-pre-wrap tw-max-w-xs tw-overflow-hidden">{formatLogValue(log.newValue)}</pre>
-                          </td>
-                        </tr>
+                          </div>
+                          <div className="tw-p-2">
+                            <ReactDiffViewer
+                              oldValue={formatLogValue(log.oldValue)}
+                              newValue={formatLogValue(log.newValue)}
+                              splitView={false}
+                              hideLineNumbers={true}
+                              showDiffOnly={true}
+                              useDarkTheme={false}
+                              styles={{
+                                contentText: {
+                                  fontSize: "11px",
+                                  lineHeight: "16px",
+                                },
+                              }}
+                            />
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  )}
                 </div>
               ) : organisationLogs && organisationLogs.length === 0 ? (
                 <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune modification enregistrée pour cette organisation.</div>
