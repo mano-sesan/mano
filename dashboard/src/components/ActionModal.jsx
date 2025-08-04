@@ -171,6 +171,7 @@ function ActionContent({ onClose, isMulti = false }) {
 
       if (modalAction.isEditingAllNextOccurences && initialExistingAction.recurrence) {
         if (!body.recurrenceData.endDate) {
+          setIsSubmitting(false);
           return toast.error("La date de fin de la récurrence est obligatoire");
         }
         // Mise à jour de la récurrence.
@@ -415,6 +416,7 @@ function ActionContent({ onClose, isMulti = false }) {
             );
             if (actionError) {
               toast.error("Erreur lors de la création du commentaire, l'action a été sauvegardée mais pas les commentaires.");
+              setIsSubmitting(false);
               return false;
             }
           }
@@ -1028,13 +1030,14 @@ function ActionContent({ onClose, isMulti = false }) {
                   const [error] = await tryFetchExpectOk(() => API.delete({ path: `/action/${nextAction._id}` }));
                   if (error) {
                     toast.error("Erreur lors de la suppression des actions suivantes, les données n'ont pas été sauvegardées.");
-                    setIsSubmitting(false);
+                    setIsDeleting(false);
                     return false;
                   }
                 }
               }
               refresh();
               toast.success("Suppression réussie");
+              setIsDeleting(false);
               onClose();
             }}
           >

@@ -451,7 +451,10 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
             onClick={async (e) => {
               setIsDeleting(true);
               e.stopPropagation();
-              if (!window.confirm("Voulez-vous supprimer ce traitement ?")) return;
+              if (!window.confirm("Voulez-vous supprimer ce traitement ?")) {
+                setIsDeleting(false);
+                return;
+              }
               const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/treatment/${treatment._id}` }));
               if (error) {
                 toast.error(errorMessage(error));
@@ -459,7 +462,8 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
                 return;
               }
               await refresh();
-              toast.success("Traitement supprimé !");
+              toast.success("Traitement supprimé !");
+              setIsDeleting(false);
               onClose();
             }}
           >

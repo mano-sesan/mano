@@ -145,6 +145,7 @@ const AddField = ({ groupTitle: typeName }) => {
 
   const onAddField = async (newField, onFinish) => {
     if (flatCustomFieldsObs.map((e) => e.label).includes(newField.label)) {
+      onFinish();
       return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
     }
 
