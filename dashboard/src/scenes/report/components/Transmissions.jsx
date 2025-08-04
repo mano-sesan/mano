@@ -307,6 +307,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
             }
             await refresh();
             onClose();
+            setIsSubmitting(false);
           }}
         >
           <div>
