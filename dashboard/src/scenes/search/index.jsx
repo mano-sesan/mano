@@ -23,6 +23,8 @@ import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
 import { commentsState } from "../../recoil/comments";
+import { passagesState } from "../../recoil/passages";
+import { rencontresState } from "../../recoil/rencontres";
 import useTitle from "../../services/useTitle";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { useLocalStorage } from "../../services/useLocalStorage";
@@ -165,44 +167,81 @@ const actionsObjectSelector = selector({
   },
 });
 
-const commentsPopulatedSelector = selector({
-  key: "commentsPopulatedSelector",
+const allCommentsWithPassagesAndRencontresSelector = selector({
+  key: "allCommentsWithPassagesAndRencontresSelector",
   get: ({ get }) => {
     const comments = get(commentsState);
+    const passages = get(passagesState);
+    const rencontres = get(rencontresState);
+    const users = get(usersObjectSelector);
+    const personsObject = get(personsObjectSelector);
     const actions = get(actionsObjectSelector);
-    const commentsObject = {};
+
+    const allComments = [];
+
+    // Add regular comments
     for (const comment of comments) {
-      if (comment.person) {
-        commentsObject[comment._id] = {
-          ...comment,
-          type: "person",
-        };
-        continue;
-      }
-      if (comment.action) {
-        const action = actions[comment.action];
-        commentsObject[comment._id] = {
-          ...comment,
-          action,
-          person: action?.person,
-          type: "action",
-        };
+      const commentType = comment.person ? "person" : comment.action ? "action" : "unknown";
+      allComments.push({
+        ...comment,
+        type: commentType,
+        userPopulated: users[comment.user],
+        actionPopulated: comment.action ? actions[comment.action] : null,
+        personPopulated: comment.person ? personsObject[comment.person] : comment.action ? personsObject[actions[comment.action]?.person] : null,
+      });
+    }
+
+    // Add passage comments
+    for (const passage of passages) {
+      if (passage.comment) {
+        allComments.push({
+          _id: `passage-${passage._id}`,
+          comment: passage.comment,
+          type: "passage",
+          date: passage.date,
+          user: passage.user,
+          team: passage.team,
+          person: passage.person,
+          passage: passage._id,
+          userPopulated: users[passage.user],
+          personPopulated: passage.person ? personsObject[passage.person] : null,
+          createdAt: passage.createdAt,
+        });
       }
     }
-    return commentsObject;
+
+    // Add rencontre comments
+    for (const rencontre of rencontres) {
+      if (rencontre.comment) {
+        allComments.push({
+          _id: `rencontre-${rencontre._id}`,
+          comment: rencontre.comment,
+          type: "rencontre",
+          date: rencontre.date,
+          user: rencontre.user,
+          team: rencontre.team,
+          person: rencontre.person,
+          rencontre: rencontre._id,
+          observation: rencontre.observation,
+          userPopulated: users[rencontre.user],
+          personPopulated: personsObject[rencontre.person],
+          createdAt: rencontre.createdAt,
+        });
+      }
+    }
+
+    return allComments;
   },
 });
 
-const commentsFilteredBySearchSelector = selectorFamily({
-  key: "commentsFilteredBySearchSelector",
+const allCommentsFilteredBySearchSelector = selectorFamily({
+  key: "allCommentsFilteredBySearchSelector",
   get:
     ({ search }) =>
     ({ get }) => {
-      const comments = get(commentsState);
-      const commentsPopulated = get(commentsPopulatedSelector);
+      const allComments = get(allCommentsWithPassagesAndRencontresSelector);
       if (!search?.length) return [];
-      const commentsFilteredBySearch = filterBySearch(search, comments);
-      return commentsFilteredBySearch.map((c) => commentsPopulated[c._id]).filter(Boolean);
+      return filterBySearch(search, allComments);
     },
 });
 const territoriesObjectSelector = selector({
@@ -289,7 +328,7 @@ const View = () => {
 
   const persons = useRecoilValue(personsFilteredBySearchForSearchSelector({ search }));
   const documents = useRecoilValue(documentsFilteredBySearchForSearchSelector({ search }));
-  const comments = useRecoilValue(commentsFilteredBySearchSelector({ search }));
+  const comments = useRecoilValue(allCommentsFilteredBySearchSelector({ search }));
 
   const places = useMemo(() => {
     if (!search?.length) return [];
