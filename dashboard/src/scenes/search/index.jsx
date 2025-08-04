@@ -247,13 +247,10 @@ const View = () => {
   useTitle("Recherche");
   useDataLoader({ refreshOnMount: true });
   const user = useRecoilValue(userState);
-  const initTabs = useMemo(() => {
-    const defaultTabs = ["Actions", "Personnes", "Commentaires non médicaux", "Lieux", "Territoires", "Observations"];
-    if (!user.healthcareProfessional) return [...defaultTabs, "Documents", "Comptes rendus"];
-    return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux", "Documents", "Comptes rendus"];
-  }, [user.healthcareProfessional]);
+  const organisation = useRecoilValue(organisationState);
+
   const [search, setSearch] = useLocalStorage("fullsearch", "");
-  const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", 0);
+  const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", "Actions");
 
   const allActions = useRecoilValue(actionsState);
   const allConsultations = useRecoilValue(consultationsState);
@@ -292,7 +289,6 @@ const View = () => {
 
   const persons = useRecoilValue(personsFilteredBySearchForSearchSelector({ search }));
   const documents = useRecoilValue(documentsFilteredBySearchForSearchSelector({ search }));
-  const organisation = useRecoilValue(organisationState);
   const comments = useRecoilValue(commentsFilteredBySearchSelector({ search }));
 
   const places = useMemo(() => {
@@ -312,6 +308,48 @@ const View = () => {
 
   const observations = useRecoilValue(observationsBySearchSelector({ search }));
 
+  const tabsConfig = useMemo(() => {
+    const baseTabsConfig = [
+      { key: "Actions", label: "Actions", data: actions, enabled: true },
+      { key: "Personnes", label: "Personnes", data: persons, enabled: true },
+      { key: "Commentaires non médicaux", label: "Commentaires non médicaux", data: comments, enabled: true },
+      { key: "Lieux", label: "Lieux", data: places, enabled: true },
+      { key: "Territoires", label: "Territoires", data: territories, enabled: !!organisation.territoriesEnabled },
+      { key: "Observations", label: "Observations", data: observations, enabled: !!organisation.territoriesEnabled },
+      { key: "Consultations", label: "Consultations", data: consultations, enabled: !!user.healthcareProfessional },
+      { key: "Traitements", label: "Traitements", data: treatments, enabled: !!user.healthcareProfessional },
+      { key: "Dossiers médicaux", label: "Dossiers médicaux", data: medicalFiles, enabled: !!user.healthcareProfessional },
+      { key: "Documents", label: "Documents", data: documents, enabled: true },
+      { key: "Comptes rendus", label: "Comptes rendus", data: reports, enabled: true },
+    ];
+    return baseTabsConfig.filter((tab) => tab.enabled);
+  }, [
+    actions,
+    persons,
+    comments,
+    places,
+    territories,
+    observations,
+    consultations,
+    treatments,
+    medicalFiles,
+    documents,
+    reports,
+    organisation.territoriesEnabled,
+    user.healthcareProfessional,
+  ]);
+
+  // Ensure activeTab is valid - reset to first tab if current tab is not available
+  const validActiveTab = useMemo(() => {
+    const isValidTab = tabsConfig.some((tab) => tab.key === activeTab);
+    return isValidTab ? activeTab : tabsConfig[0]?.key || "Actions";
+  }, [activeTab, tabsConfig]);
+
+  // Update activeTab if it became invalid
+  if (validActiveTab !== activeTab) {
+    setActiveTab(validActiveTab);
+  }
+
   const renderContent = () => {
     if (!search) return "Pas de recherche, pas de résultat !";
     if (search.length < 3) return "Recherche trop courte (moins de 3 caractères), pas de résultat !";
@@ -320,46 +358,24 @@ const View = () => {
       <>
         <TabsNav
           className="tw-flex-wrap tw-justify-center tw-px-3 tw-py-2"
-          tabs={[
-            `Actions (${actions.length})`,
-            `Personnes (${persons.length})`,
-            `Commentaires non médicaux (${comments.length})`,
-            `Lieux (${places.length})`,
-            !!organisation.territoriesEnabled && `Territoires (${territories.length})`,
-            !!organisation.territoriesEnabled && `Observations (${observations.length})`,
-            !!user.healthcareProfessional && `Consultations (${consultations.length})`,
-            !!user.healthcareProfessional && `Traitements (${treatments.length})`,
-            !!user.healthcareProfessional && `Dossiers médicaux (${medicalFiles.length})`,
-            `Documents (${documents.length})`,
-            `Comptes rendus (${reports.length})`,
-          ].filter(Boolean)}
-          onClick={(tab) => {
-            if (tab.includes("Actions")) setActiveTab("Actions");
-            if (tab.includes("Consultations")) setActiveTab("Consultations");
-            if (tab.includes("Traitements")) setActiveTab("Traitements");
-            if (tab.includes("Personnes")) setActiveTab("Personnes");
-            if (tab.includes("Dossiers médicaux")) setActiveTab("Dossiers médicaux");
-            if (tab.includes("Commentaires")) setActiveTab("Commentaires non médicaux");
-            if (tab.includes("Lieux")) setActiveTab("Lieux");
-            if (tab.includes("Territoires")) setActiveTab("Territoires");
-            if (tab.includes("Observations")) setActiveTab("Observations");
-            if (tab.includes("Documents")) setActiveTab("Documents");
-            if (tab.includes("Comptes rendus")) setActiveTab("Comptes rendus");
+          tabs={tabsConfig.map((tab) => `${tab.label} (${tab.data.length})`)}
+          onClick={(_tabDisplay, index) => {
+            setActiveTab(tabsConfig[index].key);
           }}
-          activeTabIndex={initTabs.findIndex((tab) => tab === activeTab)}
+          activeTabIndex={tabsConfig.findIndex((tab) => tab.key === validActiveTab)}
         />
         <div className="[&_table]:!tw-p0 tw-w-full tw-rounded-lg tw-bg-white tw-px-8 tw-py-4 print:tw-mb-4 [&_.title]:!tw-pb-5">
-          {activeTab === "Actions" && <ActionsSortableList data={actions} />}
-          {activeTab === "Consultations" && <ActionsSortableList data={consultations} />}
-          {activeTab === "Traitements" && <TreatmentsSortableList treatments={treatments} />}
-          {activeTab === "Personnes" && <Persons persons={persons} />}
-          {activeTab === "Dossiers médicaux" && <Persons persons={medicalFiles} />}
-          {activeTab === "Commentaires non médicaux" && <CommentsSortableList fullScreen={true} data={comments} />}
-          {activeTab === "Lieux" && <Places places={places} />}
-          {activeTab === "Territoires" && <Territories territories={territories} />}
-          {activeTab === "Observations" && <TerritoryObservations observations={observations} />}
-          {activeTab === "Documents" && <Documents documents={documents} />}
-          {activeTab === "Comptes rendus" && <Reports reports={reports} />}
+          {validActiveTab === "Actions" && <ActionsSortableList data={actions} />}
+          {validActiveTab === "Consultations" && <ActionsSortableList data={consultations} />}
+          {validActiveTab === "Traitements" && <TreatmentsSortableList treatments={treatments} />}
+          {validActiveTab === "Personnes" && <Persons persons={persons} />}
+          {validActiveTab === "Dossiers médicaux" && <Persons persons={medicalFiles} />}
+          {validActiveTab === "Commentaires non médicaux" && <CommentsSortableList fullScreen={true} data={comments} />}
+          {validActiveTab === "Lieux" && <Places places={places} />}
+          {validActiveTab === "Territoires" && <Territories territories={territories} />}
+          {validActiveTab === "Observations" && <TerritoryObservations observations={observations} />}
+          {validActiveTab === "Documents" && <Documents documents={documents} />}
+          {validActiveTab === "Comptes rendus" && <Reports reports={reports} />}
         </div>
       </>
     );
