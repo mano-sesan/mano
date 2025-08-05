@@ -356,7 +356,8 @@ const MergeTwoPersons = ({ person }) => {
     refresh();
 
     handleClose();
-    setIsSubmitting(false);
+    // We do not set isSubmitting to false here because the modal will be closed
+    // and the onAfterLeave will be called, which will set it to false
   };
 
   useEffect(() => {
@@ -385,7 +386,14 @@ const MergeTwoPersons = ({ person }) => {
   return (
     <>
       <ButtonCustom title="Fusionner avec un autre dossier" color="link" type="button" onClick={() => setOpen(true)} />
-      <ModalContainer open={open} onClose={handleClose} size="5xl">
+      <ModalContainer
+        open={open}
+        onClose={handleClose}
+        size="5xl"
+        onAfterLeave={() => {
+          setIsSubmitting(false);
+        }}
+      >
         <ModalHeader onClose={handleClose}>
           <div className="tw-flex tw-flex-col tw-gap-4 tw-py-4">
             <div className="tw-flex tw-items-center tw-justify-center tw-gap-4">

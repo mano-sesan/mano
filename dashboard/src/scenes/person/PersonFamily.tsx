@@ -37,7 +37,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
 
   const onAddFamilyLink = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsSubmitting(true); // TODO: peut-être mettre le setIsSubmitting plus tard (avant le réel submit)
 
     // eslint-disable-next-line prefer-const
     let { personId, description, ...otherNewRelations } = Object.fromEntries(new FormData(e.currentTarget));
@@ -108,8 +108,11 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
       setNewRelationModalOpen(false);
       toast.success("Le lien familial a été ajouté");
       await refresh();
+      // We do not set isSubmitting to false here because the modal will be closed
+      // and the onAfterLeave will be called, which will set it to false
+    } else {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const onEditRelation = async (e) => {
@@ -131,8 +134,12 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
       await refresh();
       setRelationToEdit(null);
       toast.success("Le lien familial a été modifié");
+      // We do not set isSubmitting to false here because the modal will be closed
+      // and the onAfterLeave will be called, which will set it to false
+    } else {
+      toast.error("Une erreur est survenue lors de la modification du lien familial");
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   const onDeleteRelation = async (relation: Relation) => {
@@ -193,6 +200,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
           onAddFamilyLink={onAddFamilyLink}
           person={person}
           isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
         />
       </div>
       {!personGroup.persons.length ? (
@@ -267,7 +275,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
   );
 };
 
-const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting }) => {
+const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, setIsSubmitting }) => {
   const [newPersonId, setNewPersonId] = useState(null);
   const persons = useRecoilValue(itemsGroupedByPersonSelector);
   const newRelationExistingGroup = persons[newPersonId]?.group as GroupInstance;
@@ -286,7 +294,14 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting }) =
       : null;
 
   return (
-    <ModalContainer open={open} size="3xl" onAfterLeave={() => setNewPersonId(null)}>
+    <ModalContainer
+      open={open}
+      size="3xl"
+      onAfterLeave={() => {
+        setNewPersonId(null);
+        setIsSubmitting(false);
+      }}
+    >
       <ModalHeader
         title={
           newRelationExistingGroup?.persons?.length > 0

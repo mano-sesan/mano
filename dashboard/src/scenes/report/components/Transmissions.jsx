@@ -272,7 +272,15 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
   const hasBeenModified = remoteDescription !== initialDescription && remoteDescription !== "";
 
   return (
-    <ModalContainer size="3xl" open={isOpen} onClose={() => onClose()} onAfterLeave={() => onClosed()}>
+    <ModalContainer
+      size="3xl"
+      open={isOpen}
+      onClose={() => onClose()}
+      onAfterLeave={() => {
+        setIsSubmitting(false);
+        onClosed();
+      }}
+    >
       <ModalHeader title={`Transmission du ${dayjsInstance(day).format("dddd D MMM")} - ${team?.nightSession ? "🌒" : "☀️ "} ${team?.name || ""}`} />
       <ModalBody className="tw-py-2">
         <form
@@ -307,7 +315,8 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
             }
             await refresh();
             onClose();
-            setIsSubmitting(false);
+            // We don't set isSubmitting to false here because the modal will be closed
+            // and the onAfterLeave will be called, which will set it to false
           }}
         >
           <div>
