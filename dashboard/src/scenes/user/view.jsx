@@ -13,7 +13,6 @@ import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { emailRegex, errorMessage } from "../../utils";
-import { capture } from "../../services/sentry";
 import BackButton from "../../components/backButton";
 
 const View = () => {
@@ -50,16 +49,6 @@ const View = () => {
       <div className="tw-my-8">
         <BackButton />
       </div>
-      <button
-        type="button"
-        className="tw-absolute tw-bottom-0 tw-right-0 tw-m-4 tw-rounded tw-bg-white tw-p-2 tw-text-sm tw-text-white tw-opacity-0"
-        onClick={() => {
-          capture(new Error("Test Capture Error Sentry Manually"));
-          throw new Error("Test Throw Error Sentry Manually");
-        }}
-      >
-        Test Sentry
-      </button>
       <Formik
         initialValues={{
           name: localUser.name,
