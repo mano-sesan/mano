@@ -225,10 +225,18 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const observations = useRecoilValue(territoryObservationsState);
   const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
+    // Check for duplicate field names (excluding the current field being edited)
+    const otherFields = flatCustomFieldsObs.filter((field) => field.name !== customField.name);
+    if (otherFields.map((e) => e.label).includes(editedField.label)) {
+      onFinish();
+      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+    }
+
     const newCustomFieldsObs = groupedCustomFieldsObs.map((type) => {
       if (type.name !== typeName) return type;
       return {

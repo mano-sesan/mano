@@ -136,10 +136,16 @@ const PersonCustomFieldsSettings = () => {
 const AddField = ({ groupTitle: typeName }) => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
   const onAddField = async (newField, onFinish) => {
+    if (flattenedCustomFieldsPersons.map((e) => e.label).includes(newField.label)) {
+      onFinish();
+      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+    }
+
     try {
       const newCustomFieldsPersons = customFieldsPersons.map((type) => {
         if (type.name !== typeName) return type;
@@ -217,11 +223,19 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const allPersons = useRecoilValue(personsState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
+    // Check for duplicate field names (excluding the current field being edited)
+    const otherFields = flattenedCustomFieldsPersons.filter((field) => field.name !== customField.name);
+    if (otherFields.map((e) => e.label).includes(editedField.label)) {
+      onFinish();
+      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+    }
+
     try {
       const newCustomFieldsPersons = customFieldsPersons.map((type) => {
         if (type.name !== typeName) return type;

@@ -223,10 +223,18 @@ const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => 
   const [organisation, setOrganisation] = useRecoilState(organisationState);
   const medicalFiles = useRecoilValue(medicalFileState);
   const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
+  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
+    // Check for duplicate field names (excluding the current field being edited)
+    const otherFields = flatCustomFieldsMedicalFile.filter((field) => field.name !== customField.name);
+    if (otherFields.map((e) => e.label).includes(editedField.label)) {
+      onFinish();
+      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+    }
+
     const newCustomFieldsMedicalFile = groupedCustomFieldsMedicalFile.map((type) => {
       if (type.name !== typeName) return type;
       return {
