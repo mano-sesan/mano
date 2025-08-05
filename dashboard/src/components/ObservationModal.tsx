@@ -28,6 +28,8 @@ export default function ObservationModal() {
   const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const open = modalObservation.open && location.pathname === modalObservation.from;
 
   return (
@@ -35,6 +37,8 @@ export default function ObservationModal() {
       open={open}
       size="full"
       onAfterLeave={() => {
+        setIsSubmitting(false);
+        setIsDeleting(false);
         // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement :
         // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
         if (resetAfterLeave) {
@@ -50,16 +54,30 @@ export default function ObservationModal() {
             setResetAfterLeave(true);
             setModalObservation((modalObservation) => ({ ...modalObservation, open: false }));
           }}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
+          isDeleting={isDeleting}
+          setIsDeleting={setIsDeleting}
         />
       ) : null}
     </ModalContainer>
   );
 }
 
-function ObservationContent({ onClose }: { onClose: () => void }) {
+function ObservationContent({
+  onClose,
+  isSubmitting,
+  setIsSubmitting,
+  isDeleting,
+  setIsDeleting,
+}: {
+  onClose: () => void;
+  isSubmitting: boolean;
+  setIsSubmitting: (isSubmitting: boolean) => void;
+  isDeleting: boolean;
+  setIsDeleting: (isDeleting: boolean) => void;
+}) {
   const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const user = useRecoilValue(userAuthentifiedState);
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationAuthentifiedState);
@@ -101,7 +119,8 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
       }
       await refresh();
       toast.success("Suppression réussie");
-      setIsDeleting(false);
+      // We do not set isDeleting to false here because the modal will be closed
+      // and the onAfterLeave will be called, which will set it to false
       onClose();
     }
   };
@@ -146,7 +165,8 @@ function ObservationContent({ onClose }: { onClose: () => void }) {
         await refresh();
       }
     }
-    setIsSubmitting(false);
+    // We do not set isSubmitting to false here because the modal will be closed
+    // and the onAfterLeave will be called, which will set it to false
   }
 
   const handleChange = (event) => {

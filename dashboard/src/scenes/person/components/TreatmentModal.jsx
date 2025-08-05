@@ -25,6 +25,8 @@ import isEqual from "react-fast-compare";
 export default function TreatmentModal() {
   const [treatmentIdForModal, setTreatmentIdForModal] = useState(null);
   const [isTreatmentModalOpen, setIsTreatmentModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const history = useHistory();
   const location = useLocation();
@@ -52,16 +54,26 @@ export default function TreatmentModal() {
       open={isTreatmentModalOpen}
       onClose={() => setIsTreatmentModalOpen(false)}
       onAfterLeave={() => {
+        setIsSubmitting(false);
+        setIsDeleting(false);
         setTreatmentIdForModal(null);
         history.goBack();
       }}
     >
-      <TreatmentContent treatmentId={treatmentIdForModal} personId={personId} onClose={() => setIsTreatmentModalOpen(false)} />
+      <TreatmentContent
+        treatmentId={treatmentIdForModal}
+        personId={personId}
+        onClose={() => setIsTreatmentModalOpen(false)}
+        isSubmitting={isSubmitting}
+        setIsSubmitting={setIsSubmitting}
+        isDeleting={isDeleting}
+        setIsDeleting={setIsDeleting}
+      />
     </ModalContainer>
   );
 }
 
-function TreatmentContent({ treatmentId, onClose, personId }) {
+function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
   const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const organisation = useRecoilValue(organisationState);
@@ -98,9 +110,6 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
       history: [],
     };
   }, [treatment, user._id, personId, organisation._id]);
-
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("Informations");
   const [data, setData] = useState(initialState);
   const [isEditing, setIsEditing] = useState(isNewTreatment);
@@ -463,7 +472,8 @@ function TreatmentContent({ treatmentId, onClose, personId }) {
               }
               await refresh();
               toast.success("Traitement supprimé !");
-              setIsDeleting(false);
+              // We do not set isDeleting to false here because the modal will be closed
+              // and the onAfterLeave will be called, which will set it to false
               onClose();
             }}
           >

@@ -197,7 +197,7 @@ const Create = ({ onChange, users }) => {
     setData((data) => ({ ...data, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (closeOnSubmit = false) => {
     try {
       if (data.role === "restricted-access") data.healthcareProfessional = false;
       if (!data.email) {
@@ -218,14 +218,20 @@ const Create = ({ onChange, users }) => {
       }
       setIsSubmitting(true);
       const [error] = await tryFetch(async () => API.post({ path: "/user", body: data }));
-      setIsSubmitting(false);
+      // We do not set isSubmitting to false here because the modal will be closed
+      // and the onAfterLeave will be called, which will set it to false
       if (error) {
         toast.error(errorMessage(error));
         return false;
       }
       toast.success("Création réussie !");
-      onChange();
-      setData(initialState);
+      if (closeOnSubmit) {
+        setOpen(false);
+      } else {
+        setIsSubmitting(false);
+        onChange();
+        setData(initialState);
+      }
       return true;
     } catch (errorCreatingUser) {
       toast.error(errorCreatingUser.message);
@@ -239,7 +245,14 @@ const Create = ({ onChange, users }) => {
       <button type="button" className="button-submit" onClick={() => setOpen(true)}>
         Créer un utilisateur
       </button>
-      <ModalContainer open={open} onClose={() => setOpen(false)} size="full">
+      <ModalContainer
+        open={open}
+        onClose={() => setOpen(false)}
+        size="full"
+        onAfterLeave={() => {
+          setIsSubmitting(false);
+        }}
+      >
         <ModalHeader onClose={() => setOpen(false)} title="Créer de nouveaux utilisateurs" />
         <ModalBody>
           <form
@@ -247,7 +260,7 @@ const Create = ({ onChange, users }) => {
             className="tw-p-4"
             onSubmit={async (e) => {
               e.preventDefault();
-              await handleSubmit();
+              await handleSubmit(true);
             }}
           >
             <div className="tw-flex tw-w-full tw-flex-wrap">

@@ -45,6 +45,8 @@ export default function ActionModal() {
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const open = modalAction.open && location.pathname === modalAction.from;
 
   return (
@@ -52,6 +54,8 @@ export default function ActionModal() {
       open={open}
       size="full"
       onAfterLeave={() => {
+        setIsSubmitting(false);
+        setIsDeleting(false);
         // Seulement dans le cas du bouton fermer, de la croix, ou de l'enregistrement :
         // On supprime le la liste des personnes suivies pour ne pas la réutiliser.
         if (resetAfterLeave) {
@@ -64,6 +68,10 @@ export default function ActionModal() {
         <ActionContent
           key={open}
           isMulti={modalAction.isForMultiplePerson}
+          isSubmitting={isSubmitting}
+          setIsSubmitting={setIsSubmitting}
+          isDeleting={isDeleting}
+          setIsDeleting={setIsDeleting}
           onClose={() => {
             setResetAfterLeave(true);
             setModalAction((modalAction) => ({ ...modalAction, open: false }));
@@ -74,7 +82,7 @@ export default function ActionModal() {
   );
 }
 
-function ActionContent({ onClose, isMulti = false }) {
+function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
   const location = useLocation();
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const [modalAction, setModalAction] = useRecoilState(modalActionState);
@@ -86,8 +94,6 @@ function ActionContent({ onClose, isMulti = false }) {
   const setModalConfirmState = useSetRecoilState(modalConfirmState);
   const groups = useRecoilValue(groupsState);
   const { refresh } = useDataLoader();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const isEditing = modalAction.isEditing;
 
@@ -1037,7 +1043,8 @@ function ActionContent({ onClose, isMulti = false }) {
               }
               refresh();
               toast.success("Suppression réussie");
-              setIsDeleting(false);
+              // We do not set isDeleting to false here because the modal will be closed
+              // and the onAfterLeave will be called, which will set it to false
               onClose();
             }}
           >
