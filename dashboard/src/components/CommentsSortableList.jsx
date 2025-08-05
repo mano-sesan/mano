@@ -168,7 +168,12 @@ export default function CommentsSortableList({
       columns.push({
         title: "Personne",
         dataKey: "person",
-        render: (comment) => <PersonName item={comment} />,
+        render: (comment) =>
+          comment.type === "passage" && !comment.person ? (
+            <span style={{ opacity: 0.3, fontStyle: "italic" }}>Anonyme</span>
+          ) : (
+            <PersonName item={comment} />
+          ),
       });
     }
 
@@ -311,7 +316,7 @@ export default function CommentsSortableList({
               break;
           }
         }}
-        rowDisabled={(comment) => comment.isMedicalCommentShared}
+        rowDisabled={(comment) => comment.isMedicalCommentShared || (comment.type === "passage" && !comment.person)}
         rowKey="_id"
         dataTestId="comment"
         columns={columns}
