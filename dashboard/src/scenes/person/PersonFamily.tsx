@@ -268,6 +268,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
             relationToEdit={relationToEdit}
             isSubmitting={isSubmitting}
             deletingRelationId={deletingRelationId}
+            setIsSubmitting={setIsSubmitting}
           />
         </table>
       )}
@@ -417,7 +418,7 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, set
   );
 };
 
-const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit, isSubmitting, deletingRelationId }) => {
+const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit, isSubmitting, deletingRelationId, setIsSubmitting }) => {
   const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
 
   const personId1 = relationToEdit?.persons[0];
@@ -425,7 +426,12 @@ const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relatio
   const personId1Name = itemsGroupedByPerson[personId1]?.name;
   const personId2Name = itemsGroupedByPerson[personId2]?.name;
   return (
-    <ModalContainer open={open}>
+    <ModalContainer
+      open={open}
+      onAfterLeave={() => {
+        setIsSubmitting(false);
+      }}
+    >
       <ModalHeader title={`Éditer le lien familial entre ${personId1Name} et ${personId2Name}`} />
       <ModalBody>
         <form
