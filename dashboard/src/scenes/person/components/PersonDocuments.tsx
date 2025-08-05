@@ -218,15 +218,8 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
         // the document can be a group document, or a person document
         // so we need to get the person to update
 
-        // Load fresh person data to prevent race conditions
-        const _person = await loadFreshPersonData(document.linkedItem._id);
-        if (!_person) {
-          toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-          return false;
-        }
-
         const [documentError] = await tryFetchExpectOk(async () => {
-          return API.delete({ path: document.downloadPath ?? `/person/${_person._id}/document/${document.file.filename}` });
+          return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
         });
         if (documentError) {
           toast.error("Erreur lors de la suppression du document, vous pouvez contactez le support");
@@ -254,6 +247,13 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
             return false;
           }
         } else {
+          // Load fresh person data to prevent race conditions
+          const _person = await loadFreshPersonData(person._id);
+          if (!_person) {
+            toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+            return false;
+          }
+
           const [personError] = await tryFetchExpectOk(async () => {
             return API.put({
               path: `/person/${_person._id}`,
