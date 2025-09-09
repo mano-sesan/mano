@@ -565,7 +565,12 @@ export function DocumentTableWithFolders({
       // Add current parentId to visited set
       visitedIds.add(parentId);
 
-      const children = items.filter((item) => (!item.parentId && parentId === "root") || item.parentId === parentId);
+      // const children = items.filter((item) => (!item.parentId && parentId === "root") || item.parentId === parentId);
+      const children = items.filter((item) => {
+        if (!item.parentId && parentId === "root") return true;
+        if (item.parentId === parentId) return true;
+        return false;
+      });
 
       return children
         .sort((a, b) => {
@@ -584,7 +589,11 @@ export function DocumentTableWithFolders({
         );
     };
 
-    return flattenTree(documents);
+    const documentsWithNoBug = documents.filter((item) => {
+      if (item._id === item.parentId) return false; // to avoid infinite loop, caused by a bug somewhere
+      return true;
+    });
+    return flattenTree(documentsWithNoBug);
   }, [documents]);
 
   if (!documents.length) {
