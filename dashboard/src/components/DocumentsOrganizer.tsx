@@ -402,6 +402,7 @@ function Informations({ item }: { item: Item | FolderForTree | RootForTree; debu
 }
 
 const buildFolderTree = (items: Item[] | Folder[], rootFolderName: "Dossier Racine" | "👪 Documents familiaux") => {
+  console;
   const rootFolderItem: Folder = {
     _id: "root",
     name: rootFolderName,
@@ -415,7 +416,11 @@ const buildFolderTree = (items: Item[] | Folder[], rootFolderName: "Dossier Raci
 
   const findChildren = (folder: Item | Folder): FolderChildren => {
     const children = items
-      .filter((item: Item) => item.parentId === folder._id)
+      .filter((item: Item) => {
+        if (item._id === item.parentId) return false; // trying to solve a bug here
+        if (item.parentId === folder._id) return true;
+        return false;
+      })
       .sort((a, b) => {
         /*
         https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#description
