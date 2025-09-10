@@ -172,7 +172,7 @@ const Drawer = () => {
             >
               <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
               <div className="tw-px-2 tw-py-4 tw-text-center tw-text-xs tw-font-semibold">
-                Hep&nbsp;! Auriez-vous une minute à nous accorder pour améliorer Mano&nbsp;?
+                Hep&nbsp;! Avez-vous 5&nbsp;minutes pour nous parler de votre pratique&nbsp;?
               </div>
             </a>
             <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
