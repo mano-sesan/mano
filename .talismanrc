@@ -17,6 +17,8 @@ fileignoreconfig:
   checksum: 4be3b71a5da6f9959484f211769597fb50a1ad5976333de9cfb410c05f11ae4e
 - filename: dashboard/src/components/drawer.js
   checksum: fb4bb430f0756b68a9be72fc54e29bfbcd8a22a5a87661fd9cc033f4632dd254
+- filename: dashboard/src/components/drawer.jsx
+  checksum: 585c8eb934a41fb71a68fdbae70d79223968efd1daa50b8f6882565a127e49da
 - filename: dashboard/src/recoil/evolutiveStats.ts
   checksum: 705052edbac7a842f439e66bf6b28f9232ba50c7a19b1da058ce288d4c016405
 - filename: dashboard/src/scenes/organisation/SuperadminUsersManagement.tsx

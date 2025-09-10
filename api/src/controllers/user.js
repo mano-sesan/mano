@@ -592,6 +592,7 @@ router.post(
         lastChangePasswordAt: userWithoutPassword.lastChangePasswordAt,
         termsAccepted: userWithoutPassword.termsAccepted,
         cgusAccepted: userWithoutPassword.cgusAccepted,
+        gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025,
       },
     });
   })
@@ -667,6 +668,7 @@ router.get(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
         lastLoginAt: user.lastLoginAt,
         disabledAt: user.disabledAt,
         decryptAttempts: user.decryptAttempts,
@@ -731,6 +733,7 @@ router.get(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
         lastLoginAt: user.lastLoginAt,
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
@@ -794,6 +797,7 @@ router.get(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
         lastLoginAt: user.lastLoginAt,
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
@@ -817,6 +821,7 @@ router.put(
         phone: z.string().optional(),
         email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
         password: z.optional(z.string().min(1)),
+        gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
         ...(req.body.termsAccepted ? { termsAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
         ...(req.body.cgusAccepted ? { cgusAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
@@ -828,7 +833,7 @@ router.put(
     }
 
     const _id = req.user._id;
-    const { name, email, password, team, termsAccepted, cgusAccepted, phone } = req.body;
+    const { name, email, password, team, termsAccepted, cgusAccepted, phone, gaveFeedbackSep2025 } = req.body;
 
     const user = await User.findOne({ where: { _id } });
     if (!user) return res.status(404).send({ ok: false, error: "Utilisateur non trouvé" });
@@ -843,6 +848,7 @@ router.put(
     }
     if (termsAccepted) user.set({ termsAccepted: termsAccepted });
     if (cgusAccepted) user.set({ cgusAccepted: cgusAccepted });
+    if (gaveFeedbackSep2025) user.set({ gaveFeedbackSep2025: gaveFeedbackSep2025 });
     if (password) {
       if (!validatePassword(password)) return res.status(400).send({ ok: false, error: passwordCheckError, code: PASSWORD_NOT_VALIDATED });
       user.set({ password: password });
@@ -880,6 +886,7 @@ router.put(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
       },
     });
   })
@@ -966,6 +973,7 @@ router.put(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
         team: (await user.getTeams({ raw: true, attributes: ["_id"] })).map((t) => t._id),
       },
     });
@@ -987,6 +995,7 @@ const clearUserData = async (user) => {
     role: null,
     debugApp: null,
     debugDashboard: null,
+    gaveFeedbackSep2025: null,
     loginAttempts: null,
     nextLoginAttemptAt: null,
     decryptAttempts: null,
@@ -1146,7 +1155,7 @@ router.post(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
-
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
         lastLoginAt: user.lastLoginAt,
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
