@@ -6,6 +6,8 @@ import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../recoil/version";
 import AddPersons from "./AddPersons";
+import { useEffect, useState } from "react";
+import API from "../services/api";
 
 export const showDrawerState = atom({
   key: "showDrawerState",
@@ -13,7 +15,7 @@ export const showDrawerState = atom({
 });
 
 const Drawer = () => {
-  const user = useRecoilValue(userState);
+  const [user, setUser] = useRecoilState(userState);
   const organisation = useRecoilValue(organisationState);
   const teams = useRecoilValue(teamsState);
   const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
@@ -26,6 +28,16 @@ const Drawer = () => {
   const [showDrawer, setShowDrawer] = useRecoilState(showDrawerState);
 
   const isDesktop = useMinimumWidth("sm");
+
+  const [feedbacks, setFeedbacks] = useState(0);
+
+  useEffect(() => {
+    API.get({ path: "/public/feedbacks" }).then((res) => {
+      if (res.ok) {
+        setFeedbacks(res.data);
+      }
+    });
+  }, []);
 
   return (
     <nav
@@ -143,6 +155,34 @@ const Drawer = () => {
             </>
           )}
         </div>
+        {!user.gaveFeedbackSep2025 && (
+          <>
+            <a
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => {
+                API.put({ path: "/user", body: { gaveFeedbackSep2025: true } }).then((res) => {
+                  if (res.ok) {
+                    setUser(res.user);
+                  }
+                });
+              }}
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdjL-EWZ99h006MCtuhd8qR5kNCDlLSny41Wv9-qtYKW4-DLA/viewform?usp=header"
+              className="tw-block tw-relative tw-w-11/12 !tw-mt-4 tw-cursor-pointer tw-rounded-md tw-border-black !tw-bg-main !tw-text-white hover:!tw-opacity-100 motion-safe:tw-animate-brrrr"
+            >
+              <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
+              <div className="tw-px-2 tw-py-4 tw-text-center tw-text-xs tw-font-semibold">
+                Hep&nbsp;! Auriez-vous une minute à nous accorder pour améliorer Mano&nbsp;?
+              </div>
+            </a>
+            <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
+              <div className="tw-h-1 tw-rounded-full tw-bg-main" style={{ width: `${(feedbacks.count / feedbacks.totalUsers) * 100}%` }} />
+            </div>
+            <small className="tw-block tw-text-[0.65rem] tw-text-main">
+              {feedbacks.count} sur {feedbacks.totalUsers} à récolter
+            </small>
+          </>
+        )}
         <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
           <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
           <p className="m-0">Accessibilité&nbsp;: partielle</p>
