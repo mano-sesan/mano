@@ -402,7 +402,6 @@ function Informations({ item }: { item: Item | FolderForTree | RootForTree; debu
 }
 
 const buildFolderTree = (items: Item[] | Folder[], rootFolderName: "Dossier Racine" | "👪 Documents familiaux") => {
-  console;
   const rootFolderItem: Folder = {
     _id: "root",
     name: rootFolderName,
