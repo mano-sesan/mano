@@ -12,6 +12,7 @@ import type { PersonPopulated } from "../../../types/person";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } from "../../../types/document";
 import { useDataLoader } from "../../../services/dataLoader";
 import { encryptItem } from "../../../services/encryption";
+import { removeOldDefaultFolders } from "../../../utils/documents";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -29,15 +30,14 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
   const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
   const medicalFile = person.medicalFile;
 
-  const defaultDocuments: Array<FolderWithLinkedItem> = organisation.defaultMedicalFolders.map((folder) => ({
+  const defaultFolders: Array<FolderWithLinkedItem> = organisation.defaultMedicalFolders.map((folder) => ({
     ...folder,
     movable: false,
     linkedItem: {
-      _id: person._id,
-      type: "person",
+      _id: person.medicalFile._id,
+      type: "medical-file",
     },
   }));
-  const defaultDocumentsIds = defaultDocuments.map((d) => d._id);
 
   const allMedicalDocuments = useMemo(() => {
     if (!medicalFile) return [];
@@ -121,13 +121,10 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
       otherDocs.push(docWithLinkedItem);
     }
 
-    return [
-      ...treatmentsDocs,
-      ...consultationsDocs,
-      ...otherDocs.filter((d) => !defaultDocumentsIds.includes(d._id)),
-      ...(defaultDocuments || []),
-    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [consultations, defaultDocuments, medicalFile, treatments, user._id, defaultDocumentsIds]);
+    return [...treatmentsDocs, ...consultationsDocs, ...removeOldDefaultFolders([...(otherDocs || [])], defaultFolders)].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [consultations, defaultFolders, medicalFile, treatments, user._id]);
 
   return (
     <DocumentsModule
@@ -201,7 +198,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
                 ...medicalFile,
                 // If there are no document yet and default documents are present,
                 // we save the default documents since they are modified by the user.
-                documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultDocuments]).filter(
+                documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]).filter(
                   (d) => d._id !== documentOrFolder._id
                 ),
               }),
@@ -283,7 +280,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
                   ...medicalFile,
                   // If there are no document yet and default documents are present,
                   // we save the default documents since they are modified by the user.
-                  documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultDocuments]).map((d) => {
+                  documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]).map((d) => {
                     if (d._id === documentOrFolder._id) {
                       // remove linkedItem from document
                       const { linkedItem, ...rest } = documentOrFolder;
@@ -311,7 +308,9 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
             "medical-file": {},
           };
           for (const document of nextDocuments) {
-            if (document.movable === false) continue;
+            if (document.movable === false && (document._id === "consultation" || document._id === "treatment")) {
+              continue;
+            }
             if (!groupedById[document.linkedItem.type][document.linkedItem._id]) groupedById[document.linkedItem.type][document.linkedItem._id] = [];
             groupedById[document.linkedItem.type][document.linkedItem._id].push(document);
           }
@@ -381,7 +380,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
                 ...medicalFile,
                 // If there are no document yet and default documents are present,
                 // we save the default documents since they are modified by the user.
-                documents: [...(medicalFile.documents?.length ? medicalFile.documents : [...defaultDocuments]), ...nextDocuments],
+                documents: [...(medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]), ...nextDocuments],
               }),
             })
         );
