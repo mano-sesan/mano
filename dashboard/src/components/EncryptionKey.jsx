@@ -474,11 +474,10 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   }
   const { data: file } = docResponse;
   return {
+    // We keep the original document, but we update the encryptedEntityKey, downloadPath and file
+    ...doc,
     _id: file.filename,
-    name: doc.file.originalname,
     encryptedEntityKey,
-    createdAt: doc.createdAt,
-    createdBy: doc.createdBy,
     downloadPath: `/person/${personId}/document/${file.filename}`,
     file,
   };
