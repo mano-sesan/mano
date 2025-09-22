@@ -34,7 +34,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
     ...folder,
     movable: false,
     linkedItem: {
-      _id: person.medicalFile._id,
+      _id: person.medicalFile?._id,
       type: "medical-file",
     },
   }));
