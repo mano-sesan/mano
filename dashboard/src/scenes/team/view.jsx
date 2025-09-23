@@ -322,15 +322,25 @@ const View = () => {
             API.post({
               path: `/transfer-team`,
               body: {
-                actionsToUpdate: await Promise.all(actionsToUpdate.map(encryptAction)),
-                consultationsToUpdate: await Promise.all(consultationsToUpdate.map(encryptConsultation(organisation.consultations))),
-                commentsToUpdate: await Promise.all(commentsToUpdate.map(encryptComment)),
-                observationsToUpdate: await Promise.all(observationsToUpdate.map(encryptObs(customFieldsObs))),
-                personsToUpdate: await Promise.all(personsToUpdate.map(encryptPerson)),
-                passagesToUpdate: await Promise.all(passagesToUpdate.map(encryptPassage)),
-                rencontresToUpdate: await Promise.all(rencontresToUpdate.map(encryptRencontre)),
-                reportsToUpdate: await Promise.all(reportsToUpdate.map(encryptReport)),
-                reportsInTargetTeamToUpdate: await Promise.all(reportsInTargetTeamToUpdate.map(encryptReport)),
+                actionsToUpdate: await Promise.all(actionsToUpdate.map((action) => encryptAction(action, { checkRequiredFields: false }))),
+                consultationsToUpdate: await Promise.all(
+                  consultationsToUpdate.map((consultation) =>
+                    encryptConsultation(organisation.consultations)(consultation, { checkRequiredFields: false })
+                  )
+                ),
+                commentsToUpdate: await Promise.all(commentsToUpdate.map((comment) => encryptComment(comment, { checkRequiredFields: false }))),
+                observationsToUpdate: await Promise.all(
+                  observationsToUpdate.map((observation) => encryptObs(customFieldsObs)(observation, { checkRequiredFields: false }))
+                ),
+                personsToUpdate: await Promise.all(personsToUpdate.map((person) => encryptPerson(person, { checkRequiredFields: false }))),
+                passagesToUpdate: await Promise.all(passagesToUpdate.map((passage) => encryptPassage(passage, { checkRequiredFields: false }))),
+                rencontresToUpdate: await Promise.all(
+                  rencontresToUpdate.map((rencontre) => encryptRencontre(rencontre, { checkRequiredFields: false }))
+                ),
+                reportsToUpdate: await Promise.all(reportsToUpdate.map((report) => encryptReport(report, { checkRequiredFields: false }))),
+                reportsInTargetTeamToUpdate: await Promise.all(
+                  reportsInTargetTeamToUpdate.map((report) => encryptReport(report, { checkRequiredFields: false }))
+                ),
                 teamToDeleteId: id,
                 targetTeamId: transferSelectedTeam,
               },
