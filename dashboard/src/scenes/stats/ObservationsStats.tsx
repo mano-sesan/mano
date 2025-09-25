@@ -91,17 +91,17 @@ const ObservationsStats = ({
   };
 
   const personsWithRencontresInSelectedObservations = useMemo(() => {
-    const persons = [];
+    const persons: Record<string, PersonPopulated> = {};
     for (const p of personsWithRencontres) {
       for (const r of p.rencontres) {
         if (r.observation) {
           if (observations.find((o) => o._id === r.observation)) {
-            persons.push(p);
+            persons[p._id] = p;
           }
         }
       }
     }
-    return persons;
+    return Object.values(persons);
   }, [personsWithRencontres, observations]);
 
   const [personsRencontresByTerritories, rencontresByTerritories] = useMemo(() => {
