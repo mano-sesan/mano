@@ -900,11 +900,11 @@ const Stats = () => {
         {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
           <RencontresStats
             rencontres={rencontresFilteredByPersons}
+            territories={territories}
             personFields={personFields}
             personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
             // filter by persons
             personsUpdated={personsUpdated}
-            personsWithRencontres={personsWithRencontres}
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
@@ -913,7 +913,6 @@ const Stats = () => {
         {activeTab === "Observations" && (
           <ObservationsStats
             territories={territories}
-            personsWithRencontres={personsWithRencontres}
             filterObs={filterObs}
             setFilterObs={setFilterObs}
             observations={observations}
