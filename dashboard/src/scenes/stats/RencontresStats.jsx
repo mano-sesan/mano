@@ -105,7 +105,7 @@ const RencontresStats = ({
     if (territoriesSlice) {
       const withTerritoriesSlice = {};
       for (const person of filteredPersons) {
-        if (territoriesSlice === "Non renseigné" && !person.territories.includes(NO_TERRITORY_KEY)) {
+        if (territoriesSlice === "Non renseigné" && person.territories.includes(NO_TERRITORY_KEY)) {
           withTerritoriesSlice[person._id] = person;
         }
         if (person.territories.includes(territoriesSlice)) {
@@ -195,7 +195,7 @@ const RencontresStats = ({
         />
         <CustomResponsivePie
           title="Répartition des nouvelles personnes uniques rencontrées par genre"
-          help={`Répartition par genre des personnes uniques créées et rencontrées pendant la période définie.${TEXT_PERIODE}`}
+          help={`Répartition par genre des personnes uniques créées et rencontrées pendant la période définiee.${TEXT_PERIODE}`}
           data={getPieData(
             filteredPersons.filter((person) => !personsInRencontresBeforePeriod[person._id]),
             "gender",
