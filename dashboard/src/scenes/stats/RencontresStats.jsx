@@ -10,6 +10,9 @@ import SelectCustom from "../../components/SelectCustom";
 
 const NO_TERRITORY_KEY = "__NO_TERRITORY__";
 
+const TEXT_PERIODE =
+  "\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres. De la même manière, si aucun territoire n'est sélectionné, on considère l'ensemble des territoires, ainsi que les rencontres en dehors des territoires.";
+
 const RencontresStats = ({
   rencontres,
   territories,
@@ -147,18 +150,18 @@ const RencontresStats = ({
           <Block
             data={filteredRencontresByTerritories.length}
             title="Nombre de rencontres"
-            help={`Nombre de rencontres enregistrées dans la période définie, pour les territoires sélectionnés.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres. De la même manière, si aucun territoire n'est sélectionné, on considère l'ensemble des territoires, ainsi que les rencontres en dehors des territoires.`}
+            help={`Nombre de rencontres enregistrées dans la période définie, pour les territoires sélectionnés.${TEXT_PERIODE}`}
           />
           <Block
             data={filteredPersons.length}
             title="Nombre de personnes différentes rencontrées"
-            help={`Nombre de personnes différentes rencontrées dans la période définie, pour les territoires sélectionnés.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres. De la même manière, si aucun territoire n'est sélectionné, on considère l'ensemble des territoires, ainsi que les rencontres en dehors des territoires.`}
+            help={`Nombre de personnes uniques rencontrées dans la période définie, pour les territoires sélectionnés.${TEXT_PERIODE}`}
           />
         </div>
 
         <CustomResponsivePie
           title="Répartition des rencontres par genre"
-          help={`Répartition par genre des rencontres non-anonymes (c'est-à-dire attachées à une personne) enregistrées dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres.`}
+          help={`Répartition par genre des rencontres enregistrées dans la période définie.${TEXT_PERIODE}`}
           data={getPieData(filteredRencontresByTerritories, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
@@ -170,7 +173,7 @@ const RencontresStats = ({
         />
         <CustomResponsivePie
           title="Répartition des personnes uniques rencontrées par genre"
-          help={`Répartition par genre des rencontres non-anonymes (c'est-à-dire attachées à une personne) et uniques enregistrées dans la période définie.\n\nEn d'autres termes, si une personne est rencontrée plusieurs fois, elle n'est comptabilisée ici qu'une seule fois.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres.`}
+          help={`Répartition par genre des personnes uniques rencontrées dans la période définie.\n\nEn d'autres termes, si une personne est rencontrée plusieurs fois, elle n'est comptabilisée ici qu'une seule fois.${TEXT_PERIODE}`}
           data={getPieData(filteredPersons, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
@@ -192,7 +195,7 @@ const RencontresStats = ({
         />
         <CustomResponsivePie
           title="Répartition des nouvelles personnes uniques rencontrées par genre"
-          help={`Répartition par genre des rencontres concernant des personnes créées pendant la période définie, enregistrées dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des rencontres.`}
+          help={`Répartition par genre des personnes uniques créées et rencontrées pendant la période définie.${TEXT_PERIODE}`}
           data={getPieData(
             filteredPersons.filter((person) => !personsInRencontresBeforePeriod[person._id]),
             "gender",
@@ -216,7 +219,7 @@ const RencontresStats = ({
         />
         <CustomResponsivePie
           title="Répartition des rencontres par territoire"
-          help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
+          help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.${TEXT_PERIODE}`}
           data={getPieData(filteredRencontresByTerritories, "territoryName", {
             options: [...territoriesForFilter],
           })}
@@ -228,7 +231,7 @@ const RencontresStats = ({
         />
         <CustomResponsivePie
           title="Répartition des personnes rencontrées par territoire"
-          help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.\n\nSi aucune période n'est définie, on considère l'ensemble des observations.`}
+          help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.${TEXT_PERIODE}`}
           data={getPieData(filteredRencontresByTerritoriesUniquePersons, "territoryName", {
             options: [...territoriesForFilter],
           })}
