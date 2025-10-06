@@ -28,11 +28,17 @@ export const CustomResponsivePie = ({
   title,
   onItemClick = null,
   help,
+  tableHeaderTitles,
 }: {
   data: PieData;
   title: string;
   onItemClick?: (id: string) => void;
   help?: string;
+  tableHeaderTitles?: {
+    name: string;
+    value: string;
+    percentage: string;
+  };
 }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
@@ -60,10 +66,10 @@ export const CustomResponsivePie = ({
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
               </th>
-              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">Nb</th>
-              {total ? <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">%</th> : <></>}
+              <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
+              {total ? <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th> : <></>}
             </tr>
           </thead>
           <tbody>

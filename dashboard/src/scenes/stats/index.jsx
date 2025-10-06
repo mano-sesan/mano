@@ -154,7 +154,6 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
   const personsWithPassages = {};
   const personsInPassagesBeforePeriod = {};
   const rencontresFilteredByPersons = [];
-  const personsWithRencontres = {};
   const personsInRencontresBeforePeriod = {};
   const noPeriodSelected = !period.startDate || !period.endDate;
   const defaultIsoDates = {
@@ -366,7 +365,6 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
         if (!filterItemByTeam(rencontre, "team")) continue;
         if (noPeriodSelected) {
           rencontresFilteredByPersons.push({ ...rencontre, gender: person.gender });
-          personsWithRencontres[person._id] = person;
           numberOfRencontres++;
           continue;
         }
@@ -376,7 +374,6 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
         if (date >= isoEndDate) continue;
         numberOfRencontres++;
         rencontresFilteredByPersons.push({ ...rencontre, gender: person.gender });
-        personsWithRencontres[person._id] = person;
         if (createdDate < isoStartDate) personsInRencontresBeforePeriod[person._id] = person;
       }
     }
@@ -397,7 +394,6 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
         for (let i = 0; i < numberOfPassages; i++) {
           passagesFilteredByPersons.pop();
         }
-        delete personsWithRencontres[person._id];
         delete personsInRencontresBeforePeriod[person._id];
         for (let i = 0; i < numberOfRencontres; i++) {
           rencontresFilteredByPersons.pop();
@@ -417,7 +413,6 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
     personsWithPassages: Object.values(personsWithPassages),
     personsInPassagesBeforePeriod,
     passagesFilteredByPersons,
-    personsWithRencontres: Object.values(personsWithRencontres),
     personsInRencontresBeforePeriod,
     rencontresFilteredByPersons,
   };
@@ -461,6 +456,7 @@ const Stats = () => {
   const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
   const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
+  const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
 
   const [evolutivesStatsActivated, setEvolutivesStatsActivated] = useLocalStorage("stats-evolutivesStatsActivated", false);
   const [evolutiveStatsIndicators, setEvolutiveStatsIndicators] = useLocalStorage("stats-evolutivesStatsIndicatorsArray", []);
@@ -543,7 +539,6 @@ const Stats = () => {
     personsWithPassages,
     personsInPassagesBeforePeriod,
     passagesFilteredByPersons,
-    personsWithRencontres,
     personsInRencontresBeforePeriod,
     rencontresFilteredByPersons,
   } = useMemo(() => {
@@ -908,6 +903,8 @@ const Stats = () => {
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
+            selectedTerritories={rencontresTerritories}
+            setSelectedTerritories={setRencontresTerritories}
           />
         )}
         {activeTab === "Observations" && (

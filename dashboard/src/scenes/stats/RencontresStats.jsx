@@ -8,6 +8,8 @@ import { userState } from "../../recoil/auth";
 import { useRecoilValue } from "recoil";
 import SelectCustom from "../../components/SelectCustom";
 
+const NO_TERRITORY_KEY = "__NO_TERRITORY__";
+
 const RencontresStats = ({
   rencontres,
   territories,
@@ -18,11 +20,14 @@ const RencontresStats = ({
   filterBase,
   filterPersons,
   setFilterPersons,
+  selectedTerritories,
+  setSelectedTerritories,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
-  const [selectedTerritories, setSelectedTerritories] = useState([]);
+  const [territoriesSlice, setTerritoriesSlice] = useState(null);
+  // const [selectedTerritories, setSelectedTerritories] = useState([]);
   const user = useRecoilValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
@@ -38,41 +43,48 @@ const RencontresStats = ({
     return personObject;
   }, [personsUpdated]);
 
-  const { rencontresGroupedByTerritories, filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons } =
-    useMemo(() => {
-      const rencontresGroupedByTerritories = {};
-      const territoriesObject = {};
-      const filteredPersonsObject = {};
-      const isFilteredByTerritories = selectedTerritories.length;
-      for (const t of selectedTerritories) {
-        territoriesObject[t.value] = true;
-      }
-      for (const r of rencontres) {
-        const territoryName = r.territoryObject?.name || "__NO_TERRITORY__";
-        if (isFilteredByTerritories && !territoriesObject[territoryName]) continue;
-        if (!personObject[r.person]) continue;
-        if (!filteredPersonsObject[r.person]) {
-          filteredPersonsObject[r.person] = personObject[r.person];
-        }
-        if (!rencontresGroupedByTerritories[territoryName]) rencontresGroupedByTerritories[territoryName] = [];
+  const { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons } = useMemo(() => {
+    const rencontresGroupedByTerritories = {};
+    const filteredPersonsObject = {};
+    const isFilteredByTerritories = selectedTerritories.length;
+    const territoriesObject = selectedTerritories.reduce((acc, t) => {
+      acc[t.value] = true;
+      return acc;
+    }, {});
 
-        rencontresGroupedByTerritories[territoryName].push({
-          gender: r.gender,
-          territoryName: r.territoryObject?.name,
-          person: r.person,
-        });
+    // Group rencontres by territories
+    for (const r of rencontres) {
+      const territoryKey = r.territoryObject?.name || NO_TERRITORY_KEY;
+      if (isFilteredByTerritories && !territoriesObject[territoryKey]) continue;
+      if (!personObject[r.person]) continue;
+
+      if (!filteredPersonsObject[r.person]) {
+        filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
       }
-      const rencontresGroupedByTerritoriesUniquePersonsObject = {};
-      for (const [territoryName, rencontres] of Object.entries(rencontresGroupedByTerritories)) {
-        rencontresGroupedByTerritoriesUniquePersonsObject[territoryName] = rencontres.filter(
-          (r, index, self) => index === self.findIndex((t) => t.person === r.person)
-        );
-      }
-      const filteredRencontresByTerritories = Object.values(rencontresGroupedByTerritories).flat();
-      const filteredPersons = Object.values(filteredPersonsObject);
-      const filteredRencontresByTerritoriesUniquePersons = Object.values(rencontresGroupedByTerritoriesUniquePersonsObject).flat();
-      return { rencontresGroupedByTerritories, filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons };
-    }, [rencontres, selectedTerritories, personObject]);
+      filteredPersonsObject[r.person].territories.push(territoryKey);
+
+      if (!rencontresGroupedByTerritories[territoryKey]) rencontresGroupedByTerritories[territoryKey] = [];
+      rencontresGroupedByTerritories[territoryKey].push({
+        gender: r.gender,
+        territoryName: r.territoryObject?.name,
+        person: r.person,
+      });
+    }
+
+    // Group rencontres by unique persons
+    const rencontresGroupedByTerritoriesUniquePersonsObject = {};
+    for (const [territoryKey, rencontres] of Object.entries(rencontresGroupedByTerritories)) {
+      rencontresGroupedByTerritoriesUniquePersonsObject[territoryKey] = rencontres.filter(
+        (r, index, self) => index === self.findIndex((t) => t.person === r.person)
+      );
+    }
+
+    // Flatten rencontres and persons
+    const filteredRencontresByTerritories = Object.values(rencontresGroupedByTerritories).flat();
+    const filteredPersons = Object.values(filteredPersonsObject);
+    const filteredRencontresByTerritoriesUniquePersons = Object.values(rencontresGroupedByTerritoriesUniquePersonsObject).flat();
+    return { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons };
+  }, [rencontres, selectedTerritories, personObject]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {
@@ -87,15 +99,24 @@ const RencontresStats = ({
       }
       return Object.values(withCatSlice);
     }
+    if (territoriesSlice) {
+      const withTerritoriesSlice = {};
+      for (const person of filteredPersons) {
+        if (territoriesSlice === "Non renseigné" && !person.territories.includes(NO_TERRITORY_KEY)) {
+          withTerritoriesSlice[person._id] = person;
+        }
+        if (person.territories.includes(territoriesSlice)) {
+          withTerritoriesSlice[person._id] = person;
+        }
+      }
+      return Object.values(withTerritoriesSlice);
+    }
     return [];
-  }, [genderSlice, filteredPersons]);
+  }, [genderSlice, filteredPersons, territoriesSlice]);
 
   const territoriesForFilter = useMemo(() => {
     return territories.map((t) => ({ value: t.name, label: t.name }));
   }, [territories]);
-
-  console.log(rencontresGroupedByTerritories);
-  console.log(filteredPersons);
 
   return (
     <>
@@ -141,6 +162,11 @@ const RencontresStats = ({
           data={getPieData(filteredRencontresByTerritories, "gender", {
             options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"],
           })}
+          tableHeaderTitles={{
+            name: "Genre",
+            value: "Nb rencontres",
+            percentage: "%",
+          }}
         />
         <CustomResponsivePie
           title="Répartition des personnes uniques rencontrées par genre"
@@ -154,9 +180,15 @@ const RencontresStats = ({
               : (id) => {
                   setIsPersonsModalOpened(true);
                   setIsOnlyNewPersons(false);
+                  setTerritoriesSlice(null);
                   setGenderSlice(id);
                 }
           }
+          tableHeaderTitles={{
+            name: "Genre",
+            value: "Nb personnes",
+            percentage: "%",
+          }}
         />
         <CustomResponsivePie
           title="Répartition des nouvelles personnes uniques rencontrées par genre"
@@ -166,12 +198,18 @@ const RencontresStats = ({
             "gender",
             { options: [...personFields.find((f) => f.name === "gender").options, "Non précisé"] }
           )}
+          tableHeaderTitles={{
+            name: "Genre",
+            value: "Nb nouv. personnes",
+            percentage: "%",
+          }}
           onItemClick={
             user.role === "stats-only"
               ? undefined
               : (id) => {
                   setIsPersonsModalOpened(true);
                   setIsOnlyNewPersons(true);
+                  setTerritoriesSlice(null);
                   setGenderSlice(id);
                 }
           }
@@ -182,6 +220,11 @@ const RencontresStats = ({
           data={getPieData(filteredRencontresByTerritories, "territoryName", {
             options: [...territoriesForFilter],
           })}
+          tableHeaderTitles={{
+            name: "Territoire",
+            value: "Nb rencontres",
+            percentage: "%",
+          }}
         />
         <CustomResponsivePie
           title="Répartition des personnes rencontrées par territoire"
@@ -189,6 +232,21 @@ const RencontresStats = ({
           data={getPieData(filteredRencontresByTerritoriesUniquePersons, "territoryName", {
             options: [...territoriesForFilter],
           })}
+          onItemClick={
+            user.role === "stats-only"
+              ? undefined
+              : (id) => {
+                  setIsPersonsModalOpened(true);
+                  setIsOnlyNewPersons(false);
+                  setGenderSlice(null);
+                  setTerritoriesSlice(id);
+                }
+          }
+          tableHeaderTitles={{
+            name: "Territoire",
+            value: "Nb personnes",
+            percentage: "%",
+          }}
         />
       </div>
       <SelectedPersonsModal
