@@ -905,6 +905,7 @@ const Stats = () => {
             setFilterPersons={setFilterPersons}
             selectedTerritories={rencontresTerritories}
             setSelectedTerritories={setRencontresTerritories}
+            isTerritoriesEnabled={!!organisation.territoriesEnabled}
           />
         )}
         {activeTab === "Observations" && (

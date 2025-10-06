@@ -25,6 +25,7 @@ const RencontresStats = ({
   setFilterPersons,
   selectedTerritories,
   setSelectedTerritories,
+  isTerritoriesEnabled,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
@@ -127,24 +128,26 @@ const RencontresStats = ({
       <div className="tw-flex tw-basis-full tw-items-center">
         <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
       </div>
-      <div className="tw-grid lg:tw-grid-cols-2 tw-grid-cols-1 tw-gap-2 tw-mb-8">
-        <div>
-          <label htmlFor="filter-by-status" className="tw-m-0">
-            Filtrer par territoire
-          </label>
+      {Boolean(isTerritoriesEnabled) && (
+        <div className="tw-grid lg:tw-grid-cols-2 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
-            <SelectCustom
-              inputId="rencontres-select-territory-filter"
-              options={territoriesForFilter}
-              name="rencontres-territory"
-              onChange={(s) => setSelectedTerritories(s)}
-              isClearable
-              isMulti
-              value={selectedTerritories}
-            />
+            <label htmlFor="filter-by-status" className="tw-m-0">
+              Filtrer par territoire
+            </label>
+            <div>
+              <SelectCustom
+                inputId="rencontres-select-territory-filter"
+                options={territoriesForFilter}
+                name="rencontres-territory"
+                onChange={(s) => setSelectedTerritories(s)}
+                isClearable
+                isMulti
+                value={selectedTerritories}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <div className="tw-flex tw-flex-col tw-gap-4">
         <div className="tw-grid tw-grid-cols-2 tw-gap-4">
           <Block
@@ -217,40 +220,44 @@ const RencontresStats = ({
                 }
           }
         />
-        <CustomResponsivePie
-          title="Répartition des rencontres par territoire"
-          help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.${TEXT_PERIODE}`}
-          data={getPieData(filteredRencontresByTerritories, "territoryName", {
-            options: [...territoriesForFilter],
-          })}
-          tableHeaderTitles={{
-            name: "Territoire",
-            value: "Nb rencontres",
-            percentage: "%",
-          }}
-        />
-        <CustomResponsivePie
-          title="Répartition des personnes rencontrées par territoire"
-          help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.${TEXT_PERIODE}`}
-          data={getPieData(filteredRencontresByTerritoriesUniquePersons, "territoryName", {
-            options: [...territoriesForFilter],
-          })}
-          onItemClick={
-            user.role === "stats-only"
-              ? undefined
-              : (id) => {
-                  setIsPersonsModalOpened(true);
-                  setIsOnlyNewPersons(false);
-                  setGenderSlice(null);
-                  setTerritoriesSlice(id);
-                }
-          }
-          tableHeaderTitles={{
-            name: "Territoire",
-            value: "Nb personnes",
-            percentage: "%",
-          }}
-        />
+        {Boolean(isTerritoriesEnabled) && (
+          <>
+            <CustomResponsivePie
+              title="Répartition des rencontres par territoire"
+              help={`Répartition par territoire du nombre de rencontres lors de la saisie d'une observation dans la période définie. Chaque rencontre est comptabilisée, même si plusieurs rencontres avec une même personne ont eu lieu sur un même territoire.${TEXT_PERIODE}`}
+              data={getPieData(filteredRencontresByTerritories, "territoryName", {
+                options: [...territoriesForFilter],
+              })}
+              tableHeaderTitles={{
+                name: "Territoire",
+                value: "Nb rencontres",
+                percentage: "%",
+              }}
+            />
+            <CustomResponsivePie
+              title="Répartition des personnes rencontrées par territoire"
+              help={`Répartition par territoire du nombre de personnes suivies ayant été rencontrées lors de la saisie d'une observation dans la période définie. Si une personne est rencontrée plusieurs fois sur un même territoire, elle n'est comptabilisée qu'une seule fois. Si elle est rencontrée sur deux territoires différents, elle sera comptée indépendamment sur chaque territoire.${TEXT_PERIODE}`}
+              data={getPieData(filteredRencontresByTerritoriesUniquePersons, "territoryName", {
+                options: [...territoriesForFilter],
+              })}
+              onItemClick={
+                user.role === "stats-only"
+                  ? undefined
+                  : (id) => {
+                      setIsPersonsModalOpened(true);
+                      setIsOnlyNewPersons(false);
+                      setGenderSlice(null);
+                      setTerritoriesSlice(id);
+                    }
+              }
+              tableHeaderTitles={{
+                name: "Territoire",
+                value: "Nb personnes",
+                percentage: "%",
+              }}
+            />
+          </>
+        )}
       </div>
       <SelectedPersonsModal
         open={isPersonsModalOpened}
