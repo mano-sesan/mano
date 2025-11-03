@@ -2,11 +2,15 @@
  * This comments are here because we have no typescript.
  * @param {string} name
  * @param {string} email
+ * @param {string} organisationName
  * @param {string} token
+ * @param {string} responsible
  * @returns {string}
  */
-function mailBienvenueHtml(name, email, organisationName, token) {
-  return `<img src="https://espace-mano.sesan.fr/banner-top.png" width="700" alt="Mano" style="magin-bottom: 16px;" />
+function mailBienvenueHtml(name, email, organisationName, token, responsible) {
+  // If responsible is null or undefined, default to "Guillaume"
+  const resp = responsible || "Guillaume";
+  return `<img src="https://espace-mano.sesan.fr/banner-top.png" width="700" alt="Mano" style="margin-bottom: 16px;" />
 <div style="max-width: 700px; padding: 8px">
 <p>👋 Bonjour${name ? " " + name : ""},</p>
 <p>Nous vous souhaitons la bienvenue sur Mano !<br />
@@ -38,19 +42,67 @@ Pour télécharger l’application, c’est PAR ICI !
 <br />
 <br />
 <p>Si vous avez des questions ou avez besoin d'assistance, n'hésitez pas à contacter votre chargé·e de déploiement&nbsp;:</p>
-<p>Melissa Saiter&nbsp;:<br />
-melissa.saiter@sesan.fr - 07 49 08 27 10<br />
-<span style="font-size: 12px;">Île-de-France, Hauts-de-France, Auvergne&nbsp;Rhone&nbsp;Alpes, Grand&nbsp;Est, Normandie, Bretagne, Guadeloupe et Martinique</span></p>
+${
+  resp === "Melissa"
+    ? `<p><b>Melissa SAITER</b><br />
+melissa.saiter@sesan.fr<br />
+07 49 08 27 10</p>
 <br />
 <p>Nous vous conseillons vivement de rajouter le lien de connexion à Mano à votre barre de favoris (en cliquant sur la petite étoile en haut à droite de la barre de recherche): cela va devenir pour vous un outil du quotidien !</p>
 <p>Si vous n'avez pas encore été formé à Mano, inscrivez-vous à une session de formation (environ 1h30) (C'est obligatoire et gratuit !) en sélectionnant un créneau via le lien ci-dessous&nbsp;:</p>
 <ul>
 <li>
-<a href="https://cal.com/msaiter/je-souhaite-une-demonstration-de-l-outil-mano?duration=60">
-Reservez un temps de présentation de l’outil MANO (Melissa)
+<a href="https://cal.com/msaiter/j-ai-besoin-d-une-nouvelle-formation-mano">
+Réservez un temps de formation à l'outil MANO
 </a>
 </li>
 </ul>
+<p><b>Votre référent n'est pas disponible&nbsp;?</b></p>
+<ul>
+<li>Simon - 06 62 94 76 88 - simon.lesgourgues@sesan.fr</li>
+<li>Guillaume - 07 68 55 81 48 - guillaume.demirhan@sesan.fr</li>
+</ul>`
+    : resp === "Simon"
+    ? `<p><b>Simon LESGOURGUES</b><br />
+simon.lesgourgues@sesan.fr<br />
+06 62 94 76 88</p>
+<br />
+<p>Nous vous conseillons vivement de rajouter le lien de connexion à Mano à votre barre de favoris (en cliquant sur la petite étoile en haut à droite de la barre de recherche): cela va devenir pour vous un outil du quotidien !</p>
+<p>Si vous n'avez pas encore été formé à Mano, inscrivez-vous à une session de formation (environ 1h30) (C'est obligatoire et gratuit !) en sélectionnant un créneau via le lien ci-dessous&nbsp;:</p>
+<ul>
+<li>
+<a href="https://cal.com/simon-lesgourgues/formation-de-mano">
+Réservez un temps de formation à l'outil MANO
+</a>
+</li>
+</ul>
+<p><b>Votre référent n'est pas disponible&nbsp;?</b></p>
+<ul>
+<li>Melissa - 07 49 08 27 10 - melissa.saiter@sesan.fr</li>
+<li>Guillaume - 07 68 55 81 48 - guillaume.demirhan@sesan.fr</li>
+</ul>`
+    : `<p><b>Guillaume DEMIRHAN</b><br />
+guillaume.demirhan@sesan.fr<br />
+07 68 55 81 48</p>
+<br />
+<p>Nous vous conseillons vivement de rajouter le lien de connexion à Mano à votre barre de favoris (en cliquant sur la petite étoile en haut à droite de la barre de recherche): cela va devenir pour vous un outil du quotidien !</p>
+<p>Si vous n'avez pas encore été formé à Mano, inscrivez-vous à une session de formation (environ 1h30) (C'est obligatoire et gratuit !) en sélectionnant un créneau via le lien ci-dessous&nbsp;:</p>
+<ul>
+<li>
+<a href="https://cal.com/g-demirhan/1h">
+Réservez un temps de formation à l'outil MANO
+</a>
+</li>
+</ul>
+<p><b>Votre référent n'est pas disponible&nbsp;?</b></p>
+<ul>
+<li>Melissa - 07 49 08 27 10 - melissa.saiter@sesan.fr</li>
+<li>Simon - 06 62 94 76 88 - simon.lesgourgues@sesan.fr</li>
+</ul>`
+}
+<br />
+<p><b>Un problème pendant le week-end&nbsp;?</b></p>
+<p>Appelez Guillaume au 07 68 55 81 48</p>
 <br />
 <p>Nous vous remercions de rejoindre la communauté Mano et espérons répondre à vos besoins pour accompagner au mieux votre public.</p>
 <p>Cordialement,</p>
