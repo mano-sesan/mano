@@ -519,7 +519,7 @@ router.post(
     await user.save({ transaction: tx });
 
     const organisation = await Organisation.findOne({ where: { _id: organisationId } });
-    await mailservice.sendEmail(data.email, "Bienvenue dans Mano", null, mailBienvenueHtml(data.name, data.email, organisation.name, token));
+    await mailservice.sendEmail(data.email, "Bienvenue dans Mano", null, mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible));
 
     return res.status(200).send({
       ok: true,

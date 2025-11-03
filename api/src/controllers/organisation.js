@@ -183,7 +183,7 @@ router.post(
       adminUser.email,
       "Bienvenue dans Mano",
       null,
-      mailBienvenueHtml(adminUser.name, adminUser.email, organisation.name, token)
+      mailBienvenueHtml(adminUser.name, adminUser.email, organisation.name, token, organisation.responsible)
     );
 
     return res.status(200).send({ ok: true });
