@@ -174,6 +174,7 @@ const List = () => {
 
 const Create = ({ onChange, users }) => {
   const [open, setOpen] = useState(false);
+  const emailInputRef = React.useRef(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const teams = useRecoilValue(teamsState);
@@ -188,7 +189,7 @@ const Create = ({ onChange, users }) => {
     };
   }, [teams]);
   useEffect(() => {
-    if (!open) setData(initialState);
+    if (open) setData(initialState);
   }, [open, initialState]);
   const [data, setData] = useState(initialState);
   const handleChange = (event) => {
@@ -218,10 +219,9 @@ const Create = ({ onChange, users }) => {
       }
       setIsSubmitting(true);
       const [error] = await tryFetch(async () => API.post({ path: "/user", body: data }));
-      // We do not set isSubmitting to false here because the modal will be closed
-      // and the onAfterLeave will be called, which will set it to false
       if (error) {
         toast.error(errorMessage(error));
+        setIsSubmitting(false);
         return false;
       }
       toast.success("Création réussie !");
@@ -231,6 +231,8 @@ const Create = ({ onChange, users }) => {
         setIsSubmitting(false);
         onChange();
         setData(initialState);
+        // Focus email field to make it clear we're ready for a new entry
+        setTimeout(() => emailInputRef.current?.focus(), 100);
       }
       return true;
     } catch (errorCreatingUser) {
@@ -260,13 +262,15 @@ const Create = ({ onChange, users }) => {
             className="tw-p-4"
             onSubmit={async (e) => {
               e.preventDefault();
-              await handleSubmit(true);
+              const success = await handleSubmit(true);
+              if (success) setOpen(false);
             }}
           >
             <div className="tw-flex tw-w-full tw-flex-wrap">
               <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
                 <label htmlFor="email">Email</label>
                 <input
+                  ref={emailInputRef}
                   className="tailwindui"
                   autoComplete="off"
                   placeholder="email@truc.fr"
@@ -365,18 +369,17 @@ const Create = ({ onChange, users }) => {
           </button>
           <button
             type="button"
-            name="Fermer"
+            name="Créer et ajouter un autre"
             className="button-classic"
             onClick={async () => {
-              const success = await handleSubmit();
-              if (success) setOpen(false);
+              await handleSubmit(false);
             }}
             disabled={isSubmitting}
           >
-            Créer et fermer
+            Créer et ajouter un autre
           </button>
           <button type="submit" className="button-submit" form="create-user-form" disabled={isSubmitting}>
-            Créer et ajouter un autre
+            Créer et fermer
           </button>
         </ModalFooter>
       </ModalContainer>
