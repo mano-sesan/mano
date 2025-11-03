@@ -26,6 +26,8 @@ export default function PersonHistory({ person }) {
     ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
   ];
   const user = useRecoilValue(userState);
+  const users = useRecoilValue(usersState);
+  const deletedUsers = useRecoilValue(deletedUsersState);
   const history = useMemo(() => {
     const personHistory = cleanHistory(person.history || []);
     if (!user.healthcareProfessional) return personHistory.reverse();
@@ -33,6 +35,40 @@ export default function PersonHistory({ person }) {
     return cleanHistory([...personHistory, ...medicalFileHistory]).sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [person.history, person.medicalFile?.history, user.healthcareProfessional]);
   const [calendarDayCreatedAt, timeCreatedAt] = dayjsInstance(person.createdAt).format("DD/MM/YYYY HH:mm").split(" ");
+
+  const exportHistory = () => {
+    const enrichedHistory = history.map((h) => {
+      const historyUser = users.find((u) => u._id === h.user) || deletedUsers.find((u) => u._id === h.user);
+      return {
+        date: h.date,
+        user: historyUser?.name || h.userName || "Unknown",
+        userId: h.user,
+        data: h.data,
+      };
+    });
+
+    const exportData = {
+      personId: person._id,
+      personName: person.name,
+      createdAt: person.createdAt,
+      createdBy: (() => {
+        const creator = users.find((u) => u._id === person.user) || deletedUsers.find((u) => u._id === person.user);
+        return creator?.name || "Unknown";
+      })(),
+      history: enrichedHistory,
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `history-${person.name || person._id}-${dayjsInstance().format("YYYY-MM-DD-HHmm")}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div>
@@ -170,6 +206,11 @@ export default function PersonHistory({ person }) {
           )}
         </tbody>
       </table>
+      <div className="tw-mt-4 tw-flex tw-justify-end">
+        <button type="button" className="button-submit" onClick={exportHistory}>
+          Exporter l'historique
+        </button>
+      </div>
     </div>
   );
 }
