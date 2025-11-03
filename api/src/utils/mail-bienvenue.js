@@ -72,7 +72,7 @@ simon.lesgourgues@sesan.fr<br />
 <ul>
 <li>
 <a href="https://cal.com/simon-lesgourgues/formation-de-mano">
-Reservez un temps de formation à l'outil MANO
+Réservez un temps de formation à l'outil MANO
 </a>
 </li>
 </ul>
@@ -90,7 +90,7 @@ guillaume.demirhan@sesan.fr<br />
 <ul>
 <li>
 <a href="https://cal.com/g-demirhan/1h">
-Reservez un temps de formation à l'outil MANO
+Réservez un temps de formation à l'outil MANO
 </a>
 </li>
 </ul>

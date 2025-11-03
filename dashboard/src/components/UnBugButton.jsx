@@ -46,7 +46,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                           className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
                           href="https://cal.com/msaiter/j-ai-besoin-d-une-nouvelle-formation-mano"
                         >
-                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <div className="tw-text-left tw-grow">Réservez un temps de formation à l'outil MANO</div>
                           <AgendaIcon size={42} />
                         </a>
                       </div>
@@ -77,7 +77,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                           className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
                           href="https://cal.com/simon-lesgourgues/formation-de-mano"
                         >
-                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <div className="tw-text-left tw-grow">Réservez un temps de formation à l'outil MANO</div>
                           <AgendaIcon size={42} />
                         </a>
                       </div>
@@ -108,7 +108,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
                           className="tw-flex tw-gap-2 tw-my-2 tw-bg-sky-600 hover:tw-bg-sky-700 hover:tw-text-white hover:tw-no-underline tw-text-white tw-px-4 tw-py-2 tw-rounded tw-shadow tw-text-sm tw-max-w-64"
                           href="https://cal.com/g-demirhan/1h"
                         >
-                          <div className="tw-text-left tw-grow">Reservez un temps de formation à l'outil MANO</div>
+                          <div className="tw-text-left tw-grow">Réservez un temps de formation à l'outil MANO</div>
                           <AgendaIcon size={42} />
                         </a>
                       </div>
