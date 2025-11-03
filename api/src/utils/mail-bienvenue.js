@@ -53,7 +53,7 @@ melissa.saiter@sesan.fr<br />
 <ul>
 <li>
 <a href="https://cal.com/msaiter/j-ai-besoin-d-une-nouvelle-formation-mano">
-Reservez un temps de formation à l'outil MANO
+Réservez un temps de formation à l'outil MANO
 </a>
 </li>
 </ul>
