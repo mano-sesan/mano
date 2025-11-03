@@ -48,7 +48,7 @@
     "urijs": "^1.19.11",
     "use-debounce": "^10.0.2",
     "uuid": "^9.0.0",
-    "validator": "^13.7.0",
+    "validator": "^13.15.20",
     "web-vitals": "^3.0.0"
   },
   "devDependencies": {
