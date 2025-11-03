@@ -10,7 +10,7 @@
 function mailBienvenueHtml(name, email, organisationName, token, responsible) {
   // If responsible is null or undefined, default to "Guillaume"
   const resp = responsible || "Guillaume";
-  return `<img src="https://espace-mano.sesan.fr/banner-top.png" width="700" alt="Mano" style="magin-bottom: 16px;" />
+  return `<img src="https://espace-mano.sesan.fr/banner-top.png" width="700" alt="Mano" style="margin-bottom: 16px;" />
 <div style="max-width: 700px; padding: 8px">
 <p>👋 Bonjour${name ? " " + name : ""},</p>
 <p>Nous vous souhaitons la bienvenue sur Mano !<br />
