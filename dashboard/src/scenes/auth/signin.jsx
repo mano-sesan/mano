@@ -39,6 +39,8 @@ const SignIn = () => {
   const location = useLocation();
   const [showErrors, setShowErrors] = useState(false);
   const [userName, setUserName] = useState(false);
+  const [showSelectName, setShowSelectName] = useState(false);
+  const [name, setName] = useState("");
   const [showSelectTeam, setShowSelectTeam] = useState(false);
   const [showEncryption, setShowEncryption] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
@@ -315,13 +317,47 @@ const SignIn = () => {
         return;
       }
     }
-    // basic login
+
+    // Basic login
+    // Select name if not set
+    if (!user.name) {
+      setIsSubmitting(false);
+      setShowSelectName(true);
+      return;
+    }
+    handleShowSelectTeam();
+  };
+
+  const handleShowSelectTeam = () => {
+    // Team selection
     if (user.teams.length === 1 || (process.env.NODE_ENV === "development" && import.meta.env.SKIP_TEAMS === "true")) {
       setCurrentTeam(user.teams[0]);
       onSigninValidated();
       return;
     }
     setShowSelectTeam(true);
+  };
+
+  const handleSubmitName = async (e) => {
+    e.preventDefault();
+    if (!name || name.trim() === "") {
+      toast.error("Veuillez renseigner votre prénom et nom");
+      return;
+    }
+    setIsSubmitting(true);
+    const [errorUpdateUser, response] = await tryFetch(() => API.put({ path: "/user", body: { name: name.trim() } }));
+    if (errorUpdateUser) {
+      toast.error(errorMessage(errorUpdateUser));
+      setIsSubmitting(false);
+      return;
+    }
+    if (response.ok && response.user) {
+      setUser({ ...user, name: response.user.name });
+      setUserName(response.user.name);
+      setShowSelectName(false);
+      setIsSubmitting(false);
+      handleShowSelectTeam();
+    }
   };
   const handleChangeRequest = (e) => {
     setShowErrors(false);
@@ -333,6 +369,33 @@ const SignIn = () => {
   };
 
   if (loading) return <></>;
+
+  if (showSelectName) {
+    return (
+      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
+        <h1 className="tw-mb-6 tw-text-center tw-text-2xl tw-font-bold">Renseignez votre prénom et nom</h1>
+        <form onSubmit={handleSubmitName} method="POST">
+          <div className="tw-mb-6 tw-flex tw-flex-col tw-py-2">
+            <label htmlFor="name" className="tw-mb-2">
+              Prénom et nom
+            </label>
+            <input
+              className="tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-p-2.5 tw-text-black tw-outline-main tw-transition-all"
+              autoComplete="name"
+              name="name"
+              id="name"
+              type="text"
+              placeholder="Cliquez ici pour entrer votre prénom et nom"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <ButtonCustom loading={isSubmitting} type="submit" color="primary" title="Enregistrer" className="tw-m-auto" />
+        </form>
+      </div>
+    );
+  }
 
   if (showSelectTeam) {
     return (
