@@ -357,6 +357,9 @@ const SignIn = () => {
       setShowSelectName(false);
       setIsSubmitting(false);
       handleShowSelectTeam();
+    } else {
+      setIsSubmitting(false);
+      toast.error("Une erreur est survenue lors de la mise à jour du nom");
     }
   };
   const handleChangeRequest = (e) => {
