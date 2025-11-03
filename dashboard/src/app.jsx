@@ -28,6 +28,7 @@ import API, { tryFetch } from "./services/api";
 import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
 import VersionOutdatedAlert from "./components/VersionOutdatedAlert";
+import EncryptionWarnings from "./components/EncryptionWarnings";
 import ModalConfirm from "./components/ModalConfirm";
 import DataLoader from "./components/DataLoader";
 import { Bounce, cssTransition, ToastContainer } from "react-toastify";
@@ -229,9 +230,12 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
         {!!user && !["stats-only"].includes(user.role) && <Drawer />}
         <main
           id="main-content"
-          className="tw-relative tw-flex tw-grow tw-basis-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible print:tw-p-0"
+          className="tw-relative tw-flex tw-grow tw-basis-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible"
         >
-          <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
+          {!!user && <EncryptionWarnings />}
+          <div className="tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-p-0">
+            <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
+          </div>
         </main>
       </div>
       {!!user && !["stats-only"].includes(user.role) && <BottomBar />}
