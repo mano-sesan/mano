@@ -398,7 +398,6 @@ const SignIn = () => {
             type="submit"
             color="primary"
             title="Valider"
-            onClick={handleSubmitName}
             className="tw-m-auto !tw-mt-8 !tw-w-56 tw-font-[Helvetica] !tw-text-base tw-font-medium"
           />
         </form>
