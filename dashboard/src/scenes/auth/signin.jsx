@@ -40,6 +40,7 @@ const SignIn = () => {
   const [showErrors, setShowErrors] = useState(false);
   const [userName, setUserName] = useState(false);
   const [showSelectTeam, setShowSelectTeam] = useState(false);
+  const [showAskName, setShowAskName] = useState(false);
   const [showEncryption, setShowEncryption] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -55,6 +56,7 @@ const SignIn = () => {
   const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
   const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "", otp: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [name, setName] = useState("");
   const isDesktop = useMinimumWidth("sm");
 
   const browser = detect();
@@ -95,6 +97,7 @@ const SignIn = () => {
     setShowErrors(false);
     setUserName("");
     setShowSelectTeam(false);
+    setShowAskName(false);
     setShowEncryption(false);
     setShowPassword(false);
     setAuthViaCookie(false);
@@ -226,6 +229,14 @@ const SignIn = () => {
       history.push("/organisation");
       return;
     }
+
+    // Check if user name is missing and ask for it
+    if (!user.name || user.name.trim() === "") {
+      setShowAskName(true);
+      setIsSubmitting(false);
+      return;
+    }
+
     const [error, teamResponse] = await tryFetchExpectOk(async () => API.get({ path: "/team" }));
     if (error) {
       toast.error(errorMessage(error));
@@ -332,7 +343,162 @@ const SignIn = () => {
     setSigninForm((form) => ({ ...form, orgEncryptionKey: value }));
   };
 
+  const handleSubmitName = async (e) => {
+    e.preventDefault();
+    if (!name || name.trim() === "") {
+      toast.error("Veuillez renseigner votre prénom et nom");
+      return;
+    }
+    setIsSubmitting(true);
+    const [errorUpdateUser, response] = await tryFetch(() => API.put({ path: "/user", body: { name: name.trim() } }));
+    if (errorUpdateUser) {
+      toast.error(errorMessage(errorUpdateUser));
+      setIsSubmitting(false);
+      return;
+    }
+    if (response.ok && response.user) {
+      setUser(response.user);
+      setUserName(response.user.name);
+      setShowAskName(false);
+      // Continue with the normal flow
+      const [errorTeams, teamResponse] = await tryFetchExpectOk(async () => API.get({ path: "/team" }));
+      if (errorTeams) {
+        toast.error(errorMessage(errorTeams));
+        setIsSubmitting(false);
+        return;
+      }
+      const teams = teamResponse.data;
+      const [errorUsers, usersResponse] = await tryFetchExpectOk(async () => API.get({ path: "/user", query: { minimal: true } }));
+      if (errorUsers) {
+        toast.error(errorMessage(errorUsers));
+        setIsSubmitting(false);
+        return;
+      }
+      const users = usersResponse.data;
+      setTeams(teams);
+      setUsers(users);
+
+      // Les utilisateurs supprimés sont récupérés pour pouvoir afficher leur nom dans les éléments qu'ils ont créés.
+      const [errorDeletedUsers, deletedUsersResponse] = await tryFetchExpectOk(async () => API.get({ path: "/user/deleted-users" }));
+      if (errorDeletedUsers) {
+        toast.error(errorMessage(errorDeletedUsers));
+        setIsSubmitting(false);
+        return;
+      }
+      setDeletedUsers(deletedUsersResponse.data);
+
+      // onboarding
+      if (!organisation.encryptionEnabled && ["admin"].includes(response.user.role)) {
+        history.push(`/organisation/${organisation._id}`);
+        return;
+      }
+      if (!teams.length) {
+        history.push("/team");
+        return;
+      }
+      if (organisation.lockedBy === response.user._id) {
+        const canSignin = await new Promise((resolve) => {
+          setModalConfirmState({
+            open: true,
+            options: {
+              title: "Il semblerait que vous soyez en train de rechiffrer votre organisation, est-ce toujours le cas ?",
+              subTitle: (
+                <>
+                  <b>Votre organisation est actuellement verrouillée pour rechiffrement.</b>
+                  <br />
+                  <br />
+                  <small className="tw-opacity-70">
+                    Lorsque vous êtes en train de rechiffrer votre organisation, il devient impossible aux autres utilisateurs d'ajouter ou de
+                    modifier des données.
+                    <br /> Il se peut que, pendant un rechiffrement, le rechiffrement a été interrompu (par exemple si vous rechargez votre page de
+                    navigateur), mais l'organisation est toujours verrouillée, et les utilisateurs -&nbsp;vous compris&nbsp;- ne peuvent toujours pas
+                    ajouter ou modifier des données.
+                  </small>
+                </>
+              ),
+              buttons: [
+                {
+                  text: "Oui, je suis toujours en train de rechiffrer sur une autre page",
+                  className: "button-cancel",
+                  onClick: () => {
+                    resolve(true);
+                  },
+                },
+                {
+                  text: "Non, je ne rechiffre plus",
+                  className: "button-submit",
+                  onClick: async () => {
+                    const [errorOrgUpdate] = await tryFetchExpectOk(async () =>
+                      API.put({
+                        path: `/organisation/${organisation._id}`,
+                        body: {
+                          encrypting: false,
+                          lockedForEncryption: false,
+                          lockedBy: null,
+                        },
+                      })
+                    );
+                    if (errorOrgUpdate) {
+                      toast.error(errorMessage(errorOrgUpdate));
+                    }
+                    resolve(false);
+                  },
+                },
+              ],
+            },
+          });
+        });
+        if (!canSignin) {
+          handleSubmitName(e);
+          return;
+        }
+      }
+      // basic login
+      if (response.user.teams.length === 1 || (process.env.NODE_ENV === "development" && import.meta.env.SKIP_TEAMS === "true")) {
+        setCurrentTeam(response.user.teams[0]);
+        onSigninValidated();
+        return;
+      }
+      setShowSelectTeam(true);
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading) return <></>;
+
+  if (showAskName) {
+    return (
+      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
+        <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">Renseignez votre prénom et nom</h1>
+        <form onSubmit={handleSubmitName} method="POST">
+          <div className="tw-mb-6 tw-flex tw-flex-col tw-py-2">
+            <label htmlFor="name" className="tw-mb-2">
+              Prénom et nom
+            </label>
+            <input
+              className="tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-p-2.5 tw-text-black tw-outline-main tw-transition-all"
+              autoComplete="name"
+              name="name"
+              id="name"
+              type="text"
+              placeholder="Cliquez ici pour entrer votre prénom et nom"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <ButtonCustom
+            loading={isSubmitting}
+            type="submit"
+            color="primary"
+            title="Valider"
+            onClick={handleSubmitName}
+            className="tw-m-auto !tw-mt-8 !tw-w-56 tw-font-[Helvetica] !tw-text-base tw-font-medium"
+          />
+        </form>
+      </div>
+    );
+  }
 
   if (showSelectTeam) {
     return (
