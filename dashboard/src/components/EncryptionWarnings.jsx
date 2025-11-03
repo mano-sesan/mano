@@ -4,7 +4,7 @@ import { organisationState, userState, encryptionKeyLengthState, MINIMUM_ENCRYPT
 import { dayjsInstance, formatDateWithNameOfDay } from "../services/date";
 
 const encryptionChangeOfKeyEnabled = true;
-const MAY_24_2024 = "2026-05-24";
+const MAY_24_2024 = "2024-05-24";
 
 export default function EncryptionWarnings() {
   const user = useRecoilValue(userState);
