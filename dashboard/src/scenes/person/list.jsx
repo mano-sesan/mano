@@ -98,9 +98,15 @@ const filterPersonsWithAllFieldsSelector = selector({
     ];
     if (user.healthcareProfessional) {
       filterBase.push(
-        ...customFieldsMedicalFile.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a }))
+        ...customFieldsMedicalFile
+          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+          .map((a) => ({ field: a.name, category: "medicalFile", ...a }))
       );
-      filterBase.push(...consultationFields.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })));
+      filterBase.push(
+        ...consultationFields
+          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+          .map((a) => ({ field: a.name, category: "flattenedConsultations", ...a }))
+      );
     }
     return filterBase;
   },
