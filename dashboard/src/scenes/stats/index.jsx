@@ -93,13 +93,8 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
   const snapshotDate = dayjsInstance(period.endDate).format("YYYY-MM-DD");
 
   const allPersons = allRawPersons.map((person) => {
-    const flattenedPerson = {
-      ...(person.medicalFile || {}),
-      ...(person.flattenedConsultations || {}),
-      ...person,
-    };
     const snapshotAtDate = getPersonSnapshotAtDate({
-      person: flattenedPerson,
+      person,
       snapshotDate: snapshotDate,
       typesByFields: personTypesByFieldsNames,
     });
@@ -682,10 +677,14 @@ const Stats = () => {
     ];
     if (user.healthcareProfessional) {
       filterBase.push(
-        ...customFieldsMedicalFile.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a }))
+        ...customFieldsMedicalFile
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+          .map((a) => ({ field: a.name, ...a, category: "medicalFile" }))
       );
       filterBase.push(
-        ...consultationFields.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a }))
+        ...consultationFields
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+          .map((a) => ({ field: a.name, ...a, category: "flattenedConsultations" }))
       );
     }
     return filterBase;

@@ -13,7 +13,7 @@ export const filterItem =
     for (const filter of filters) {
       if (debug) console.log("filter", filter);
       if (!filter.field || !filter.value) continue;
-      const itemValue = item[filter.field];
+      const itemValue = filter.category && item[filter.category] ? item[filter.category][filter.field] : item[filter.field];
       if (["number"].includes(filter.type)) {
         const { number, number2, comparator } = filter.value;
         // Handle unfilled case first
@@ -120,9 +120,14 @@ export const filterItem =
   };
 
 export const filterData = (data: any[], filters: Array<Filter>) => {
-  data = data.map(filterItem(filters)).filter(Boolean);
-  return data;
+  return data.map(filterItem(filters)).filter(Boolean);
 };
+
+function categoryToLabel(category: string) {
+  if (category === "medicalFile") return "Dossier médical";
+  if (category === "flattenedConsultations") return "Consultation";
+  return category;
+}
 
 const Filters = ({
   onChange,
@@ -139,7 +144,9 @@ const Filters = ({
 }) => {
   filters = filters.length ? filters : [{ field: null, type: null, value: null }];
   const onAddFilter = () => onChange([...filters, {}], saveInURLParams);
-  const filterFields = base.filter((_filter) => _filter.field !== "alertness").map((f) => ({ label: f.label, field: f.field, type: f.type }));
+  const filterFields = base
+    .filter((_filter) => _filter.field !== "alertness")
+    .map((f) => ({ label: f.label, field: f.field, type: f.type, category: f.category }));
 
   function getFilterOptionsByField(fieldName: FilterableField["field"], base: Array<FilterableField>, index: number): Array<string> {
     if (!fieldName) return [];
@@ -215,13 +222,17 @@ const Filters = ({
                 return;
               }
               onChange(
-                filters.map((_filter, i) => (i === index ? { field: newField?.field, value: null, type: newField?.type } : _filter)),
+                filters.map((_filter, i) =>
+                  i === index ? { field: newField?.field, value: null, type: newField?.type, category: newField?.category } : _filter
+                ),
                 saveInURLParams
               );
             };
             const onChangeValue = (newValue: Filter["value"]) => {
               onChange(
-                filters.map((f: Filter, i: number) => (i === index ? { field: filter.field, value: newValue, type: filter.type } : f)),
+                filters.map((f: Filter, i: number) =>
+                  i === index ? { field: filter.field, value: newValue, type: filter.type, category: filter.category } : f
+                ),
                 saveInURLParams
               );
             };
@@ -246,7 +257,20 @@ const Filters = ({
                     options={filterFields}
                     value={filter.field ? filter : null}
                     onChange={onChangeField}
-                    getOptionLabel={(_option) => filterFields.find((_filter) => _filter.field === _option.field)?.label}
+                    formatOptionLabel={(_option) => {
+                      const current = filterFields.find((_filter) => _filter.field === _option.field && _filter.category === _option.category);
+                      if (!current) return "";
+                      if (current.category) {
+                        return (
+                          <>
+                            {current.label}
+                            <span className="tw-ml-2 tw-text-gray-500 tw-text-xs">{categoryToLabel(current.category)}</span>
+                          </>
+                        );
+                      }
+                      return current.label;
+                    }}
+                    isSearchable={true}
                     getOptionValue={(_option) => _option.field}
                     isClearable={true}
                     isMulti={false}

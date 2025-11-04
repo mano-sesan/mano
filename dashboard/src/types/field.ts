@@ -50,6 +50,7 @@ export interface CustomFieldsGroup {
 export interface FilterableField {
   field: string; // same as name
   name: string; // same as field
+  category?: string;
   label: string;
   type: FieldType;
   options?: string[];
@@ -57,6 +58,7 @@ export interface FilterableField {
 
 export type Filter = {
   field?: string;
+  category?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value?: any;
   type?: FieldType;

@@ -4,7 +4,7 @@ import { useRecoilValue } from "recoil";
 import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../recoil/persons";
 import { utils, writeFile } from "@e965/xlsx";
 import { dayjsInstance } from "../../services/date";
-import { teamsState, userState } from "../../recoil/auth";
+import { currentTeamState, teamsState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { customFieldsObsSelector } from "../../recoil/territoryObservations";
 import { territoriesState } from "../../recoil/territory";
@@ -14,6 +14,7 @@ import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
   const teams = useRecoilValue(teamsState);
+  const currentTeam = useRecoilValue(currentTeamState);
   const persons = useRecoilValue(personsState);
   const territories = useRecoilValue(territoriesState);
   const user = useRecoilValue(userState);
@@ -75,17 +76,20 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         // On conserve quelques champs généraux pour les dossiers médicaux
         ...personFieldsIncludingCustomFields.filter((field) => ["assignedTeams", "name", "otherNames", "gender", "birthdate"].includes(field.name)),
         // Et on prend tous les champs du dossier médical
-        ...customFieldsMedicalFile,
+        ...customFieldsMedicalFile
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+          .map((a) => ({ field: a.name, category: "medicalFile", ...a })),
       ].reduce((fields, field) => {
         let value;
+        const personFieldValue = field.category && person[field.category] ? person[field.category][field.name] : person[field.name];
         if (field.name === "assignedTeams") {
-          value = (person[field.name] || []).map((t) => teams.find((team) => team._id === t)?.name)?.join(", ");
+          value = (personFieldValue || []).map((t) => teams.find((team) => team._id === t)?.name)?.join(", ");
         } else if (["date", "date-with-time", "duration"].includes(field.type))
-          value = person[field.name] ? dayjsInstance(person[field.name]).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm") : "";
-        else if (["boolean"].includes(field.type)) value = person[field.name] ? "Oui" : "Non";
-        else if (["yes-no"].includes(field.type)) value = person[field.name];
-        else if (Array.isArray(person[field.name])) value = person[field.name].join(", ");
-        else value = person[field.name];
+          value = personFieldValue ? dayjsInstance(personFieldValue).format(field.type === "date" ? "YYYY-MM-DD" : "YYYY-MM-DD HH:mm") : "";
+        else if (["boolean"].includes(field.type)) value = personFieldValue ? "Oui" : "Non";
+        else if (["yes-no"].includes(field.type)) value = personFieldValue;
+        else if (Array.isArray(personFieldValue)) value = personFieldValue.join(", ");
+        else value = personFieldValue;
 
         fields[field.label || field.name] = truncateForExcel(value);
         return fields;
