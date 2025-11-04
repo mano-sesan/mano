@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, View } from 'react-native';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { v4 as uuidv4 } from 'uuid';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -206,19 +206,6 @@ const Treatment = ({ navigation, route }) => {
   };
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
   return (
     <SceneContainer testID="new-treatment-form">
       <ScreenTitle
@@ -226,64 +213,87 @@ const Treatment = ({ navigation, route }) => {
         onBack={onGoBackRequested}
         testID="new-treatment"
       />
-      <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled">
-        <View>
-          <InputLabelled label="Nom" value={name} onChangeText={setName} placeholder="Amoxicilline" testID="new-treatment-name" />
-          <InputLabelled label="Dosage" value={dosage} onChangeText={setDosage} placeholder="1mg" testID="new-treatment-dosage" />
-          <InputLabelled
-            label="Fréquence"
-            value={frequency}
-            onChangeText={setFrequency}
-            placeholder="1 fois par jour"
-            testID="new-treatment-frequency"
-          />
-          <InputLabelled label="Indication" value={indication} onChangeText={setIndication} placeholder="Angine" testID="new-treatment-indication" />
-          <Label label="Document(s)" />
-          <DocumentsManager
-            defaultParent="treatment"
-            personDB={personDB}
-            onAddDocument={(doc) => {
-              setDocuments((docs) => [...docs, doc]);
-            }}
-            onDelete={(doc) => setDocuments((docs) => docs.filter((d) => d.file.filename !== doc.file.filename))}
-            onUpdateDocument={(doc) => {
-              setDocuments((docs) => docs.map((d) => (d.file.filename === doc.file.filename ? doc : d)));
-            }}
-            documents={documents}
-          />
-          <Spacer />
-          <DateAndTimeInput label="Date de début" date={startDate} setDate={setStartDate} editable showYear />
-          <DateAndTimeInput label="Date de fin" date={endDate} setDate={setEndDate} editable showYear />
-          <ButtonsContainer>
-            {!isNew && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
-            <Button
-              caption={isNew ? 'Créer' : 'Modifier'}
-              disabled={!!isDisabled}
-              onPress={onSaveTreatment}
-              loading={posting}
-              testID="new-treatment-create"
+      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+        <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled">
+          <View>
+            <InputLabelled label="Nom" value={name} onChangeText={setName} placeholder="Amoxicilline" testID="new-treatment-name" />
+            <InputLabelled label="Dosage" value={dosage} onChangeText={setDosage} placeholder="1mg" testID="new-treatment-dosage" />
+            <InputLabelled
+              label="Fréquence"
+              value={frequency}
+              onChangeText={setFrequency}
+              placeholder="1 fois par jour"
+              testID="new-treatment-frequency"
             />
-          </ButtonsContainer>
-        </View>
-        <SubList
-          label="Commentaires"
-          key={treatmentDB?._id}
-          data={comments}
-          renderItem={(comment) => (
-            <CommentRow
-              key={comment._id}
-              comment={comment}
-              onDelete={async () => {
-                const newComments = comments.filter((c) => c._id !== comment._id);
-                setComments(newComments); // optimistic UI
-                // need to pass `medicalFileToSave` if we want last comment to be taken into account
-                // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                return onSaveTreatment({ goBackOnSave: false, comments: newComments });
+            <InputLabelled
+              label="Indication"
+              value={indication}
+              onChangeText={setIndication}
+              placeholder="Angine"
+              testID="new-treatment-indication"
+            />
+            <Label label="Document(s)" />
+            <DocumentsManager
+              defaultParent="treatment"
+              personDB={personDB}
+              onAddDocument={(doc) => {
+                setDocuments((docs) => [...docs, doc]);
               }}
-              onUpdate={async (commentUpdated) => {
-                const newComments = comments.map((c) => (c._id === comment._id ? commentUpdated : c));
+              onDelete={(doc) => setDocuments((docs) => docs.filter((d) => d.file.filename !== doc.file.filename))}
+              onUpdateDocument={(doc) => {
+                setDocuments((docs) => docs.map((d) => (d.file.filename === doc.file.filename ? doc : d)));
+              }}
+              documents={documents}
+            />
+            <Spacer />
+            <DateAndTimeInput label="Date de début" date={startDate} setDate={setStartDate} editable showYear />
+            <DateAndTimeInput label="Date de fin" date={endDate} setDate={setEndDate} editable showYear />
+            <ButtonsContainer>
+              {!isNew && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
+              <Button
+                caption={isNew ? 'Créer' : 'Modifier'}
+                disabled={!!isDisabled}
+                onPress={onSaveTreatment}
+                loading={posting}
+                testID="new-treatment-create"
+              />
+            </ButtonsContainer>
+          </View>
+          <SubList
+            label="Commentaires"
+            key={treatmentDB?._id}
+            data={comments}
+            renderItem={(comment) => (
+              <CommentRow
+                key={comment._id}
+                comment={comment}
+                onDelete={async () => {
+                  const newComments = comments.filter((c) => c._id !== comment._id);
+                  setComments(newComments); // optimistic UI
+                  // need to pass `medicalFileToSave` if we want last comment to be taken into account
+                  // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                  return onSaveTreatment({ goBackOnSave: false, comments: newComments });
+                }}
+                onUpdate={async (commentUpdated) => {
+                  const newComments = comments.map((c) => (c._id === comment._id ? commentUpdated : c));
+                  setComments(newComments); // optimistic UI
+                  // need to pass `medicalFileToSave` if we want last comment to be taken into account
+                  // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                  return onSaveTreatment({
+                    goBackOnSave: false,
+                    comments: newComments,
+                  });
+                }}
+              />
+            )}
+            ifEmpty="Pas encore de commentaire">
+            <NewCommentInput
+              forwardRef={newCommentRef}
+              onCommentWrite={setWritingComment}
+              onCreate={(newComment) => {
+                const newComments = [{ ...newComment, type: 'treatment', _id: uuidv4() }, comments];
                 setComments(newComments); // optimistic UI
-                // need to pass `medicalFileToSave` if we want last comment to be taken into account
+                // need to pass comments as parameters if we want last comment to be taken into account
                 // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
                 return onSaveTreatment({
                   goBackOnSave: false,
@@ -291,25 +301,9 @@ const Treatment = ({ navigation, route }) => {
                 });
               }}
             />
-          )}
-          ifEmpty="Pas encore de commentaire">
-          <NewCommentInput
-            forwardRef={newCommentRef}
-            onFocus={() => _scrollToInput(newCommentRef)}
-            onCommentWrite={setWritingComment}
-            onCreate={(newComment) => {
-              const newComments = [{ ...newComment, type: 'treatment', _id: uuidv4() }, comments];
-              setComments(newComments); // optimistic UI
-              // need to pass comments as parameters if we want last comment to be taken into account
-              // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-              return onSaveTreatment({
-                goBackOnSave: false,
-                comments: newComments,
-              });
-            }}
-          />
-        </SubList>
-      </ScrollContainer>
+          </SubList>
+        </ScrollContainer>
+      </KeyboardAvoidingView>
     </SceneContainer>
   );
 };

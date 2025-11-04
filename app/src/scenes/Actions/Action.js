@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, Animated, Keyboard, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Keyboard, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import isEqual from 'react-fast-compare';
 import styled from 'styled-components/native';
@@ -66,8 +66,6 @@ const ActionInformation = ({
   setEditable,
   setAction,
   onSearchPerson,
-  descriptionRef,
-  _scrollToInput,
   updating,
   isUpdateDisabled,
   onUpdateRequest,
@@ -145,8 +143,6 @@ const ActionInformation = ({
         placeholder="Description"
         multiline
         editable={editable}
-        ref={descriptionRef}
-        onFocus={() => _scrollToInput(descriptionRef)}
       />
       <ActionCategoriesModalSelect onChange={(categories) => setAction((a) => ({ ...a, categories }))} values={categories} editable={editable} />
       {editable && canSetUrgent ? (
@@ -180,14 +176,13 @@ const ActionInformation = ({
   );
 };
 
-const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, _scrollToInput, setWritingComment }) => {
+const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, setWritingComment }) => {
   return (
     <ScrollContainer noRadius>
       {!!canComment && (
         <View className="flex-shrink-0 my-2.5">
           <NewCommentInput
             forwardRef={newCommentRef}
-            onFocus={() => _scrollToInput(newCommentRef)}
             canToggleUrgentCheck
             onCommentWrite={setWritingComment}
             onCreate={async (newComment) => {
@@ -589,22 +584,8 @@ const Action = ({ navigation, route }) => {
     }
   };
 
-  const scrollViewRef = useRef(null);
   const descriptionRef = useRef(null);
   const newCommentRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   const isOnePerson = persons.length === 1;
   const person = !isOnePerson ? null : persons?.[0];
@@ -634,125 +615,127 @@ const Action = ({ navigation, route }) => {
         saving={updating}
         testID="action"
       />
-      {canComment ? (
-        <Tab.Navigator
-          // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
-          // https://github.com/react-navigation/react-navigation/issues/12052
-          tabBar={MyTabBar}
-          screenOptions={{
-            tabBarItemStyle: {
-              flexShrink: 1,
-              borderColor: 'transparent',
-              borderWidth: 1,
-            },
-            tabBarLabelStyle: {
-              textTransform: 'none',
-            },
-            tabBarContentContainerStyle: {
-              flex: 1,
-              borderColor: 'red',
-              borderWidth: 3,
-            },
-          }}>
-          <Tab.Screen
-            name="ActionInformations"
-            options={{
-              tabBarLabel: 'Informations',
-            }}
-            children={() => (
-              <ActionInformation
-                action={action}
-                actionDB={actionDB}
-                persons={persons}
-                editable={editable}
-                setEditable={setEditable}
-                setAction={setAction}
-                organisation={organisation}
-                groups={groups}
-                onSearchPerson={onSearchPerson}
-                descriptionRef={descriptionRef}
-                _scrollToInput={_scrollToInput}
-                updating={updating}
-                isUpdateDisabled={isUpdateDisabled}
-                onUpdateRequest={onUpdateRequest}
-                onDeleteRequest={onDeleteRequest}
-                canToggleGroupCheck={canToggleGroupCheck}
-                canDelete={canDelete}
-                canSetUrgent={canSetUrgent}
-              />
-            )}
-          />
-          <Tab.Screen
-            name="ActionCommentaires"
-            options={{
-              tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
-            }}
-            children={() => (
-              <ActionComments
-                actionDB={actionDB}
-                actionComments={actionComments}
-                comments={comments}
-                setComments={setComments}
-                canComment={canComment}
-                newCommentRef={newCommentRef}
-                _scrollToInput={_scrollToInput}
-                setWritingComment={setWritingComment}
-              />
-            )}
-          />
-          <Tab.Screen
-            name="ActionDocuments"
-            options={{
-              tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ''}`,
-            }}
-            children={() => (
-              <ScrollContainer noRadius>
-                <DocumentsManager
-                  defaultParent="root"
-                  personDB={person}
-                  onAddDocument={(doc) => {
-                    const newActionDb = { ...actionDB, documents: [...(actionDB.documents || []), doc] };
-                    setAction(castToAction(newActionDb));
-                    updateAction(newActionDb);
-                  }}
-                  onDelete={(doc) => {
-                    const newActionDb = { ...actionDB, documents: actionDB.documents.filter((d) => d.file.filename !== doc.file.filename) };
-                    setAction(castToAction(newActionDb));
-                    updateAction(newActionDb);
-                  }}
-                  onUpdateDocument={(doc) => {
-                    const newActionDb = { ...actionDB, documents: actionDB.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) };
-                    setAction(castToAction(newActionDb));
-                    updateAction(newActionDb);
-                  }}
-                  documents={actionDB.documents}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+        {canComment ? (
+          <Tab.Navigator
+            // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
+            // https://github.com/react-navigation/react-navigation/issues/12052
+            tabBar={MyTabBar}
+            screenOptions={{
+              tabBarItemStyle: {
+                flexShrink: 1,
+                borderColor: 'transparent',
+                borderWidth: 1,
+              },
+              tabBarLabelStyle: {
+                textTransform: 'none',
+              },
+              tabBarContentContainerStyle: {
+                flex: 1,
+                borderColor: 'red',
+                borderWidth: 3,
+              },
+            }}>
+            <Tab.Screen
+              name="ActionInformations"
+              options={{
+                tabBarLabel: 'Informations',
+              }}
+              children={() => (
+                <ActionInformation
+                  action={action}
+                  actionDB={actionDB}
+                  persons={persons}
+                  editable={editable}
+                  setEditable={setEditable}
+                  setAction={setAction}
+                  organisation={organisation}
+                  groups={groups}
+                  onSearchPerson={onSearchPerson}
+                  descriptionRef={descriptionRef}
+                  updating={updating}
+                  isUpdateDisabled={isUpdateDisabled}
+                  onUpdateRequest={onUpdateRequest}
+                  onDeleteRequest={onDeleteRequest}
+                  canToggleGroupCheck={canToggleGroupCheck}
+                  canDelete={canDelete}
+                  canSetUrgent={canSetUrgent}
                 />
-              </ScrollContainer>
-            )}
+              )}
+            />
+            <Tab.Screen
+              name="ActionCommentaires"
+              options={{
+                tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
+              }}
+              children={() => (
+                <ActionComments
+                  actionDB={actionDB}
+                  actionComments={actionComments}
+                  comments={comments}
+                  setComments={setComments}
+                  canComment={canComment}
+                  newCommentRef={newCommentRef}
+                  setWritingComment={setWritingComment}
+                />
+              )}
+            />
+            <Tab.Screen
+              name="ActionDocuments"
+              options={{
+                tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ''}`,
+              }}
+              children={() => (
+                <ScrollContainer noRadius>
+                  <DocumentsManager
+                    defaultParent="root"
+                    personDB={person}
+                    onAddDocument={(doc) => {
+                      const newActionDb = { ...actionDB, documents: [...(actionDB.documents || []), doc] };
+                      setAction(castToAction(newActionDb));
+                      updateAction(newActionDb);
+                    }}
+                    onDelete={(doc) => {
+                      const newActionDb = { ...actionDB, documents: actionDB.documents.filter((d) => d.file.filename !== doc.file.filename) };
+                      setAction(castToAction(newActionDb));
+                      updateAction(newActionDb);
+                    }}
+                    onUpdateDocument={(doc) => {
+                      const newActionDb = {
+                        ...actionDB,
+                        documents: actionDB.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)),
+                      };
+                      setAction(castToAction(newActionDb));
+                      updateAction(newActionDb);
+                    }}
+                    documents={actionDB.documents}
+                  />
+                </ScrollContainer>
+              )}
+            />
+          </Tab.Navigator>
+        ) : (
+          <ActionInformation
+            action={action}
+            actionDB={actionDB}
+            persons={persons}
+            editable={editable}
+            setEditable={setEditable}
+            setAction={setAction}
+            organisation={organisation}
+            groups={groups}
+            onSearchPerson={onSearchPerson}
+            descriptionRef={descriptionRef}
+            updating={updating}
+            isUpdateDisabled={isUpdateDisabled}
+            onUpdateRequest={onUpdateRequest}
+            onDeleteRequest={onDeleteRequest}
+            canToggleGroupCheck={canToggleGroupCheck}
+            canDelete={canDelete}
+            canSetUrgent={canSetUrgent}
           />
-        </Tab.Navigator>
-      ) : (
-        <ActionInformation
-          action={action}
-          actionDB={actionDB}
-          persons={persons}
-          editable={editable}
-          setEditable={setEditable}
-          setAction={setAction}
-          organisation={organisation}
-          groups={groups}
-          onSearchPerson={onSearchPerson}
-          descriptionRef={descriptionRef}
-          _scrollToInput={_scrollToInput}
-          updating={updating}
-          isUpdateDisabled={isUpdateDisabled}
-          onUpdateRequest={onUpdateRequest}
-          onDeleteRequest={onDeleteRequest}
-          canToggleGroupCheck={canToggleGroupCheck}
-          canDelete={canDelete}
-          canSetUrgent={canSetUrgent}
-        />
-      )}
+        )}
+      </KeyboardAvoidingView>
     </SceneContainer>
   );
 };

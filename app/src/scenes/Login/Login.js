@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components/native';
-import { Alert, Keyboard, Linking, StatusBar, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Linking, StatusBar, TouchableWithoutFeedback, View } from 'react-native';
 import RNBootSplash from 'react-native-bootsplash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMMKVNumber, useMMKVString } from 'react-native-mmkv';
@@ -241,102 +241,83 @@ const Login = ({ navigation }) => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const encryptionKeyRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   return (
     <Background>
       <SceneContainer>
-        <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled" testID="login-screen">
-          <View>
-            <StatusBar backgroundColor={colors.app.color} />
-            <Title heavy>{userName ? `Bienvenue ${userName}\u00A0 !` : 'Bienvenue !'}</Title>
-            <SubTitle>
-              Veuillez saisir {authViaCookie ? 'la clé de chiffrement définie par' : 'un e-mail enregistré auprès de'} votre administrateur
-            </SubTitle>
-            {API.updateLink && (
-              <ButtonsContainer>
-                <Button
-                  caption="Mettre à jour Mano"
-                  onPress={() => API.downloadAndInstallUpdate(API.updateLink)}
-                  loading={loading}
-                  disabled={loading}
-                  testID="button-connect"
-                  backgroundColor={colors.app.color}
-                  color={colors.app.colorWhite}
+        <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+          <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled" testID="login-screen">
+            <View>
+              <StatusBar backgroundColor={colors.app.color} />
+              <Title heavy>{userName ? `Bienvenue ${userName}\u00A0 !` : 'Bienvenue !'}</Title>
+              <SubTitle>
+                Veuillez saisir {authViaCookie ? 'la clé de chiffrement définie par' : 'un e-mail enregistré auprès de'} votre administrateur
+              </SubTitle>
+              {API.updateLink && (
+                <ButtonsContainer>
+                  <Button
+                    caption="Mettre à jour Mano"
+                    onPress={() => API.downloadAndInstallUpdate(API.updateLink)}
+                    loading={loading}
+                    disabled={loading}
+                    testID="button-connect"
+                    backgroundColor={colors.app.color}
+                    color={colors.app.colorWhite}
+                  />
+                </ButtonsContainer>
+              )}
+              {!authViaCookie && (
+                <EmailInput onChange={onEmailChange} ref={emailRef} onSubmitEditing={() => passwordRef.current.focus()} testID="login-email" />
+              )}
+              {!authViaCookie && (
+                <InputLabelled
+                  ref={passwordRef}
+                  onChangeText={setPassword}
+                  label="Mot de passe"
+                  placeholder="unSecret23!"
+                  value={password}
+                  autoCompleteType="password"
+                  autoCapitalize="none"
+                  secureTextEntry={!showPassword}
+                  returnKeyType="done"
+                  onSubmitEditing={onConnect}
+                  EndIcon={() => <EyeIcon strikedThrough={showPassword} />}
+                  onEndIconPress={toggleShowPassword}
+                  testID="login-password"
                 />
+              )}
+              {!!showEncryptionKeyInput && (
+                <InputLabelled
+                  ref={encryptionKeyRef}
+                  onChangeText={setEncryptionKey}
+                  label="Clé de chiffrement"
+                  placeholder="unSecret23!"
+                  value={encryptionKey}
+                  autoCapitalize="none"
+                  secureTextEntry={!showPassword}
+                  returnKeyType="done"
+                  onSubmitEditing={onConnect}
+                  EndIcon={() => <EyeIcon strikedThrough={showPassword} />}
+                  onEndIconPress={toggleShowPassword}
+                  testID="login-encryption"
+                />
+              )}
+              {authViaCookie ? (
+                <TouchableWithoutFeedback onPress={onResetCurrentUser}>
+                  <Hint>Se connecter avec un autre utilisateur</Hint>
+                </TouchableWithoutFeedback>
+              ) : (
+                <TouchableWithoutFeedback onPress={onForgetPassword}>
+                  <Hint>J'ai oublié mon mot de passe</Hint>
+                </TouchableWithoutFeedback>
+              )}
+              <ButtonsContainer>
+                <Button caption="Connecter" onPress={onConnect} loading={loading} disabled={loading} testID="button-connect" />
               </ButtonsContainer>
-            )}
-            {!authViaCookie && (
-              <EmailInput
-                onChange={onEmailChange}
-                ref={emailRef}
-                onFocus={() => _scrollToInput(emailRef)}
-                onSubmitEditing={() => passwordRef.current.focus()}
-                testID="login-email"
-              />
-            )}
-            {!authViaCookie && (
-              <InputLabelled
-                ref={passwordRef}
-                onChangeText={setPassword}
-                label="Mot de passe"
-                placeholder="unSecret23!"
-                onFocus={() => _scrollToInput(passwordRef)}
-                value={password}
-                autoCompleteType="password"
-                autoCapitalize="none"
-                secureTextEntry={!showPassword}
-                returnKeyType="done"
-                onSubmitEditing={onConnect}
-                EndIcon={() => <EyeIcon strikedThrough={showPassword} />}
-                onEndIconPress={toggleShowPassword}
-                testID="login-password"
-              />
-            )}
-            {!!showEncryptionKeyInput && (
-              <InputLabelled
-                ref={encryptionKeyRef}
-                onChangeText={setEncryptionKey}
-                label="Clé de chiffrement"
-                placeholder="unSecret23!"
-                onFocus={() => _scrollToInput(encryptionKeyRef)}
-                value={encryptionKey}
-                autoCapitalize="none"
-                secureTextEntry={!showPassword}
-                returnKeyType="done"
-                onSubmitEditing={onConnect}
-                EndIcon={() => <EyeIcon strikedThrough={showPassword} />}
-                onEndIconPress={toggleShowPassword}
-                testID="login-encryption"
-              />
-            )}
-            {authViaCookie ? (
-              <TouchableWithoutFeedback onPress={onResetCurrentUser}>
-                <Hint>Se connecter avec un autre utilisateur</Hint>
-              </TouchableWithoutFeedback>
-            ) : (
-              <TouchableWithoutFeedback onPress={onForgetPassword}>
-                <Hint>J'ai oublié mon mot de passe</Hint>
-              </TouchableWithoutFeedback>
-            )}
-            <ButtonsContainer>
-              <Button caption="Connecter" onPress={onConnect} loading={loading} disabled={loading} testID="button-connect" />
-            </ButtonsContainer>
-            <Version>Mano v{VERSION}</Version>
-          </View>
-        </ScrollContainer>
+              <Version>Mano v{VERSION}</Version>
+            </View>
+          </ScrollContainer>
+        </KeyboardAvoidingView>
       </SceneContainer>
     </Background>
   );

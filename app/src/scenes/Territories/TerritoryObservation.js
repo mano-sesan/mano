@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import SceneContainer from '../../components/SceneContainer';
 import ScreenTitle from '../../components/ScreenTitle';
 import Button from '../../components/Button';
@@ -245,20 +245,6 @@ const TerritoryObservation = ({ route, navigation }) => {
     ]);
   };
   const scrollViewRef = useRef(null);
-  const refs = useRef({});
-  const _scrollToInput = (ref) => {
-    if (!ref) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   useFocusEffect(
     useCallback(() => {
@@ -298,105 +284,105 @@ const TerritoryObservation = ({ route, navigation }) => {
           </View>
         </TouchableOpacity>
       </ScrollView>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        className="bg-white p-4"
-        ref={scrollViewRef}
-        testID="observation"
-        contentContainerStyle={{ paddingBottom: 20 }}>
-        <View className="mt-3">
-          {editable && obsDB?._id ? (
-            <DateAndTimeInput label="Observation faite le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
-          ) : (
-            <CreatedAt>{dayjsInstance(date).format('dddd DD MMM HH:mm')}</CreatedAt>
-          )}
-          {activeTab === 'rencontres' ? (
-            <View key="rencontres" className="mb-4">
-              {!currentRencontres.length ? (
-                <View className="pb-6">
-                  <Text className="font-semibold">Aucune rencontre enregistrée pour le moment.</Text>
-                  <Text className="mt-1 text-gray-700">
-                    Vous pouvez cliquer sur le bouton pour ajouter des rencontres qui seront associées à l'observation et donc au territoire
-                    (n'oubliez pas de sauvegarder l'observation à la fin)
-                  </Text>
-                </View>
-              ) : null}
-              <View className="mb-2">
-                <Button
-                  caption={'Ajouter une rencontre'}
-                  onPress={() => {
-                    navigation.push('TerritoryObservationRencontre', {
-                      obs: obsDB,
-                      territory: route.params.territory,
-                      fromRoute: 'TerritoryObservation',
-                    });
-                  }}
-                  disabled={false}
-                  loading={false}
-                />
-              </View>
-              {currentRencontres.length ? <Text className="text-lg font-bold">Personnes rencontrées</Text> : null}
-              {currentRencontres.map((rencontre) => {
-                const person = personsObject[rencontre.person];
-                return (
-                  <View key={rencontre._id + rencontre.person} className="bg-gray-100 rounded p-4 my-2 flex flex-row">
-                    <View className="grow shrink">
-                      <PersonName person={person} />
-                    </View>
-                    {!rencontre._id ? (
-                      <View className="shrink-0 !w-16 items-center flex">
-                        <TouchableOpacity
-                          className="bg-red-700 px-2 py-1 rounded"
-                          onPress={() => {
-                            setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
-                          }}>
-                          <Text className="text-white font-bold">Retirer</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ) : null}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          className="bg-white p-4"
+          ref={scrollViewRef}
+          testID="observation"
+          contentContainerStyle={{ paddingBottom: 20 }}>
+          <View className="mt-3">
+            {editable && obsDB?._id ? (
+              <DateAndTimeInput label="Observation faite le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
+            ) : (
+              <CreatedAt>{dayjsInstance(date).format('dddd DD MMM HH:mm')}</CreatedAt>
+            )}
+            {activeTab === 'rencontres' ? (
+              <View key="rencontres" className="mb-4">
+                {!currentRencontres.length ? (
+                  <View className="pb-6">
+                    <Text className="font-semibold">Aucune rencontre enregistrée pour le moment.</Text>
+                    <Text className="mt-1 text-gray-700">
+                      Vous pouvez cliquer sur le bouton pour ajouter des rencontres qui seront associées à l'observation et donc au territoire
+                      (n'oubliez pas de sauvegarder l'observation à la fin)
+                    </Text>
                   </View>
-                );
-              })}
-            </View>
-          ) : (
-            <View key={currentGroup.name}>
-              {currentGroup.fields
-                .filter((f) => f)
-                .filter((f) => f.enabled || (f.enabledTeams || []).includes(currentTeam._id))
-                .map((field) => {
-                  const { label, name, type } = field;
+                ) : null}
+                <View className="mb-2">
+                  <Button
+                    caption={'Ajouter une rencontre'}
+                    onPress={() => {
+                      navigation.push('TerritoryObservationRencontre', {
+                        obs: obsDB,
+                        territory: route.params.territory,
+                        fromRoute: 'TerritoryObservation',
+                      });
+                    }}
+                    disabled={false}
+                    loading={false}
+                  />
+                </View>
+                {currentRencontres.length ? <Text className="text-lg font-bold">Personnes rencontrées</Text> : null}
+                {currentRencontres.map((rencontre) => {
+                  const person = personsObject[rencontre.person];
                   return (
-                    <CustomFieldInput
-                      key={label}
-                      label={label}
-                      field={field}
-                      value={obs[name]}
-                      handleChange={(newValue) => onChange({ [name]: newValue })}
-                      editable={editable}
-                      ref={(r) => (refs.current[`${name}-ref`] = r)}
-                      onFocus={() => _scrollToInput(refs.current[`${name}-ref`])}
-                    />
+                    <View key={rencontre._id + rencontre.person} className="bg-gray-100 rounded p-4 my-2 flex flex-row">
+                      <View className="grow shrink">
+                        <PersonName person={person} />
+                      </View>
+                      {!rencontre._id ? (
+                        <View className="shrink-0 !w-16 items-center flex">
+                          <TouchableOpacity
+                            className="bg-red-700 px-2 py-1 rounded"
+                            onPress={() => {
+                              setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
+                            }}>
+                            <Text className="text-white font-bold">Retirer</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : null}
+                    </View>
                   );
                 })}
-            </View>
-          )}
-          <ButtonsContainer>
-            {obsDB?._id ? (
-              <>
-                <ButtonDelete onPress={onDeleteRequest} />
-                <Button
-                  caption={editable ? 'Mettre à jour' : 'Modifier'}
-                  onPress={editable ? onSaveObservation : onEdit}
-                  disabled={editable ? isUpdateDisabled : false}
-                  loading={updating}
-                />
-              </>
+              </View>
             ) : (
-              <Button caption="Enregistrer" onPress={onSaveObservation} disabled={isUpdateDisabled} loading={updating} />
+              <View key={currentGroup.name}>
+                {currentGroup.fields
+                  .filter((f) => f)
+                  .filter((f) => f.enabled || (f.enabledTeams || []).includes(currentTeam._id))
+                  .map((field) => {
+                    const { label, name, type } = field;
+                    return (
+                      <CustomFieldInput
+                        key={label}
+                        label={label}
+                        field={field}
+                        value={obs[name]}
+                        handleChange={(newValue) => onChange({ [name]: newValue })}
+                        editable={editable}
+                      />
+                    );
+                  })}
+              </View>
             )}
-          </ButtonsContainer>
-        </View>
-      </ScrollView>
+            <ButtonsContainer>
+              {obsDB?._id ? (
+                <>
+                  <ButtonDelete onPress={onDeleteRequest} />
+                  <Button
+                    caption={editable ? 'Mettre à jour' : 'Modifier'}
+                    onPress={editable ? onSaveObservation : onEdit}
+                    disabled={editable ? isUpdateDisabled : false}
+                    loading={updating}
+                  />
+                </>
+              ) : (
+                <Button caption="Enregistrer" onPress={onSaveObservation} disabled={isUpdateDisabled} loading={updating} />
+              )}
+            </ButtonsContainer>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SceneContainer>
   );
 };

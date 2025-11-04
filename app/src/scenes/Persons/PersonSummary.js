@@ -57,21 +57,7 @@ const PersonSummary = ({
   const groups = useRecoilValue(groupsState);
 
   const scrollViewRef = useRef(null);
-  const descriptionRef = useRef(null);
   const newCommentRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   const onRemoveFromActiveList = async () => navigation.push('PersonsOutOfActiveListReason', { person: personDB, fromRoute: 'Person' });
   const onAddRencontre = async () => navigation.push('Rencontre', { person: personDB, fromRoute: 'Person' });
@@ -222,8 +208,6 @@ const PersonSummary = ({
         placeholder="Description"
         multiline
         editable={editable}
-        ref={descriptionRef}
-        onFocus={() => _scrollToInput(descriptionRef)}
       />
       <CheckboxLabelled
         label="Personne vulnérable, ou ayant besoin d'une attention particulière"
@@ -325,7 +309,6 @@ const PersonSummary = ({
           ifEmpty="Pas encore de commentaire">
           <NewCommentInput
             forwardRef={newCommentRef}
-            onFocus={() => _scrollToInput(newCommentRef)}
             person={personDB?._id}
             canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
             canToggleUrgentCheck

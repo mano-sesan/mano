@@ -26,25 +26,11 @@ const PersonSection = ({
   const user = useRecoilValue(userState);
   const currentTeam = useRecoilValue(currentTeamState);
   const scrollViewRef = useRef(null);
-  const refs = useRef({});
-  const _scrollToInput = (ref) => {
-    if (!ref) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   return (
     <>
       <SubHeader center backgroundColor={backgroundColor || colors.app.color} onBack={navigation.goBack} caption={sectionName} />
-      <ScrollContainer ref={scrollViewRef} backgroundColor={backgroundColor || colors.app.color}>
+      <ScrollContainer noRadius ref={scrollViewRef} backgroundColor={backgroundColor || colors.app.color}>
         <View>
           {!editable && <Spacer />}
           {(fields || [])
@@ -61,8 +47,6 @@ const PersonSection = ({
                   value={person[name]}
                   handleChange={(newValue) => onChange({ [name]: newValue })}
                   editable={editable}
-                  ref={(r) => (refs.current[`${name}-ref`] = r)}
-                  onFocus={() => _scrollToInput(refs.current[`${name}-ref`])}
                 />
               );
             })}
