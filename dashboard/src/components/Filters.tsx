@@ -120,7 +120,7 @@ export const filterItem =
   };
 
 export const filterData = (data: any[], filters: Array<Filter>) => {
-  return data.map(filterItem(filters, true)).filter(Boolean);
+  return data.map(filterItem(filters)).filter(Boolean);
 };
 
 function categoryToLabel(category: string) {
