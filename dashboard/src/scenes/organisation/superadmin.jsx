@@ -95,36 +95,6 @@ const SuperAdmin = () => {
           >
             🧐 &nbsp;Recherche utilisateur
           </button>
-          <button
-            className="button-classic"
-            type="button"
-            onClick={() => {
-              setOpenDuplicateFieldsModal(true);
-            }}
-          >
-            🔍 &nbsp;Doublons de champs
-          </button>
-          <button
-            className="button-classic"
-            type="button"
-            onClick={() => {
-              const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(organisations), null, 2);
-              // download
-              const blob = new Blob([geoJson], { type: "application/json" });
-              download(blob, "villes-utilisatrices-de-mano_umap.geojson");
-            }}
-          >
-            Export vers umap
-          </button>
-          <button
-            className="button-destructive"
-            type="button"
-            onClick={() => {
-              setOpenMergeModal(true);
-            }}
-          >
-            Fusionner deux orgas
-          </button>
           <button className="button-submit" type="button" onClick={() => setOpenCreateModal(true)}>
             Nouvelle organisation
           </button>
@@ -498,6 +468,40 @@ const SuperAdmin = () => {
               rowKey={"_id"}
               onRowClick={null}
             />
+          )}
+          {organisations?.length > 0 && (
+            <div className="tw-mt-8 tw-flex tw-gap-3 tw-justify-center tw-pb-4">
+              <button
+                className="button-classic"
+                type="button"
+                onClick={() => {
+                  setOpenDuplicateFieldsModal(true);
+                }}
+              >
+                🔍 &nbsp;Doublons de champs
+              </button>
+              <button
+                className="button-classic"
+                type="button"
+                onClick={() => {
+                  const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(organisations), null, 2);
+                  // download
+                  const blob = new Blob([geoJson], { type: "application/json" });
+                  download(blob, "villes-utilisatrices-de-mano_umap.geojson");
+                }}
+              >
+                Export vers umap
+              </button>
+              <button
+                className="button-destructive"
+                type="button"
+                onClick={() => {
+                  setOpenMergeModal(true);
+                }}
+              >
+                Fusionner deux orgas
+              </button>
+            </div>
           )}
         </main>
       </div>
