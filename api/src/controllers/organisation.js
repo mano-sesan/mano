@@ -379,11 +379,7 @@ router.put(
 router.put(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
-  // Todo: supprimer "restricted-access" et "normal" de validateUser
-  // Parce que maintenant pour les mises à jours de collaborations se font par ailleurs
-  // (route: /organisation/:_id/collaborations)
-  // Cependant, il faut attendre quelques mois (pas urgent) que l'app soit mise à jour (décembre 2024)
-  validateUser(["admin", "normal", "restricted-access"]),
+  validateUser(["admin"]),
   catchErrors(async (req, res, next) => {
     try {
       const bodyToParse = {
