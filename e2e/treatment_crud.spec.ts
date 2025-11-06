@@ -2,9 +2,8 @@ import { test, expect } from "@playwright/test";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
-import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { changeReactSelectValue, clickOnEmptyReactSelect, loginWith, logOut } from "./utils";
+import { loginWith } from "./utils";
 
 dayjs.extend(utc);
 dayjs.locale("fr");
@@ -38,7 +37,7 @@ test("Traitement", async ({ page }) => {
     .click();
   await page.getByText("Création du traitement").click();
   await page.getByRole("button", { name: "Informations" }).click();
-  await page.getByTitle("Modifier ce traitement - seul le créateur peut modifier un traitement").click();
+  await page.getByTitle("Modifier ce traitement").click();
   await page.getByPlaceholder("1mg").click();
   await page.getByPlaceholder("1mg").fill("3mg");
   await page.getByPlaceholder("1 fois par jour").click();
@@ -56,7 +55,7 @@ test("Traitement", async ({ page }) => {
   await page.locator('[data-test-id="Fréquence\\: \\"\\" ➔ \\"2 fois par jour\\""]').click();
   await page.locator('[data-test-id="Indication\\: \\"\\" ➔ \\"Grosse toux\\""]').click();
   await page.getByRole("button", { name: "Informations" }).click();
-  await page.getByTitle("Modifier ce traitement - seul le créateur peut modifier un traitement").click();
+  await page.getByTitle("Modifier ce traitement").click();
 
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe("Voulez-vous supprimer ce traitement ?");
