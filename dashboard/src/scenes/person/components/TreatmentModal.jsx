@@ -84,7 +84,7 @@ function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsS
   const isNewTreatment = !treatmentId;
 
   const canEdit = useMemo(() => {
-    // Admins and normal users can edit any treatment
+    // Admins and normal users with healthcare professional status can edit any treatment
     if (["admin", "normal"].includes(user.role) && user.healthcareProfessional === true) return true;
     // For other roles, only allow editing own treatments
     return !treatment || treatment.user === user._id;
