@@ -112,7 +112,7 @@ const DateAndTimeInput = ({
 
   if (!editable) {
     const datetoShow = showDay
-      ? dayjsInstance(date).format('dddd DD MMMM HH:mm')
+      ? dayjsInstance(date).format(showTime && withTime ? 'dddd DD MMMM HH:mm' : 'dddd DD MMMM')
       : `${date ? convertDate(date, showDay) : 'JJ-MM-AAAA'}${showTime && withTime ? ` à ${convertTime(date)}` : ''}`;
     return <InputLabelled label={label} value={datetoShow} editable={false} />;
   }
