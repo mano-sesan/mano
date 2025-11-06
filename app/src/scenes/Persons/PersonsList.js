@@ -102,7 +102,7 @@ const PersonsList = ({ navigation, route }) => {
   const renderPersonRow = ({ item: person }) => {
     const onPress = () => {
       Sentry.setContext('person', { _id: person._id });
-      navigation.push('Person', { person, fromRoute: 'PersonsList' });
+      navigation.push('Person', { person, fromRoute: 'PersonsList', filters: params });
     };
     return <PersonRow onPress={onPress} person={person} />;
   };

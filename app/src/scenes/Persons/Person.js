@@ -294,7 +294,11 @@ const Person = ({ route, navigation }) => {
   const onBack = () => {
     backRequestHandledRef.current = true;
     Sentry.setContext('person', {});
-    route.params?.fromRoute ? navigation.navigate(route.params.fromRoute) : navigation.goBack();
+    if (route.params?.fromRoute) {
+      navigation.navigate(route.params.fromRoute, { filters: route.params?.filters });
+    } else {
+      navigation.goBack();
+    }
   };
 
   const onGoBackRequested = async () => {
