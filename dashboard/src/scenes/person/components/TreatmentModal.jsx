@@ -83,7 +83,12 @@ function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsS
   const treatment = treatmentId ? treatmentsObjects[treatmentId] : null;
   const isNewTreatment = !treatmentId;
 
-  const canEdit = useMemo(() => !treatment || treatment.user === user._id, [treatment, user._id]);
+  const canEdit = useMemo(() => {
+    // Admins and normal users can edit any treatment
+    if (["admin", "normal"].includes(user.role) && user.healthcareProfessional === true) return true;
+    // For other roles, only allow editing own treatments
+    return !treatment || treatment.user === user._id;
+  }, [treatment, user._id, user.role, user.healthcareProfessional]);
 
   const initialState = useMemo(() => {
     if (treatment) {
@@ -494,7 +499,7 @@ function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsS
         )}
         {!isEditing && (
           <button
-            title="Modifier ce traitement - seul le créateur peut modifier un traitement"
+            title="Modifier ce traitement"
             type="button"
             onClick={(e) => {
               e.preventDefault();
