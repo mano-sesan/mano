@@ -7,6 +7,7 @@ const passport = require("passport");
 const { Op, fn, literal } = require("sequelize");
 const crypto = require("crypto");
 const { z } = require("zod");
+const { v4: uuidv4 } = require("uuid");
 const { catchErrors } = require("../errors");
 const {
   Organisation,
@@ -39,6 +40,175 @@ const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../ut
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
+
+// Check for duplicate field names in customFieldsPersons across all organisations
+router.get(
+  "/check-duplicate-fields",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res) => {
+    const organisations = await Organisation.findAll({
+      attributes: ["_id", "name", "orgId", "customFieldsPersons"],
+    });
+
+    const organisationsWithDuplicates = [];
+
+    for (const org of organisations) {
+      const customFieldsPersons = org.customFieldsPersons || [];
+      const duplicates = [];
+
+      for (const group of customFieldsPersons) {
+        const fieldNameCounts = {};
+        const duplicateFields = [];
+
+        // Count occurrences of each field name
+        for (const field of group.fields || []) {
+          if (!fieldNameCounts[field.name]) {
+            fieldNameCounts[field.name] = [];
+          }
+          fieldNameCounts[field.name].push(field);
+        }
+
+        // Find duplicates
+        for (const [fieldName, fields] of Object.entries(fieldNameCounts)) {
+          if (fields.length > 1) {
+            duplicateFields.push({
+              fieldName,
+              count: fields.length,
+              fields: fields.map((f) => ({ name: f.name, label: f.label, type: f.type })),
+            });
+          }
+        }
+
+        if (duplicateFields.length > 0) {
+          duplicates.push({
+            groupName: group.name,
+            duplicateFields,
+          });
+        }
+      }
+
+      if (duplicates.length > 0) {
+        organisationsWithDuplicates.push({
+          _id: org._id,
+          name: org.name,
+          orgId: org.orgId,
+          duplicates,
+        });
+      }
+    }
+
+    return res.status(200).send({
+      ok: true,
+      data: organisationsWithDuplicates,
+      totalOrganisations: organisations.length,
+      organisationsWithProblems: organisationsWithDuplicates.length,
+    });
+  })
+);
+
+// Fix duplicate field names in customFieldsPersons for specific organisations
+router.post(
+  "/fix-duplicate-fields",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        organisationIds: z.array(z.string().regex(looseUuidRegex)),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in fix-duplicate-fields: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const { organisationIds } = req.body;
+    const results = [];
+
+    for (const orgId of organisationIds) {
+      const organisation = await Organisation.findOne({ where: { _id: orgId } });
+      if (!organisation) {
+        results.push({
+          organisationId: orgId,
+          success: false,
+          error: "Organisation not found",
+        });
+        continue;
+      }
+
+      const customFieldsPersons = structuredClone(organisation.customFieldsPersons) || [];
+      let fixedCount = 0;
+
+      for (const group of customFieldsPersons) {
+        const fieldNameCounts = {};
+
+        // Group fields by name
+        for (const field of group.fields || []) {
+          if (!fieldNameCounts[field.name]) {
+            fieldNameCounts[field.name] = [];
+          }
+          fieldNameCounts[field.name].push(field);
+        }
+
+        // Fix duplicates
+        for (const fields of Object.values(fieldNameCounts)) {
+          if (fields.length > 1) {
+            // Get all existing labels in this group to avoid creating duplicate labels
+            const existingLabels = new Set(group.fields.map((f) => f.label));
+
+            // Keep the first field as-is, rename the others
+            for (let i = 1; i < fields.length; i++) {
+              const field = fields[i];
+              const baseLabel = field.label;
+
+              // Find a unique suffix for the label
+              let suffix = 2;
+              let newLabel = `${baseLabel} (${suffix})`;
+              while (existingLabels.has(newLabel)) {
+                suffix++;
+                newLabel = `${baseLabel} (${suffix})`;
+              }
+
+              // Update the field
+              field.name = `custom-${new Date().toISOString().split(".").join("-").split(":").join("-")}-${uuidv4()}`;
+              field.label = newLabel;
+              existingLabels.add(newLabel); // Add to set to avoid duplicates in subsequent iterations
+              fixedCount++;
+            }
+          }
+        }
+      }
+
+      if (fixedCount > 0) {
+        await sequelize.transaction(async (t) => {
+          t.userId = req.user._id;
+          await organisation.update({ customFieldsPersons }, { transaction: t });
+        });
+
+        results.push({
+          organisationId: orgId,
+          organisationName: organisation.name,
+          success: true,
+          fixedCount,
+        });
+      } else {
+        results.push({
+          organisationId: orgId,
+          organisationName: organisation.name,
+          success: true,
+          fixedCount: 0,
+          message: "No duplicates found",
+        });
+      }
+    }
+
+    return res.status(200).send({
+      ok: true,
+      data: results,
+    });
+  })
+);
 
 router.get(
   "/stats",

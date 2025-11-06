@@ -42,6 +42,7 @@ const SuperAdmin = () => {
   const [selectedOrganisation, setSelectedOrganisation] = useState(null);
   const [superadmins, setSuperadmins] = useState(null);
   const [usersConnectedLast24h, setUsersConnectedLast24h] = useState(null);
+  const [openDuplicateFieldsModal, setOpenDuplicateFieldsModal] = useState(false);
   useTitle("Organisations");
 
   useEffect(() => {
@@ -98,6 +99,15 @@ const SuperAdmin = () => {
             className="button-classic"
             type="button"
             onClick={() => {
+              setOpenDuplicateFieldsModal(true);
+            }}
+          >
+            🔍 &nbsp;Doublons de champs
+          </button>
+          <button
+            className="button-classic"
+            type="button"
+            onClick={() => {
               const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(organisations), null, 2);
               // download
               const blob = new Blob([geoJson], { type: "application/json" });
@@ -127,6 +137,7 @@ const SuperAdmin = () => {
         >
           <Create onChange={() => setRefresh(true)} open={openCreateModal} setOpen={setOpenCreateModal} />
           <MergeOrganisations onChange={() => setRefresh(true)} open={openMergeModal} setOpen={setOpenMergeModal} organisations={organisations} />
+          <DuplicateFieldsModal open={openDuplicateFieldsModal} setOpen={setOpenDuplicateFieldsModal} />
           <SuperadminOrganisationUsers
             open={openUserListModal}
             setOpen={setOpenUserListModal}
@@ -1336,5 +1347,194 @@ function SmallEvolutionIndicator({ last30Days, previous30Days }) {
     </span>
   );
 }
+
+const DuplicateFieldsModal = ({ open, setOpen }) => {
+  const [loading, setLoading] = useState(false);
+  const [diagnosticData, setDiagnosticData] = useState(null);
+  const [fixing, setFixing] = useState(false);
+  const [selectedOrgs, setSelectedOrgs] = useState({});
+
+  useEffect(() => {
+    if (!open) {
+      setDiagnosticData(null);
+      setSelectedOrgs({});
+      return;
+    }
+    (async () => {
+      setLoading(true);
+      const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/check-duplicate-fields" }));
+      if (error) {
+        toast.error(errorMessage(error));
+        setLoading(false);
+        return;
+      }
+      setDiagnosticData(response);
+      // Pre-select all organisations with problems
+      const preSelected = {};
+      for (const org of response.data || []) {
+        preSelected[org._id] = true;
+      }
+      setSelectedOrgs(preSelected);
+      setLoading(false);
+    })();
+  }, [open]);
+
+  const handleFix = async () => {
+    const orgIds = Object.keys(selectedOrgs).filter((id) => selectedOrgs[id]);
+    if (orgIds.length === 0) {
+      toast.error("Veuillez sélectionner au moins une organisation à corriger");
+      return;
+    }
+
+    const confirmMessage = `Voulez-vous vraiment corriger les doublons pour ${orgIds.length} organisation(s) ?\n\nCette action va :\n- Garder le premier champ tel quel\n- Renommer les doublons avec un nouveau nom technique unique\n- Ajouter un suffixe unique aux labels (2), (3), etc. en évitant les conflits`;
+
+    if (!confirm(confirmMessage)) return;
+
+    setFixing(true);
+    const [error, response] = await tryFetchExpectOk(async () =>
+      API.post({
+        path: "/organisation/fix-duplicate-fields",
+        body: { organisationIds: orgIds },
+      })
+    );
+
+    setFixing(false);
+
+    if (error) {
+      toast.error(errorMessage(error));
+      return;
+    }
+
+    const totalFixed = response.data.reduce((sum, r) => sum + (r.fixedCount || 0), 0);
+    toast.success(`Correction réussie ! ${totalFixed} doublons corrigés dans ${orgIds.length} organisation(s)`);
+
+    // Refresh diagnostic data
+    setLoading(true);
+    const [refreshError, refreshResponse] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/check-duplicate-fields" }));
+    if (refreshError) {
+      toast.error(errorMessage(refreshError));
+      setLoading(false);
+      return;
+    }
+    setDiagnosticData(refreshResponse);
+    setSelectedOrgs({});
+    setLoading(false);
+  };
+
+  const toggleOrg = (orgId) => {
+    setSelectedOrgs((prev) => ({
+      ...prev,
+      [orgId]: !prev[orgId],
+    }));
+  };
+
+  const toggleAll = () => {
+    if (Object.values(selectedOrgs).every((v) => v)) {
+      setSelectedOrgs({});
+    } else {
+      const allSelected = {};
+      for (const org of diagnosticData?.data || []) {
+        allSelected[org._id] = true;
+      }
+      setSelectedOrgs(allSelected);
+    }
+  };
+
+  return (
+    <ModalContainer open={open} onClose={() => setOpen(false)} size="5xl" blurryBackground>
+      <ModalHeader title="Diagnostic des doublons de champs personnalisés" />
+      <ModalBody className="tw-px-4 tw-py-2">
+        {loading ? (
+          <div className="tw-text-center tw-py-8">
+            <Loading />
+          </div>
+        ) : diagnosticData ? (
+          <div>
+            <div className="tw-mb-4 tw-p-4 tw-bg-blue-50 tw-rounded">
+              <div className="tw-font-semibold tw-mb-2">Résumé</div>
+              <div className="tw-text-sm">
+                {diagnosticData.organisationsWithProblems} organisation(s) avec des doublons sur {diagnosticData.totalOrganisations} organisations au
+                total
+              </div>
+            </div>
+
+            {diagnosticData.data && diagnosticData.data.length > 0 ? (
+              <>
+                <div className="tw-mb-4 tw-flex tw-justify-between tw-items-center">
+                  <button type="button" className="button-classic" onClick={toggleAll} disabled={fixing}>
+                    {Object.values(selectedOrgs).every((v) => v) ? "Tout désélectionner" : "Tout sélectionner"}
+                  </button>
+                  <div className="tw-text-sm tw-text-gray-600">
+                    {Object.values(selectedOrgs).filter((v) => v).length} organisation(s) sélectionnée(s)
+                  </div>
+                </div>
+
+                <div className="tw-space-y-4 tw-max-h-96 tw-overflow-y-auto">
+                  {diagnosticData.data.map((org) => (
+                    <div key={org._id} className="tw-border tw-border-gray-300 tw-rounded-lg tw-p-4">
+                      <div className="tw-flex tw-items-start tw-gap-3 tw-mb-3">
+                        <input
+                          type="checkbox"
+                          className="tw-mt-1"
+                          checked={selectedOrgs[org._id] || false}
+                          onChange={() => toggleOrg(org._id)}
+                          disabled={fixing}
+                        />
+                        <div className="tw-flex-1">
+                          <div className="tw-font-bold tw-text-lg">{org.name}</div>
+                          <div className="tw-text-sm tw-text-gray-600">ID: {org.orgId}</div>
+                        </div>
+                      </div>
+
+                      {org.duplicates.map((duplicate, idx) => (
+                        <div key={idx} className="tw-ml-7 tw-mt-2 tw-p-3 tw-bg-yellow-50 tw-rounded">
+                          <div className="tw-font-semibold tw-text-sm tw-mb-2">Groupe: {duplicate.groupName}</div>
+                          {duplicate.duplicateFields.map((field, fieldIdx) => (
+                            <div key={fieldIdx} className="tw-ml-4 tw-mb-3">
+                              <div className="tw-text-sm tw-font-medium tw-text-red-600 tw-mb-1">
+                                ⚠️ Champ "{field.fieldName}" ({field.count} occurrences)
+                              </div>
+                              <div className="tw-ml-4 tw-text-xs tw-space-y-1">
+                                {field.fields.map((f, fIdx) => (
+                                  <div key={fIdx} className={fIdx === 0 ? "tw-text-green-700" : "tw-text-gray-600"}>
+                                    {fIdx === 0 ? "✓ " : "→ "}
+                                    <span className="tw-font-mono">{f.label}</span>
+                                    {fIdx === 0 ? (
+                                      <span className="tw-ml-2 tw-text-xs">(sera conservé tel quel)</span>
+                                    ) : (
+                                      <span className="tw-ml-2 tw-text-xs">
+                                        (sera renommé avec un suffixe unique (2), (3), etc. et un nouveau nom technique)
+                                      </span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="tw-text-center tw-text-gray-500 tw-py-8">✅ Aucun doublon détecté ! Toutes les organisations sont en ordre.</div>
+            )}
+          </div>
+        ) : null}
+      </ModalBody>
+      <ModalFooter>
+        <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)} disabled={fixing}>
+          Fermer
+        </button>
+        {diagnosticData?.data && diagnosticData.data.length > 0 && (
+          <button type="button" className="button-submit" onClick={handleFix} disabled={fixing || Object.values(selectedOrgs).every((v) => !v)}>
+            {fixing ? "Correction en cours..." : "Corriger les doublons sélectionnés"}
+          </button>
+        )}
+      </ModalFooter>
+    </ModalContainer>
+  );
+};
 
 export default SuperAdmin;
