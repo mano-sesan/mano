@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, View } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, View } from 'react-native';
 import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
 import { useFocusEffect } from '@react-navigation/native';
 import { v4 as uuidv4 } from 'uuid';
@@ -344,19 +344,6 @@ const Consultation = ({ navigation, route }) => {
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   const canEditAllFields = useMemo(() => {
     return ['normal', 'admin'].includes(user.role);
@@ -376,158 +363,177 @@ const Consultation = ({ navigation, route }) => {
         saving={posting}
         testID="consultation"
       />
-      <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled">
-        <View>
-          {!!isNew && !route?.params?.personDB && (
-            <InputFromSearchList label="Personne concernée" value={person?.name || '-- Aucune --'} onSearchRequest={onSearchPerson} />
-          )}
-          <InputLabelled
-            label="Nom (facultatif)"
-            value={consultation.name}
-            onChangeText={(name) => onChange({ name })}
-            placeholder="Nom de la consultation (facultatif)"
-            testID="consultation-name"
-            editable={editable}
-          />
-          <ConsultationTypeSelect editable={editable} value={consultation.type} onSelect={(type) => onChange({ type })} />
-          {canEditAllFields &&
-            organisation.consultations
-              .find((e) => e.name === consultation.type)
-              ?.fields.filter((f) => f)
-              .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-              .map((field) => {
-                const { label, name } = field;
-                return (
-                  <CustomFieldInput
-                    key={label}
-                    label={label}
-                    field={field}
-                    value={consultation[name]}
-                    handleChange={(newValue) => onChange({ [name]: newValue })}
-                    editable={editable}
-                  />
-                );
-              })}
-          {canEditAllFields && (
-            <>
-              <Label label="Document(s)" />
-              <DocumentsManager
-                defaultParent="consultation"
-                personDB={person}
-                onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
-                onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
-                onUpdateDocument={(doc) =>
-                  onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })
-                }
-                documents={consultation.documents}
-              />
-            </>
-          )}
-          <Spacer />
-          <ActionStatusSelect
-            value={consultation.status}
-            onSelect={(status) => onChange({ status })}
-            onSelectAndSave={(status) => {
-              if (!status) onChange({ status: TODO });
-              else onChange({ status });
-            }}
-            editable={editable}
-            testID="consultation-status"
-          />
-          <DateAndTimeInput
-            label="À faire le"
-            date={consultation.dueAt}
-            setDate={(dueAt) => onChange({ dueAt })}
-            editable={editable}
-            showDay
-            showTime
-            withTime
-          />
-          {consultation.status !== TODO ? (
-            <DateAndTimeInput
-              label={consultation.status === DONE ? 'Faite le' : 'Annulée le'}
-              setDate={(completedAt) => onChange({ completedAt })}
-              date={consultation.completedAt || new Date().toISOString()}
-              showTime
-              showDay
-              withTime
+      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+        <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled">
+          <View>
+            {!!isNew && !route?.params?.personDB && (
+              <InputFromSearchList label="Personne concernée" value={person?.name || '-- Aucune --'} onSearchRequest={onSearchPerson} />
+            )}
+            <InputLabelled
+              label="Nom (facultatif)"
+              value={consultation.name}
+              onChangeText={(name) => onChange({ name })}
+              placeholder="Nom de la consultation (facultatif)"
+              testID="consultation-name"
               editable={editable}
             />
-          ) : null}
-          {canEditAllFields && consultationDB?.user === user._id ? (
-            <CheckboxLabelled
-              label="Seulement visible par moi"
-              alone
-              onPress={() => {
-                onChange({ onlyVisibleBy: consultation.onlyVisibleBy?.includes(user._id) ? [] : [user._id] });
+            <ConsultationTypeSelect editable={editable} value={consultation.type} onSelect={(type) => onChange({ type })} />
+            {canEditAllFields &&
+              organisation.consultations
+                .find((e) => e.name === consultation.type)
+                ?.fields.filter((f) => f)
+                .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
+                .map((field) => {
+                  const { label, name } = field;
+                  return (
+                    <CustomFieldInput
+                      key={label}
+                      label={label}
+                      field={field}
+                      value={consultation[name]}
+                      handleChange={(newValue) => onChange({ [name]: newValue })}
+                      editable={editable}
+                    />
+                  );
+                })}
+            {canEditAllFields && (
+              <>
+                <Label label="Document(s)" />
+                <DocumentsManager
+                  defaultParent="consultation"
+                  personDB={person}
+                  onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
+                  onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
+                  onUpdateDocument={(doc) =>
+                    onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })
+                  }
+                  documents={consultation.documents}
+                />
+              </>
+            )}
+            <Spacer />
+            <ActionStatusSelect
+              value={consultation.status}
+              onSelect={(status) => onChange({ status })}
+              onSelectAndSave={(status) => {
+                if (!status) onChange({ status: TODO });
+                else onChange({ status });
               }}
-              value={consultation.onlyVisibleBy?.includes(user._id)}
+              editable={editable}
+              testID="consultation-status"
             />
-          ) : null}
-          <ButtonsContainer>
-            {!isNew && canDelete && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
-            <Button
-              caption={isNew ? 'Créer' : editable ? 'Mettre à jour' : 'Modifier'}
-              disabled={editable ? isDisabled : false}
-              onPress={editable ? () => onSaveConsultationRequest() : () => setEditable(true)}
-              loading={posting}
-              testID="consultation-create"
+            <DateAndTimeInput
+              label="À faire le"
+              date={consultation.dueAt}
+              setDate={(dueAt) => onChange({ dueAt })}
+              editable={editable}
+              showDay
+              showTime
+              withTime
             />
-          </ButtonsContainer>
-          {canEditAllFields && (
-            <>
-              <SubList label="Constantes">
-                <React.Fragment key={`${consultationDB?._id}${editable}`}>
-                  {[
-                    { name: 'constantes-poids', label: 'Poids (kg)' },
-                    { name: 'constantes-frequence-cardiaque', label: 'Taille (cm)' },
-                    { name: 'constantes-taille', label: 'Fréquence cardiaque (bpm)' },
-                    { name: 'constantes-saturation-o2', label: 'Fréq. respiratoire (mvts/min)' },
-                    { name: 'constantes-temperature', label: 'Saturation en oxygène (%)' },
-                    { name: 'constantes-glycemie-capillaire', label: 'Glycémie capillaire (g/L)' },
-                    { name: 'constantes-frequence-respiratoire', label: 'Température (°C)' },
-                    { name: 'constantes-tension-arterielle-systolique', label: 'Tension artérielle systolique (mmHg)' },
-                    { name: 'constantes-tension-arterielle-diastolique', label: 'Tension artérielle diastolique (mmHg)' },
-                  ].map((constante) => {
-                    return (
-                      <InputLabelled
-                        key={constante.name}
-                        label={constante.label}
-                        value={consultation[constante.name]}
-                        onChangeText={(value) => onChange({ [constante.name]: value })}
-                        placeholder="50"
-                        keyboardType="number-pad"
-                        testID={constante.name}
-                        editable={editable}
-                      />
-                    );
-                  })}
-                </React.Fragment>
-              </SubList>
-              <SubList
-                label="Commentaires"
-                key={consultationDB?._id}
-                data={consultation.comments}
-                renderItem={(comment) => (
-                  <CommentRow
-                    key={comment._id}
-                    comment={comment}
-                    onDelete={async () => {
+            {consultation.status !== TODO ? (
+              <DateAndTimeInput
+                label={consultation.status === DONE ? 'Faite le' : 'Annulée le'}
+                setDate={(completedAt) => onChange({ completedAt })}
+                date={consultation.completedAt || new Date().toISOString()}
+                showTime
+                showDay
+                withTime
+                editable={editable}
+              />
+            ) : null}
+            {canEditAllFields && consultationDB?.user === user._id ? (
+              <CheckboxLabelled
+                label="Seulement visible par moi"
+                alone
+                onPress={() => {
+                  onChange({ onlyVisibleBy: consultation.onlyVisibleBy?.includes(user._id) ? [] : [user._id] });
+                }}
+                value={consultation.onlyVisibleBy?.includes(user._id)}
+              />
+            ) : null}
+            <ButtonsContainer>
+              {!isNew && canDelete && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
+              <Button
+                caption={isNew ? 'Créer' : editable ? 'Mettre à jour' : 'Modifier'}
+                disabled={editable ? isDisabled : false}
+                onPress={editable ? () => onSaveConsultationRequest() : () => setEditable(true)}
+                loading={posting}
+                testID="consultation-create"
+              />
+            </ButtonsContainer>
+            {canEditAllFields && (
+              <>
+                <SubList label="Constantes">
+                  <React.Fragment key={`${consultationDB?._id}${editable}`}>
+                    {[
+                      { name: 'constantes-poids', label: 'Poids (kg)' },
+                      { name: 'constantes-frequence-cardiaque', label: 'Taille (cm)' },
+                      { name: 'constantes-taille', label: 'Fréquence cardiaque (bpm)' },
+                      { name: 'constantes-saturation-o2', label: 'Fréq. respiratoire (mvts/min)' },
+                      { name: 'constantes-temperature', label: 'Saturation en oxygène (%)' },
+                      { name: 'constantes-glycemie-capillaire', label: 'Glycémie capillaire (g/L)' },
+                      { name: 'constantes-frequence-respiratoire', label: 'Température (°C)' },
+                      { name: 'constantes-tension-arterielle-systolique', label: 'Tension artérielle systolique (mmHg)' },
+                      { name: 'constantes-tension-arterielle-diastolique', label: 'Tension artérielle diastolique (mmHg)' },
+                    ].map((constante) => {
+                      return (
+                        <InputLabelled
+                          key={constante.name}
+                          label={constante.label}
+                          value={consultation[constante.name]}
+                          onChangeText={(value) => onChange({ [constante.name]: value })}
+                          placeholder="50"
+                          keyboardType="number-pad"
+                          testID={constante.name}
+                          editable={editable}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                </SubList>
+                <SubList
+                  label="Commentaires"
+                  key={consultationDB?._id}
+                  data={consultation.comments}
+                  renderItem={(comment) => (
+                    <CommentRow
+                      key={comment._id}
+                      comment={comment}
+                      onDelete={async () => {
+                        const consultationToSave = {
+                          ...consultation,
+                          comments: consultation.comments.filter((c) => c._id !== comment._id),
+                        };
+                        setConsultation(consultationToSave); // optimistic UI
+                        if (!isNew) {
+                          // need to pass `consultationToSave` if we want last comment to be taken into account
+                          // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                          return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                        }
+                      }}
+                      onUpdate={async (commentUpdated) => {
+                        const consultationToSave = {
+                          ...consultation,
+                          comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                        };
+                        setConsultation(consultationToSave); // optimistic UI
+                        if (!isNew) {
+                          // need to pass `consultationToSave` if we want last comment to be taken into account
+                          // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                          return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                        }
+                      }}
+                    />
+                  )}
+                  ifEmpty="Pas encore de commentaire">
+                  <NewCommentInput
+                    forwardRef={newCommentRef}
+                    onCommentWrite={setWritingComment}
+                    onCreate={(newComment) => {
                       const consultationToSave = {
                         ...consultation,
-                        comments: consultation.comments.filter((c) => c._id !== comment._id),
-                      };
-                      setConsultation(consultationToSave); // optimistic UI
-                      if (!isNew) {
-                        // need to pass `consultationToSave` if we want last comment to be taken into account
-                        // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                        return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-                      }
-                    }}
-                    onUpdate={async (commentUpdated) => {
-                      const consultationToSave = {
-                        ...consultation,
-                        comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                        comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
                       };
                       setConsultation(consultationToSave); // optimistic UI
                       if (!isNew) {
@@ -537,30 +543,12 @@ const Consultation = ({ navigation, route }) => {
                       }
                     }}
                   />
-                )}
-                ifEmpty="Pas encore de commentaire">
-                <NewCommentInput
-                  forwardRef={newCommentRef}
-                  onFocus={() => _scrollToInput(newCommentRef)}
-                  onCommentWrite={setWritingComment}
-                  onCreate={(newComment) => {
-                    const consultationToSave = {
-                      ...consultation,
-                      comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
-                    };
-                    setConsultation(consultationToSave); // optimistic UI
-                    if (!isNew) {
-                      // need to pass `consultationToSave` if we want last comment to be taken into account
-                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                      return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-                    }
-                  }}
-                />
-              </SubList>
-            </>
-          )}
-        </View>
-      </ScrollContainer>
+                </SubList>
+              </>
+            )}
+          </View>
+        </ScrollContainer>
+      </KeyboardAvoidingView>
     </SceneContainer>
   );
 };

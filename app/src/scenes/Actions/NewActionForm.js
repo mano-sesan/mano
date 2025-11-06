@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Text, View } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -264,86 +264,88 @@ const NewActionForm = ({ route, navigation }) => {
   return (
     <SceneContainer>
       <ScreenTitle title="Nouvelle action" onBack={onGoBackRequested} testID="new-action" />
-      <ScrollContainer keyboardShouldPersistTaps="handled" testID="new-action-form">
-        <View>
-          <InputLabelled label="Nom de l'action" onChangeText={setName} value={name} placeholder="Rdv chez le dentiste" testID="new-action-name" />
-          {forCurrentPerson ? (
-            <InputFromSearchList
-              label="Personne concernée"
-              value={actionPersons[0]?.name || '-- Aucune --'}
-              onSearchRequest={onSearchPerson}
-              disabled
-            />
-          ) : (
-            <>
-              <Label label="Personne(s) concerné(es)" />
-              <Tags
-                data={actionPersons}
-                onChange={setActionPersons}
-                editable
-                onAddRequest={onSearchPerson}
-                renderTag={(person) => <MyText>{person?.name}</MyText>}
+      <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+        <ScrollContainer keyboardShouldPersistTaps="handled" testID="new-action-form">
+          <View>
+            <InputLabelled label="Nom de l'action" onChangeText={setName} value={name} placeholder="Rdv chez le dentiste" testID="new-action-name" />
+            {forCurrentPerson ? (
+              <InputFromSearchList
+                label="Personne concernée"
+                value={actionPersons[0]?.name || '-- Aucune --'}
+                onSearchRequest={onSearchPerson}
+                disabled
               />
-            </>
-          )}
-          <ActionStatusSelect onSelect={setStatus} value={status} editable testID="new-action-status" />
-          <DateAndTimeInput
-            label="À faire le"
-            setDate={setDueAt}
-            date={dueAt}
-            showTime
-            showDay
-            withTime={withTime}
-            setWithTime={setWithTime}
-            testID="new-action-dueAt"
-          />
-          {status !== TODO ? (
+            ) : (
+              <>
+                <Label label="Personne(s) concerné(es)" />
+                <Tags
+                  data={actionPersons}
+                  onChange={setActionPersons}
+                  editable
+                  onAddRequest={onSearchPerson}
+                  renderTag={(person) => <MyText>{person?.name}</MyText>}
+                />
+              </>
+            )}
+            <ActionStatusSelect onSelect={setStatus} value={status} editable testID="new-action-status" />
             <DateAndTimeInput
-              label={status === DONE ? 'Faite le' : 'Annulée le'}
-              setDate={setCompletedAt}
-              date={completedAt}
+              label="À faire le"
+              setDate={setDueAt}
+              date={dueAt}
               showTime
               showDay
               withTime={withTime}
               setWithTime={setWithTime}
-              testID="new-action-completedAt"
+              testID="new-action-dueAt"
             />
-          ) : null}
-          <InputLabelled label="Description" onChangeText={setDescription} value={description} placeholder="Description" multiline editable />
-          <ActionCategoriesModalSelect withMostUsed onChange={setCategories} values={categories} editable />
-          <CheckboxLabelled
-            label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
-            alone
-            onPress={() => setUrgent(!urgent)}
-            value={urgent}
-          />
-          <CheckboxLabelled
-            label="Répéter cette action"
-            alone
-            onPress={() => {
-              if (!dueAt) {
-                Alert.alert('Veuillez sélectionner une date avant de planifier une récurrence');
-              } else {
-                setIsRecurrent(!isRecurrent);
-              }
-            }}
-            value={isRecurrent}
-          />
-
-          {Boolean(isRecurrent) && (
-            <Recurrence startDate={dueAt} initialValues={recurrenceData} onChange={(recurrenceData) => setRecurrenceData(recurrenceData)} />
-          )}
-          {!!canToggleGroupCheck && (
+            {status !== TODO ? (
+              <DateAndTimeInput
+                label={status === DONE ? 'Faite le' : 'Annulée le'}
+                setDate={setCompletedAt}
+                date={completedAt}
+                showTime
+                showDay
+                withTime={withTime}
+                setWithTime={setWithTime}
+                testID="new-action-completedAt"
+              />
+            ) : null}
+            <InputLabelled label="Description" onChangeText={setDescription} value={description} placeholder="Description" multiline editable />
+            <ActionCategoriesModalSelect withMostUsed onChange={setCategories} values={categories} editable />
             <CheckboxLabelled
-              label="Action familiale (cette action sera à effectuer pour toute la famille)"
+              label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
               alone
-              onPress={() => setGroup(!group)}
-              value={group}
+              onPress={() => setUrgent(!urgent)}
+              value={urgent}
             />
-          )}
-          <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateActionRequest} loading={posting} testID="new-action-create" />
-        </View>
-      </ScrollContainer>
+            <CheckboxLabelled
+              label="Répéter cette action"
+              alone
+              onPress={() => {
+                if (!dueAt) {
+                  Alert.alert('Veuillez sélectionner une date avant de planifier une récurrence');
+                } else {
+                  setIsRecurrent(!isRecurrent);
+                }
+              }}
+              value={isRecurrent}
+            />
+
+            {Boolean(isRecurrent) && (
+              <Recurrence startDate={dueAt} initialValues={recurrenceData} onChange={(recurrenceData) => setRecurrenceData(recurrenceData)} />
+            )}
+            {!!canToggleGroupCheck && (
+              <CheckboxLabelled
+                label="Action familiale (cette action sera à effectuer pour toute la famille)"
+                alone
+                onPress={() => setGroup(!group)}
+                value={group}
+              />
+            )}
+            <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateActionRequest} loading={posting} testID="new-action-create" />
+          </View>
+        </ScrollContainer>
+      </KeyboardAvoidingView>
     </SceneContainer>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components/native';
-import { Alert, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, TouchableWithoutFeedback, View } from 'react-native';
 import API from '../../services/api';
 import ScrollContainer from '../../components/ScrollContainer';
 import SceneContainer from '../../components/SceneContainer';
@@ -103,89 +103,75 @@ const ChangePasswordBody = ({ onOK, children }) => {
   const passwordRef = useRef(null);
   const newPasswordRef = useRef(null);
   const verifyPasswordRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   return (
-    <ScrollContainer ref={scrollViewRef}>
-      <View>
-        {children}
-        <InputLabelled
-          ref={passwordRef}
-          onChangeText={setPassword}
-          label="Saisissez votre mot de passe"
-          placeholder="Saisissez votre mot de passe"
-          onFocus={() => _scrollToInput(passwordRef)}
-          value={password}
-          autoCompleteType="password"
-          autoCapitalize="none"
-          secureTextEntry={hidden}
-          returnKeyType="done"
-          onSubmitEditing={() => newPasswordRef.current.focus()}
-          EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
-          onEndIconPress={() => setHidden((h) => !h)}
-        />
-        <InputLabelled
-          ref={newPasswordRef}
-          onChangeText={setNewPassword}
-          label="Saisissez un nouveau mot de passe"
-          placeholder="Saisissez un nouveau mot de passe"
-          onFocus={() => _scrollToInput(newPasswordRef)}
-          value={newPassword}
-          autoCompleteType="password"
-          autoCapitalize="none"
-          secureTextEntry={hidden}
-          returnKeyType="done"
-          onSubmitEditing={() => verifyPasswordRef.current.focus()}
-          EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
-          onEndIconPress={() => setHidden((h) => !h)}
-        />
-        <PasswordHintContainer>
-          {Object.keys(codesToHints).map((check, index, array) => {
-            let caption = codesToHints[check];
-            if (index === 0) caption = caption.charAt(0).toUpperCase() + caption.slice(1);
-            if (index !== array.length - 1) caption = `${caption}, `;
-            return (
-              <PasswordHint key={caption} disabled={!checks[check](newPassword)}>
-                {caption}
-              </PasswordHint>
-            );
-          })}
-        </PasswordHintContainer>
-        <InputLabelled
-          ref={verifyPasswordRef}
-          onChangeText={setVerifyPassword}
-          label="Confirmez le nouveau mot de passe"
-          placeholder="Confirmez le nouveau mot de passe"
-          onFocus={() => _scrollToInput(verifyPasswordRef)}
-          value={verifyPassword}
-          autoCompleteType="password"
-          autoCapitalize="none"
-          secureTextEntry={hidden}
-          returnKeyType="done"
-          onSubmitEditing={onModify}
-          EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
-          onEndIconPress={() => setHidden((h) => !h)}
-        />
-        <TouchableWithoutFeedback onPress={() => setHidden((h) => !h)}>
-          <Hint>Montrer les mots de passe</Hint>
-        </TouchableWithoutFeedback>
-        <ButtonsContainer>
-          <Button caption="Modifier" onPress={onModify} loading={loading} disabled={loading} />
-        </ButtonsContainer>
-      </View>
-    </ScrollContainer>
+    <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+      <ScrollContainer ref={scrollViewRef}>
+        <View>
+          {children}
+          <InputLabelled
+            ref={passwordRef}
+            onChangeText={setPassword}
+            label="Saisissez votre mot de passe"
+            placeholder="Saisissez votre mot de passe"
+            value={password}
+            autoCompleteType="password"
+            autoCapitalize="none"
+            secureTextEntry={hidden}
+            returnKeyType="done"
+            onSubmitEditing={() => newPasswordRef.current.focus()}
+            EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
+            onEndIconPress={() => setHidden((h) => !h)}
+          />
+          <InputLabelled
+            ref={newPasswordRef}
+            onChangeText={setNewPassword}
+            label="Saisissez un nouveau mot de passe"
+            placeholder="Saisissez un nouveau mot de passe"
+            value={newPassword}
+            autoCompleteType="password"
+            autoCapitalize="none"
+            secureTextEntry={hidden}
+            returnKeyType="done"
+            onSubmitEditing={() => verifyPasswordRef.current.focus()}
+            EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
+            onEndIconPress={() => setHidden((h) => !h)}
+          />
+          <PasswordHintContainer>
+            {Object.keys(codesToHints).map((check, index, array) => {
+              let caption = codesToHints[check];
+              if (index === 0) caption = caption.charAt(0).toUpperCase() + caption.slice(1);
+              if (index !== array.length - 1) caption = `${caption}, `;
+              return (
+                <PasswordHint key={caption} disabled={!checks[check](newPassword)}>
+                  {caption}
+                </PasswordHint>
+              );
+            })}
+          </PasswordHintContainer>
+          <InputLabelled
+            ref={verifyPasswordRef}
+            onChangeText={setVerifyPassword}
+            label="Confirmez le nouveau mot de passe"
+            placeholder="Confirmez le nouveau mot de passe"
+            value={verifyPassword}
+            autoCompleteType="password"
+            autoCapitalize="none"
+            secureTextEntry={hidden}
+            returnKeyType="done"
+            onSubmitEditing={onModify}
+            EndIcon={() => <EyeIcon strikedThrough={!hidden} />}
+            onEndIconPress={() => setHidden((h) => !h)}
+          />
+          <TouchableWithoutFeedback onPress={() => setHidden((h) => !h)}>
+            <Hint>Montrer les mots de passe</Hint>
+          </TouchableWithoutFeedback>
+          <ButtonsContainer>
+            <Button caption="Modifier" onPress={onModify} loading={loading} disabled={loading} />
+          </ButtonsContainer>
+        </View>
+      </ScrollContainer>
+    </KeyboardAvoidingView>
   );
 };
 

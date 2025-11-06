@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import * as Sentry from '@sentry/react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useRecoilState, useRecoilValue } from 'recoil';
@@ -351,6 +351,7 @@ const Person = ({ route, navigation }) => {
           backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
           testID="person"
         />
+
         {showFoldersTab ? (
           <TabNavigator.Navigator
             tabBar={(props) => (
@@ -364,59 +365,65 @@ const Person = ({ route, navigation }) => {
             screenOptions={{ swipeEnabled: true }}>
             <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: 'Résumé' }}>
               {() => (
-                <PersonSummary
-                  navigation={navigation}
-                  route={route}
-                  person={person}
-                  personDB={personDB}
-                  backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
-                  onChange={onChange}
-                  onUpdatePerson={onUpdatePerson}
-                  onCommentWrite={setWritingComment}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onBack={onBack}
-                  isUpdateDisabled={isUpdateDisabled}
-                  updating={updating}
-                  editable={editable}
-                />
+                <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
+                  <PersonSummary
+                    navigation={navigation}
+                    route={route}
+                    person={person}
+                    personDB={personDB}
+                    backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+                    onChange={onChange}
+                    onUpdatePerson={onUpdatePerson}
+                    onCommentWrite={setWritingComment}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onBack={onBack}
+                    isUpdateDisabled={isUpdateDisabled}
+                    updating={updating}
+                    editable={editable}
+                  />
+                </KeyboardAvoidingView>
               )}
             </TabNavigator.Screen>
             <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: 'Dossiers' }}>
               {() => (
-                <FoldersNavigator
-                  navigation={navigation}
-                  route={route}
-                  person={person}
-                  personDB={personDB}
-                  backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
-                  onChange={onChange}
-                  onUpdatePerson={onUpdatePerson}
-                  onEdit={onEdit}
-                  isUpdateDisabled={isUpdateDisabled}
-                  editable={editable}
-                  updating={updating}
-                />
+                <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
+                  <FoldersNavigator
+                    navigation={navigation}
+                    route={route}
+                    person={person}
+                    personDB={personDB}
+                    backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+                    onChange={onChange}
+                    onUpdatePerson={onUpdatePerson}
+                    onEdit={onEdit}
+                    isUpdateDisabled={isUpdateDisabled}
+                    editable={editable}
+                    updating={updating}
+                  />
+                </KeyboardAvoidingView>
               )}
             </TabNavigator.Screen>
           </TabNavigator.Navigator>
         ) : (
-          <PersonSummary
-            navigation={navigation}
-            route={route}
-            person={person}
-            personDB={personDB}
-            backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
-            onChange={onChange}
-            onUpdatePerson={onUpdatePerson}
-            onCommentWrite={setWritingComment}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onBack={onBack}
-            isUpdateDisabled={isUpdateDisabled}
-            updating={updating}
-            editable={editable}
-          />
+          <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+            <PersonSummary
+              navigation={navigation}
+              route={route}
+              person={person}
+              personDB={personDB}
+              backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
+              onChange={onChange}
+              onUpdatePerson={onUpdatePerson}
+              onCommentWrite={setWritingComment}
+              onEdit={onEdit}
+              onDelete={onDelete}
+              onBack={onBack}
+              isUpdateDisabled={isUpdateDisabled}
+              updating={updating}
+              editable={editable}
+            />
+          </KeyboardAvoidingView>
         )}
       </SceneContainer>
     </>

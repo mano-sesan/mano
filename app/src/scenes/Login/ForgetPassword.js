@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components/native';
-import { Alert, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, View } from 'react-native';
 import API from '../../services/api';
 import SceneContainer from '../../components/SceneContainer';
 import ScrollContainer from '../../components/ScrollContainer';
@@ -46,35 +46,24 @@ const ForgetPassword = ({ navigation }) => {
 
   const scrollViewRef = useRef(null);
   const emailRef = useRef(null);
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
   return (
     <Background>
       <SceneContainer>
-        <ScrollContainer ref={scrollViewRef}>
-          <View>
-            <Title>Mot de passe oublié</Title>
-            <SubTitle>
-              Veuillez saisir un e-mail enregistré auprès de votre administrateur, nous vous enverrons un lien pour récupérer votre mot de passe dans
-              l'interface administrateur
-            </SubTitle>
-            <EmailInput onChange={onChange} ref={emailRef} onFocus={() => _scrollToInput(emailRef)} onSubmitEditing={onSendLink} />
-            <ButtonsContainer>
-              <Button caption="Envoyer un lien" onPress={onSendLink} loading={loading} disabled={loading} />
-            </ButtonsContainer>
-          </View>
-        </ScrollContainer>
+        <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
+          <ScrollContainer ref={scrollViewRef}>
+            <View>
+              <Title>Mot de passe oublié</Title>
+              <SubTitle>
+                Veuillez saisir un e-mail enregistré auprès de votre administrateur, nous vous enverrons un lien pour récupérer votre mot de passe
+                dans l'interface administrateur
+              </SubTitle>
+              <EmailInput onChange={onChange} ref={emailRef} onSubmitEditing={onSendLink} />
+              <ButtonsContainer>
+                <Button caption="Envoyer un lien" onPress={onSendLink} loading={loading} disabled={loading} />
+              </ButtonsContainer>
+            </View>
+          </ScrollContainer>
+        </KeyboardAvoidingView>
       </SceneContainer>
     </Background>
   );

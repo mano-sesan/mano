@@ -213,22 +213,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [consultations, defaultDocuments, medicalFile, treatments, user._id, defaultDocumentsIds]);
 
-  const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
-  const refs = useRef({});
-  const _scrollToInput = (ref) => {
-    if (!ref.current) return;
-    if (!scrollViewRef.current) return;
-    setTimeout(() => {
-      ref.current?.measureLayout?.(
-        scrollViewRef.current,
-        (x, y, width, height) => {
-          scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
-        },
-        (error) => console.log('error scrolling', error)
-      );
-    }, 250);
-  };
 
   const isMedicalFileUpdateDisabled = useMemo(() => {
     if (JSON.stringify(medicalFileDB) !== JSON.stringify(medicalFile)) return false;
@@ -370,7 +355,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
   };
 
   return (
-    <ScrollContainer ref={scrollViewRef} backgroundColor={backgroundColor || colors.app.color} testID="person-summary">
+    <ScrollContainer noRadius keyboardShouldPersistTaps="handled" backgroundColor={backgroundColor || colors.app.color} testID="person-summary">
       <BackButton onPress={onGoBackRequested}>
         <MyText color={colors.app.color}>{'<'} Retour vers la personne</MyText>
       </BackButton>
@@ -423,8 +408,6 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
               value={medicalFile?.[name]}
               handleChange={(newValue) => setMedicalFile((file) => ({ ...file, [name]: newValue }))}
               editable={editable}
-              ref={(r) => (refs.current[`${name}-ref`] = r)}
-              onFocus={() => _scrollToInput(refs.current[`${name}-ref`])}
             />
           );
         })}
@@ -488,7 +471,6 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         ifEmpty="Pas encore de commentaire">
         <NewCommentInput
           forwardRef={newCommentRef}
-          onFocus={() => _scrollToInput(newCommentRef)}
           onCommentWrite={setWritingComment}
           onCreate={(newComment) => {
             const newComments = [{ ...newComment, type: 'medical-file', _id: uuidv4() }, ...(medicalFile.comments || [])];
