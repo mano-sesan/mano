@@ -196,11 +196,8 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
               path: `/medical-file/${medicalFile._id}`,
               body: await encryptMedicalFile(customFieldsMedicalFile)({
                 ...medicalFile,
-                // If there are no document yet and default documents are present,
-                // we save the default documents since they are modified by the user.
-                documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]).filter(
-                  (d) => d._id !== documentOrFolder._id
-                ),
+                // Only operate on existing documents, don't materialize default folders
+                documents: (medicalFile.documents || []).filter((d) => d._id !== documentOrFolder._id),
               }),
             })
           );
@@ -278,9 +275,8 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
                 path: `/medical-file/${medicalFile._id}`,
                 body: await encryptMedicalFile(customFieldsMedicalFile)({
                   ...medicalFile,
-                  // If there are no document yet and default documents are present,
-                  // we save the default documents since they are modified by the user.
-                  documents: (medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]).map((d) => {
+                  // Only operate on existing documents, don't materialize default folders
+                  documents: (medicalFile.documents || []).map((d) => {
                     if (d._id === documentOrFolder._id) {
                       // remove linkedItem from document
                       const { linkedItem, ...rest } = documentOrFolder;
@@ -378,9 +374,8 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
               path: `/medical-file/${medicalFile._id}`,
               body: await encryptMedicalFile(customFieldsMedicalFile)({
                 ...medicalFile,
-                // If there are no document yet and default documents are present,
-                // we save the default documents since they are modified by the user.
-                documents: [...(medicalFile.documents?.length ? medicalFile.documents : [...defaultFolders]), ...nextDocuments],
+                // Only add new documents to existing ones, don't materialize default folders
+                documents: [...(medicalFile.documents || []), ...nextDocuments],
               }),
             })
         );

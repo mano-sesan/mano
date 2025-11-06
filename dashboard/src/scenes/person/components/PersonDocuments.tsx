@@ -152,6 +152,13 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
       title={`Documents de ${person.name}`}
       canToggleGroupCheck={canToggleGroupCheck}
       onDeleteFolder={async (folder) => {
+        // Prevent deletion of current default folders from organization config
+        const currentDefaultFolderIds = defaultFolders.map((f) => f._id);
+        if (currentDefaultFolderIds.includes(folder._id)) {
+          toast.error("Ce dossier fait partie de la configuration de l'organisation et ne peut pas être supprimé");
+          return false;
+        }
+
         // D'après le commentaire plus bas, on charge la personne liée au cas où c'est un dossier de groupe.
         // On a un edge case ici: si on a ajouté des documents pour quelqu'un d'autre, on les laisse dedans
         // et donc on les perds. Il faudrait probablement vérifier pour toutes les personnes du groupe.
@@ -168,9 +175,8 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
             path: `/person/${_person._id}`,
             body: await encryptPerson({
               ..._person,
-              // If there are no document yet and default documents are present,
-              // we save the default documents since they are modified by the user.
-              documents: (_person.documents || [...defaultFolders])
+              // Only operate on existing documents, don't materialize default folders
+              documents: (_person.documents || [])
                 .filter((f) => f._id !== folder._id)
                 .map((item) => {
                   if (item.parentId === folder._id) return { ...item, parentId: "" };
@@ -260,9 +266,8 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
               path: `/person/${_person._id}`,
               body: await encryptPerson({
                 ..._person,
-                // If there are no document yet and default documents are present,
-                // we save the default documents since they are modified by the user.
-                documents: (_person.documents || [...defaultFolders])?.filter((d) => d._id !== document._id),
+                // Only operate on existing documents, don't materialize default folders
+                documents: (_person.documents || [])?.filter((d) => d._id !== document._id),
               }),
             });
           });
@@ -316,9 +321,8 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
               path: `/person/${_person._id}`,
               body: await encryptPerson({
                 ..._person,
-                // If there are no document yet and default documents are present,
-                // we save the default documents since they are modified by the user.
-                documents: (_person.documents || [...defaultFolders])?.map((d) => {
+                // Only operate on existing documents, don't materialize default folders
+                documents: (_person.documents || [])?.map((d) => {
                   if (d._id === documentOrFolder._id) return documentOrFolder;
                   return d;
                 }),
@@ -343,13 +347,12 @@ const PersonDocuments = ({ person }: PersonDocumentsProps) => {
 
         const [personError] = await tryFetchExpectOk(async () => {
           // Use fresh person data instead of stale prop
-          const oldDocuments = freshPerson.documents?.length ? [...freshPerson.documents] : [...defaultFolders];
+          // Only add new documents to existing ones, don't materialize default folders
+          const oldDocuments = freshPerson.documents || [];
           return API.put({
             path: `/person/${person._id}`,
             body: await encryptPerson({
               ...freshPerson, // Use fresh person data
-              // If there are no document yet and default documents are present,
-              // we save the default documents since they are modified by the user.
               documents: [...oldDocuments, ...newDocuments],
             }),
           });
