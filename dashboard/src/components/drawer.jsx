@@ -171,16 +171,14 @@ const Drawer = () => {
               className="tw-block tw-relative tw-w-11/12 !tw-mt-4 tw-cursor-pointer tw-rounded-md tw-border-black !tw-bg-main !tw-text-white hover:!tw-opacity-100 motion-safe:tw-animate-brrrr"
             >
               <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
-              <div className="tw-px-2 tw-py-4 tw-text-center tw-text-xs tw-font-semibold">
-                Hep&nbsp;! Avez-vous 5&nbsp;minutes pour nous parler de votre pratique&nbsp;?
+              <div className="tw-px-2 tw-py-2 tw-text-center tw-text-xs tw-font-semibold">
+                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l’avez pas déjà fait&nbsp;?
               </div>
             </a>
             <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
-              <div className="tw-h-1 tw-rounded-full tw-bg-main" style={{ width: `${(feedbacks.count / feedbacks.totalUsers) * 100}%` }} />
+              <div className="tw-h-1 tw-rounded-full tw-bg-main" style={{ width: `${(feedbacks.count / 2000) * 100}%` }} />
             </div>
-            <small className="tw-block tw-text-[0.65rem] tw-text-main">
-              {feedbacks.count} sur {feedbacks.totalUsers} à récolter
-            </small>
+            <small className="tw-block tw-text-[0.65rem] tw-text-main">{feedbacks.count} sur 2000 à récolter</small>
           </>
         )}
         <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
