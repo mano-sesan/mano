@@ -35,6 +35,7 @@ import { refreshTriggerState } from '../../components/Loader';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import DocumentsManager from '../../components/DocumentsManager';
 import { isEmptyValue } from '../../utils';
+import { alertCreateComment } from '../../utils/alert-create-comment';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -326,24 +327,7 @@ const Action = ({ navigation, route }) => {
     }
 
     if (writingComment.length) {
-      const goToNextStep = await new Promise((res) =>
-        Alert.alert("Vous êtes en train d'écrire un commentaire, n'oubliez pas de cliquer sur créer !", null, [
-          {
-            text: "Oui c'est vrai !",
-            onPress: () => res(false),
-          },
-          {
-            text: 'Ne pas enregistrer ce commentaire',
-            onPress: () => res(true),
-            style: 'destructive',
-          },
-          {
-            text: 'Annuler',
-            onPress: () => res(false),
-            style: 'cancel',
-          },
-        ])
-      );
+      const goToNextStep = await alertCreateComment();
       if (!goToNextStep) return;
     }
     if (isUpdateDisabled) {

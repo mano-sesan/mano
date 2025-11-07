@@ -29,6 +29,7 @@ import { formatBirthDateAndAge } from '../../services/dateDayjs';
 import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
 import isEqual from 'react-fast-compare';
 import { isEmptyValue } from '../../utils';
+import { alertCreateComment } from '../../utils/alert-create-comment';
 
 const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, editable, onEdit, isUpdateDisabled, backgroundColor, onChange }) => {
   const organisation = useRecoilValue(organisationState);
@@ -222,24 +223,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
   const onGoBackRequested = async () => {
     if (writingComment.length) {
-      const goToNextStep = await new Promise((res) =>
-        Alert.alert("Vous êtes en train d'écrire un commentaire, n'oubliez pas de cliquer sur créer !", null, [
-          {
-            text: "Oui c'est vrai !",
-            onPress: () => res(false),
-          },
-          {
-            text: 'Ne pas enregistrer ce commentaire',
-            onPress: () => res(true),
-            style: 'destructive',
-          },
-          {
-            text: 'Annuler',
-            onPress: () => res(false),
-            style: 'cancel',
-          },
-        ])
-      );
+      const goToNextStep = await alertCreateComment();
       if (!goToNextStep) return;
     }
     if (isMedicalFileUpdateDisabled) return onBack();
