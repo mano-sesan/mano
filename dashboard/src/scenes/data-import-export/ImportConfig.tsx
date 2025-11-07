@@ -523,6 +523,10 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
     if (data[sheetName].globalErrors.length > 0) continue;
 
     const rowsWithoutHeader = rows.slice(1);
+
+    // Track seen field names to detect duplicates within same entity/rubrique
+    const seenFields = new Map<string, number>(); // key: "rubrique:::intitulé", value: first line number
+
     for (const key in rowsWithoutHeader) {
       const row = rowsWithoutHeader[key];
       if (sheetName === "Infos social et médical") {
@@ -533,6 +537,20 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         if (requiresOptions(type as TypeOptionLabel) && !choix)
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
+
+        // Check for duplicate field names within same rubrique
+        if (rubrique && intitule) {
+          const fieldKey = `${rubrique.trim()}:::${intitule.trim()}`;
+          if (seenFields.has(fieldKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 1,
+              message: `Ce champ existe déjà à la ligne ${seenFields.get(fieldKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(fieldKey, parseInt(key));
+          }
+        }
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -561,6 +579,20 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         if (requiresOptions(type as TypeOptionLabel) && !choix)
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
+
+        // Check for duplicate field names within same rubrique
+        if (rubrique && intitule) {
+          const fieldKey = `${rubrique.trim()}:::${intitule.trim()}`;
+          if (seenFields.has(fieldKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 1,
+              message: `Ce champ existe déjà à la ligne ${seenFields.get(fieldKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(fieldKey, parseInt(key));
+          }
+        }
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -589,6 +621,20 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         if (requiresOptions(type as TypeOptionLabel) && !choix)
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
+
+        // Check for duplicate field names within same rubrique
+        if (rubrique && intitule) {
+          const fieldKey = `${rubrique.trim()}:::${intitule.trim()}`;
+          if (seenFields.has(fieldKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 1,
+              message: `Ce champ existe déjà à la ligne ${seenFields.get(fieldKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(fieldKey, parseInt(key));
+          }
+        }
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -617,6 +663,20 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         if (requiresOptions(type as TypeOptionLabel) && !choix)
           data[sheetName].errors.push({ line: parseInt(key), col: 3, message: `Les choix sont manquants` });
         if (!isTypeOptionLabel(type)) data[sheetName].errors.push({ line: parseInt(key), col: 2, message: `Le type ${type} n'existe pas` });
+
+        // Check for duplicate field names within same rubrique
+        if (rubrique && intitule) {
+          const fieldKey = `${rubrique.trim()}:::${intitule.trim()}`;
+          if (seenFields.has(fieldKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 1,
+              message: `Ce champ existe déjà à la ligne ${seenFields.get(fieldKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(fieldKey, parseInt(key));
+          }
+        }
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -641,6 +701,21 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         const [service, groupe] = row;
         if (!service) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom du service est manquant` });
         if (!groupe) data[sheetName].errors.push({ line: parseInt(key), col: 1, message: `Le nom du groupe est manquant` });
+
+        // Check for duplicate service names
+        if (service) {
+          const serviceKey = service.trim();
+          if (seenFields.has(serviceKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 0,
+              message: `Ce service existe déjà à la ligne ${seenFields.get(serviceKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(serviceKey, parseInt(key));
+          }
+        }
+
         data[sheetName].data.push(trimAllValues({ service, groupe }));
       }
 
@@ -648,6 +723,21 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         const [categorie, groupe] = row;
         if (!categorie) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom de la catégorie est manquant` });
         if (!groupe) data[sheetName].errors.push({ line: parseInt(key), col: 1, message: `Le nom du groupe est manquant` });
+
+        // Check for duplicate category names
+        if (categorie) {
+          const categorieKey = categorie.trim();
+          if (seenFields.has(categorieKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 0,
+              message: `Cette catégorie existe déjà à la ligne ${seenFields.get(categorieKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(categorieKey, parseInt(key));
+          }
+        }
+
         data[sheetName].data.push(trimAllValues({ categorie, groupe }));
       }
     }
