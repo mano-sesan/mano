@@ -8,15 +8,57 @@ import { treatmentsState } from "../../../recoil/treatments";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";
+import SelectCustom from "../../../components/SelectCustom";
+import { useLocalStorage } from "../../../services/useLocalStorage";
+
+// Helper function to compute treatment status
+const getTreatmentStatus = (treatment) => {
+  // Check if dates exist first (could be null, undefined, or empty string)
+  const hasStartDate = Boolean(treatment.startDate);
+  const hasEndDate = Boolean(treatment.endDate);
+
+  // No dates at all - considered as ongoing
+  if (!hasStartDate && !hasEndDate) return "ongoing";
+
+  const today = dayjsInstance();
+  const startDate = hasStartDate ? dayjsInstance(treatment.startDate) : null;
+  const endDate = hasEndDate ? dayjsInstance(treatment.endDate) : null;
+
+  // Has end date and it's in the past
+  if (endDate && endDate.isBefore(today)) return "finished";
+
+  // Has start date and it's in the future (hasn't started yet)
+  if (startDate && startDate.isAfter(today)) return "not-started";
+
+  // Everything else is ongoing
+  return "ongoing";
+};
+
+const treatmentStatusOptions = [
+  { _id: "ongoing", name: "En cours" },
+  { _id: "finished", name: "Terminé" },
+  { _id: "not-started", name: "Non commencé" },
+];
 
 export const Treatments = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
   const allTreatments = useRecoilValue(treatmentsState);
+  const [treatmentStatuses, setTreatmentStatuses] = useLocalStorage("treatment-statuses", []);
+
   const treatments = useMemo(
     () => (allTreatments || []).filter((t) => t.person === person._id).sort((a, b) => new Date(b.startDate) - new Date(a.startDate)),
     [allTreatments, person._id]
   );
-  const filteredData = treatments;
+
+  const filteredData = useMemo(
+    () =>
+      treatments.filter((t) => {
+        if (!treatmentStatuses.length) return true;
+        return treatmentStatuses.includes(getTreatmentStatus(t));
+      }),
+    [treatments, treatmentStatuses]
+  );
+
   const history = useHistory();
 
   return (
@@ -48,8 +90,23 @@ export const Treatments = ({ person }) => {
             )}
           </div>
         </div>
+        <TreatmentsFilters
+          data={treatments}
+          filteredData={filteredData}
+          treatmentStatuses={treatmentStatuses}
+          setTreatmentStatuses={setTreatmentStatuses}
+        />
         <ModalContainer open={!!fullScreen} className="" size="prose" onClose={() => setFullScreen(false)}>
-          <ModalHeader title={`Traitements de  ${person?.name} (${filteredData.length})`}></ModalHeader>
+          <ModalHeader title={`Traitements de  ${person?.name} (${filteredData.length})`}>
+            <div className="tw-mt-2 tw-w-full tw-px-8">
+              <TreatmentsFilters
+                data={treatments}
+                filteredData={filteredData}
+                treatmentStatuses={treatmentStatuses}
+                setTreatmentStatuses={setTreatmentStatuses}
+              />
+            </div>
+          </ModalHeader>
           <ModalBody>
             <TreatmentsTable filteredData={filteredData} person={person} />
           </ModalBody>
@@ -71,15 +128,40 @@ export const Treatments = ({ person }) => {
             </button>
           </ModalFooter>
         </ModalContainer>
-        {filteredData.length ? (
-          <TreatmentsTable filteredData={filteredData} person={person} />
-        ) : (
-          <div className="tw-p-4 tw-text-center tw-text-gray-300">
-            <AgendaMutedIcon />
-            Aucun traitement
-          </div>
-        )}
+        <TreatmentsTable filteredData={filteredData} person={person} />
       </div>
+    </>
+  );
+};
+
+const TreatmentsFilters = ({ data, treatmentStatuses, setTreatmentStatuses }) => {
+  return (
+    <>
+      {data.length ? (
+        <div className="tw-mb-4 tw-flex tw-basis-full tw-justify-between tw-gap-2 tw-px-3">
+          <div className="tw-shrink-0 tw-flex-grow">
+            <label htmlFor="treatment-select-status-filter" className="tw-text-xs">
+              Filtrer par statut
+            </label>
+            <SelectCustom
+              inputId="treatment-select-status-filter"
+              options={treatmentStatusOptions}
+              getOptionValue={(s) => s._id}
+              getOptionLabel={(s) => s.name}
+              name="status"
+              onChange={(s) => setTreatmentStatuses(s.map((s) => s._id))}
+              isClearable
+              isMulti
+              value={treatmentStatusOptions.filter((s) => treatmentStatuses.includes(s._id))}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+          <AgendaMutedIcon />
+          Aucun traitement pour le moment
+        </div>
+      )}
     </>
   );
 };
@@ -102,6 +184,15 @@ const TreatmentsTable = ({ filteredData }) => {
 
     return base;
   };
+
+  if (!filteredData.length) {
+    return (
+      <div className="tw-p-4 tw-text-center tw-text-gray-300">
+        <AgendaMutedIcon />
+        Aucun traitement
+      </div>
+    );
+  }
 
   return (
     <table className="table">
