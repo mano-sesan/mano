@@ -85,7 +85,7 @@ const Login = ({ navigation }) => {
         API.onLogIn();
         const { organisation } = user;
         if (!!storageOrganisationId && organisation._id !== storageOrganisationId) {
-          await clearCache("not same org");
+          await clearCache();
           resetAllRecoilStates();
           setLastRefresh(0);
         }
@@ -198,7 +198,7 @@ const Login = ({ navigation }) => {
       setOrganisation(response.user.organisation);
       // We need to reset cache if organisation has changed.
       if (!!storageOrganisationId && response.user.organisation._id !== storageOrganisationId) {
-        await clearCache("again not same org");
+        await clearCache();
         resetAllRecoilStates();
         setLastRefresh(0);
       }
