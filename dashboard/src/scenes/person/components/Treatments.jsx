@@ -25,10 +25,10 @@ const getTreatmentStatus = (treatment) => {
   const endDate = hasEndDate ? dayjsInstance(treatment.endDate) : null;
 
   // Has end date and it's in the past
-  if (endDate && endDate.isBefore(today, 'day')) return "finished";
+  if (endDate && endDate.isBefore(today, "day")) return "finished";
 
   // Has start date and it's in the future (hasn't started yet)
-  if (startDate && startDate.isAfter(today, 'day')) return "not-started";
+  if (startDate && startDate.isAfter(today, "day")) return "not-started";
 
   // Everything else is ongoing
   return "ongoing";
@@ -99,12 +99,7 @@ export const Treatments = ({ person }) => {
         <ModalContainer open={!!fullScreen} className="" size="prose" onClose={() => setFullScreen(false)}>
           <ModalHeader title={`Traitements de  ${person?.name} (${filteredData.length})`}>
             <div className="tw-mt-2 tw-w-full tw-px-8">
-              <TreatmentsFilters
-                data={treatments}
-                filteredData={filteredData}
-                treatmentStatuses={treatmentStatuses}
-                setTreatmentStatuses={setTreatmentStatuses}
-              />
+              <TreatmentsFilters data={treatments} treatmentStatuses={treatmentStatuses} setTreatmentStatuses={setTreatmentStatuses} />
             </div>
           </ModalHeader>
           <ModalBody>
