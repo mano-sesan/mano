@@ -1,11 +1,11 @@
 /* eslint-disable max-len */
-import React from 'react';
-import styled from 'styled-components/native';
-import Svg, { G, Path } from 'react-native-svg';
+import React from "react";
+import styled from "styled-components/native";
+import Svg, { G, Path } from "react-native-svg";
 
 const SvgStyled = styled(Svg)``;
 
-const EditIcon = ({ color = '#000', size = 20 }) => (
+const EditIcon = ({ color = "#000", size = 20 }) => (
   <SvgStyled width={size} height={size} viewBox="0 0 190 190">
     <G stroke="none" strokeWidth="1" fill={color} fillRule="evenodd">
       <Path d="M171.07,162.46 C171.07,171.27 163.91,178.7 155.1,178.7 L27.31,178.7 C18.5,178.7 11.34,171.27 11.34,162.46 L11.34,34.67 C11.34,25.86 18.5,18.96 27.31,18.96 L101.85,18.96 L101.85,8.32 L27.31,8.32 C12.63,8.32 0.69,20 0.69,34.68 L0.69,162.46 C0.69,177.14 12.63,189.34 27.31,189.34 L155.09,189.34 C169.77,189.34 181.71,177.13 181.71,162.46 L181.71,88.18 L171.06,88.18 L171.06,162.46 L171.07,162.46 Z" />

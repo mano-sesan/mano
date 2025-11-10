@@ -1,14 +1,14 @@
-import { useRecoilState, useRecoilValue } from 'recoil';
-import React, { useCallback } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyRencontres, ListNoMoreRencontres } from '../../components/ListEmptyContainer';
-import { rencontresForReport } from './selectors';
-import { getPeriodTitle } from './utils';
-import { currentTeamState } from '../../recoil/auth';
-import RencontreRow from '../Persons/RencontreRow';
+import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useCallback } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyRencontres, ListNoMoreRencontres } from "../../components/ListEmptyContainer";
+import { rencontresForReport } from "./selectors";
+import { getPeriodTitle } from "./utils";
+import { currentTeamState } from "../../recoil/auth";
+import RencontreRow from "../Persons/RencontreRow";
 const keyExtractor = (item) => item._id;
 
 const RencontresForReport = ({ navigation, route }) => {
@@ -22,7 +22,7 @@ const RencontresForReport = ({ navigation, route }) => {
   }, [setRefreshTrigger]);
 
   const onUpdateRencontre = async (person, rencontre) => {
-    navigation.push('Rencontre', { person, fromRoute: 'Report', rencontre: rencontre });
+    navigation.push("Rencontre", { person, fromRoute: "Report", rencontre: rencontre });
   };
 
   const renderItem = ({ item }) => {

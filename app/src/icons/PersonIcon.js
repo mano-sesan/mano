@@ -1,11 +1,11 @@
 /* eslint-disable max-len */
-import React from 'react';
-import styled from 'styled-components/native';
-import Svg, { G, Path } from 'react-native-svg';
+import React from "react";
+import styled from "styled-components/native";
+import Svg, { G, Path } from "react-native-svg";
 
 const SvgStyled = styled(Svg)``;
 
-const Person = ({ color = '#000', size = 20 }) => (
+const Person = ({ color = "#000", size = 20 }) => (
   <SvgStyled width={size} height={size} viewBox="0 0 222 200">
     <G id="Page-1" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
       <Path

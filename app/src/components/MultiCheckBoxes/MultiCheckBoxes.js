@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import CheckboxLabelled from '../CheckboxLabelled';
-import InputLabelled from '../InputLabelled';
-import Label from '../Label';
-import { View, TouchableOpacity } from 'react-native';
-import { MyText } from '../MyText';
+import React, { useState } from "react";
+import CheckboxLabelled from "../CheckboxLabelled";
+import InputLabelled from "../InputLabelled";
+import Label from "../Label";
+import { View, TouchableOpacity } from "react-native";
+import { MyText } from "../MyText";
 
 const MultiCheckBoxes = ({ label, source, values, onChange, editable, emptyValue, allowCreateOption }) => {
-  const [saisieLibre, setSaisieLibre] = useState('');
+  const [saisieLibre, setSaisieLibre] = useState("");
 
   if (!Array.isArray(values)) values = [];
   if (!editable) {
-    return <InputLabelled label={label} value={values.length ? values.join(', ') : emptyValue} editable={false} />;
+    return <InputLabelled label={label} value={values.length ? values.join(", ") : emptyValue} editable={false} />;
   }
 
   const onCheck = ({ _id: newValue }) => {
@@ -20,7 +20,7 @@ const MultiCheckBoxes = ({ label, source, values, onChange, editable, emptyValue
 
   function onAddSaisieLibre() {
     onCheck({ _id: saisieLibre });
-    setSaisieLibre('');
+    setSaisieLibre("");
   }
 
   return (
@@ -38,7 +38,8 @@ const MultiCheckBoxes = ({ label, source, values, onChange, editable, emptyValue
           <View className="absolute right-3 justify-center items-center self-center h-full">
             <TouchableOpacity
               onPress={onAddSaisieLibre}
-              className="justify-center border-main75 border items-center self-center flex-row py-2 px-2 rounded-md">
+              className="justify-center border-main75 border items-center self-center flex-row py-2 px-2 rounded-md"
+            >
               <MyText className="self-center text-main75 justify-center text-xs">Ajouter</MyText>
             </TouchableOpacity>
           </View>

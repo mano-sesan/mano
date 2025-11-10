@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableWithoutFeedback } from 'react-native';
-import ArrowRightIcon from '../icons/ArrowRightIcon';
+import React from "react";
+import styled from "styled-components/native";
+import { TouchableWithoutFeedback } from "react-native";
+import ArrowRightIcon from "../icons/ArrowRightIcon";
 
 const hitSlop = {
   top: 20,
@@ -10,7 +10,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonExpand = ({ onPress, color = '#888', expanded, testID = '' }) => {
+const ButtonExpand = ({ onPress, color = "#888", expanded, testID = "" }) => {
   return (
     <ButtonContainer>
       <TouchableWithoutFeedback onPress={onPress} hitSlop={hitSlop} testID={testID}>

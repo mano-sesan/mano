@@ -1,25 +1,25 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused } from '@react-navigation/native';
-import React, { useEffect, useState } from 'react';
-import InputLabelled from '../components/InputLabelled';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useIsFocused } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import InputLabelled from "../components/InputLabelled";
 
 const emailValidatorRE = new RegExp(
   '^(([^<>()\\[\\]\\\\.,;:\\s@"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@"]+)*)|(".+"))' +
-    '@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$'
+    "@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$"
 );
 const validateEmail = (email) => {
   return emailValidatorRE.test(String(email).toLowerCase());
 };
 
-const EmailInput = ({ innerRef, onChange, onFocus, onSubmitEditing, testID = 'email' }) => {
-  const [email, setEmail] = useState('');
+const EmailInput = ({ innerRef, onChange, onFocus, onSubmitEditing, testID = "email" }) => {
+  const [email, setEmail] = useState("");
   const onInputChange = (email) => {
     email = email.trim();
     setEmail(email);
     onChange({
       email: email,
       isValid: validateEmail(email),
-      example: 'example@example.com',
+      example: "example@example.com",
     });
   };
 
@@ -27,13 +27,13 @@ const EmailInput = ({ innerRef, onChange, onFocus, onSubmitEditing, testID = 'em
 
   useEffect(() => {
     (async () => {
-      const storedEmail = await AsyncStorage.getItem('persistent_email');
+      const storedEmail = await AsyncStorage.getItem("persistent_email");
       if (storedEmail) {
         setEmail(storedEmail);
         onInputChange(storedEmail);
       } else {
-        setEmail('');
-        onInputChange('');
+        setEmail("");
+        onInputChange("");
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps

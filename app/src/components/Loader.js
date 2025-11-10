@@ -1,42 +1,42 @@
-import { useEffect, useRef } from 'react';
-import API from '../services/api';
-import { atom, useRecoilState, useSetRecoilState } from 'recoil';
-import { appCurrentCacheKey, getData } from '../services/dataManagement';
-import { useMMKVNumber } from 'react-native-mmkv';
-import { organisationState, userState } from '../recoil/auth';
-import { actionsState } from '../recoil/actions';
-import { personsState } from '../recoil/persons';
-import { territoriesState } from '../recoil/territory';
-import { placesState } from '../recoil/places';
-import { relsPersonPlaceState } from '../recoil/relPersonPlace';
-import { territoryObservationsState } from '../recoil/territoryObservations';
-import { commentsState } from '../recoil/comments';
-import { capture } from '../services/sentry';
-import { reportsState } from '../recoil/reports';
-import { consultationsState, formatConsultation } from '../recoil/consultations';
-import { medicalFileState } from '../recoil/medicalFiles';
-import { treatmentsState } from '../recoil/treatments';
-import { rencontresState } from '../recoil/rencontres';
-import { passagesState } from '../recoil/passages';
-import { groupsState } from '../recoil/groups';
+import { useEffect, useRef } from "react";
+import API from "../services/api";
+import { atom, useRecoilState, useSetRecoilState } from "recoil";
+import { appCurrentCacheKey, getData } from "../services/dataManagement";
+import { useMMKVNumber } from "react-native-mmkv";
+import { organisationState, userState } from "../recoil/auth";
+import { actionsState } from "../recoil/actions";
+import { personsState } from "../recoil/persons";
+import { territoriesState } from "../recoil/territory";
+import { placesState } from "../recoil/places";
+import { relsPersonPlaceState } from "../recoil/relPersonPlace";
+import { territoryObservationsState } from "../recoil/territoryObservations";
+import { commentsState } from "../recoil/comments";
+import { capture } from "../services/sentry";
+import { reportsState } from "../recoil/reports";
+import { consultationsState, formatConsultation } from "../recoil/consultations";
+import { medicalFileState } from "../recoil/medicalFiles";
+import { treatmentsState } from "../recoil/treatments";
+import { rencontresState } from "../recoil/rencontres";
+import { passagesState } from "../recoil/passages";
+import { groupsState } from "../recoil/groups";
 
 export const loadingState = atom({
-  key: 'loadingState',
-  default: '',
+  key: "loadingState",
+  default: "",
 });
 
 export const progressState = atom({
-  key: 'progressState',
+  key: "progressState",
   default: 0,
 });
 
 export const loaderFullScreenState = atom({
-  key: 'loaderFullScreenState',
+  key: "loaderFullScreenState",
   default: false,
 });
 
 export const refreshTriggerState = atom({
-  key: 'refreshTriggerState',
+  key: "refreshTriggerState",
   default: {
     status: false,
     options: { showFullScreen: false, initialLoad: false },
@@ -103,14 +103,14 @@ export const DataLoader = () => {
   const refresh = async () => {
     const { showFullScreen, initialLoad } = refreshTrigger.options;
 
-    setLoading('Chargement...');
+    setLoading("Chargement...");
     setFullScreen(showFullScreen);
 
     /*
     Refresh organisation (and user), to get the latest organisation fields
     and the latest user roles
     */
-    const userResponse = await API.get({ path: '/user/me' });
+    const userResponse = await API.get({ path: "/user/me" });
     if (userResponse.ok) {
       if (JSON.stringify(userResponse.user.organisation) !== JSON.stringify(organisation)) {
         setOrganisation(userResponse.user.organisation);
@@ -119,7 +119,7 @@ export const DataLoader = () => {
         setUser(userResponse.user);
       }
       if (userResponse.user.organisation.disabledAt) {
-        setLoading('');
+        setLoading("");
         setProgress(0);
         setFullScreen(false);
         setRefreshTrigger({
@@ -131,13 +131,13 @@ export const DataLoader = () => {
       }
     }
 
-    const serverDateResponse = await API.get({ path: '/now' });
+    const serverDateResponse = await API.get({ path: "/now" });
     const serverDate = serverDateResponse.data;
     /*
     Get number of data to download to show the appropriate loading progress bar
     */
     const response = await API.get({
-      path: '/organisation/stats',
+      path: "/organisation/stats",
       query: {
         organisation: organisationId,
         after: lastRefresh,
@@ -147,7 +147,7 @@ export const DataLoader = () => {
       },
     });
     if (!response.ok) {
-      capture('error getting stats', { extra: response });
+      capture("error getting stats", { extra: response });
       setRefreshTrigger({
         status: false,
         options: { showFullScreen: false, initialLoad: false },
@@ -178,9 +178,9 @@ export const DataLoader = () => {
     Get persons
     */
     if (response.data.persons) {
-      setLoading('Chargement des personnes');
+      setLoading("Chargement des personnes");
       const refreshedPersons = await getData({
-        collectionName: 'person',
+        collectionName: "person",
         data: persons,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -194,9 +194,9 @@ export const DataLoader = () => {
     Get groups
     */
     if (response.data.groups) {
-      setLoading('Chargement des familles');
+      setLoading("Chargement des familles");
       const refreshedGroups = await getData({
-        collectionName: 'group',
+        collectionName: "group",
         data: groups,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -209,9 +209,9 @@ export const DataLoader = () => {
     Get consultations
     */
     if (response.data.consultations || initialLoad) {
-      setLoading('Chargement des consultations');
+      setLoading("Chargement des consultations");
       const refreshedConsultations = await getData({
-        collectionName: 'consultation',
+        collectionName: "consultation",
         data: consultations,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
@@ -223,11 +223,11 @@ export const DataLoader = () => {
     /*
     Get treatments
     */
-    if (['admin', 'normal'].includes(user.role)) {
+    if (["admin", "normal"].includes(user.role)) {
       if (response.data.treatments || initialLoad) {
-        setLoading('Chargement des traitements');
+        setLoading("Chargement des traitements");
         const refreshedTreatments = await getData({
-          collectionName: 'treatment',
+          collectionName: "treatment",
           data: treatments,
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
           lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
@@ -240,9 +240,9 @@ export const DataLoader = () => {
       Get medicalFiles
       */
       if (response.data.medicalFiles || initialLoad) {
-        setLoading('Chargement des dossiers médicaux');
+        setLoading("Chargement des dossiers médicaux");
         const refreshedMedicalFiles = await getData({
-          collectionName: 'medical-file',
+          collectionName: "medical-file",
           data: medicalFiles,
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
           lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
@@ -256,9 +256,9 @@ export const DataLoader = () => {
     Get actions
     */
     if (response.data.actions) {
-      setLoading('Chargement des actions');
+      setLoading("Chargement des actions");
       const refreshedActions = await getData({
-        collectionName: 'action',
+        collectionName: "action",
         data: actions,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -272,9 +272,9 @@ export const DataLoader = () => {
     Get territories
     */
     if (response.data.territories) {
-      setLoading('Chargement des territoires');
+      setLoading("Chargement des territoires");
       const refreshedTerritories = await getData({
-        collectionName: 'territory',
+        collectionName: "territory",
         data: territories,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -287,9 +287,9 @@ export const DataLoader = () => {
     Get places
     */
     if (response.data.places) {
-      setLoading('Chargement des lieux');
+      setLoading("Chargement des lieux");
       const refreshedPlaces = await getData({
-        collectionName: 'place',
+        collectionName: "place",
         data: places,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -300,7 +300,7 @@ export const DataLoader = () => {
     }
     if (response.data.relsPersonPlace) {
       const refreshedRelPersonPlaces = await getData({
-        collectionName: 'relPersonPlace',
+        collectionName: "relPersonPlace",
         data: relsPersonPlace,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -313,9 +313,9 @@ export const DataLoader = () => {
     Get observations territories
     */
     if (response.data.territoryObservations) {
-      setLoading('Chargement des observations');
+      setLoading("Chargement des observations");
       const refreshedObs = await getData({
-        collectionName: 'territory-observation',
+        collectionName: "territory-observation",
         data: territoryObservations,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -328,9 +328,9 @@ export const DataLoader = () => {
     Get comments
     */
     if (response.data.comments) {
-      setLoading('Chargement des commentaires');
+      setLoading("Chargement des commentaires");
       const refreshedComments = await getData({
-        collectionName: 'comment',
+        collectionName: "comment",
         data: comments,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -344,9 +344,9 @@ export const DataLoader = () => {
     Get passages
     */
     if (response.data.passages) {
-      setLoading('Chargement des passages');
+      setLoading("Chargement des passages");
       const refreshedPassages = await getData({
-        collectionName: 'passage',
+        collectionName: "passage",
         data: passages,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -359,9 +359,9 @@ export const DataLoader = () => {
     Get rencontres
     */
     if (response.data.rencontres) {
-      setLoading('Chargement des rencontres');
+      setLoading("Chargement des rencontres");
       const refreshedRencontres = await getData({
-        collectionName: 'rencontre',
+        collectionName: "rencontre",
         data: rencontres,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -385,9 +385,9 @@ export const DataLoader = () => {
     */
 
     if (response.data.reports) {
-      setLoading('Chargement des comptes-rendus');
+      setLoading("Chargement des comptes-rendus");
       const refreshedReports = await getData({
-        collectionName: 'report',
+        collectionName: "report",
         data: reports,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
@@ -403,7 +403,7 @@ export const DataLoader = () => {
     initialLoadDone.current = true;
     await new Promise((res) => setTimeout(res, 150));
     setLastRefresh(serverDate);
-    setLoading('');
+    setLoading("");
     setProgress(0);
     setFullScreen(false);
     setRefreshTrigger({

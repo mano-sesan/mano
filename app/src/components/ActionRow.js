@@ -1,24 +1,24 @@
-import React, { useCallback, useMemo } from 'react';
-import styled from 'styled-components/native';
-import { View } from 'react-native';
-import { useRecoilValue } from 'recoil';
-import ButtonRight from './ButtonRight';
-import RowContainer from './RowContainer';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import TeamsTags from './TeamsTags';
-import { DONE, TODO } from '../recoil/actions';
-import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
-import { organisationState } from '../recoil/auth';
-import { itemsGroupedByPersonSelector } from '../recoil/selectors';
-import RepeatIcon from '../icons/RepeatIcon';
-import UserName from './UserName';
+import React, { useCallback, useMemo } from "react";
+import styled from "styled-components/native";
+import { View } from "react-native";
+import { useRecoilValue } from "recoil";
+import ButtonRight from "./ButtonRight";
+import RowContainer from "./RowContainer";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import TeamsTags from "./TeamsTags";
+import { DONE, TODO } from "../recoil/actions";
+import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
+import { organisationState } from "../recoil/auth";
+import { itemsGroupedByPersonSelector } from "../recoil/selectors";
+import RepeatIcon from "../icons/RepeatIcon";
+import UserName from "./UserName";
 
-const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = 'action' }) => {
+const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }) => {
   const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
   const organisation = useRecoilValue(organisationState);
 
-  const name = action?.name?.trim() || action?.categories?.join(', ') || 'Action';
+  const name = action?.name?.trim() || action?.categories?.join(", ") || "Action";
   const status = action?.status;
   const withTime = action?.withTime;
   const urgent = action?.urgent;
@@ -37,7 +37,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
   }, [action, onActionPress]);
 
   return (
-    <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(' ').join('-').toLowerCase()}-button`}>
+    <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(" ").join("-").toLowerCase()}-button`}>
       <DateAndTimeCalendarDisplay date={status === TODO ? dueAt : completedAt} withTime={withTime} />
       <CaptionsContainer>
         <View className="flex-row items-center">
@@ -56,10 +56,10 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
         {!!withTeamName && <TeamsTags teams={Array.isArray(action.teams) ? action.teams : [action.team]} />}
         {showStatus ? (
           <StatusContainer>
-            <Status color={colors.app[status === DONE ? 'color' : 'secondary']}>{status}</Status>
+            <Status color={colors.app[status === DONE ? "color" : "secondary"]}>{status}</Status>
           </StatusContainer>
         ) : pseudo ? (
-          <PseudoContainer onPress={onPseudoContainerPress} testID={`${testID}-row-person-${pseudo?.split(' ').join('-').toLowerCase()}-button`}>
+          <PseudoContainer onPress={onPseudoContainerPress} testID={`${testID}-row-person-${pseudo?.split(" ").join("-").toLowerCase()}-button`}>
             <Pseudo>Pour {pseudo}</Pseudo>
           </PseudoContainer>
         ) : null}

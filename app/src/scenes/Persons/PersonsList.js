@@ -1,30 +1,30 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated } from 'react-native';
-import * as Sentry from '@sentry/react-native';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import PersonRow from './PersonRow';
-import Spinner from '../../components/Spinner';
-import { ListEmptyPersons, ListNoMorePersons } from '../../components/ListEmptyContainer';
-import FloatAddButton from '../../components/FloatAddButton';
-import { FlashListStyled } from '../../components/Lists';
-import Search from '../../components/Search';
-import { arrayOfitemsGroupedByPersonSelector, itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import { selector, selectorFamily, useRecoilState, useRecoilValue } from 'recoil';
-import { loadingState, refreshTriggerState } from '../../components/Loader';
-import { filterBySearch } from '../../utils/search';
-import { useIsFocused } from '@react-navigation/native';
-import { userState } from '../../recoil/auth';
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Animated } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import PersonRow from "./PersonRow";
+import Spinner from "../../components/Spinner";
+import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyContainer";
+import FloatAddButton from "../../components/FloatAddButton";
+import { FlashListStyled } from "../../components/Lists";
+import Search from "../../components/Search";
+import { arrayOfitemsGroupedByPersonSelector, itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { selector, selectorFamily, useRecoilState, useRecoilValue } from "recoil";
+import { loadingState, refreshTriggerState } from "../../components/Loader";
+import { filterBySearch } from "../../utils/search";
+import { useIsFocused } from "@react-navigation/native";
+import { userState } from "../../recoil/auth";
 
 const personsFilteredSelector = selectorFamily({
-  key: 'personsFilteredSelector',
+  key: "personsFilteredSelector",
   get:
     ({ filterTeams, filterOutOfActiveList, filterAlertness }) =>
     ({ get }) => {
       const persons = get(arrayOfitemsGroupedByPersonSelector);
       let personsFiltered = persons;
       if (filterOutOfActiveList) {
-        personsFiltered = personsFiltered.filter((p) => (filterOutOfActiveList === 'Oui' ? p.outOfActiveList : !p.outOfActiveList));
+        personsFiltered = personsFiltered.filter((p) => (filterOutOfActiveList === "Oui" ? p.outOfActiveList : !p.outOfActiveList));
       }
       if (filterAlertness) personsFiltered = personsFiltered.filter((p) => !!p.alertness);
       if (filterTeams.length) {
@@ -41,7 +41,7 @@ const personsFilteredSelector = selectorFamily({
 });
 
 const personsFilteredBySearchSelector = selectorFamily({
-  key: 'personsFilteredBySearchSelector',
+  key: "personsFilteredBySearchSelector",
   get:
     ({ filterTeams, filterOutOfActiveList, filterAlertness, search }) =>
     ({ get }) => {
@@ -54,7 +54,7 @@ const personsFilteredBySearchSelector = selectorFamily({
       const personsFiltered = get(personsFilteredSelector({ filterTeams, filterAlertness, filterOutOfActiveList }));
 
       const restrictedFields =
-        user.role === 'restricted-access' ? ['name', 'phone', 'otherNames', 'gender', 'formattedBirthDate', 'assignedTeams', 'email'] : null;
+        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
 
       const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
@@ -63,15 +63,15 @@ const personsFilteredBySearchSelector = selectorFamily({
 });
 
 const PersonsList = ({ navigation, route }) => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const loading = useRecoilValue(loadingState);
   const params = route?.params?.filters || {};
 
   const filterTeams = params?.filterTeams || [];
   const filterAlertness = params?.filterAlertness || false;
-  const filterOutOfActiveList = params?.filterOutOfActiveList || '';
-  const numberOfFilters = Number(Boolean(filterAlertness)) + filterTeams.length + Number(['Oui', 'Non'].includes(filterOutOfActiveList));
+  const filterOutOfActiveList = params?.filterOutOfActiveList || "";
+  const numberOfFilters = Number(Boolean(filterAlertness)) + filterTeams.length + Number(["Oui", "Non"].includes(filterOutOfActiveList));
 
   const filteredPersons = useRecoilValue(
     personsFilteredBySearchSelector({
@@ -90,9 +90,9 @@ const PersonsList = ({ navigation, route }) => {
   useEffect(() => {
     if (isFocused && refreshTrigger.status !== true) onRefresh();
   }, [isFocused]);
-  const onCreatePersonRequest = () => navigation.navigate('NewPersonForm', { toRoute: 'Person' });
+  const onCreatePersonRequest = () => navigation.navigate("NewPersonForm", { toRoute: "Person" });
 
-  const onFiltersPress = () => navigation.push('PersonsFilter', route.params);
+  const onFiltersPress = () => navigation.push("PersonsFilter", route.params);
 
   const keyExtractor = (person) => person._id;
   const ListFooterComponent = useCallback(() => {
@@ -101,8 +101,8 @@ const PersonsList = ({ navigation, route }) => {
   }, [filteredPersons.length]);
   const renderPersonRow = ({ item: person }) => {
     const onPress = () => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.push('Person', { person, fromRoute: 'PersonsList', filters: params });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.push("Person", { person, fromRoute: "PersonsList", filters: params });
     };
     return <PersonRow onPress={onPress} person={person} />;
   };

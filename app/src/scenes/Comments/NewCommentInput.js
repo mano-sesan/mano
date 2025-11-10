@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { Alert, Keyboard } from 'react-native';
-import dayjs from 'dayjs';
-import Button from '../../components/Button';
-import InputMultilineAutoAdjust from '../../components/InputMultilineAutoAdjust';
-import Spacer from '../../components/Spacer';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import { useRecoilValue } from 'recoil';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
+import React, { useState } from "react";
+import { Alert, Keyboard } from "react-native";
+import dayjs from "dayjs";
+import Button from "../../components/Button";
+import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
+import Spacer from "../../components/Spacer";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import { useRecoilValue } from "recoil";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
 
 const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canToggleUrgentCheck, canToggleGroupCheck }) => {
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [group, setGroup] = useState(false);
   const [posting, setPosting] = useState(false);
@@ -34,22 +34,22 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
     await onCreate(body);
     Keyboard.dismiss();
     setPosting(false);
-    setComment('');
-    onCommentWrite?.('');
+    setComment("");
+    onCommentWrite?.("");
   };
 
   const onCancelRequest = () => {
-    Alert.alert('Voulez-vous abandonner la création de ce commentaire ?', null, [
+    Alert.alert("Voulez-vous abandonner la création de ce commentaire ?", null, [
       {
-        text: 'Continuer la création',
+        text: "Continuer la création",
       },
       {
-        text: 'Abandonner',
+        text: "Abandonner",
         onPress: () => {
           setPosting(false);
-          setComment('');
+          setComment("");
         },
-        style: 'destructive',
+        style: "destructive",
       },
     ]);
   };

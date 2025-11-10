@@ -1,23 +1,23 @@
-import { selector, selectorFamily } from 'recoil';
-import { actionsState, CANCEL, DONE, TODO } from './actions';
-import { currentTeamState } from './auth';
-import { commentsState } from './comments';
-import { personsState } from './persons';
-import { placesState } from './places';
-import { relsPersonPlaceState } from './relPersonPlace';
-import { territoriesState } from './territory';
-import { isComingInDays, isPassed, isToday, isTomorrow } from '../services/date';
-import { filterBySearch } from '../utils/search';
-import { consultationsState } from './consultations';
-import { rencontresState } from './rencontres';
-import { treatmentsState } from './treatments';
-import { medicalFileState } from './medicalFiles';
-import { groupsState } from './groups';
-import { formatAge, formatBirthDate } from '../services/dateDayjs';
-import { passagesState } from './passages';
+import { selector, selectorFamily } from "recoil";
+import { actionsState, CANCEL, DONE, TODO } from "./actions";
+import { currentTeamState } from "./auth";
+import { commentsState } from "./comments";
+import { personsState } from "./persons";
+import { placesState } from "./places";
+import { relsPersonPlaceState } from "./relPersonPlace";
+import { territoriesState } from "./territory";
+import { isComingInDays, isPassed, isToday, isTomorrow } from "../services/date";
+import { filterBySearch } from "../utils/search";
+import { consultationsState } from "./consultations";
+import { rencontresState } from "./rencontres";
+import { treatmentsState } from "./treatments";
+import { medicalFileState } from "./medicalFiles";
+import { groupsState } from "./groups";
+import { formatAge, formatBirthDate } from "../services/dateDayjs";
+import { passagesState } from "./passages";
 
 export const actionsObjectSelector = selector({
-  key: 'actionsObjectSelector',
+  key: "actionsObjectSelector",
   get: ({ get }) => {
     const actions = get(actionsState);
     const actionsObject = {};
@@ -29,7 +29,7 @@ export const actionsObjectSelector = selector({
 });
 
 export const actionsWithCommentsSelector = selector({
-  key: 'actionsWithCommentsSelector',
+  key: "actionsWithCommentsSelector",
   get: ({ get }) => {
     const actions = get(actionsState);
     const comments = get(commentsState);
@@ -46,7 +46,7 @@ export const actionsWithCommentsSelector = selector({
 });
 
 const placesObjectSelector = selector({
-  key: 'placesObjectSelector',
+  key: "placesObjectSelector",
   get: ({ get }) => {
     const places = get(placesState);
     const placesObject = {};
@@ -59,7 +59,7 @@ const placesObjectSelector = selector({
 });
 
 export const itemsGroupedByPersonSelector = selector({
-  key: 'itemsGroupedByPersonSelector',
+  key: "itemsGroupedByPersonSelector",
   get: ({ get }) => {
     const persons = get(personsState);
     const personsObject = {};
@@ -67,14 +67,14 @@ export const itemsGroupedByPersonSelector = selector({
       const age = person.birthdate ? formatAge(person.birthdate) : 0;
       const nameLowercased = person.name.toLocaleLowerCase();
       // replace all accents with normal letters
-      const nameNormalized = nameLowercased.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const nameNormalized = nameLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       personsObject[person._id] = {
         ...person,
         nameNormalized,
         formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : null,
         age,
         // remove anything that is not a number
-        formattedPhoneNumber: person.phone?.replace(/\D/g, ''),
+        formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
       };
     }
     const actions = Object.values(get(actionsWithCommentsSelector));
@@ -205,7 +205,7 @@ export const itemsGroupedByPersonSelector = selector({
 });
 
 export const arrayOfitemsGroupedByPersonSelector = selector({
-  key: 'arrayOfitemsGroupedByPersonSelector',
+  key: "arrayOfitemsGroupedByPersonSelector",
   get: ({ get }) => {
     const itemsGroupedByPerson = get(itemsGroupedByPersonSelector);
     return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized > b.nameNormalized ? 1 : -1));
@@ -213,9 +213,9 @@ export const arrayOfitemsGroupedByPersonSelector = selector({
 });
 
 export const personsSearchSelector = selectorFamily({
-  key: 'personsSearchSelector',
+  key: "personsSearchSelector",
   get:
-    ({ search = '' }) =>
+    ({ search = "" }) =>
     ({ get }) => {
       const persons = get(arrayOfitemsGroupedByPersonSelector);
       if (!search?.length) return persons;
@@ -225,7 +225,7 @@ export const personsSearchSelector = selectorFamily({
 });
 
 export const itemsGroupedByActionSelector = selector({
-  key: 'itemsGroupedByActionSelector',
+  key: "itemsGroupedByActionSelector",
   get: ({ get }) => {
     const actionsWithCommentsObject = get(actionsWithCommentsSelector);
     const personsObject = get(itemsGroupedByPersonSelector);
@@ -240,7 +240,7 @@ export const itemsGroupedByActionSelector = selector({
 });
 
 export const actionsForCurrentTeamSelector = selector({
-  key: 'actionsForCurrentTeamSelector',
+  key: "actionsForCurrentTeamSelector",
   get: ({ get }) => {
     const actions = get(actionsState);
     const currentTeam = get(currentTeamState);
@@ -249,9 +249,9 @@ export const actionsForCurrentTeamSelector = selector({
   },
 });
 
-export const PASSED = 'PASSED';
-export const TODAY = 'TODAY';
-export const INCOMINGDAYS = 'INCOMINGDAYS';
+export const PASSED = "PASSED";
+export const TODAY = "TODAY";
+export const INCOMINGDAYS = "INCOMINGDAYS";
 
 /*
 
@@ -279,7 +279,7 @@ Actions and Consultations
 */
 
 export const consultationsForCurrentTeamSelector = selector({
-  key: 'consultationsForCurrentTeamSelector',
+  key: "consultationsForCurrentTeamSelector",
   get: ({ get }) => {
     const consultations = get(consultationsState);
     const currentTeam = get(currentTeamState);
@@ -297,7 +297,7 @@ export const consultationsForCurrentTeamSelector = selector({
 });
 
 const actionsAndConsultationsSelector = selector({
-  key: 'actionsAndConsultationsSelector',
+  key: "actionsAndConsultationsSelector",
   get: ({ get }) => {
     const actions = get(actionsForCurrentTeamSelector);
     const consultations = get(consultationsForCurrentTeamSelector);
@@ -307,7 +307,7 @@ const actionsAndConsultationsSelector = selector({
 });
 
 const actionsDoneSelector = selector({
-  key: 'actionsDoneSelector',
+  key: "actionsDoneSelector",
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
     const filteredActions = actions.filter((a) => a.status === DONE).sort(sortDoneOrCancel);
@@ -316,7 +316,7 @@ const actionsDoneSelector = selector({
 });
 
 const actionsDoneSelectorSliced = selectorFamily({
-  key: 'actionsDoneSelectorSliced',
+  key: "actionsDoneSelectorSliced",
   get:
     ({ limit }) =>
     ({ get }) => {
@@ -328,7 +328,7 @@ const actionsDoneSelectorSliced = selectorFamily({
 });
 
 const actionsTodoSelector = selector({
-  key: 'actionsTodoSelector',
+  key: "actionsTodoSelector",
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
     const filteredActions = actions.filter((a) => a.status === TODO).sort(sortTodo);
@@ -337,7 +337,7 @@ const actionsTodoSelector = selector({
 });
 
 const actionsCanceledSelector = selector({
-  key: 'actionsCanceledSelector',
+  key: "actionsCanceledSelector",
   get: ({ get }) => {
     const actions = get(actionsAndConsultationsSelector);
     const filteredActions = actions.filter((a) => a.status === CANCEL).sort(sortDoneOrCancel);
@@ -346,7 +346,7 @@ const actionsCanceledSelector = selector({
 });
 
 const actionsCanceledSelectorSliced = selectorFamily({
-  key: 'actionsCanceledSelectorSliced',
+  key: "actionsCanceledSelectorSliced",
   get:
     ({ limit }) =>
     ({ get }) => {
@@ -376,7 +376,7 @@ const filterByCategories = (actions, categories) => {
 };
 
 export const actionsByStatusAndTimeframeSelector = selectorFamily({
-  key: 'actionsByStatusAndTimeframeSelector',
+  key: "actionsByStatusAndTimeframeSelector",
   get:
     ({ status, limit, timeframe, filters }) =>
     ({ get }) => {
@@ -397,7 +397,7 @@ export const actionsByStatusAndTimeframeSelector = selectorFamily({
 });
 
 export const totalActionsByStatusSelector = selectorFamily({
-  key: 'totalActionsByStatusSelector',
+  key: "totalActionsByStatusSelector",
   get:
     ({ status, timeframe, filters }) =>
     ({ get }) => {
@@ -407,9 +407,9 @@ export const totalActionsByStatusSelector = selectorFamily({
 });
 
 export const territoriesSearchSelector = selectorFamily({
-  key: 'territoriesSearchSelector',
+  key: "territoriesSearchSelector",
   get:
-    ({ search = '' }) =>
+    ({ search = "" }) =>
     ({ get }) => {
       const territories = get(territoriesState);
       if (!search?.length) return territories;

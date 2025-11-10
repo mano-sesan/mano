@@ -1,11 +1,11 @@
-import { useNavigation } from '@react-navigation/core';
-import React from 'react';
-import { Dimensions, Linking } from 'react-native';
+import { useNavigation } from "@react-navigation/core";
+import React from "react";
+import { Dimensions, Linking } from "react-native";
 
-import Pdf from 'react-native-pdf';
-import styled from 'styled-components/native';
-import SceneContainer from './SceneContainer';
-import ScreenTitle from './ScreenTitle';
+import Pdf from "react-native-pdf";
+import styled from "styled-components/native";
+import SceneContainer from "./SceneContainer";
+import ScreenTitle from "./ScreenTitle";
 
 /*
 
@@ -18,7 +18,7 @@ Platform.select({
 
  */
 const PdfViewer = ({ title, source, noHeader = false }) => {
-  console.log('PdfViewer', source);
+  console.log("PdfViewer", source);
   const navigation = useNavigation();
   if (noHeader) {
     return (
@@ -71,8 +71,8 @@ const Container = styled.View`
 
 const PdfStyled = styled(Pdf)`
   flex: 1;
-  width: ${Dimensions.get('window').width}px;
-  height: ${Dimensions.get('window').height}px;
+  width: ${Dimensions.get("window").width}px;
+  height: ${Dimensions.get("window").height}px;
 `;
 
 export default PdfViewer;

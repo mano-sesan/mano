@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import Svg, { G, Path } from 'react-native-svg';
+import React from "react";
+import styled from "styled-components/native";
+import Svg, { G, Path } from "react-native-svg";
 
 const SvgStyled = styled(Svg)``;
 

@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { CANCEL, CHOOSE, DONE, mappedIdsToLabels, TODO } from '../../recoil/actions';
-import colors from '../../utils/colors';
-import Button from '../Button';
-import SelectLabelled from './SelectLabelled';
+import React from "react";
+import styled from "styled-components/native";
+import { CANCEL, CHOOSE, DONE, mappedIdsToLabels, TODO } from "../../recoil/actions";
+import colors from "../../utils/colors";
+import Button from "../Button";
+import SelectLabelled from "./SelectLabelled";
 
 // prettier-ignore
 const statuses = [
@@ -12,7 +12,7 @@ const statuses = [
   CANCEL,
 ];
 
-const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editable, testID = 'action-status' }) => {
+const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editable, testID = "action-status" }) => {
   if (!editable) {
     return (
       <Container>
@@ -42,7 +42,7 @@ const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editabl
           )}
           <Button
             borderColor={value === TODO ? colors.app.color : null}
-            color={value === TODO ? '#fff' : colors.app.color}
+            color={value === TODO ? "#fff" : colors.app.color}
             buttonSize={20}
             backgroundColor={value === TODO ? colors.app.color : null}
             onPress={() => onSelectAndSave(value === TODO ? DONE : null)}

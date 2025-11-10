@@ -1,4 +1,4 @@
-import styled from 'styled-components/native';
+import styled from "styled-components/native";
 
 const ButtonsContainer = styled.View`
   flex-direction: row;

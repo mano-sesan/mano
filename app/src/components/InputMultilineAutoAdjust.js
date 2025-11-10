@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { MyTextInput } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import { MyTextInput } from "./MyText";
 
 const InputMultilineAutoAdjust = React.forwardRef((props, ref) => {
   return (

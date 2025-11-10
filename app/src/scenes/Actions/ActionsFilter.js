@@ -1,16 +1,16 @@
-import React from 'react';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ActionCategoriesModalSelect from '../../components/ActionCategoriesModalSelect';
-import { actionsFiltersState } from '../../recoil/actions';
-import { useRecoilState } from 'recoil';
+import React from "react";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
+import { actionsFiltersState } from "../../recoil/actions";
+import { useRecoilState } from "recoil";
 
 const ActionsFilter = ({ navigation }) => {
   const [actionsFilters, setActionsFilters] = useRecoilState(actionsFiltersState);
 
   const onBackRequested = () => {
-    navigation.navigate('ActionsList');
+    navigation.navigate("ActionsList");
   };
 
   return (

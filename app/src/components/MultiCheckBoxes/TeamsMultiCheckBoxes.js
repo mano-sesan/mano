@@ -1,7 +1,7 @@
-import React from 'react';
-import { useRecoilValue } from 'recoil';
-import { teamsState } from '../../recoil/auth';
-import MultiCheckBoxes from './MultiCheckBoxes';
+import React from "react";
+import { useRecoilValue } from "recoil";
+import { teamsState } from "../../recoil/auth";
+import MultiCheckBoxes from "./MultiCheckBoxes";
 
 const TeamsMultiCheckBoxes = ({ values = [], onChange, editable }) => {
   const teams = useRecoilValue(teamsState);

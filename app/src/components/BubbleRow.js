@@ -1,10 +1,10 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableOpacity } from 'react-native';
-import colors from '../utils/colors';
-import { MyText } from './MyText';
-import UserName from './UserName';
-import dayjs from 'dayjs';
+import React from "react";
+import styled from "styled-components/native";
+import { TouchableOpacity } from "react-native";
+import colors from "../utils/colors";
+import { MyText } from "./MyText";
+import UserName from "./UserName";
+import dayjs from "dayjs";
 const hitSlop = {
   top: 20,
   left: 20,
@@ -15,8 +15,8 @@ const hitSlop = {
 function formatDateConditionally(date) {
   const formatString =
     dayjs(date).year() === dayjs().year()
-      ? 'dddd D MMMM à HH:mm' // Omit year if current year
-      : 'dddd D MMMM YYYY à HH:mm'; // Include year if not current year
+      ? "dddd D MMMM à HH:mm" // Omit year if current year
+      : "dddd D MMMM YYYY à HH:mm"; // Include year if not current year
 
   return dayjs(date).format(formatString);
 }
@@ -30,10 +30,10 @@ const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, grou
       ) : null}
       {urgent ? <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5">❗ Prioritaire </MyText> : null}
       {group ? <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5">👪</MyText> : null}
-      <CommentStyled>{caption?.split('\\n')?.join('\u000A')}</CommentStyled>
+      <CommentStyled>{caption?.split("\\n")?.join("\u000A")}</CommentStyled>
       <CreationDate>
         {!!user && <UserName caption={metaCaption} id={user?._id || user} />}
-        {'\u000A'}
+        {"\u000A"}
 
         {/* show year if different than current year */}
         {formatDateConditionally(date)}
@@ -50,7 +50,7 @@ const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, grou
 );
 
 const Container = styled.View`
-  background-color: ${(props) => (props.urgent ? '#fecaca99' : '#f4f5f8')};
+  background-color: ${(props) => (props.urgent ? "#fecaca99" : "#f4f5f8")};
   border-radius: 16px;
   flex-direction: row;
   align-items: center;

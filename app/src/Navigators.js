@@ -1,76 +1,76 @@
-import React, { useEffect, useRef, useState } from 'react';
-import * as Sentry from '@sentry/react-native';
-import { ActionSheetProvider } from '@expo/react-native-action-sheet';
-import { Alert, InteractionManager, AppState } from 'react-native';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { useMMKVNumber } from 'react-native-mmkv';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { AgendaIcon, PersonIcon, TerritoryIcon } from './icons';
-import { RecoilRoot, useRecoilValue, useResetRecoilState } from 'recoil';
-import logEvents from './services/logEvents';
-import Login from './scenes/Login/Login';
-import Action from './scenes/Actions/Action';
-import NewActionForm from './scenes/Actions/NewActionForm';
-import PersonsList from './scenes/Persons/PersonsList';
-import PersonsSearch from './scenes/Persons/PersonsSearch';
-import NewPersonForm from './scenes/Persons/NewPersonForm';
-import Person from './scenes/Persons/Person';
-import PersonsOutOfActiveListReason from './scenes/Persons/PersonsOutOfActiveListReason';
-import Rencontre from './scenes/Persons/Rencontre';
-import PersonsFilter from './scenes/Persons/PersonsFilter';
-import StructuresList from './scenes/Structures/StructuresList';
-import NewStructureForm from './scenes/Structures/NewStructureForm';
-import Structure from './scenes/Structures/Structure';
-import Soliguide from './scenes/Soliguide/Soliguide';
-import Comment from './scenes/Comments/Comment';
-import Place from './scenes/Places/Place';
-import NewPlaceForm from './scenes/Places/NewPlaceForm';
-import Menu from './scenes/Menu/Menu';
-import Legal from './scenes/Menu/Legal';
-import Privacy from './scenes/Menu/Privacy';
-import Cgu from './scenes/Menu/Cgu';
-import colors from './utils/colors';
-import { TeamSelection, ChangeTeam } from './scenes/Login/TeamSelection';
-import ActionsTabNavigator from './scenes/Actions/ActionsTabNavigator';
-import ChangePassword from './scenes/Login/ChangePassword';
-import ForgetPassword from './scenes/Login/ForgetPassword';
-import ForceChangePassword from './scenes/Login/ForceChangePassword';
-import TerritoriesList from './scenes/Territories/TerritoriesList';
-import NewTerritoryForm from './scenes/Territories/NewTerritoryForm';
-import Territory from './scenes/Territories/Territory';
-import TerritoryObservation from './scenes/Territories/TerritoryObservation';
-import EnvironmentIndicator from './components/EnvironmentIndicator';
-import API from './services/api';
-import Charte from './scenes/Menu/Charte';
-import CharteAcceptance from './scenes/Login/CharteAcceptance';
-import { DataLoader, loaderFullScreenState, loadingState, progressState } from './components/Loader';
-import BellWithNotifications from './scenes/Notifications/BellWithNotifications';
-import DotsIcon from './icons/DotsIcon';
-import Notifications from './scenes/Notifications/Notifications';
-import ReportsCalendar from './scenes/Reports/ReportsCalendar';
-import Report from './scenes/Reports/Report';
-import Actions from './scenes/Reports/Actions';
-import CommentsForReport from './scenes/Reports/CommentsForReport';
-import RencontresForReport from './scenes/Reports/RencontresForReport';
-import PassagesForReport from './scenes/Reports/PassagesForReport';
-import Observations from './scenes/Reports/Observations';
-import Services from './scenes/Reports/Services';
-import Collaborations from './scenes/Reports/Collaborations';
-import Treatment from './scenes/Persons/Treatment';
-import Consultation from './scenes/Persons/Consultation';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { currentTeamState, organisationState, teamsState, userState } from './recoil/auth';
-import { appCurrentCacheKey, clearCache } from './services/dataManagement';
-import useResetAllCachedDataRecoilStates from './recoil/reset';
-import CGUsAcceptance from './scenes/Login/CGUsAcceptance';
-import TerritoryObservationRencontre from './scenes/Territories/TerritoryObservationRencontre';
-import Consultations from './scenes/Reports/Consultations';
-import Passage from './scenes/Persons/Passage';
-import ProgressBar from './components/ProgressBar';
-import APKUpdater from './components/APKUpdater';
-import ActionsFilter from './scenes/Actions/ActionsFilter';
-import OrganisationDesactivee from './scenes/Login/OrganisationDesactivee';
+import React, { useEffect, useRef, useState } from "react";
+import * as Sentry from "@sentry/react-native";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import { Alert, InteractionManager, AppState } from "react-native";
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { useMMKVNumber } from "react-native-mmkv";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { AgendaIcon, PersonIcon, TerritoryIcon } from "./icons";
+import { RecoilRoot, useRecoilValue, useResetRecoilState } from "recoil";
+import logEvents from "./services/logEvents";
+import Login from "./scenes/Login/Login";
+import Action from "./scenes/Actions/Action";
+import NewActionForm from "./scenes/Actions/NewActionForm";
+import PersonsList from "./scenes/Persons/PersonsList";
+import PersonsSearch from "./scenes/Persons/PersonsSearch";
+import NewPersonForm from "./scenes/Persons/NewPersonForm";
+import Person from "./scenes/Persons/Person";
+import PersonsOutOfActiveListReason from "./scenes/Persons/PersonsOutOfActiveListReason";
+import Rencontre from "./scenes/Persons/Rencontre";
+import PersonsFilter from "./scenes/Persons/PersonsFilter";
+import StructuresList from "./scenes/Structures/StructuresList";
+import NewStructureForm from "./scenes/Structures/NewStructureForm";
+import Structure from "./scenes/Structures/Structure";
+import Soliguide from "./scenes/Soliguide/Soliguide";
+import Comment from "./scenes/Comments/Comment";
+import Place from "./scenes/Places/Place";
+import NewPlaceForm from "./scenes/Places/NewPlaceForm";
+import Menu from "./scenes/Menu/Menu";
+import Legal from "./scenes/Menu/Legal";
+import Privacy from "./scenes/Menu/Privacy";
+import Cgu from "./scenes/Menu/Cgu";
+import colors from "./utils/colors";
+import { TeamSelection, ChangeTeam } from "./scenes/Login/TeamSelection";
+import ActionsTabNavigator from "./scenes/Actions/ActionsTabNavigator";
+import ChangePassword from "./scenes/Login/ChangePassword";
+import ForgetPassword from "./scenes/Login/ForgetPassword";
+import ForceChangePassword from "./scenes/Login/ForceChangePassword";
+import TerritoriesList from "./scenes/Territories/TerritoriesList";
+import NewTerritoryForm from "./scenes/Territories/NewTerritoryForm";
+import Territory from "./scenes/Territories/Territory";
+import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
+import EnvironmentIndicator from "./components/EnvironmentIndicator";
+import API from "./services/api";
+import Charte from "./scenes/Menu/Charte";
+import CharteAcceptance from "./scenes/Login/CharteAcceptance";
+import { DataLoader, loaderFullScreenState, loadingState, progressState } from "./components/Loader";
+import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
+import DotsIcon from "./icons/DotsIcon";
+import Notifications from "./scenes/Notifications/Notifications";
+import ReportsCalendar from "./scenes/Reports/ReportsCalendar";
+import Report from "./scenes/Reports/Report";
+import Actions from "./scenes/Reports/Actions";
+import CommentsForReport from "./scenes/Reports/CommentsForReport";
+import RencontresForReport from "./scenes/Reports/RencontresForReport";
+import PassagesForReport from "./scenes/Reports/PassagesForReport";
+import Observations from "./scenes/Reports/Observations";
+import Services from "./scenes/Reports/Services";
+import Collaborations from "./scenes/Reports/Collaborations";
+import Treatment from "./scenes/Persons/Treatment";
+import Consultation from "./scenes/Persons/Consultation";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { currentTeamState, organisationState, teamsState, userState } from "./recoil/auth";
+import { appCurrentCacheKey, clearCache } from "./services/dataManagement";
+import useResetAllCachedDataRecoilStates from "./recoil/reset";
+import CGUsAcceptance from "./scenes/Login/CGUsAcceptance";
+import TerritoryObservationRencontre from "./scenes/Territories/TerritoryObservationRencontre";
+import Consultations from "./scenes/Reports/Consultations";
+import Passage from "./scenes/Persons/Passage";
+import ProgressBar from "./components/ProgressBar";
+import APKUpdater from "./components/APKUpdater";
+import ActionsFilter from "./scenes/Actions/ActionsFilter";
+import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 
 const ActionsStack = createStackNavigator();
 const ActionsNavigator = () => {
@@ -228,16 +228,17 @@ const TabNavigator = () => {
         gestureEnabled: false,
         headerShown: false,
         tabBarActiveTintColor: colors.app.color,
-        tabBarnactiveTintColor: '#aaa',
-      }}>
+        tabBarnactiveTintColor: "#aaa",
+      }}
+    >
       <Tab.Screen
         lazy
         name="Agenda"
         component={ActionsNavigator}
         options={{
           tabBarIcon: AgendaIcon,
-          tabBarLabel: 'AGENDA',
-          tabBarTestID: 'tab-bar-actions',
+          tabBarLabel: "AGENDA",
+          tabBarTestID: "tab-bar-actions",
         }}
       />
       {!!organisation?.territoriesEnabled && (
@@ -247,8 +248,8 @@ const TabNavigator = () => {
           component={TerritoriesNavigator}
           options={{
             tabBarIcon: TerritoryIcon,
-            tabBarLabel: 'TERRITOIRES',
-            tabBarTestID: 'tab-bar-territories',
+            tabBarLabel: "TERRITOIRES",
+            tabBarTestID: "tab-bar-territories",
           }}
         />
       )}
@@ -258,19 +259,19 @@ const TabNavigator = () => {
         component={PersonsNavigator}
         options={{
           tabBarIcon: PersonIcon,
-          tabBarLabel: 'PERSONNES',
-          tabBarTestID: 'tab-bar-persons',
+          tabBarLabel: "PERSONNES",
+          tabBarTestID: "tab-bar-persons",
         }}
       />
-      {['admin', 'normal'].includes(user?.role) && (
+      {["admin", "normal"].includes(user?.role) && (
         <Tab.Screen
           lazy
           name="Notifications"
           component={NotificationsNavigator}
           options={{
             tabBarIcon: BellWithNotifications,
-            tabBarLabel: 'PRIORITÉS',
-            tabBarTestID: 'tab-bar-notifications',
+            tabBarLabel: "PRIORITÉS",
+            tabBarTestID: "tab-bar-notifications",
           }}
         />
       )}
@@ -280,8 +281,8 @@ const TabNavigator = () => {
         component={MenuNavigator}
         options={{
           tabBarIcon: DotsIcon,
-          tabBarLabel: 'MENU',
-          tabBarTestID: 'tab-bar-profil',
+          tabBarLabel: "MENU",
+          tabBarTestID: "tab-bar-profil",
         }}
       />
     </Tab.Navigator>
@@ -324,9 +325,9 @@ const App = () => {
   useEffect(() => {
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
-      appStateListener.current = AppState.addEventListener('change', (nextAppState) => {
-        if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-          if (API.token) API.get({ path: '/check-auth' }); // will force logout if session is expired
+      appStateListener.current = AppState.addEventListener("change", (nextAppState) => {
+        if (appState.current.match(/inactive|background/) && nextAppState === "active") {
+          if (API.token) API.get({ path: "/check-auth" }); // will force logout if session is expired
           logEvents.logAppVisit();
         } else {
           logEvents.logAppClose();
@@ -350,7 +351,7 @@ const App = () => {
 
   const onLogout = async () => {
     API.token = null;
-    AsyncStorage.removeItem('persistent_token');
+    AsyncStorage.removeItem("persistent_token");
     API.enableEncrypt = null;
     API.hashedOrgEncryptionKey = null;
     API.orgEncryptionKey = null;
@@ -366,7 +367,7 @@ const App = () => {
       resetTeams();
       resetCurrentTeam();
       if (clearAllRef.current) {
-        Alert.alert('Déconnexion réussie', 'Vous pouvez aussi supprimer Mano pour plus de sécurité');
+        Alert.alert("Déconnexion réussie", "Vous pouvez aussi supprimer Mano pour plus de sécurité");
         clearAllRef.current = false;
       }
       setResetLoginStackKey((k) => k + 1);
@@ -390,7 +391,8 @@ const App = () => {
         ref={navigationRef}
         onReady={() => {
           API.navigation = navigationRef;
-        }}>
+        }}
+      >
         <AppStack.Navigator initialRouteName="LoginStack" screenOptions={{ gestureEnabled: false, headerShown: false }}>
           <AppStack.Screen name="LoginStack" component={LoginNavigator} key={resetLoginStackKey} />
           {!!isLoggedIn && <AppStack.Screen name="Home" component={TabNavigator} />}

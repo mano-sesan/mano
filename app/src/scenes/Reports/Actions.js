@@ -1,18 +1,18 @@
-import React, { useCallback, useMemo } from 'react';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import SceneContainer from '../../components/SceneContainer';
-import ActionRow from '../../components/ActionRow';
-import Spinner from '../../components/Spinner';
-import { ListEmptyActions, ListNoMoreActions } from '../../components/ListEmptyContainer';
-import FloatAddButton from '../../components/FloatAddButton';
-import { FlashListStyled } from '../../components/Lists';
-import { refreshTriggerState, loadingState } from '../../components/Loader';
-import { actionsForReport } from './selectors';
-import ScreenTitle from '../../components/ScreenTitle';
-import { CANCEL, DONE } from '../../recoil/actions';
-import { currentTeamState } from '../../recoil/auth';
-import { getPeriodTitle } from './utils';
+import React, { useCallback, useMemo } from "react";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import SceneContainer from "../../components/SceneContainer";
+import ActionRow from "../../components/ActionRow";
+import Spinner from "../../components/Spinner";
+import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
+import FloatAddButton from "../../components/FloatAddButton";
+import { FlashListStyled } from "../../components/Lists";
+import { refreshTriggerState, loadingState } from "../../components/Loader";
+import { actionsForReport } from "./selectors";
+import ScreenTitle from "../../components/ScreenTitle";
+import { CANCEL, DONE } from "../../recoil/actions";
+import { currentTeamState } from "../../recoil/auth";
+import { getPeriodTitle } from "./utils";
 
 const keyExtractor = (action) => action._id;
 
@@ -35,24 +35,24 @@ const Actions = ({ route, navigation }) => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
-  const onCreateAction = useCallback(() => navigation.navigate('NewActionForm', { fromRoute: 'Actions' }), [navigation]);
+  const onCreateAction = useCallback(() => navigation.navigate("NewActionForm", { fromRoute: "Actions" }), [navigation]);
 
   const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
 
   const onPseudoPress = useCallback(
     (person) => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.push('Person', { person, fromRoute: 'ActionsList' });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.push("Person", { person, fromRoute: "ActionsList" });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
     (action) => {
-      Sentry.setContext('action', { _id: action._id });
-      navigation.push('Action', {
+      Sentry.setContext("action", { _id: action._id });
+      navigation.push("Action", {
         action,
-        fromRoute: 'ActionsList',
+        fromRoute: "ActionsList",
       });
     },
     [navigation]
@@ -65,7 +65,7 @@ const Actions = ({ route, navigation }) => {
   return (
     <SceneContainer testID="actions-list-for-report" backgroundColor="#fff">
       <ScreenTitle
-        title={`Actions ${status === DONE ? 'faites' : status === CANCEL ? 'annulées' : 'créées'}\n${getPeriodTitle(
+        title={`Actions ${status === DONE ? "faites" : status === CANCEL ? "annulées" : "créées"}\n${getPeriodTitle(
           date,
           currentTeam?.nightSession
         )}`}

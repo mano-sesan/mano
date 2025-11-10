@@ -1,18 +1,18 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableWithoutFeedback } from 'react-native';
-import Label from './Label';
-import InputMultilineAutoAdjust from './InputMultilineAutoAdjust';
-import { MyText, MyTextInput } from './MyText';
-import colors from '../utils/colors';
-import Spacer from './Spacer';
+import React from "react";
+import styled from "styled-components/native";
+import { TouchableWithoutFeedback } from "react-native";
+import Label from "./Label";
+import InputMultilineAutoAdjust from "./InputMultilineAutoAdjust";
+import { MyText, MyTextInput } from "./MyText";
+import colors from "../utils/colors";
+import Spacer from "./Spacer";
 
 const InputLabelled = React.forwardRef(
   ({ error, label, multiline, editable = true, onClear, noMargin, EndIcon, children, onEndIconPress, ...props }, ref) => {
     if (!editable) {
-      const value = String(props.value || '')
-        .split('\\n')
-        .join('\u000A');
+      const value = String(props.value || "")
+        .split("\\n")
+        .join("\u000A");
       return (
         <FieldContainer noMargin={noMargin}>
           {!!label && <InlineLabel bold>{`${label} : `}</InlineLabel>}
@@ -29,7 +29,7 @@ const InputLabelled = React.forwardRef(
         {multiline ? (
           <InputMultilineAutoAdjust ref={ref} {...props} />
         ) : (
-          <Input autoComplete="off" ref={ref} {...props} value={String(props.value || '')} />
+          <Input autoComplete="off" ref={ref} {...props} value={String(props.value || "")} />
         )}
         {Boolean(EndIcon) && Boolean(props?.value?.length) && (
           <TouchableWithoutFeedback onPress={onEndIconPress}>

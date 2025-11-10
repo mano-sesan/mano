@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, View } from 'react-native';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import dayjs from 'dayjs';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import { personsState, usePreparePersonForEncryption } from '../../recoil/persons';
-import API from '../../services/api';
-import TeamsMultiCheckBoxes from '../../components/MultiCheckBoxes/TeamsMultiCheckBoxes';
-import { currentTeamState, teamsState, userState } from '../../recoil/auth';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Keyboard, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import dayjs from "dayjs";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import API from "../../services/api";
+import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
+import { currentTeamState, teamsState, userState } from "../../recoil/auth";
 
 const NewPersonForm = ({ navigation, route }) => {
   const [persons, setPersons] = useRecoilState(personsState);
@@ -20,7 +20,7 @@ const NewPersonForm = ({ navigation, route }) => {
   const teams = useRecoilValue(teamsState);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [assignedTeams, setAssignedTeams] = useState([currentTeam?._id]);
   const [posting, setPosting] = useState(false);
 
@@ -32,7 +32,7 @@ const NewPersonForm = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -44,7 +44,7 @@ const NewPersonForm = ({ navigation, route }) => {
     const response = await onCreateUser();
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      Sentry.setContext('person', { _id: response.data._id });
+      Sentry.setContext("person", { _id: response.data._id });
       navigation.replace(route.params.toRoute, {
         fromRoute: route.params.fromRoute,
         person: response.decryptedData,
@@ -59,12 +59,12 @@ const NewPersonForm = ({ navigation, route }) => {
     setPosting(true);
     const existingPerson = persons.find((p) => p.name === name);
     if (existingPerson) {
-      Alert.alert('Une personne suivie existe déjà avec ce nom', 'Veuillez choisir un autre nom');
+      Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       setPosting(false);
       return false;
     }
     const response = await API.post({
-      path: '/person',
+      path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs(), assignedTeams, user: user._id }),
     });
     if (response.ok) {
@@ -75,8 +75,8 @@ const NewPersonForm = ({ navigation, route }) => {
     }
     if (!response.ok) {
       setPosting(false);
-      if (response.code === 'USER_ALREADY_EXIST') {
-        Alert.alert('Une personne suivie existe déjà avec ce nom', 'Veuillez choisir un autre nom');
+      if (response.code === "USER_ALREADY_EXIST") {
+        Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       } else {
         Alert.alert(response.error);
       }
@@ -98,22 +98,22 @@ const NewPersonForm = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (!isReadyToSave) return onBack();
-    Alert.alert('Voulez-vous enregistrer cette personne ?', null, [
+    Alert.alert("Voulez-vous enregistrer cette personne ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const response = await onCreateUser();
           if (response.ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

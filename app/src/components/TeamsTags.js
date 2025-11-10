@@ -1,11 +1,11 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { useRecoilValue } from 'recoil';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import { teamsState } from '../recoil/auth';
+import React from "react";
+import styled from "styled-components/native";
+import { useRecoilValue } from "recoil";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import { teamsState } from "../recoil/auth";
 
-const teamsColors = ['#255c99', '#74776bff', '#00c6a5ff', '#ff4b64ff', '#ef798aff'];
+const teamsColors = ["#255c99", "#74776bff", "#00c6a5ff", "#ff4b64ff", "#ef798aff"];
 
 const TeamsTags = ({ teams = [] }) => {
   const allTeams = useRecoilValue(teamsState);
@@ -20,7 +20,7 @@ const TeamsTags = ({ teams = [] }) => {
         const teamIndex = allTeams.findIndex((t) => t._id === teamId);
         if (teamIndex === -1) return;
         const team = allTeams[teamIndex];
-        const backgroundColor = allTeams.map((t) => t._id).includes(teamId) ? teamsColors[teamIndex % allTeams.length] : '#000';
+        const backgroundColor = allTeams.map((t) => t._id).includes(teamId) ? teamsColors[teamIndex % allTeams.length] : "#000";
         return (
           <Team key={team?._id} backgroundColor={backgroundColor}>
             {team?.name}

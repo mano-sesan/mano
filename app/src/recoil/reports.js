@@ -1,42 +1,42 @@
-import { storage } from '../services/dataManagement';
-import { atom, selector } from 'recoil';
-import { organisationState } from './auth';
-import { looseUuidRegex, dateRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { storage } from "../services/dataManagement";
+import { atom, selector } from "recoil";
+import { organisationState } from "./auth";
+import { looseUuidRegex, dateRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const reportsState = atom({
-  key: 'reportsState',
-  default: JSON.parse(storage.getString('report') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('report', JSON.stringify(newValue)))],
+  key: "reportsState",
+  default: JSON.parse(storage.getString("report") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("report", JSON.stringify(newValue)))],
 });
 
 export const servicesSelector = selector({
-  key: 'servicesSelector',
+  key: "servicesSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     if (organisation.groupedServices) return organisation.groupedServices;
-    return [{ groupTitle: 'Tous mes services', services: organisation.services ?? [] }];
+    return [{ groupTitle: "Tous mes services", services: organisation.services ?? [] }];
   },
 });
 
 export const flattenedServicesSelector = selector({
-  key: 'flattenedServicesSelector',
+  key: "flattenedServicesSelector",
   get: ({ get }) => {
     const groupedServices = get(servicesSelector);
     return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
   },
 });
 
-const encryptedFields = ['description', 'services', 'team', 'date', 'collaborations', 'updatedBy'];
+const encryptedFields = ["description", "services", "team", "date", "collaborations", "updatedBy"];
 
 export const prepareReportForEncryption = (report) => {
   try {
     if (!looseUuidRegex.test(report.team)) {
-      throw new Error('Report is missing team');
+      throw new Error("Report is missing team");
     }
     if (!dateRegex.test(report.date)) {
-      throw new Error('Report is missing date');
+      throw new Error("Report is missing date");
     }
   } catch (error) {
     Alert.alert(

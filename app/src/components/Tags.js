@@ -1,18 +1,18 @@
-import React, { useRef, useState } from 'react';
-import styled from 'styled-components/native';
-import ResetIcon from '../icons/ResetIcon';
-import PlusIcon from '../icons/PlusIcon';
-import { MyText, MyTextInput } from './MyText';
-import Button from './Button';
+import React, { useRef, useState } from "react";
+import styled from "styled-components/native";
+import ResetIcon from "../icons/ResetIcon";
+import PlusIcon from "../icons/PlusIcon";
+import { MyText, MyTextInput } from "./MyText";
+import Button from "./Button";
 
-const Tags = ({ data = [], onAddRequest, disableAdd, renderTag, onChange, editable, listEmptyText = '', style }) => {
+const Tags = ({ data = [], onAddRequest, disableAdd, renderTag, onChange, editable, listEmptyText = "", style }) => {
   const addItem = (item) => [...data, item];
-  const [text, setText] = useState('');
+  const [text, setText] = useState("");
   const inputRef = useRef(null);
 
   const onSubmit = () => {
     onChange(addItem(text));
-    setText('');
+    setText("");
   };
 
   const renderAddTag = () => {

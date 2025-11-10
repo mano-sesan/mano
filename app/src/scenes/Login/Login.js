@@ -1,36 +1,36 @@
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components/native';
-import { Alert, Keyboard, KeyboardAvoidingView, Linking, StatusBar, TouchableWithoutFeedback, View } from 'react-native';
-import RNBootSplash from 'react-native-bootsplash';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useMMKVNumber, useMMKVString } from 'react-native-mmkv';
-import API from '../../services/api';
-import SceneContainer from '../../components/SceneContainer';
-import ScrollContainer from '../../components/ScrollContainer';
-import colors from '../../utils/colors';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import Button from '../../components/Button';
-import EmailInput from '../../services/EmailInput';
-import { MyText } from '../../components/MyText';
-import InputLabelled from '../../components/InputLabelled';
-import EyeIcon from '../../icons/EyeIcon';
-import Title, { SubTitle } from '../../components/Title';
-import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from '../../config';
-import { useSetRecoilState } from 'recoil';
-import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from '../../recoil/auth';
-import { clearCache, appCurrentCacheKey } from '../../services/dataManagement';
-import { refreshTriggerState } from '../../components/Loader';
-import { useIsFocused } from '@react-navigation/native';
-import useResetAllCachedDataRecoilStates from '../../recoil/reset';
+import React, { useEffect, useRef, useState } from "react";
+import styled from "styled-components/native";
+import { Alert, Keyboard, KeyboardAvoidingView, Linking, StatusBar, TouchableWithoutFeedback, View } from "react-native";
+import RNBootSplash from "react-native-bootsplash";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useMMKVNumber, useMMKVString } from "react-native-mmkv";
+import API from "../../services/api";
+import SceneContainer from "../../components/SceneContainer";
+import ScrollContainer from "../../components/ScrollContainer";
+import colors from "../../utils/colors";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import Button from "../../components/Button";
+import EmailInput from "../../services/EmailInput";
+import { MyText } from "../../components/MyText";
+import InputLabelled from "../../components/InputLabelled";
+import EyeIcon from "../../icons/EyeIcon";
+import Title, { SubTitle } from "../../components/Title";
+import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config";
+import { useSetRecoilState } from "recoil";
+import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../recoil/auth";
+import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
+import { refreshTriggerState } from "../../components/Loader";
+import { useIsFocused } from "@react-navigation/native";
+import useResetAllCachedDataRecoilStates from "../../recoil/reset";
 
 const Login = ({ navigation }) => {
   const [authViaCookie, setAuthViaCookie] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [email, setEmail] = useState('');
+  const [userName, setUserName] = useState("");
+  const [email, setEmail] = useState("");
   const [isValid, setIsValid] = useState(false);
-  const [example, setExample] = useState('example@example.com');
-  const [password, setPassword] = useState(__DEV__ ? DEVMODE_PASSWORD : '');
-  const [encryptionKey, setEncryptionKey] = useState(__DEV__ ? DEVMODE_ENCRYPTION_KEY : '');
+  const [example, setExample] = useState("example@example.com");
+  const [password, setPassword] = useState(__DEV__ ? DEVMODE_PASSWORD : "");
+  const [encryptionKey, setEncryptionKey] = useState(__DEV__ ? DEVMODE_ENCRYPTION_KEY : "");
   const [showPassword, setShowPassword] = useState(false);
   const [showEncryptionKeyInput, setShowEncryptionKeyInput] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ const Login = ({ navigation }) => {
   const setUsers = useSetRecoilState(usersState);
   const setDeletedUsers = useSetRecoilState(deletedUsersState);
   const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const [storageOrganisationId, setStorageOrganisationId] = useMMKVString('organisationId');
+  const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
   const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
 
@@ -52,14 +52,14 @@ const Login = ({ navigation }) => {
     if (!isFocused) return;
     const initTimeout = setTimeout(async () => {
       // check version
-      const response = await API.get({ path: '/version' });
+      const response = await API.get({ path: "/version" });
       if (!response.ok) {
         RNBootSplash.hide({ fade: true });
         const [title, subTitle, actions = [], options = {}] = response.inAppMessage;
         if (!actions || !actions.length) return Alert.alert(title, subTitle);
         const actionsWithNavigation = actions
           .map((action) => {
-            if (action.text === 'Installer') {
+            if (action.text === "Installer") {
               API.updateLink = action.link;
               action.onPress = () => {
                 API.downloadAndInstallUpdate(action.link);
@@ -76,25 +76,25 @@ const Login = ({ navigation }) => {
         return;
       }
       // check token
-      const storedToken = await AsyncStorage.getItem('persistent_token');
+      const storedToken = await AsyncStorage.getItem("persistent_token");
       if (!storedToken) return RNBootSplash.hide({ duration: 250 });
       API.token = storedToken;
-      const { token, ok, user } = await API.get({ path: '/user/signin-token' });
+      const { token, ok, user } = await API.get({ path: "/user/signin-token" });
       if (ok && token && user) {
         setAuthViaCookie(true);
         API.onLogIn();
         const { organisation } = user;
         if (!!storageOrganisationId && organisation._id !== storageOrganisationId) {
-          await clearCache('not same org');
+          await clearCache("not same org");
           resetAllRecoilStates();
           setLastRefresh(0);
         }
         setStorageOrganisationId(organisation._id);
         setOrganisation(organisation);
         setUserName(user.name);
-        if (!!organisation.encryptionEnabled && !['superadmin'].includes(user.role)) setShowEncryptionKeyInput(true);
+        if (!!organisation.encryptionEnabled && !["superadmin"].includes(user.role)) setShowEncryptionKeyInput(true);
       } else {
-        await AsyncStorage.removeItem('persistent_token');
+        await AsyncStorage.removeItem("persistent_token");
       }
       RNBootSplash.hide({ duration: 250 });
       return setLoading(false);
@@ -113,17 +113,17 @@ const Login = ({ navigation }) => {
   };
 
   const onResetCurrentUser = async () => {
-    await AsyncStorage.removeItem('persistent_email');
-    await AsyncStorage.removeItem('persistent_token');
-    setEmail('');
-    setPassword('');
+    await AsyncStorage.removeItem("persistent_email");
+    await AsyncStorage.removeItem("persistent_token");
+    setEmail("");
+    setPassword("");
     setAuthViaCookie(false);
-    setUserName('');
+    setUserName("");
     setShowEncryptionKeyInput(false);
     API.token = null;
   };
 
-  const onForgetPassword = () => navigation.navigate('ForgetPassword');
+  const onForgetPassword = () => navigation.navigate("ForgetPassword");
   const onConnect = async () => {
     if (!authViaCookie) {
       if (!isValid) {
@@ -131,8 +131,8 @@ const Login = ({ navigation }) => {
         emailRef.current.focus();
         return;
       }
-      if (password === '') {
-        Alert.alert('Mot de passe incorrect', 'Le mot de passe ne peut pas être vide');
+      if (password === "") {
+        Alert.alert("Mot de passe incorrect", "Le mot de passe ne peut pas être vide");
         passwordRef.current.focus();
         return;
       }
@@ -140,23 +140,23 @@ const Login = ({ navigation }) => {
     setLoading(true);
     const userDebugInfos = await API.getUserDebugInfos();
     const response = authViaCookie
-      ? await API.get({ path: '/user/signin-token' })
-      : await API.post({ path: '/user/signin', body: { password, email, ...userDebugInfos } });
+      ? await API.get({ path: "/user/signin-token" })
+      : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos } });
     if (response.error) {
-      Alert.alert(response.error, null, [{ text: 'OK', onPress: () => passwordRef.current.focus() }], {
+      Alert.alert(response.error, null, [{ text: "OK", onPress: () => passwordRef.current.focus() }], {
         cancelable: true,
         onDismiss: () => passwordRef.current.focus(),
       });
       setLoading(false);
-      setPassword('');
+      setPassword("");
       return;
     }
-    if (response?.user?.role === 'superadmin') {
+    if (response?.user?.role === "superadmin") {
       Alert.alert("Vous n'avez pas d'organisation dans Mano");
       setLoading(false);
       return;
     }
-    if (['stats-only'].includes(response?.user?.role)) {
+    if (["stats-only"].includes(response?.user?.role)) {
       Alert.alert("Vous n'avez pas accès à l'application mobile Mano");
       setLoading(false);
       return;
@@ -166,13 +166,13 @@ const Login = ({ navigation }) => {
 
       if (response.user.organisation.disabledAt) {
         setLoading(false);
-        navigation.navigate('OrganisationDesactivee');
+        navigation.navigate("OrganisationDesactivee");
         return;
       }
 
       API.token = response.token;
       API.onLogIn();
-      await AsyncStorage.setItem('persistent_token', response.token);
+      await AsyncStorage.setItem("persistent_token", response.token);
       API.showTokenExpiredError = true;
       API.organisation = response.user.organisation;
       setUser(response.user);
@@ -190,15 +190,15 @@ const Login = ({ navigation }) => {
           return;
         }
       }
-      await AsyncStorage.setItem('persistent_email', email);
-      const { data: teams } = await API.get({ path: '/team' });
-      const { data: users } = await API.get({ path: '/user', query: { minimal: true } });
-      const { data: deletedUsers } = await API.get({ path: '/user/deleted-users' });
+      await AsyncStorage.setItem("persistent_email", email);
+      const { data: teams } = await API.get({ path: "/team" });
+      const { data: users } = await API.get({ path: "/user", query: { minimal: true } });
+      const { data: deletedUsers } = await API.get({ path: "/user/deleted-users" });
       setUser(response.user);
       setOrganisation(response.user.organisation);
       // We need to reset cache if organisation has changed.
       if (!!storageOrganisationId && response.user.organisation._id !== storageOrganisationId) {
-        await clearCache('again not same org');
+        await clearCache("again not same org");
         resetAllRecoilStates();
         setLastRefresh(0);
       }
@@ -208,28 +208,28 @@ const Login = ({ navigation }) => {
       setTeams(teams);
       // getting teams before going to team selection
       if (!__DEV__ && !response.user.lastChangePasswordAt) {
-        navigation.navigate('ForceChangePassword');
+        navigation.navigate("ForceChangePassword");
       } else {
         if (!response.user?.cgusAccepted) {
-          navigation.navigate('CGUsAcceptance');
+          navigation.navigate("CGUsAcceptance");
         } else if (!response.user?.termsAccepted) {
-          navigation.navigate('CharteAcceptance');
+          navigation.navigate("CharteAcceptance");
         } else if (response.user?.teams?.length === 1) {
           setCurrentTeam(response.user.teams[0]);
           setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
-          navigation.navigate('Home');
+          navigation.navigate("Home");
         } else {
-          navigation.navigate('TeamSelection');
+          navigation.navigate("TeamSelection");
         }
       }
     }
     setTimeout(() => {
       // reset state
-      setEmail('');
+      setEmail("");
       setIsValid(false);
-      setExample('example@example.com');
-      setPassword('');
-      setEncryptionKey('');
+      setExample("example@example.com");
+      setPassword("");
+      setEncryptionKey("");
       setShowPassword(false);
       setAuthViaCookie(false);
       setShowEncryptionKeyInput(false);
@@ -249,9 +249,9 @@ const Login = ({ navigation }) => {
           <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled" testID="login-screen">
             <View>
               <StatusBar backgroundColor={colors.app.color} />
-              <Title heavy>{userName ? `Bienvenue ${userName}\u00A0 !` : 'Bienvenue !'}</Title>
+              <Title heavy>{userName ? `Bienvenue ${userName}\u00A0 !` : "Bienvenue !"}</Title>
               <SubTitle>
-                Veuillez saisir {authViaCookie ? 'la clé de chiffrement définie par' : 'un e-mail enregistré auprès de'} votre administrateur
+                Veuillez saisir {authViaCookie ? "la clé de chiffrement définie par" : "un e-mail enregistré auprès de"} votre administrateur
               </SubTitle>
               {API.updateLink && (
                 <ButtonsContainer>

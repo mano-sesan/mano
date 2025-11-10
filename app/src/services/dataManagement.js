@@ -1,8 +1,8 @@
-import API from '../services/api';
-import { MMKV } from 'react-native-mmkv';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import API from "../services/api";
+import { MMKV } from "react-native-mmkv";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const appCurrentCacheKey = 'mano_last_refresh_2022_12_01';
+export const appCurrentCacheKey = "mano_last_refresh_2022_12_01";
 
 export const storage = new MMKV();
 
@@ -13,11 +13,11 @@ export async function clearCache() {
 }
 
 export const initCacheAndcheckIfExpired = () => {
-  const storedCurrentCacheKey = storage.getString('mano-currentCacheKey');
+  const storedCurrentCacheKey = storage.getString("mano-currentCacheKey");
   if (storedCurrentCacheKey !== appCurrentCacheKey) {
     clearCache();
   }
-  storage.set('mano-currentCacheKey', appCurrentCacheKey);
+  storage.set("mano-currentCacheKey", appCurrentCacheKey);
 };
 initCacheAndcheckIfExpired();
 

@@ -1,10 +1,10 @@
-import React from 'react';
-import { selector, useRecoilValue } from 'recoil';
-import BellIcon from '../../icons/BellIcon';
-import { urgentItemsSelector } from './Notifications';
+import React from "react";
+import { selector, useRecoilValue } from "recoil";
+import BellIcon from "../../icons/BellIcon";
+import { urgentItemsSelector } from "./Notifications";
 
 export const notificationsNumberSelector = selector({
-  key: 'notificationsNumberSelector',
+  key: "notificationsNumberSelector",
   get: ({ get }) => {
     const { actionsFiltered, commentsFiltered } = get(urgentItemsSelector);
 

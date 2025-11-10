@@ -1,10 +1,10 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { ActivityIndicator, Animated, StatusBar, StyleSheet, TouchableOpacity, View, SafeAreaView } from 'react-native';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import ArrowLeftExtended from '../icons/ArrowLeftExtended';
-import { DEVMODE_HIDE_STATUS_BAR } from '../config';
+import React from "react";
+import styled from "styled-components/native";
+import { ActivityIndicator, Animated, StatusBar, StyleSheet, TouchableOpacity, View, SafeAreaView } from "react-native";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import ArrowLeftExtended from "../icons/ArrowLeftExtended";
+import { DEVMODE_HIDE_STATUS_BAR } from "../config";
 
 const hitSlop = {
   top: 20,
@@ -24,11 +24,11 @@ const ScreenTitle = ({
   onPressRight,
   customRight,
   backgroundColor = colors.app.color,
-  color = '#FFF',
+  color = "#FFF",
   saving,
   children,
   parentScroll,
-  testID = '',
+  testID = "",
   forceTop = false,
 }) => {
   const showRightButton = Boolean(onAdd) || Boolean(onEdit) || Boolean(onSave);
@@ -54,14 +54,14 @@ const ScreenTitle = ({
           </Animated.View>
           <View style={[styles.buttonsContainer, styles.buttonsContainerFixed]}>
             {!!showLeftButton && (
-              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? 'auto' : 'none'}>
+              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
                 <TouchableOpacity hitSlop={hitSlop} onPress={onBack} testID={`${testID}-back-button`}>
                   <ArrowLeftExtended color="#fff" size={20} />
                 </TouchableOpacity>
               </Animated.View>
             )}
             {!!showLeftButton && (
-              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? 'auto' : 'none'}>
+              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
                 {Boolean(onAdd) && (
                   <TouchableOpacity hitSlop={hitSlop} onPress={onAdd}>
                     <ButtonText>Créer</ButtonText>
@@ -104,7 +104,7 @@ const ButtonText = styled(MyText)`
 
 const styles = StyleSheet.create({
   wrapper: (parentScroll, forceTop) => ({
-    overflow: 'visible',
+    overflow: "visible",
     zIndex: 100,
     marginTop: forceTop ? 0 : parentScroll?.interpolate ? -90 : 0,
     transform: [
@@ -115,15 +115,15 @@ const styles = StyleSheet.create({
           ? parentScroll.interpolate({
               inputRange: [0, 100],
               outputRange: [90, 0],
-              extrapolate: 'clamp',
+              extrapolate: "clamp",
             })
           : 0,
       },
     ],
   }),
   titleContainer: (parentScroll, forceTop) => ({
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
     transform: [
       {
         translateY: forceTop
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
           ? parentScroll.interpolate({
               inputRange: [0, 100],
               outputRange: [0, -90],
-              extrapolate: 'clamp',
+              extrapolate: "clamp",
             })
           : 0,
       },
@@ -143,18 +143,18 @@ const styles = StyleSheet.create({
   }),
   container: (forceTop) => ({
     paddingHorizontal: 15,
-    paddingTop: forceTop ? 0 : '5%',
-    paddingBottom: forceTop ? 0 : '5%',
+    paddingTop: forceTop ? 0 : "5%",
+    paddingBottom: forceTop ? 0 : "5%",
   }),
   buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     height: 30,
-    width: '100%',
+    width: "100%",
   },
   buttonsContainerFixed: {
-    position: 'absolute',
+    position: "absolute",
     top: 15,
     left: 15,
     right: 15,
@@ -168,11 +168,11 @@ const styles = StyleSheet.create({
 
   titleCaptionContainer: {
     flexShrink: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
     flexGrow: 0,
-    width: '100%',
-    flexDirection: 'row',
+    width: "100%",
+    flexDirection: "row",
   },
 });
 

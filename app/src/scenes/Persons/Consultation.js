@@ -1,43 +1,43 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, View } from 'react-native';
-import { useRecoilValue, useRecoilState, useSetRecoilState } from 'recoil';
-import { useFocusEffect } from '@react-navigation/native';
-import { v4 as uuidv4 } from 'uuid';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import DocumentsManager from '../../components/DocumentsManager';
-import Spacer from '../../components/Spacer';
-import Label from '../../components/Label';
-import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
+import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
+import { useFocusEffect } from "@react-navigation/native";
+import { v4 as uuidv4 } from "uuid";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import DocumentsManager from "../../components/DocumentsManager";
+import Spacer from "../../components/Spacer";
+import Label from "../../components/Label";
+import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import {
   consultationsFieldsIncludingCustomFieldsSelector,
   consultationsState,
   encryptedFields,
   prepareConsultationForEncryption,
-} from '../../recoil/consultations';
-import ConsultationTypeSelect from '../../components/Selects/ConsultationTypeSelect';
-import CustomFieldInput from '../../components/CustomFieldInput';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { CANCEL, DONE, TODO } from '../../recoil/actions';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import InputFromSearchList from '../../components/InputFromSearchList';
-import CommentRow from '../Comments/CommentRow';
-import SubList from '../../components/SubList';
-import NewCommentInput from '../Comments/NewCommentInput';
-import { refreshTriggerState } from '../../components/Loader';
-import isEqual from 'react-fast-compare';
-import { isEmptyValue } from '../../utils';
-import { alertCreateComment } from '../../utils/alert-create-comment';
+} from "../../recoil/consultations";
+import ConsultationTypeSelect from "../../components/Selects/ConsultationTypeSelect";
+import CustomFieldInput from "../../components/CustomFieldInput";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { CANCEL, DONE, TODO } from "../../recoil/actions";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import InputFromSearchList from "../../components/InputFromSearchList";
+import CommentRow from "../Comments/CommentRow";
+import SubList from "../../components/SubList";
+import NewCommentInput from "../Comments/NewCommentInput";
+import { refreshTriggerState } from "../../components/Loader";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../utils";
+import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const cleanValue = (value) => {
-  if (typeof value === 'string') return (value || '').trim();
+  if (typeof value === "string") return (value || "").trim();
   return value;
 };
 
@@ -61,7 +61,7 @@ const Consultation = ({ navigation, route }) => {
   }, [allConsultations, route?.params?.consultationDB?._id, user._id]);
 
   const isNew = !consultationDB?._id;
-  const [writingComment, setWritingComment] = useState('');
+  const [writingComment, setWritingComment] = useState("");
 
   const castToConsultation = useCallback(
     (consult = {}) => {
@@ -75,8 +75,8 @@ const Consultation = ({ navigation, route }) => {
       }
       return {
         ...toReturn,
-        name: consult.name || '',
-        type: consult.type || '',
+        name: consult.name || "",
+        type: consult.type || "",
         status: consult.status || TODO,
         dueAt: consult.dueAt || null,
         person: consult.person || person?._id,
@@ -111,7 +111,7 @@ const Consultation = ({ navigation, route }) => {
       onGoBackRequested();
     };
 
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -138,8 +138,8 @@ const Consultation = ({ navigation, route }) => {
   useEffect(() => {
     if (route?.params?.duplicate) {
       Alert.alert(
-        'La consultation est dupliquée, vous pouvez la modifier !',
-        'Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée.'
+        "La consultation est dupliquée, vous pouvez la modifier !",
+        "Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée."
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,7 +147,7 @@ const Consultation = ({ navigation, route }) => {
 
   const onDuplicate = async () => {
     const response = await API.post({
-      path: '/consultation',
+      path: "/consultation",
       body: prepareConsultationForEncryption(organisation.consultations)({
         ...consultation,
         _id: undefined,
@@ -155,22 +155,22 @@ const Consultation = ({ navigation, route }) => {
         user: user._id,
         teams: [currentTeam._id],
         comments: (consultation.comments || []).map((c) => ({ ...c, _id: uuidv4() })),
-        documents: (consultation.documents || []).map((d) => ({ ...d, _id: d._id + '__' + uuidv4() })),
+        documents: (consultation.documents || []).map((d) => ({ ...d, _id: d._id + "__" + uuidv4() })),
         completedAt: null,
         history: [],
       }),
     });
     if (!response.ok) {
-      Alert.alert('Impossible de dupliquer !');
+      Alert.alert("Impossible de dupliquer !");
       return;
     }
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     backRequestHandledRef.current = true;
     //  navigation.push('PersonsSearch', { fromRoute: 'Consultation' })
-    navigation.replace('Consultation', {
+    navigation.replace("Consultation", {
       personDB: person,
       consultationDB: response.decryptedData,
-      fromRoute: 'MedicalFile',
+      fromRoute: "MedicalFile",
       editable: true,
       duplicate: true,
     });
@@ -179,10 +179,10 @@ const Consultation = ({ navigation, route }) => {
   const onSaveConsultationRequest = useCallback(
     async ({ goBackOnSave = true, consultationToSave = null } = {}) => {
       if (!consultationToSave) consultationToSave = consultation;
-      if (!consultationToSave.status) return Alert.alert('Veuillez indiquer un statut');
-      if (!consultationToSave.dueAt) return Alert.alert('Veuillez indiquer une date');
-      if (!consultationToSave.type) return Alert.alert('Veuillez indiquer un type');
-      if (!consultationToSave.person) return Alert.alert('Veuillez ajouter une personne');
+      if (!consultationToSave.status) return Alert.alert("Veuillez indiquer un statut");
+      if (!consultationToSave.dueAt) return Alert.alert("Veuillez indiquer une date");
+      if (!consultationToSave.type) return Alert.alert("Veuillez indiquer un type");
+      if (!consultationToSave.person) return Alert.alert("Veuillez ajouter une personne");
       Keyboard.dismiss();
       setPosting(true);
       if ([DONE, CANCEL].includes(consultationToSave.status)) {
@@ -214,7 +214,7 @@ const Consultation = ({ navigation, route }) => {
       });
 
       const consultationResponse = isNew
-        ? await API.post({ path: '/consultation', body })
+        ? await API.post({ path: "/consultation", body })
         : await API.put({ path: `/consultation/${consultationDB._id}`, body });
       if (!consultationResponse.ok) return false;
       if (isNew) {
@@ -231,10 +231,10 @@ const Consultation = ({ navigation, route }) => {
       }
       const consultationCancelled = consultationToSave.status === CANCEL && consultationDB.status !== CANCEL;
       if (!isNew && consultationCancelled) {
-        Alert.alert('Cette consultation est annulée, voulez-vous la dupliquer ?', 'Avec une date ultérieure par exemple', [
-          { text: 'Oui', onPress: onDuplicate },
+        Alert.alert("Cette consultation est annulée, voulez-vous la dupliquer ?", "Avec une date ultérieure par exemple", [
+          { text: "Oui", onPress: onDuplicate },
           {
-            text: 'Non merci !',
+            text: "Non merci !",
             onPress: () => {
               if (goBackOnSave) {
                 onBack();
@@ -244,7 +244,7 @@ const Consultation = ({ navigation, route }) => {
                 return true;
               }
             },
-            style: 'cancel',
+            style: "cancel",
           },
         ]);
         return;
@@ -262,15 +262,15 @@ const Consultation = ({ navigation, route }) => {
   );
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer cette consultation ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer cette consultation ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -283,7 +283,7 @@ const Consultation = ({ navigation, route }) => {
       return;
     }
     setAllConsultations((all) => all.filter((t) => t._id !== consultationDB._id));
-    Alert.alert('Consultation supprimée !');
+    Alert.alert("Consultation supprimée !");
     onBack();
   };
 
@@ -305,32 +305,32 @@ const Consultation = ({ navigation, route }) => {
       if (!goToNextStep) return;
     }
     if (isDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer cette consultation ?', null, [
+    Alert.alert("Voulez-vous enregistrer cette consultation ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           await onSaveConsultationRequest();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
 
-  const onSearchPerson = () => navigation.push('PersonsSearch', { fromRoute: 'Consultation' });
+  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "Consultation" });
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
 
   const canEditAllFields = useMemo(() => {
-    return ['normal', 'admin'].includes(user.role);
+    return ["normal", "admin"].includes(user.role);
   }, [user.role]);
 
   const canDelete = canEditAllFields;
@@ -338,8 +338,8 @@ const Consultation = ({ navigation, route }) => {
   return (
     <SceneContainer testID="consultation-form">
       <ScreenTitle
-        title={`${isNew ? `Nouvelle consultation${person?.name ? ' pour' : ''}` : `Modifier la consultation ${consultation?.name} de`} ${
-          person?.name || ''
+        title={`${isNew ? `Nouvelle consultation${person?.name ? " pour" : ""}` : `Modifier la consultation ${consultation?.name} de`} ${
+          person?.name || ""
         }`}
         onBack={onGoBackRequested}
         onEdit={!editable ? () => setEditable(true) : null}
@@ -351,7 +351,7 @@ const Consultation = ({ navigation, route }) => {
         <ScrollContainer ref={scrollViewRef} keyboardShouldPersistTaps="handled">
           <View>
             {!!isNew && !route?.params?.personDB && (
-              <InputFromSearchList label="Personne concernée" value={person?.name || '-- Aucune --'} onSearchRequest={onSearchPerson} />
+              <InputFromSearchList label="Personne concernée" value={person?.name || "-- Aucune --"} onSearchRequest={onSearchPerson} />
             )}
             <InputLabelled
               label="Nom (facultatif)"
@@ -417,7 +417,7 @@ const Consultation = ({ navigation, route }) => {
             />
             {consultation.status !== TODO ? (
               <DateAndTimeInput
-                label={consultation.status === DONE ? 'Faite le' : 'Annulée le'}
+                label={consultation.status === DONE ? "Faite le" : "Annulée le"}
                 setDate={(completedAt) => onChange({ completedAt })}
                 date={consultation.completedAt || new Date().toISOString()}
                 showTime
@@ -439,7 +439,7 @@ const Consultation = ({ navigation, route }) => {
             <ButtonsContainer>
               {!isNew && canDelete && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
               <Button
-                caption={isNew ? 'Créer' : editable ? 'Mettre à jour' : 'Modifier'}
+                caption={isNew ? "Créer" : editable ? "Mettre à jour" : "Modifier"}
                 disabled={editable ? isDisabled : false}
                 onPress={editable ? () => onSaveConsultationRequest() : () => setEditable(true)}
                 loading={posting}
@@ -451,15 +451,15 @@ const Consultation = ({ navigation, route }) => {
                 <SubList label="Constantes">
                   <React.Fragment key={`${consultationDB?._id}${editable}`}>
                     {[
-                      { name: 'constantes-poids', label: 'Poids (kg)' },
-                      { name: 'constantes-frequence-cardiaque', label: 'Taille (cm)' },
-                      { name: 'constantes-taille', label: 'Fréquence cardiaque (bpm)' },
-                      { name: 'constantes-saturation-o2', label: 'Fréq. respiratoire (mvts/min)' },
-                      { name: 'constantes-temperature', label: 'Saturation en oxygène (%)' },
-                      { name: 'constantes-glycemie-capillaire', label: 'Glycémie capillaire (g/L)' },
-                      { name: 'constantes-frequence-respiratoire', label: 'Température (°C)' },
-                      { name: 'constantes-tension-arterielle-systolique', label: 'Tension artérielle systolique (mmHg)' },
-                      { name: 'constantes-tension-arterielle-diastolique', label: 'Tension artérielle diastolique (mmHg)' },
+                      { name: "constantes-poids", label: "Poids (kg)" },
+                      { name: "constantes-frequence-cardiaque", label: "Taille (cm)" },
+                      { name: "constantes-taille", label: "Fréquence cardiaque (bpm)" },
+                      { name: "constantes-saturation-o2", label: "Fréq. respiratoire (mvts/min)" },
+                      { name: "constantes-temperature", label: "Saturation en oxygène (%)" },
+                      { name: "constantes-glycemie-capillaire", label: "Glycémie capillaire (g/L)" },
+                      { name: "constantes-frequence-respiratoire", label: "Température (°C)" },
+                      { name: "constantes-tension-arterielle-systolique", label: "Tension artérielle systolique (mmHg)" },
+                      { name: "constantes-tension-arterielle-diastolique", label: "Tension artérielle diastolique (mmHg)" },
                     ].map((constante) => {
                       return (
                         <InputLabelled
@@ -510,14 +510,15 @@ const Consultation = ({ navigation, route }) => {
                       }}
                     />
                   )}
-                  ifEmpty="Pas encore de commentaire">
+                  ifEmpty="Pas encore de commentaire"
+                >
                   <NewCommentInput
                     forwardRef={newCommentRef}
                     onCommentWrite={setWritingComment}
                     onCreate={(newComment) => {
                       const consultationToSave = {
                         ...consultation,
-                        comments: [{ ...newComment, type: 'consultation', _id: uuidv4() }, ...(consultation.comments || [])],
+                        comments: [{ ...newComment, type: "consultation", _id: uuidv4() }, ...(consultation.comments || [])],
                       };
                       setConsultation(consultationToSave); // optimistic UI
                       if (!isNew) {

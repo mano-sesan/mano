@@ -1,32 +1,32 @@
-import { atom } from 'recoil';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { atom } from "recoil";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const treatmentsState = atom({
-  key: 'treatmentsState',
+  key: "treatmentsState",
   default: [],
 });
 
-const encryptedFields = ['person', 'user', 'startDate', 'endDate', 'name', 'dosage', 'frequency', 'indication', 'documents', 'comments', 'history'];
+const encryptedFields = ["person", "user", "startDate", "endDate", "name", "dosage", "frequency", "indication", "documents", "comments", "history"];
 
 export const allowedTreatmentFieldsInHistory = [
-  { name: 'person', label: 'Personne suivie' },
-  { name: 'name', label: "Nom de l'action" },
-  { name: 'startDate', label: 'Faite le' },
-  { name: 'endDate', label: 'Faite le' },
-  { name: 'dosage', label: 'Faite le' },
-  { name: 'frequency', label: 'Faite le' },
-  { name: 'indication', label: 'Faite le' },
+  { name: "person", label: "Personne suivie" },
+  { name: "name", label: "Nom de l'action" },
+  { name: "startDate", label: "Faite le" },
+  { name: "endDate", label: "Faite le" },
+  { name: "dosage", label: "Faite le" },
+  { name: "frequency", label: "Faite le" },
+  { name: "indication", label: "Faite le" },
 ];
 
 export const prepareTreatmentForEncryption = (treatment) => {
   try {
     if (!looseUuidRegex.test(treatment.person)) {
-      throw new Error('Treatment is missing person');
+      throw new Error("Treatment is missing person");
     }
     if (!looseUuidRegex.test(treatment.user)) {
-      throw new Error('Treatment is missing user');
+      throw new Error("Treatment is missing user");
     }
   } catch (error) {
     Alert.alert(

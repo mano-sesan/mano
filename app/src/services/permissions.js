@@ -1,5 +1,5 @@
-import { request, check, RESULTS } from 'react-native-permissions';
-import { Platform, PermissionsAndroid } from 'react-native';
+import { request, check, RESULTS } from "react-native-permissions";
+import { Platform, PermissionsAndroid } from "react-native";
 
 export const checkPermissionAsync = async ({ ios, android }) =>
   check(Platform.select({ ios, android }))
@@ -15,15 +15,15 @@ export const checkPermissionAsync = async ({ ios, android }) =>
       }
     })
     .catch((error) => {
-      console.log('error while checking permission', error);
+      console.log("error while checking permission", error);
     });
 
 const getPermissionAsync = async ({ ios, android }) => {
   try {
-    if (Platform.OS === 'ios') return await getIosPermissionAsync(ios);
+    if (Platform.OS === "ios") return await getIosPermissionAsync(ios);
     return await getAndroidPermissionAsync(android);
   } catch (err) {
-    console.log('getPermissionAsync error', err);
+    console.log("getPermissionAsync error", err);
   }
   return null;
 };
@@ -35,7 +35,7 @@ const getAndroidPermissionAsync = async ({ permission }) => {
     if (granted === PermissionsAndroid.RESULTS.GRANTED) return true;
     return false;
   } catch (err) {
-    console.log('getAndroidPermissionAsync error', err);
+    console.log("getAndroidPermissionAsync error", err);
   }
   return null;
 };
@@ -86,7 +86,7 @@ const getIosPermissionAsync = async ({ permission, name }) => {
         console.log(`error while requesting ${name} permission`, error);
       });
   } catch (e) {
-    console.log('getIosPermissionAsync error', e);
+    console.log("getIosPermissionAsync error", e);
   }
   return false;
 };

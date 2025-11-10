@@ -1,6 +1,6 @@
-import { AnimatedFlashList } from '@shopify/flash-list';
-import React from 'react';
-import { StyleSheet, Animated, Dimensions } from 'react-native';
+import { AnimatedFlashList } from "@shopify/flash-list";
+import React from "react";
+import { StyleSheet, Animated, Dimensions } from "react-native";
 
 // repeat all the props so that VSCode can auto complete
 
@@ -152,8 +152,8 @@ export const FlashListStyled = React.forwardRef(
       parentScroll,
       withHeaderSearch = false,
       estimatedListSize = {
-        height: Dimensions.get('window').height * 0.8,
-        width: Dimensions.get('window').width,
+        height: Dimensions.get("window").height * 0.8,
+        width: Dimensions.get("window").width,
       },
       ...props
     },
@@ -176,25 +176,25 @@ const styles = StyleSheet.create({
           ? parentScroll.interpolate({
               inputRange: [0, 100],
               outputRange: [90, 0],
-              extrapolate: 'clamp',
+              extrapolate: "clamp",
             })
           : 0,
       },
     ],
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   }),
   contentContainerStyle: {
     flexGrow: 1,
     paddingTop: 30,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   flashListContentContainerStyle: (withHeaderSearch) => ({
     paddingTop: 30 + (withHeaderSearch ? 60 : 0),
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   }),
 });
 

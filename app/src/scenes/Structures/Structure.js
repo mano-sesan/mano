@@ -1,21 +1,21 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import styled from 'styled-components/native';
-import { Alert, Linking } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import colors from '../../utils/colors';
-import Spacer from '../../components/Spacer';
-import PinIcon from '../../icons/PinIcon';
-import PhoneIcon from '../../icons/PhoneIcon';
-import { useRecoilState } from 'recoil';
-import { structuresState } from '../../recoil/structures';
-import DeleteButtonAndConfirmModal from '../../components/DeleteButtonAndConfirmModal';
-import StructuresCategoriesModalSelect from '../../components/StructuresCategoriesModalSelect';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import styled from "styled-components/native";
+import { Alert, Linking } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import colors from "../../utils/colors";
+import Spacer from "../../components/Spacer";
+import PinIcon from "../../icons/PinIcon";
+import PhoneIcon from "../../icons/PhoneIcon";
+import { useRecoilState } from "recoil";
+import { structuresState } from "../../recoil/structures";
+import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import StructuresCategoriesModalSelect from "../../components/StructuresCategoriesModalSelect";
 
 const isEven = (value) => {
   if (value % 2 === 0) return true;
@@ -23,12 +23,12 @@ const isEven = (value) => {
 };
 
 const castToStructure = (structure = {}) => ({
-  name: structure.name?.trim() || '',
-  adresse: structure.adresse?.trim() || '',
-  postcode: structure.postcode?.trim() || '',
-  city: structure.city?.trim() || '',
-  description: structure.description?.trim() || '',
-  phone: structure.phone?.trim() || '',
+  name: structure.name?.trim() || "",
+  adresse: structure.adresse?.trim() || "",
+  postcode: structure.postcode?.trim() || "",
+  city: structure.city?.trim() || "",
+  description: structure.description?.trim() || "",
+  phone: structure.phone?.trim() || "",
   categories: structure.categories?.length ? structure.categories : [],
 });
 
@@ -56,7 +56,7 @@ const Structure = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -69,17 +69,17 @@ const Structure = ({ navigation, route }) => {
   };
 
   const setPhone = (phone) => {
-    if (!phone.startsWith('0')) return setStructure((s) => ({ ...s, phone }));
+    if (!phone.startsWith("0")) return setStructure((s) => ({ ...s, phone }));
     const phoneNumber = structure.phone;
     if (phone.length < phoneNumber.length) {
-      if (phoneNumber.endsWith(' ')) {
+      if (phoneNumber.endsWith(" ")) {
         setStructure((s) => ({ ...s, phone: phone.slice(0, -1) }));
       } else {
         setStructure((s) => ({ ...s, phone }));
       }
       return;
     }
-    const noSpacePhone = phone.split(' ').join('');
+    const noSpacePhone = phone.split(" ").join("");
 
     if (noSpacePhone.length >= 10) return setStructure((s) => ({ ...s, phone }));
     if (isEven(noSpacePhone.length)) {
@@ -89,7 +89,7 @@ const Structure = ({ navigation, route }) => {
     }
   };
 
-  const onCall = () => Linking.openURL('tel:' + structure.phone.split(' ').join(''));
+  const onCall = () => Linking.openURL("tel:" + structure.phone.split(" ").join(""));
 
   const onUpdateStructure = async () => {
     setUpdating(true);
@@ -103,7 +103,7 @@ const Structure = ({ navigation, route }) => {
       return false;
     }
     if (response.ok) {
-      Alert.alert('Contact mis à jour !');
+      Alert.alert("Contact mis à jour !");
       setStructures((structures) =>
         structures.map((s) => {
           if (s._id === response.data._id) return response.data;
@@ -125,7 +125,7 @@ const Structure = ({ navigation, route }) => {
       Alert.alert(response.error);
     }
     if (!response.ok) return false;
-    Alert.alert('Structure supprimée !');
+    Alert.alert("Structure supprimée !");
     setStructures((structures) => structures.filter((s) => s._id !== structure._id));
     setUpdating(false);
     return true;
@@ -139,7 +139,7 @@ const Structure = ({ navigation, route }) => {
 
   const formatGoogleMapUrl = useMemo(() => {
     const { adresse, city, postcode } = structure;
-    const query = `${adresse.trim()} ${postcode ? postcode.trim() + ' ' : ' '}${city.trim()}`.split(' ').join('+');
+    const query = `${adresse.trim()} ${postcode ? postcode.trim() + " " : " "}${city.trim()}`.split(" ").join("+");
     return `https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${query}`;
   }, [structure]);
   const onShowMap = () => Linking.openURL(formatGoogleMapUrl);
@@ -153,22 +153,22 @@ const Structure = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce contact ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce contact ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const ok = await onUpdateStructure();
           if (ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -263,11 +263,12 @@ const Structure = ({ navigation, route }) => {
             title={`Voulez-vous vraiment supprimer ${structureDB?.name} ?`}
             onBack={onBack}
             textToConfirm={structureDB?.name}
-            onDelete={onDelete}>
-            Cette opération est irréversible{'\n'}et entrainera la suppression définitive de ce contact
+            onDelete={onDelete}
+          >
+            Cette opération est irréversible{"\n"}et entrainera la suppression définitive de ce contact
           </DeleteButtonAndConfirmModal>
           <Button
-            caption={editable ? 'Mettre à jour' : 'Modifier'}
+            caption={editable ? "Mettre à jour" : "Modifier"}
             onPress={editable ? onUpdateStructure : onEdit}
             disabled={editable ? isUpdateDisabled : false}
             loading={updating}

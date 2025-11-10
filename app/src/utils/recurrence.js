@@ -1,7 +1,7 @@
-import structuredClone from '@ungap/structured-clone';
-import { dayjsInstance } from '../services/dateDayjs';
+import structuredClone from "@ungap/structured-clone";
+import { dayjsInstance } from "../services/dateDayjs";
 
-const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 const ucFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -12,95 +12,95 @@ function toDayIndex(day) {
 export function getOccurrences(recurrence) {
   const { startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear } = recurrence;
   const occurrences = [];
-  let nextDate = dayjsInstance(startDate).startOf('day');
-  if (timeUnit === 'day') {
-    while (nextDate.isBefore(dayjsInstance(endDate).endOf('day'))) {
+  let nextDate = dayjsInstance(startDate).startOf("day");
+  if (timeUnit === "day") {
+    while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
       occurrences.push(nextDate);
-      nextDate = nextDate.add(timeInterval, 'day');
+      nextDate = nextDate.add(timeInterval, "day");
     }
-  } else if (timeUnit === 'week') {
-    while (nextDate.isBefore(dayjsInstance(endDate).endOf('day'))) {
+  } else if (timeUnit === "week") {
+    while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
       for (const day of days) {
         if (selectedDays.includes(day)) {
           const dayOfWeekIndex = toDayIndex(day);
-          const occurrence = nextDate.startOf('week').add(dayOfWeekIndex, 'day');
-          if (occurrence.isBefore(dayjsInstance(endDate).endOf('day')) && !dayjsInstance(startDate).startOf('day').isAfter(occurrence)) {
+          const occurrence = nextDate.startOf("week").add(dayOfWeekIndex, "day");
+          if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
             occurrences.push(occurrence);
           }
         }
       }
-      nextDate = nextDate.startOf('week').add(timeInterval, 'week');
+      nextDate = nextDate.startOf("week").add(timeInterval, "week");
     }
-  } else if (timeUnit === 'month') {
-    while (nextDate.isBefore(dayjsInstance(endDate).endOf('day'))) {
-      if (recurrenceTypeForMonthAndYear === 'absolute') {
+  } else if (timeUnit === "month") {
+    while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
+      if (recurrenceTypeForMonthAndYear === "absolute") {
         const occurrence = nextDate.date(dayjsInstance(startDate).date());
-        if (occurrence.isBefore(dayjsInstance(endDate).endOf('day')) && !dayjsInstance(startDate).startOf('day').isAfter(occurrence)) {
+        if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
           occurrences.push(occurrence);
         }
-        nextDate = nextDate.add(timeInterval, 'month');
-      } else if (recurrenceTypeForMonthAndYear === 'relative') {
+        nextDate = nextDate.add(timeInterval, "month");
+      } else if (recurrenceTypeForMonthAndYear === "relative") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
-        let occurrence = nextDate.startOf('month').day(targetDayOfWeek);
-        if (occurrence.isBefore(nextDate.startOf('month'))) {
-          occurrence = occurrence.add(1, 'week');
+        let occurrence = nextDate.startOf("month").day(targetDayOfWeek);
+        if (occurrence.isBefore(nextDate.startOf("month"))) {
+          occurrence = occurrence.add(1, "week");
         }
         const weekOffset = Math.floor((dayjsInstance(startDate).date() - 1) / 7);
-        const relativeOccurrence = occurrence.add(weekOffset, 'week');
+        const relativeOccurrence = occurrence.add(weekOffset, "week");
 
         if (
-          relativeOccurrence.isBefore(dayjsInstance(endDate).endOf('day')) &&
-          !dayjsInstance(startDate).startOf('day').isAfter(relativeOccurrence)
+          relativeOccurrence.isBefore(dayjsInstance(endDate).endOf("day")) &&
+          !dayjsInstance(startDate).startOf("day").isAfter(relativeOccurrence)
         ) {
           occurrences.push(relativeOccurrence);
         }
-        nextDate = nextDate.startOf('month').add(timeInterval, 'month');
-      } else if (recurrenceTypeForMonthAndYear === 'relativeLast') {
+        nextDate = nextDate.startOf("month").add(timeInterval, "month");
+      } else if (recurrenceTypeForMonthAndYear === "relativeLast") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
-        let lastOccurrence = nextDate.endOf('month').day(targetDayOfWeek).startOf('day');
-        if (lastOccurrence.isAfter(nextDate.endOf('month'))) {
-          lastOccurrence = lastOccurrence.subtract(1, 'week');
+        let lastOccurrence = nextDate.endOf("month").day(targetDayOfWeek).startOf("day");
+        if (lastOccurrence.isAfter(nextDate.endOf("month"))) {
+          lastOccurrence = lastOccurrence.subtract(1, "week");
         }
-        if (lastOccurrence.isBefore(dayjsInstance(endDate).endOf('day')) && !dayjsInstance(startDate).startOf('day').isAfter(lastOccurrence)) {
+        if (lastOccurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(lastOccurrence)) {
           occurrences.push(lastOccurrence);
         }
-        nextDate = nextDate.startOf('month').add(timeInterval, 'month');
+        nextDate = nextDate.startOf("month").add(timeInterval, "month");
       }
     }
-  } else if (timeUnit === 'year') {
-    while (nextDate.isBefore(dayjsInstance(endDate).endOf('day'))) {
-      if (recurrenceTypeForMonthAndYear === 'absolute') {
+  } else if (timeUnit === "year") {
+    while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
+      if (recurrenceTypeForMonthAndYear === "absolute") {
         const occurrence = nextDate.date(dayjsInstance(startDate).date()).month(dayjsInstance(startDate).month());
-        if (occurrence.isBefore(dayjsInstance(endDate).endOf('day')) && !dayjsInstance(startDate).startOf('day').isAfter(occurrence)) {
+        if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
           occurrences.push(occurrence);
         }
-        nextDate = nextDate.add(1, 'year');
-      } else if (recurrenceTypeForMonthAndYear === 'relative') {
+        nextDate = nextDate.add(1, "year");
+      } else if (recurrenceTypeForMonthAndYear === "relative") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
-        let occurrence = nextDate.startOf('month').day(targetDayOfWeek);
-        if (occurrence.isBefore(nextDate.startOf('month'))) {
-          occurrence = occurrence.add(1, 'week');
+        let occurrence = nextDate.startOf("month").day(targetDayOfWeek);
+        if (occurrence.isBefore(nextDate.startOf("month"))) {
+          occurrence = occurrence.add(1, "week");
         }
         const weekOffset = Math.floor((dayjsInstance(startDate).date() - 1) / 7);
-        const relativeOccurrence = occurrence.add(weekOffset, 'week');
+        const relativeOccurrence = occurrence.add(weekOffset, "week");
 
         if (
-          relativeOccurrence.isBefore(dayjsInstance(endDate).endOf('day')) &&
-          !dayjsInstance(startDate).startOf('day').isAfter(relativeOccurrence)
+          relativeOccurrence.isBefore(dayjsInstance(endDate).endOf("day")) &&
+          !dayjsInstance(startDate).startOf("day").isAfter(relativeOccurrence)
         ) {
           occurrences.push(relativeOccurrence);
         }
-        nextDate = nextDate.startOf('month').add(1, 'year');
-      } else if (recurrenceTypeForMonthAndYear === 'relativeLast') {
+        nextDate = nextDate.startOf("month").add(1, "year");
+      } else if (recurrenceTypeForMonthAndYear === "relativeLast") {
         const targetDayOfWeek = dayjsInstance(startDate).day();
-        let lastOccurrence = nextDate.endOf('month').day(targetDayOfWeek).startOf('day');
-        if (lastOccurrence.isAfter(nextDate.endOf('month'))) {
-          lastOccurrence = lastOccurrence.subtract(1, 'week');
+        let lastOccurrence = nextDate.endOf("month").day(targetDayOfWeek).startOf("day");
+        if (lastOccurrence.isAfter(nextDate.endOf("month"))) {
+          lastOccurrence = lastOccurrence.subtract(1, "week");
         }
-        if (lastOccurrence.isBefore(dayjsInstance(endDate).endOf('day')) && !dayjsInstance(startDate).startOf('day').isAfter(lastOccurrence)) {
+        if (lastOccurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(lastOccurrence)) {
           occurrences.push(lastOccurrence);
         }
-        nextDate = nextDate.startOf('month').add(1, 'year');
+        nextDate = nextDate.startOf("month").add(1, "year");
       }
     }
   }
@@ -111,7 +111,7 @@ export function getOccurrences(recurrence) {
 // On donne une liste d'action et on retire les actions récurrentes qui sont après la prochaine occurrence.
 // Utile pour ne pas afficher toutes les actions du futur dans les notifications
 export function actionsWithoutFutureRecurrences(actionsToSet) {
-  const now = dayjsInstance().startOf('day');
+  const now = dayjsInstance().startOf("day");
 
   const getActionDate = (action) => {
     return action.completedAt ? dayjsInstance(action.completedAt) : dayjsInstance(action.dueAt);
@@ -158,18 +158,18 @@ export function actionsWithoutFutureRecurrences(actionsToSet) {
 export function getNthWeekdayInMonth(date) {
   const currentDay = dayjsInstance(date);
   const weekday = currentDay.day();
-  const firstDayOfMonth = currentDay.startOf('month');
+  const firstDayOfMonth = currentDay.startOf("month");
   let firstOfWeekdayInMonth = firstDayOfMonth;
   while (firstOfWeekdayInMonth.day() !== weekday) {
-    firstOfWeekdayInMonth = firstOfWeekdayInMonth.add(1, 'day');
+    firstOfWeekdayInMonth = firstOfWeekdayInMonth.add(1, "day");
   }
   const nth = Math.floor(currentDay.date() / 7) + 1;
-  const lastDayOfMonth = currentDay.endOf('month');
+  const lastDayOfMonth = currentDay.endOf("month");
   let lastOfWeekdayInMonth = lastDayOfMonth;
   while (lastOfWeekdayInMonth.day() !== weekday) {
-    lastOfWeekdayInMonth = lastOfWeekdayInMonth.subtract(1, 'day');
+    lastOfWeekdayInMonth = lastOfWeekdayInMonth.subtract(1, "day");
   }
-  const isLast = currentDay.isSame(lastOfWeekdayInMonth, 'day');
+  const isLast = currentDay.isSame(lastOfWeekdayInMonth, "day");
 
   return {
     nth, // 1er, 2ème, etc.
@@ -178,17 +178,17 @@ export function getNthWeekdayInMonth(date) {
 }
 
 export function numberAsOrdinal(n, isLastWeek) {
-  if (isLastWeek) return 'dernier';
-  if (n === 1) return 'premier';
-  if (n === 2) return 'deuxième';
-  if (n === 3) return 'troisième';
-  if (n === 4) return 'quatrième';
-  if (n === 5) return 'cinquième';
+  if (isLastWeek) return "dernier";
+  if (n === 1) return "premier";
+  if (n === 2) return "deuxième";
+  if (n === 3) return "troisième";
+  if (n === 4) return "quatrième";
+  if (n === 5) return "cinquième";
 }
 
 function joinDays(days) {
   if (days.length === 0) {
-    return '';
+    return "";
   }
   if (days.length === 1) {
     return days[0];
@@ -196,20 +196,20 @@ function joinDays(days) {
   if (days.length === 2) {
     return `${days[0]} et ${days[1]}`;
   }
-  return `${days.slice(0, -1).join(', ')}, et ${days[days.length - 1]}`;
+  return `${days.slice(0, -1).join(", ")}, et ${days[days.length - 1]}`;
 }
 
 export function recurrenceAsText({ startDate, timeInterval, timeUnit, selectedDays, nthWeekdayInMonth, recurrenceTypeForMonthAndYear }) {
-  if (timeUnit === 'day') {
+  if (timeUnit === "day") {
     if (timeInterval === 1) {
-      return 'A lieu chaque jour';
+      return "A lieu chaque jour";
     } else if (timeInterval === 2) {
-      return 'A lieu un jour sur deux';
+      return "A lieu un jour sur deux";
     } else {
       return `A lieu tous les ${timeInterval} jours`;
     }
   }
-  if (timeUnit === 'week') {
+  if (timeUnit === "week") {
     if (timeInterval === 1) {
       return `A lieu chaque ${joinDays(selectedDays).toLowerCase()}`;
     } else if (timeInterval === 2) {
@@ -218,33 +218,33 @@ export function recurrenceAsText({ startDate, timeInterval, timeUnit, selectedDa
       return `A lieu toutes les ${timeInterval} semaines, le ${joinDays(selectedDays).toLowerCase()}`;
     }
   }
-  if (timeUnit === 'month') {
+  if (timeUnit === "month") {
     if (timeInterval === 1) {
-      if (recurrenceTypeForMonthAndYear === 'absolute') {
+      if (recurrenceTypeForMonthAndYear === "absolute") {
         return `A lieu le ${dayjsInstance(startDate).date()} de chaque mois`;
       } else {
-        return `A lieu le ${numberAsOrdinal(nthWeekdayInMonth.nth, recurrenceTypeForMonthAndYear === 'relativeLast')} ${dayjsInstance(
+        return `A lieu le ${numberAsOrdinal(nthWeekdayInMonth.nth, recurrenceTypeForMonthAndYear === "relativeLast")} ${dayjsInstance(
           startDate
-        ).format('dddd')} de chaque mois`;
+        ).format("dddd")} de chaque mois`;
       }
     } else {
-      if (recurrenceTypeForMonthAndYear === 'absolute') {
+      if (recurrenceTypeForMonthAndYear === "absolute") {
         return `A lieu tous les ${timeInterval} mois, le ${dayjsInstance(startDate).date()}`;
       } else {
         return `A lieu tous les ${timeInterval} mois, le ${numberAsOrdinal(
           nthWeekdayInMonth.nth,
-          recurrenceTypeForMonthAndYear === 'relativeLast'
-        )} ${dayjsInstance(startDate).format('dddd')}`;
+          recurrenceTypeForMonthAndYear === "relativeLast"
+        )} ${dayjsInstance(startDate).format("dddd")}`;
       }
     }
   }
-  if (timeUnit === 'year') {
-    if (recurrenceTypeForMonthAndYear === 'absolute') {
-      return `A lieu chaque année, le ${dayjsInstance(startDate).format('D MMMM')}`;
+  if (timeUnit === "year") {
+    if (recurrenceTypeForMonthAndYear === "absolute") {
+      return `A lieu chaque année, le ${dayjsInstance(startDate).format("D MMMM")}`;
     } else {
-      return `A lieu chaque année, le ${numberAsOrdinal(nthWeekdayInMonth.nth, recurrenceTypeForMonthAndYear === 'relativeLast')} ${dayjsInstance(
+      return `A lieu chaque année, le ${numberAsOrdinal(nthWeekdayInMonth.nth, recurrenceTypeForMonthAndYear === "relativeLast")} ${dayjsInstance(
         startDate
-      ).format('dddd')} de ${dayjsInstance(startDate).format('MMMM')}`;
+      ).format("dddd")} de ${dayjsInstance(startDate).format("MMMM")}`;
     }
   }
   return null;

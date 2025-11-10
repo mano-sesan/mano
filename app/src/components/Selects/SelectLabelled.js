@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import styled, { css } from 'styled-components/native';
-import { Picker } from '@react-native-picker/picker';
-import { Platform, TouchableOpacity, Modal, View } from 'react-native';
-import InputLabelled from '../InputLabelled';
-import { MyText } from '../MyText';
+import React, { useState } from "react";
+import styled, { css } from "styled-components/native";
+import { Picker } from "@react-native-picker/picker";
+import { Platform, TouchableOpacity, Modal, View } from "react-native";
+import InputLabelled from "../InputLabelled";
+import { MyText } from "../MyText";
 
 const SelectLabelled = ({
   editable = true,
@@ -21,7 +21,7 @@ const SelectLabelled = ({
   row,
   testID,
 }) => {
-  const [saisieLibre, setSaisieLibre] = useState('');
+  const [saisieLibre, setSaisieLibre] = useState("");
 
   values = values.includes(value) ? values : [...values, value];
 
@@ -41,7 +41,7 @@ const SelectLabelled = ({
   }
   return (
     <>
-      {Platform.OS === 'android' && (
+      {Platform.OS === "android" && (
         <SelectAndroid
           value={value}
           values={values}
@@ -52,7 +52,7 @@ const SelectLabelled = ({
           testID={testID}
         />
       )}
-      {Platform.OS === 'ios' && (
+      {Platform.OS === "ios" && (
         <SelectIos value={value} values={values} onSelect={onSelect} mappedIdsToLabels={mappedIdsToLabels} label={label} row={row} testID={testID} />
       )}
       {allowCreateOption && (
@@ -61,9 +61,10 @@ const SelectLabelled = ({
             <TouchableOpacity
               onPress={() => {
                 onSelect(saisieLibre);
-                setSaisieLibre('');
+                setSaisieLibre("");
               }}
-              className="justify-center border-main75 border items-center self-center flex-row py-2 px-2 rounded-md">
+              className="justify-center border-main75 border items-center self-center flex-row py-2 px-2 rounded-md"
+            >
               <MyText className="self-center text-main75 justify-center text-xs">Ajouter</MyText>
             </TouchableOpacity>
           </View>
@@ -120,8 +121,8 @@ const labelRow = css`
 const Label = styled(MyText)`
   margin-bottom: 10px;
   font-weight: bold;
-  ${(props) => props.debug && 'border: 1px solid #00f;'}
-  ${(props) => props.noMargin && 'margin-bottom: 0px;'}
+  ${(props) => props.debug && "border: 1px solid #00f;"}
+  ${(props) => props.noMargin && "margin-bottom: 0px;"}
   ${(props) => props.row && labelRow}
 `;
 
@@ -205,13 +206,13 @@ const Button = styled.TouchableOpacity`
   justify-content: center;
   align-items: center;
   width: 50%;
-  ${(props) => props.withBorder && 'border-right-width: 1px;'}
+  ${(props) => props.withBorder && "border-right-width: 1px;"}
 `;
 
 const ButtonText = styled(MyText)`
   color: #057dff;
   font-size: 18px;
-  ${(props) => props.bold && 'font-weight: bold;'}
+  ${(props) => props.bold && "font-weight: bold;"}
 `;
 
 const Input = styled(MyText)`

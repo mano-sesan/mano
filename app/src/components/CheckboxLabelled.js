@@ -1,8 +1,8 @@
-import React from 'react';
-import styled, { css } from 'styled-components/native';
-import colors from '../utils/colors';
-import { MyText } from './MyText';
-import { TouchableWithoutFeedback } from 'react-native';
+import React from "react";
+import styled, { css } from "styled-components/native";
+import colors from "../utils/colors";
+import { MyText } from "./MyText";
+import { TouchableWithoutFeedback } from "react-native";
 
 const CheckboxLabelled = ({ _id, label, onPress, value, bold, alone = false }) => (
   <TouchableWithoutFeedback onPress={() => onPress({ _id, value: !value, label })}>
@@ -41,9 +41,9 @@ const CheckBoxContainer = styled.View`
 `;
 
 const LabelStyled = styled(MyText)`
-  ${(props) => props.bold && 'font-weight: bold;'}
-  ${(props) => props.bold && 'font-size: 18px;'}
-  ${(props) => props.bold && 'margin-left: 15px;'}
+  ${(props) => props.bold && "font-weight: bold;"}
+  ${(props) => props.bold && "font-size: 18px;"}
+  ${(props) => props.bold && "margin-left: 15px;"}
   line-height: 22px;
   text-align-vertical: center;
 `;

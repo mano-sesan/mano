@@ -1,15 +1,15 @@
-import { useSetRecoilState } from 'recoil';
-import { personsState } from './persons';
-import { territoryObservationsState } from './territoryObservations';
-import { territoriesState } from './territory';
-import { passagesState } from './passages';
-import { rencontresState } from './rencontres';
-import { commentsState } from './comments';
-import { placesState } from './places';
-import { actionsState } from './actions';
-import { reportsState } from './reports';
-import { groupsState } from './groups';
-import { relsPersonPlaceState } from './relPersonPlace';
+import { useSetRecoilState } from "recoil";
+import { personsState } from "./persons";
+import { territoryObservationsState } from "./territoryObservations";
+import { territoriesState } from "./territory";
+import { passagesState } from "./passages";
+import { rencontresState } from "./rencontres";
+import { commentsState } from "./comments";
+import { placesState } from "./places";
+import { actionsState } from "./actions";
+import { reportsState } from "./reports";
+import { groupsState } from "./groups";
+import { relsPersonPlaceState } from "./relPersonPlace";
 
 const useResetAllCachedDataRecoilStates = () => {
   const setPersons = useSetRecoilState(personsState);

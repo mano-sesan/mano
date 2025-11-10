@@ -1,24 +1,24 @@
-import { atom } from 'recoil';
-import { storage } from '../services/dataManagement';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { atom } from "recoil";
+import { storage } from "../services/dataManagement";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const placesState = atom({
-  key: 'placesState',
-  default: JSON.parse(storage.getString('place') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('place', JSON.stringify(newValue)))],
+  key: "placesState",
+  default: JSON.parse(storage.getString("place") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("place", JSON.stringify(newValue)))],
 });
 
-const encryptedFields = ['user', 'name'];
+const encryptedFields = ["user", "name"];
 
 export const preparePlaceForEncryption = (place) => {
   try {
     if (!place.name) {
-      throw new Error('Place is missing name');
+      throw new Error("Place is missing name");
     }
     if (!looseUuidRegex.test(place.user)) {
-      throw new Error('Place is missing user');
+      throw new Error("Place is missing user");
     }
   } catch (error) {
     Alert.alert(

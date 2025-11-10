@@ -1,12 +1,12 @@
-import React, { useCallback } from 'react';
-import styled from 'styled-components/native';
+import React, { useCallback } from "react";
+import styled from "styled-components/native";
 
-import ButtonRight from './ButtonRight';
-import RowContainer from './RowContainer';
-import { MyText } from './MyText';
-import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
+import ButtonRight from "./ButtonRight";
+import RowContainer from "./RowContainer";
+import { MyText } from "./MyText";
+import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
 
-const TreatmentRow = ({ onTreatmentPress, treatment, testID = 'treatment' }) => {
+const TreatmentRow = ({ onTreatmentPress, treatment, testID = "treatment" }) => {
   const name = treatment?.name;
   const dosage = treatment?.dosage;
   const frequency = treatment?.frequency;
@@ -16,8 +16,8 @@ const TreatmentRow = ({ onTreatmentPress, treatment, testID = 'treatment' }) => 
   }, [treatment, onTreatmentPress]);
 
   return (
-    <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(' ').join('-').toLowerCase()}-button`}>
-      <DateAndTimeCalendarDisplay date={treatment.startDate} topCaption={treatment.endDate ? 'Du' : 'À partir du'} />
+    <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(" ").join("-").toLowerCase()}-button`}>
+      <DateAndTimeCalendarDisplay date={treatment.startDate} topCaption={treatment.endDate ? "Du" : "À partir du"} />
       <DateAndTimeCalendarDisplay date={treatment.endDate} topCaption="au" />
       <CaptionsContainer>
         <Name bold>{name}</Name>

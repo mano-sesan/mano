@@ -1,11 +1,11 @@
-import * as Sentry from '@sentry/react-native';
+import * as Sentry from "@sentry/react-native";
 
 // https://docs.sentry.io/platforms/javascript/enriching-events/context/#example-usages
 
 export const capture = (err, context = {}) => {
-  console.log('capture', err, JSON.stringify(context, null, 2));
+  console.log("capture", err, JSON.stringify(context, null, 2));
 
-  if (typeof context === 'string') {
+  if (typeof context === "string") {
     context = JSON.parse(context);
   } else {
     context = JSON.parse(JSON.stringify(context));
@@ -13,10 +13,10 @@ export const capture = (err, context = {}) => {
   if (context?.extra?.response?.status === 401) return;
 
   if (context?.extra?.body?.password) {
-    context.extra.body.password = '******';
+    context.extra.body.password = "******";
   }
   if (Sentry && err) {
-    if (typeof err === 'string') {
+    if (typeof err === "string") {
       Sentry.captureMessage(err, context);
     } else {
       Sentry.captureException(err, context);

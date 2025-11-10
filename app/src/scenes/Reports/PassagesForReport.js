@@ -1,15 +1,15 @@
-import { useRecoilState, useRecoilValue } from 'recoil';
-import React, { useCallback } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyPassage, ListNoMorePassages } from '../../components/ListEmptyContainer';
-import { passagesForReport } from './selectors';
-import { getPeriodTitle } from './utils';
-import { currentTeamState } from '../../recoil/auth';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import BubbleRow from '../../components/BubbleRow';
+import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useCallback } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyPassage, ListNoMorePassages } from "../../components/ListEmptyContainer";
+import { passagesForReport } from "./selectors";
+import { getPeriodTitle } from "./utils";
+import { currentTeamState } from "../../recoil/auth";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import BubbleRow from "../../components/BubbleRow";
 const keyExtractor = (item) => item._id;
 
 const PassagesForReport = ({ navigation, route }) => {
@@ -31,7 +31,7 @@ const PassagesForReport = ({ navigation, route }) => {
         date={passage.date || passage.createdAt}
         user={passage.user}
         urgent={passage.urgent}
-        itemName={personsObject[passage.person]?.name || personsObject[passage.person]?.personName || 'Passage anonyme'}
+        itemName={personsObject[passage.person]?.name || personsObject[passage.person]?.personName || "Passage anonyme"}
         metaCaption="Passage noté par"
       />
     );

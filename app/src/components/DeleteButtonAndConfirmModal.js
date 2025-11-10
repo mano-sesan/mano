@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import styled from 'styled-components/native';
-import { Alert, Modal } from 'react-native';
-import colors from '../utils/colors';
-import ButtonDelete from './ButtonDelete';
-import ButtonsContainer from './ButtonsContainer';
-import InputLabelled from './InputLabelled';
-import SceneContainer from './SceneContainer';
-import ScreenTitle from './ScreenTitle';
-import ScrollContainer from './ScrollContainer';
-import { SubTitle } from './Title';
-import { MyText } from './MyText';
-import { useRecoilValue } from 'recoil';
-import { userState } from '../recoil/auth';
+import React, { useState } from "react";
+import styled from "styled-components/native";
+import { Alert, Modal } from "react-native";
+import colors from "../utils/colors";
+import ButtonDelete from "./ButtonDelete";
+import ButtonsContainer from "./ButtonsContainer";
+import InputLabelled from "./InputLabelled";
+import SceneContainer from "./SceneContainer";
+import ScreenTitle from "./ScreenTitle";
+import ScrollContainer from "./ScrollContainer";
+import { SubTitle } from "./Title";
+import { MyText } from "./MyText";
+import { useRecoilValue } from "recoil";
+import { userState } from "../recoil/auth";
 
 const DeleteButtonAndConfirmModal = ({
   children,
@@ -19,12 +19,12 @@ const DeleteButtonAndConfirmModal = ({
   onDelete,
   onBack,
   textToConfirm,
-  roles = ['admin'],
+  roles = ["admin"],
   roleErrorMessage = "Désolé, seul un admin peut supprimer ce type d'élément",
 }) => {
   const user = useRecoilValue(userState);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
-  const [textConfirmed, setTextConfirmed] = useState('');
+  const [textConfirmed, setTextConfirmed] = useState("");
   const [deleting, setDeleting] = useState(false);
 
   const onDeleteRequest = () => {
@@ -35,12 +35,12 @@ const DeleteButtonAndConfirmModal = ({
     setShowConfirmDelete(true);
   };
   const onDeleteConfirm = async () => {
-    if (!textConfirmed) return Alert.alert('Veuillez rentrer le texte demandé');
+    if (!textConfirmed) return Alert.alert("Veuillez rentrer le texte demandé");
     if (textConfirmed.trim().toLocaleLowerCase() !== textToConfirm.trim().toLocaleLowerCase()) {
-      return Alert.alert('Le texte renseigné est incorrect');
+      return Alert.alert("Le texte renseigné est incorrect");
     }
     if (textConfirmed.trim() !== textToConfirm.trim()) {
-      return Alert.alert('Veuillez respecter les minuscules/majuscules');
+      return Alert.alert("Veuillez respecter les minuscules/majuscules");
     }
     const isSuccess = await onDelete();
     setDeleting(false);
@@ -58,7 +58,7 @@ const DeleteButtonAndConfirmModal = ({
           <ScreenTitle title={title} onBack={() => setShowConfirmDelete(false)} />
           <ScrollContainer>
             <SubTitle>{children}</SubTitle>
-            <SubTitle>Veuillez taper le texte ci-dessous pour confirmer{'\n'}en respectant les majuscules, minuscules ou accents</SubTitle>
+            <SubTitle>Veuillez taper le texte ci-dessous pour confirmer{"\n"}en respectant les majuscules, minuscules ou accents</SubTitle>
             <TextToConfirm bold color={colors.delete.color}>
               {textToConfirm}
             </TextToConfirm>

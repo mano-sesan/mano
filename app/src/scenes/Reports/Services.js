@@ -1,17 +1,17 @@
-import { useRecoilState, useRecoilValue } from 'recoil';
-import React, { useCallback, useEffect, useState } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyServices } from '../../components/ListEmptyContainer';
-import { getPeriodTitle } from './utils';
-import { currentTeamState, organisationState } from '../../recoil/auth';
-import API from '../../services/api';
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import { servicesSelector } from '../../recoil/reports';
+import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useCallback, useEffect, useState } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyServices } from "../../components/ListEmptyContainer";
+import { getPeriodTitle } from "./utils";
+import { currentTeamState, organisationState } from "../../recoil/auth";
+import API from "../../services/api";
+import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { servicesSelector } from "../../recoil/reports";
 const keyExtractor = (item) => item._id;
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from "use-debounce";
 
 function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
   const debounced = useDebouncedCallback(
@@ -20,7 +20,7 @@ function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
 
       API.post({ path: `/service/team/${team}/date/${date}`, body: { count: value, service: service.service } }).then((res) => {
         if (res.error) {
-          return Alert.alert('Erreur lors de la mise à jour du service');
+          return Alert.alert("Erreur lors de la mise à jour du service");
         }
         onUpdated(res.data.count);
       });
@@ -114,7 +114,7 @@ const Services = ({ navigation, route }) => {
         {groupedServices.map((group) => {
           return (
             <TouchableOpacity key={group.groupTitle} onPress={() => setActiveTab(group.groupTitle)}>
-              <View className={`p-3 bg-white ${group.groupTitle === activeTab ? 'border-b-green-700 border-b-4' : ''}`}>
+              <View className={`p-3 bg-white ${group.groupTitle === activeTab ? "border-b-green-700 border-b-4" : ""}`}>
                 <Text>{group.groupTitle}</Text>
               </View>
             </TouchableOpacity>

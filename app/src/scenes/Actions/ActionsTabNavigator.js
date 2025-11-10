@@ -1,15 +1,15 @@
 // app/src/scenes/Actions/ActionsTabNavigator.js
-import React, { useState } from 'react';
-import { Platform, View, TouchableOpacity, Animated } from 'react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ActionsList from './ActionsList';
-import Tabs from '../../components/Tabs';
-import { actionsFiltersState, CANCEL, DONE, TODO } from '../../recoil/actions';
-import { INCOMINGDAYS, PASSED, TODAY } from '../../recoil/selectors';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { useRecoilValue } from 'recoil';
+import React, { useState } from "react";
+import { Platform, View, TouchableOpacity, Animated } from "react-native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ActionsList from "./ActionsList";
+import Tabs from "../../components/Tabs";
+import { actionsFiltersState, CANCEL, DONE, TODO } from "../../recoil/actions";
+import { INCOMINGDAYS, PASSED, TODAY } from "../../recoil/selectors";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useRecoilValue } from "recoil";
 
 const TopTab = createMaterialTopTabNavigator();
 const SubTab = createMaterialTopTabNavigator();
@@ -28,7 +28,7 @@ function MyTabBar({ state, descriptors, navigation, position }) {
 
         const onPress = () => {
           const event = navigation.emit({
-            type: 'tabPress',
+            type: "tabPress",
             target: route.key,
             canPreventDefault: true,
           });
@@ -40,7 +40,7 @@ function MyTabBar({ state, descriptors, navigation, position }) {
 
         const onLongPress = () => {
           navigation.emit({
-            type: 'tabLongPress',
+            type: "tabLongPress",
             target: route.key,
           });
         };
@@ -65,14 +65,16 @@ function MyTabBar({ state, descriptors, navigation, position }) {
             style={{
               // textDecoration: isFocused ? 'underline' : 'none',
               borderBottomWidth: isFocused ? 2 : 0,
-            }}>
+            }}
+          >
             <Animated.Text
               // eslint-disable-next-line react-native/no-inline-styles
               style={{
-                color: isFocused ? '#000' : '#000',
-                fontWeight: isFocused ? 'bold' : 'normal',
+                color: isFocused ? "#000" : "#000",
+                fontWeight: isFocused ? "bold" : "normal",
                 opacity,
-              }}>
+              }}
+            >
               {label}
             </Animated.Text>
           </TouchableOpacity>
@@ -94,7 +96,7 @@ const TodoNavigator = () => {
       initialRouteName={TODAY}
       screenListeners={{
         focus: (e) => {
-          console.log('Focused tab:', e.target);
+          console.log("Focused tab:", e.target);
           setActiveTab(e.target);
         },
       }}
@@ -102,20 +104,21 @@ const TodoNavigator = () => {
         // swipeEnabled: true,
         tabBarItemStyle: {
           flexShrink: 1,
-          borderColor: 'transparent',
+          borderColor: "transparent",
           borderWidth: 1,
         },
         tabBarLabelStyle: {
-          textTransform: 'none',
+          textTransform: "none",
         },
         tabBarContentContainerStyle: {
           flex: 1,
-          borderColor: 'red',
+          borderColor: "red",
           borderWidth: 3,
         },
-      }}>
+      }}
+    >
       <SubTab.Screen
-        options={{ tabBarLabel: 'Passées', lazy: true }}
+        options={{ tabBarLabel: "Passées", lazy: true }}
         name={PASSED}
         component={ActionsList}
         initialParams={{ status: TODO, timeframe: PASSED }}
@@ -127,7 +130,7 @@ const TodoNavigator = () => {
         initialParams={{ status: TODO, timeframe: TODAY }}
       />
       <SubTab.Screen
-        options={{ tabBarLabel: 'À venir', lazy: true }}
+        options={{ tabBarLabel: "À venir", lazy: true }}
         name={INCOMINGDAYS}
         component={ActionsList}
         initialParams={{ status: TODO, timeframe: INCOMINGDAYS }}
@@ -143,7 +146,7 @@ const ActionsTabBar = (props) => {
   const route = useRoute();
   const numberOfFilters = actionsFilters.categories?.length || 0;
 
-  const onFiltersPress = () => navigation.push('ActionsFilter', route.params);
+  const onFiltersPress = () => navigation.push("ActionsFilter", route.params);
 
   return (
     <>
@@ -156,11 +159,11 @@ const ActionsTabBar = (props) => {
 const ActionsTabNavigator = () => {
   return (
     <SceneContainer>
-      <TopTab.Navigator tabBar={ActionsTabBar} removeClippedSubviews={Platform.OS === 'android'} screenOptions={{ swipeEnabled: true }}>
-        <TopTab.Screen name={TODO} options={{ tabBarLabel: 'À Faire' }} component={TodoNavigator} />
+      <TopTab.Navigator tabBar={ActionsTabBar} removeClippedSubviews={Platform.OS === "android"} screenOptions={{ swipeEnabled: true }}>
+        <TopTab.Screen name={TODO} options={{ tabBarLabel: "À Faire" }} component={TodoNavigator} />
         <TopTab.Screen
           name={DONE}
-          options={{ tabBarLabel: 'Terminées' }}
+          options={{ tabBarLabel: "Terminées" }}
           component={ActionsList}
           initialParams={{
             status: DONE,
@@ -169,7 +172,7 @@ const ActionsTabNavigator = () => {
         />
         <TopTab.Screen
           name={CANCEL}
-          options={{ tabBarLabel: 'Annulées' }}
+          options={{ tabBarLabel: "Annulées" }}
           component={ActionsList}
           initialParams={{
             status: CANCEL,

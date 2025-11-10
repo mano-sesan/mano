@@ -1,10 +1,10 @@
-import React, { forwardRef } from 'react';
-import CheckboxLabelled from './CheckboxLabelled';
-import DateAndTimeInput from './DateAndTimeInput';
-import InputLabelled from './InputLabelled';
-import MultiCheckBoxes from './MultiCheckBoxes/MultiCheckBoxes';
-import SelectLabelled from './Selects/SelectLabelled';
-import YesNoSelect from './Selects/YesNoSelect';
+import React, { forwardRef } from "react";
+import CheckboxLabelled from "./CheckboxLabelled";
+import DateAndTimeInput from "./DateAndTimeInput";
+import InputLabelled from "./InputLabelled";
+import MultiCheckBoxes from "./MultiCheckBoxes/MultiCheckBoxes";
+import SelectLabelled from "./Selects/SelectLabelled";
+import YesNoSelect from "./Selects/YesNoSelect";
 
 const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...props }, ref) => {
   // prettier-ignore
@@ -15,33 +15,33 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
 
   return (
     <>
-      {!!['text', 'number', 'textarea'].includes(field.type) && (
+      {!!["text", "number", "textarea"].includes(field.type) && (
         <InputLabelled
           label={label}
           onChangeText={handleChange}
-          value={value || ''}
+          value={value || ""}
           placeholder={label}
-          keyboardType={field.type === 'number' ? 'number-pad' : 'default'}
-          multiline={field.type === 'textarea'}
+          keyboardType={field.type === "number" ? "number-pad" : "default"}
+          multiline={field.type === "textarea"}
           required={field.required}
           ref={ref}
           {...props}
         />
       )}
-      {!!['date-with-time', 'date', 'duration'].includes(field.type) && (
+      {!!["date-with-time", "date", "duration"].includes(field.type) && (
         <DateAndTimeInput
           label={label}
           setDate={handleChange}
           date={value}
-          showTime={field.type === 'date-with-time'}
-          withTime={field.type === 'date-with-time'}
+          showTime={field.type === "date-with-time"}
+          withTime={field.type === "date-with-time"}
           showDay
           required={field.required}
         />
       )}
-      {!!['boolean'].includes(field.type) && <CheckboxLabelled label={label} alone onPress={() => handleChange(!value)} value={value} />}
-      {!!['yes-no'].includes(field.type) && <YesNoSelect label={label} value={value} onSelect={handleChange} {...props} />}
-      {!!['enum'].includes(field.type) && (
+      {!!["boolean"].includes(field.type) && <CheckboxLabelled label={label} alone onPress={() => handleChange(!value)} value={value} />}
+      {!!["yes-no"].includes(field.type) && <YesNoSelect label={label} value={value} onSelect={handleChange} {...props} />}
+      {!!["enum"].includes(field.type) && (
         <SelectLabelled
           allowCreateOption={field.allowCreateOption}
           label={label}
@@ -51,7 +51,7 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
           {...props}
         />
       )}
-      {!!['multi-choice'].includes(field.type) && (
+      {!!["multi-choice"].includes(field.type) && (
         <MultiCheckBoxes
           allowCreateOption={field.allowCreateOption}
           label={label}

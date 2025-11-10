@@ -1,27 +1,27 @@
-import { atom } from 'recoil';
-import { storage } from '../services/dataManagement';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { atom } from "recoil";
+import { storage } from "../services/dataManagement";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const relsPersonPlaceState = atom({
-  key: 'relsPersonPlaceState',
-  default: JSON.parse(storage.getString('relPersonPlace') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('relPersonPlace', JSON.stringify(newValue)))],
+  key: "relsPersonPlaceState",
+  default: JSON.parse(storage.getString("relPersonPlace") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("relPersonPlace", JSON.stringify(newValue)))],
 });
 
-const encryptedFields = ['place', 'person', 'user'];
+const encryptedFields = ["place", "person", "user"];
 
 export const prepareRelPersonPlaceForEncryption = (relPersonPlace) => {
   try {
     if (!looseUuidRegex.test(relPersonPlace.person)) {
-      throw new Error('RelPersonPlace is missing person');
+      throw new Error("RelPersonPlace is missing person");
     }
     if (!looseUuidRegex.test(relPersonPlace.place)) {
-      throw new Error('RelPersonPlace is missing place');
+      throw new Error("RelPersonPlace is missing place");
     }
     if (!looseUuidRegex.test(relPersonPlace.user)) {
-      throw new Error('RelPersonPlace is missing user');
+      throw new Error("RelPersonPlace is missing user");
     }
   } catch (error) {
     Alert.alert(

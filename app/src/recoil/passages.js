@@ -1,28 +1,28 @@
-import { atom } from 'recoil';
-import { storage } from '../services/dataManagement';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { atom } from "recoil";
+import { storage } from "../services/dataManagement";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const passagesState = atom({
-  key: 'passagesState',
-  default: JSON.parse(storage.getString('passage') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('passage', JSON.stringify(newValue)))],
+  key: "passagesState",
+  default: JSON.parse(storage.getString("passage") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("passage", JSON.stringify(newValue)))],
 });
 
-const encryptedFields = ['person', 'team', 'user', 'date', 'comment'];
+const encryptedFields = ["person", "team", "user", "date", "comment"];
 
 export const preparePassageForEncryption = (passage) => {
   try {
     // we don't check the presence of a person because passage can be anonymous
     if (!looseUuidRegex.test(passage.team)) {
-      throw new Error('Passage is missing team');
+      throw new Error("Passage is missing team");
     }
     if (!looseUuidRegex.test(passage.user)) {
-      throw new Error('Passage is missing user');
+      throw new Error("Passage is missing user");
     }
     if (!passage.date) {
-      throw new Error('Passage is missing date');
+      throw new Error("Passage is missing date");
     }
   } catch (error) {
     Alert.alert(

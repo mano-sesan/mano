@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Alert, View } from 'react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import styled from 'styled-components/native';
-import Button from '../../components/Button';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import InputMultilineAutoAdjust from '../../components/InputMultilineAutoAdjust';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ScrollContainer from '../../components/ScrollContainer';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { passagesState, preparePassageForEncryption } from '../../recoil/passages';
-import API from '../../services/api';
+import React, { useState } from "react";
+import { Alert, View } from "react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import styled from "styled-components/native";
+import Button from "../../components/Button";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ScrollContainer from "../../components/ScrollContainer";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
+import API from "../../services/api";
 
 const Passage = ({ navigation, route }) => {
   const personId = route.params.person._id;
@@ -25,14 +25,14 @@ const Passage = ({ navigation, route }) => {
 
   const createPassage = async () => {
     const response = await API.post({
-      path: '/passage',
+      path: "/passage",
       body: preparePassageForEncryption(passage),
     });
     if (response.ok) {
       const newPassage = response.decryptedData;
 
       setPassages([newPassage, ...passages]);
-      Alert.alert('Passage ajouté !');
+      Alert.alert("Passage ajouté !");
     }
     return response;
   };
@@ -46,14 +46,14 @@ const Passage = ({ navigation, route }) => {
       const updatedPassage = response.decryptedData;
 
       setPassages((passages) => passages.map((r) => (r._id === updatedPassage._id ? updatedPassage : r)));
-      Alert.alert('Passage modifié !');
+      Alert.alert("Passage modifié !");
     }
     return response;
   };
 
   return (
     <SceneContainer>
-      <ScreenTitle title={isNewPassage ? 'Ajouter un passage' : 'Modifier un passage'} onBack={() => navigation.goBack()} />
+      <ScreenTitle title={isNewPassage ? "Ajouter un passage" : "Modifier un passage"} onBack={() => navigation.goBack()} />
       <ScrollContainer keyboardShouldPersistTaps="handled">
         <View>
           <DateAndTimeInput

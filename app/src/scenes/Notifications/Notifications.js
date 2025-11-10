@@ -1,24 +1,24 @@
-import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import * as Sentry from '@sentry/react-native';
-import React, { useCallback, useMemo } from 'react';
-import { actionsState, TODO } from '../../recoil/actions';
-import { currentTeamState } from '../../recoil/auth';
-import { commentsState, prepareCommentForEncryption } from '../../recoil/comments';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { SectionListStyled } from '../../components/Lists';
-import ActionRow from '../../components/ActionRow';
-import CommentRow from '../Comments/CommentRow';
-import styled from 'styled-components/native';
-import { MyText } from '../../components/MyText';
-import { ListEmptyUrgent, ListEmptyUrgentAction, ListEmptyUrgentComment } from '../../components/ListEmptyContainer';
-import { actionsObjectSelector, itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import API from '../../services/api';
-import { Alert } from 'react-native';
+import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import * as Sentry from "@sentry/react-native";
+import React, { useCallback, useMemo } from "react";
+import { actionsState, TODO } from "../../recoil/actions";
+import { currentTeamState } from "../../recoil/auth";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { SectionListStyled } from "../../components/Lists";
+import ActionRow from "../../components/ActionRow";
+import CommentRow from "../Comments/CommentRow";
+import styled from "styled-components/native";
+import { MyText } from "../../components/MyText";
+import { ListEmptyUrgent, ListEmptyUrgentAction, ListEmptyUrgentComment } from "../../components/ListEmptyContainer";
+import { actionsObjectSelector, itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import API from "../../services/api";
+import { Alert } from "react-native";
 
 export const urgentItemsSelector = selector({
-  key: 'urgentItemsSelector',
+  key: "urgentItemsSelector",
   get: ({ get }) => {
     const currentTeam = get(currentTeamState);
     const persons = get(itemsGroupedByPersonSelector);
@@ -42,14 +42,14 @@ export const urgentItemsSelector = selector({
       if (comment.person) {
         const id = comment.person;
         commentPopulated.person = persons[id];
-        commentPopulated.type = 'person';
+        commentPopulated.type = "person";
       }
       if (comment.action) {
         const id = comment.action;
         const action = actionsObject[id];
         commentPopulated.action = action;
         if (action?.person) commentPopulated.person = persons[action?.person];
-        commentPopulated.type = 'action';
+        commentPopulated.type = "action";
       }
       commentsFiltered.push(commentPopulated);
     }
@@ -70,11 +70,11 @@ const Notifications = ({ navigation }) => {
   const sections = useMemo(
     () => [
       {
-        title: 'Actions urgentes',
+        title: "Actions urgentes",
         data: actionsFiltered,
       },
       {
-        title: 'Commentaires urgents',
+        title: "Commentaires urgents",
         data: commentsFiltered,
       },
     ],
@@ -83,20 +83,20 @@ const Notifications = ({ navigation }) => {
 
   const onPseudoPress = useCallback(
     (person) => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.navigate('Persons', { screen: 'Person', params: { person, fromRoute: 'Notifications' } });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.navigate("Persons", { screen: "Person", params: { person, fromRoute: "Notifications" } });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
     (action) => {
-      Sentry.setContext('action', { _id: action._id });
-      navigation.navigate('Agenda', {
-        screen: 'Action',
+      Sentry.setContext("action", { _id: action._id });
+      navigation.navigate("Agenda", {
+        screen: "Action",
         params: {
           action,
-          fromRoute: 'ActionsList',
+          fromRoute: "ActionsList",
         },
       });
     },
@@ -110,13 +110,13 @@ const Notifications = ({ navigation }) => {
     }
     if (item.isComment) {
       const comment = item;
-      const commentedItem = comment.type === 'action' ? comment.action : comment.person;
+      const commentedItem = comment.type === "action" ? comment.action : comment.person;
       return (
         <CommentRow
           key={comment._id}
           comment={comment}
-          itemName={`${comment.type === 'action' ? 'Action' : 'Personne suivie'} : ${commentedItem?.name}`}
-          onItemNamePress={() => (comment.type === 'action' ? onActionPress(comment.action) : onPseudoPress(comment.person))}
+          itemName={`${comment.type === "action" ? "Action" : "Personne suivie"} : ${commentedItem?.name}`}
+          onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.action) : onPseudoPress(comment.person))}
           canToggleUrgentCheck
           onDelete={async () => {
             const response = await API.delete({ path: `/comment/${comment._id}` });
@@ -130,8 +130,8 @@ const Notifications = ({ navigation }) => {
           onUpdate={
             comment.team
               ? async (commentUpdated) => {
-                  if (comment.type === 'action') commentUpdated.action = comment.action._id;
-                  if (comment.type === 'person') commentUpdated.person = comment.person._id;
+                  if (comment.type === "action") commentUpdated.action = comment.action._id;
+                  if (comment.type === "person") commentUpdated.person = comment.person._id;
                   const response = await API.put({
                     path: `/comment/${comment._id}`,
                     body: prepareCommentForEncryption(commentUpdated),
@@ -160,7 +160,7 @@ const Notifications = ({ navigation }) => {
 
   const renderEmptySection = ({ section }) => {
     if (!section.data.length) {
-      if (section.title === 'Actions urgentes') return <ListEmptyUrgentAction />;
+      if (section.title === "Actions urgentes") return <ListEmptyUrgentAction />;
       return <ListEmptyUrgentComment />;
     }
     return null;

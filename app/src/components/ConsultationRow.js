@@ -1,24 +1,24 @@
-import React, { useCallback, useMemo } from 'react';
-import styled from 'styled-components/native';
+import React, { useCallback, useMemo } from "react";
+import styled from "styled-components/native";
 
-import ButtonRight from './ButtonRight';
-import RowContainer from './RowContainer';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
+import ButtonRight from "./ButtonRight";
+import RowContainer from "./RowContainer";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
 
-import { DONE, TODO } from '../recoil/actions';
-import UserName from './UserName';
-import DateAndTimeCalendarDisplay from './DateAndTimeCalendarDisplay';
-import { useRecoilValue } from 'recoil';
-import { userState } from '../recoil/auth';
-import { StyleSheet } from 'react-native';
-import { consultationIsVisibleByMe, disableConsultationRow } from '../recoil/consultations';
-import { itemsGroupedByPersonSelector } from '../recoil/selectors';
+import { DONE, TODO } from "../recoil/actions";
+import UserName from "./UserName";
+import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
+import { useRecoilValue } from "recoil";
+import { userState } from "../recoil/auth";
+import { StyleSheet } from "react-native";
+import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
+import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 
 const ConsultationRow = ({
   onConsultationPress,
   consultation,
-  testID = 'consultation',
+  testID = "consultation",
   withBadge = false,
   showStatus,
   showPseudo,
@@ -28,8 +28,8 @@ const ConsultationRow = ({
 
   const me = useRecoilValue(userState);
 
-  const name = disableConsultationRow(consultation, me) ? '' : consultation.name || `Consultation ${consultation.type}`;
-  const type = disableConsultationRow(consultation, me) ? '' : consultation.type;
+  const name = disableConsultationRow(consultation, me) ? "" : consultation.name || `Consultation ${consultation.type}`;
+  const type = disableConsultationRow(consultation, me) ? "" : consultation.type;
   const status = consultation.status;
   const user = consultation.user;
   const person = useMemo(() => (consultation?.person ? personsObject?.[consultation.person] : null), [personsObject, consultation.person]);
@@ -53,7 +53,8 @@ const ConsultationRow = ({
       styles={styles}
       disabled={!visibleByMe}
       onPress={onRowPress}
-      testID={`${testID}-row-${name?.split(' ').join('-').toLowerCase()}-button`}>
+      testID={`${testID}-row-${name?.split(" ").join("-").toLowerCase()}-button`}
+    >
       {!!withBadge && (
         <ConsultationBadge>
           <MyText>🩺</MyText>
@@ -66,11 +67,11 @@ const ConsultationRow = ({
         {showStatus ? (
           <>
             <StatusContainer>
-              <Status color={colors.app[status === DONE ? 'color' : 'secondary']}>{status}</Status>
+              <Status color={colors.app[status === DONE ? "color" : "secondary"]}>{status}</Status>
             </StatusContainer>
           </>
         ) : showPseudo && pseudo ? (
-          <PseudoContainer onPress={onPseudoContainerPress} testID={`${testID}-row-person-${pseudo?.split(' ').join('-').toLowerCase()}-button`}>
+          <PseudoContainer onPress={onPseudoContainerPress} testID={`${testID}-row-person-${pseudo?.split(" ").join("-").toLowerCase()}-button`}>
             <Pseudo>Pour {pseudo}</Pseudo>
           </PseudoContainer>
         ) : null}
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
   container: {
     // borderWidth: 2,
     // borderColor: '#0a69da',
-    backgroundColor: '#ddf4ff',
+    backgroundColor: "#ddf4ff",
   },
   subContainer: {},
 });

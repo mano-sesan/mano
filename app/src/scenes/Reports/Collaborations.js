@@ -1,24 +1,24 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert } from 'react-native';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import API from '../../services/api';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import Button from '../../components/Button';
-import Search from '../../components/Search';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyCollaboration } from '../../components/ListEmptyContainer';
-import Row from '../../components/Row';
-import Spacer from '../../components/Spacer';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { getPeriodTitle } from './utils';
-import { prepareReportForEncryption } from '../../recoil/reports';
-import { currentTeamReportsSelector } from './selectors';
-import { refreshTriggerState } from '../../components/Loader';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Alert } from "react-native";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import API from "../../services/api";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import Button from "../../components/Button";
+import Search from "../../components/Search";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyCollaboration } from "../../components/ListEmptyContainer";
+import Row from "../../components/Row";
+import Spacer from "../../components/Spacer";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { getPeriodTitle } from "./utils";
+import { prepareReportForEncryption } from "../../recoil/reports";
+import { currentTeamReportsSelector } from "./selectors";
+import { refreshTriggerState } from "../../components/Loader";
 
 const Collaborations = ({ route, navigation }) => {
   const user = useRecoilValue(userState);
-  const [collaboration, setCollaboration] = useState('');
+  const [collaboration, setCollaboration] = useState("");
   const [posting, setPosting] = useState(false);
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
   const currentTeam = useRecoilValue(currentTeamState);
@@ -42,7 +42,7 @@ const Collaborations = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -74,7 +74,7 @@ const Collaborations = ({ route, navigation }) => {
           body: prepareReportForEncryption({ ...reportDB, collaborations, updatedBy: user._id }),
         })
       : await API.post({
-          path: '/report',
+          path: "/report",
           body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations, updatedBy: user._id }),
         });
     if (response.error) return Alert.alert(response.error);
@@ -99,31 +99,31 @@ const Collaborations = ({ route, navigation }) => {
     if (!isReadyToSave) return onBack();
 
     if (isReadyToSave) {
-      Alert.alert('Voulez-vous enregistrer cette co-intervention ?', null, [
+      Alert.alert("Voulez-vous enregistrer cette co-intervention ?", null, [
         {
-          text: 'Enregistrer',
+          text: "Enregistrer",
           onPress: onCreateCollaboration,
         },
         {
-          text: 'Ne pas enregistrer',
+          text: "Ne pas enregistrer",
           onPress: onBack,
-          style: 'destructive',
+          style: "destructive",
         },
         {
-          text: 'Annuler',
-          style: 'cancel',
+          text: "Annuler",
+          style: "cancel",
         },
       ]);
       return;
     }
-    Alert.alert('Voulez-vous abandonner la création de cette co-intervention ?', null, [
+    Alert.alert("Voulez-vous abandonner la création de cette co-intervention ?", null, [
       {
-        text: 'Continuer la création',
+        text: "Continuer la création",
       },
       {
-        text: 'Abandonner',
+        text: "Abandonner",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
     ]);
   };

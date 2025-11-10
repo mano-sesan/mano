@@ -1,28 +1,28 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, View } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import TerritoryMultiCheckBoxes from '../../components/MultiCheckBoxes/TerritoryMultiCheckBoxes';
-import SubList from '../../components/SubList';
-import TerritoryObservationRow from './TerritoryObservationRow';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { prepareTerritoryForEncryption, territoriesState } from '../../recoil/territory';
-import { territoryObservationsState } from '../../recoil/territoryObservations';
-import DeleteButtonAndConfirmModal from '../../components/DeleteButtonAndConfirmModal';
-import { userState } from '../../recoil/auth';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, View } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import TerritoryMultiCheckBoxes from "../../components/MultiCheckBoxes/TerritoryMultiCheckBoxes";
+import SubList from "../../components/SubList";
+import TerritoryObservationRow from "./TerritoryObservationRow";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
+import { territoryObservationsState } from "../../recoil/territoryObservations";
+import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import { userState } from "../../recoil/auth";
 
 const castToTerritory = (territory = {}) => ({
-  name: territory.name?.trim() || '',
-  user: territory.user || '',
+  name: territory.name?.trim() || "",
+  user: territory.user || "",
   types: territory.types || [],
-  perimeter: territory.perimeter?.trim() || '',
-  description: territory.description?.trim() || '',
-  entityKey: territory.entityKey || '',
+  perimeter: territory.perimeter?.trim() || "",
+  description: territory.description?.trim() || "",
+  entityKey: territory.entityKey || "",
 });
 
 const Territory = ({ route, navigation }) => {
@@ -54,7 +54,7 @@ const Territory = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -82,7 +82,7 @@ const Territory = ({ route, navigation }) => {
         })
       );
       setTerritoryDB(response.decryptedData);
-      Alert.alert('Territoire mis à jour !');
+      Alert.alert("Territoire mis à jour !");
       setUpdating(false);
       setEditable(false);
       return true;
@@ -103,7 +103,7 @@ const Territory = ({ route, navigation }) => {
     if (!response.ok) return false;
     setTerritories((territories) => territories.filter((t) => t._id !== territoryDB._id));
     setTerritoryObservations((obs) => obs.filter((o) => o.territory !== territoryDB._id));
-    Alert.alert('Territoire supprimé !');
+    Alert.alert("Territoire supprimé !");
     return true;
   };
 
@@ -113,30 +113,30 @@ const Territory = ({ route, navigation }) => {
     return true;
   }, [territoryDB, territory]);
 
-  const onNewObservation = () => navigation.navigate('TerritoryObservation', { territory: territoryDB, editable: true });
+  const onNewObservation = () => navigation.navigate("TerritoryObservation", { territory: territoryDB, editable: true });
 
   const onUpdateObservation = (obs) => {
-    navigation.navigate('TerritoryObservation', { obs, territory: territoryDB, editable: true });
+    navigation.navigate("TerritoryObservation", { obs, territory: territoryDB, editable: true });
   };
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce territoire ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce territoire ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const ok = await onUpdateTerritory();
           if (ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -186,11 +186,12 @@ const Territory = ({ route, navigation }) => {
               title={`Voulez-vous vraiment supprimer ${territoryDB?.name} ?`}
               onBack={onBack}
               textToConfirm={territoryDB?.name}
-              onDelete={onDelete}>
-              Cette opération est irréversible{'\n'}et entrainera la suppression définitive{'\n'}de toutes les observations liées au territoire
+              onDelete={onDelete}
+            >
+              Cette opération est irréversible{"\n"}et entrainera la suppression définitive{"\n"}de toutes les observations liées au territoire
             </DeleteButtonAndConfirmModal>
             <Button
-              caption={editable ? 'Mettre à jour' : 'Modifier'}
+              caption={editable ? "Mettre à jour" : "Modifier"}
               onPress={editable ? onUpdateTerritory : onEdit}
               disabled={editable ? isUpdateDisabled : false}
               loading={updating}
@@ -202,7 +203,8 @@ const Territory = ({ route, navigation }) => {
             key={territoryDB?._id}
             data={territoryObservations}
             renderItem={(obs, index) => <TerritoryObservationRow key={index} observation={obs} onUpdate={onUpdateObservation} />}
-            ifEmpty="Pas encore d'observation">
+            ifEmpty="Pas encore d'observation"
+          >
             <Button caption="Nouvelle observation" onPress={onNewObservation} testID="observations-add" />
           </SubList>
         </View>

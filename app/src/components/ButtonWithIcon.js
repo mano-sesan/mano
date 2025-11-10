@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import React from "react";
+import styled from "styled-components/native";
+import { ActivityIndicator, TouchableWithoutFeedback } from "react-native";
 
 const hitSlop = {
   top: 20,
@@ -9,7 +9,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonWithIcon = ({ onPress, color = '#fff', loading, children }) => {
+const ButtonWithIcon = ({ onPress, color = "#fff", loading, children }) => {
   return (
     <ButtonContainer>
       <TouchableWithoutFeedback onPress={onPress} hitSlop={hitSlop}>

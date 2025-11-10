@@ -1,29 +1,29 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, KeyboardAvoidingView, Text, View } from 'react-native';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import InputFromSearchList from '../../components/InputFromSearchList';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
-import Label from '../../components/Label';
-import Tags from '../../components/Tags';
-import { MyText } from '../../components/MyText';
-import { DONE, prepareActionForEncryption, TODO } from '../../recoil/actions';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import API from '../../services/api';
-import ActionCategoriesModalSelect from '../../components/ActionCategoriesModalSelect';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import { groupsState } from '../../recoil/groups';
-import { useFocusEffect } from '@react-navigation/native';
-import { refreshTriggerState } from '../../components/Loader';
-import Recurrence from '../../components/Recurrence';
-import { dayjsInstance } from '../../services/dateDayjs';
-import { getOccurrences } from '../../utils/recurrence';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import InputFromSearchList from "../../components/InputFromSearchList";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
+import Label from "../../components/Label";
+import Tags from "../../components/Tags";
+import { MyText } from "../../components/MyText";
+import { DONE, prepareActionForEncryption, TODO } from "../../recoil/actions";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import API from "../../services/api";
+import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import { groupsState } from "../../recoil/groups";
+import { useFocusEffect } from "@react-navigation/native";
+import { refreshTriggerState } from "../../components/Loader";
+import Recurrence from "../../components/Recurrence";
+import { dayjsInstance } from "../../services/dateDayjs";
+import { getOccurrences } from "../../utils/recurrence";
 
 const NewActionForm = ({ route, navigation }) => {
   const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
@@ -31,11 +31,11 @@ const NewActionForm = ({ route, navigation }) => {
   const organisation = useRecoilValue(organisationState);
   const groups = useRecoilValue(groupsState);
   const user = useRecoilValue(userState);
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [dueAt, setDueAt] = useState(null);
   const [withTime, setWithTime] = useState(false);
   const [completedAt, setCompletedAt] = useState(null);
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [isRecurrent, setIsRecurrent] = useState(false);
   const [recurrenceData, setRecurrenceData] = useState({});
@@ -54,7 +54,7 @@ const NewActionForm = ({ route, navigation }) => {
       e.preventDefault();
       onGoBackRequested();
     };
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -70,28 +70,28 @@ const NewActionForm = ({ route, navigation }) => {
     }, [route?.params?.person])
   );
 
-  const onSearchPerson = () => navigation.push('PersonsSearch', { fromRoute: 'NewActionForm' });
+  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "NewActionForm" });
 
   const onCreateActionRequest = () => {
     const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;
     const recurrenceDataWithDates = {
       ...recurrenceData,
-      startDate: dayjsInstance(dueAt).startOf('day').toDate(),
-      endDate: dayjsInstance(recurrenceData.endDate).startOf('day').toDate(),
+      startDate: dayjsInstance(dueAt).startOf("day").toDate(),
+      endDate: dayjsInstance(recurrenceData.endDate).startOf("day").toDate(),
     };
     const occurrences = hasRecurrence ? getOccurrences(recurrenceDataWithDates) : [];
     if (occurrences.length > 1) {
       const total = occurrences.length * (Array.isArray(actionPersons) ? actionPersons.length : 1);
       const text =
-        'En sauvegardant, du fait de la récurrence et du nombre de personnes, vous allez créer ' + total + ' actions. Voulez-vous continuer ?';
-      Alert.alert('Sauvegarde de multiple actions', text, [
+        "En sauvegardant, du fait de la récurrence et du nombre de personnes, vous allez créer " + total + " actions. Voulez-vous continuer ?";
+      Alert.alert("Sauvegarde de multiple actions", text, [
         {
-          text: 'Continuer',
+          text: "Continuer",
           onPress: onCreateAction,
         },
         {
-          text: 'Annuler',
-          style: 'cancel',
+          text: "Annuler",
+          style: "cancel",
         },
       ]);
     } else {
@@ -105,8 +105,8 @@ const NewActionForm = ({ route, navigation }) => {
     const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;
     const recurrenceDataWithDates = {
       ...recurrenceData,
-      startDate: dayjsInstance(dueAt).startOf('day').toDate(),
-      endDate: dayjsInstance(recurrenceData.endDate).startOf('day').toDate(),
+      startDate: dayjsInstance(dueAt).startOf("day").toDate(),
+      endDate: dayjsInstance(recurrenceData.endDate).startOf("day").toDate(),
     };
     const occurrences = hasRecurrence ? getOccurrences(recurrenceDataWithDates) : [];
 
@@ -117,7 +117,7 @@ const NewActionForm = ({ route, navigation }) => {
       // eslint-disable-next-line no-unused-vars
       for (const _personId of Array.isArray(actionPersons) ? actionPersons : [actionPersons]) {
         const recurrenceResponse = await API.post({
-          path: '/recurrence',
+          path: "/recurrence",
           body: recurrenceDataWithDates,
         });
         if (!recurrenceResponse.ok) {
@@ -147,7 +147,7 @@ const NewActionForm = ({ route, navigation }) => {
             recurrence: recurrencesIds[index],
             dueAt: !withTime
               ? occurrence
-              : dayjsInstance(occurrence).set('hour', dayjsInstance(dueAt).hour()).set('minute', dayjsInstance(dueAt).minute()).toDate(),
+              : dayjsInstance(occurrence).set("hour", dayjsInstance(dueAt).hour()).set("minute", dayjsInstance(dueAt).minute()).toDate(),
           })
         );
       } else {
@@ -169,7 +169,7 @@ const NewActionForm = ({ route, navigation }) => {
     });
 
     const response = await API.post({
-      path: '/action/multiple',
+      path: "/action/multiple",
       body: await Promise.all(actions.map(API.encryptItem)),
     });
 
@@ -186,21 +186,21 @@ const NewActionForm = ({ route, navigation }) => {
     // Quand il y a récurrence, on redirige juste vers la liste des actions
     if (hasRecurrence) {
       // Check if this action was created from a Person view or PersonsList
-      if ((route.params?.fromRoute === 'Person' || route.params?.fromRoute === 'PersonsList') && route.params?.person) {
-        if (route.params?.fromRoute === 'Person') {
-          navigation.replace('Person', { person: route.params.person });
+      if ((route.params?.fromRoute === "Person" || route.params?.fromRoute === "PersonsList") && route.params?.person) {
+        if (route.params?.fromRoute === "Person") {
+          navigation.replace("Person", { person: route.params.person });
         } else {
-          navigation.replace('PersonsList');
+          navigation.replace("PersonsList");
         }
       } else {
-        navigation.replace('ActionsList');
+        navigation.replace("ActionsList");
       }
       return;
     }
 
     const actionToRedirect = response.decryptedData[0];
-    Sentry.setContext('action', { _id: actionToRedirect._id });
-    navigation.replace('Action', {
+    Sentry.setContext("action", { _id: actionToRedirect._id });
+    navigation.replace("Action", {
       actions: response.decryptedData,
       action: actionToRedirect,
       editable: false,
@@ -228,31 +228,31 @@ const NewActionForm = ({ route, navigation }) => {
   const onGoBackRequested = () => {
     if (canGoBack) return onBack();
     if (isReadyToSave) {
-      Alert.alert('Voulez-vous enregistrer cette action ?', null, [
+      Alert.alert("Voulez-vous enregistrer cette action ?", null, [
         {
-          text: 'Enregistrer',
+          text: "Enregistrer",
           onPress: onCreateActionRequest,
         },
         {
-          text: 'Ne pas enregistrer',
+          text: "Ne pas enregistrer",
           onPress: onBack,
-          style: 'destructive',
+          style: "destructive",
         },
         {
-          text: 'Annuler',
-          style: 'cancel',
+          text: "Annuler",
+          style: "cancel",
         },
       ]);
       return;
     }
-    Alert.alert('Voulez-vous abandonner la création de cette action ?', null, [
+    Alert.alert("Voulez-vous abandonner la création de cette action ?", null, [
       {
-        text: 'Continuer la création',
+        text: "Continuer la création",
       },
       {
-        text: 'Abandonner',
+        text: "Abandonner",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
     ]);
   };
@@ -271,7 +271,7 @@ const NewActionForm = ({ route, navigation }) => {
             {forCurrentPerson ? (
               <InputFromSearchList
                 label="Personne concernée"
-                value={actionPersons[0]?.name || '-- Aucune --'}
+                value={actionPersons[0]?.name || "-- Aucune --"}
                 onSearchRequest={onSearchPerson}
                 disabled
               />
@@ -300,7 +300,7 @@ const NewActionForm = ({ route, navigation }) => {
             />
             {status !== TODO ? (
               <DateAndTimeInput
-                label={status === DONE ? 'Faite le' : 'Annulée le'}
+                label={status === DONE ? "Faite le" : "Annulée le"}
                 setDate={setCompletedAt}
                 date={completedAt}
                 showTime
@@ -323,7 +323,7 @@ const NewActionForm = ({ route, navigation }) => {
               alone
               onPress={() => {
                 if (!dueAt) {
-                  Alert.alert('Veuillez sélectionner une date avant de planifier une récurrence');
+                  Alert.alert("Veuillez sélectionner une date avant de planifier une récurrence");
                 } else {
                   setIsRecurrent(!isRecurrent);
                 }

@@ -1,18 +1,18 @@
-import React, { useCallback, useMemo } from 'react';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import SceneContainer from '../../components/SceneContainer';
-import Spinner from '../../components/Spinner';
-import { ListEmptyConsultations, ListNoMoreConsultations } from '../../components/ListEmptyContainer';
-import { FlashListStyled } from '../../components/Lists';
-import { refreshTriggerState, loadingState } from '../../components/Loader';
-import { consultationsForReport } from './selectors';
-import ScreenTitle from '../../components/ScreenTitle';
-import { CANCEL, DONE } from '../../recoil/actions';
-import { currentTeamState } from '../../recoil/auth';
-import { getPeriodTitle } from './utils';
-import ConsultationRow from '../../components/ConsultationRow';
-import FloatAddButton from '../../components/FloatAddButton';
+import React, { useCallback, useMemo } from "react";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import SceneContainer from "../../components/SceneContainer";
+import Spinner from "../../components/Spinner";
+import { ListEmptyConsultations, ListNoMoreConsultations } from "../../components/ListEmptyContainer";
+import { FlashListStyled } from "../../components/Lists";
+import { refreshTriggerState, loadingState } from "../../components/Loader";
+import { consultationsForReport } from "./selectors";
+import ScreenTitle from "../../components/ScreenTitle";
+import { CANCEL, DONE } from "../../recoil/actions";
+import { currentTeamState } from "../../recoil/auth";
+import { getPeriodTitle } from "./utils";
+import ConsultationRow from "../../components/ConsultationRow";
+import FloatAddButton from "../../components/FloatAddButton";
 
 const keyExtractor = (consultation) => consultation._id;
 
@@ -22,7 +22,7 @@ const Consultations = ({ route, navigation }) => {
   const currentTeam = useRecoilValue(currentTeamState);
   const { status, date } = route.params;
 
-  const onCreateConsultation = useCallback(() => navigation.navigate('Consultation', { fromRoute: 'Consultations' }), [navigation]);
+  const onCreateConsultation = useCallback(() => navigation.navigate("Consultation", { fromRoute: "Consultations" }), [navigation]);
 
   const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useRecoilValue(consultationsForReport({ date }));
 
@@ -41,15 +41,15 @@ const Consultations = ({ route, navigation }) => {
 
   const onPseudoPress = useCallback(
     (person) => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.push('Person', { person, fromRoute: 'ActionsList' });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.push("Person", { person, fromRoute: "ActionsList" });
     },
     [navigation]
   );
 
   const onConsultationPress = useCallback(
     (consultationDB, personDB) => {
-      navigation.navigate('Consultation', { personDB, consultationDB, fromRoute: 'Consultations' });
+      navigation.navigate("Consultation", { personDB, consultationDB, fromRoute: "Consultations" });
     },
     [navigation]
   );
@@ -61,7 +61,7 @@ const Consultations = ({ route, navigation }) => {
   return (
     <SceneContainer testID="consultations-list-for-report" backgroundColor="#fff">
       <ScreenTitle
-        title={`Consultations ${status === DONE ? 'faites' : status === CANCEL ? 'annulées' : 'créées'}\n${getPeriodTitle(
+        title={`Consultations ${status === DONE ? "faites" : status === CANCEL ? "annulées" : "créées"}\n${getPeriodTitle(
           date,
           currentTeam?.nightSession
         )}`}

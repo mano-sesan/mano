@@ -1,30 +1,30 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, View, Modal, Keyboard } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import { useRecoilValue } from 'recoil';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
+import React, { useMemo, useState } from "react";
+import { Alert, View, Modal, Keyboard } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import { useRecoilValue } from "recoil";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
 
-const CommentModal = ({ title = 'Commentaire', visible, commentDB, onClose, onUpdate, onDelete, canToggleUrgentCheck, canToggleGroupCheck }) => {
+const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUpdate, onDelete, canToggleUrgentCheck, canToggleGroupCheck }) => {
   const currentTeam = useRecoilValue(currentTeamState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
 
-  const [comment, setComment] = useState(commentDB?.comment?.split('\\n').join('\u000A') || '');
+  const [comment, setComment] = useState(commentDB?.comment?.split("\\n").join("\u000A") || "");
   const [urgent, setUrgent] = useState(commentDB?.urgent || false);
   const [date, setDate] = useState((commentDB?.date || commentDB?.createdAt) ?? new Date());
   const [group, setGroup] = useState(commentDB?.group || false);
   const [updating, setUpdating] = useState(false);
 
   const isUpdateDisabled = useMemo(() => {
-    if ((commentDB?.comment || '') !== comment) return false;
+    if ((commentDB?.comment || "") !== comment) return false;
     if ((commentDB?.urgent || false) !== urgent) return false;
     if ((commentDB?.group || false) !== group) return false;
     if ((commentDB?.date || false) !== date) return false;
@@ -49,26 +49,26 @@ const CommentModal = ({ title = 'Commentaire', visible, commentDB, onClose, onUp
     const success = await onUpdate(body);
     Keyboard.dismiss();
     setUpdating(false);
-    if (success) Alert.alert('Commentaire mis à jour !', null, [{ text: 'OK', onPress: onClose }]);
+    if (success) Alert.alert("Commentaire mis à jour !", null, [{ text: "OK", onPress: onClose }]);
   };
 
   const onDeleteConfirm = async () => {
     const success = await onDelete(commentDB);
     if (!success) return;
-    Alert.alert('Commentaire supprimé !');
+    Alert.alert("Commentaire supprimé !");
     onClose();
   };
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer ce commentaire ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer ce commentaire ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDeleteConfirm,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -78,19 +78,19 @@ const CommentModal = ({ title = 'Commentaire', visible, commentDB, onClose, onUp
       onClose();
       return;
     }
-    Alert.alert('Voulez-vous enregistrer ce commentaire ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce commentaire ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onUpdateComment,
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onClose,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

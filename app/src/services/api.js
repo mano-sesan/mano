@@ -1,10 +1,10 @@
-import URI from 'urijs';
-import { HOST, SCHEME, VERSION } from '../config';
-import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from './encryption';
-import { capture } from './sentry';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-const RNFS = require('react-native-fs');
-import fetchRetry from 'fetch-retry';
+import URI from "urijs";
+import { HOST, SCHEME, VERSION } from "../config";
+import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
+import { capture } from "./sentry";
+import ReactNativeBlobUtil from "react-native-blob-util";
+const RNFS = require("react-native-fs");
+import fetchRetry from "fetch-retry";
 import {
   getApiLevel,
   getBrand,
@@ -25,8 +25,8 @@ import {
   getTotalMemory,
   getUserAgent,
   isTablet,
-} from 'react-native-device-info';
-import { Alert, Linking } from 'react-native';
+} from "react-native-device-info";
+import { Alert, Linking } from "react-native";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -57,18 +57,18 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  execute = async ({ method, path = '', body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options = {
         method,
-        headers: { ...headers, 'Content-Type': 'application/json', Accept: 'application/json', platform: this.platform, version: VERSION },
+        headers: { ...headers, "Content-Type": "application/json", Accept: "application/json", platform: this.platform, version: VERSION },
       };
       if (body) {
         options.body = JSON.stringify(await this.encryptItem(body));
       }
 
-      if (['PUT', 'POST', 'DELETE'].includes(method) && this.enableEncrypt) {
+      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
         query = {
           encryptionLastUpdateAt: this.organisation?.encryptionLastUpdateAt,
           encryptionEnabled: this.organisation?.encryptionEnabled,
@@ -80,7 +80,7 @@ class ApiService {
       const url = this.getUrl(path, query);
       console.log({ url });
       const response =
-        method === 'GET'
+        method === "GET"
           ? await fetchWithFetchRetry(url, {
               ...options,
               retries: 10,
@@ -89,7 +89,7 @@ class ApiService {
           : await fetch(url, options);
 
       if (!response.ok && response.status === 401) {
-        if (this.logout) this.logout('401');
+        if (this.logout) this.logout("401");
         if (this.handleLogoutError) this.handleLogoutError();
         return response;
       }
@@ -97,12 +97,12 @@ class ApiService {
       try {
         const res = await response.json();
         if (!response.ok && this.handleApiError) this.handleApiError(res);
-        if (res?.message && res.message === 'Veuillez mettre à jour votre application!') {
+        if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
           const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
           if (!actions || !actions.length) return Alert.alert(title, subTitle);
           const actionsWithNavigation = actions
             .map((action) => {
-              if (action.text === 'Installer') {
+              if (action.text === "Installer") {
                 this.updateLink = action.link;
                 action.onPress = () => {
                   API.downloadAndInstallUpdate(action.link);
@@ -133,7 +133,7 @@ class ApiService {
         }
         return res;
       } catch (errorFromJson) {
-        capture(errorFromJson, { extra: { message: 'error parsing response', response, path, query } });
+        capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
         return { ok: false, error: "Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !" };
       }
     } catch (errorExecuteApi) {
@@ -146,12 +146,12 @@ class ApiService {
           headers,
         },
       });
-      if (this.handleError) this.handleError(errorExecuteApi, 'Désolé une erreur est survenue');
+      if (this.handleError) this.handleError(errorExecuteApi, "Désolé une erreur est survenue");
       throw errorExecuteApi;
     }
   };
 
-  post = (args) => this.execute({ method: 'POST', ...args });
+  post = (args) => this.execute({ method: "POST", ...args });
   get = async (args) => {
     if (args.batch) {
       let hasMore = true;
@@ -161,9 +161,9 @@ class ApiService {
       let decryptedData = [];
       while (hasMore) {
         let query = { ...args.query, limit, page };
-        const response = await this.execute({ method: 'GET', ...args, query });
+        const response = await this.execute({ method: "GET", ...args, query });
         if (!response.ok) {
-          capture('error getting batch', { extra: { response } });
+          capture("error getting batch", { extra: { response } });
           return { ok: false, data: [] };
         }
         data.push(...response.data);
@@ -176,25 +176,25 @@ class ApiService {
       }
       return { ok: true, data, decryptedData };
     } else {
-      return this.execute({ method: 'GET', ...args });
+      return this.execute({ method: "GET", ...args });
     }
   };
-  put = (args) => this.execute({ method: 'PUT', ...args });
-  delete = (args) => this.execute({ method: 'DELETE', ...args });
+  put = (args) => this.execute({ method: "PUT", ...args });
+  delete = (args) => this.execute({ method: "DELETE", ...args });
 
   setOrgEncryptionKey = async (orgEncryptionKey) => {
     this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
     const { encryptedVerificationKey } = this.organisation;
     if (!encryptedVerificationKey) {
-      capture('encryptedVerificationKey not setup yet', { extra: { organisation: this.organisation } });
+      capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
     } else {
       const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
       if (!encryptionKeyIsValid) {
-        this.post({ path: '/user/decrypt-attempt-failure' });
+        this.post({ path: "/user/decrypt-attempt-failure" });
         this.handleWrongKey();
         return false;
       } else {
-        this.post({ path: '/user/decrypt-attempt-success' });
+        this.post({ path: "/user/decrypt-attempt-success" });
       }
     }
     this.enableEncrypt = true;
@@ -229,8 +229,8 @@ class ApiService {
       try {
         JSON.parse(content);
       } catch (errorDecryptParsing) {
-        if (this.handleError) this.handleError(errorDecryptParsing, 'Désolé une erreur est survenue lors du déchiffrement');
-        capture('ERROR PARSING CONTENT', { extra: { errorDecryptParsing, content } });
+        if (this.handleError) this.handleError(errorDecryptParsing, "Désolé une erreur est survenue lors du déchiffrement");
+        capture("ERROR PARSING CONTENT", { extra: { errorDecryptParsing, content } });
       }
 
       const decryptedItem = {
@@ -262,12 +262,12 @@ class ApiService {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
-    }).fetch('GET', url, { Authorization: `JWT ${this.token}`, 'Content-Type': 'application/json', platform: this.platform, version: VERSION });
-    const res = await RNFS.readFile(response.path(), 'base64');
+    }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
+    const res = await RNFS.readFile(response.path(), "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
-    const newPath = RNFS.TemporaryDirectoryPath + '/' + document.file.originalname;
+    const newPath = RNFS.TemporaryDirectoryPath + "/" + document.file.originalname;
     if (decrypted) {
-      await RNFS.writeFile(newPath, decrypted, 'base64');
+      await RNFS.writeFile(newPath, decrypted, "base64");
     }
     return { path: newPath, decrypted };
   };
@@ -281,18 +281,18 @@ class ApiService {
 
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
-      'POST',
+      "POST",
       url,
       {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
         Authorization: `JWT ${this.token}`,
-        Accept: 'application/json',
+        Accept: "application/json",
         platform: this.platform,
         version: VERSION,
       },
       [
         // element with property `filename` will be transformed into `file` in form data
-        { name: 'file', filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
+        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
         // custom content type
         // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
         // // part file from storage

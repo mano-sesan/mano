@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { MyText } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import { MyText } from "./MyText";
 
 const Label = ({ label, big }) => (
   <LabelStyled big={big} bold debug>
@@ -11,7 +11,7 @@ const Label = ({ label, big }) => (
 const LabelStyled = styled(MyText)`
   margin-bottom: 10px;
   font-weight: bold;
-  ${(props) => props.big && 'font-size: 17px;'}
+  ${(props) => props.big && "font-size: 17px;"}
 `;
 
 export default Label;

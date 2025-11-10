@@ -1,26 +1,26 @@
-import { useEffect, useState, React } from 'react';
-import { dayjsInstance } from '../services/dateDayjs';
-import { getNthWeekdayInMonth, numberAsOrdinal, recurrenceAsText } from '../utils/recurrence';
-import { View, Text, TouchableOpacity } from 'react-native';
-import DateAndTimeInput from './DateAndTimeInput';
-import { Picker } from '@react-native-picker/picker';
-import CheckboxLabelled from './CheckboxLabelled';
+import { useEffect, useState, React } from "react";
+import { dayjsInstance } from "../services/dateDayjs";
+import { getNthWeekdayInMonth, numberAsOrdinal, recurrenceAsText } from "../utils/recurrence";
+import { View, Text, TouchableOpacity } from "react-native";
+import DateAndTimeInput from "./DateAndTimeInput";
+import { Picker } from "@react-native-picker/picker";
+import CheckboxLabelled from "./CheckboxLabelled";
 
 const numbers = Array.from({ length: 99 }, (_, i) => i + 1);
-const timeUnits = ['day', 'week', 'month', 'year'];
+const timeUnits = ["day", "week", "month", "year"];
 
 const timeUnitsOptionsSingular = [
-  { value: 'day', label: 'jour' },
-  { value: 'week', label: 'semaine' },
-  { value: 'month', label: 'mois' },
-  { value: 'year', label: 'année' },
+  { value: "day", label: "jour" },
+  { value: "week", label: "semaine" },
+  { value: "month", label: "mois" },
+  { value: "year", label: "année" },
 ];
 
 const timeUnitsOptionsPlural = [
-  { value: 'day', label: 'jours' },
-  { value: 'week', label: 'semaines' },
-  { value: 'month', label: 'mois' },
-  { value: 'year', label: 'années' },
+  { value: "day", label: "jours" },
+  { value: "week", label: "semaines" },
+  { value: "month", label: "mois" },
+  { value: "year", label: "années" },
 ];
 
 const numbersOptions = numbers.map((number) => ({
@@ -28,7 +28,7 @@ const numbersOptions = numbers.map((number) => ({
   label: number,
 }));
 
-const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 const ucFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -40,7 +40,8 @@ const SelectCustom = ({ value, onChange, options }) => {
         onValueChange={(itemValue) => {
           const option = options.find((o) => o.value === itemValue);
           onChange(option);
-        }}>
+        }}
+      >
         {options.map((option) => (
           <Picker.Item key={option.value} label={option.label} value={option.value} />
         ))}
@@ -53,48 +54,49 @@ function Day({ label, onPress, selected }) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`rounded-full mx-0.5 h-10 w-10 flex items-center justify-center ${selected ? 'bg-main' : 'bg-main25'}`}>
+      className={`rounded-full mx-0.5 h-10 w-10 flex items-center justify-center ${selected ? "bg-main" : "bg-main25"}`}
+    >
       <Text className="text-white">{label}</Text>
     </TouchableOpacity>
   );
 }
 
 export default function Recurrence({ startDate, onChange, initialValues }) {
-  const [endDate, setEndDate] = useState(initialValues.endDate || dayjsInstance(startDate).add(6, 'month').toDate());
-  const initialDayLabel = ucFirst(dayjsInstance(startDate).format('dddd'));
+  const [endDate, setEndDate] = useState(initialValues.endDate || dayjsInstance(startDate).add(6, "month").toDate());
+  const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
   const [timeInterval, setTimeInterval] = useState(initialValues.timeInterval || 1);
-  const [timeUnit, setTimeUnit] = useState(initialValues.timeUnit || 'week');
-  const [selectedDays, setSelectedDays] = useState(initialValues.selectedDays || (initialValues.timeUnit === 'day' ? days : [initialDayLabel]));
-  const [recurrenceTypeForMonthAndYear, setRecurrenceTypeForMonthAndYear] = useState(initialValues.recurrenceTypeForMonthAndYear || 'relative');
+  const [timeUnit, setTimeUnit] = useState(initialValues.timeUnit || "week");
+  const [selectedDays, setSelectedDays] = useState(initialValues.selectedDays || (initialValues.timeUnit === "day" ? days : [initialDayLabel]));
+  const [recurrenceTypeForMonthAndYear, setRecurrenceTypeForMonthAndYear] = useState(initialValues.recurrenceTypeForMonthAndYear || "relative");
 
-  const shouldShowDays = timeUnit === 'week' || (timeUnit === 'day' && timeInterval === 1);
-  const shouldShowDayRadio = timeUnit === 'month' || timeUnit === 'year'; //
+  const shouldShowDays = timeUnit === "week" || (timeUnit === "day" && timeInterval === 1);
+  const shouldShowDayRadio = timeUnit === "month" || timeUnit === "year"; //
   const nthWeekdayInMonth = getNthWeekdayInMonth(startDate);
 
   const handleChangeTimeUnitAndInterval = (unit, interval) => {
-    if (unit === 'week' && interval === 1) {
+    if (unit === "week" && interval === 1) {
       setSelectedDays([initialDayLabel]);
     }
-    if (unit === 'day' && interval === 1) {
+    if (unit === "day" && interval === 1) {
       setSelectedDays(days);
     }
-    if (unit === 'year' && interval !== 1) {
+    if (unit === "year" && interval !== 1) {
       setTimeInterval(1);
     }
   };
 
   const handleChangeDays = (unit, interval, updatedDays) => {
-    if (unit === 'week' && interval === 1 && updatedDays.length === 7) {
-      setTimeUnit('day');
+    if (unit === "week" && interval === 1 && updatedDays.length === 7) {
+      setTimeUnit("day");
     }
-    if (unit === 'day' && interval === 1 && updatedDays.length < 7) {
-      setTimeUnit('week');
+    if (unit === "day" && interval === 1 && updatedDays.length < 7) {
+      setTimeUnit("week");
     }
   };
 
   const handleChangeStartDate = (date, updatedDays) => {
     if (updatedDays.length === 1) {
-      const initialDayLabel = ucFirst(dayjsInstance(date).format('dddd'));
+      const initialDayLabel = ucFirst(dayjsInstance(date).format("dddd"));
       setSelectedDays([initialDayLabel]);
     }
   };
@@ -115,7 +117,7 @@ export default function Recurrence({ startDate, onChange, initialValues }) {
     <View className="flex flex-col gap-4">
       <Text className="text-left">Répéter chaque</Text>
       <View className="flex flex-row gap-x-2 justify-start">
-        {timeUnit !== 'year' ? (
+        {timeUnit !== "year" ? (
           <View className="w-32">
             <SelectCustom
               name="time-interval"
@@ -168,29 +170,29 @@ export default function Recurrence({ startDate, onChange, initialValues }) {
       {shouldShowDayRadio ? (
         <View className="flex flex-col">
           <CheckboxLabelled
-            label={`Le ${dayjsInstance(startDate).format('D')} ${timeUnit === 'month' ? '' : dayjsInstance(startDate).format('MMMM')}`}
+            label={`Le ${dayjsInstance(startDate).format("D")} ${timeUnit === "month" ? "" : dayjsInstance(startDate).format("MMMM")}`}
             alone
-            onPress={() => setRecurrenceTypeForMonthAndYear('absolute')}
-            value={recurrenceTypeForMonthAndYear === 'absolute'}
+            onPress={() => setRecurrenceTypeForMonthAndYear("absolute")}
+            value={recurrenceTypeForMonthAndYear === "absolute"}
           />
 
           <CheckboxLabelled
-            label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, false)} ${dayjsInstance(startDate).format('dddd')}${
-              timeUnit === 'month' ? '' : ` de ${dayjsInstance(startDate).format('MMMM')}`
+            label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, false)} ${dayjsInstance(startDate).format("dddd")}${
+              timeUnit === "month" ? "" : ` de ${dayjsInstance(startDate).format("MMMM")}`
             }`}
             alone
-            onPress={() => setRecurrenceTypeForMonthAndYear('relative')}
-            value={recurrenceTypeForMonthAndYear === 'relative'}
+            onPress={() => setRecurrenceTypeForMonthAndYear("relative")}
+            value={recurrenceTypeForMonthAndYear === "relative"}
           />
 
           {nthWeekdayInMonth.isLast ? (
             <CheckboxLabelled
-              label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, true)} ${dayjsInstance(startDate).format('dddd')}${
-                timeUnit === 'month' ? '' : ` de ${dayjsInstance(startDate).format('MMMM')}`
+              label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, true)} ${dayjsInstance(startDate).format("dddd")}${
+                timeUnit === "month" ? "" : ` de ${dayjsInstance(startDate).format("MMMM")}`
               }`}
               alone
-              onPress={() => setRecurrenceTypeForMonthAndYear('relativeLast')}
-              value={recurrenceTypeForMonthAndYear === 'relativeLast'}
+              onPress={() => setRecurrenceTypeForMonthAndYear("relativeLast")}
+              value={recurrenceTypeForMonthAndYear === "relativeLast"}
             />
           ) : null}
         </View>

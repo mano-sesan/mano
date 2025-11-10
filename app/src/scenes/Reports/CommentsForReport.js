@@ -1,19 +1,19 @@
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import * as Sentry from '@sentry/react-native';
-import React, { useCallback } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { FlashListStyled } from '../../components/Lists';
-import CommentRow from '../Comments/CommentRow';
-import { ListEmptyComments, ListNoMoreComments } from '../../components/ListEmptyContainer';
-import { commentsForReport } from './selectors';
-import { getPeriodTitle } from './utils';
-import { currentTeamState, organisationState } from '../../recoil/auth';
-import { commentsState, prepareCommentForEncryption } from '../../recoil/comments';
-import { Alert } from 'react-native';
-import API from '../../services/api';
-import { groupsState } from '../../recoil/groups';
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import * as Sentry from "@sentry/react-native";
+import React, { useCallback } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { FlashListStyled } from "../../components/Lists";
+import CommentRow from "../Comments/CommentRow";
+import { ListEmptyComments, ListNoMoreComments } from "../../components/ListEmptyContainer";
+import { commentsForReport } from "./selectors";
+import { getPeriodTitle } from "./utils";
+import { currentTeamState, organisationState } from "../../recoil/auth";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { Alert } from "react-native";
+import API from "../../services/api";
+import { groupsState } from "../../recoil/groups";
 const keyExtractor = (item) => item._id;
 
 const CommentsForReport = ({ navigation, route }) => {
@@ -31,18 +31,18 @@ const CommentsForReport = ({ navigation, route }) => {
 
   const onPseudoPress = useCallback(
     (person) => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.navigate('Person', { person, fromRoute: 'CommentsForReport' });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.navigate("Person", { person, fromRoute: "CommentsForReport" });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
     (action) => {
-      Sentry.setContext('action', { _id: action._id });
-      navigation.navigate('Action', {
+      Sentry.setContext("action", { _id: action._id });
+      navigation.navigate("Action", {
         action,
-        fromRoute: 'CommentsForReport',
+        fromRoute: "CommentsForReport",
       });
     },
     [navigation]
@@ -50,7 +50,7 @@ const CommentsForReport = ({ navigation, route }) => {
 
   const renderItem = ({ item }) => {
     const comment = item;
-    const commentedItem = comment.type === 'action' ? comment.action : comment.person;
+    const commentedItem = comment.type === "action" ? comment.action : comment.person;
 
     return (
       <CommentRow
@@ -61,11 +61,11 @@ const CommentsForReport = ({ navigation, route }) => {
           !!organisation.groupsEnabled && comment.person?._id && groups.find((group) => group.persons.includes(comment.person._id))
         }
         itemName={
-          comment.type === 'action'
+          comment.type === "action"
             ? `Action : ${commentedItem?.name} (pour ${comment.personPopulated?.name})`
             : `Personne suivie : ${commentedItem?.name}`
         }
-        onItemNamePress={() => (comment.type === 'action' ? onActionPress(comment.action) : onPseudoPress(comment.person))}
+        onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.action) : onPseudoPress(comment.person))}
         onDelete={async () => {
           const response = await API.delete({ path: `/comment/${comment._id}` });
           if (response.error) {
@@ -78,8 +78,8 @@ const CommentsForReport = ({ navigation, route }) => {
         onUpdate={
           comment.team
             ? async (commentUpdated) => {
-                if (comment.type === 'action') commentUpdated.action = comment.action._id;
-                if (comment.type === 'person') commentUpdated.person = comment.person._id;
+                if (comment.type === "action") commentUpdated.action = comment.action._id;
+                if (comment.type === "person") commentUpdated.person = comment.person._id;
                 const response = await API.put({
                   path: `/comment/${comment._id}`,
                   body: prepareCommentForEncryption(commentUpdated),

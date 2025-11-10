@@ -1,23 +1,23 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { Alert } from 'react-native';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import API from '../../services/api';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import Button from '../../components/Button';
-import Search from '../../components/Search';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyPlaceWithName } from '../../components/ListEmptyContainer';
-import Row from '../../components/Row';
-import Spacer from '../../components/Spacer';
-import { placesState, preparePlaceForEncryption } from '../../recoil/places';
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from '../../recoil/relPersonPlace';
-import { userState } from '../../recoil/auth';
-import { refreshTriggerState } from '../../components/Loader';
-import { sortByName } from '../../utils/sortByName';
+import React, { useMemo, useState, useCallback } from "react";
+import { Alert } from "react-native";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import API from "../../services/api";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import Button from "../../components/Button";
+import Search from "../../components/Search";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyPlaceWithName } from "../../components/ListEmptyContainer";
+import Row from "../../components/Row";
+import Spacer from "../../components/Spacer";
+import { placesState, preparePlaceForEncryption } from "../../recoil/places";
+import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { userState } from "../../recoil/auth";
+import { refreshTriggerState } from "../../components/Loader";
+import { sortByName } from "../../utils/sortByName";
 
 const NewPlaceForm = ({ route, navigation }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
   const [places, setPlaces] = useRecoilState(placesState);
@@ -34,7 +34,7 @@ const NewPlaceForm = ({ route, navigation }) => {
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const onCreatePlace = useCallback(async () => {
     setPosting(true);
-    const response = await API.post({ path: '/place', body: preparePlaceForEncryption({ name, user: user._id }) });
+    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);
@@ -50,14 +50,14 @@ const NewPlaceForm = ({ route, navigation }) => {
     async (place) => {
       if (posting) return;
       if (person.relsPersonPlace?.find((rpp) => rpp.place === place._id)) {
-        Alert.alert('Ce lieu est déjà enregistré pour cette personne');
+        Alert.alert("Ce lieu est déjà enregistré pour cette personne");
         return;
       }
       //
       setPosting(true);
 
       const response = await API.post({
-        path: '/relPersonPlace',
+        path: "/relPersonPlace",
         body: prepareRelPersonPlaceForEncryption({ place: place._id, person: person._id, user: user._id }),
       });
       if (response.error) {

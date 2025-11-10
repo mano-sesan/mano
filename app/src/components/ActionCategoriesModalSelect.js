@@ -1,21 +1,21 @@
-import React, { useState, useMemo, useRef } from 'react';
-import { selector, useRecoilValue } from 'recoil';
-import { TouchableOpacity, View, ScrollView, Modal } from 'react-native';
-import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from '../recoil/actions';
-import Label from './Label';
-import { MyText } from './MyText';
-import Row from './Row';
-import Tags from './Tags';
-import SceneContainer from './SceneContainer';
-import ScreenTitle from './ScreenTitle';
-import ScrollContainer from './ScrollContainer';
-import { FlashList } from '@shopify/flash-list';
-import Search from './Search';
-import styled from 'styled-components/native';
-import colors from '../utils/colors';
+import React, { useState, useMemo, useRef } from "react";
+import { selector, useRecoilValue } from "recoil";
+import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
+import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../recoil/actions";
+import Label from "./Label";
+import { MyText } from "./MyText";
+import Row from "./Row";
+import Tags from "./Tags";
+import SceneContainer from "./SceneContainer";
+import ScreenTitle from "./ScreenTitle";
+import ScrollContainer from "./ScrollContainer";
+import { FlashList } from "@shopify/flash-list";
+import Search from "./Search";
+import styled from "styled-components/native";
+import colors from "../utils/colors";
 
 const categoriesSortedByMostUsedSelector = selector({
-  key: 'categoriesSortedByMostUsedSelector',
+  key: "categoriesSortedByMostUsedSelector",
   get: ({ get }) => {
     const actions = get(actionsState);
     const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
@@ -46,7 +46,7 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
   const allGroups = useRecoilValue(actionsCategoriesSelector);
   const categoriesSortedByMostUsed = useRecoilValue(categoriesSortedByMostUsedSelector);
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);
 
   const mostUsedCategoriesToShow = useMemo(
@@ -96,7 +96,8 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
             <TouchableOpacity
               onPress={() => onChange([...values, category])}
               className="rounded-full ml-2 px-2 py-1 border border-main"
-              key={category}>
+              key={category}
+            >
               <MyText>{category}</MyText>
             </TouchableOpacity>
           ))}
@@ -122,9 +123,10 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
                 {groups.map((group) => (
                   <TouchableOpacity
                     onPress={() => setGroupSelected(group.groupTitle)}
-                    className={['rounded-full ml-2 px-2 py-1 border border-main', groupSelected === group.groupTitle ? 'bg-main' : ''].join(' ')}
-                    key={group.groupTitle}>
-                    <MyText className={[groupSelected === group.groupTitle ? 'text-white' : ''].join(' ')}>
+                    className={["rounded-full ml-2 px-2 py-1 border border-main", groupSelected === group.groupTitle ? "bg-main" : ""].join(" ")}
+                    key={group.groupTitle}
+                  >
+                    <MyText className={[groupSelected === group.groupTitle ? "text-white" : ""].join(" ")}>
                       {group.groupTitle} ({group.categories.length})
                     </MyText>
                   </TouchableOpacity>
