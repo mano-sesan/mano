@@ -64,8 +64,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     const personHasChanged = !isEqual(person, personFormData);
     if (!isMedicalFile) return personHasChanged;
 
-    const { structureMedical, healthInsurances, ...medicalFileDataWithoutLegacy } = medicalFileFormData;
-    const medicalFileHasChanged = !isEqual(medicalFile, medicalFileDataWithoutLegacy);
+    const medicalFileHasChanged = !isEqual(medicalFile, medicalFileFormData);
     return personHasChanged || medicalFileHasChanged;
   };
 
