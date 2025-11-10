@@ -7,7 +7,6 @@ import { Picker } from "@react-native-picker/picker";
 import CheckboxLabelled from "./CheckboxLabelled";
 
 const numbers = Array.from({ length: 99 }, (_, i) => i + 1);
-const timeUnits = ["day", "week", "month", "year"];
 
 const timeUnitsOptionsSingular = [
   { value: "day", label: "jour" },
