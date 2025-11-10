@@ -65,7 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   // if you change these values, you need to change them also in
   // https://github.com/mano-sesan/mano/blob/main/.server/vhost/api-mano.sesan.fr#L1
-  const limitedSize = req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") ? "350mb" : "50mb";
+  const limitedSize = req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") || req.path.startsWith("/transfer-territory") ? "350mb" : "50mb";
   express.json({ limit: limitedSize })(req, res, next);
 });
 app.use(helmet());
@@ -125,6 +125,7 @@ app.use("/group", require("./controllers/group"));
 app.use("/medical-file", require("./controllers/medicalFile"));
 app.use("/recurrence", require("./controllers/recurrence"));
 app.use("/transfer-team", require("./controllers/transferTeam"));
+app.use("/transfer-territory", require("./controllers/transferTerritory"));
 
 // The error handler must be before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler());
