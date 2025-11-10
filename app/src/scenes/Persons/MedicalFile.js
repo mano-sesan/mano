@@ -25,7 +25,6 @@ import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import CommentRow from "../Comments/CommentRow";
 import NewCommentInput from "../Comments/NewCommentInput";
 import { Alert } from "react-native";
-import { formatBirthDateAndAge } from "../../services/dateDayjs";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
