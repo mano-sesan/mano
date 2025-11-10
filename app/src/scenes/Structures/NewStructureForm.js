@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
-import { useSetRecoilState } from 'recoil';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import { structuresState } from '../../recoil/structures';
-import { sortByName } from '../../utils/sortByName';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert } from "react-native";
+import { useSetRecoilState } from "recoil";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import { structuresState } from "../../recoil/structures";
+import { sortByName } from "../../utils/sortByName";
 
 const NewStructureForm = ({ navigation, route }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
   const setStructures = useSetRecoilState(structuresState);
@@ -29,7 +29,7 @@ const NewStructureForm = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -39,7 +39,7 @@ const NewStructureForm = ({ navigation, route }) => {
   const onCreateStructure = async () => {
     setPosting(true);
     const response = await API.post({
-      path: '/structure',
+      path: "/structure",
       body: { name },
     });
     if (response.error) {
@@ -50,7 +50,7 @@ const NewStructureForm = ({ navigation, route }) => {
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
       setStructures((structures) => [...structures, response.data].sort(sortByName));
-      navigation.replace('Structure', {
+      navigation.replace("Structure", {
         structure: response.data,
         editable: true,
       });
@@ -65,19 +65,19 @@ const NewStructureForm = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (!isReadyToSave) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce contact ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce contact ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onCreateStructure,
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

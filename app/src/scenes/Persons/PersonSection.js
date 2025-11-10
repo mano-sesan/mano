@@ -1,14 +1,14 @@
-import React, { useRef } from 'react';
-import { useRecoilValue } from 'recoil';
-import { View } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SubHeader from '../../components/SubHeader';
-import Spacer from '../../components/Spacer';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import Button from '../../components/Button';
-import colors from '../../utils/colors';
-import CustomFieldInput from '../../components/CustomFieldInput';
-import { currentTeamState, userState } from '../../recoil/auth';
+import React, { useRef } from "react";
+import { useRecoilValue } from "recoil";
+import { View } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SubHeader from "../../components/SubHeader";
+import Spacer from "../../components/Spacer";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import Button from "../../components/Button";
+import colors from "../../utils/colors";
+import CustomFieldInput from "../../components/CustomFieldInput";
+import { currentTeamState, userState } from "../../recoil/auth";
 
 const PersonSection = ({
   navigation,
@@ -52,7 +52,7 @@ const PersonSection = ({
             })}
           <ButtonsContainer>
             <Button
-              caption={editable ? 'Mettre à jour' : 'Modifier'}
+              caption={editable ? "Mettre à jour" : "Modifier"}
               onPress={editable ? onUpdatePerson : onEdit}
               disabled={editable ? isUpdateDisabled : false}
               loading={updating}

@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import Button from '../../components/Button';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ScrollContainer from '../../components/ScrollContainer';
-import OutOfActiveListReasonMultiCheckBox from '../../components/Selects/OutOfActiveListReasonMultiCheckBox';
-import { userState } from '../../recoil/auth';
-import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from '../../recoil/persons';
-import API from '../../services/api';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import isEqual from 'react-fast-compare';
-import { isEmptyValue } from '../../utils';
+import React, { useState } from "react";
+import { View } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import Button from "../../components/Button";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ScrollContainer from "../../components/ScrollContainer";
+import OutOfActiveListReasonMultiCheckBox from "../../components/Selects/OutOfActiveListReasonMultiCheckBox";
+import { userState } from "../../recoil/auth";
+import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import API from "../../services/api";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../utils";
 
 const PersonsOutOfActiveListReason = ({ navigation, route }) => {
   const [reasons, setReasons] = useState([]);
@@ -71,7 +71,7 @@ const PersonsOutOfActiveListReason = ({ navigation, route }) => {
               setSubmitting(true);
               await updatePerson();
               setSubmitting(false);
-              navigation.navigate('PersonsList');
+              navigation.navigate("PersonsList");
             }}
           />
         </View>

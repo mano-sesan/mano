@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { View } from 'react-native';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import ArrowLeftExtended from '../icons/ArrowLeftExtended';
+import React from "react";
+import styled from "styled-components/native";
+import { View } from "react-native";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 
 const SubHeader = ({ caption, onBack, backgroundColor }) => (
   <Container backgroundColor={backgroundColor || colors.app.color}>

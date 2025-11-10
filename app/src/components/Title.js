@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { MyText } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import { MyText } from "./MyText";
 
 const Title = ({ children, left }) => (
   <TitleStyled heavy left={left}>
@@ -14,7 +14,7 @@ const TitleStyled = styled(MyText)`
   font-weight: bold;
   font-size: 30px;
   margin-top: 30%;
-  align-self: ${(props) => (props.left ? 'flex-start' : 'center')};
+  align-self: ${(props) => (props.left ? "flex-start" : "center")};
 `;
 
 export const SubTitle = styled(MyText)`

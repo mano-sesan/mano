@@ -1,15 +1,15 @@
-import { useRecoilState, useRecoilValue } from 'recoil';
-import React, { useCallback } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { refreshTriggerState } from '../../components/Loader';
-import { FlashListStyled } from '../../components/Lists';
-import { ListEmptyObservations, ListNoMoreObservations } from '../../components/ListEmptyContainer';
-import { observationsForReport } from './selectors';
-import { getPeriodTitle } from './utils';
-import { currentTeamState } from '../../recoil/auth';
-import TerritoryObservationRow from '../Territories/TerritoryObservationRow';
-import { territoriesState } from '../../recoil/territory';
+import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useCallback } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { refreshTriggerState } from "../../components/Loader";
+import { FlashListStyled } from "../../components/Lists";
+import { ListEmptyObservations, ListNoMoreObservations } from "../../components/ListEmptyContainer";
+import { observationsForReport } from "./selectors";
+import { getPeriodTitle } from "./utils";
+import { currentTeamState } from "../../recoil/auth";
+import TerritoryObservationRow from "../Territories/TerritoryObservationRow";
+import { territoriesState } from "../../recoil/territory";
 const keyExtractor = (item) => item._id;
 
 const Observations = ({ navigation, route }) => {
@@ -24,11 +24,11 @@ const Observations = ({ navigation, route }) => {
   }, [setRefreshTrigger]);
 
   const onUpdatObs = useCallback(
-    (obs) => navigation.navigate('TerritoryObservation', { obs, territory: territories.find((t) => t._id === obs.territory), editable: true }),
+    (obs) => navigation.navigate("TerritoryObservation", { obs, territory: territories.find((t) => t._id === obs.territory), editable: true }),
     [navigation, territories]
   );
 
-  const onTerritoryPress = useCallback((territory) => navigation.push('Territory', { territory }), [navigation]);
+  const onTerritoryPress = useCallback((territory) => navigation.push("Territory", { territory }), [navigation]);
 
   const renderItem = ({ item }) => {
     const obs = item;

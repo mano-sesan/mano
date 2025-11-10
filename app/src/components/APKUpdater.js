@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { PERMISSIONS } from 'react-native-permissions';
-import { Platform } from 'react-native';
-import RNBlobUtil from 'react-native-blob-util';
-import API from '../services/api';
-import ProgressBar from './ProgressBar';
-import getPermissionAsync from '../services/permissions';
+import React, { useState, useEffect } from "react";
+import { PERMISSIONS } from "react-native-permissions";
+import { Platform } from "react-native";
+import RNBlobUtil from "react-native-blob-util";
+import API from "../services/api";
+import ProgressBar from "./ProgressBar";
+import getPermissionAsync from "../services/permissions";
 
 const androidSDKVersion = Platform.Version;
 const isAndroid13OrHigher = androidSDKVersion >= 33;
@@ -15,8 +15,8 @@ const APKUpdater = () => {
   const downloadAndInstallUpdate = async (apkUrl) => {
     setDownloadProgress(1);
 
-    if (Platform.OS !== 'android') {
-      console.log('APK updates are only supported on Android');
+    if (Platform.OS !== "android") {
+      console.log("APK updates are only supported on Android");
       return;
     }
 
@@ -25,11 +25,11 @@ const APKUpdater = () => {
         const permission = await getPermissionAsync({
           android: {
             permission: PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE,
-            name: 'WRITE_EXTERNAL_STORAGE',
+            name: "WRITE_EXTERNAL_STORAGE",
           },
         });
         if (!permission) {
-          console.log('Storage permission denied');
+          console.log("Storage permission denied");
           return;
         }
       }
@@ -41,17 +41,17 @@ const APKUpdater = () => {
         addAndroidDownloads: {
           useDownloadManager: true,
           notification: true,
-          mime: 'application/vnd.android.package-archive',
+          mime: "application/vnd.android.package-archive",
           path: downloadPath,
           mediaScannable: true,
-          description: 'Downloading the latest update',
+          description: "Downloading the latest update",
         },
       };
 
-      console.log('Starting download:', { apkUrl, downloadPath });
+      console.log("Starting download:", { apkUrl, downloadPath });
 
       const response = await RNBlobUtil.config(options)
-        .fetch('GET', apkUrl)
+        .fetch("GET", apkUrl)
         .progress({ interval: 1000 }, (received, total) => {
           const progress = Math.max(1, Math.ceil((received / total) * 100));
           console.log(`Download progress: ${progress}%`);
@@ -60,27 +60,27 @@ const APKUpdater = () => {
 
       const apkPath = response.path();
       // const apkPath = '/storage/emulated/0/Android/data/com.sesan.mano/files/Download/YourApp_latest.apk';
-      console.log('Download completed:', apkPath);
+      console.log("Download completed:", apkPath);
       setDownloadProgress(100);
       // Verify the file exists
       const fileExists = await RNBlobUtil.fs.exists(apkPath);
       if (!fileExists) {
-        throw new Error('Downloaded file not found');
+        throw new Error("Downloaded file not found");
       }
 
       // Install the APK - using the correct method name
-      console.log('Installing APK', apkPath);
+      console.log("Installing APK", apkPath);
       await RNBlobUtil.android
-        .actionViewIntent(apkPath, 'application/vnd.android.package-archive')
+        .actionViewIntent(apkPath, "application/vnd.android.package-archive")
         .then(() => {
-          console.log('APK installed');
+          console.log("APK installed");
           setDownloadProgress(0);
         })
         .catch((error) => {
-          console.error('Error in downloadAndInstallUpdate:', error);
+          console.error("Error in downloadAndInstallUpdate:", error);
         });
     } catch (error) {
-      console.error('Error in downloadAndInstallUpdate:', error);
+      console.error("Error in downloadAndInstallUpdate:", error);
       setDownloadProgress(0);
       throw error; // Re-throw the error for handling by the caller
     }

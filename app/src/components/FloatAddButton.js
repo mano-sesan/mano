@@ -1,8 +1,8 @@
-import React from 'react';
-import { TouchableWithoutFeedback } from 'react-native';
-import styled from 'styled-components/native';
-import { Plus } from '../icons';
-import colors from '../utils/colors';
+import React from "react";
+import { TouchableWithoutFeedback } from "react-native";
+import styled from "styled-components/native";
+import { Plus } from "../icons";
+import colors from "../utils/colors";
 
 const FloatAddButton = ({ onPress, color = colors.app.secondary, testID }) => {
   return (

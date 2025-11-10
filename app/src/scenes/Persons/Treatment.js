@@ -1,27 +1,27 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, KeyboardAvoidingView, View } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { v4 as uuidv4 } from 'uuid';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption, treatmentsState } from '../../recoil/treatments';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import DocumentsManager from '../../components/DocumentsManager';
-import Spacer from '../../components/Spacer';
-import Label from '../../components/Label';
-import ButtonDelete from '../../components/ButtonDelete';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import { userState } from '../../recoil/auth';
-import SubList from '../../components/SubList';
-import CommentRow from '../Comments/CommentRow';
-import NewCommentInput from '../Comments/NewCommentInput';
-import isEqual from 'react-fast-compare';
-import { isEmptyValue } from '../../utils';
-import { alertCreateComment } from '../../utils/alert-create-comment';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { v4 as uuidv4 } from "uuid";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption, treatmentsState } from "../../recoil/treatments";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import DocumentsManager from "../../components/DocumentsManager";
+import Spacer from "../../components/Spacer";
+import Label from "../../components/Label";
+import ButtonDelete from "../../components/ButtonDelete";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import { userState } from "../../recoil/auth";
+import SubList from "../../components/SubList";
+import CommentRow from "../Comments/CommentRow";
+import NewCommentInput from "../Comments/NewCommentInput";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../utils";
+import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const Treatment = ({ navigation, route }) => {
   const setAllTreatments = useSetRecoilState(treatmentsState);
@@ -30,17 +30,17 @@ const Treatment = ({ navigation, route }) => {
   const isNew = !treatmentDB?._id;
   const user = useRecoilValue(userState);
 
-  const [name, setName] = useState(treatmentDB?.name || '');
-  const [dosage, setDosage] = useState(treatmentDB?.dosage || '');
-  const [frequency, setFrequency] = useState(treatmentDB?.frequency || '');
-  const [indication, setIndication] = useState(treatmentDB?.indication || '');
+  const [name, setName] = useState(treatmentDB?.name || "");
+  const [dosage, setDosage] = useState(treatmentDB?.dosage || "");
+  const [frequency, setFrequency] = useState(treatmentDB?.frequency || "");
+  const [indication, setIndication] = useState(treatmentDB?.indication || "");
   const [startDate, setStartDate] = useState(treatmentDB?.startDate || null);
   const [endDate, setEndDate] = useState(treatmentDB?.endDate || null);
   const [documents, setDocuments] = useState(treatmentDB?.documents || []);
   const [comments, setComments] = useState(treatmentDB?.comments || []);
   const [posting, setPosting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [writingComment, setWritingComment] = useState('');
+  const [writingComment, setWritingComment] = useState("");
 
   const backRequestHandledRef = useRef(null);
   const handleBeforeRemove = (e) => {
@@ -50,7 +50,7 @@ const Treatment = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -59,11 +59,11 @@ const Treatment = ({ navigation, route }) => {
 
   const onSaveTreatment = async ({ goBackOnSave = true, comments = null } = {}) => {
     if (!comments) comments = treatmentDB?.comments || [];
-    if (!name) return Alert.alert('Veuillez indiquer un nom');
+    if (!name) return Alert.alert("Veuillez indiquer un nom");
     // if (!dosage) return Alert.alert('Veuillez indiquer un dosage');
     // if (!frequency) return Alert.alert('Veuillez indiquer une fréquence');
     // if (!indication) return Alert.alert('Veuillez indiquer une indication');
-    if (!startDate) return Alert.alert('Veuillez indiquer une date de début');
+    if (!startDate) return Alert.alert("Veuillez indiquer une date de début");
     Keyboard.dismiss();
     setPosting(true);
     const body = {
@@ -99,7 +99,7 @@ const Treatment = ({ navigation, route }) => {
     }
 
     const treatmentResponse = isNew
-      ? await API.post({ path: '/treatment', body: prepareTreatmentForEncryption(body) })
+      ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body) })
       : await API.put({ path: `/treatment/${treatmentDB._id}`, body: prepareTreatmentForEncryption(body) });
     if (!treatmentResponse.ok) return false;
     if (isNew) {
@@ -143,36 +143,36 @@ const Treatment = ({ navigation, route }) => {
       if (!goToNextStep) return;
     }
     if (isDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce traitement ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce traitement ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const response = await onSaveTreatment();
           if (response.ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer ce traitement ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer ce traitement ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -185,7 +185,7 @@ const Treatment = ({ navigation, route }) => {
       return;
     }
     setAllTreatments((all) => all.filter((t) => t._id !== treatmentDB._id));
-    Alert.alert('Traitement supprimé !');
+    Alert.alert("Traitement supprimé !");
     onBack();
   };
   const scrollViewRef = useRef(null);
@@ -193,7 +193,7 @@ const Treatment = ({ navigation, route }) => {
   return (
     <SceneContainer testID="new-treatment-form">
       <ScreenTitle
-        title={`${isNew ? 'Ajouter un traitement pour' : `Modifier le traitement ${treatmentDB?.name} de`} ${personDB?.name}`}
+        title={`${isNew ? "Ajouter un traitement pour" : `Modifier le traitement ${treatmentDB?.name} de`} ${personDB?.name}`}
         onBack={onGoBackRequested}
         testID="new-treatment"
       />
@@ -235,7 +235,7 @@ const Treatment = ({ navigation, route }) => {
             <ButtonsContainer>
               {!isNew && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
               <Button
-                caption={isNew ? 'Créer' : 'Modifier'}
+                caption={isNew ? "Créer" : "Modifier"}
                 disabled={!!isDisabled}
                 onPress={onSaveTreatment}
                 loading={posting}
@@ -270,12 +270,13 @@ const Treatment = ({ navigation, route }) => {
                 }}
               />
             )}
-            ifEmpty="Pas encore de commentaire">
+            ifEmpty="Pas encore de commentaire"
+          >
             <NewCommentInput
               forwardRef={newCommentRef}
               onCommentWrite={setWritingComment}
               onCreate={(newComment) => {
-                const newComments = [{ ...newComment, type: 'treatment', _id: uuidv4() }, comments];
+                const newComments = [{ ...newComment, type: "treatment", _id: uuidv4() }, comments];
                 setComments(newComments); // optimistic UI
                 // need to pass comments as parameters if we want last comment to be taken into account
                 // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value

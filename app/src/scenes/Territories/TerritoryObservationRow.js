@@ -1,15 +1,15 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { connectActionSheet } from '@expo/react-native-action-sheet';
-import { Alert, TouchableOpacity } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { MyText } from '../../components/MyText';
-import colors from '../../utils/colors';
-import UserName from '../../components/UserName';
-import API from '../../services/api';
-import { customFieldsObsSelector, territoryObservationsState } from '../../recoil/territoryObservations';
-import { currentTeamState } from '../../recoil/auth';
-import { dayjsInstance } from '../../services/dateDayjs';
+import React from "react";
+import styled from "styled-components/native";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { Alert, TouchableOpacity } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { MyText } from "../../components/MyText";
+import colors from "../../utils/colors";
+import UserName from "../../components/UserName";
+import API from "../../services/api";
+import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
+import { currentTeamState } from "../../recoil/auth";
+import { dayjsInstance } from "../../services/dateDayjs";
 
 const hitSlop = {
   top: 20,
@@ -21,31 +21,31 @@ const hitSlop = {
 const fieldIsEmpty = (value) => {
   if (value === null) return true;
   if (value === undefined) return true;
-  if (typeof value === 'string' && !value.length) return true;
+  if (typeof value === "string" && !value.length) return true;
   if (Array.isArray(value) && !value.length) return true;
   return false;
 };
 
 const showBoolean = (value) => {
-  if (value === null) return '';
-  if (value === undefined) return '';
-  if (!value) return 'Non';
-  return 'Oui';
+  if (value === null) return "";
+  if (value === undefined) return "";
+  if (!value) return "Non";
+  return "Oui";
 };
 
 const computeCustomFieldDisplay = (field, value) => {
-  if (['text', 'number'].includes(field.type)) return value;
-  if (['textarea'].includes(field.type)) return value?.split('\\n')?.join('\u000A');
-  if (!!['date-with-time'].includes(field.type) && !!value) {
-    return dayjsInstance(value).format('dddd DD MMMM HH:mm');
+  if (["text", "number"].includes(field.type)) return value;
+  if (["textarea"].includes(field.type)) return value?.split("\\n")?.join("\u000A");
+  if (!!["date-with-time"].includes(field.type) && !!value) {
+    return dayjsInstance(value).format("dddd DD MMMM HH:mm");
   }
-  if (!!['date', 'duration'].includes(field.type) && !!value) {
-    return dayjsInstance(value).format('dddd DD MMMM');
+  if (!!["date", "duration"].includes(field.type) && !!value) {
+    return dayjsInstance(value).format("dddd DD MMMM");
   }
-  if (['boolean'].includes(field.type)) return showBoolean(value);
-  if (['yes-no'].includes(field.type)) return value;
-  if (['enum'].includes(field.type)) return value;
-  if (['multi-choice'].includes(field.type)) return Array.isArray(value) ? value.join(', ') : String(value || '');
+  if (["boolean"].includes(field.type)) return showBoolean(value);
+  if (["yes-no"].includes(field.type)) return value;
+  if (["enum"].includes(field.type)) return value;
+  if (["multi-choice"].includes(field.type)) return Array.isArray(value) ? value.join(", ") : String(value || "");
   return JSON.stringify(value);
 };
 
@@ -56,17 +56,17 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
   const setTerritoryObservations = useSetRecoilState(territoryObservationsState);
 
   const onPressRequest = async () => {
-    const options = ['Supprimer', 'Annuler'];
-    if (onUpdate) options.unshift('Modifier');
+    const options = ["Supprimer", "Annuler"];
+    if (onUpdate) options.unshift("Modifier");
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex: options.length - 1,
-        destructiveButtonIndex: options.findIndex((o) => o === 'Supprimer'),
+        destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === 'Modifier') onUpdate(observation);
-        if (options[buttonIndex] === 'Supprimer') onObservationDeleteRequest();
+        if (options[buttonIndex] === "Modifier") onUpdate(observation);
+        if (options[buttonIndex] === "Supprimer") onObservationDeleteRequest();
       }
     );
   };
@@ -74,15 +74,15 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
   const onTerritoryPressRequest = () => onTerritoryPress(territoryToShow);
 
   const onObservationDeleteRequest = () => {
-    Alert.alert('Voulez-vous supprimer cette observation ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous supprimer cette observation ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: () => onObservationDelete(),
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -120,9 +120,9 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
           })}
         <CreationDate>
           {!!observation?.user && <UserName caption="Observation faite par" id={observation.user?._id || observation.user} />}
-          {'\u000A'}
+          {"\u000A"}
           {/* Mardi 12 novembre 2024 à 10:00 */}
-          {date.format(date.format('YYYY') !== dayjsInstance().format('YYYY') ? 'dddd DD MMMM YYYY à HH:mm' : 'dddd DD MMMM à HH:mm')}
+          {date.format(date.format("YYYY") !== dayjsInstance().format("YYYY") ? "dddd DD MMMM YYYY à HH:mm" : "dddd DD MMMM à HH:mm")}
         </CreationDate>
       </CaptionsContainer>
       <OnMoreContainer hitSlop={hitSlop} onPress={onPressRequest}>
@@ -155,7 +155,7 @@ const CommentStyled = styled(MyText)`
   font-size: 17px;
   margin-bottom: 10px;
   color: rgba(30, 36, 55, 0.75);
-  ${(props) => props.fieldIsEmpty && 'opacity: 0.25;'}
+  ${(props) => props.fieldIsEmpty && "opacity: 0.25;"}
 `;
 
 const CreationDate = styled(MyText)`

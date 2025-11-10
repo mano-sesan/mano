@@ -1,35 +1,35 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import styled from 'styled-components/native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { v4 as uuidv4 } from 'uuid';
-import ScrollContainer from '../../components/ScrollContainer';
-import Button from '../../components/Button';
-import InputLabelled from '../../components/InputLabelled';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import SubList from '../../components/SubList';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import GenderSelect from '../../components/Selects/GenderSelect';
-import colors from '../../utils/colors';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { consultationsState } from '../../recoil/consultations';
-import { treatmentsState } from '../../recoil/treatments';
-import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from '../../recoil/medicalFiles';
-import API from '../../services/api';
-import HealthInsuranceMultiCheckBox from '../../components/Selects/HealthInsuranceMultiCheckBox';
-import CustomFieldInput from '../../components/CustomFieldInput';
-import ConsultationRow from '../../components/ConsultationRow';
-import TreatmentRow from '../../components/TreatmentRow';
-import DocumentsManager from '../../components/DocumentsManager';
-import { MyText } from '../../components/MyText';
-import { flattenedCustomFieldsPersonsSelector } from '../../recoil/persons';
-import CommentRow from '../Comments/CommentRow';
-import NewCommentInput from '../Comments/NewCommentInput';
-import { Alert } from 'react-native';
-import { formatBirthDateAndAge } from '../../services/dateDayjs';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import isEqual from 'react-fast-compare';
-import { isEmptyValue } from '../../utils';
-import { alertCreateComment } from '../../utils/alert-create-comment';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import styled from "styled-components/native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { v4 as uuidv4 } from "uuid";
+import ScrollContainer from "../../components/ScrollContainer";
+import Button from "../../components/Button";
+import InputLabelled from "../../components/InputLabelled";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import SubList from "../../components/SubList";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import GenderSelect from "../../components/Selects/GenderSelect";
+import colors from "../../utils/colors";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { consultationsState } from "../../recoil/consultations";
+import { treatmentsState } from "../../recoil/treatments";
+import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import API from "../../services/api";
+import HealthInsuranceMultiCheckBox from "../../components/Selects/HealthInsuranceMultiCheckBox";
+import CustomFieldInput from "../../components/CustomFieldInput";
+import ConsultationRow from "../../components/ConsultationRow";
+import TreatmentRow from "../../components/TreatmentRow";
+import DocumentsManager from "../../components/DocumentsManager";
+import { MyText } from "../../components/MyText";
+import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
+import CommentRow from "../Comments/CommentRow";
+import NewCommentInput from "../Comments/NewCommentInput";
+import { Alert } from "react-native";
+import { formatBirthDateAndAge } from "../../services/dateDayjs";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../utils";
+import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, editable, onEdit, isUpdateDisabled, backgroundColor, onChange }) => {
   const organisation = useRecoilValue(organisationState);
@@ -58,13 +58,13 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
   const medicalFileDB = populatedPerson.medicalFile;
   const [medicalFile, setMedicalFile] = useState(populatedPerson.medicalFile);
-  const [writingComment, setWritingComment] = useState('');
+  const [writingComment, setWritingComment] = useState("");
 
   useEffect(() => {
     if (!medicalFileDB) {
       (async () => {
         const response = await API.post({
-          path: '/medical-file',
+          path: "/medical-file",
           body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ person: personDB?._id, documents: [], organisation: organisation._id }),
         });
         if (!response.ok) return;
@@ -86,7 +86,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     navigation.goBack();
   };
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -96,7 +96,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
   const allMedicalComments = useMemo(() => {
     const treatmentsComments =
       treatments
-        ?.map((treatment) => treatment.comments?.map((doc) => ({ ...doc, type: 'treatment', treatment })))
+        ?.map((treatment) => treatment.comments?.map((doc) => ({ ...doc, type: "treatment", treatment })))
         .filter(Boolean)
         .flat() || [];
     const consultationsComments =
@@ -105,7 +105,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
           if (!consultation?.onlyVisibleBy?.length) return true;
           return consultation.onlyVisibleBy.includes(user._id);
         })
-        .map((consultation) => consultation.comments?.map((doc) => ({ ...doc, type: 'consultation', consultation })))
+        .map((consultation) => consultation.comments?.map((doc) => ({ ...doc, type: "consultation", consultation })))
         .filter(Boolean)
         .flat() || [];
     const otherComments = medicalFile?.comments || [];
@@ -119,7 +119,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     movable: false,
     linkedItem: {
       _id: person._id,
-      type: 'person',
+      type: "person",
     },
   }));
   const defaultDocumentsIds = defaultDocuments.map((d) => d._id);
@@ -128,30 +128,30 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     if (!medicalFile) return [];
     const treatmentsDocs = [
       {
-        _id: 'treatment',
-        name: 'Traitements',
+        _id: "treatment",
+        name: "Traitements",
         position: 1,
-        parentId: 'root',
-        type: 'folder',
+        parentId: "root",
+        type: "folder",
         linkedItem: {
           _id: medicalFile._id,
-          type: 'medical-file',
+          type: "medical-file",
         },
         movable: false,
         createdAt: new Date(),
-        createdBy: 'we do not care',
+        createdBy: "we do not care",
       },
     ];
     for (const treatment of treatments) {
       for (const document of treatment.documents || []) {
         const docWithLinkedItem = {
           ...document,
-          type: document.type ?? 'document', // it will always be a document in treatments - folders are only saved in medicalFile
+          type: document.type ?? "document", // it will always be a document in treatments - folders are only saved in medicalFile
           linkedItem: {
             _id: treatment._id,
-            type: 'treatment',
+            type: "treatment",
           },
-          parentId: document.parentId ?? 'treatment',
+          parentId: document.parentId ?? "treatment",
         };
         treatmentsDocs.push(docWithLinkedItem);
       }
@@ -159,18 +159,18 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
     const consultationsDocs = [
       {
-        _id: 'consultation',
-        name: 'Consultations',
+        _id: "consultation",
+        name: "Consultations",
         position: 0,
-        parentId: 'root',
-        type: 'folder',
+        parentId: "root",
+        type: "folder",
         linkedItem: {
           _id: medicalFile._id,
-          type: 'medical-file',
+          type: "medical-file",
         },
         movable: false,
         createdAt: new Date(),
-        createdBy: 'we do not care',
+        createdBy: "we do not care",
       },
     ];
     for (const consultation of consultations) {
@@ -180,12 +180,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       for (const document of consultation.documents || []) {
         const docWithLinkedItem = {
           ...document,
-          type: document.type ?? 'document', // it will always be a document in treatments - folders are only saved in medicalFile
+          type: document.type ?? "document", // it will always be a document in treatments - folders are only saved in medicalFile
           linkedItem: {
             _id: consultation._id,
-            type: 'consultation',
+            type: "consultation",
           },
-          parentId: document.parentId ?? 'consultation',
+          parentId: document.parentId ?? "consultation",
         };
         consultationsDocs.push(docWithLinkedItem);
       }
@@ -196,12 +196,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     for (const document of medicalFile?.documents || []) {
       const docWithLinkedItem = {
         ...document,
-        type: document.type ?? 'document', // or 'folder'
+        type: document.type ?? "document", // or 'folder'
         linkedItem: {
           _id: medicalFile._id,
-          type: 'medical-file',
+          type: "medical-file",
         },
-        parentId: document.parentId ?? 'root',
+        parentId: document.parentId ?? "root",
       };
       otherDocs.push(docWithLinkedItem);
     }
@@ -227,22 +227,22 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       if (!goToNextStep) return;
     }
     if (isMedicalFileUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ?', null, [
+    Alert.alert("Voulez-vous enregistrer ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const response = await onGoBackRequested();
           if (response.ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -281,8 +281,8 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     return true;
   };
 
-  const onGoToConsultation = (consultationDB) => navigation.navigate('Consultation', { personDB, consultationDB });
-  const onGoToTreatment = (treatmentDB) => navigation.navigate('Treatment', { personDB, treatmentDB });
+  const onGoToConsultation = (consultationDB) => navigation.navigate("Consultation", { personDB, consultationDB });
+  const onGoToTreatment = (treatmentDB) => navigation.navigate("Treatment", { personDB, treatmentDB });
 
   const onAddDocument = async (doc) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
@@ -341,7 +341,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
   return (
     <ScrollContainer noRadius keyboardShouldPersistTaps="handled" backgroundColor={backgroundColor || colors.app.color} testID="person-summary">
       <BackButton onPress={onGoBackRequested}>
-        <MyText color={colors.app.color}>{'<'} Retour vers la personne</MyText>
+        <MyText color={colors.app.color}>{"<"} Retour vers la personne</MyText>
       </BackButton>
       <InputLabelled
         label="Nom prénom ou Pseudonyme"
@@ -363,18 +363,18 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         <InputLabelled label="Âge" value={populatedPerson.formattedBirthDate} placeholder="JJ-MM-AAAA" editable={false} />
       )}
       {/* These custom fields are displayed by default, because they where displayed before they became custom fields */}
-      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === 'healthInsurances')) && (
+      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances")) && (
         <HealthInsuranceMultiCheckBox
           values={person.healthInsurances}
           onChange={(healthInsurances) => onChange({ healthInsurances })}
           editable={editable}
         />
       )}
-      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === 'structureMedical')) && (
+      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical")) && (
         <InputLabelled
           label="Structure de suivi médical"
           onChangeText={(structureMedical) => onChange({ structureMedical })}
-          value={person.structureMedical || (editable ? null : '-- Non renseignée --')}
+          value={person.structureMedical || (editable ? null : "-- Non renseignée --")}
           placeholder="Renseignez la structure médicale le cas échéant"
           editable={editable}
         />
@@ -398,7 +398,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
       <ButtonsContainer>
         <Button
-          caption={editable ? 'Mettre à jour' : 'Modifier'}
+          caption={editable ? "Mettre à jour" : "Modifier"}
           onPress={() => (editable ? onUpdateRequest() : onEdit())}
           disabled={editable ? isUpdateDisabled && isMedicalFileUpdateDisabled : false}
           loading={updating}
@@ -413,15 +413,15 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
             key={comment._id}
             comment={comment}
             itemName={
-              ['consultation', 'treatment'].includes(comment.type) ? `${comment.type === 'consultation' ? 'Consultation' : 'Traitement'}` : null
+              ["consultation", "treatment"].includes(comment.type) ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}` : null
             }
             onItemNamePress={
-              ['consultation', 'treatment'].includes(comment.type)
-                ? () => (comment.type === 'consultation' ? onGoToConsultation(comment.consultation) : onGoToTreatment(comment.treatment))
+              ["consultation", "treatment"].includes(comment.type)
+                ? () => (comment.type === "consultation" ? onGoToConsultation(comment.consultation) : onGoToTreatment(comment.treatment))
                 : null
             }
             onDelete={
-              comment.type === 'medical-file'
+              comment.type === "medical-file"
                 ? async () => {
                     const medicalFileToSave = {
                       ...medicalFile,
@@ -436,7 +436,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
                 : null
             }
             onUpdate={
-              comment.type === 'medical-file'
+              comment.type === "medical-file"
                 ? async (commentUpdated) => {
                     const medicalFileToSave = {
                       ...medicalFile,
@@ -452,12 +452,13 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
             }
           />
         )}
-        ifEmpty="Pas encore de commentaire">
+        ifEmpty="Pas encore de commentaire"
+      >
         <NewCommentInput
           forwardRef={newCommentRef}
           onCommentWrite={setWritingComment}
           onCreate={(newComment) => {
-            const newComments = [{ ...newComment, type: 'medical-file', _id: uuidv4() }, ...(medicalFile.comments || [])];
+            const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile.comments || [])];
             const medicalFileToSave = { ...medicalFile, comments: newComments };
             setMedicalFile(medicalFileToSave); // optimistic UI
             // need to pass comments as parameters if we want last comment to be taken into account
@@ -487,9 +488,10 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         disableVoirPlus={true}
         label="Documents médicaux"
         data={allMedicalDocuments}
-        customCount={allMedicalDocuments.filter((d) => d.type === 'document').length}
+        customCount={allMedicalDocuments.filter((d) => d.type === "document").length}
         renderItem={() => null}
-        ifEmpty="Pas encore de document médical">
+        ifEmpty="Pas encore de document médical"
+      >
         <DocumentsManager
           defaultParent="root"
           documents={allMedicalDocuments}

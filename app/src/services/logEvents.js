@@ -1,13 +1,13 @@
-import NetInfo from '@react-native-community/netinfo';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import DeviceInfo from 'react-native-device-info';
-import { Platform } from 'react-native';
-import Matomo from './matomo';
-import { MATOMO_SITE_ID, MATOMO_URL } from '../config';
+import NetInfo from "@react-native-community/netinfo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DeviceInfo from "react-native-device-info";
+import { Platform } from "react-native";
+import Matomo from "./matomo";
+import { MATOMO_SITE_ID, MATOMO_URL } from "../config";
 
 const CONSTANTS = {
-  STORE_KEY_USER_ID: 'STORE_KEY_USER_ID',
-  STORE_KEY_NUMBER_OF_VISITS: 'STORE_KEY_NUMBER_OF_VISITS',
+  STORE_KEY_USER_ID: "STORE_KEY_USER_ID",
+  STORE_KEY_NUMBER_OF_VISITS: "STORE_KEY_NUMBER_OF_VISITS",
 };
 
 const initLogEvents = async () => {
@@ -43,11 +43,11 @@ const checkNetwork = async () => {
 const logEvent = async ({ category, action, name, value }) => {
   try {
     const canSend = await checkNetwork();
-    if (!canSend) throw new Error('no network');
+    if (!canSend) throw new Error("no network");
     Matomo.logEvent({ category, action, name, value });
   } catch (e) {
-    console.log('logEvent error', e);
-    console.log('logEvent error', { category, action, name, value });
+    console.log("logEvent error", e);
+    console.log("logEvent error", { category, action, name, value });
   }
 };
 
@@ -56,9 +56,9 @@ APP VISIT
 
 */
 
-const APP = 'APP';
-const APP_OPEN = 'APP_OPEN';
-const APP_CLOSE = 'APP_CLOSE';
+const APP = "APP";
+const APP_OPEN = "APP_OPEN";
+const APP_CLOSE = "APP_CLOSE";
 
 const logAppVisit = async (from = null) => {
   await logEvent({

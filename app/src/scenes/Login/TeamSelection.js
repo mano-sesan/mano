@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
-import styled from 'styled-components/native';
-import { ActivityIndicator } from 'react-native';
-import colors from '../../utils/colors';
-import SceneContainer from '../../components/SceneContainer';
-import ScrollContainer from '../../components/ScrollContainer';
-import { MyText } from '../../components/MyText';
-import Title from '../../components/Title';
-import ScreenTitle from '../../components/ScreenTitle';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { refreshTriggerState } from '../../components/Loader';
+import React, { useState } from "react";
+import styled from "styled-components/native";
+import { ActivityIndicator } from "react-native";
+import colors from "../../utils/colors";
+import SceneContainer from "../../components/SceneContainer";
+import ScrollContainer from "../../components/ScrollContainer";
+import { MyText } from "../../components/MyText";
+import Title from "../../components/Title";
+import ScreenTitle from "../../components/ScreenTitle";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { refreshTriggerState } from "../../components/Loader";
 
 const TeamBody = ({ onSelect }) => {
   const [loading, setLoading] = useState(false);
@@ -40,7 +40,7 @@ export const TeamSelection = (props) => {
   const onSelect = () =>
     props.navigation.reset({
       index: 0,
-      routes: [{ name: 'Home' }],
+      routes: [{ name: "Home" }],
     });
 
   return (

@@ -1,17 +1,17 @@
-import React, { useCallback, useState } from 'react';
-import { View } from 'react-native';
-import { useRecoilValue } from 'recoil';
-import Button from '../../components/Button';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import InputMultilineAutoAdjust from '../../components/InputMultilineAutoAdjust';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ScrollContainer from '../../components/ScrollContainer';
-import { currentTeamState, userState } from '../../recoil/auth';
-import Label from '../../components/Label';
-import { MyText } from '../../components/MyText';
-import Tags from '../../components/Tags';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useState } from "react";
+import { View } from "react-native";
+import { useRecoilValue } from "recoil";
+import Button from "../../components/Button";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ScrollContainer from "../../components/ScrollContainer";
+import { currentTeamState, userState } from "../../recoil/auth";
+import Label from "../../components/Label";
+import { MyText } from "../../components/MyText";
+import Tags from "../../components/Tags";
+import { useFocusEffect } from "@react-navigation/native";
 
 const TerritoryObservationRencontre = ({ navigation, route }) => {
   const isNewRencontre = !route.params.rencontre;
@@ -38,11 +38,11 @@ const TerritoryObservationRencontre = ({ navigation, route }) => {
     }, [route?.params?.person])
   );
 
-  const onSearchPerson = () => navigation.push('PersonsSearch', { fromRoute: 'TerritoryObservationRencontre', territory: route.params.territory });
+  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "TerritoryObservationRencontre", territory: route.params.territory });
 
   return (
     <SceneContainer>
-      <ScreenTitle title={isNewRencontre ? 'Ajouter une rencontre' : 'Modifier une rencontre'} onBack={() => navigation.goBack()} />
+      <ScreenTitle title={isNewRencontre ? "Ajouter une rencontre" : "Modifier une rencontre"} onBack={() => navigation.goBack()} />
       <ScrollContainer keyboardShouldPersistTaps="handled">
         <View>
           <>
@@ -79,7 +79,7 @@ const TerritoryObservationRencontre = ({ navigation, route }) => {
               onPress={async () => {
                 setSubmitting(true);
                 setSubmitting(false);
-                navigation.navigate('TerritoryObservation', {
+                navigation.navigate("TerritoryObservation", {
                   territory: route.params.territory,
                   rencontresInProgress: rencontrePersons.map(
                     (p) => {

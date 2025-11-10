@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import styled from 'styled-components/native';
-import { Linking, Dimensions } from 'react-native';
-import Pdf from 'react-native-pdf';
-import API from '../../services/api';
-import SceneContainer from '../../components/SceneContainer';
-import ScrollContainer from '../../components/ScrollContainer';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import Button from '../../components/Button';
-import Title, { SubTitle } from '../../components/Title';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { refreshTriggerState } from '../../components/Loader';
+import React, { useState } from "react";
+import styled from "styled-components/native";
+import { Linking, Dimensions } from "react-native";
+import Pdf from "react-native-pdf";
+import API from "../../services/api";
+import SceneContainer from "../../components/SceneContainer";
+import ScrollContainer from "../../components/ScrollContainer";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import Button from "../../components/Button";
+import Title, { SubTitle } from "../../components/Title";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { refreshTriggerState } from "../../components/Loader";
 
 const CharteAcceptance = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
@@ -20,14 +20,14 @@ const CharteAcceptance = ({ navigation }) => {
 
   const onAccept = async () => {
     setLoading(true);
-    const response = await API.put({ path: '/user', body: { termsAccepted: Date.now() } });
+    const response = await API.put({ path: "/user", body: { termsAccepted: Date.now() } });
     if (response.ok) {
       if (user?.teams?.length === 1) {
         setCurrentTeam(user.teams[0]);
         setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
-        navigation.navigate('Home');
+        navigation.navigate("Home");
       } else {
-        navigation.navigate('TeamSelection');
+        navigation.navigate("TeamSelection");
       }
     }
     setTimeout(() => {
@@ -45,7 +45,7 @@ const CharteAcceptance = ({ navigation }) => {
           </Container>
           <PdfContainer>
             <PdfViewer
-              source={{ uri: 'https://espace-mano.sesan.fr/charte.pdf' }}
+              source={{ uri: "https://espace-mano.sesan.fr/charte.pdf" }}
               onPressLink={(url) => {
                 if (Linking.canOpenURL(url)) Linking.openURL(url);
               }}
@@ -77,7 +77,7 @@ const PdfContainer = styled.View`
   margin-bottom: 30px;
 `;
 
-const docWidth = Dimensions.get('window').width;
+const docWidth = Dimensions.get("window").width;
 const pageHeight = (docWidth * 29.7) / 21; // A4
 const pagesSpacing = 10;
 

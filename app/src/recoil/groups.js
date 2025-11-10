@@ -1,14 +1,14 @@
-import { atom, selectorFamily } from 'recoil';
-import { storage } from '../services/dataManagement';
+import { atom, selectorFamily } from "recoil";
+import { storage } from "../services/dataManagement";
 
 export const groupsState = atom({
-  key: 'groupsState',
-  default: JSON.parse(storage.getString('groupsState') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('group', JSON.stringify(newValue)))],
+  key: "groupsState",
+  default: JSON.parse(storage.getString("groupsState") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("group", JSON.stringify(newValue)))],
 });
 
 export const groupSelector = selectorFamily({
-  key: 'groupSelector',
+  key: "groupSelector",
   get:
     ({ personId }) =>
     ({ get }) => {
@@ -17,7 +17,7 @@ export const groupSelector = selectorFamily({
     },
 });
 
-const encryptedFields = ['persons', 'relations'];
+const encryptedFields = ["persons", "relations"];
 
 // @type Relation: { persons: uuid[], description: string, createdAt: Date, updatedAt: Date, user: uuid };
 

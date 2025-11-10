@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { Alert, View } from 'react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import styled from 'styled-components/native';
-import Button from '../../components/Button';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import InputMultilineAutoAdjust from '../../components/InputMultilineAutoAdjust';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ScrollContainer from '../../components/ScrollContainer';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { rencontresState, prepareRencontreForEncryption } from '../../recoil/rencontres';
-import API from '../../services/api';
+import React, { useState } from "react";
+import { Alert, View } from "react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import styled from "styled-components/native";
+import Button from "../../components/Button";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ScrollContainer from "../../components/ScrollContainer";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
+import API from "../../services/api";
 
 const Rencontre = ({ navigation, route }) => {
   const personId = route.params.person._id;
@@ -25,14 +25,14 @@ const Rencontre = ({ navigation, route }) => {
 
   const createRencontre = async () => {
     const response = await API.post({
-      path: '/rencontre',
+      path: "/rencontre",
       body: prepareRencontreForEncryption(rencontre),
     });
     if (response.ok) {
       const newRencontre = response.decryptedData;
 
       setRencontres([newRencontre, ...rencontres]);
-      Alert.alert('Rencontre ajoutée !');
+      Alert.alert("Rencontre ajoutée !");
     }
     return response;
   };
@@ -46,14 +46,14 @@ const Rencontre = ({ navigation, route }) => {
       const updatedRencontre = response.decryptedData;
 
       setRencontres((rencontres) => rencontres.map((r) => (r._id === updatedRencontre._id ? updatedRencontre : r)));
-      Alert.alert('Rencontre modifiée !');
+      Alert.alert("Rencontre modifiée !");
     }
     return response;
   };
 
   return (
     <SceneContainer>
-      <ScreenTitle title={isNewRencontre ? 'Ajouter une rencontre' : 'Modifier une rencontre'} onBack={() => navigation.goBack()} />
+      <ScreenTitle title={isNewRencontre ? "Ajouter une rencontre" : "Modifier une rencontre"} onBack={() => navigation.goBack()} />
       <ScrollContainer keyboardShouldPersistTaps="handled">
         <View>
           <DateAndTimeInput

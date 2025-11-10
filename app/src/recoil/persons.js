@@ -1,13 +1,13 @@
-import { storage } from '../services/dataManagement';
-import { atom, selector, useRecoilValue } from 'recoil';
-import { organisationState } from './auth';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { storage } from "../services/dataManagement";
+import { atom, selector, useRecoilValue } from "recoil";
+import { organisationState } from "./auth";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const personsState = atom({
-  key: 'personsState',
-  default: JSON.parse(storage.getString('person') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('person', JSON.stringify(newValue)))],
+  key: "personsState",
+  default: JSON.parse(storage.getString("person") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("person", JSON.stringify(newValue)))],
 });
 
 /*
@@ -19,7 +19,7 @@ All fields for person are
 
 */
 export const personFieldsSelector = selector({
-  key: 'personFieldsSelector',
+  key: "personFieldsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     return organisation.personFields;
@@ -27,7 +27,7 @@ export const personFieldsSelector = selector({
 });
 
 export const fieldsPersonsCustomizableOptionsSelector = selector({
-  key: 'fieldsPersonsCustomizableOptionsSelector',
+  key: "fieldsPersonsCustomizableOptionsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     return organisation.fieldsPersonsCustomizableOptions;
@@ -35,7 +35,7 @@ export const fieldsPersonsCustomizableOptionsSelector = selector({
 });
 
 export const customFieldsPersonsSelector = selector({
-  key: 'customFieldsPersonsSelector',
+  key: "customFieldsPersonsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     return organisation.customFieldsPersons || [];
@@ -43,7 +43,7 @@ export const customFieldsPersonsSelector = selector({
 });
 
 export const flattenedCustomFieldsPersonsSelector = selector({
-  key: 'flattenedCustomFieldsPersonsSelector',
+  key: "flattenedCustomFieldsPersonsSelector",
   get: ({ get }) => {
     const customFieldsPersonsSections = get(customFieldsPersonsSelector);
     const customFieldsPersons = [];
@@ -59,7 +59,7 @@ export const flattenedCustomFieldsPersonsSelector = selector({
 /* Other utils selector */
 
 export const personFieldsIncludingCustomFieldsSelector = selector({
-  key: 'personFieldsIncludingCustomFieldsSelector',
+  key: "personFieldsIncludingCustomFieldsSelector",
   get: ({ get }) => {
     const personFields = get(personFieldsSelector);
     const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector);
@@ -80,10 +80,10 @@ export const personFieldsIncludingCustomFieldsSelector = selector({
   },
 });
 
-export const forbiddenPersonFieldsInHistory = ['history', 'createdAt', 'updatedAt', 'documents'];
+export const forbiddenPersonFieldsInHistory = ["history", "createdAt", "updatedAt", "documents"];
 
 export const allowedPersonFieldsInHistorySelector = selector({
-  key: 'allowedPersonFieldsInHistorySelector',
+  key: "allowedPersonFieldsInHistorySelector",
   get: ({ get }) => {
     const allFields = get(personFieldsIncludingCustomFieldsSelector);
     return allFields.map((f) => f.name).filter((f) => !forbiddenPersonFieldsInHistory.includes(f));
@@ -91,7 +91,7 @@ export const allowedPersonFieldsInHistorySelector = selector({
 });
 
 export const filterPersonsBaseSelector = selector({
-  key: 'filterPersonsBaseSelector',
+  key: "filterPersonsBaseSelector",
   get: ({ get }) => {
     const personFields = get(personFieldsSelector);
     return personFields.filter((m) => m.filterable).map(({ name, ...rest }) => ({ field: name, ...rest }));
@@ -111,7 +111,7 @@ export const usePreparePersonForEncryption = () => {
   const preparePersonForEncryption = (person) => {
     try {
       if (!person.name) {
-        throw new Error('Person is missing name');
+        throw new Error("Person is missing name");
       }
     } catch (error) {
       Alert.alert(

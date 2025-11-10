@@ -1,31 +1,31 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import Button from '../../components/Button';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import styled from 'styled-components/native';
-import { MyText } from '../../components/MyText';
-import CustomFieldInput from '../../components/CustomFieldInput';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, KeyboardAvoidingView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import Button from "../../components/Button";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import styled from "styled-components/native";
+import { MyText } from "../../components/MyText";
+import CustomFieldInput from "../../components/CustomFieldInput";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import {
   customFieldsObsSelector,
   groupedCustomFieldsObsSelector,
   prepareObsForEncryption,
   territoryObservationsState,
-} from '../../recoil/territoryObservations';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import API from '../../services/api';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import { prepareRencontreForEncryption, rencontresState } from '../../recoil/rencontres';
-import { useFocusEffect } from '@react-navigation/native';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import { PersonName } from '../Persons/PersonRow';
-import { dayjsInstance } from '../../services/dateDayjs';
+} from "../../recoil/territoryObservations";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import API from "../../services/api";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
+import { useFocusEffect } from "@react-navigation/native";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { PersonName } from "../Persons/PersonRow";
+import { dayjsInstance } from "../../services/dateDayjs";
 
 const cleanValue = (value) => {
-  if (typeof value === 'string') return (value || '').trim();
+  if (typeof value === "string") return (value || "").trim();
   return value;
 };
 
@@ -53,7 +53,7 @@ const TerritoryObservation = ({ route, navigation }) => {
         ...toReturn,
         observedAt: territoryObservation.observedAt || territoryObservation.createdAt || null,
         user: territoryObservation.user || {},
-        entityKey: territoryObservation.entityKey || '',
+        entityKey: territoryObservation.entityKey || "",
       };
     },
     [customFieldsObs]
@@ -88,7 +88,7 @@ const TerritoryObservation = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -108,7 +108,7 @@ const TerritoryObservation = ({ route, navigation }) => {
       const newRencontres = [];
       for (const rencontre of rencontresInProgress) {
         const response = await API.post({
-          path: '/rencontre',
+          path: "/rencontre",
           body: prepareRencontreForEncryption({ ...rencontre, observation: obsId }),
         });
         if (response.error) {
@@ -125,7 +125,7 @@ const TerritoryObservation = ({ route, navigation }) => {
   const onCreateTerritoryObservation = async () => {
     setUpdating(true);
     const response = await API.post({
-      path: '/territory-observation',
+      path: "/territory-observation",
       body: prepareObsForEncryption(customFieldsObs)(
         Object.assign({}, castToTerritoryObservation(obs), {
           territory: route.params.territory._id,
@@ -146,7 +146,7 @@ const TerritoryObservation = ({ route, navigation }) => {
     setTerritoryObservations((territoryObservations) => [response.decryptedData, ...territoryObservations]);
     setObsDB(response.decryptedData);
     await saveRencontres(response.decryptedData._id);
-    Alert.alert('Nouvelle observation créée !');
+    Alert.alert("Nouvelle observation créée !");
     setUpdating(false);
     setEditable(false);
     return onBack();
@@ -179,7 +179,7 @@ const TerritoryObservation = ({ route, navigation }) => {
       })
     );
     setObsDB(response.decryptedData);
-    Alert.alert('Observation mise à jour !');
+    Alert.alert("Observation mise à jour !");
     await saveRencontres(response.decryptedData._id);
     setUpdating(false);
     setEditable(false);
@@ -187,15 +187,15 @@ const TerritoryObservation = ({ route, navigation }) => {
   };
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer ce territoire ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer ce territoire ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -205,7 +205,7 @@ const TerritoryObservation = ({ route, navigation }) => {
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
       setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== obsDB._id));
-      Alert.alert('Observation supprimée !');
+      Alert.alert("Observation supprimée !");
       onBack();
     }
   };
@@ -225,22 +225,22 @@ const TerritoryObservation = ({ route, navigation }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer cette observation ?', null, [
+    Alert.alert("Voulez-vous enregistrer cette observation ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const ok = await onSaveObservation();
           if (ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -272,14 +272,14 @@ const TerritoryObservation = ({ route, navigation }) => {
         {fieldsGroupNames.map((name) => {
           return (
             <TouchableOpacity key={name} onPress={() => setActiveTab(name)}>
-              <View className={`p-4 bg-white ${name === activeTab ? 'border-b-green-700 border-b-4' : ''}`}>
-                <Text>{fieldsGroupNames.length > 1 ? name : 'Informations'}</Text>
+              <View className={`p-4 bg-white ${name === activeTab ? "border-b-green-700 border-b-4" : ""}`}>
+                <Text>{fieldsGroupNames.length > 1 ? name : "Informations"}</Text>
               </View>
             </TouchableOpacity>
           );
         })}
-        <TouchableOpacity key="rencontres" onPress={() => setActiveTab('rencontres')}>
-          <View className={`p-4 bg-white ${activeTab === 'rencontres' ? 'border-b-green-700 border-b-4' : ''}`}>
+        <TouchableOpacity key="rencontres" onPress={() => setActiveTab("rencontres")}>
+          <View className={`p-4 bg-white ${activeTab === "rencontres" ? "border-b-green-700 border-b-4" : ""}`}>
             <Text>Rencontres</Text>
           </View>
         </TouchableOpacity>
@@ -290,14 +290,15 @@ const TerritoryObservation = ({ route, navigation }) => {
           className="bg-white p-4"
           ref={scrollViewRef}
           testID="observation"
-          contentContainerStyle={{ paddingBottom: 20 }}>
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
           <View className="mt-3">
             {editable && obsDB?._id ? (
               <DateAndTimeInput label="Observation faite le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
             ) : (
-              <CreatedAt>{dayjsInstance(date).format('dddd DD MMM HH:mm')}</CreatedAt>
+              <CreatedAt>{dayjsInstance(date).format("dddd DD MMM HH:mm")}</CreatedAt>
             )}
-            {activeTab === 'rencontres' ? (
+            {activeTab === "rencontres" ? (
               <View key="rencontres" className="mb-4">
                 {!currentRencontres.length ? (
                   <View className="pb-6">
@@ -310,12 +311,12 @@ const TerritoryObservation = ({ route, navigation }) => {
                 ) : null}
                 <View className="mb-2">
                   <Button
-                    caption={'Ajouter une rencontre'}
+                    caption={"Ajouter une rencontre"}
                     onPress={() => {
-                      navigation.push('TerritoryObservationRencontre', {
+                      navigation.push("TerritoryObservationRencontre", {
                         obs: obsDB,
                         territory: route.params.territory,
-                        fromRoute: 'TerritoryObservation',
+                        fromRoute: "TerritoryObservation",
                       });
                     }}
                     disabled={false}
@@ -336,7 +337,8 @@ const TerritoryObservation = ({ route, navigation }) => {
                             className="bg-red-700 px-2 py-1 rounded"
                             onPress={() => {
                               setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
-                            }}>
+                            }}
+                          >
                             <Text className="text-white font-bold">Retirer</Text>
                           </TouchableOpacity>
                         </View>
@@ -370,7 +372,7 @@ const TerritoryObservation = ({ route, navigation }) => {
                 <>
                   <ButtonDelete onPress={onDeleteRequest} />
                   <Button
-                    caption={editable ? 'Mettre à jour' : 'Modifier'}
+                    caption={editable ? "Mettre à jour" : "Modifier"}
                     onPress={editable ? onSaveObservation : onEdit}
                     disabled={editable ? isUpdateDisabled : false}
                     loading={updating}

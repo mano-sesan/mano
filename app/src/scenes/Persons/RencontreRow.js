@@ -1,12 +1,12 @@
-import React, { useMemo } from 'react';
-import { connectActionSheet } from '@expo/react-native-action-sheet';
-import { Alert } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import { userState } from '../../recoil/auth';
-import API from '../../services/api';
-import { rencontresState } from '../../recoil/rencontres';
-import BubbleRow from '../../components/BubbleRow';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
+import React, { useMemo } from "react";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { Alert } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { userState } from "../../recoil/auth";
+import API from "../../services/api";
+import { rencontresState } from "../../recoil/rencontres";
+import BubbleRow from "../../components/BubbleRow";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 
 const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemName, onItemNamePress }) => {
   const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
@@ -15,31 +15,31 @@ const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemNam
   const person = useMemo(() => (rencontre?.person ? personsObject[rencontre.person] : null), [personsObject, rencontre.person]);
 
   const onMorePress = async () => {
-    const options = ['Supprimer', 'Annuler'];
-    if (onUpdate && rencontre.user === user._id) options.unshift('Modifier');
+    const options = ["Supprimer", "Annuler"];
+    if (onUpdate && rencontre.user === user._id) options.unshift("Modifier");
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex: options.length - 1,
-        destructiveButtonIndex: options.findIndex((o) => o === 'Supprimer'),
+        destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === 'Modifier') onUpdate(person);
-        if (options[buttonIndex] === 'Supprimer') onRencontreDeleteRequest();
+        if (options[buttonIndex] === "Modifier") onUpdate(person);
+        if (options[buttonIndex] === "Supprimer") onRencontreDeleteRequest();
       }
     );
   };
 
   const onRencontreDeleteRequest = () => {
-    Alert.alert('Voulez-vous supprimer cette rencontre ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous supprimer cette rencontre ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onRencontreDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

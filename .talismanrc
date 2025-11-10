@@ -10,7 +10,9 @@ fileignoreconfig:
 - filename: app/ios/mano.xcodeproj/project.pbxproj
   checksum: 770a1d4e9af3d604152dfbc102f74671e11bae6be8331aa006249f20ba28a224
 - filename: app/src/services/encryption.js
-  checksum: 5a6da61da0549a02ea89b3fc899e9c655a4455a72d33b0b80024b6af85e1a897
+  checksum: 17106fef43a9a2f541f6c8c57fe1be61d2e51ea35f87ead76acb36340ace9b93
+- filename: app/src/services/matomo.js
+  checksum: 87f03249e25d7bc48271d6e510e2c89d56edc972e54a56ce8f9c03e4d9777cd0
 - filename: dashboard/.yarnrc.yml
   checksum: 6b12c3fee90382d0b475cdd6e33b78871ba826a1e50564ee3ef4e2ab4100c3f6
 - filename: dashboard/__tests__/import-config/mocks/clean-organisation.ts

@@ -1,11 +1,11 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import Label from './Label';
-import ButtonReset from './ButtonReset';
-import InputLabelled from './InputLabelled';
-import { MyText } from './MyText';
-import { dayjsInstance } from '../services/dateDayjs';
+import React from "react";
+import styled from "styled-components/native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import Label from "./Label";
+import ButtonReset from "./ButtonReset";
+import InputLabelled from "./InputLabelled";
+import { MyText } from "./MyText";
+import { dayjsInstance } from "../services/dateDayjs";
 
 // we want to show DD-MM-YYYY
 // but we want to save as YYYY-MM-DD
@@ -13,20 +13,20 @@ import { dayjsInstance } from '../services/dateDayjs';
 // convert from DD-MM-YYYY to YYYY-MM-DD or the opposite is the same formula
 export const convertDate = (date, showDay) => {
   try {
-    if (!date) return '';
-    return dayjsInstance(date).format('DD-MM-YYYY');
+    if (!date) return "";
+    return dayjsInstance(date).format("DD-MM-YYYY");
   } catch (e) {
-    console.log('cannot convert date', e);
+    console.log("cannot convert date", e);
     console.log(date);
   }
 };
 
 const convertTime = (date) => {
   try {
-    if (!date) return '';
-    return dayjsInstance(date).format('HH:mm');
+    if (!date) return "";
+    return dayjsInstance(date).format("HH:mm");
   } catch (e) {
-    console.log('cannot convert date', e);
+    console.log("cannot convert date", e);
     console.log(date);
   }
 };
@@ -52,18 +52,18 @@ const DateAndTimeInput = ({
   showTime,
   showDay,
   showYear = false,
-  testID = '',
+  testID = "",
 }) => {
-  const [mode, setMode] = React.useState('date');
+  const [mode, setMode] = React.useState("date");
   const [visible, setVisible] = React.useState(false);
 
   const onDateChooseRequest = () => {
-    setMode('date');
+    setMode("date");
     setVisible(true);
   };
 
   const onTimeChooseRequest = () => {
-    setMode('time');
+    setMode("time");
     setVisible(true);
   };
 
@@ -74,7 +74,7 @@ const DateAndTimeInput = ({
 
   const onClearDate = () => {
     if (showTime) setWithTime(false);
-    setDate('');
+    setDate("");
   };
 
   const onClose = () => setVisible(false);
@@ -112,17 +112,17 @@ const DateAndTimeInput = ({
 
   if (!editable) {
     const datetoShow = showDay
-      ? dayjsInstance(date).format(showTime && withTime ? 'dddd DD MMMM HH:mm' : 'dddd DD MMMM')
-      : `${date ? convertDate(date, showDay) : 'JJ-MM-AAAA'}${showTime && withTime ? ` à ${convertTime(date)}` : ''}`;
+      ? dayjsInstance(date).format(showTime && withTime ? "dddd DD MMMM HH:mm" : "dddd DD MMMM")
+      : `${date ? convertDate(date, showDay) : "JJ-MM-AAAA"}${showTime && withTime ? ` à ${convertTime(date)}` : ""}`;
     return <InputLabelled label={label} value={datetoShow} editable={false} />;
   }
 
   const renderDate = () => {
-    if (!date) return 'JJ-MM-AAAA';
+    if (!date) return "JJ-MM-AAAA";
     // eslint-disable-next-line eqeqeq
-    if (new Date(date) == 'Invalid Date') return 'JJ-MM-AAAA';
-    if (showYear) return dayjsInstance(date).format('DD MMMM YYYY');
-    return dayjsInstance(date).format('dddd DD MMMM');
+    if (new Date(date) == "Invalid Date") return "JJ-MM-AAAA";
+    if (showYear) return dayjsInstance(date).format("DD MMMM YYYY");
+    return dayjsInstance(date).format("dddd DD MMMM");
   };
 
   return (

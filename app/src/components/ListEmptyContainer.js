@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { MyText } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import { MyText } from "./MyText";
 
 const ListEmptyContainer = ({ text, opaque }) => (
   <Container>
@@ -44,5 +44,5 @@ const Caption = styled(MyText)`
   font-weight: bold;
   text-align: center;
   margin-vertical: 20px;
-  ${(props) => props.opaque && 'opacity: 0.5;'}
+  ${(props) => props.opaque && "opacity: 0.5;"}
 `;

@@ -1,17 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import PersonRow from './PersonRow';
-import Spinner from '../../components/Spinner';
-import { ListEmptyPersons, ListNoMorePersons } from '../../components/ListEmptyContainer';
-import Search from '../../components/Search';
-import { FlashListStyled } from '../../components/Lists';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { personsSearchSelector } from '../../recoil/selectors';
-import { loadingState, refreshTriggerState } from '../../components/Loader';
+import React, { useState, useMemo } from "react";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import PersonRow from "./PersonRow";
+import Spinner from "../../components/Spinner";
+import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyContainer";
+import Search from "../../components/Search";
+import { FlashListStyled } from "../../components/Lists";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { personsSearchSelector } from "../../recoil/selectors";
+import { loadingState, refreshTriggerState } from "../../components/Loader";
 
 const PersonsSearch = ({ navigation, route }) => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
   const loading = useRecoilState(loadingState);
 
@@ -22,7 +22,7 @@ const PersonsSearch = ({ navigation, route }) => {
   };
 
   const onCreatePersonRequest = () => {
-    navigation.push('NewPersonForm', {
+    navigation.push("NewPersonForm", {
       fromRoute: route.params.fromRoute,
       toRoute: route.params.fromRoute,
     });

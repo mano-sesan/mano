@@ -1,7 +1,7 @@
-import React from 'react';
-import styled, { css } from 'styled-components/native';
-import { TouchableOpacity } from 'react-native';
-import { MyText } from './MyText';
+import React from "react";
+import styled, { css } from "styled-components/native";
+import { TouchableOpacity } from "react-native";
+import { MyText } from "./MyText";
 
 const hitSlop = {
   top: 20,
@@ -10,7 +10,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonRight = ({ onPress, caption, color = '#888', left = false, disabled = false }) => (
+const ButtonRight = ({ onPress, caption, color = "#888", left = false, disabled = false }) => (
   <ButtonContainer leftCss={left} disabled={disabled}>
     <TouchableOpacity onPress={onPress} hitSlop={hitSlop}>
       <Icon>

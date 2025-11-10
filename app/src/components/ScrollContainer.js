@@ -1,6 +1,6 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import colors from '../utils/colors';
+import React from "react";
+import styled from "styled-components/native";
+import colors from "../utils/colors";
 
 const ScrollContainer = React.forwardRef(({ children, ...props }, ref) => (
   <Container ref={ref} keyboardShouldPersistTaps="handled" {...props}>
@@ -11,9 +11,9 @@ const ScrollContainer = React.forwardRef(({ children, ...props }, ref) => (
 const Container = styled.ScrollView.attrs(({ debug, noPadding, testID, contentContainerStyle = {}, noRadius = false }) => ({
   contentContainerStyle: {
     borderWidth: debug ? 2 : 0,
-    borderColor: 'red',
+    borderColor: "red",
     padding: noPadding ? 0 : 30,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderTopLeftRadius: noRadius ? 0 : 16,
     borderTopRightRadius: noRadius ? 0 : 16,
     flexGrow: 1,
@@ -23,7 +23,7 @@ const Container = styled.ScrollView.attrs(({ debug, noPadding, testID, contentCo
 }))`
   flex: 1;
   background-color: ${(props) => props.backgroundColor || colors.app.color};
-  ${(props) => props.debug && 'border: 3px solid #000;'}
+  ${(props) => props.debug && "border: 3px solid #000;"}
   ${(props) => props.flexGrow && `flex-grow: ${props.flexGrow};`}
 `;
 

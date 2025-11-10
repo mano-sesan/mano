@@ -1,11 +1,11 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from "react";
+import { Animated, Dimensions, StyleSheet, Text, TouchableOpacity } from "react-native";
 
-import colors from '../utils/colors';
+import colors from "../utils/colors";
 
 const tabHeight = 45;
 const indicatorSpacing = 8;
-const windowWidth = Dimensions.get('window').width;
+const windowWidth = Dimensions.get("window").width;
 const tabsHorizontalMargin = 0.1;
 const tabsWidth = windowWidth * (1 - 2 * tabsHorizontalMargin);
 const tabMarginHorizontal = tabsWidth * 0.02;
@@ -33,7 +33,7 @@ const Tabs = ({ state, descriptors, navigation, parentScroll, numberOfTabs, forc
 
         const onPress = () => {
           const event = navigation.emit({
-            type: 'tabPress',
+            type: "tabPress",
             target: route.key,
             canPreventDefault: true,
           });
@@ -45,7 +45,7 @@ const Tabs = ({ state, descriptors, navigation, parentScroll, numberOfTabs, forc
 
         const onLongPress = () => {
           navigation.emit({
-            type: 'tabLongPress',
+            type: "tabLongPress",
             target: route.key,
           });
         };
@@ -59,7 +59,8 @@ const Tabs = ({ state, descriptors, navigation, parentScroll, numberOfTabs, forc
             testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
-            style={styles.tabStyle}>
+            style={styles.tabStyle}
+          >
             <Text style={[styles.labelStyle, isFocused && styles.activeLabelStyle]}>{label}</Text>
           </TouchableOpacity>
         );
@@ -72,28 +73,28 @@ const styles = StyleSheet.create({
   container: (parentScroll, forceTop, backgroundColor) => ({
     height: tabHeight,
     borderRadius: tabHeight,
-    overflow: 'hidden',
+    overflow: "hidden",
     zIndex: 1000,
     backgroundColor,
     marginHorizontal: windowWidth * tabsHorizontalMargin,
     marginBottom: 10,
     flexGrow: 0,
-    flexDirection: 'row',
+    flexDirection: "row",
     transform: [
       {
         translateY:
-          parentScroll?.interpolate && !forceTop ? parentScroll.interpolate({ inputRange: [0, 100], outputRange: [90, 0], extrapolate: 'clamp' }) : 0,
+          parentScroll?.interpolate && !forceTop ? parentScroll.interpolate({ inputRange: [0, 100], outputRange: [90, 0], extrapolate: "clamp" }) : 0,
       },
     ],
   }),
   indicatorStyle: (tabWidth) => ({
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     height: tabHeight - indicatorSpacing,
     borderRadius: tabHeight - indicatorSpacing,
     marginTop: indicatorSpacing / 2,
     marginHorizontal: tabMarginHorizontal,
     width: tabWidth,
-    position: 'absolute',
+    position: "absolute",
   }),
   indicatorPosition: (position, tabWidth, numberOfTabs) => ({
     transform: [
@@ -106,18 +107,18 @@ const styles = StyleSheet.create({
     ],
   }),
   tabStyle: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     flexGrow: 1,
     flexShrink: 1,
-    flexBasis: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexBasis: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   labelStyle: {
-    textTransform: 'none',
-    fontFamily: 'NexaRegular',
+    textTransform: "none",
+    fontFamily: "NexaRegular",
     fontSize: 15,
-    color: '#fff',
+    color: "#fff",
   },
   activeLabelStyle: {
     color: colors.app.secondary,

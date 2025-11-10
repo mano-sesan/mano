@@ -1,17 +1,17 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import API from '../../services/api';
-import { prepareTerritoryForEncryption, territoriesState } from '../../recoil/territory';
-import { userState } from '../../recoil/auth';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
+import { userState } from "../../recoil/auth";
 
 const NewTerritoryForm = ({ navigation, route }) => {
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
   const user = useRecoilValue(userState);
 
@@ -30,7 +30,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -39,7 +39,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
 
   const onCreateTerritory = async () => {
     setPosting(true);
-    const response = await API.post({ path: '/territory', body: prepareTerritoryForEncryption({ name, user: user?._id }) });
+    const response = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ name, user: user?._id }) });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);
@@ -48,7 +48,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
       setTerritories((territories) => [response.decryptedData, ...territories]);
-      navigation.replace('Territory', {
+      navigation.replace("Territory", {
         territory: response.decryptedData,
         editable: true,
       });
@@ -63,19 +63,19 @@ const NewTerritoryForm = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (!isReadyToSave) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce territoire ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce territoire ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onCreateTerritory,
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

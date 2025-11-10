@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableOpacity, ActivityIndicator, TouchableWithoutFeedback, Dimensions } from 'react-native';
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import Spacer from './Spacer';
+import React from "react";
+import styled from "styled-components/native";
+import { TouchableOpacity, ActivityIndicator, TouchableWithoutFeedback, Dimensions } from "react-native";
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import Spacer from "./Spacer";
 
 const hitSlop = {
   top: 20,
@@ -25,7 +25,7 @@ const Button = ({
   Icon,
   noBorder = false,
   buttonSize = 40,
-  testID = '',
+  testID = "",
 }) => {
   const Root = loading !== undefined ? TouchableWithoutFeedback : TouchableOpacity;
   return (
@@ -37,7 +37,8 @@ const Button = ({
         buttonSize={buttonSize}
         noBorder={noBorder}
         fullWidth={fullWidth}
-        borderColor={borderColor}>
+        borderColor={borderColor}
+      >
         {loading ? (
           <ActivityIndicator size="small" color={color} />
         ) : (
@@ -61,7 +62,7 @@ const Button = ({
 };
 
 const ButtonContainer = styled.View`
-  /* background-color: ${(props) => (props.outlined ? 'white' : props.backgroundColor)};
+  /* background-color: ${(props) => (props.outlined ? "white" : props.backgroundColor)};
   border-color: ${(props) => props.borderColor || props.backgroundColor}; */
   ${(props) => props.backgroundColor && `background-color: ${props.backgroundColor};`}
   border: 1px solid rgba(30, 36, 55, 0.1);
@@ -72,12 +73,12 @@ const ButtonContainer = styled.View`
   justify-content: center;
   align-items: center;
   justify-content: center;
-  min-width: ${Math.min(Dimensions.get('window').width * 0.3, 140)}px;
+  min-width: ${Math.min(Dimensions.get("window").width * 0.3, 140)}px;
   flex-direction: row;
   /* min-width: 140px; */
-  ${(props) => props.disabled && 'opacity: 0.5;'}
-  ${(props) => props.fullWidth && 'width: 100%;'}
-  ${(props) => props.noBorder && 'border-width: 0;'}
+  ${(props) => props.disabled && "opacity: 0.5;"}
+  ${(props) => props.fullWidth && "width: 100%;"}
+  ${(props) => props.noBorder && "border-width: 0;"}
 `;
 
 const Caption = styled(MyText)`

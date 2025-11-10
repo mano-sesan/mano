@@ -1,16 +1,16 @@
-import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import Row from '../../components/Row';
-import PersonSection from './PersonSection';
-import ScrollContainer from '../../components/ScrollContainer';
-import Spacer from '../../components/Spacer';
-import colors from '../../utils/colors';
-import Documents from './Documents';
-import MedicalFile from './MedicalFile';
-import { useRecoilValue } from 'recoil';
-import { organisationState, userState } from '../../recoil/auth';
-import Group from './Group';
-import { customFieldsPersonsSelector } from '../../recoil/persons';
+import React from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import Row from "../../components/Row";
+import PersonSection from "./PersonSection";
+import ScrollContainer from "../../components/ScrollContainer";
+import Spacer from "../../components/Spacer";
+import colors from "../../utils/colors";
+import Documents from "./Documents";
+import MedicalFile from "./MedicalFile";
+import { useRecoilValue } from "recoil";
+import { organisationState, userState } from "../../recoil/auth";
+import Group from "./Group";
+import { customFieldsPersonsSelector } from "../../recoil/persons";
 
 const FoldersStack = createStackNavigator();
 
@@ -50,12 +50,12 @@ const FoldersSummary = ({ navigation, backgroundColor }) => {
         return <Row key={name} withNextButton caption={name} onPress={() => navigation.navigate(name)} />;
       })}
       <Spacer />
-      <Row withNextButton caption="📁   Documents" onPress={() => navigation.navigate('Documents_Mano')} />
-      {!!organisation.groupsEnabled && <Row withNextButton caption="👪   Liens Familiaux" onPress={() => navigation.navigate('Group')} />}
+      <Row withNextButton caption="📁   Documents" onPress={() => navigation.navigate("Documents_Mano")} />
+      {!!organisation.groupsEnabled && <Row withNextButton caption="👪   Liens Familiaux" onPress={() => navigation.navigate("Group")} />}
       {!!user?.healthcareProfessional && (
         <>
           <Spacer />
-          <Row withNextButton caption="🩺   Dossier médical" onPress={() => navigation.navigate('MedicalFile')} />
+          <Row withNextButton caption="🩺   Dossier médical" onPress={() => navigation.navigate("MedicalFile")} />
         </>
       )}
     </ScrollContainer>

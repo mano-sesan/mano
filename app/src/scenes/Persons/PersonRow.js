@@ -1,16 +1,16 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { connectActionSheet } from '@expo/react-native-action-sheet';
-import * as Sentry from '@sentry/react-native';
-import ButtonTopPlus from '../../components/ButtonTopPlus';
-import { MyText } from '../../components/MyText';
-import RowContainer from '../../components/RowContainer';
-import TeamsTags from '../../components/TeamsTags';
-import colors from '../../utils/colors';
-import { useRecoilValue } from 'recoil';
-import { organisationState, userState } from '../../recoil/auth';
+import React from "react";
+import styled from "styled-components/native";
+import { View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import * as Sentry from "@sentry/react-native";
+import ButtonTopPlus from "../../components/ButtonTopPlus";
+import { MyText } from "../../components/MyText";
+import RowContainer from "../../components/RowContainer";
+import TeamsTags from "../../components/TeamsTags";
+import colors from "../../utils/colors";
+import { useRecoilValue } from "recoil";
+import { organisationState, userState } from "../../recoil/auth";
 
 export const PersonName = ({ person: { name, outOfActiveList, outOfActiveListReasons, otherNames } }) => {
   if (outOfActiveList) {
@@ -24,7 +24,7 @@ export const PersonName = ({ person: { name, outOfActiveList, outOfActiveListRea
         ) : (
           <NameMuted>{name}</NameMuted>
         )}
-        <ActiveListReasonText>Sortie de file active : {outOfActiveListReasons?.join(', ')}</ActiveListReasonText>
+        <ActiveListReasonText>Sortie de file active : {outOfActiveListReasons?.join(", ")}</ActiveListReasonText>
       </OutOfActiveListContainer>
     );
   }
@@ -47,17 +47,17 @@ const PersonRow = ({ onPress, person, isPersonsSearchRow = false, showActionShee
 
   const onMorePress = async () => {
     const options = [
-      'Ajouter une action',
-      ...(user.healthcareProfessional ? ['Ajouter une consultation'] : []),
-      ...(['admin', 'normal'].includes(user.role) ? ['Ajouter un commentaire', 'Ajouter un lieu fréquenté'] : []),
-      'Annuler',
+      "Ajouter une action",
+      ...(user.healthcareProfessional ? ["Ajouter une consultation"] : []),
+      ...(["admin", "normal"].includes(user.role) ? ["Ajouter un commentaire", "Ajouter un lieu fréquenté"] : []),
+      "Annuler",
     ];
 
     if (organisation.rencontresEnabled) {
-      options.unshift('Ajouter une rencontre');
+      options.unshift("Ajouter une rencontre");
     }
     if (organisation.passagesEnabled) {
-      options.unshift('Ajouter un passage');
+      options.unshift("Ajouter un passage");
     }
 
     showActionSheetWithOptions(
@@ -66,24 +66,24 @@ const PersonRow = ({ onPress, person, isPersonsSearchRow = false, showActionShee
         cancelButtonIndex: options.length - 1,
       },
       async (buttonIndex) => {
-        Sentry.setContext('person', { _id: person._id });
-        if (options[buttonIndex] === 'Ajouter une rencontre') {
-          navigation.push('Rencontre', { person, commentTitle: person.name, fromRoute: 'PersonsList' });
+        Sentry.setContext("person", { _id: person._id });
+        if (options[buttonIndex] === "Ajouter une rencontre") {
+          navigation.push("Rencontre", { person, commentTitle: person.name, fromRoute: "PersonsList" });
         }
-        if (options[buttonIndex] === 'Ajouter un passage') {
-          navigation.push('Passage', { person, commentTitle: person.name, fromRoute: 'PersonsList' });
+        if (options[buttonIndex] === "Ajouter un passage") {
+          navigation.push("Passage", { person, commentTitle: person.name, fromRoute: "PersonsList" });
         }
-        if (options[buttonIndex] === 'Ajouter une action') {
-          navigation.push('NewActionForm', { person, commentTitle: person.name, fromRoute: 'PersonsList' });
+        if (options[buttonIndex] === "Ajouter une action") {
+          navigation.push("NewActionForm", { person, commentTitle: person.name, fromRoute: "PersonsList" });
         }
-        if (user.healthcareProfessional && options[buttonIndex] === 'Ajouter une consultation') {
-          navigation.push('Consultation', { personDB: person, fromRoute: 'PersonsList' });
+        if (user.healthcareProfessional && options[buttonIndex] === "Ajouter une consultation") {
+          navigation.push("Consultation", { personDB: person, fromRoute: "PersonsList" });
         }
-        if (options[buttonIndex] === 'Ajouter un commentaire') {
-          navigation.push('PersonComment', { person, commentTitle: person.name, fromRoute: 'PersonsList' });
+        if (options[buttonIndex] === "Ajouter un commentaire") {
+          navigation.push("PersonComment", { person, commentTitle: person.name, fromRoute: "PersonsList" });
         }
-        if (options[buttonIndex] === 'Ajouter un lieu fréquenté') {
-          navigation.push('NewPersonPlaceForm', { person, commentTitle: person.name, fromRoute: 'PersonsList' });
+        if (options[buttonIndex] === "Ajouter un lieu fréquenté") {
+          navigation.push("NewPersonPlaceForm", { person, commentTitle: person.name, fromRoute: "PersonsList" });
         }
       }
     );

@@ -1,21 +1,21 @@
-import { useIsFocused } from '@react-navigation/native';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, InteractionManager, View } from 'react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import InputLabelled from '../../components/InputLabelled';
-import Label from '../../components/Label';
-import { MyText } from '../../components/MyText';
-import Row from '../../components/Row';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import ScrollContainer from '../../components/ScrollContainer';
-import Spacer from '../../components/Spacer';
-import Tags from '../../components/Tags';
-import { CANCEL, DONE } from '../../recoil/actions';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { flattenedServicesSelector, prepareReportForEncryption, reportsState } from '../../recoil/reports';
-import API from '../../services/api';
-import colors from '../../utils/colors';
+import { useIsFocused } from "@react-navigation/native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Alert, InteractionManager, View } from "react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import InputLabelled from "../../components/InputLabelled";
+import Label from "../../components/Label";
+import { MyText } from "../../components/MyText";
+import Row from "../../components/Row";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import ScrollContainer from "../../components/ScrollContainer";
+import Spacer from "../../components/Spacer";
+import Tags from "../../components/Tags";
+import { CANCEL, DONE } from "../../recoil/actions";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { flattenedServicesSelector, prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import API from "../../services/api";
+import colors from "../../utils/colors";
 import {
   actionsForReport,
   consultationsForReport,
@@ -24,12 +24,12 @@ import {
   observationsForReport,
   passagesForReport,
   rencontresForReport,
-} from './selectors';
-import { getPeriodTitle } from './utils';
-import { refreshTriggerState } from '../../components/Loader';
+} from "./selectors";
+import { getPeriodTitle } from "./utils";
+import { refreshTriggerState } from "../../components/Loader";
 
 const castToReport = (report = {}) => ({
-  description: report.description?.trim() || '',
+  description: report.description?.trim() || "",
   collaborations: report.collaborations || [],
 });
 
@@ -40,7 +40,7 @@ const ReportLoading = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   const title = useMemo(
-    () => `Compte rendu de l'équipe ${currentTeam?.name || ''}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
+    () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
     [currentTeam?.name, currentTeam?.nightSession, day]
   );
 
@@ -134,7 +134,7 @@ const Report = ({ navigation, route }) => {
           body: prepareReportForEncryption({ ...reportDB, ...report, updatedBy: user._id }),
         })
       : await API.post({
-          path: '/report',
+          path: "/report",
           body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
         });
     if (response.error) {
@@ -145,7 +145,7 @@ const Report = ({ navigation, route }) => {
     if (response.ok) {
       setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
       setReport(castToReport(response.decryptedData));
-      Alert.alert('Compte-rendu mis à jour !');
+      Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);
       setEditable(false);
       return true;
@@ -154,28 +154,28 @@ const Report = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce compte-rendu ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce compte-rendu ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: async () => {
           const ok = await onUpdateReport();
           if (ok) onBack();
         },
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -183,12 +183,12 @@ const Report = ({ navigation, route }) => {
   }, []);
 
   const title = useMemo(
-    () => `Compte rendu de l'équipe ${currentTeam?.name || ''}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
+    () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
     [currentTeam?.name, currentTeam?.nightSession, day]
   );
 
-  const canViewComments = ['admin', 'normal'].includes(user.role);
-  const canViewConsultations = ['admin', 'normal'].includes(user.role);
+  const canViewComments = ["admin", "normal"].includes(user.role);
+  const canViewConsultations = ["admin", "normal"].includes(user.role);
 
   return (
     <SceneContainer>
@@ -216,26 +216,26 @@ const Report = ({ navigation, route }) => {
             key={report.collaborations}
             onChange={(collaborations) => setReport((r) => ({ ...r, collaborations }))}
             editable={editable}
-            onAddRequest={() => navigation.navigate('Collaborations', { report: reportDB, day })}
+            onAddRequest={() => navigation.navigate("Collaborations", { report: reportDB, day })}
             renderTag={(collaboration) => <MyText>{collaboration}</MyText>}
           />
         </View>
         <Row
           withNextButton
           caption={`Actions complétées (${actionsCompleted.length})`}
-          onPress={() => navigation.navigate('Actions', { date: day, status: DONE })}
+          onPress={() => navigation.navigate("Actions", { date: day, status: DONE })}
           disabled={!actionsCompleted.length}
         />
         <Row
           withNextButton
           caption={`Actions créées (${actionsCreated.length})`}
-          onPress={() => navigation.navigate('Actions', { date: day, status: null })}
+          onPress={() => navigation.navigate("Actions", { date: day, status: null })}
           disabled={!actionsCreated.length}
         />
         <Row
           withNextButton
           caption={`Actions annulées (${actionsCanceled.length})`}
-          onPress={() => navigation.navigate('Actions', { date: day, status: CANCEL })}
+          onPress={() => navigation.navigate("Actions", { date: day, status: CANCEL })}
           disabled={!actionsCanceled.length}
         />
         <Spacer height={30} />
@@ -244,19 +244,19 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Consultations complétées (${consultationsCompleted.length})`}
-              onPress={() => navigation.navigate('Consultations', { date: day, status: DONE })}
+              onPress={() => navigation.navigate("Consultations", { date: day, status: DONE })}
               disabled={!consultationsCompleted.length}
             />
             <Row
               withNextButton
               caption={`Consultations créées (${consultationsCreated.length})`}
-              onPress={() => navigation.navigate('Consultations', { date: day, status: null })}
+              onPress={() => navigation.navigate("Consultations", { date: day, status: null })}
               disabled={!consultationsCreated.length}
             />
             <Row
               withNextButton
               caption={`Consultations annulées (${consultationsCanceled.length})`}
-              onPress={() => navigation.navigate('Consultations', { date: day, status: CANCEL })}
+              onPress={() => navigation.navigate("Consultations", { date: day, status: CANCEL })}
               disabled={!consultationsCanceled.length}
             />
             <Spacer height={30} />
@@ -267,20 +267,20 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Commentaires (${comments.length})`}
-              onPress={() => navigation.navigate('CommentsForReport', { date: day })}
+              onPress={() => navigation.navigate("CommentsForReport", { date: day })}
               disabled={!comments.length}
             />
             <Spacer height={30} />
             <Row
               withNextButton
               caption={`Rencontres (${rencontres.length})`}
-              onPress={() => navigation.navigate('RencontresForReport', { date: day })}
+              onPress={() => navigation.navigate("RencontresForReport", { date: day })}
               disabled={!rencontres.length}
             />
             <Row
               withNextButton
               caption={`Passages (${passages.length})`}
-              onPress={() => navigation.navigate('PassagesForReport', { date: day })}
+              onPress={() => navigation.navigate("PassagesForReport", { date: day })}
               disabled={!passages.length}
             />
           </>
@@ -291,7 +291,7 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Observations (${observations.length})`}
-              onPress={() => navigation.navigate('Observations', { date: day })}
+              onPress={() => navigation.navigate("Observations", { date: day })}
               disabled={!observations.length}
             />
           </>
@@ -303,7 +303,7 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Services (${servicesCount})`}
-              onPress={() => navigation.navigate('Services', { date: day })}
+              onPress={() => navigation.navigate("Services", { date: day })}
               disabled={!servicesCount}
             />
           </>

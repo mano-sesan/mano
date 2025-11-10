@@ -1,5 +1,5 @@
-import React from 'react';
-import Svg, { G, Circle } from 'react-native-svg';
+import React from "react";
+import Svg, { G, Circle } from "react-native-svg";
 
 const DotsIcon = ({ size = 20, color }) => (
   <Svg height={size} width={size} viewBox="0 0 200 30">

@@ -1,16 +1,16 @@
-import { atom, selector } from 'recoil';
-import { organisationState } from './auth';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
+import { atom, selector } from "recoil";
+import { organisationState } from "./auth";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
 
 export const medicalFileState = atom({
-  key: 'medicalFilesState',
+  key: "medicalFilesState",
   default: [],
 });
 
 export const customFieldsMedicalFileSelector = selector({
-  key: 'customFieldsMedicalFileSelector',
+  key: "customFieldsMedicalFileSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     if (Array.isArray(organisation.customFieldsMedicalFile) && organisation.customFieldsMedicalFile.length) {
@@ -21,22 +21,22 @@ export const customFieldsMedicalFileSelector = selector({
 });
 
 export const groupedCustomFieldsMedicalFileSelector = selector({
-  key: 'groupedCustomFieldsMedicalFileSelector',
+  key: "groupedCustomFieldsMedicalFileSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     if (Array.isArray(organisation.groupedCustomFieldsMedicalFile) && organisation.groupedCustomFieldsMedicalFile.length) {
       return organisation.groupedCustomFieldsMedicalFile;
     }
-    return [{ name: 'Groupe par défaut', fields: defaultMedicalFileCustomFields }];
+    return [{ name: "Groupe par défaut", fields: defaultMedicalFileCustomFields }];
   },
 });
 
-const encryptedFields = ['person', 'documents', 'comments', 'history'];
+const encryptedFields = ["person", "documents", "comments", "history"];
 
 export const prepareMedicalFileForEncryption = (customFieldsMedicalFile) => (medicalFile) => {
   try {
     if (!looseUuidRegex.test(medicalFile.person)) {
-      throw new Error('MedicalFile is missing person');
+      throw new Error("MedicalFile is missing person");
     }
   } catch (error) {
     Alert.alert(
@@ -64,9 +64,9 @@ export const prepareMedicalFileForEncryption = (customFieldsMedicalFile) => (med
 
 const defaultMedicalFileCustomFields = [
   {
-    name: 'numeroSecuriteSociale',
-    label: 'Numéro de sécurité sociale',
-    type: 'text',
+    name: "numeroSecuriteSociale",
+    label: "Numéro de sécurité sociale",
+    type: "text",
     options: null,
     enabled: true,
     required: false,

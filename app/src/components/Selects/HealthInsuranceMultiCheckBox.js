@@ -1,7 +1,7 @@
-import React from 'react';
-import { useRecoilValue } from 'recoil';
-import { flattenedCustomFieldsPersonsSelector } from '../../recoil/persons';
-import MultiCheckBoxes from '../MultiCheckBoxes/MultiCheckBoxes';
+import React from "react";
+import { useRecoilValue } from "recoil";
+import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
+import MultiCheckBoxes from "../MultiCheckBoxes/MultiCheckBoxes";
 
 const HealthInsuranceMultiCheckBox = ({ values, onChange, editable }) => {
   const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
@@ -9,7 +9,7 @@ const HealthInsuranceMultiCheckBox = ({ values, onChange, editable }) => {
   return (
     <MultiCheckBoxes
       label="Couverture(s) médicale(s)"
-      source={flattenedCustomFieldsPersons.find((f) => f.name === 'healthInsurances').options}
+      source={flattenedCustomFieldsPersons.find((f) => f.name === "healthInsurances").options}
       values={values}
       onChange={onChange}
       editable={editable}

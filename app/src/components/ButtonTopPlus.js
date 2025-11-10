@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import colors from '../utils/colors';
-import { MyText } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import colors from "../utils/colors";
+import { MyText } from "./MyText";
 
 const hitSlop = {
   top: 20,
@@ -10,7 +10,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonTopPlus = ({ onPress, color = '#fff', left = false, disabled = false }) => (
+const ButtonTopPlus = ({ onPress, color = "#fff", left = false, disabled = false }) => (
   <ButtonContainer disabled={disabled} onPress={onPress} hitSlop={hitSlop}>
     <Plus color={color}>+</Plus>
   </ButtonContainer>

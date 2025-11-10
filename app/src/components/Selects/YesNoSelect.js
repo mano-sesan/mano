@@ -1,5 +1,5 @@
-import React from 'react';
-import SelectLabelled from './SelectLabelled';
+import React from "react";
+import SelectLabelled from "./SelectLabelled";
 
 // prettier-ignore
 export const choices = [

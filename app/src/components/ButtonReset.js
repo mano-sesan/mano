@@ -1,7 +1,7 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { TouchableOpacity } from 'react-native';
-import ResetIcon from '../icons/ResetIcon';
+import React from "react";
+import styled from "styled-components/native";
+import { TouchableOpacity } from "react-native";
+import ResetIcon from "../icons/ResetIcon";
 
 const hitSlop = {
   top: 20,

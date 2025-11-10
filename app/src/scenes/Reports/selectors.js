@@ -1,22 +1,22 @@
-import { selector, selectorFamily } from 'recoil';
-import { CANCEL, DONE } from '../../recoil/actions';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { commentsState } from '../../recoil/comments';
-import { reportsState } from '../../recoil/reports';
+import { selector, selectorFamily } from "recoil";
+import { CANCEL, DONE } from "../../recoil/actions";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { commentsState } from "../../recoil/comments";
+import { reportsState } from "../../recoil/reports";
 import {
   actionsForCurrentTeamSelector,
   actionsObjectSelector,
   consultationsForCurrentTeamSelector,
   itemsGroupedByPersonSelector,
-} from '../../recoil/selectors';
-import { territoryObservationsState } from '../../recoil/territoryObservations';
-import { getDayWithOffset } from '../../services/dateDayjs';
-import { rencontresState } from '../../recoil/rencontres';
-import { passagesState } from '../../recoil/passages';
-import { consultationIsVisibleByMe } from '../../recoil/consultations';
+} from "../../recoil/selectors";
+import { territoryObservationsState } from "../../recoil/territoryObservations";
+import { getDayWithOffset } from "../../services/dateDayjs";
+import { rencontresState } from "../../recoil/rencontres";
+import { passagesState } from "../../recoil/passages";
+import { consultationIsVisibleByMe } from "../../recoil/consultations";
 
 export const currentTeamReportsSelector = selector({
-  key: 'currentTeamReportsSelector',
+  key: "currentTeamReportsSelector",
   get: ({ get }) => {
     const reports = get(reportsState);
     const currentTeam = get(currentTeamState);
@@ -41,7 +41,7 @@ function emptyItemsForReport() {
 }
 
 export const itemsGroupedDateSelector = selector({
-  key: 'itemsGroupedDateSelector',
+  key: "itemsGroupedDateSelector",
   get: ({ get }) => {
     const currentTeam = get(currentTeamState);
     const itemsGroupedByDate = {};
@@ -121,7 +121,7 @@ export const itemsGroupedDateSelector = selector({
         itemsGroupedByDate[date].comments.push({
           ...comment,
           person: persons[comment.person],
-          type: 'person',
+          type: "person",
         });
       }
       if (comment.action) {
@@ -131,7 +131,7 @@ export const itemsGroupedDateSelector = selector({
           ...comment,
           action,
           personPopulated: persons[action.person],
-          type: 'action',
+          type: "action",
         });
       }
     }
@@ -173,7 +173,7 @@ export const itemsGroupedDateSelector = selector({
 });
 
 export const actionsForReport = selectorFamily({
-  key: 'actionsForReport',
+  key: "actionsForReport",
   get:
     ({ date }) =>
     ({ get }) => {
@@ -187,7 +187,7 @@ export const actionsForReport = selectorFamily({
 });
 
 export const consultationsForReport = selectorFamily({
-  key: 'consultationsForReport',
+  key: "consultationsForReport",
   get:
     ({ date }) =>
     ({ get }) => {
@@ -201,7 +201,7 @@ export const consultationsForReport = selectorFamily({
 });
 
 export const commentsForReport = selectorFamily({
-  key: 'commentsForReport',
+  key: "commentsForReport",
   get:
     ({ date }) =>
     ({ get }) => {
@@ -211,7 +211,7 @@ export const commentsForReport = selectorFamily({
 });
 
 export const observationsForReport = selectorFamily({
-  key: 'observationsForReport',
+  key: "observationsForReport",
   get:
     ({ date }) =>
     ({ get }) => {
@@ -221,7 +221,7 @@ export const observationsForReport = selectorFamily({
 });
 
 export const rencontresForReport = selectorFamily({
-  key: 'rencontresForReport',
+  key: "rencontresForReport",
   get:
     ({ date }) =>
     ({ get }) => {
@@ -231,7 +231,7 @@ export const rencontresForReport = selectorFamily({
 });
 
 export const passagesForReport = selectorFamily({
-  key: 'passagesForReport',
+  key: "passagesForReport",
   get:
     ({ date }) =>
     ({ get }) => {

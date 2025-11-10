@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { connectActionSheet } from '@expo/react-native-action-sheet';
-import ActionRow from '../../components/ActionRow';
-import Spinner from '../../components/Spinner';
-import { ListEmptyActions, ListNoMoreActions } from '../../components/ListEmptyContainer';
-import FloatAddButton from '../../components/FloatAddButton';
-import { FlashListStyled } from '../../components/Lists';
-import { actionsFiltersState, TODO } from '../../recoil/actions';
-import { actionsByStatusAndTimeframeSelector, totalActionsByStatusSelector } from '../../recoil/selectors';
-import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
-import { refreshTriggerState, loadingState } from '../../components/Loader';
-import Button from '../../components/Button';
-import ConsultationRow from '../../components/ConsultationRow';
-import { organisationState, userState } from '../../recoil/auth';
-import { Dimensions, View } from 'react-native';
-import { dayjsInstance } from '../../services/dateDayjs';
-import { flattenedServicesSelector } from '../../recoil/reports';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import ActionRow from "../../components/ActionRow";
+import Spinner from "../../components/Spinner";
+import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
+import FloatAddButton from "../../components/FloatAddButton";
+import { FlashListStyled } from "../../components/Lists";
+import { actionsFiltersState, TODO } from "../../recoil/actions";
+import { actionsByStatusAndTimeframeSelector, totalActionsByStatusSelector } from "../../recoil/selectors";
+import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
+import { refreshTriggerState, loadingState } from "../../components/Loader";
+import Button from "../../components/Button";
+import ConsultationRow from "../../components/ConsultationRow";
+import { organisationState, userState } from "../../recoil/auth";
+import { Dimensions, View } from "react-native";
+import { dayjsInstance } from "../../services/dateDayjs";
+import { flattenedServicesSelector } from "../../recoil/reports";
 
 const keyExtractor = (action) => action._id;
 
@@ -54,28 +54,28 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
     const isConsultationButtonEnabled = user.healthcareProfessional;
     const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
     if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
-      navigation.navigate('NewActionForm', { fromRoute: 'ActionsList' });
+      navigation.navigate("NewActionForm", { fromRoute: "ActionsList" });
       return;
     }
 
-    const options = ['Ajouter une action'];
-    if (isConsultationButtonEnabled) options.push('Ajouter une consultation');
-    if (isServiceButtonEnabled) options.push('Ajouter un service');
-    options.push('Annuler');
+    const options = ["Ajouter une action"];
+    if (isConsultationButtonEnabled) options.push("Ajouter une consultation");
+    if (isServiceButtonEnabled) options.push("Ajouter un service");
+    options.push("Annuler");
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex: options.length - 1,
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === 'Ajouter une action') {
-          navigation.push('NewActionForm', { fromRoute: 'ActionsList' });
+        if (options[buttonIndex] === "Ajouter une action") {
+          navigation.push("NewActionForm", { fromRoute: "ActionsList" });
         }
-        if (isConsultationButtonEnabled && options[buttonIndex] === 'Ajouter une consultation') {
-          navigation.push('Consultation', { fromRoute: 'ActionsList' });
+        if (isConsultationButtonEnabled && options[buttonIndex] === "Ajouter une consultation") {
+          navigation.push("Consultation", { fromRoute: "ActionsList" });
         }
-        if (isServiceButtonEnabled && options[buttonIndex] === 'Ajouter un service') {
-          navigation.navigate('Services', { date: dayjsInstance().format('YYYY-MM-DD') });
+        if (isServiceButtonEnabled && options[buttonIndex] === "Ajouter un service") {
+          navigation.navigate("Services", { date: dayjsInstance().format("YYYY-MM-DD") });
         }
       }
     );
@@ -90,18 +90,18 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
 
   const onPseudoPress = useCallback(
     (person) => {
-      Sentry.setContext('person', { _id: person._id });
-      navigation.push('Person', { person, fromRoute: 'ActionsList' });
+      Sentry.setContext("person", { _id: person._id });
+      navigation.push("Person", { person, fromRoute: "ActionsList" });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
     (action) => {
-      Sentry.setContext('action', { _id: action._id });
-      navigation.push('Action', {
+      Sentry.setContext("action", { _id: action._id });
+      navigation.push("Action", {
         action,
-        fromRoute: 'ActionsList',
+        fromRoute: "ActionsList",
       });
     },
     [navigation]
@@ -109,28 +109,29 @@ const ActionsList = ({ showActionSheetWithOptions }) => {
 
   const onConsultationPress = useCallback(
     (consultationDB, personDB) => {
-      navigation.navigate('Consultation', { personDB, consultationDB, fromRoute: 'ActionsList' });
+      navigation.navigate("Consultation", { personDB, consultationDB, fromRoute: "ActionsList" });
     },
     [navigation]
   );
 
   const renderItem = ({ item }) => {
     // if (item.type === 'title') return <SectionHeaderStyled heavy>{item.title}</SectionHeaderStyled>;
-    if (item.type === 'title') return null;
+    if (item.type === "title") return null;
     if (item.isConsultation) {
       return <ConsultationRow consultation={item} onConsultationPress={onConsultationPress} onPseudoPress={onPseudoPress} withBadge showPseudo />;
     }
     return <ActionRow action={item} onPseudoPress={onPseudoPress} onActionPress={onActionPress} />;
   };
 
-  const getItemType = (item) => item.type || 'action';
+  const getItemType = (item) => item.type || "action";
 
   return (
     <View
       className="flex-1 h-full"
       style={{
-        minHeight: Dimensions.get('window').height - (status === TODO ? 330 : 230),
-      }}>
+        minHeight: Dimensions.get("window").height - (status === TODO ? 330 : 230),
+      }}
+    >
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}

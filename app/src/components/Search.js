@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react';
-import { Alert, Keyboard, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import API from '../services/api';
-import ButtonReset from './ButtonReset';
-import { Search as SearchIcon } from '../icons';
-import { MyTextInput } from './MyText';
-import { useRecoilValue } from 'recoil';
-import { organisationState } from '../recoil/auth';
+import React, { useRef, useState } from "react";
+import { Alert, Keyboard, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import API from "../services/api";
+import ButtonReset from "./ButtonReset";
+import { Search as SearchIcon } from "../icons";
+import { MyTextInput } from "./MyText";
+import { useRecoilValue } from "recoil";
+import { organisationState } from "../recoil/auth";
 
 const Search = ({
   path,
@@ -19,7 +19,7 @@ const Search = ({
   onFocus = () => null,
   parentScroll,
 }) => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const searchTimeout = useRef(null);
   const keyboardDimissTimeout = useRef(null);
 
@@ -62,7 +62,7 @@ const Search = ({
       <TouchableOpacity style={styles.inputSubContainer}>
         <SearchIcon size={16} color="#888" />
         <MyTextInput onFocus={onFocus} placeholder={placeholder} onChangeText={onSearch} value={search} style={styles.input} />
-        {Boolean(search.length) && <ButtonReset onPress={() => onSearch('')} />}
+        {Boolean(search.length) && <ButtonReset onPress={() => onSearch("")} />}
       </TouchableOpacity>
     </Animated.View>
   );
@@ -72,9 +72,9 @@ const styles = StyleSheet.create({
   inputContainer: (parentScroll) => ({
     paddingVertical: 5,
     paddingHorizontal: 15,
-    backgroundColor: 'transparent',
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: "transparent",
+    flexDirection: "row",
+    alignItems: "center",
     zIndex: 1000,
     transform: [
       {
@@ -82,27 +82,27 @@ const styles = StyleSheet.create({
           ? parentScroll.interpolate({
               inputRange: [0, 100],
               outputRange: [90, 0],
-              extrapolate: 'clamp',
+              extrapolate: "clamp",
             })
           : 0,
       },
     ],
   }),
   inputSubContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 15,
     paddingVertical: 15,
     flexGrow: 1,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 100,
-    borderColor: '#888',
+    borderColor: "#888",
     borderWidth: 1,
   },
   input: {
     flexGrow: 1,
     flexShrink: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     padding: 0,
     paddingLeft: 15,
     fontSize: 16,

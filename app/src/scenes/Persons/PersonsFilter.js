@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
-import styled from 'styled-components/native';
-import { View } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import { MyText } from '../../components/MyText';
-import colors from '../../utils/colors';
-import OutOfActiveListSelect from '../../components/Selects/OutOfActiveListSelect';
-import { useRecoilValue } from 'recoil';
-import { teamsState } from '../../recoil/auth';
+import React, { useState } from "react";
+import styled from "styled-components/native";
+import { View } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import { MyText } from "../../components/MyText";
+import colors from "../../utils/colors";
+import OutOfActiveListSelect from "../../components/Selects/OutOfActiveListSelect";
+import { useRecoilValue } from "recoil";
+import { teamsState } from "../../recoil/auth";
 
 const PersonsFilter = ({ route, navigation }) => {
   const [filterAlertness, setFilterAlertness] = useState(route.params?.filters?.filterAlertness || false);
   const [filterTeams, setFilterByTeam] = useState(route.params?.filters?.filterTeams || []);
-  const [filterOutOfActiveList, setFilterOutOfActiveList] = useState(route.params?.filters?.filterOutOfActiveList || '');
+  const [filterOutOfActiveList, setFilterOutOfActiveList] = useState(route.params?.filters?.filterOutOfActiveList || "");
   const teams = useRecoilValue(teamsState);
 
   const onBackRequested = () => {
-    navigation.navigate('PersonsList', { filters: { filterAlertness, filterTeams, filterOutOfActiveList } });
+    navigation.navigate("PersonsList", { filters: { filterAlertness, filterTeams, filterOutOfActiveList } });
   };
 
   return (

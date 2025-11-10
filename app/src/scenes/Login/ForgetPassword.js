@@ -1,18 +1,18 @@
-import React, { useRef, useState } from 'react';
-import styled from 'styled-components/native';
-import { Alert, KeyboardAvoidingView, View } from 'react-native';
-import API from '../../services/api';
-import SceneContainer from '../../components/SceneContainer';
-import ScrollContainer from '../../components/ScrollContainer';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import Button from '../../components/Button';
-import EmailInput from '../../services/EmailInput';
-import Title, { SubTitle } from '../../components/Title';
+import React, { useRef, useState } from "react";
+import styled from "styled-components/native";
+import { Alert, KeyboardAvoidingView, View } from "react-native";
+import API from "../../services/api";
+import SceneContainer from "../../components/SceneContainer";
+import ScrollContainer from "../../components/ScrollContainer";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import Button from "../../components/Button";
+import EmailInput from "../../services/EmailInput";
+import Title, { SubTitle } from "../../components/Title";
 
 const ForgetPassword = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [isValid, setIsValid] = useState('');
-  const [example, setExample] = useState('example@example.com');
+  const [email, setEmail] = useState("");
+  const [isValid, setIsValid] = useState("");
+  const [example, setExample] = useState("example@example.com");
   const [loading, setLoading] = useState(false);
   const onChange = ({ email, isValid, example }) => {
     setEmail(email);
@@ -27,16 +27,16 @@ const ForgetPassword = ({ navigation }) => {
       return;
     }
     setLoading(true);
-    const response = await API.post({ path: '/user/forgot_password', body: { email } });
+    const response = await API.post({ path: "/user/forgot_password", body: { email } });
     if (response.error) {
       Alert.alert(response.error);
       setLoading(false);
       return;
     }
     if (response.ok) {
-      Alert.alert('Email envoyé !', "Un lien vous redirigera vers l'interface administrateur", [
+      Alert.alert("Email envoyé !", "Un lien vous redirigera vers l'interface administrateur", [
         {
-          text: 'OK',
+          text: "OK",
           onPress: () => navigation.goBack(),
         },
       ]);

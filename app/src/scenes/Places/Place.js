@@ -1,18 +1,18 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, View } from 'react-native';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import { placesState, preparePlaceForEncryption } from '../../recoil/places';
-import { relsPersonPlaceState } from '../../recoil/relPersonPlace';
-import API from '../../services/api';
-import { sortByName } from '../../utils/sortByName';
-import { userState } from '../../recoil/auth';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, View } from "react-native";
+import { useRecoilState, useRecoilValue } from "recoil";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import { placesState, preparePlaceForEncryption } from "../../recoil/places";
+import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import API from "../../services/api";
+import { sortByName } from "../../utils/sortByName";
+import { userState } from "../../recoil/auth";
 
 const Place = ({ navigation, route }) => {
   const [name, setName] = useState(false);
@@ -32,7 +32,7 @@ const Place = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -65,20 +65,20 @@ const Place = ({ navigation, route }) => {
           .sort(sortByName)
       );
       setUpdating(false);
-      Alert.alert('Lieu mis à jour !', null, [{ text: 'OK', onPress: onBack }]);
+      Alert.alert("Lieu mis à jour !", null, [{ text: "OK", onPress: onBack }]);
     }
   };
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer ce lieu ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer ce lieu ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -100,7 +100,7 @@ const Place = ({ navigation, route }) => {
       setPlaces((places) => places.filter((p) => p._id !== placeDB._id));
       setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel.place !== placeDB._id));
       setUpdating(false);
-      Alert.alert('Lieu supprimé !');
+      Alert.alert("Lieu supprimé !");
       onBack();
     }
   };
@@ -114,19 +114,19 @@ const Place = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer ce lieu ?', null, [
+    Alert.alert("Voulez-vous enregistrer ce lieu ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onUpdatePlace,
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

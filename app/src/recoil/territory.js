@@ -1,28 +1,28 @@
-import { atom, selector, selectorFamily } from 'recoil';
-import { storage } from '../services/dataManagement';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
-import { organisationState } from './auth';
-import { territoryObservationsState } from './territoryObservations';
-import structuredClone from '@ungap/structured-clone';
-import { filterBySearch } from '../utils/search';
+import { atom, selector, selectorFamily } from "recoil";
+import { storage } from "../services/dataManagement";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
+import { organisationState } from "./auth";
+import { territoryObservationsState } from "./territoryObservations";
+import structuredClone from "@ungap/structured-clone";
+import { filterBySearch } from "../utils/search";
 
 export const territoriesState = atom({
-  key: 'territoriesState',
-  default: JSON.parse(storage.getString('territory') || '[]'),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set('territory', JSON.stringify(newValue)))],
+  key: "territoriesState",
+  default: JSON.parse(storage.getString("territory") || "[]"),
+  effects: [({ onSet }) => onSet(async (newValue) => storage.set("territory", JSON.stringify(newValue)))],
 });
 
-const encryptedFields = ['name', 'perimeter', 'description', 'types', 'user'];
+const encryptedFields = ["name", "perimeter", "description", "types", "user"];
 
 export const prepareTerritoryForEncryption = (territory) => {
   try {
     if (!territory.name) {
-      throw new Error('Territory is missing name');
+      throw new Error("Territory is missing name");
     }
     if (!looseUuidRegex.test(territory.user)) {
-      throw new Error('Territory is missing user');
+      throw new Error("Territory is missing user");
     }
   } catch (error) {
     Alert.alert(
@@ -48,7 +48,7 @@ export const prepareTerritoryForEncryption = (territory) => {
 };
 
 export const territoriesTypesSelector = selector({
-  key: 'territoriesTypesSelector',
+  key: "territoriesTypesSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     return organisation.territoriesGroupedTypes;
@@ -56,7 +56,7 @@ export const territoriesTypesSelector = selector({
 });
 
 export const flattenedTerritoriesTypesSelector = selector({
-  key: 'flattenedTerritoriesTypesSelector',
+  key: "flattenedTerritoriesTypesSelector",
   get: ({ get }) => {
     const territoriesGroupedTypes = get(territoriesTypesSelector);
     return territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], []);
@@ -64,7 +64,7 @@ export const flattenedTerritoriesTypesSelector = selector({
 });
 
 const territoriesWithObservations = selector({
-  key: 'territoriesWithObservations',
+  key: "territoriesWithObservations",
   get: ({ get }) => {
     const territories = get(territoriesState);
     const territoryObservations = get(territoryObservationsState);
@@ -86,9 +86,9 @@ const territoriesWithObservations = selector({
 });
 
 export const territoriesWithObservationsSearchSelector = selectorFamily({
-  key: 'territoriesWithObservationsSearchSelector',
+  key: "territoriesWithObservationsSearchSelector",
   get:
-    ({ search = '' }) =>
+    ({ search = "" }) =>
     ({ get }) => {
       const territories = get(territoriesWithObservations);
       if (!search?.length) return territories;

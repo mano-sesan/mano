@@ -1,13 +1,13 @@
-import React from 'react';
-import { Alert } from 'react-native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import { useRecoilValue } from 'recoil';
-import { organisationState } from '../../recoil/auth';
-import GroupRow from './GroupRow';
-import { groupSelector } from '../../recoil/groups';
-import { capture } from '../../services/sentry';
+import React from "react";
+import { Alert } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import { useRecoilValue } from "recoil";
+import { organisationState } from "../../recoil/auth";
+import GroupRow from "./GroupRow";
+import { groupSelector } from "../../recoil/groups";
+import { capture } from "../../services/sentry";
 
 const Group = ({ personDB, navigation }) => {
   const organisation = useRecoilValue(organisationState);
@@ -20,11 +20,11 @@ const Group = ({ personDB, navigation }) => {
       [
         {
           text: "Ça m'intéresse !",
-          onPress: () => capture('interested in families in app', { extra: { organisation } }),
+          onPress: () => capture("interested in families in app", { extra: { organisation } }),
         },
         {
-          text: 'Non merci',
-          style: 'cancel',
+          text: "Non merci",
+          style: "cancel",
         },
       ],
       { cancelable: true }

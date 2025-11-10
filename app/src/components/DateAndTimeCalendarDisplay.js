@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/native';
+import React from "react";
+import styled from "styled-components/native";
 
-import { MyText } from './MyText';
-import colors from '../utils/colors';
-import { dayjsInstance } from '../services/dateDayjs';
+import { MyText } from "./MyText";
+import colors from "../utils/colors";
+import { dayjsInstance } from "../services/dateDayjs";
 
 const DateAndTimeCalendarDisplay = ({ date, withTime, topCaption }) => {
   date = date ? dayjsInstance(date) : null;
@@ -13,11 +13,11 @@ const DateAndTimeCalendarDisplay = ({ date, withTime, topCaption }) => {
       {Boolean(date) && (
         <>
           {topCaption && <TopCaption>{topCaption}</TopCaption>}
-          <Day>{date.format('dddd')}</Day>
-          <DateNumber heavy>{date.format('D')}</DateNumber>
-          <Month>{date.format('MMMM')}</Month>
-          {date.format('YYYY') !== dayjsInstance().format('YYYY') && <Month>{date.format('YYYY')}</Month>}
-          {!!withTime && <Time>{date.format('HH:mm')}</Time>}
+          <Day>{date.format("dddd")}</Day>
+          <DateNumber heavy>{date.format("D")}</DateNumber>
+          <Month>{date.format("MMMM")}</Month>
+          {date.format("YYYY") !== dayjsInstance().format("YYYY") && <Month>{date.format("YYYY")}</Month>}
+          {!!withTime && <Time>{date.format("HH:mm")}</Time>}
         </>
       )}
     </DateContainer>

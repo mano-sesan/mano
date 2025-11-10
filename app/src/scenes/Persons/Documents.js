@@ -1,10 +1,10 @@
-import React from 'react';
-import SubHeader from '../../components/SubHeader';
-import colors from '../../utils/colors';
-import DocumentsManager from '../../components/DocumentsManager';
-import ScrollContainer from '../../components/ScrollContainer';
-import { useRecoilValue } from 'recoil';
-import { organisationState } from '../../recoil/auth';
+import React from "react";
+import SubHeader from "../../components/SubHeader";
+import colors from "../../utils/colors";
+import DocumentsManager from "../../components/DocumentsManager";
+import ScrollContainer from "../../components/ScrollContainer";
+import { useRecoilValue } from "recoil";
+import { organisationState } from "../../recoil/auth";
 
 const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) => {
   const organisation = useRecoilValue(organisationState);
@@ -13,7 +13,7 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
     movable: false,
     linkedItem: {
       _id: personDB._id,
-      type: 'person',
+      type: "person",
     },
   }));
 
@@ -79,7 +79,7 @@ function removeOldDefaultFolders(docsOrFolders, defaultFolders) {
   const validItems = [...defaultFolders];
   for (let item of docsOrFolders) {
     // si ce n'est pas un dossier, c'est un document, on l'affiche
-    if (item.type !== 'folder') {
+    if (item.type !== "folder") {
       validItems.push(item);
       continue;
     }
@@ -116,8 +116,8 @@ function removeOldDefaultFolders(docsOrFolders, defaultFolders) {
 }
 
 function recursiveCheckIfFolderHasDocuments(folder, docsOrFolders) {
-  const documents = docsOrFolders?.filter((d) => d.type === 'document');
-  const folders = docsOrFolders?.filter((d) => d.type === 'folder' && d._id !== folder._id);
+  const documents = docsOrFolders?.filter((d) => d.type === "document");
+  const folders = docsOrFolders?.filter((d) => d.type === "folder" && d._id !== folder._id);
   for (const doc of documents) {
     if (doc.parentId === folder._id) return true;
   }

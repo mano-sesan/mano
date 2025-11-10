@@ -5,22 +5,22 @@
 
 export default {
   app: {
-    color: '#226854',
-    secondary: '#ae1d20',
-    colorDark: '#0d5b54',
-    colorGrey: '#8C9294',
-    colorWhite: '#fff',
-    colorBackgroundDarkGrey: '#74776b',
+    color: "#226854",
+    secondary: "#ae1d20",
+    colorDark: "#0d5b54",
+    colorGrey: "#8C9294",
+    colorWhite: "#fff",
+    colorBackgroundDarkGrey: "#74776b",
   },
   delete: {
-    backgroundColor: '#f00',
-    color: '#f00',
+    backgroundColor: "#f00",
+    color: "#f00",
   },
   warning: {
-    color: '#D97706',
+    color: "#D97706",
   },
   menu: {
-    backgroundColor: '#008e7f',
-    color: '#fff',
+    backgroundColor: "#008e7f",
+    color: "#fff",
   },
 };

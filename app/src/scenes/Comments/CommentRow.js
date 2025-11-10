@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { connectActionSheet } from '@expo/react-native-action-sheet';
-import { Alert } from 'react-native';
-import { useRecoilValue } from 'recoil';
-import { organisationState } from '../../recoil/auth';
-import BubbleRow from '../../components/BubbleRow';
-import CommentModal from './CommentModal';
+import React, { useState } from "react";
+import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { Alert } from "react-native";
+import { useRecoilValue } from "recoil";
+import { organisationState } from "../../recoil/auth";
+import BubbleRow from "../../components/BubbleRow";
+import CommentModal from "./CommentModal";
 
 const CommentRow = ({
   onUpdate,
@@ -20,32 +20,32 @@ const CommentRow = ({
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const onMorePress = async () => {
-    const options = ['Annuler'];
-    if (onDelete) options.unshift('Supprimer');
-    if (onUpdate) options.unshift('Modifier');
+    const options = ["Annuler"];
+    if (onDelete) options.unshift("Supprimer");
+    if (onUpdate) options.unshift("Modifier");
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex: options.length - 1,
-        destructiveButtonIndex: options.findIndex((o) => o === 'Supprimer'),
+        destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === 'Modifier') setUpdateModalVisible(true);
-        if (options[buttonIndex] === 'Supprimer') onCommentDeleteRequest();
+        if (options[buttonIndex] === "Modifier") setUpdateModalVisible(true);
+        if (options[buttonIndex] === "Supprimer") onCommentDeleteRequest();
       }
     );
   };
 
   const onCommentDeleteRequest = () => {
-    Alert.alert('Voulez-vous supprimer ce commentaire ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous supprimer ce commentaire ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };

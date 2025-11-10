@@ -1,9 +1,9 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import Label from './Label';
-import ButtonRight from './ButtonRight';
-import InputLabelled from './InputLabelled';
-import { MyText } from './MyText';
+import React from "react";
+import styled from "styled-components/native";
+import Label from "./Label";
+import ButtonRight from "./ButtonRight";
+import InputLabelled from "./InputLabelled";
+import { MyText } from "./MyText";
 
 const InputFromSearchList = ({ error, label, onSearchRequest, value, disabled, editable = true }) => {
   if (!editable) {

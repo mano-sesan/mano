@@ -1,23 +1,23 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import Spinner from '../../components/Spinner';
-import { ListEmptyTerritories, ListNoMoreTerritories } from '../../components/ListEmptyContainer';
-import FloatAddButton from '../../components/FloatAddButton';
-import { FlashListStyled } from '../../components/Lists';
-import Search from '../../components/Search';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { refreshTriggerState, loadingState } from '../../components/Loader';
-import { territoriesWithObservationsSearchSelector } from '../../recoil/territory';
-import RowContainer from '../../components/RowContainer';
-import { MyText } from '../../components/MyText';
-import styled from 'styled-components/native';
-import { dayjsInstance } from '../../services/dateDayjs';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Animated, View } from "react-native";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import Spinner from "../../components/Spinner";
+import { ListEmptyTerritories, ListNoMoreTerritories } from "../../components/ListEmptyContainer";
+import FloatAddButton from "../../components/FloatAddButton";
+import { FlashListStyled } from "../../components/Lists";
+import Search from "../../components/Search";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { refreshTriggerState, loadingState } from "../../components/Loader";
+import { territoriesWithObservationsSearchSelector } from "../../recoil/territory";
+import RowContainer from "../../components/RowContainer";
+import { MyText } from "../../components/MyText";
+import styled from "styled-components/native";
+import { dayjsInstance } from "../../services/dateDayjs";
 
 const TerritoriesList = () => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
 
   const navigation = useNavigation();
@@ -34,7 +34,7 @@ const TerritoriesList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
-  const onCreateTerritoryRequest = () => navigation.navigate('NewTerritoryForm');
+  const onCreateTerritoryRequest = () => navigation.navigate("NewTerritoryForm");
 
   const keyExtractor = (territory) => territory._id;
   const ListFooterComponent = useMemo(() => {
@@ -43,9 +43,9 @@ const TerritoriesList = () => {
   }, [territories.length]);
   const renderRow = ({ item: territory }) => {
     const { name } = territory;
-    const lastObservationDate = territory.lastObservationDate ? dayjsInstance(territory.lastObservationDate).format('DD/MM/YYYY') : null;
+    const lastObservationDate = territory.lastObservationDate ? dayjsInstance(territory.lastObservationDate).format("DD/MM/YYYY") : null;
     return (
-      <RowContainer onPress={() => navigation.push('Territory', { territory })}>
+      <RowContainer onPress={() => navigation.push("Territory", { territory })}>
         <View>
           <View>
             <Name>{name}</Name>

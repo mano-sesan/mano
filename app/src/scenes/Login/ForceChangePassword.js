@@ -1,12 +1,12 @@
-import React from 'react';
-import styled from 'styled-components/native';
-import { useRecoilState, useSetRecoilState } from 'recoil';
-import SceneContainer from '../../components/SceneContainer';
-import colors from '../../utils/colors';
-import { ChangePasswordBody } from './ChangePassword';
-import { MyText } from '../../components/MyText';
-import { currentTeamState, userState } from '../../recoil/auth';
-import { refreshTriggerState } from '../../components/Loader';
+import React from "react";
+import styled from "styled-components/native";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import SceneContainer from "../../components/SceneContainer";
+import colors from "../../utils/colors";
+import { ChangePasswordBody } from "./ChangePassword";
+import { MyText } from "../../components/MyText";
+import { currentTeamState, userState } from "../../recoil/auth";
+import { refreshTriggerState } from "../../components/Loader";
 
 const ForceChangePassword = ({ navigation }) => {
   const user = useRecoilState(userState);
@@ -16,9 +16,9 @@ const ForceChangePassword = ({ navigation }) => {
     if (user.teams?.length === 1) {
       setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: true } });
       setCurrentTeam(user.teams[0]);
-      navigation.navigate('Home');
+      navigation.navigate("Home");
     } else {
-      navigation.navigate('TeamSelection');
+      navigation.navigate("TeamSelection");
     }
   };
 

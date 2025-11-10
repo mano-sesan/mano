@@ -1,36 +1,36 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { Alert, Linking, Text } from 'react-native';
-import styled from 'styled-components/native';
-import * as Sentry from '@sentry/react-native';
-import { useRecoilValue, useSetRecoilState } from 'recoil';
-import dayjs from 'dayjs';
-import ScrollContainer from '../../components/ScrollContainer';
-import Button from '../../components/Button';
-import InputLabelled from '../../components/InputLabelled';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ActionRow from '../../components/ActionRow';
-import CommentRow from '../Comments/CommentRow';
-import PlaceRow from '../Places/PlaceRow';
-import SubList from '../../components/SubList';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import GenderSelect from '../../components/Selects/GenderSelect';
-import Spacer from '../../components/Spacer';
-import NewCommentInput from '../Comments/NewCommentInput';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import TeamsMultiCheckBoxes from '../../components/MultiCheckBoxes/TeamsMultiCheckBoxes';
-import colors from '../../utils/colors';
-import PhoneIcon from '../../icons/PhoneIcon';
-import { placesState } from '../../recoil/places';
-import { organisationState, teamsState, userState } from '../../recoil/auth';
-import DeleteButtonAndConfirmModal from '../../components/DeleteButtonAndConfirmModal';
-import RencontreRow from './RencontreRow';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import { formatDateWithFullMonth, getRelativeTimeFrench } from '../../services/dateDayjs';
-import { commentsState, prepareCommentForEncryption } from '../../recoil/comments';
-import { groupsState } from '../../recoil/groups';
-import API from '../../services/api';
-import PassageRow from './PassageRow';
-import { actionsWithoutFutureRecurrences } from '../../utils/recurrence';
+import React, { useCallback, useMemo, useRef } from "react";
+import { Alert, Linking, Text } from "react-native";
+import styled from "styled-components/native";
+import * as Sentry from "@sentry/react-native";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import dayjs from "dayjs";
+import ScrollContainer from "../../components/ScrollContainer";
+import Button from "../../components/Button";
+import InputLabelled from "../../components/InputLabelled";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ActionRow from "../../components/ActionRow";
+import CommentRow from "../Comments/CommentRow";
+import PlaceRow from "../Places/PlaceRow";
+import SubList from "../../components/SubList";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import GenderSelect from "../../components/Selects/GenderSelect";
+import Spacer from "../../components/Spacer";
+import NewCommentInput from "../Comments/NewCommentInput";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
+import colors from "../../utils/colors";
+import PhoneIcon from "../../icons/PhoneIcon";
+import { placesState } from "../../recoil/places";
+import { organisationState, teamsState, userState } from "../../recoil/auth";
+import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import RencontreRow from "./RencontreRow";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { formatDateWithFullMonth, getRelativeTimeFrench } from "../../services/dateDayjs";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { groupsState } from "../../recoil/groups";
+import API from "../../services/api";
+import PassageRow from "./PassageRow";
+import { actionsWithoutFutureRecurrences } from "../../utils/recurrence";
 
 const PersonSummary = ({
   navigation,
@@ -48,7 +48,7 @@ const PersonSummary = ({
   onBack,
 }) => {
   const onAddActionRequest = () => {
-    navigation.push('NewActionForm', { fromRoute: 'Person', person: personDB });
+    navigation.push("NewActionForm", { fromRoute: "Person", person: personDB });
   };
 
   const user = useRecoilValue(userState);
@@ -59,12 +59,12 @@ const PersonSummary = ({
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
 
-  const onRemoveFromActiveList = async () => navigation.push('PersonsOutOfActiveListReason', { person: personDB, fromRoute: 'Person' });
-  const onAddRencontre = async () => navigation.push('Rencontre', { person: personDB, fromRoute: 'Person' });
-  const onUpdateRencontre = async (rencontre) => navigation.push('Rencontre', { person: personDB, fromRoute: 'Person', rencontre: rencontre });
+  const onRemoveFromActiveList = async () => navigation.push("PersonsOutOfActiveListReason", { person: personDB, fromRoute: "Person" });
+  const onAddRencontre = async () => navigation.push("Rencontre", { person: personDB, fromRoute: "Person" });
+  const onUpdateRencontre = async (rencontre) => navigation.push("Rencontre", { person: personDB, fromRoute: "Person", rencontre: rencontre });
 
-  const onAddPassage = async () => navigation.push('Passage', { person: personDB, fromRoute: 'Person' });
-  const onUpdatePassage = async (passage) => navigation.push('Passage', { person: personDB, fromRoute: 'Person', passage: passage });
+  const onAddPassage = async () => navigation.push("Passage", { person: personDB, fromRoute: "Person" });
+  const onUpdatePassage = async (passage) => navigation.push("Passage", { person: personDB, fromRoute: "Person", passage: passage });
 
   const onGetBackToActiveList = async () => {
     await onUpdatePerson(false, { outOfActiveListReasons: [], outOfActiveList: false });
@@ -95,14 +95,14 @@ const PersonSummary = ({
     const placesId = relsPersonPlace.map((rel) => rel.place);
     return allPlaces.filter((pl) => placesId.includes(pl._id));
   }, [allPlaces, relsPersonPlace]);
-  const onAddPlaceRequest = () => navigation.push('NewPersonPlaceForm', { person: personDB, fromRoute: 'Person' });
+  const onAddPlaceRequest = () => navigation.push("NewPersonPlaceForm", { person: personDB, fromRoute: "Person" });
 
   const teams = useRecoilValue(teamsState);
 
   const onActionPress = useCallback(
     (action) => {
-      Sentry.setContext('action', { _id: action._id });
-      navigation.push('Action', { action, fromRoute: 'Person' });
+      Sentry.setContext("action", { _id: action._id });
+      navigation.push("Action", { action, fromRoute: "Person" });
     },
     [navigation]
   );
@@ -112,8 +112,8 @@ const PersonSummary = ({
       {person.outOfActiveList && (
         <AlterOutOfActiveList>
           <Text style={{ color: colors.app.colorWhite }}>
-            {person?.name} est en dehors de la file active, pour{' '}
-            {person?.outOfActiveListReasons?.length > 1 ? 'les motifs suivants' : 'le motif suivant'} : {person.outOfActiveListReasons.join(', ')}
+            {person?.name} est en dehors de la file active, pour{" "}
+            {person?.outOfActiveListReasons?.length > 1 ? "les motifs suivants" : "le motif suivant"} : {person.outOfActiveListReasons.join(", ")}
             {person?.outOfActiveListDate && `le ${formatDateWithFullMonth(person.outOfActiveListDate)}`}
           </Text>
         </AlterOutOfActiveList>
@@ -155,7 +155,7 @@ const PersonSummary = ({
       ) : (
         <InputLabelled
           label="Suivi(e) depuis / Créé(e) il y a"
-          value={`${getRelativeTimeFrench(dayjs(), person.followedSince)} (${dayjs(person.followedSince).format('DD/MM/YYYY')})`}
+          value={`${getRelativeTimeFrench(dayjs(), person.followedSince)} (${dayjs(person.followedSince).format("DD/MM/YYYY")})`}
           placeholder="JJ-MM-AAAA"
           editable={false}
         />
@@ -172,7 +172,7 @@ const PersonSummary = ({
         <InputLabelled
           label="En rue depuis"
           value={
-            person.wanderingAt ? `${getRelativeTimeFrench(dayjs(), person.wanderingAt)} (${dayjs(person.wanderingAt).format('DD/MM/YYYY')})` : null
+            person.wanderingAt ? `${getRelativeTimeFrench(dayjs(), person.wanderingAt)} (${dayjs(person.wanderingAt).format("DD/MM/YYYY")})` : null
           }
           placeholder="JJ-MM-AAAA"
           editable={false}
@@ -196,7 +196,7 @@ const PersonSummary = ({
             caption="Appeler"
             Icon={PhoneIcon}
             color={colors.app.secondary}
-            onPress={() => Linking.openURL('tel:' + personDB?.phone?.split(' ').join(''))}
+            onPress={() => Linking.openURL("tel:" + personDB?.phone?.split(" ").join(""))}
             noBorder
           />
         )}
@@ -230,14 +230,15 @@ const PersonSummary = ({
           title={`Voulez-vous vraiment supprimer ${personDB?.name} ?`}
           onBack={onBack}
           textToConfirm={personDB?.name}
-          roles={['normal', 'admin']}
+          roles={["normal", "admin"]}
           roleErrorMessage="Désolé, seules les personnes autorisées peuvent supprimer des personnes"
-          onDelete={onDelete}>
-          Cette opération est irréversible{'\n'}et entrainera la suppression définitive{'\n'}de toutes les données liées à la personne&nbsp;:{'\n\n'}
+          onDelete={onDelete}
+        >
+          Cette opération est irréversible{"\n"}et entrainera la suppression définitive{"\n"}de toutes les données liées à la personne&nbsp;:{"\n\n"}
           actions, commentaires, lieux visités, passages, rencontres, documents...
         </DeleteButtonAndConfirmModal>
         <Button
-          caption={editable ? 'Mettre à jour' : 'Modifier'}
+          caption={editable ? "Mettre à jour" : "Modifier"}
           onPress={editable ? onUpdatePerson : onEdit}
           disabled={editable ? isUpdateDisabled : false}
           loading={updating}
@@ -245,7 +246,7 @@ const PersonSummary = ({
       </ButtonsContainer>
       <ButtonsContainer>
         <Button
-          caption={person.outOfActiveList ? 'Réintégrer dans la file active' : 'Sortie de file active'}
+          caption={person.outOfActiveList ? "Réintégrer dans la file active" : "Sortie de file active"}
           onPress={() => (person.outOfActiveList ? onGetBackToActiveList() : onRemoveFromActiveList())}
           color={colors.warning.color}
         />
@@ -261,7 +262,7 @@ const PersonSummary = ({
         )}
         ifEmpty="Pas encore d'action"
       />
-      {['admin', 'normal'].includes(user.role) && (
+      {["admin", "normal"].includes(user.role) && (
         <SubList
           label="Commentaires"
           data={sortedComments}
@@ -306,7 +307,8 @@ const PersonSummary = ({
               }
             />
           )}
-          ifEmpty="Pas encore de commentaire">
+          ifEmpty="Pas encore de commentaire"
+        >
           <NewCommentInput
             forwardRef={newCommentRef}
             person={personDB?._id}
@@ -318,7 +320,7 @@ const PersonSummary = ({
                 ...newComment,
                 person: personDB?._id,
               };
-              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
                 Alert.alert(response.error || response.code);
                 return;
@@ -346,7 +348,7 @@ const PersonSummary = ({
           ifEmpty="Pas encore de passage"
         />
       )}
-      {['admin', 'normal'].includes(user.role) && (
+      {["admin", "normal"].includes(user.role) && (
         <SubList
           label="Lieux fréquentés"
           onAdd={onAddPlaceRequest}

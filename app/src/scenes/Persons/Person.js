@@ -1,41 +1,41 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform } from 'react-native';
-import * as Sentry from '@sentry/react-native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { useRecoilState, useRecoilValue } from 'recoil';
-import PersonSummary from './PersonSummary';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import FoldersNavigator from './FoldersNavigator';
-import Tabs from '../../components/Tabs';
-import colors from '../../utils/colors';
-import { useFocusEffect, useIsFocused } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Alert, KeyboardAvoidingView, Platform } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { useRecoilState, useRecoilValue } from "recoil";
+import PersonSummary from "./PersonSummary";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import FoldersNavigator from "./FoldersNavigator";
+import Tabs from "../../components/Tabs";
+import colors from "../../utils/colors";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import {
   allowedPersonFieldsInHistorySelector,
   personsState,
   usePreparePersonForEncryption,
   flattenedCustomFieldsPersonsSelector,
-} from '../../recoil/persons';
-import { actionsState, prepareActionForEncryption } from '../../recoil/actions';
-import { commentsState, prepareCommentForEncryption } from '../../recoil/comments';
-import { relsPersonPlaceState } from '../../recoil/relPersonPlace';
-import { userState } from '../../recoil/auth';
-import API from '../../services/api';
-import { rencontresState } from '../../recoil/rencontres';
-import { passagesState } from '../../recoil/passages';
-import { consultationsState } from '../../recoil/consultations';
-import { treatmentsState } from '../../recoil/treatments';
-import { medicalFileState } from '../../recoil/medicalFiles';
-import { refreshTriggerState } from '../../components/Loader';
-import { groupsState, prepareGroupForEncryption } from '../../recoil/groups';
-import isEqual from 'react-fast-compare';
-import { isEmptyValue } from '../../utils';
-import { alertCreateComment } from '../../utils/alert-create-comment';
+} from "../../recoil/persons";
+import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { userState } from "../../recoil/auth";
+import API from "../../services/api";
+import { rencontresState } from "../../recoil/rencontres";
+import { passagesState } from "../../recoil/passages";
+import { consultationsState } from "../../recoil/consultations";
+import { treatmentsState } from "../../recoil/treatments";
+import { medicalFileState } from "../../recoil/medicalFiles";
+import { refreshTriggerState } from "../../components/Loader";
+import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
+import isEqual from "react-fast-compare";
+import { isEmptyValue } from "../../utils";
+import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const TabNavigator = createMaterialTopTabNavigator();
 
 const cleanValue = (value) => {
-  if (typeof value === 'string') return (value || '').trim();
+  if (typeof value === "string") return (value || "").trim();
   return value;
 };
 
@@ -98,7 +98,7 @@ const Person = ({ route, navigation }) => {
   );
 
   const [person, setPerson] = useState(castToPerson(personDB));
-  const [writingComment, setWritingComment] = useState('');
+  const [writingComment, setWritingComment] = useState("");
   const [editable, setEditable] = useState(route?.params?.editable || false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -110,7 +110,7 @@ const Person = ({ route, navigation }) => {
       e.preventDefault();
       onGoBackRequested();
     };
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -137,7 +137,7 @@ const Person = ({ route, navigation }) => {
     });
     const oldPerson = persons.find((a) => a._id === personDB._id);
     const existingPerson = persons.find((p) => personDB._id !== p._id && p.name === personToUpdate.name);
-    if (existingPerson) return Alert.alert('Une personne existe déjà à ce nom');
+    if (existingPerson) return Alert.alert("Une personne existe déjà à ce nom");
 
     setUpdating(true);
 
@@ -172,7 +172,7 @@ const Person = ({ route, navigation }) => {
       })
     );
     setPerson(castToPerson(newPerson));
-    if (alert) Alert.alert('Personne mise à jour !');
+    if (alert) Alert.alert("Personne mise à jour !");
     setUpdating(false);
     setEditable(false);
     return true;
@@ -189,12 +189,12 @@ const Person = ({ route, navigation }) => {
     ) {
       const keepGoing = await new Promise((res) => {
         Alert.alert(
-          'Voulez-vous continuer la suppression ?',
+          "Voulez-vous continuer la suppression ?",
           // eslint-disable-next-line max-len
-          'Des données médicales sont associées à cette personne. Si vous la supprimez, ces données seront également effacées. Vous n’avez pas accès à ces données médicales car vous n’êtes pas un·e professionnel·le de santé. Voulez-vous supprimer cette personne et toutes ses données ?',
+          "Des données médicales sont associées à cette personne. Si vous la supprimez, ces données seront également effacées. Vous n’avez pas accès à ces données médicales car vous n’êtes pas un·e professionnel·le de santé. Voulez-vous supprimer cette personne et toutes ses données ?",
           [
-            { text: 'Annuler', style: 'cancel', onPress: () => res(false) },
-            { text: 'Continuer', style: 'destructive', onPress: () => res(true) },
+            { text: "Annuler", style: "cancel", onPress: () => res(false) },
+            { text: "Continuer", style: "destructive", onPress: () => res(true) },
           ]
         );
       });
@@ -275,7 +275,7 @@ const Person = ({ route, navigation }) => {
 
     const personRes = await API.delete({ path: `/person/${personDB._id}`, body });
     if (personRes?.ok) {
-      Alert.alert('Personne supprimée !');
+      Alert.alert("Personne supprimée !");
       setPersons((persons) => persons.filter((p) => p._id !== personDB._id));
       setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     }
@@ -294,7 +294,7 @@ const Person = ({ route, navigation }) => {
 
   const onBack = () => {
     backRequestHandledRef.current = true;
-    Sentry.setContext('person', {});
+    Sentry.setContext("person", {});
     if (route.params?.fromRoute) {
       navigation.navigate(route.params.fromRoute, { filters: route.params?.filters });
     } else {
@@ -308,24 +308,24 @@ const Person = ({ route, navigation }) => {
       if (!goToNextStep) return;
     }
     if (isUpdateDisabled) return onBack();
-    Alert.alert('Voulez-vous enregistrer les mises-à-jour sur cette personne ?', null, [
+    Alert.alert("Voulez-vous enregistrer les mises-à-jour sur cette personne ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onUpdatePerson,
       },
       {
-        text: 'Ne pas enregistrer',
-        style: 'destructive',
+        text: "Ne pas enregistrer",
+        style: "destructive",
         onPress: onBack,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
 
-  const showFoldersTab = useMemo(() => ['admin', 'normal'].includes(user.role), [user.role]);
+  const showFoldersTab = useMemo(() => ["admin", "normal"].includes(user.role), [user.role]);
 
   return (
     <>
@@ -349,9 +349,10 @@ const Person = ({ route, navigation }) => {
                 backgroundColor={!person?.outOfActiveList ? colors.app.backgroundColor : colors.app.colorBackgroundDarkGrey}
               />
             )}
-            removeClippedSubviews={Platform.OS === 'android'}
-            screenOptions={{ swipeEnabled: true }}>
-            <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: 'Résumé' }}>
+            removeClippedSubviews={Platform.OS === "android"}
+            screenOptions={{ swipeEnabled: true }}
+          >
+            <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: "Résumé" }}>
               {() => (
                 <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
                   <PersonSummary
@@ -373,7 +374,7 @@ const Person = ({ route, navigation }) => {
                 </KeyboardAvoidingView>
               )}
             </TabNavigator.Screen>
-            <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: 'Dossiers' }}>
+            <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: "Dossiers" }}>
               {() => (
                 <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
                   <FoldersNavigator

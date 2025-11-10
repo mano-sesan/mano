@@ -1,37 +1,37 @@
-import { atom, selector } from 'recoil';
-import { looseUuidRegex } from '../utils/regex';
-import { capture } from '../services/sentry';
-import { Alert } from 'react-native';
-import { organisationState } from './auth';
+import { atom, selector } from "recoil";
+import { looseUuidRegex } from "../utils/regex";
+import { capture } from "../services/sentry";
+import { Alert } from "react-native";
+import { organisationState } from "./auth";
 
 export const consultationsState = atom({
-  key: 'consultationsState',
+  key: "consultationsState",
   default: [],
 });
 
 export const encryptedFields = [
-  'name',
-  'type',
-  'person',
-  'user',
-  'teams',
-  'documents',
-  'comments',
-  'history',
+  "name",
+  "type",
+  "person",
+  "user",
+  "teams",
+  "documents",
+  "comments",
+  "history",
   // Medical constants
-  'constantes-poids',
-  'constantes-frequence-cardiaque',
-  'constantes-taille',
-  'constantes-saturation-o2',
-  'constantes-temperature',
-  'constantes-glycemie-capillaire',
-  'constantes-frequence-respiratoire',
-  'constantes-tension-arterielle-systolique',
-  'constantes-tension-arterielle-diastolique',
+  "constantes-poids",
+  "constantes-frequence-cardiaque",
+  "constantes-taille",
+  "constantes-saturation-o2",
+  "constantes-temperature",
+  "constantes-glycemie-capillaire",
+  "constantes-frequence-respiratoire",
+  "constantes-tension-arterielle-systolique",
+  "constantes-tension-arterielle-diastolique",
 ];
 
 export const consultationFieldsSelector = selector({
-  key: 'consultationFieldsSelector',
+  key: "consultationFieldsSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
     return organisation?.consultations || [];
@@ -39,7 +39,7 @@ export const consultationFieldsSelector = selector({
 });
 
 export const flattenedCustomFieldsConsultationsSelector = selector({
-  key: 'flattenedCustomFieldsConsultationsSelector',
+  key: "flattenedCustomFieldsConsultationsSelector",
   get: ({ get }) => {
     const customFieldsConsultationsSections = get(consultationFieldsSelector);
     const customFieldsConsultations = [];
@@ -55,18 +55,18 @@ export const flattenedCustomFieldsConsultationsSelector = selector({
 /* Other utils selector */
 
 export const consultationsFieldsIncludingCustomFieldsSelector = selector({
-  key: 'consultationsFieldsIncludingCustomFieldsSelector',
+  key: "consultationsFieldsIncludingCustomFieldsSelector",
   get: ({ get }) => {
     const flattenedCustomFieldsConsultations = get(flattenedCustomFieldsConsultationsSelector);
     return [
-      { name: 'name', label: 'Nom' },
-      { name: 'type', label: 'Type' },
-      { name: 'onlyVisibleBy', label: 'Seulement visible par moi' },
-      { name: 'person', label: 'Personne suivie' },
-      { name: 'teams', label: ':Equipe(s) en charge' },
-      { name: 'completedAt', label: 'Faite le' },
-      { name: 'dueAt', label: 'À faire le' },
-      { name: 'status', label: 'Status' },
+      { name: "name", label: "Nom" },
+      { name: "type", label: "Type" },
+      { name: "onlyVisibleBy", label: "Seulement visible par moi" },
+      { name: "person", label: "Personne suivie" },
+      { name: "teams", label: ":Equipe(s) en charge" },
+      { name: "completedAt", label: "Faite le" },
+      { name: "dueAt", label: "À faire le" },
+      { name: "status", label: "Status" },
       ...flattenedCustomFieldsConsultations.map((f) => {
         return {
           name: f.name,
@@ -80,10 +80,10 @@ export const consultationsFieldsIncludingCustomFieldsSelector = selector({
 export const prepareConsultationForEncryption = (customFieldsConsultations) => (consultation) => {
   try {
     if (!looseUuidRegex.test(consultation.person)) {
-      throw new Error('Consultation is missing person');
+      throw new Error("Consultation is missing person");
     }
     if (!looseUuidRegex.test(consultation.user)) {
-      throw new Error('Consultation is missing user');
+      throw new Error("Consultation is missing user");
     }
     // we don't force the team (yet) because it's blocking with automatic updates of consultation
     // like merge people + change custom fields

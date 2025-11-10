@@ -1,49 +1,49 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Alert, Animated, Keyboard, KeyboardAvoidingView, TouchableOpacity, View } from 'react-native';
-import * as Sentry from '@sentry/react-native';
-import isEqual from 'react-fast-compare';
-import styled from 'styled-components/native';
-import ScrollContainer from '../../components/ScrollContainer';
-import SceneContainer from '../../components/SceneContainer';
-import ScreenTitle from '../../components/ScreenTitle';
-import InputLabelled from '../../components/InputLabelled';
-import Button from '../../components/Button';
-import ButtonsContainer from '../../components/ButtonsContainer';
-import ButtonDelete from '../../components/ButtonDelete';
-import InputFromSearchList from '../../components/InputFromSearchList';
-import DateAndTimeInput from '../../components/DateAndTimeInput';
-import CommentRow from '../Comments/CommentRow';
-import ActionStatusSelect from '../../components/Selects/ActionStatusSelect';
-import UserName from '../../components/UserName';
-import Spacer from '../../components/Spacer';
-import NewCommentInput from '../../scenes/Comments/NewCommentInput';
-import ActionCategoriesModalSelect from '../../components/ActionCategoriesModalSelect';
-import Label from '../../components/Label';
-import Tags from '../../components/Tags';
-import { MyText } from '../../components/MyText';
-import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from '../../recoil/actions';
-import { useRecoilState, useRecoilValue, useSetRecoilState } from 'recoil';
-import { commentsState, prepareCommentForEncryption } from '../../recoil/comments';
-import API from '../../services/api';
-import { currentTeamState, organisationState, userState } from '../../recoil/auth';
-import { capture } from '../../services/sentry';
-import CheckboxLabelled from '../../components/CheckboxLabelled';
-import { groupsState } from '../../recoil/groups';
-import { useFocusEffect } from '@react-navigation/native';
-import { itemsGroupedByPersonSelector } from '../../recoil/selectors';
-import { refreshTriggerState } from '../../components/Loader';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import DocumentsManager from '../../components/DocumentsManager';
-import { isEmptyValue } from '../../utils';
-import { alertCreateComment } from '../../utils/alert-create-comment';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { Alert, Animated, Keyboard, KeyboardAvoidingView, TouchableOpacity, View } from "react-native";
+import * as Sentry from "@sentry/react-native";
+import isEqual from "react-fast-compare";
+import styled from "styled-components/native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import InputFromSearchList from "../../components/InputFromSearchList";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import CommentRow from "../Comments/CommentRow";
+import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
+import UserName from "../../components/UserName";
+import Spacer from "../../components/Spacer";
+import NewCommentInput from "../../scenes/Comments/NewCommentInput";
+import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
+import Label from "../../components/Label";
+import Tags from "../../components/Tags";
+import { MyText } from "../../components/MyText";
+import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../recoil/actions";
+import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import API from "../../services/api";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { capture } from "../../services/sentry";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import { groupsState } from "../../recoil/groups";
+import { useFocusEffect } from "@react-navigation/native";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { refreshTriggerState } from "../../components/Loader";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import DocumentsManager from "../../components/DocumentsManager";
+import { isEmptyValue } from "../../utils";
+import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const Tab = createMaterialTopTabNavigator();
 
 const castToAction = (action) => {
   if (!action) action = {};
   return {
-    name: action.name?.trim() || '',
-    description: action.description?.trim()?.split('\\n').join('\u000A') || '',
+    name: action.name?.trim() || "",
+    description: action.description?.trim()?.split("\\n").join("\u000A") || "",
     person: action.person || null,
     categories: action.categories || [],
     user: action.user || null,
@@ -53,7 +53,7 @@ const castToAction = (action) => {
     urgent: action.urgent || false,
     group: action.group || false,
     completedAt: action.completedAt || null,
-    entityKey: action.entityKey || '',
+    entityKey: action.entityKey || "",
     teams: action.teams || (action.team ? [action.team] : undefined),
     history: action.history || [],
     documents: action.documents || [],
@@ -92,7 +92,7 @@ const ActionInformation = ({
       {persons.length < 2 ? (
         <InputFromSearchList
           label="Personne concernée"
-          value={persons[0]?.name || '-- Aucune --'}
+          value={persons[0]?.name || "-- Aucune --"}
           onSearchRequest={onSearchPerson}
           editable={editable}
         />
@@ -127,7 +127,7 @@ const ActionInformation = ({
       />
       {status !== TODO ? (
         <DateAndTimeInput
-          label={status === DONE ? 'Faite le' : 'Annulée le'}
+          label={status === DONE ? "Faite le" : "Annulée le"}
           setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt }))}
           date={completedAt || new Date().toISOString()}
           showTime
@@ -167,7 +167,7 @@ const ActionInformation = ({
       <ButtonsContainer>
         {canDelete && <ButtonDelete onPress={onDeleteRequest} />}
         <Button
-          caption={editable ? 'Mettre à jour' : 'Modifier'}
+          caption={editable ? "Mettre à jour" : "Modifier"}
           onPress={editable ? onUpdateRequest : () => setEditable(true)}
           disabled={editable ? isUpdateDisabled : false}
           loading={updating}
@@ -191,7 +191,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                 ...newComment,
                 action: actionDB?._id,
               };
-              const response = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
                 Alert.alert(response.error || response.code);
                 return;
@@ -277,7 +277,7 @@ const Action = ({ navigation, route }) => {
 
   const [multipleActions] = useState(() => route?.params?.actions);
   const isMultipleActions = multipleActions?.length > 1;
-  const canComment = !isMultipleActions && ['admin', 'normal'].includes(user.role);
+  const canComment = !isMultipleActions && ["admin", "normal"].includes(user.role);
 
   const persons = useMemo(() => {
     if (isMultipleActions) {
@@ -289,7 +289,7 @@ const Action = ({ navigation, route }) => {
   }, [isMultipleActions, multipleActions, allPersonsObject, action?.person]);
 
   const [updating, setUpdating] = useState(false);
-  const [writingComment, setWritingComment] = useState('');
+  const [writingComment, setWritingComment] = useState("");
   const [editable, setEditable] = useState(route?.params?.editable || false);
 
   useEffect(() => {
@@ -314,7 +314,7 @@ const Action = ({ navigation, route }) => {
   const backRequestHandledRef = useRef(false);
   const onBack = async () => {
     backRequestHandledRef.current = true;
-    Sentry.setContext('action', {});
+    Sentry.setContext("action", {});
     navigation.goBack();
     setUpdating(false);
   };
@@ -334,24 +334,24 @@ const Action = ({ navigation, route }) => {
       onBack();
       return true;
     }
-    Alert.alert('Voulez-vous enregistrer cette action ?', null, [
+    Alert.alert("Voulez-vous enregistrer cette action ?", null, [
       {
-        text: 'Enregistrer',
+        text: "Enregistrer",
         onPress: onUpdateRequest,
       },
       {
-        text: 'Ne pas enregistrer',
+        text: "Ne pas enregistrer",
         onPress: onBack,
-        style: 'destructive',
+        style: "destructive",
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
 
-  const onSearchPerson = () => navigation.push('PersonsSearch', { ...route.params, fromRoute: 'Action' }, { merge: true });
+  const onSearchPerson = () => navigation.push("PersonsSearch", { ...route.params, fromRoute: "Action" }, { merge: true });
 
   const handleBeforeRemove = (e) => {
     if (backRequestHandledRef.current === true) return;
@@ -359,7 +359,7 @@ const Action = ({ navigation, route }) => {
     onGoBackRequested();
   };
   useEffect(() => {
-    const beforeRemoveListenerUnsbscribe = navigation.addListener('beforeRemove', handleBeforeRemove);
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
@@ -423,7 +423,7 @@ const Action = ({ navigation, route }) => {
       onRefresh();
       return response;
     } catch (error) {
-      capture(error, { extra: { message: 'error in updating action' } });
+      capture(error, { extra: { message: "error in updating action" } });
       return { ok: false, error: error.message };
     }
   };
@@ -445,7 +445,7 @@ const Action = ({ navigation, route }) => {
           return;
         }
       }
-      Alert.alert('Actions mises à jour !', null, [{ text: 'OK', onPress: onBack }]);
+      Alert.alert("Actions mises à jour !", null, [{ text: "OK", onPress: onBack }]);
       return;
     }
     const actionCancelled = actionDB.status !== CANCEL && action.status === CANCEL;
@@ -464,13 +464,13 @@ const Action = ({ navigation, route }) => {
     }
     onRefresh();
     if (actionCancelled) {
-      Alert.alert('Cette action est annulée, voulez-vous la dupliquer ?', 'Avec une date ultérieure par exemple', [
-        { text: 'Oui', onPress: onDuplicate },
-        { text: 'Non merci !', onPress: onBack, style: 'cancel' },
+      Alert.alert("Cette action est annulée, voulez-vous la dupliquer ?", "Avec une date ultérieure par exemple", [
+        { text: "Oui", onPress: onDuplicate },
+        { text: "Non merci !", onPress: onBack, style: "cancel" },
       ]);
       return;
     }
-    Alert.alert('Action mise à jour !', null, [{ text: 'OK', onPress: onBack }]);
+    Alert.alert("Action mise à jour !", null, [{ text: "OK", onPress: onBack }]);
   };
 
   useEffect(() => {
@@ -484,7 +484,7 @@ const Action = ({ navigation, route }) => {
     setUpdating(true);
     const { name, person, dueAt, withTime, description, categories, urgent } = action;
     const response = await API.post({
-      path: '/action',
+      path: "/action",
       body: prepareActionForEncryption({
         name,
         person,
@@ -499,7 +499,7 @@ const Action = ({ navigation, route }) => {
       }),
     });
     if (!response.ok) {
-      Alert.alert('Impossible de dupliquer !');
+      Alert.alert("Impossible de dupliquer !");
       return;
     }
     onRefresh();
@@ -512,31 +512,31 @@ const Action = ({ navigation, route }) => {
         team: c.team || currentTeam._id,
         organisation: c.organisation,
       };
-      const res = await API.post({ path: '/comment', body: prepareCommentForEncryption(body) });
+      const res = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
       if (res.ok) {
         setComments((comments) => [res.decryptedData, ...comments]);
       }
     }
-    Sentry.setContext('action', { _id: response.decryptedData._id });
+    Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
-    navigation.replace('Action', {
+    navigation.replace("Action", {
       action: response.decryptedData,
-      fromRoute: 'ActionsList',
+      fromRoute: "ActionsList",
       editable: true,
       duplicate: true,
     });
   };
 
   const onDeleteRequest = () => {
-    Alert.alert('Voulez-vous vraiment supprimer cette action ?', 'Cette opération est irréversible.', [
+    Alert.alert("Voulez-vous vraiment supprimer cette action ?", "Cette opération est irréversible.", [
       {
-        text: 'Supprimer',
-        style: 'destructive',
+        text: "Supprimer",
+        style: "destructive",
         onPress: onDelete,
       },
       {
-        text: 'Annuler',
-        style: 'cancel',
+        text: "Annuler",
+        style: "cancel",
       },
     ]);
   };
@@ -563,7 +563,7 @@ const Action = ({ navigation, route }) => {
     }
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
-      Alert.alert(isMultipleActions ? 'Actions supprimées !' : 'Action supprimée !');
+      Alert.alert(isMultipleActions ? "Actions supprimées !" : "Action supprimée !");
       onBack();
     }
   };
@@ -577,20 +577,20 @@ const Action = ({ navigation, route }) => {
 
   const { name, categories, group } = action;
 
-  const displayActionName = name.trim() || categories.join(', ') || 'Action';
+  const displayActionName = name.trim() || categories.join(", ") || "Action";
 
   // Move actionComments calculation to a useMemo hook at the component level
   const actionComments = useMemo(() => comments.filter((c) => c.action === actionDB?._id), [comments, actionDB?._id]);
 
-  const canDelete = ['admin', 'normal'].includes(user.role);
-  const canSetUrgent = ['admin', 'normal'].includes(user.role);
+  const canDelete = ["admin", "normal"].includes(user.role);
+  const canSetUrgent = ["admin", "normal"].includes(user.role);
 
   return (
     <SceneContainer>
       <ScreenTitle
         title={
           persons?.length && persons.length === 1
-            ? `${!!organisation.groupsEnabled && !!group ? '👪 ' : ''}${displayActionName} - ${persons[0]?.name}`
+            ? `${!!organisation.groupsEnabled && !!group ? "👪 " : ""}${displayActionName} - ${persons[0]?.name}`
             : displayActionName
         }
         onBack={onGoBackRequested}
@@ -608,22 +608,23 @@ const Action = ({ navigation, route }) => {
             screenOptions={{
               tabBarItemStyle: {
                 flexShrink: 1,
-                borderColor: 'transparent',
+                borderColor: "transparent",
                 borderWidth: 1,
               },
               tabBarLabelStyle: {
-                textTransform: 'none',
+                textTransform: "none",
               },
               tabBarContentContainerStyle: {
                 flex: 1,
-                borderColor: 'red',
+                borderColor: "red",
                 borderWidth: 3,
               },
-            }}>
+            }}
+          >
             <Tab.Screen
               name="ActionInformations"
               options={{
-                tabBarLabel: 'Informations',
+                tabBarLabel: "Informations",
               }}
               children={() => (
                 <ActionInformation
@@ -650,7 +651,7 @@ const Action = ({ navigation, route }) => {
             <Tab.Screen
               name="ActionCommentaires"
               options={{
-                tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ''}`,
+                tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ""}`,
               }}
               children={() => (
                 <ActionComments
@@ -667,7 +668,7 @@ const Action = ({ navigation, route }) => {
             <Tab.Screen
               name="ActionDocuments"
               options={{
-                tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ''}`,
+                tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ""}`,
               }}
               children={() => (
                 <ScrollContainer noRadius>
@@ -735,7 +736,7 @@ function MyTabBar({ state, descriptors, navigation, position }) {
 
         const onPress = () => {
           const event = navigation.emit({
-            type: 'tabPress',
+            type: "tabPress",
             target: route.key,
             canPreventDefault: true,
           });
@@ -747,7 +748,7 @@ function MyTabBar({ state, descriptors, navigation, position }) {
 
         const onLongPress = () => {
           navigation.emit({
-            type: 'tabLongPress',
+            type: "tabLongPress",
             target: route.key,
           });
         };
@@ -772,14 +773,16 @@ function MyTabBar({ state, descriptors, navigation, position }) {
             style={{
               // textDecoration: isFocused ? 'underline' : 'none',
               borderBottomWidth: isFocused ? 2 : 0,
-            }}>
+            }}
+          >
             <Animated.Text
               // eslint-disable-next-line react-native/no-inline-styles
               style={{
-                color: isFocused ? '#000' : '#000',
-                fontWeight: isFocused ? 'bold' : 'normal',
+                color: isFocused ? "#000" : "#000",
+                fontWeight: isFocused ? "bold" : "normal",
                 opacity,
-              }}>
+              }}
+            >
               {label}
             </Animated.Text>
           </TouchableOpacity>

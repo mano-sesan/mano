@@ -1,4 +1,4 @@
-import { addOneDay, formatDateWithFullMonth } from '../../services/dateDayjs';
+import { addOneDay, formatDateWithFullMonth } from "../../services/dateDayjs";
 
 export const getPeriodTitle = (date, nightSession) => {
   if (!nightSession) return `Journée du ${formatDateWithFullMonth(date)}`;
