@@ -25,10 +25,10 @@ const getTreatmentStatus = (treatment) => {
   const endDate = hasEndDate ? dayjsInstance(treatment.endDate) : null;
 
   // Has end date and it's in the past
-  if (endDate && endDate.isBefore(today)) return "finished";
+  if (endDate && endDate.isBefore(today, 'day')) return "finished";
 
   // Has start date and it's in the future (hasn't started yet)
-  if (startDate && startDate.isAfter(today)) return "not-started";
+  if (startDate && startDate.isAfter(today, 'day')) return "not-started";
 
   // Everything else is ongoing
   return "ongoing";
