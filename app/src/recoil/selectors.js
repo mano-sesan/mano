@@ -6,7 +6,7 @@ import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
 import { territoriesState } from "./territory";
-import { isComingInDays, isPassed, isToday, isTomorrow } from "../services/date";
+import { isComingInDays, isPassed, isToday } from "../services/date";
 import { filterBySearch } from "../utils/search";
 import { consultationsState } from "./consultations";
 import { rencontresState } from "./rencontres";
