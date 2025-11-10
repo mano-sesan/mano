@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
+import { Alert, KeyboardAvoidingView, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import ScrollContainer from "../../components/ScrollContainer";
