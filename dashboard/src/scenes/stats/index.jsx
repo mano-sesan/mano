@@ -622,13 +622,21 @@ const Stats = () => {
     }
     const activeFilters = filterObs.filter((f) => f.value);
     const territoryFilter = activeFilters.find((f) => f.field === "territory");
-    const otherFilters = activeFilters.filter((f) => f.field !== "territory");
+    const territoryTypesFilter = activeFilters.find((f) => f.field === "territoryTypes");
+    const otherFilters = activeFilters.filter((f) => f.field !== "territory" && f.field !== "territoryTypes");
     for (const observation of allObservations) {
       if (!viewAllOrganisationData) {
         if (!selectedTeamsObjectWithOwnPeriod[observation.team]) continue;
       }
       if (territoryFilter) {
         if (!territoryFilter.value.includes(territoriesById[observation.territory]?.name)) continue;
+      }
+      if (territoryTypesFilter) {
+        const observationTerritory = territoriesById[observation.territory];
+        if (!observationTerritory?.types) continue;
+        // Check if the territory has at least one of the selected types
+        const hasMatchingType = observationTerritory.types.some((type) => territoryTypesFilter.value.includes(type));
+        if (!hasMatchingType) continue;
       }
       if (!filterItem(otherFilters)(observation)) continue;
       const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[observation.team] ?? defaultIsoDates;
