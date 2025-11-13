@@ -47,6 +47,15 @@ const ObservationsStats = ({
   const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
 
   const filterBase: Array<FilterableField> = useMemo(() => {
+    // Get all unique territory types from territories
+    const allTerritoryTypes = new Set<string>();
+    territories.forEach((territory) => {
+      if (territory.types && Array.isArray(territory.types)) {
+        territory.types.forEach((type) => allTerritoryTypes.add(type));
+      }
+    });
+    const territoryTypesOptions = Array.from(allTerritoryTypes).sort();
+
     return [
       {
         field: "territory",
@@ -54,6 +63,13 @@ const ObservationsStats = ({
         label: "Territoire",
         type: "multi-choice",
         options: territories.map((t) => t.name),
+      },
+      {
+        field: "territoryTypes",
+        name: "territoryTypes",
+        label: "Type de territoire",
+        type: "multi-choice",
+        options: territoryTypesOptions,
       },
       ...customFieldsObs
         .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
