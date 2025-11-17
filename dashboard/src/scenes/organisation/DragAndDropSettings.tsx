@@ -50,6 +50,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
 
   const [addGroupModalVisible, setAddGroupModalVisible] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const onAddGroupRequest = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -143,7 +144,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
         onEnd: onDragAndDropRequest,
       });
     }
-  }, [data, onDragAndDropRequest, sectionId]);
+  }, [onDragAndDropRequest, sectionId]);
 
   return (
     <>
@@ -175,6 +176,16 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
               NewItemComponent={NewItemComponent}
               sectionId={sectionId}
               isAlone={data.length === 1}
+              isCollapsed={collapsedGroups.has(groupTitle)}
+              onToggleCollapse={(collapsed) => {
+                const newSet = new Set(collapsedGroups);
+                if (collapsed) {
+                  newSet.add(groupTitle);
+                } else {
+                  newSet.delete(groupTitle);
+                }
+                setCollapsedGroups(newSet);
+              }}
             />
           ))}
         </div>
@@ -217,6 +228,8 @@ interface GroupProps {
   NewItemComponent: React.ComponentType<{ groupTitle: string }>;
   dataItemKey: (item: any) => string;
   isAlone: boolean;
+  isCollapsed: boolean;
+  onToggleCollapse: (collapsed: boolean) => void;
 }
 
 const Group: React.FC<GroupProps> = ({
@@ -232,6 +245,8 @@ const Group: React.FC<GroupProps> = ({
   NewItemComponent,
   dataItemKey,
   isAlone,
+  isCollapsed,
+  onToggleCollapse,
 }) => {
   if (!groupTitle) throw new Error("groupTitle is required");
   if (!items) throw new Error("items is required");
@@ -252,7 +267,7 @@ const Group: React.FC<GroupProps> = ({
         onEnd: onDragAndDrop,
       });
     }
-  }, [onDragAndDrop, groupTitle, sectionId]);
+  }, [onDragAndDrop, sectionId]);
 
   const onEditGroupTitle = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -282,7 +297,11 @@ const Group: React.FC<GroupProps> = ({
     <>
       <div className={["tw-min-h-full tw-break-all tw-p-1 ", isAlone ? "" : "tw-basis-1/2 xl:tw-basis-1/3"].join(" ")}>
         <details
-          open
+          open={!isCollapsed}
+          onToggle={(e) => {
+            const target = e.target as HTMLDetailsElement;
+            onToggleCollapse(!target.open);
+          }}
           key={groupTitle}
           id={groupTitle}
           data-group={groupTitle}
