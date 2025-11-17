@@ -249,7 +249,16 @@ router.put(
         groupedServices: z.array(
           z.object({
             groupTitle: z.string(),
-            services: z.array(z.string()),
+            services: z.array(
+              z.union([
+                z.string(), // backward compatibility
+                z.object({
+                  name: z.string().min(1),
+                  enabled: z.boolean(),
+                  enabledTeams: z.array(z.string()),
+                }),
+              ])
+            ),
           })
         ),
       }).parse(req.body);

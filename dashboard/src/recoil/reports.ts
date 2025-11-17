@@ -1,7 +1,7 @@
 import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { capture } from "../services/sentry";
-import { organisationState } from "./auth";
+import { organisationState, currentTeamState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import API from "../services/api";
@@ -70,6 +70,11 @@ export const reportsState = atom({
   ],
 });
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service: any): string => {
+  return typeof service === "string" ? service : service.name;
+};
+
 export const servicesSelector = selector({
   key: "servicesSelector",
   get: ({ get }) => {
@@ -79,11 +84,39 @@ export const servicesSelector = selector({
   },
 });
 
+// Selector that filters services based on current team
+export const servicesForTeamSelector = selector({
+  key: "servicesForTeamSelector",
+  get: ({ get }) => {
+    const groupedServices = get(servicesSelector);
+    const currentTeam = get(currentTeamState);
+    
+    if (!currentTeam?._id) return groupedServices;
+    
+    return groupedServices.map(({ groupTitle, services }) => ({
+      groupTitle,
+      services: services.filter((service: any) => {
+        if (typeof service === "string") return true; // backward compatibility
+        return service.enabled || service.enabledTeams?.includes(currentTeam._id);
+      }),
+    }));
+  },
+});
+
 export const flattenedServicesSelector = selector({
   key: "flattenedServicesSelector",
   get: ({ get }) => {
     const groupedServices = get(servicesSelector);
-    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
+    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services.map(getServiceName)], [] as string[]);
+  },
+});
+
+// Flattened services filtered by team
+export const flattenedServicesForTeamSelector = selector({
+  key: "flattenedServicesForTeamSelector",
+  get: ({ get }) => {
+    const groupedServices = get(servicesForTeamSelector);
+    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services.map(getServiceName)], [] as string[]);
   },
 });
 

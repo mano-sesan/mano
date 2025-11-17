@@ -1,6 +1,6 @@
 import { storage } from "../services/dataManagement";
 import { atom, selector } from "recoil";
-import { organisationState } from "./auth";
+import { organisationState, currentTeamState } from "./auth";
 import { looseUuidRegex, dateRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
@@ -11,6 +11,11 @@ export const reportsState = atom({
   effects: [({ onSet }) => onSet(async (newValue) => storage.set("report", JSON.stringify(newValue)))],
 });
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
 export const servicesSelector = selector({
   key: "servicesSelector",
   get: ({ get }) => {
@@ -20,11 +25,39 @@ export const servicesSelector = selector({
   },
 });
 
+// Selector that filters services based on current team
+export const servicesForTeamSelector = selector({
+  key: "servicesForTeamSelector",
+  get: ({ get }) => {
+    const groupedServices = get(servicesSelector);
+    const currentTeam = get(currentTeamState);
+    
+    if (!currentTeam?._id) return groupedServices;
+    
+    return groupedServices.map(({ groupTitle, services }) => ({
+      groupTitle,
+      services: services.filter((service) => {
+        if (typeof service === "string") return true; // backward compatibility
+        return service.enabled || service.enabledTeams?.includes(currentTeam._id);
+      }),
+    }));
+  },
+});
+
 export const flattenedServicesSelector = selector({
   key: "flattenedServicesSelector",
   get: ({ get }) => {
     const groupedServices = get(servicesSelector);
-    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
+    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services.map(getServiceName)], []);
+  },
+});
+
+// Flattened services filtered by team
+export const flattenedServicesForTeamSelector = selector({
+  key: "flattenedServicesForTeamSelector",
+  get: ({ get }) => {
+    const groupedServices = get(servicesForTeamSelector);
+    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services.map(getServiceName)], []);
   },
 });
 

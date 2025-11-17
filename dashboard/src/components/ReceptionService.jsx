@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { servicesSelector } from "../recoil/reports";
+import { servicesForTeamSelector } from "../recoil/reports";
 import { useRecoilValue } from "recoil";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
@@ -7,9 +7,14 @@ import IncrementorSmall from "./IncrementorSmall";
 import { organisationState } from "../recoil/auth";
 import { capture } from "../services/sentry";
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
   const organisation = useRecoilValue(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useRecoilValue(servicesForTeamSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(
@@ -40,7 +45,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
     [dateString, report, team]
   );
 
-  const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];
+  const selectedServices = (groupedServices.find((e) => e.groupTitle === selected)?.services || []).map(getServiceName);
 
   if (!services) return;
 
@@ -64,16 +69,16 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       {/* This key is used to refresh incrementators on team change. */}
       {/* We could avoid this by mapping on something that actually represents what is displayed (eg: services) */}
       <div key={team._id}>
-        {selectedServices.map((service) => (
+        {selectedServices.map((serviceName) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${serviceName}-${services[serviceName] || 0}`}
+            key={team._id + " " + serviceName}
+            service={serviceName}
             team={team._id}
             date={dateString}
-            count={services[service] || 0}
+            count={services[serviceName] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [serviceName]: newCount });
             }}
           />
         ))}

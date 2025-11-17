@@ -559,7 +559,23 @@ router.put(
         territoriesGroupedTypes: z.optional(z.array(z.object({ groupTitle: z.string(), types: z.array(z.string().min(1)) }))),
         defaultPersonsFolders: z.optional(z.array(folderSchema)),
         defaultMedicalFolders: z.optional(z.array(folderSchema)),
-        groupedServices: z.optional(z.array(z.object({ groupTitle: z.string(), services: z.array(z.string().min(1)) }))),
+        groupedServices: z.optional(
+          z.array(
+            z.object({
+              groupTitle: z.string(),
+              services: z.array(
+                z.union([
+                  z.string().min(1), // backward compatibility
+                  z.object({
+                    name: z.string().min(1),
+                    enabled: z.boolean(),
+                    enabledTeams: z.array(z.string()),
+                  }),
+                ])
+              ),
+            })
+          )
+        ),
         collaborations: z.optional(z.array(z.string().min(1))),
         groupedCustomFieldsObs: z.optional(z.array(customFieldGroupSchema)),
         fieldsPersonsCustomizableOptions: z.optional(z.array(customFieldSchema)),
