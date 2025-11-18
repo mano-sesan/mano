@@ -606,7 +606,18 @@ router.put(
         checkboxShowAllOrgaPersons: z.optional(z.boolean()),
         lockedForEncryption: z.optional(z.boolean()),
         lockedBy: z.optional(z.string().regex(looseUuidRegex)).nullable(),
-        services: z.optional(z.array(z.string().min(1))),
+        services: z.optional(
+          z.array(
+            z.union([
+              z.string().min(1), // backward compatibility
+              z.object({
+                name: z.string().min(1),
+                enabled: z.boolean(),
+                enabledTeams: z.array(z.string()),
+              }),
+            ])
+          )
+        ),
       };
       if (req.body.encryptionLastUpdateAt) {
         bodyToParse.encryptionLastUpdateAt = z.preprocess((input) => new Date(input), z.date());

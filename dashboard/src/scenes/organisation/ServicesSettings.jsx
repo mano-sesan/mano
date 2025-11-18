@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
+import { organisationState, teamsState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
@@ -229,6 +229,7 @@ const Service = ({ item: serviceName, groupTitle }) => {
 
   const groupedServices = useRecoilValue(servicesSelector);
   const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const teams = useRecoilValue(teamsState);
   const { refresh } = useDataLoader();
 
   // Get the full service object from the grouped services
@@ -360,9 +361,19 @@ const Service = ({ item: serviceName, groupTitle }) => {
           isSelected ? "tw-rounded tw-border-main" : "",
         ].join(" ")}
       >
-        <p className="tw-m-0" id={serviceName}>
-          {serviceName}
-        </p>
+        <div className="tw-flex tw-flex-col">
+          <p className="tw-m-0 tw-mb-0" id={serviceName}>
+            {serviceName}
+          </p>
+          <small className="tw-text-gray-500">
+            {serviceObject.enabled || !serviceObject.enabledTeams?.length
+              ? "Visible par tous"
+              : `Visible par ${teams
+                  .filter((t) => serviceObject.enabledTeams.includes(t._id))
+                  .map((t) => t.name)
+                  .join(", ")}`}
+          </small>
+        </div>
         <button
           type="button"
           aria-label={`Modifier le service ${serviceName}`}

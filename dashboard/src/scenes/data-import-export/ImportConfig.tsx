@@ -90,7 +90,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                   sheetName === "Infos social et médical" ||
                   sheetName === "Dossier médical" ||
                   sheetName === "Consultation" ||
-                  sheetName === "Observation de territoire";
+                  sheetName === "Observation de territoire" ||
+                  sheetName === "Liste des services";
                 return [...columns, withTeams ? "[Nom d'une équipe]" : ""].filter(Boolean).map((col, i) => (
                   <tr key={i}>
                     <td>{sheetName}</td>
@@ -504,7 +505,8 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       sheetName === "Infos social et médical" ||
       sheetName === "Dossier médical" ||
       sheetName === "Consultation" ||
-      sheetName === "Observation de territoire";
+      sheetName === "Observation de territoire" ||
+      sheetName === "Liste des services";
     if (!workbook.SheetNames.includes(sheetName)) {
       data[sheetName].globalErrors.push(`La feuille ${sheetName} est manquante`);
       continue;
@@ -699,7 +701,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
 
       if (sheetName === "Liste des services") {
-        const [service, groupe] = row;
+        const [service, groupe, ...teamsCrossed] = row;
         if (!service) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom du service est manquant` });
         if (!groupe) data[sheetName].errors.push({ line: parseInt(key), col: 1, message: `Le nom du groupe est manquant` });
 
@@ -717,7 +719,9 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
           }
         }
 
-        data[sheetName].data.push(trimAllValues({ service, groupe }));
+        const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
+        data[sheetName].data.push(trimAllValues({ service, groupe, enabledTeams }));
+        data[sheetName].withTeams = true;
       }
 
       if (sheetName === "Catégories d action") {
@@ -920,7 +924,14 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
       const services = sheetData.data.reduce((acc, curr) => {
         const serviceName = curr.service as string;
         const groupe = curr.groupe as string;
-        const serviceObject: ServiceConfig = { name: serviceName, enabled: true, enabledTeams: [] };
+        const enabledTeams = (curr.enabledTeams as TeamInstance[])?.map((t) => t._id) || [];
+
+        const serviceObject: ServiceConfig = {
+          name: serviceName,
+          enabled: !enabledTeams.length, // enabled stands for "enabled for the whole organisation if no team is selected"
+          enabledTeams: enabledTeams,
+        };
+
         const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
         if (groupeIndex === -1) {
@@ -1048,13 +1059,14 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Liste des services", "Groupe"],
+      ["Liste des services", "Groupe", ...teams.map((t) => t.name)],
       ...groupedServices.reduce((acc, curr) => {
         return [
           ...acc,
           ...curr.services.map((e: string | ServiceConfig) => {
             const serviceName = typeof e === "string" ? e : e.name;
-            return [serviceName, curr.groupTitle];
+            const serviceObj = typeof e === "string" ? { name: e, enabled: true, enabledTeams: [] } : e;
+            return [serviceName, curr.groupTitle, ...teams.map((t) => ((serviceObj.enabledTeams || []).includes(t._id) ? "X" : ""))];
           }),
         ];
       }, [] as string[][]),

@@ -23,6 +23,11 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       if (!dateString || !team?._id || dateString === "undefined") {
         return capture("Missing params for initServices in reception", { extra: { dateString, team, report } });
       }
+      // Get flattened list of all services for current team
+      const allServicesForTeam = groupedServices.reduce((acc, group) => {
+        return [...acc, ...group.services.map(getServiceName)];
+      }, []);
+      
       tryFetchExpectOk(() => API.getAbortable({ path: `/service/team/${team._id}/date/${dateString}` })).then(([error, res]) => {
         if (error) {
           // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
@@ -35,14 +40,14 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
           return acc;
         }, {});
         const mergedServices = Object.fromEntries(
-          // We need a sum of all keys from legacy and database services.
-          (organisation.services || []).map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
+          // We need a sum of all keys from services available for the current team.
+          allServicesForTeam.map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
         );
         setServices(mergedServices);
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dateString, report, team]
+    [dateString, report, team, groupedServices]
   );
 
   const selectedServices = (groupedServices.find((e) => e.groupTitle === selected)?.services || []).map(getServiceName);
