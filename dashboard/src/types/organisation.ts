@@ -5,9 +5,16 @@ interface GroupedCategories {
   groupTitle: string;
   categories: string[];
 }
-interface GroupedServices {
+
+export interface ServiceConfig {
+  name: string;
+  enabled: boolean;
+  enabledTeams: string[];
+}
+
+export interface GroupedServices {
   groupTitle: string;
-  services: string[];
+  services: (string | ServiceConfig)[]; // Support both legacy string format and new object format
 }
 
 interface GroupedTypes {

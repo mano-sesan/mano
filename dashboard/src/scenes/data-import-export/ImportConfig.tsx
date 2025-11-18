@@ -7,7 +7,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { newCustomField, typeOptions } from "../../utils";
 import { organisationState, teamsState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { OrganisationInstance } from "../../types/organisation";
+import { OrganisationInstance, ServiceConfig, GroupedServices } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";
 
@@ -460,9 +460,10 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
       const existingServices: string[] = [];
       organisation.groupedServices.forEach((group) => {
-        group.services.forEach((service) => {
-          if (!importedServices.has(service.trim())) {
-            existingServices.push(service.trim());
+        group.services.forEach((service: string | ServiceConfig) => {
+          const serviceName = typeof service === "string" ? service : service.name;
+          if (!importedServices.has(serviceName.trim())) {
+            existingServices.push(serviceName.trim());
           }
         });
       });
@@ -916,21 +917,19 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
     }
 
     if (sheetName === "Liste des services") {
-      const services = sheetData.data.reduce(
-        (acc, curr) => {
-          const service = curr.service as string;
-          const groupe = curr.groupe as string;
-          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const services = sheetData.data.reduce((acc, curr) => {
+        const serviceName = curr.service as string;
+        const groupe = curr.groupe as string;
+        const serviceObject: ServiceConfig = { name: serviceName, enabled: true, enabledTeams: [] };
+        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
-          if (groupeIndex === -1) {
-            acc.push({ groupTitle: groupe, services: [service] });
-          } else {
-            acc[groupeIndex].services.push(service);
-          }
-          return acc;
-        },
-        [] as { groupTitle: string; services: string[] }[]
-      );
+        if (groupeIndex === -1) {
+          acc.push({ groupTitle: groupe, services: [serviceObject] });
+        } else {
+          acc[groupeIndex].services.push(serviceObject);
+        }
+        return acc;
+      }, [] as GroupedServices[]);
       if (services.length) updatedOrganisation.groupedServices = services;
     }
 
@@ -1051,7 +1050,13 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
     utils.aoa_to_sheet([
       ["Liste des services", "Groupe"],
       ...groupedServices.reduce((acc, curr) => {
-        return [...acc, ...curr.services.map((e: string) => [e, curr.groupTitle])];
+        return [
+          ...acc,
+          ...curr.services.map((e: string | ServiceConfig) => {
+            const serviceName = typeof e === "string" ? e : e.name;
+            return [serviceName, curr.groupTitle];
+          }),
+        ];
       }, [] as string[][]),
     ]),
     "Liste des services"

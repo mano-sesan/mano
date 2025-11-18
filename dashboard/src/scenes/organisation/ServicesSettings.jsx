@@ -110,7 +110,20 @@ const ServicesSettings = () => {
 
   const onDragAndDrop = useCallback(
     async (newGroups) => {
-      newGroups = newGroups.map((group) => ({ groupTitle: group.groupTitle, services: group.items }));
+      // Map the items (service names) back to their full service objects
+      newGroups = newGroups.map((group) => {
+        const services = group.items.map((serviceName) => {
+          // Search for the service in ALL groups (in case it was moved between groups)
+          let originalService = null;
+          for (const g of groupedServices) {
+            originalService = g.services?.find((s) => getServiceName(s) === serviceName);
+            if (originalService) break;
+          }
+          return originalService || { name: serviceName, enabled: true, enabledTeams: [] };
+        });
+        return { groupTitle: group.groupTitle, services };
+      });
+
       const oldOrganisation = organisation;
       setOrganisation({ ...organisation, groupedServices: newGroups }); // optimistic UI
 
@@ -130,7 +143,7 @@ const ServicesSettings = () => {
         setOrganisation(oldOrganisation);
       }
     },
-    [refresh, setOrganisation, organisation]
+    [refresh, setOrganisation, organisation, groupedServices]
   );
 
   return (

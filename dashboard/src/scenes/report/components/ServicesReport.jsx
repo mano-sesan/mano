@@ -11,6 +11,11 @@ import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
 const ErrorOnGetServices = () => (
   <div>
     <b>Impossible de récupérer les services agrégés pour les rapports sélectionnés.</b>
@@ -238,7 +243,7 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
   const groupedServices = useRecoilValue(servicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
-  const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];
+  const selectedServices = (groupedServices.find((e) => e.groupTitle === selected)?.services || []).map(getServiceName);
 
   return (
     <div>
@@ -259,17 +264,17 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
       {/* This key is used to refresh incrementators on team change. */}
       {/* We could avoid this by mapping on something that actually represents what is displayed (eg: services) */}
       <div key={team._id} className="tw-px-4">
-        {selectedServices.map((service) => (
+        {selectedServices.map((serviceName) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${serviceName}-${services[serviceName] || 0}`}
+            key={team._id + " " + serviceName}
+            service={serviceName}
             team={team._id}
             date={dateString}
             disabled={disabled}
-            count={services[service] || 0}
+            count={services[serviceName] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [serviceName]: newCount });
             }}
           />
         ))}
