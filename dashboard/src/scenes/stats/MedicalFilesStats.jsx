@@ -83,7 +83,7 @@ const MedicalFilesStats = ({
           help={`Couverture médicale des ${title} dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
         />
         <CustomFieldsStats
-          data={personsForStats}
+          data={personsForStats.map((p) => p.medicalFile || {})}
           customFields={customFieldsMedicalFile}
           onSliceClick={user.role === "stats-only" ? undefined : onSliceClick}
           help={(label) =>
@@ -93,6 +93,7 @@ const MedicalFilesStats = ({
         />
       </div>
       <SelectedPersonsModal
+        isFieldInMedicalFile={!["birthdate", "gender"].includes(sliceField?.field)}
         open={personsModalOpened}
         onClose={() => {
           setPersonsModalOpened(false);
