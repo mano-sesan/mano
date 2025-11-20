@@ -563,7 +563,7 @@ const Teams = ({ person: { _id, assignedTeams } }) => (
   </React.Fragment>
 );
 
-export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLeave, sliceField }) => {
+export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLeave, sliceField, isFieldInMedicalFile = false }) => {
   const history = useHistory();
   const teams = useRecoilValue(teamsState);
   const organisation = useRecoilValue(organisationState);
@@ -666,7 +666,12 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
                       title: sliceField.label,
                       dataKey: sliceField,
                       render: (person) => {
-                        return <CustomFieldDisplay type={sliceField.type} value={person[sliceField.field]} />;
+                        return (
+                          <CustomFieldDisplay
+                            type={sliceField.type}
+                            value={isFieldInMedicalFile ? (person.medicalFile || {})[sliceField.field] : person[sliceField.field]}
+                          />
+                        );
                       },
                     },
                   ]
