@@ -53,6 +53,7 @@ export interface OrganisationInstance {
   checkboxShowAllOrgaPersons?: boolean;
 
   groupedServices?: GroupedServices[];
+  groupedServicesWithTeams?: GroupedServices[]; // New field with team configuration
   services?: string[]; // deprecated
 
   customFieldsObs: CustomField[];

@@ -67,9 +67,22 @@ function serializeOrganisation(organisation) {
     defaultMedicalFolders: organisation.defaultMedicalFolders || [],
 
     /* services settings */
-    groupedServices: organisation.groupedServices || [{ groupTitle: "Tous mes services", services: organisation.services || [] }],
-    // eslint-disable-next-line no-extra-boolean-cast
-    services: !!organisation.groupedServices
+    // New field with team configuration
+    groupedServicesWithTeams: organisation.groupedServicesWithTeams,
+    // Backward compatibility: derive groupedServices from groupedServicesWithTeams
+    groupedServices: organisation.groupedServicesWithTeams
+      ? organisation.groupedServicesWithTeams.map((group) => ({
+          groupTitle: group.groupTitle,
+          services: group.services.map((s) => (typeof s === "string" ? s : s.name)),
+        }))
+      : organisation.groupedServices || [{ groupTitle: "Tous mes services", services: organisation.services || [] }],
+    // Backward compatibility: flatten services array
+    services: organisation.groupedServicesWithTeams
+      ? organisation.groupedServicesWithTeams.reduce((flattenedServices, group) => {
+          return [...flattenedServices, ...group.services.map((s) => (typeof s === "string" ? s : s.name))];
+        }, [])
+      : // eslint-disable-next-line no-extra-boolean-cast
+      !!organisation.groupedServices
       ? organisation.groupedServices.reduce((flattenedServices, group) => [...flattenedServices, ...group.services], [])
       : organisation.services,
 

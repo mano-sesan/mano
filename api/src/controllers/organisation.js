@@ -563,6 +563,14 @@ router.put(
           z.array(
             z.object({
               groupTitle: z.string(),
+              services: z.array(z.string().min(1)),
+            })
+          )
+        ),
+        groupedServicesWithTeams: z.optional(
+          z.array(
+            z.object({
+              groupTitle: z.string(),
               services: z.array(
                 z.union([
                   z.string().min(1), // backward compatibility
@@ -659,7 +667,19 @@ router.put(
       if (req.body.hasOwnProperty("territoriesGroupedTypes")) updateOrg.territoriesGroupedTypes = req.body.territoriesGroupedTypes;
       if (req.body.hasOwnProperty("defaultPersonsFolders")) updateOrg.defaultPersonsFolders = req.body.defaultPersonsFolders;
       if (req.body.hasOwnProperty("defaultMedicalFolders")) updateOrg.defaultMedicalFolders = req.body.defaultMedicalFolders;
-      if (req.body.hasOwnProperty("groupedServices")) updateOrg.groupedServices = req.body.groupedServices;
+
+      // Handle services: only write to groupedServicesWithTeams
+      // The serializer will derive groupedServices for backward compatibility
+      if (req.body.hasOwnProperty("groupedServicesWithTeams")) {
+        updateOrg.groupedServicesWithTeams = req.body.groupedServicesWithTeams;
+      } else if (req.body.hasOwnProperty("groupedServices")) {
+        // Old client sending groupedServices (strings only) - convert to groupedServicesWithTeams format
+        updateOrg.groupedServicesWithTeams = req.body.groupedServices.map((group) => ({
+          groupTitle: group.groupTitle,
+          services: (group.services || []).map((s) => (typeof s === "string" ? { name: s, enabled: true, enabledTeams: [] } : s)),
+        }));
+      }
+
       if (req.body.hasOwnProperty("collaborations")) updateOrg.collaborations = req.body.collaborations;
       if (req.body.hasOwnProperty("groupedCustomFieldsObs"))
         updateOrg.groupedCustomFieldsObs =
@@ -1336,13 +1356,25 @@ router.post(
       // We do not merge defaultPersonsFolders nor defaultMedicalFolders, we keep the main ones.
       // ...
 
-      // groupedServices
-      const mainGroupedServices = structuredClone(mainOrg.groupedServices) || [];
-      const secondaryGroupedServices = structuredClone(secondaryOrg.groupedServices) || [];
+      // groupedServicesWithTeams
+      const mainGroupedServices = structuredClone(mainOrg.groupedServicesWithTeams || mainOrg.groupedServices) || [];
+      const secondaryGroupedServices = structuredClone(secondaryOrg.groupedServicesWithTeams || secondaryOrg.groupedServices) || [];
       for (const mainGroup of mainGroupedServices) {
         const secondaryGroup = secondaryGroupedServices.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
-        mainGroup.services = Array.from(new Set([...mainGroup.services, ...secondaryGroup.services]));
+        // Merge services by name, keeping service objects
+        const servicesByName = new Map();
+        for (const service of mainGroup.services) {
+          const serviceName = typeof service === "string" ? service : service.name;
+          servicesByName.set(serviceName, typeof service === "string" ? { name: service, enabled: true, enabledTeams: [] } : service);
+        }
+        for (const service of secondaryGroup.services) {
+          const serviceName = typeof service === "string" ? service : service.name;
+          if (!servicesByName.has(serviceName)) {
+            servicesByName.set(serviceName, typeof service === "string" ? { name: service, enabled: true, enabledTeams: [] } : service);
+          }
+        }
+        mainGroup.services = Array.from(servicesByName.values());
       }
       // merge remaining secondary groups
       for (const secondaryGroup of secondaryGroupedServices) {
@@ -1444,7 +1476,7 @@ router.post(
           actionsGroupedCategories: mainActionsGroupedCategories,
           structuresGroupedCategories: mainStructuresGroupedCategories,
           territoriesGroupedTypes: mainTerritoriesGroupedTypes,
-          groupedServices: mainGroupedServices,
+          groupedServicesWithTeams: mainGroupedServices,
           consultations: mainConsultations,
           customFieldsPersons: mainCustomFieldsPersons,
           groupedCustomFieldsObs: mainGroupedCustomFieldsObs,

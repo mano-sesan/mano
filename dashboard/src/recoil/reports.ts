@@ -79,6 +79,9 @@ export const servicesSelector = selector({
   key: "servicesSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
+    // API always returns groupedServicesWithTeams via serializer
+    if (organisation.groupedServicesWithTeams) return organisation.groupedServicesWithTeams;
+    // Fallback for old API responses (during deployment)
     if (organisation.groupedServices) return organisation.groupedServices;
     return [{ groupTitle: "Tous mes services", services: organisation.services ?? [] }];
   },

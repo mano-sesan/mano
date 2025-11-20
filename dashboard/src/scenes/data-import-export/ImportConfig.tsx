@@ -447,8 +447,9 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
     }
 
-    // Check for services
-    if (organisation.groupedServices?.length) {
+    // Check for services (use groupedServicesWithTeams if available)
+    const groupedServicesForCheck = organisation.groupedServicesWithTeams || organisation.groupedServices;
+    if (groupedServicesForCheck?.length) {
       const importedServices = new Set<string>();
       if (workbook.SheetNames.includes("Liste des services")) {
         const sheet = workbook.Sheets["Liste des services"];
@@ -460,7 +461,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         });
       }
       const existingServices: string[] = [];
-      organisation.groupedServices.forEach((group) => {
+      groupedServicesForCheck.forEach((group) => {
         group.services.forEach((service: string | ServiceConfig) => {
           const serviceName = typeof service === "string" ? service : service.name;
           if (!importedServices.has(serviceName.trim())) {
@@ -941,7 +942,7 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
         }
         return acc;
       }, [] as GroupedServices[]);
-      if (services.length) updatedOrganisation.groupedServices = services;
+      if (services.length) updatedOrganisation.groupedServicesWithTeams = services;
     }
 
     if (sheetName === "Catégories d action") {
@@ -972,7 +973,8 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   const groupedCustomFieldsMedicalFile = organisation.groupedCustomFieldsMedicalFile;
   const consultationFields = organisation.consultations;
   const groupedCustomFieldsObs = organisation.groupedCustomFieldsObs;
-  const groupedServices = organisation.groupedServices;
+  // Use groupedServicesWithTeams if available, fallback to groupedServices
+  const groupedServices = organisation.groupedServicesWithTeams || organisation.groupedServices;
   const actionsGroupedCategories = organisation.actionsGroupedCategories;
 
   // Création de chaque onglet

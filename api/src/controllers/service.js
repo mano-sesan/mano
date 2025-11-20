@@ -246,20 +246,31 @@ router.put(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        groupedServices: z.array(
-          z.object({
-            groupTitle: z.string(),
-            services: z.array(
-              z.union([
-                z.string(), // backward compatibility
-                z.object({
-                  name: z.string().min(1),
-                  enabled: z.boolean(),
-                  enabledTeams: z.array(z.string()),
-                }),
-              ])
-            ),
-          })
+        // Accept either old format (groupedServices with strings) or new format (groupedServicesWithTeams with objects)
+        groupedServices: z.optional(
+          z.array(
+            z.object({
+              groupTitle: z.string(),
+              services: z.array(z.string().min(1)), // Old format: array of strings
+            })
+          )
+        ),
+        groupedServicesWithTeams: z.optional(
+          z.array(
+            z.object({
+              groupTitle: z.string(),
+              services: z.array(
+                z.union([
+                  z.string(), // backward compatibility
+                  z.object({
+                    name: z.string().min(1),
+                    enabled: z.boolean(),
+                    enabledTeams: z.array(z.string()),
+                  }),
+                ])
+              ),
+            })
+          )
         ),
       }).parse(req.body);
     } catch (e) {
@@ -272,8 +283,24 @@ router.put(
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     try {
-      const { groupedServices = [] } = req.body;
-      organisation.set({ groupedServices });
+      let servicesToSave;
+
+      if (req.body.groupedServicesWithTeams) {
+        // New format provided
+        servicesToSave = req.body.groupedServicesWithTeams;
+      } else if (req.body.groupedServices) {
+        // Old format provided - convert to new format
+        servicesToSave = req.body.groupedServices.map((group) => ({
+          groupTitle: group.groupTitle,
+          services: (group.services || []).map((s) => (typeof s === "string" ? { name: s, enabled: true, enabledTeams: [] } : s)),
+        }));
+      } else {
+        servicesToSave = [];
+      }
+
+      // Store as groupedServicesWithTeams (serializer will derive groupedServices for backward compatibility)
+      organisation.set({ groupedServicesWithTeams: servicesToSave });
+
       await organisation.save({
         context: { userId: req.user._id },
       });
