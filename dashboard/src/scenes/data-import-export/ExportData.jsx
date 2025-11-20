@@ -8,7 +8,7 @@ import { organisationState, teamsState, usersState, userState } from "../../reco
 import { commentsState } from "../../recoil/comments";
 import { actionsState } from "../../recoil/actions";
 import { placesState } from "../../recoil/places";
-import { reportsState } from "../../recoil/reports";
+import { reportsState, flattenedServicesSelector } from "../../recoil/reports";
 import { territoriesState } from "../../recoil/territory";
 import { useRecoilValue } from "recoil";
 import { passagesState } from "../../recoil/passages";
@@ -74,6 +74,7 @@ const ExportData = () => {
   const users = useRecoilValue(usersState);
   const user = useRecoilValue(userState);
   const organisation = useRecoilValue(organisationState);
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
 
   const allPersons = useRecoilValue(personsState);
   const allActions = useRecoilValue(actionsState);
@@ -153,7 +154,7 @@ const ExportData = () => {
         report[key] = r[key];
       }
       const reportServices = JSON.parse(r.services || "{}");
-      for (const service of organisation.services || []) {
+      for (const service of flattenedServices) {
         report[service] = reportServices[service];
       }
       return report;

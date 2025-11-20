@@ -590,7 +590,6 @@ router.put(
         checkboxShowAllOrgaPersons: z.optional(z.boolean()),
         lockedForEncryption: z.optional(z.boolean()),
         lockedBy: z.optional(z.string().regex(looseUuidRegex)).nullable(),
-        services: z.optional(z.array(z.string().min(1))),
       };
       if (req.body.encryptionLastUpdateAt) {
         bodyToParse.encryptionLastUpdateAt = z.preprocess((input) => new Date(input), z.date());
@@ -663,7 +662,6 @@ router.put(
       if (req.body.hasOwnProperty("checkboxShowAllOrgaPersons")) updateOrg.checkboxShowAllOrgaPersons = req.body.checkboxShowAllOrgaPersons;
       if (req.body.hasOwnProperty("lockedForEncryption")) updateOrg.lockedForEncryption = req.body.lockedForEncryption;
       if (req.body.hasOwnProperty("lockedBy")) updateOrg.lockedBy = req.body.lockedBy;
-      if (req.body.hasOwnProperty("services")) updateOrg.services = req.body.services;
 
       await organisation.update(updateOrg, { transaction: t });
     });
