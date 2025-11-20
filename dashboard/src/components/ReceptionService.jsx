@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { servicesSelector } from "../recoil/reports";
+import { servicesForTeamSelector } from "../recoil/reports";
 import { useRecoilValue } from "recoil";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
@@ -7,9 +7,14 @@ import IncrementorSmall from "./IncrementorSmall";
 import { organisationState } from "../recoil/auth";
 import { capture } from "../services/sentry";
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
   const organisation = useRecoilValue(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useRecoilValue(servicesForTeamSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(
@@ -18,6 +23,11 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       if (!dateString || !team?._id || dateString === "undefined") {
         return capture("Missing params for initServices in reception", { extra: { dateString, team, report } });
       }
+      // Get flattened list of all services for current team
+      const allServicesForTeam = groupedServices.reduce((acc, group) => {
+        return [...acc, ...group.services.map(getServiceName)];
+      }, []);
+      
       tryFetchExpectOk(() => API.getAbortable({ path: `/service/team/${team._id}/date/${dateString}` })).then(([error, res]) => {
         if (error) {
           // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
@@ -30,17 +40,17 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
           return acc;
         }, {});
         const mergedServices = Object.fromEntries(
-          // We need a sum of all keys from legacy and database services.
-          (organisation.services || []).map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
+          // We need a sum of all keys from services available for the current team.
+          allServicesForTeam.map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
         );
         setServices(mergedServices);
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dateString, report, team]
+    [dateString, report, team, groupedServices]
   );
 
-  const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];
+  const selectedServices = (groupedServices.find((e) => e.groupTitle === selected)?.services || []).map(getServiceName);
 
   if (!services) return;
 
@@ -64,16 +74,16 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       {/* This key is used to refresh incrementators on team change. */}
       {/* We could avoid this by mapping on something that actually represents what is displayed (eg: services) */}
       <div key={team._id}>
-        {selectedServices.map((service) => (
+        {selectedServices.map((serviceName) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${serviceName}-${services[serviceName] || 0}`}
+            key={team._id + " " + serviceName}
+            service={serviceName}
             team={team._id}
             date={dateString}
-            count={services[service] || 0}
+            count={services[serviceName] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [serviceName]: newCount });
             }}
           />
         ))}

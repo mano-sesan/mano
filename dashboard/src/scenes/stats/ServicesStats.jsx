@@ -8,10 +8,15 @@ import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
 import { servicesSelector } from "../../recoil/reports";
 
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
 const ServicesStats = ({ period, teamIds }) => {
   const groupedServices = useRecoilValue(servicesSelector);
   const allServices = useMemo(() => {
-    return groupedServices.reduce((services, group) => [...services, ...group.services], []);
+    return groupedServices.reduce((services, group) => [...services, ...group.services.map(getServiceName)], []);
   }, [groupedServices]);
   const [servicesGroupFilter, setServicesGroupFilter] = useLocalStorage("stats-servicesGroupFilter", []);
   const [servicesFilter, setServicesFilter] = useLocalStorage("stats-servicesFilter", []);
@@ -48,7 +53,7 @@ const ServicesStats = ({ period, teamIds }) => {
     if (!servicesGroupFilter?.length) return servicesToConsider;
     const servicesToHide = groupedServices.reduce((services, group) => {
       if (servicesGroupFilter.includes(group.groupTitle)) return services;
-      return [...services, ...group.services];
+      return [...services, ...group.services.map(getServiceName)];
     }, []);
     return servicesToConsider.filter((service) => !servicesToHide.includes(service));
   }, [servicesFilter, allServices, servicesGroupFilter, groupedServices]);
@@ -71,8 +76,9 @@ const ServicesStats = ({ period, teamIds }) => {
       .map((group) => {
         let totalServices = 0;
         for (const service of group.services) {
-          if (!servicesFiltered.includes(service)) continue;
-          totalServices = totalServices + (servicesFromDatabase[service] || 0);
+          const serviceName = getServiceName(service);
+          if (!servicesFiltered.includes(serviceName)) continue;
+          totalServices = totalServices + (servicesFromDatabase[serviceName] || 0);
         }
         return {
           id: group.groupTitle,

@@ -1,12 +1,26 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
+import { organisationState, teamsState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import { servicesSelector, flattenedServicesSelector } from "../../recoil/reports";
 import DragAndDropSettings from "./DragAndDropSettings";
+import SelectTeamMultiple from "../../components/SelectTeamMultiple";
+
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
+
+// Helper to get full service object
+const getServiceObject = (service) => {
+  if (typeof service === "string") {
+    return { name: service, enabled: true, enabledTeams: [] };
+  }
+  return service;
+};
 
 const ServicesSettings = () => {
   const [organisation, setOrganisation] = useRecoilState(organisationState);
@@ -14,7 +28,7 @@ const ServicesSettings = () => {
   const dataFormatted = useMemo(() => {
     return groupedServices.map(({ groupTitle, services }) => ({
       groupTitle,
-      items: services,
+      items: services.map(getServiceName),
     }));
   }, [groupedServices]);
 
@@ -96,7 +110,20 @@ const ServicesSettings = () => {
 
   const onDragAndDrop = useCallback(
     async (newGroups) => {
-      newGroups = newGroups.map((group) => ({ groupTitle: group.groupTitle, services: group.items }));
+      // Map the items (service names) back to their full service objects
+      newGroups = newGroups.map((group) => {
+        const services = group.items.map((serviceName) => {
+          // Search for the service in ALL groups (in case it was moved between groups)
+          let originalService = null;
+          for (const g of groupedServices) {
+            originalService = g.services?.find((s) => getServiceName(s) === serviceName);
+            if (originalService) break;
+          }
+          return originalService || { name: serviceName, enabled: true, enabledTeams: [] };
+        });
+        return { groupTitle: group.groupTitle, services };
+      });
+
       const oldOrganisation = organisation;
       setOrganisation({ ...organisation, groupedServices: newGroups }); // optimistic UI
 
@@ -116,7 +143,7 @@ const ServicesSettings = () => {
         setOrganisation(oldOrganisation);
       }
     },
-    [refresh, setOrganisation, organisation]
+    [refresh, setOrganisation, organisation, groupedServices]
   );
 
   return (
@@ -148,15 +175,16 @@ const AddService = ({ groupTitle }) => {
     const trimmedNewService = newService?.trim();
     if (!trimmedNewService) return toast.error("Vous devez saisir un nom pour le service");
     if (flattenedServices.includes(trimmedNewService)) {
-      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(trimmedNewService)).groupTitle;
+      const existingGroupTitle = groupedServices.find(({ services }) => services.some((s) => getServiceName(s) === trimmedNewService)).groupTitle;
       // eslint-disable-next-line no-irregular-whitespace
-      return toast.error(`Ce service existe déjà : ${existingGroupTitle} > ${trimmedNewService}`);
+      return toast.error(`Ce service existe déjà : ${existingGroupTitle} > ${trimmedNewService}`);
     }
+    const newServiceObject = { name: trimmedNewService, enabled: true, enabledTeams: [] };
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: [...new Set([...(group.services || []), trimmedNewService])],
+        services: [...(group.services || []), newServiceObject],
       };
     });
 
@@ -194,33 +222,66 @@ const AddService = ({ groupTitle }) => {
   );
 };
 
-const Service = ({ item: service, groupTitle }) => {
+const Service = ({ item: serviceName, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
   const [organisation, setOrganisation] = useRecoilState(organisationState);
 
   const groupedServices = useRecoilValue(servicesSelector);
   const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const teams = useRecoilValue(teamsState);
   const { refresh } = useDataLoader();
 
-  const onEditService = async (e) => {
-    e.preventDefault();
-    const { newService } = Object.fromEntries(new FormData(e.target));
-    const oldService = service;
-    const trimmedNewService = newService?.trim();
-    if (!trimmedNewService) return toast.error("Vous devez saisir un nom pour le service");
-    if (trimmedNewService === oldService) return toast.error("Le nom de le service n'a pas changé");
-    if (flattenedServices.includes(trimmedNewService)) {
-      const existingGroupTitle = groupedServices.find(({ services }) => services.includes(trimmedNewService)).groupTitle;
-      return toast.error(`Ce service existe déjà: ${existingGroupTitle} > ${trimmedNewService}`);
+  // Get the full service object from the grouped services
+  const serviceObject = useMemo(() => {
+    const group = groupedServices.find((g) => g.groupTitle === groupTitle);
+    const service = group?.services?.find((s) => getServiceName(s) === serviceName);
+    return getServiceObject(service || serviceName);
+  }, [groupedServices, groupTitle, serviceName]);
+
+  const [editedService, setEditedService] = useState(serviceObject);
+
+  // Update editedService when modal opens
+  useMemo(() => {
+    if (isEditingService) {
+      setEditedService(serviceObject);
     }
+  }, [isEditingService, serviceObject]);
+
+  const onSaveService = async (e) => {
+    e.preventDefault();
+    const { newServiceName } = Object.fromEntries(new FormData(e.target));
+    const oldServiceName = serviceName;
+    const trimmedNewServiceName = newServiceName?.trim();
+    if (!trimmedNewServiceName) return toast.error("Vous devez saisir un nom pour le service");
+    if (
+      trimmedNewServiceName === oldServiceName &&
+      editedService.enabled === serviceObject.enabled &&
+      JSON.stringify(editedService.enabledTeams) === JSON.stringify(serviceObject.enabledTeams)
+    ) {
+      return toast.error("Aucune modification n'a été effectuée");
+    }
+    if (trimmedNewServiceName !== oldServiceName && flattenedServices.includes(trimmedNewServiceName)) {
+      const existingGroupTitle = groupedServices.find(({ services }) => services.some((s) => getServiceName(s) === trimmedNewServiceName)).groupTitle;
+      return toast.error(`Ce service existe déjà: ${existingGroupTitle} > ${trimmedNewServiceName}`);
+    }
+
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: [...new Set((group.services || []).map((cat) => (cat === oldService ? trimmedNewService : cat)))],
+        services: group.services.map((s) => {
+          const sName = getServiceName(s);
+          if (sName !== oldServiceName) return s;
+          return {
+            name: trimmedNewServiceName,
+            enabled: editedService.enabled,
+            enabledTeams: editedService.enabledTeams || [],
+          };
+        }),
       };
     });
+
     const oldOrganisation = organisation;
     setOrganisation({ ...organisation, groupedServices: newGroupedServices }); // optimistic UI
 
@@ -233,15 +294,17 @@ const Service = ({ item: service, groupTitle }) => {
       })
     );
     if (!error) {
-      const [error] = await tryFetchExpectOk(async () =>
-        API.put({
-          path: `/service/update-service-name`,
-          body: { oldService, newService: trimmedNewService },
-        })
-      );
+      if (trimmedNewServiceName !== oldServiceName) {
+        const [error] = await tryFetchExpectOk(async () =>
+          API.put({
+            path: `/service/update-service-name`,
+            body: { oldService: oldServiceName, newService: trimmedNewServiceName },
+          })
+        );
 
-      if (error) {
-        toast.error("Erreur lors de la mise à jour du nom du service sur les anciens services");
+        if (error) {
+          toast.error("Erreur lors de la mise à jour du nom du service sur les anciens services");
+        }
       }
 
       refresh();
@@ -255,12 +318,11 @@ const Service = ({ item: service, groupTitle }) => {
 
   const onDeleteService = async () => {
     if (!window.confirm("Voulez-vous vraiment supprimer ce service ? Cette opération est irréversible")) return;
-    const trimmedService = service.trim();
     const newGroupedServices = groupedServices.map((group) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        services: group.services.filter((cat) => cat !== trimmedService),
+        services: group.services.filter((s) => getServiceName(s) !== serviceName),
       };
     });
 
@@ -290,8 +352,8 @@ const Service = ({ item: service, groupTitle }) => {
   return (
     <>
       <div
-        key={service}
-        data-service={service}
+        key={serviceName}
+        data-service={serviceName}
         onMouseDown={() => setIsSelected(true)}
         onMouseUp={() => setIsSelected(false)}
         className={[
@@ -299,27 +361,61 @@ const Service = ({ item: service, groupTitle }) => {
           isSelected ? "tw-rounded tw-border-main" : "",
         ].join(" ")}
       >
-        <p className="tw-m-0" id={service}>
-          {service}
-        </p>
+        <div className="tw-flex tw-flex-col">
+          <p className="tw-m-0 tw-mb-0" id={serviceName}>
+            {serviceName}
+          </p>
+          <small className="tw-text-gray-500">
+            {serviceObject.enabled || !serviceObject.enabledTeams?.length
+              ? "Visible par tous"
+              : `Visible par ${teams
+                  .filter((t) => serviceObject.enabledTeams.includes(t._id))
+                  .map((t) => t.name)
+                  .join(", ")}`}
+          </small>
+        </div>
         <button
           type="button"
-          aria-label={`Modifier le service ${service}`}
+          aria-label={`Modifier le service ${serviceName}`}
           className="tw-ml-auto tw-hidden group-hover:tw-inline-flex"
           onClick={() => setIsEditingService(true)}
         >
           ✏️
         </button>
       </div>
-      <ModalContainer open={isEditingService}>
-        <ModalHeader title={`Modifier le service: ${service}`} />
+      <ModalContainer open={isEditingService} size="3xl">
+        <ModalHeader title={`Modifier le service: ${serviceName}`} />
         <ModalBody className="tw-py-4">
-          <form id="edit-service-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditService}>
+          <form id="edit-service-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onSaveService}>
             <div>
-              <label htmlFor="newService" className="tailwindui">
-                Nouveau nom du service
+              <label htmlFor="newServiceName" className="tailwindui">
+                Nom du service
               </label>
-              <input className="tailwindui" autoComplete="off" id="newService" name="newService" type="text" placeholder={service} />
+              <input className="tailwindui" autoComplete="off" id="newServiceName" name="newServiceName" type="text" defaultValue={serviceName} />
+            </div>
+            <div>
+              <label htmlFor="enabledTeams" className="tailwindui">
+                Activé pour
+              </label>
+              <SelectTeamMultiple
+                colored
+                inputId="enabledTeams"
+                classNamePrefix="enabledTeams"
+                onChange={(teamIds) => setEditedService({ ...editedService, enabledTeams: teamIds })}
+                value={editedService.enabled ? [] : editedService.enabledTeams ?? []}
+                isDisabled={editedService.enabled}
+              />
+              <div className="tw-mt-2">
+                <label className="tw-text-sm">
+                  <input
+                    type="checkbox"
+                    className="tw-mr-2"
+                    checked={editedService.enabled}
+                    onChange={(e) => setEditedService({ ...editedService, enabled: e.target.checked })}
+                  />
+                  <span>Activé pour toute l'organisation</span>
+                </label>
+              </div>
             </div>
           </form>
         </ModalBody>

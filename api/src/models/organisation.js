@@ -37,7 +37,10 @@ module.exports = (sequelize, DataTypes) => {
     passagesEnabled: { type: DataTypes.BOOLEAN },
     rencontresEnabled: { type: DataTypes.BOOLEAN },
     groupedServices: {
-      type: DataTypes.JSONB, // example: [{"groupTitle": "injection", categories: ["Garrot", "1cc"]}, { "groupTitle": "inhalation", "categories": ["Kit base", "Grille"]}]
+      type: DataTypes.JSONB, // example: [{"groupTitle": "injection", services: ["Garrot"}]
+    },
+    groupedServicesWithTeams: {
+      type: DataTypes.JSONB, // example: [{"groupTitle": "injection", services: [{ name: "Garrot", enabled: true, enabledTeams: [] }]}, ...]
     },
     services: DataTypes.ARRAY(DataTypes.TEXT),
     groupedCustomFieldsObs: DataTypes.JSONB,

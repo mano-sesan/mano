@@ -9,9 +9,14 @@ import { getPeriodTitle } from "./utils";
 import { currentTeamState, organisationState } from "../../recoil/auth";
 import API from "../../services/api";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { servicesSelector } from "../../recoil/reports";
+import { servicesForTeamSelector } from "../../recoil/reports";
 const keyExtractor = (item) => item._id;
 import { useDebouncedCallback } from "use-debounce";
+
+// Helper to get service name (handles both string and object format)
+const getServiceName = (service) => {
+  return typeof service === "string" ? service : service.name;
+};
 
 function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
   const debounced = useDebouncedCallback(
@@ -60,7 +65,7 @@ function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
 }
 
 const Services = ({ navigation, route }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useRecoilValue(servicesForTeamSelector);
   const { date } = route.params;
   const organisation = useRecoilValue(organisationState);
   const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
@@ -102,9 +107,10 @@ const Services = ({ navigation, route }) => {
 
   if (!organisation.receptionEnabled || !organisation?.services || !groupedServices.length) return null;
 
-  const selectedServices = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
-    const service = (services || []).find((f) => f.service === e);
-    return { service: e, _id: service?._id || e, count: service?.count || 0 };
+  const selectedServices = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((serviceItem) => {
+    const serviceName = getServiceName(serviceItem);
+    const service = (services || []).find((f) => f.service === serviceName);
+    return { service: serviceName, _id: service?._id || serviceName, count: service?.count || 0 };
   });
 
   return (

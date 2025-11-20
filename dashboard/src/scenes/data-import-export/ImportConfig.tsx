@@ -7,7 +7,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { newCustomField, typeOptions } from "../../utils";
 import { organisationState, teamsState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { OrganisationInstance } from "../../types/organisation";
+import { OrganisationInstance, ServiceConfig, GroupedServices } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";
 
@@ -90,7 +90,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                   sheetName === "Infos social et médical" ||
                   sheetName === "Dossier médical" ||
                   sheetName === "Consultation" ||
-                  sheetName === "Observation de territoire";
+                  sheetName === "Observation de territoire" ||
+                  sheetName === "Liste des services";
                 return [...columns, withTeams ? "[Nom d'une équipe]" : ""].filter(Boolean).map((col, i) => (
                   <tr key={i}>
                     <td>{sheetName}</td>
@@ -446,8 +447,9 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
     }
 
-    // Check for services
-    if (organisation.groupedServices?.length) {
+    // Check for services (use groupedServicesWithTeams if available)
+    const groupedServicesForCheck = organisation.groupedServicesWithTeams || organisation.groupedServices;
+    if (groupedServicesForCheck?.length) {
       const importedServices = new Set<string>();
       if (workbook.SheetNames.includes("Liste des services")) {
         const sheet = workbook.Sheets["Liste des services"];
@@ -459,10 +461,11 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         });
       }
       const existingServices: string[] = [];
-      organisation.groupedServices.forEach((group) => {
-        group.services.forEach((service) => {
-          if (!importedServices.has(service.trim())) {
-            existingServices.push(service.trim());
+      groupedServicesForCheck.forEach((group) => {
+        group.services.forEach((service: string | ServiceConfig) => {
+          const serviceName = typeof service === "string" ? service : service.name;
+          if (!importedServices.has(serviceName.trim())) {
+            existingServices.push(serviceName.trim());
           }
         });
       });
@@ -503,7 +506,8 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       sheetName === "Infos social et médical" ||
       sheetName === "Dossier médical" ||
       sheetName === "Consultation" ||
-      sheetName === "Observation de territoire";
+      sheetName === "Observation de territoire" ||
+      sheetName === "Liste des services";
     if (!workbook.SheetNames.includes(sheetName)) {
       data[sheetName].globalErrors.push(`La feuille ${sheetName} est manquante`);
       continue;
@@ -698,7 +702,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
 
       if (sheetName === "Liste des services") {
-        const [service, groupe] = row;
+        const [service, groupe, ...teamsCrossed] = row;
         if (!service) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom du service est manquant` });
         if (!groupe) data[sheetName].errors.push({ line: parseInt(key), col: 1, message: `Le nom du groupe est manquant` });
 
@@ -716,7 +720,9 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
           }
         }
 
-        data[sheetName].data.push(trimAllValues({ service, groupe }));
+        const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
+        data[sheetName].data.push(trimAllValues({ service, groupe, enabledTeams }));
+        data[sheetName].withTeams = true;
       }
 
       if (sheetName === "Catégories d action") {
@@ -916,22 +922,27 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
     }
 
     if (sheetName === "Liste des services") {
-      const services = sheetData.data.reduce(
-        (acc, curr) => {
-          const service = curr.service as string;
-          const groupe = curr.groupe as string;
-          const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+      const services = sheetData.data.reduce((acc, curr) => {
+        const serviceName = curr.service as string;
+        const groupe = curr.groupe as string;
+        const enabledTeams = (curr.enabledTeams as TeamInstance[])?.map((t) => t._id) || [];
 
-          if (groupeIndex === -1) {
-            acc.push({ groupTitle: groupe, services: [service] });
-          } else {
-            acc[groupeIndex].services.push(service);
-          }
-          return acc;
-        },
-        [] as { groupTitle: string; services: string[] }[]
-      );
-      if (services.length) updatedOrganisation.groupedServices = services;
+        const serviceObject: ServiceConfig = {
+          name: serviceName,
+          enabled: !enabledTeams.length, // enabled stands for "enabled for the whole organisation if no team is selected"
+          enabledTeams: enabledTeams,
+        };
+
+        const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
+
+        if (groupeIndex === -1) {
+          acc.push({ groupTitle: groupe, services: [serviceObject] });
+        } else {
+          acc[groupeIndex].services.push(serviceObject);
+        }
+        return acc;
+      }, [] as GroupedServices[]);
+      if (services.length) updatedOrganisation.groupedServicesWithTeams = services;
     }
 
     if (sheetName === "Catégories d action") {
@@ -962,7 +973,8 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   const groupedCustomFieldsMedicalFile = organisation.groupedCustomFieldsMedicalFile;
   const consultationFields = organisation.consultations;
   const groupedCustomFieldsObs = organisation.groupedCustomFieldsObs;
-  const groupedServices = organisation.groupedServices;
+  // Use groupedServicesWithTeams if available, fallback to groupedServices
+  const groupedServices = organisation.groupedServicesWithTeams || organisation.groupedServices;
   const actionsGroupedCategories = organisation.actionsGroupedCategories;
 
   // Création de chaque onglet
@@ -1049,9 +1061,16 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Liste des services", "Groupe"],
+      ["Liste des services", "Groupe", ...teams.map((t) => t.name)],
       ...groupedServices.reduce((acc, curr) => {
-        return [...acc, ...curr.services.map((e: string) => [e, curr.groupTitle])];
+        return [
+          ...acc,
+          ...curr.services.map((e: string | ServiceConfig) => {
+            const serviceName = typeof e === "string" ? e : e.name;
+            const serviceObj = typeof e === "string" ? { name: e, enabled: true, enabledTeams: [] } : e;
+            return [serviceName, curr.groupTitle, ...teams.map((t) => ((serviceObj.enabledTeams || []).includes(t._id) ? "X" : ""))];
+          }),
+        ];
       }, [] as string[][]),
     ]),
     "Liste des services"
