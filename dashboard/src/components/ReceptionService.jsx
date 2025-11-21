@@ -1,15 +1,14 @@
 import { useState, useEffect } from "react";
-import { servicesSelector } from "../recoil/reports";
+import { servicesSelector, flattenedServicesSelector } from "../recoil/reports";
 import { useRecoilValue } from "recoil";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
 import IncrementorSmall from "./IncrementorSmall";
-import { organisationState } from "../recoil/auth";
 import { capture } from "../services/sentry";
 
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
-  const organisation = useRecoilValue(organisationState);
   const groupedServices = useRecoilValue(servicesSelector);
+  const flattenedServices = useRecoilValue(flattenedServicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(
@@ -31,7 +30,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
         }, {});
         const mergedServices = Object.fromEntries(
           // We need a sum of all keys from legacy and database services.
-          (organisation.services || []).map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
+          flattenedServices.map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
         );
         setServices(mergedServices);
       });

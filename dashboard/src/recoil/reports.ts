@@ -74,8 +74,7 @@ export const servicesSelector = selector({
   key: "servicesSelector",
   get: ({ get }) => {
     const organisation = get(organisationState);
-    if (organisation.groupedServices) return organisation.groupedServices;
-    return [{ groupTitle: "Tous mes services", services: organisation.services ?? [] }];
+    return organisation.groupedServices || [];
   },
 });
 
