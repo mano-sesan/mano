@@ -20,6 +20,7 @@ const ErrorOnGetServices = () => (
 
 export default function ServicesReport({ period, selectedTeamsObject }) {
   const organisation = useRecoilValue(organisationState);
+  const groupedServices = useRecoilValue(servicesSelector);
   const [show, setShow] = useState([]);
   const [fullScreen, setFullScreen] = useState(false);
   // `service` structure is: { `team-id-xxx`: { `service-name`: 1, ... }, ... }
@@ -69,7 +70,7 @@ export default function ServicesReport({ period, selectedTeamsObject }) {
     [period, selectedTeamsObject]
   );
 
-  if (!organisation.receptionEnabled || !organisation?.services) return null;
+  if (!organisation.receptionEnabled || !groupedServices?.length) return null;
 
   const teamIds = Object.keys(selectedTeamsObject);
 

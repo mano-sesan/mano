@@ -46,7 +46,6 @@ export interface OrganisationInstance {
   checkboxShowAllOrgaPersons?: boolean;
 
   groupedServices?: GroupedServices[];
-  services?: string[]; // deprecated
 
   customFieldsObs: CustomField[];
   groupedCustomFieldsObs?: CustomFieldsGroup[];
