@@ -28,7 +28,7 @@ export const flattenedServicesSelector = selector({
   },
 });
 
-const encryptedFields = ["description", "services", "team", "date", "collaborations", "updatedBy"];
+const encryptedFields = ["description", "team", "date", "collaborations", "updatedBy"];
 
 export const prepareReportForEncryption = (report) => {
   try {

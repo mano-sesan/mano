@@ -150,12 +150,7 @@ const ExportData = () => {
     const reports = allReports.map((r) => {
       const report = {};
       for (const key of Object.keys(r)) {
-        if (key === "services") continue;
         report[key] = r[key];
-      }
-      const reportServices = JSON.parse(r.services || "{}");
-      for (const service of flattenedServices) {
-        report[service] = reportServices[service];
       }
       return report;
     });

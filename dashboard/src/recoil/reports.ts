@@ -41,7 +41,6 @@ export const reportsState = atom({
                   _id: report._id,
                   date: report.date,
                   team: report.team,
-                  services: report.services,
                   createdAt: report.createdAt,
                   deletedAt: report.deletedAt,
                   description: report.description,
@@ -52,7 +51,6 @@ export const reportsState = atom({
                   _id: report._id,
                   date: report.date,
                   team: report.team,
-                  services: report.services,
                   createdAt: report.createdAt,
                   deletedAt: report.deletedAt,
                   description: report.description,
@@ -86,7 +84,7 @@ export const flattenedServicesSelector = selector({
   },
 });
 
-const encryptedFields = ["description", "services", "team", "date", "collaborations", "updatedBy"];
+const encryptedFields = ["description", "team", "date", "collaborations", "updatedBy"];
 
 export function prepareReportForEncryption(report: ReportInstance, { checkRequiredFields = true } = {}): ReadyToEncryptReportInstance {
   if (checkRequiredFields) {

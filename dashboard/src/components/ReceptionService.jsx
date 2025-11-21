@@ -12,7 +12,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(
-    // Init services for a team. We need to fetch services from legacy report and database and merge them.
+    // Init services for a team. We need to fetch services from database.
     function initServices() {
       if (!dateString || !team?._id || dateString === "undefined") {
         return capture("Missing params for initServices in reception", { extra: { dateString, team, report } });
@@ -23,14 +23,14 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
           if (error?.name === "BeforeUnloadAbortError") return;
           return toast.error(<ErrorOnGetServices />);
         }
-        const servicesFromLegacyReport = report?.services?.length ? JSON.parse(report?.services) : {};
         const servicesFromDatabase = res.data.reduce((acc, service) => {
-          acc[service.service] = (servicesFromLegacyReport[service.service] || 0) + service.count;
+          acc[service.service] = (acc[service.service] || 0) + service.count;
           return acc;
         }, {});
         const mergedServices = Object.fromEntries(
-          // We need a sum of all keys from legacy and database services.
-          flattenedServices.map((key) => [key, (servicesFromLegacyReport[key] || 0) + (servicesFromDatabase[key] || 0)])
+          // We need to initialize all services from organisation.
+          flattenedServices.map((key) => [key, (servicesFromDatabase[key] || 0)])
+
         );
         setServices(mergedServices);
       });

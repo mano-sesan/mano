@@ -15,8 +15,6 @@ export type ReportInstance = {
 
   description?: string;
   collaborations?: Array<string>;
-
-  services?: any; // deprecated
 };
 
 export type ReadyToEncryptReportInstance = {
@@ -34,7 +32,6 @@ export type ReadyToEncryptReportInstance = {
   decrypted: {
     description?: string;
     collaborations?: Array<string>;
-    services?: any; // deprecated
     updatedBy?: UUIDV4;
   };
 };
