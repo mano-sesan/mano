@@ -85,8 +85,10 @@ function FieldHistory({ name = null, person = null }) {
   const personField = useRecoilValue(personFieldSelector({ name }));
   const fieldHistory = useMemo(() => {
     const _fieldHistory = [];
-    if (!person?.history?.length) return _fieldHistory;
-    if (personField?.type === "number" && person.history.filter((h) => h.data[name]).length > 1) {
+    // Get the appropriate history based on whether it's a medical file field
+    const historySource = personField?.isMedicalFile ? person?.medicalFile?.history : person?.history;
+    if (!historySource?.length) return _fieldHistory;
+    if (personField?.type === "number" && historySource.filter((h) => h.data[name]).length > 1) {
       // return [
       //   { x: "2024-12-14", y: 10 },
       //   { x: "2024-12-07", y: 20 },
@@ -95,21 +97,21 @@ function FieldHistory({ name = null, person = null }) {
       //   { x: "2024-11-21", y: 40 },
       //   { x: "2024-11-14", y: 30 },
       // ];
-      for (const historyItem of person.history) {
+      for (const historyItem of historySource) {
         if (historyItem.data[name]) {
           _fieldHistory.push({ x: dayjsInstance(historyItem.date).format("YYYY-MM-DD"), y: historyItem.data[name].newValue });
         }
       }
       return _fieldHistory.sort((a, b) => (a.x > b.x ? 1 : -1));
     } else {
-      for (const historyItem of person.history) {
+      for (const historyItem of historySource) {
         if (historyItem.data[name]) {
           _fieldHistory.push(historyItem);
         }
       }
       return _fieldHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
-  }, [person?.history, name, personField?.type]);
+  }, [person?.history, person?.medicalFile?.history, name, personField?.type, personField?.isMedicalFile]);
 
   if (!name || !fieldHistory?.length) return null;
 
