@@ -11,6 +11,7 @@ import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
+import NewDocumentBlock from "./NewDocumentBlock";
 
 export default function Summary({ person }) {
   const user = useRecoilValue(userState);
@@ -50,6 +51,9 @@ export default function Summary({ person }) {
                 <PersonDocuments person={person} />
               </div>
             </div>
+          </div>
+          <div>
+            <NewDocumentBlock />
           </div>
           <div className="noprint tw-mt-4 tw-flex tw-justify-end tw-gap-2">
             <MergeTwoPersons person={person} />
