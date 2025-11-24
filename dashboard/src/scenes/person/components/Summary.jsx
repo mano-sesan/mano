@@ -2,7 +2,6 @@ import { useRecoilValue } from "recoil";
 import { userState, organisationState } from "../../../recoil/auth";
 import { Actions } from "./ActionsPerson";
 import { InfosMain } from "./InfosMain";
-import PersonDocuments from "./PersonDocuments";
 import PersonCustomFields from "./PersonCustomFields";
 import Comments from "./Comments";
 import DeletePersonButton from "./DeletePersonButton";
@@ -11,6 +10,7 @@ import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
+import PersonDocumentsAlt from "./PersonDocumentsAlt";
 
 export default function Summary({ person }) {
   const user = useRecoilValue(userState);
@@ -47,7 +47,7 @@ export default function Summary({ person }) {
                 </div>
               )}
               <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-                <PersonDocuments person={person} />
+                <PersonDocumentsAlt person={person} />
               </div>
             </div>
           </div>
