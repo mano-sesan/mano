@@ -934,7 +934,7 @@ function DocumentsDropZone({ children, personId, onAddDocuments, color, classNam
   );
 }
 
-async function handleFilesUpload({ files, personId, user }) {
+export async function handleFilesUpload({ files, personId, user }) {
   if (!files?.length) return;
   if (!personId) {
     toast.error("Veuillez sélectionner une personne auparavant");

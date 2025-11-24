@@ -2135,6 +2135,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@headless-tree/core@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "@headless-tree/core@npm:1.5.1"
+  checksum: 588f444f50a24964b7e694347cd629f3212f38d42ceefd71d7d10572cdf744133d165199f4b21bbc68958034fd237d3d681929162db0b3964858f4a7760af000
+  languageName: node
+  linkType: hard
+
+"@headless-tree/react@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "@headless-tree/react@npm:1.5.1"
+  peerDependencies:
+    "@headless-tree/core": "*"
+    react: "*"
+    react-dom: "*"
+  checksum: 10666b544af3d72c2109b36992c7c43277bcca3450c189057ebb2544d3df9eb04c32e97a36b17b8da6b1f49cc49f070eb82f697264eb71d1c4cf45441cd15bb5
+  languageName: node
+  linkType: hard
+
 "@headlessui/react@npm:^1.7.4":
   version: 1.7.4
   resolution: "@headlessui/react@npm:1.7.4"
@@ -5677,6 +5695,8 @@ __metadata:
     "@babel/preset-env": "npm:^7.24.3"
     "@babel/runtime": "npm:^7.14.5"
     "@e965/xlsx": "npm:^0.20.1"
+    "@headless-tree/core": "npm:^1.5.1"
+    "@headless-tree/react": "npm:^1.5.1"
     "@headlessui/react": "npm:^1.7.4"
     "@nivo/bar": "npm:^0.85.1"
     "@nivo/core": "npm:^0.85.1"
