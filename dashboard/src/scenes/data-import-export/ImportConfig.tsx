@@ -159,7 +159,7 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
               </p>
             </div>
           )}
-          {Object.entries(workbookData).map(([sheetName, { data, globalErrors, errors, withTeams, fieldsToDelete }]) => (
+          {Object.entries(workbookData).map(([sheetName, { data, globalErrors, errors, withTeams, fieldsToDelete, newFields }]) => (
             <div key={sheetName}>
               <h4 className="tw-mb-4 tw-mt-10 tw-flex tw-justify-between tw-text-lg tw-font-bold">{sheetName}</h4>
               {!globalErrors.length && !errors.length && data.length > 0 && !fieldsToDelete?.length && (
@@ -210,7 +210,14 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                             {errors.some((error) => error.line === i) ? (
                               <span className="tw-text-red-600">Erreur</span>
                             ) : (
-                              <span className="tw-text-green-600">Valide</span>
+                              <div className="tw-flex tw-items-center tw-gap-2">
+                                <span className="tw-text-green-600">Valide</span>
+                                {newFields?.has(i) && (
+                                  <span className="tw-text-xs tw-rounded tw-bg-blue-100 tw-text-blue-800 tw-px-2 tw-py-0.5 tw-font-semibold">
+                                    nouveau
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </td>
                           {Object.values(row).map((value, j) => {
@@ -327,6 +334,7 @@ type WorkbookData = Record<
     errors: { line: number; col: number; message: string }[];
     withTeams?: boolean;
     fieldsToDelete?: string[];
+    newFields?: Set<number>; // Set of line numbers for new fields
   }
 >;
 
@@ -343,7 +351,7 @@ function trimAllValues<R extends Record<string, string | string[] | TeamInstance
 // Parse le fichier Excel et retourne un objet contenant les données et les erreurs
 export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInstance>, organisation?: OrganisationInstance): WorkbookData {
   const data: WorkbookData = sheetNames.reduce((acc, sheetName) => {
-    return { ...acc, [sheetName]: { data: [], globalErrors: [], errors: [], withTeams: false, fieldsToDelete: [] } };
+    return { ...acc, [sheetName]: { data: [], globalErrors: [], errors: [], withTeams: false, fieldsToDelete: [], newFields: new Set() } };
   }, {} as WorkbookData);
 
   // Cette partie permet de détecter les champs existants dans l'organisation
@@ -560,6 +568,17 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
             seenFields.set(fieldKey, parseInt(key));
           }
         }
+
+        // Check if field is new (doesn't exist in organisation)
+        if (organisation && rubrique && intitule) {
+          const existingField = organisation.customFieldsPersons
+            ?.find((e) => e.name === rubrique.trim())
+            ?.fields.find((f) => f.label === intitule.trim());
+          if (!existingField) {
+            data[sheetName].newFields!.add(parseInt(key));
+          }
+        }
+
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -602,6 +621,17 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
             seenFields.set(fieldKey, parseInt(key));
           }
         }
+
+        // Check if field is new (doesn't exist in organisation)
+        if (organisation && rubrique && intitule) {
+          const existingField = organisation.groupedCustomFieldsMedicalFile
+            ?.find((e) => e.name === rubrique.trim())
+            ?.fields.find((f) => f.label === intitule.trim());
+          if (!existingField) {
+            data[sheetName].newFields!.add(parseInt(key));
+          }
+        }
+
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -644,6 +674,15 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
             seenFields.set(fieldKey, parseInt(key));
           }
         }
+
+        // Check if field is new (doesn't exist in organisation)
+        if (organisation && rubrique && intitule) {
+          const existingField = organisation.consultations?.find((e) => e.name === rubrique.trim())?.fields.find((f) => f.label === intitule.trim());
+          if (!existingField) {
+            data[sheetName].newFields!.add(parseInt(key));
+          }
+        }
+
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
@@ -686,6 +725,17 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
             seenFields.set(fieldKey, parseInt(key));
           }
         }
+
+        // Check if field is new (doesn't exist in organisation)
+        if (organisation && rubrique && intitule) {
+          const existingField = organisation.groupedCustomFieldsObs
+            ?.find((e) => e.name === rubrique.trim())
+            ?.fields.find((f) => f.label === intitule.trim());
+          if (!existingField) {
+            data[sheetName].newFields!.add(parseInt(key));
+          }
+        }
+
         const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
         data[sheetName].data.push(
           trimAllValues({
