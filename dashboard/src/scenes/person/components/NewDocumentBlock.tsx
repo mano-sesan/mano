@@ -1,202 +1,298 @@
-import React, { Fragment } from "react";
-import {
-  createOnDropHandler,
-  dragAndDropFeature,
-  hotkeysCoreFeature,
-  insertItemsAtTarget,
-  keyboardDragAndDropFeature,
-  removeItemsFromParents,
-  selectionFeature,
-  syncDataLoaderFeature,
-} from "@headless-tree/core";
-import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
+import { useMemo } from "react";
+import { toast } from "react-toastify";
+import { useRecoilValue } from "recoil";
+import { organisationAuthentifiedState } from "../../../recoil/auth";
+import { usePreparePersonForEncryption } from "../../../recoil/persons";
+import API, { tryFetchExpectOk } from "../../../services/api";
+import type { PersonPopulated } from "../../../types/person";
+import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, LinkedItem } from "../../../types/document";
+import { encryptAction } from "../../../recoil/actions";
+import { useDataLoader } from "../../../services/dataLoader";
+import isEqual from "react-fast-compare";
+import { removeOldDefaultFolders } from "../../../utils/documents";
+import { createOnDropHandler, dragAndDropFeature, hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
+import { useTree } from "@headless-tree/react";
 import cn from "classnames";
+import { formatDateTimeWithNameOfDay } from "../../../services/date";
+import UserName from "../../../components/UserName";
 
-export type DemoItem = {
-  name: string;
-  children?: string[];
-};
+interface NewDocumentBlockProps {
+  person: PersonPopulated;
+}
 
-const sampleTree: Record<string, DemoItem> = {
-  root: {
-    name: "Root",
-    children: ["fruit", "vegetables", "meals", "dessert", "drinks"],
-  },
-  fruit: {
-    name: "Fruit",
-    children: ["apple", "banana", "orange", "berries", "lemon"],
-  },
-  apple: { name: "Apple" },
-  banana: { name: "Banana" },
-  orange: { name: "Orange" },
-  lemon: { name: "Lemon" },
-  berries: { name: "Berries", children: ["red", "blue", "black"] },
-  red: { name: "Red", children: ["strawberry", "raspberry"] },
-  strawberry: { name: "Strawberry" },
-  raspberry: { name: "Raspberry" },
-  blue: { name: "Blue", children: ["blueberry"] },
-  blueberry: { name: "Blueberry" },
-  black: { name: "Black", children: ["blackberry"] },
-  blackberry: { name: "Blackberry" },
-  vegetables: {
-    name: "Vegetables",
-    children: ["tomato", "carrot", "cucumber", "potato"],
-  },
-  tomato: { name: "Tomato" },
-  carrot: { name: "Carrot" },
-  cucumber: { name: "Cucumber" },
-  potato: { name: "Potato" },
-  meals: {
-    name: "Meals",
-    children: ["america", "europe", "asia", "australia"],
-  },
-  america: { name: "America", children: ["burger", "hotdog", "pizza"] },
-  burger: { name: "Burger" },
-  hotdog: { name: "Hotdog" },
-  pizza: { name: "Pizza" },
-  europe: {
-    name: "Europe",
-    children: ["pasta", "paella", "schnitzel", "risotto", "weisswurst"],
-  },
-  pasta: { name: "Pasta" },
-  paella: { name: "Paella" },
-  schnitzel: { name: "Schnitzel" },
-  risotto: { name: "Risotto" },
-  weisswurst: { name: "Weisswurst" },
-  asia: { name: "Asia", children: ["sushi", "ramen", "curry", "noodles"] },
-  sushi: { name: "Sushi" },
-  ramen: { name: "Ramen" },
-  curry: { name: "Curry" },
-  noodles: { name: "Noodles" },
-  australia: {
-    name: "Australia",
-    children: ["potatowedges", "pokebowl", "lemoncurd", "kumarafries"],
-  },
-  potatowedges: { name: "Potato Wedges" },
-  pokebowl: { name: "Poke Bowl" },
-  lemoncurd: { name: "Lemon Curd" },
-  kumarafries: { name: "Kumara Fries" },
-  dessert: {
-    name: "Dessert",
-    children: ["icecream", "cake", "pudding", "cookies"],
-  },
-  icecream: { name: "Icecream" },
-  cake: { name: "Cake" },
-  pudding: { name: "Pudding" },
-  cookies: { name: "Cookies" },
-  drinks: { name: "Drinks", children: ["water", "juice", "beer", "wine"] },
-  water: { name: "Water" },
-  juice: { name: "Juice" },
-  beer: { name: "Beer" },
-  wine: { name: "Wine" },
-};
+type DocumentOrFolder = DocumentWithLinkedItem | FolderWithLinkedItem;
 
-const wait = (ms: number) =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+export default function NewDocumentBlock({ person }: NewDocumentBlockProps) {
+  const { refresh } = useDataLoader();
+  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const { encryptPerson } = usePreparePersonForEncryption();
 
-export const createDemoData = (data = sampleTree) => {
+  // Build default folders and all documents
+  const allDocuments = useMemo(() => {
+    if (!person) return [];
+
+    const needsActionsFolder =
+      !person.documentsForModule?.some((d) => d._id === "actions") && person.documentsForModule?.some((d) => d.linkedItem.type === "action");
+
+    const actionsFolder: FolderWithLinkedItem = {
+      _id: "actions",
+      name: "Actions",
+      position: -1,
+      parentId: "root",
+      type: "folder",
+      linkedItem: {
+        _id: person._id,
+        type: "person",
+      } as LinkedItem,
+      movable: false,
+      createdAt: new Date(),
+      createdBy: "admin",
+    };
+
+    const defaultFolders: Array<FolderWithLinkedItem> = (organisation.defaultPersonsFolders || []).map((folder) => ({
+      ...folder,
+      movable: false,
+      linkedItem: {
+        _id: person._id,
+        type: "person",
+      } as LinkedItem,
+    }));
+
+    return [
+      needsActionsFolder ? actionsFolder : undefined,
+      ...removeOldDefaultFolders([...(person.documentsForModule || []), ...(person.groupDocuments || [])], defaultFolders),
+    ]
+      .filter((e) => e)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [person, organisation.defaultPersonsFolders]);
+
+  // Convert to tree data structure
+  const treeData = useMemo(() => {
+    if (!person) {
+      return {
+        root: {
+          _id: "root",
+          name: "Documents",
+          type: "folder",
+          children: [],
+          createdAt: new Date(),
+          createdBy: "system",
+        } as DocumentOrFolder & { children: string[] },
+      };
+    }
+
+    const data: Record<string, DocumentOrFolder & { children?: string[] }> = {
+      root: {
+        _id: "root",
+        name: "Documents",
+        type: "folder",
+        children: [],
+        createdAt: new Date(),
+        createdBy: "system",
+        linkedItem: { _id: person._id, type: "person" } as LinkedItem,
+        movable: false,
+      } as FolderWithLinkedItem & { children: string[] },
+    };
+
+    // Add all items to data
+    allDocuments.forEach((item) => {
+      data[item._id] = { ...item, children: [] };
+    });
+
+    // Build children arrays
+    allDocuments.forEach((item) => {
+      const parentId = item.parentId || "root";
+      if (data[parentId] && item.type === "folder") {
+        data[parentId].children = data[parentId].children || [];
+      }
+      if (data[parentId]) {
+        if (!data[parentId].children) data[parentId].children = [];
+        if (!data[parentId].children.includes(item._id)) {
+          data[parentId].children.push(item._id);
+        }
+      }
+    });
+
+    return data;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allDocuments, person?._id]);
+
   const syncDataLoader = {
-    getItem: (id: string) => data[id],
-    getChildren: (id: string) => data[id]?.children ?? [],
+    getItem: (id: string) => treeData[id],
+    getChildren: (id: string) => treeData[id]?.children ?? [],
   };
 
-  const asyncDataLoader = {
-    getItem: (itemId: string) => wait(500).then(() => data[itemId]),
-    getChildren: (itemId: string) => wait(800).then(() => data[itemId]?.children ?? []),
+  const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
+    if (!person) return;
+
+    // Update the tree data structure
+    treeData[itemId].children = newChildren;
+
+    // Convert back to flat array with parentId
+    const updatedDocs: DocumentOrFolder[] = [];
+    const processItem = (id: string, parentId: string | undefined, position: number) => {
+      const item = treeData[id];
+      if (!item || id === "root") return;
+
+      updatedDocs.push({
+        ...item,
+        parentId: parentId === "root" ? undefined : parentId,
+        position,
+      });
+
+      if (item.children) {
+        item.children.forEach((childId, idx) => {
+          processItem(childId, id, idx);
+        });
+      }
+    };
+
+    if (treeData.root.children) {
+      treeData.root.children.forEach((childId, idx) => {
+        processItem(childId, "root", idx);
+      });
+    }
+
+    // Save to API
+    const personNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
+
+    const [personError] = await tryFetchExpectOk(async () => {
+      return API.put({
+        path: `/person/${person._id}`,
+        body: await encryptPerson({
+          ...person,
+          documents: [
+            ...personNextDocuments,
+            ...(person.documents || []).filter((docOrFolder) => {
+              const document = docOrFolder as unknown as Document;
+              return !!document.group;
+            }),
+          ],
+        }),
+      });
+    });
+
+    if (personError) {
+      toast.error("Erreur lors de l'enregistrement des documents");
+      return;
+    }
+
+    // Update action documents
+    const actionNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "action");
+    const actionIds = [...new Set(actionNextDocuments.map((d) => d.linkedItem._id))];
+
+    for (const actionId of actionIds) {
+      const action = person.actions.find((a) => a._id === actionId);
+      if (!action) continue;
+
+      const actionDocs = actionNextDocuments.filter((d) => d.linkedItem._id === actionId);
+      if (isEqual(action.documents, actionDocs)) continue;
+
+      await tryFetchExpectOk(async () => {
+        return API.put({
+          path: `/action/${actionId}`,
+          body: await encryptAction({
+            ...action,
+            documents: actionDocs,
+          }),
+        });
+      });
+    }
+
+    toast.success("Documents mis à jour");
+    refresh();
   };
 
-  return { data, syncDataLoader, asyncDataLoader };
-};
-
-const { syncDataLoader, data } = createDemoData();
-let newItemId = 0;
-const insertNewItem = (dataTransfer: DataTransfer) => {
-  const newId = `new-${newItemId++}`;
-  data[newId] = {
-    name: dataTransfer.getData("text/plain"),
-  };
-  return newId;
-};
-
-// story-start
-export default function NewDocumentBlock() {
-  const tree = useTree<DemoItem>({
+  const tree = useTree<DocumentOrFolder & { children?: string[] }>({
     initialState: {
-      expandedItems: ["fruit"],
-      selectedItems: ["banana", "orange"],
+      expandedItems: ["root"],
     },
     rootItemId: "root",
     getItemName: (item) => item.getItemData().name,
-    isItemFolder: (item) => !!item.getItemData().children,
+    isItemFolder: (item) => item.getItemData().type === "folder",
+    canDrag: (items) => items.every((item) => item.getItemData().movable !== false),
     canReorder: true,
     onDrop: createOnDropHandler((item, newChildren) => {
-      data[item.getId()].children = newChildren;
+      handleSaveOrder(item.getId(), newChildren);
     }),
-    onDropForeignDragObject: (dataTransfer, target) => {
-      const newId = insertNewItem(dataTransfer);
-      insertItemsAtTarget([newId], target, (item, newChildrenIds) => {
-        data[item.getId()].children = newChildrenIds;
-      });
-    },
-    onCompleteForeignDrop: (items) =>
-      removeItemsFromParents(items, (item, newChildren) => {
-        item.getItemData().children = newChildren;
-      }),
-    createForeignDragObject: (items) => ({
-      format: "text/plain",
-      data: items.map((item) => item.getId()).join(","),
-    }),
-    canDropForeignDragObject: (_, target) => target.item.isFolder(),
     indent: 20,
     dataLoader: syncDataLoader,
-    features: [syncDataLoaderFeature, selectionFeature, hotkeysCoreFeature, dragAndDropFeature, keyboardDragAndDropFeature],
+    features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
   });
 
+  // Safety check after all hooks
+  if (!person) {
+    return <div className="tw-p-4">Chargement...</div>;
+  }
+
   return (
-    <>
-      <div {...tree.getContainerProps()} className="tw-flex tw-flex-col tw-gap-2 tw-items-start">
-        <AssistiveTreeDescription tree={tree} />
-        {tree.getItems().map((item) => (
-          <button key={item.getId()} {...item.getProps()} style={{ paddingLeft: `${item.getItemMeta().level * 20}px` }}>
+    <div className="tw-p-4">
+      <h3 className="tw-text-xl tw-mb-4">Documents de {person.name}</h3>
+
+      <div {...tree.getContainerProps()} className="tw-flex tw-flex-col">
+        {tree.getItems().map((item, index) => {
+          const itemData = item.getItemData();
+          if (item.getId() === "root") return null;
+
+          const isFolder = itemData.type === "folder";
+          const level = item.getItemMeta().level - 1;
+
+          return (
             <div
-              className={cn("treeitem", {
-                "tw-text-blue-500": item.isFocused(),
-                "tw-text-green-500": item.isExpanded(),
-                "tw-text-red-500": item.isSelected(),
-                "tw-font-bold": item.isFolder(),
-                drop: item.isDragTarget(),
+              key={item.getId()}
+              {...item.getProps()}
+              style={{ paddingLeft: `${level * 20}px` }}
+              className={cn("tw-py-2 tw-px-2 tw-flex tw-items-center tw-gap-2 tw-border-b tw-cursor-pointer hover:tw-bg-gray-50", {
+                "tw-bg-blue-50": item.isFocused(),
+                "tw-bg-gray-100": index % 2 === 0,
               })}
             >
-              {item.getItemName()}
-            </div>
-          </button>
-        ))}
-        <div style={tree.getDragLineStyle()} className="dragline" />
-      </div>
+              {/* Expand/collapse button for folders */}
+              {isFolder && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (item.isExpanded()) {
+                      item.collapse();
+                    } else {
+                      item.expand();
+                    }
+                  }}
+                  className="tw-w-4 tw-text-gray-600"
+                >
+                  {item.isExpanded() ? "▼" : "►"}
+                </button>
+              )}
+              {!isFolder && <span className="tw-w-4" />}
 
-      <div className="actionbar">
-        <div
-          className="foreign-dragsource"
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData("text/plain", "hello world");
-          }}
-        >
-          Drag me into the tree!
-        </div>
-        <div
-          className="foreign-dropzone"
-          onDrop={(e) => {
-            alert(JSON.stringify(e.dataTransfer.getData("text/plain")));
-            console.log(e.dataTransfer.getData("text/plain"));
-          }}
-          onDragOver={(e) => e.preventDefault()}
-        >
-          Drop items here!
-        </div>
+              {/* Icon */}
+              <span className="tw-text-lg">{isFolder ? (item.isExpanded() ? "📂" : "📁") : "📃"}</span>
+
+              {/* Name */}
+              <span className="tw-flex-1 tw-truncate">
+                {itemData.name}
+                {String(itemData.movable)}
+              </span>
+
+              {/* Locked indicator */}
+              {itemData.movable === false && (
+                <span className="tw-text-gray-400" title="Ne peut pas être déplacé">
+                  🔒
+                </span>
+              )}
+
+              {/* Metadata */}
+              <div className="tw-flex tw-gap-4 tw-text-xs tw-text-gray-500">
+                <span>
+                  <UserName id={itemData.createdBy} />
+                </span>
+                <span>{formatDateTimeWithNameOfDay(itemData.createdAt)}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </>
+    </div>
   );
 }

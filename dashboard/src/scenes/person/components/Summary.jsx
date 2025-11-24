@@ -53,7 +53,7 @@ export default function Summary({ person }) {
             </div>
           </div>
           <div>
-            <NewDocumentBlock />
+            <NewDocumentBlock person={person} />
           </div>
           <div className="noprint tw-mt-4 tw-flex tw-justify-end tw-gap-2">
             <MergeTwoPersons person={person} />
