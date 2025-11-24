@@ -1027,7 +1027,7 @@ interface DocumentModalProps<T extends DocumentWithLinkedItem> {
   color: string;
 }
 
-function DocumentModal<T extends DocumentWithLinkedItem>({
+export function DocumentModal<T extends DocumentWithLinkedItem>({
   document,
   onClose,
   personId,
