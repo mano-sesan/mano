@@ -14,7 +14,7 @@ import { removeOldDefaultFolders } from "../../../utils/documents";
 import { createOnDropHandler, dragAndDropFeature, hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
 import cn from "classnames";
-import { handleFilesUpload } from "../../../components/DocumentsGeneric";
+import { handleFilesUpload, DocumentModal } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 
@@ -28,9 +28,15 @@ type DocumentOrFolder = DocumentWithLinkedItem | FolderWithLinkedItem;
 function DocumentTree({
   treeData,
   onSaveOrder,
+  expandedItems,
+  onExpandedItemsChange,
+  onDocumentClick,
 }: {
   treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
   onSaveOrder: (itemId: string, newChildren: string[]) => void;
+  expandedItems: string[];
+  onExpandedItemsChange: (items: string[]) => void;
+  onDocumentClick: (document: DocumentWithLinkedItem) => void;
 }) {
   const syncDataLoader = {
     getItem: (id: string) => treeData[id],
@@ -39,7 +45,7 @@ function DocumentTree({
 
   const tree = useTree<DocumentOrFolder & { children?: string[] }>({
     initialState: {
-      expandedItems: ["root"],
+      expandedItems: expandedItems,
     },
     rootItemId: "root",
     getItemName: (item) => item.getItemData().name,
@@ -55,7 +61,7 @@ function DocumentTree({
   });
 
   return (
-    <div {...tree.getContainerProps()} className="tw-flex tw-flex-col">
+    <div {...tree.getContainerProps()} className="tw-text-xs tw-flex tw-flex-col">
       {tree.getItems().map((item, _index) => {
         const itemData = item.getItemData();
         if (item.getId() === "root") return null;
@@ -69,10 +75,17 @@ function DocumentTree({
             key={item.getId()}
             {...item.getProps()}
             style={{ paddingLeft: `${level * 20}px` }}
-            className={cn("tw-py-2 tw-px-2 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer", {
+            className={cn("tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer", {
               "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
               "tw-bg-main/50": isDraggingOver && isFolder,
             })}
+            onClick={(e) => {
+              // Only handle click on documents, not folders
+              if (!isFolder) {
+                e.stopPropagation();
+                onDocumentClick(itemData as DocumentWithLinkedItem);
+              }
+            }}
           >
             {/* Expand/collapse button for folders */}
             {isFolder && (
@@ -80,10 +93,13 @@ function DocumentTree({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  const itemId = item.getId();
                   if (item.isExpanded()) {
                     item.collapse();
+                    onExpandedItemsChange(expandedItems.filter((id) => id !== itemId));
                   } else {
                     item.expand();
+                    onExpandedItemsChange([...expandedItems, itemId]);
                   }
                 }}
                 className="tw-w-4 tw-text-gray-600"
@@ -128,7 +144,10 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [resetFileInputKey, setResetFileInputKey] = useState(0);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [expandedItems, setExpandedItems] = useState<string[]>(["root"]);
+  const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
 
   // Build default folders and all documents
   const allDocuments = useMemo(() => {
@@ -277,6 +296,36 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
 
       console.log("updatedDocs (all):", updatedDocs);
 
+      // Save to API
+      const personNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
+      console.log("personNextDocuments (filtered):", personNextDocuments);
+
+      // Check if anything actually changed (prevent unnecessary saves for accidental micro-drags)
+      // Compare only the structure: _id, parentId, and position (what matters for ordering)
+      const currentPersonDocuments = (person.documents || [])
+        .filter((d) => {
+          const doc = d as DocumentOrFolder;
+          return doc.linkedItem?.type === "person" && d._id !== "actions";
+        })
+        .map((d) => ({ _id: d._id, parentId: d.parentId, position: d.position }));
+
+      const nextPersonDocsSimplified = personNextDocuments.map((d) => ({
+        _id: d._id,
+        parentId: d.parentId,
+        position: d.position,
+      }));
+
+      console.log("=== COMPARISON DEBUG ===");
+      console.log("currentPersonDocuments (simplified):", currentPersonDocuments);
+      console.log("personNextDocuments (simplified):", nextPersonDocsSimplified);
+      console.log("Are they equal?", isEqual(currentPersonDocuments, nextPersonDocsSimplified));
+
+      if (isEqual(currentPersonDocuments, nextPersonDocsSimplified)) {
+        console.log(`=== No changes detected, skipping save [${callId}] ===`);
+        return;
+      }
+      console.log("Changes detected, proceeding with save");
+
       // Load fresh person data to avoid overwriting concurrent changes
       const freshPerson = await loadFreshPersonData(person._id);
       if (!freshPerson) {
@@ -285,10 +334,6 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         return;
       }
       console.log("Fresh person loaded, documents count:", freshPerson.documents?.length || 0);
-
-      // Save to API
-      const personNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
-      console.log("personNextDocuments (filtered):", personNextDocuments);
 
       const groupDocuments = (freshPerson.documents || []).filter((docOrFolder) => {
         const document = docOrFolder as unknown as Document;
@@ -398,6 +443,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       return;
     }
 
+    setIsCreatingFolder(true);
+
     const newFolder: Folder = {
       _id: uuidv4(),
       name: newFolderName.trim(),
@@ -411,6 +458,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     await handleAddDocuments([newFolder]);
     setShowCreateFolderModal(false);
     setNewFolderName("");
+    setIsCreatingFolder(false);
   };
 
   return (
@@ -453,7 +501,14 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         />
       </div>
 
-      <DocumentTree key={treeKey} treeData={treeData} onSaveOrder={handleSaveOrder} />
+      <DocumentTree
+        key={treeKey}
+        treeData={treeData}
+        onSaveOrder={handleSaveOrder}
+        expandedItems={expandedItems}
+        onExpandedItemsChange={setExpandedItems}
+        onDocumentClick={setDocumentToEdit}
+      />
 
       {showCreateFolderModal && (
         <ModalContainer open onClose={() => setShowCreateFolderModal(false)}>
@@ -492,13 +547,91 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             </button>
             <button
               type="button"
-              className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700"
+              className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
               onClick={handleCreateFolder}
+              disabled={isCreatingFolder}
             >
-              Créer
+              {isCreatingFolder ? "Création..." : "Créer"}
             </button>
           </ModalFooter>
         </ModalContainer>
+      )}
+
+      {documentToEdit && (
+        <DocumentModal
+          document={documentToEdit}
+          key={documentToEdit._id}
+          personId={person._id}
+          onClose={() => setDocumentToEdit(null)}
+          onDelete={async (document) => {
+            // Delete the document from the API
+            const [documentError] = await tryFetchExpectOk(async () => {
+              return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
+            });
+            if (documentError) {
+              toast.error("Erreur lors de la suppression du document");
+              return false;
+            }
+
+            // Load fresh person data
+            const freshPerson = await loadFreshPersonData(person._id);
+            if (!freshPerson) {
+              toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+              return false;
+            }
+
+            // Update person documents
+            const [personError] = await tryFetchExpectOk(async () => {
+              return API.put({
+                path: `/person/${person._id}`,
+                body: await encryptPerson({
+                  ...freshPerson,
+                  documents: (freshPerson.documents || []).filter((d) => d._id !== document._id),
+                }),
+              });
+            });
+            if (personError) {
+              toast.error("Erreur lors de la suppression du document");
+              return false;
+            }
+
+            toast.success("Document supprimé");
+            setDocumentToEdit(null);
+            refresh();
+            return true;
+          }}
+          onSubmit={async (documentOrFolder) => {
+            // Load fresh person data
+            const freshPerson = await loadFreshPersonData(person._id);
+            if (!freshPerson) {
+              toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+              return;
+            }
+
+            const [personError] = await tryFetchExpectOk(async () => {
+              return API.put({
+                path: `/person/${person._id}`,
+                body: await encryptPerson({
+                  ...freshPerson,
+                  documents: (freshPerson.documents || []).map((d) => {
+                    if (d._id === documentOrFolder._id) return documentOrFolder;
+                    return d;
+                  }),
+                }),
+              });
+            });
+            if (personError) {
+              toast.error("Erreur lors de la mise à jour du document");
+              return;
+            }
+            toast.success("Document mis à jour");
+            setDocumentToEdit(null);
+            refresh();
+          }}
+          canToggleGroupCheck={false}
+          showAssociatedItem={false}
+          color="main"
+        />
       )}
     </div>
   );
