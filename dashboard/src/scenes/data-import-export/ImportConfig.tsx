@@ -213,30 +213,39 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                               <span className="tw-text-green-600">Valide</span>
                             )}
                           </td>
-                          {Object.values(row).map((value, j) => (
-                            <td className="tw-px-4 tw-py-2" key={j}>
-                              {Array.isArray(value)
-                                ? value.map((v) => {
+                          {Object.values(row).map((value, j) => {
+                            const isTeamsColumn = withTeams && j === Object.values(row).length - 1;
+                            const isEmptyTeamsArray = isTeamsColumn && Array.isArray(value) && value.length === 0;
+
+                            return (
+                              <td className="tw-px-4 tw-py-2" key={j}>
+                                {isEmptyTeamsArray ? (
+                                  <code className="tw-text-xs tw-font-bold tw-rounded tw-italic tw-text-nowrap tw-px-1">Toutes les équipes</code>
+                                ) : Array.isArray(value) ? (
+                                  value.map((v) => {
                                     if (!v) return "";
                                     return (
                                       <React.Fragment key={v?.name ?? v}>
-                                        <code className="tw-text-xs tw-bg-gray-50 tw-border-gray-200 border tw-px-1">
+                                        <code className="tw-text-xs tw-bg-gray-50 tw-rounded tw-border-gray-200 border tw-px-1">
                                           {typeof v === "object" ? v.name : v}
                                         </code>
                                         <br />
                                       </React.Fragment>
                                     );
                                   })
-                                : value
-                                  ? String(value)
-                                  : ""}
-                              {errors.some((error) => error.line === i && error.col === j) && (
-                                <div className="tw-italic tw-text-red-600">
-                                  {errors.find((error) => error.line === i && error.col === j)?.message}
-                                </div>
-                              )}
-                            </td>
-                          ))}
+                                ) : value ? (
+                                  String(value)
+                                ) : (
+                                  ""
+                                )}
+                                {errors.some((error) => error.line === i && error.col === j) && (
+                                  <div className="tw-italic tw-text-red-600">
+                                    {errors.find((error) => error.line === i && error.col === j)?.message}
+                                  </div>
+                                )}
+                              </td>
+                            );
+                          })}
                         </tr>
                       ))}
                     </tbody>
