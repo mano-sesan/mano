@@ -1614,12 +1614,7 @@ export function UploadProgressModal({
       </ModalBody>
       <ModalFooter>
         {showFolderSelection && onFolderConfirm && (
-          <button
-            type="button"
-            className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
-            onClick={() => onFolderConfirm(selectedFolderId)}
-            disabled={isSaving}
-          >
+          <button type="button" className="button-submit" onClick={() => onFolderConfirm(selectedFolderId)} disabled={isSaving}>
             {isSaving ? "Enregistrement..." : "Terminer"}
           </button>
         )}
