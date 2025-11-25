@@ -44,7 +44,9 @@ export function removeOldDefaultFolders(
     // il faut voir s'ils ont des documents dedans
     for (const item of foldersFromPreviousDefaultFolders) {
       if (recursiveCheckIfFolderHasDocuments(item, docsOrFolders)) {
-        validItems.push(item);
+        // IMPORTANT: Marquer ce dossier comme movable puisqu'il n'est plus dans la config
+        // Cela permet aux utilisateurs de le supprimer
+        validItems.push({ ...item, movable: true });
       }
     }
   }
