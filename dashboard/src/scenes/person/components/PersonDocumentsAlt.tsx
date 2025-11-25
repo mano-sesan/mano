@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon, PencilSquareIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { FolderPlusIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
@@ -103,6 +103,9 @@ function DocumentTree({
               ) : (
                 <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
               )
+            ) : // If it's an image use the image icon
+            itemData.file.mimetype.startsWith("image/") ? (
+              <PhotoIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
             ) : (
               <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
             )}
@@ -709,7 +712,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           <ModalFooter>
             <button
               type="button"
-              className="tw-rounded tw-bg-gray-200 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-gray-700 hover:tw-bg-gray-300"
+              className="button-cancel"
               onClick={() => {
                 setShowCreateFolderModal(false);
                 setNewFolderName("");
@@ -717,13 +720,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             >
               Annuler
             </button>
-            <button
-              type="button"
-              className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
-              onClick={handleCreateFolder}
-              disabled={isCreatingFolder}
-            >
-              {isCreatingFolder ? "Création..." : "Créer"}
+            <button type="button" className="button-submit" onClick={handleCreateFolder} disabled={isCreatingFolder}>
+              {isCreatingFolder ? "Enregistrement..." : "Enregistrer"}
             </button>
           </ModalFooter>
         </ModalContainer>
@@ -834,17 +832,12 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             </div>
           </ModalBody>
           <ModalFooter>
-            <button
-              type="button"
-              className="tw-rounded tw-bg-gray-200 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-gray-700 hover:tw-bg-gray-300 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
-              onClick={() => setFolderToEdit(null)}
-              disabled={isUpdatingFolder || isDeletingFolder}
-            >
+            <button type="button" className="button-cancel" onClick={() => setFolderToEdit(null)} disabled={isUpdatingFolder || isDeletingFolder}>
               Annuler
             </button>
             <button
               type="button"
-              className="tw-rounded tw-bg-red-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-red-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+              className="button-destructive"
               onClick={async () => {
                 if (window.confirm("Voulez-vous vraiment supprimer ce dossier ?")) {
                   await handleDeleteFolder(folderToEdit);
@@ -856,7 +849,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             </button>
             <button
               type="button"
-              className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+              className="button-submit"
               onClick={() => {
                 const input = document.getElementById("edit-folder-name") as HTMLInputElement;
                 const newName = input?.value.trim();
