@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuid } from "uuid";
+import { FolderIcon } from "@heroicons/react/24/outline";
 import { userState, organisationAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { formatDateTimeWithNameOfDay } from "../services/date";
@@ -19,6 +20,7 @@ import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
 import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import { capture } from "../services/sentry";
+import SelectCustom from "./SelectCustom";
 
 // Upload progress state
 interface UploadProgress {
@@ -27,35 +29,92 @@ interface UploadProgress {
   error?: string;
 }
 
+interface FolderOption {
+  _id: string;
+  name: string;
+  level?: number;
+}
+
 // Global upload state
 const uploadProgressModal: {
   isOpen: boolean;
   files: UploadProgress[];
+  folders: FolderOption[] | null;
+  selectedFolderId: string;
+  waitingForFolderSelection: boolean;
+  isSaving: boolean;
+  onFolderConfirm: ((folderId: string) => void) | null;
   setFiles: (files: UploadProgress[]) => void;
   setIsOpen: (isOpen: boolean) => void;
+  setFolders: (folders: FolderOption[] | null) => void;
+  setSelectedFolderId: (folderId: string) => void;
+  setWaitingForFolderSelection: (waiting: boolean) => void;
+  setIsSaving: (saving: boolean) => void;
+  setOnFolderConfirm: (callback: ((folderId: string) => void) | null) => void;
 } = {
   isOpen: false,
   files: [],
+  folders: null,
+  selectedFolderId: "root",
+  waitingForFolderSelection: false,
+  isSaving: false,
+  onFolderConfirm: null,
   setFiles: () => {},
   setIsOpen: () => {},
+  setFolders: () => {},
+  setSelectedFolderId: () => {},
+  setWaitingForFolderSelection: () => {},
+  setIsSaving: () => {},
+  setOnFolderConfirm: () => {},
 };
 
-export function setUploadProgressHandlers(setFiles: (files: UploadProgress[]) => void, setIsOpen: (isOpen: boolean) => void) {
+export function setUploadProgressHandlers(
+  setFiles: (files: UploadProgress[]) => void,
+  setIsOpen: (isOpen: boolean) => void,
+  setFolders: (folders: FolderOption[] | null) => void,
+  setSelectedFolderId: (folderId: string) => void,
+  setWaitingForFolderSelection: (waiting: boolean) => void,
+  setIsSaving: (saving: boolean) => void,
+  setOnFolderConfirm: (callback: ((folderId: string) => void) | null) => void
+) {
   uploadProgressModal.setFiles = setFiles;
   uploadProgressModal.setIsOpen = setIsOpen;
+  uploadProgressModal.setFolders = setFolders;
+  uploadProgressModal.setSelectedFolderId = setSelectedFolderId;
+  uploadProgressModal.setWaitingForFolderSelection = setWaitingForFolderSelection;
+  uploadProgressModal.setIsSaving = setIsSaving;
+  uploadProgressModal.setOnFolderConfirm = setOnFolderConfirm;
 }
 
 // Global Upload Progress Provider Component
 export function UploadProgressProvider() {
   const [isOpen, setIsOpen] = useState(false);
   const [files, setFiles] = useState<UploadProgress[]>([]);
+  const [folders, setFolders] = useState<FolderOption[] | null>(null);
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("root");
+  const [waitingForFolderSelection, setWaitingForFolderSelection] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [onFolderConfirm, setOnFolderConfirm] = useState<{ callback: ((folderId: string) => void) | null }>({ callback: null });
 
   // Connect to global handlers
   useEffect(() => {
-    setUploadProgressHandlers(setFiles, setIsOpen);
+    setUploadProgressHandlers(setFiles, setIsOpen, setFolders, setSelectedFolderId, setWaitingForFolderSelection, setIsSaving, (callback) =>
+      setOnFolderConfirm({ callback })
+    );
   }, []);
 
-  return <UploadProgressModal isOpen={isOpen} files={files} />;
+  return (
+    <UploadProgressModal
+      isOpen={isOpen}
+      files={files}
+      folders={folders}
+      selectedFolderId={selectedFolderId}
+      waitingForFolderSelection={waitingForFolderSelection}
+      isSaving={isSaving}
+      onFolderChange={setSelectedFolderId}
+      onFolderConfirm={onFolderConfirm.callback}
+    />
+  );
 }
 
 interface DocumentsModuleProps<T> {
@@ -934,7 +993,7 @@ function DocumentsDropZone({ children, personId, onAddDocuments, color, classNam
   );
 }
 
-export async function handleFilesUpload({ files, personId, user }) {
+export async function handleFilesUpload({ files, personId, user, folders = null, onSave = null }) {
   if (!files?.length) return;
   if (!personId) {
     toast.error("Veuillez sélectionner une personne auparavant");
@@ -950,6 +1009,8 @@ export async function handleFilesUpload({ files, personId, user }) {
   // Show upload modal
   uploadProgressModal.setFiles(uploadFiles);
   uploadProgressModal.setIsOpen(true);
+  uploadProgressModal.setFolders(folders);
+  uploadProgressModal.setSelectedFolderId("root");
 
   const docsResponses = [];
   let hasError = false;
@@ -1001,6 +1062,37 @@ export async function handleFilesUpload({ files, personId, user }) {
     }
   }
 
+  // If folders are provided and onSave callback exists, wait for user to select folder
+  if (folders && onSave && docsResponses.length > 0) {
+    uploadProgressModal.setWaitingForFolderSelection(true);
+
+    return new Promise<void>((resolve) => {
+      uploadProgressModal.setOnFolderConfirm(async (selectedFolderId: string) => {
+        // Set saving state
+        uploadProgressModal.setIsSaving(true);
+
+        // Update documents with selected folder
+        const updatedDocs = docsResponses.map((doc) => ({
+          ...doc,
+          parentId: selectedFolderId === "root" ? undefined : selectedFolderId,
+        }));
+
+        // Call the save function and wait for it (includes refresh)
+        await onSave(updatedDocs);
+
+        // Close modal after save completes
+        uploadProgressModal.setIsOpen(false);
+        uploadProgressModal.setWaitingForFolderSelection(false);
+        uploadProgressModal.setIsSaving(false);
+        uploadProgressModal.setFolders(null);
+        uploadProgressModal.setOnFolderConfirm(null);
+
+        resolve();
+      });
+    });
+  }
+
+  // Original behavior when no folders provided
   // Wait a moment to show completion state, then close modal
   setTimeout(() => {
     uploadProgressModal.setIsOpen(false);
@@ -1374,14 +1466,32 @@ export function FolderModal<T extends FolderWithLinkedItem | Folder>({
 interface UploadProgressModalProps {
   isOpen: boolean;
   files: UploadProgress[];
+  folders?: FolderOption[] | null;
+  selectedFolderId?: string;
+  waitingForFolderSelection?: boolean;
+  isSaving?: boolean;
   onClose?: () => void;
+  onFolderChange?: (folderId: string) => void;
+  onFolderConfirm?: ((folderId: string) => void) | null;
 }
 
-export function UploadProgressModal({ isOpen, files, onClose }: UploadProgressModalProps) {
+export function UploadProgressModal({
+  isOpen,
+  files,
+  folders = null,
+  selectedFolderId = "root",
+  waitingForFolderSelection = false,
+  isSaving = false,
+  onClose,
+  onFolderChange,
+  onFolderConfirm,
+}: UploadProgressModalProps) {
   const completedFiles = files.filter((f) => f.status === "completed").length;
   const totalFiles = files.length;
   const hasErrors = files.some((f) => f.status === "error");
   const isComplete = files.every((f) => f.status === "completed" || f.status === "error");
+
+  const showFolderSelection = folders && waitingForFolderSelection && isComplete;
 
   return (
     <ModalContainer
@@ -1390,7 +1500,7 @@ export function UploadProgressModal({ isOpen, files, onClose }: UploadProgressMo
       blurryBackground
       onClose={null} // Prevent closing during upload
     >
-      <ModalHeader title="Téléversement en cours..." />
+      <ModalHeader title={showFolderSelection ? "Choisir le dossier de destination" : "Téléversement en cours..."} />
       <ModalBody>
         <div className="tw-px-8 tw-py-4">
           <div className="tw-mb-4">
@@ -1448,15 +1558,78 @@ export function UploadProgressModal({ isOpen, files, onClose }: UploadProgressMo
               </div>
             ))}
           </div>
+
+          {showFolderSelection && (
+            <div className="tw-mt-6 tw-pt-6 tw-border-t tw-border-gray-200">
+              <label htmlFor="folder-select" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
+                Dossier de destination
+              </label>
+              <SelectCustom
+                inputId="folder-select"
+                name="folder-select"
+                value={{
+                  value: selectedFolderId,
+                  label:
+                    selectedFolderId === "root" ? (
+                      <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-truncate">
+                        <FolderIcon className="tw-w-4 tw-h-4 tw-text-yellow-600" />
+                        <span>Racine (aucun dossier)</span>
+                      </div>
+                    ) : (
+                      <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-truncate">
+                        <FolderIcon className="tw-w-4 tw-h-4 tw-text-yellow-600" />
+                        <span>{folders.find((f) => f._id === selectedFolderId)?.name}</span>
+                      </div>
+                    ),
+                }}
+                onChange={(option: { value: string; label: React.ReactNode } | null) => onFolderChange?.(option?.value || "root")}
+                options={[
+                  {
+                    value: "root",
+                    label: (
+                      <div className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-truncate">
+                        <FolderIcon className="tw-w-4 tw-h-4 tw-text-yellow-600" />
+                        <span>Racine (aucun dossier)</span>
+                      </div>
+                    ),
+                  },
+                  ...folders.map((folder) => ({
+                    value: folder._id,
+                    label: (
+                      <div
+                        className="tw-flex tw-items-center tw-text-sm tw-gap-2 tw-truncate"
+                        style={{ paddingLeft: `${(folder.level || 0) * 20}px` }}
+                      >
+                        <FolderIcon className="tw-w-4 tw-h-4 tw-text-yellow-600" />
+                        <span>{folder.name}</span>
+                      </div>
+                    ),
+                  })),
+                ]}
+                isDisabled={isSaving}
+              />
+            </div>
+          )}
         </div>
       </ModalBody>
       <ModalFooter>
-        {isComplete && onClose && (
+        {showFolderSelection && onFolderConfirm && (
+          <button
+            type="button"
+            className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+            onClick={() => onFolderConfirm(selectedFolderId)}
+            disabled={isSaving}
+          >
+            {isSaving ? "Enregistrement..." : "Terminer"}
+          </button>
+        )}
+        {isComplete && !showFolderSelection && onClose && (
           <button type="button" className="button-submit" onClick={onClose}>
             Fermer
           </button>
         )}
-        {!isComplete && <div className="tw-text-sm tw-text-gray-500">Veuillez patienter pendant le téléversement...</div>}
+        {!isComplete && !isSaving && <div className="tw-text-sm tw-text-gray-500">Veuillez patienter pendant le téléversement...</div>}
+        {isSaving && !showFolderSelection && <div className="tw-text-sm tw-text-gray-500">Enregistrement en cours...</div>}
       </ModalFooter>
     </ModalContainer>
   );

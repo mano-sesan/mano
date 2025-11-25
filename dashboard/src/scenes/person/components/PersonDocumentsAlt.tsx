@@ -153,6 +153,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isUpdatingFolder, setIsUpdatingFolder] = useState(false);
   const [isDeletingFolder, setIsDeletingFolder] = useState(false);
+  const [isInDropzone, setIsInDropzone] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
@@ -262,6 +263,23 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const treeKey = useMemo(() => {
     return allDocuments.map((d) => d._id).join("-") + "-" + defaultExpandedItems.join("-");
   }, [allDocuments, defaultExpandedItems]);
+
+  // Build folder options for upload modal with tree structure
+  const folderOptions = useMemo(() => {
+    const buildFolderTree = (parentId: string | undefined, level: number = 0): Array<{ _id: string; name: string; level: number }> => {
+      return allDocuments
+        .filter((doc) => doc.type === "folder" && doc.parentId === parentId)
+        .flatMap((folder) => [
+          {
+            _id: folder._id,
+            name: folder.name,
+            level,
+          },
+          ...buildFolderTree(folder._id, level + 1),
+        ]);
+    };
+    return buildFolderTree(undefined, 0);
+  }, [allDocuments]);
 
   const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
     if (!person) return;
@@ -588,27 +606,81 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           key={resetFileInputKey}
           className="tw-hidden"
           onChange={async (e) => {
-            const docsResponses = await handleFilesUpload({
+            await handleFilesUpload({
               files: e.target.files,
               personId: person._id,
               user,
+              folders: folderOptions,
+              onSave: handleAddDocuments,
             });
-            if (docsResponses) {
-              await handleAddDocuments(docsResponses);
-            }
             setResetFileInputKey((k) => k + 1);
           }}
         />
       </div>
 
-      <DocumentTree
-        key={treeKey}
-        treeData={treeData}
-        onSaveOrder={handleSaveOrder}
-        expandedItems={defaultExpandedItems}
-        onDocumentClick={setDocumentToEdit}
-        onFolderEdit={setFolderToEdit}
-      />
+      <div
+        className="tw-relative"
+        onDragEnter={(e) => {
+          // Only show drop zone if files are being dragged from outside (not internal tree items)
+          if (e.dataTransfer.types.includes("Files")) {
+            e.preventDefault();
+            if (!isInDropzone) setIsInDropzone(true);
+          }
+        }}
+        onDragOver={(e) => {
+          // Only prevent default if files are being dragged from outside
+          if (e.dataTransfer.types.includes("Files")) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <DocumentTree
+          key={treeKey}
+          treeData={treeData}
+          onSaveOrder={handleSaveOrder}
+          expandedItems={defaultExpandedItems}
+          onDocumentClick={setDocumentToEdit}
+          onFolderEdit={setFolderToEdit}
+        />
+
+        {isInDropzone && (
+          <div
+            className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
+            onDragOver={(e) => {
+              if (e.dataTransfer.types.includes("Files")) {
+                e.preventDefault();
+              }
+            }}
+            onDragLeave={(e) => {
+              // Only hide if we're leaving the drop zone itself (not entering a child element)
+              if (e.currentTarget === e.target) {
+                setIsInDropzone(false);
+              }
+            }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsInDropzone(false);
+
+              // Only process if files are present
+              if (e.dataTransfer.files.length > 0) {
+                await handleFilesUpload({
+                  files: e.dataTransfer.files,
+                  personId: person._id,
+                  user,
+                  folders: folderOptions,
+                  onSave: handleAddDocuments,
+                });
+              }
+            }}
+          >
+            <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
+              <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
+              <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {showCreateFolderModal && (
         <ModalContainer open onClose={() => setShowCreateFolderModal(false)}>
