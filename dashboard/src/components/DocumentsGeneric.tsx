@@ -21,6 +21,7 @@ import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import { capture } from "../services/sentry";
 import SelectCustom from "./SelectCustom";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 // Upload progress state
 interface UploadProgress {
@@ -1141,6 +1142,8 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
 
   const contentType = document.file.mimetype;
 
+  const isLinkedToOtherPerson = !!document.group && personId !== document.linkedItem._id;
+
   return (
     <ModalContainer open className="[overflow-wrap:anywhere]" size="prose">
       <ModalHeader title={name} />
@@ -1230,6 +1233,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                 <label htmlFor="document-for-group">
                   <input
                     type="checkbox"
+                    disabled={isLinkedToOtherPerson}
                     className="tw-mr-2"
                     id="document-for-group"
                     name="group"
@@ -1245,10 +1249,17 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                   <br />
                   <small className="tw-block tw-text-gray-500">Ce document sera visible pour toute la famille</small>
                 </label>
-                {!!document.group && personId !== document.linkedItem._id && (
-                  <small className="tw-block tw-text-gray-500">
-                    Note: Ce document est lié à <PersonName item={{ person: document.linkedItem._id }} />
-                  </small>
+                {isLinkedToOtherPerson && (
+                  <div className="tw-rounded tw-border tw-mt-4 tw-border-orange-50 tw-mb-2 tw-bg-amber-100 tw-px-5 tw-py-3 tw-text-orange-900 tw-flex tw-items-center tw-gap-2 tw-text-sm">
+                    <InformationCircleIcon className="tw-w-4 tw-h-4" />
+                    <div>
+                      Ce document est lié à{" "}
+                      <b>
+                        <PersonName item={{ person: document.linkedItem._id }} />
+                      </b>
+                      , vous dever allez sur sa fiche pour le modifier.
+                    </div>
+                  </div>
                 )}
               </div>
             )
@@ -1315,7 +1326,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
         <button
           type="button"
           className="button-destructive"
-          disabled={isUpdating}
+          disabled={isUpdating || isLinkedToOtherPerson}
           onClick={async () => {
             if (!window.confirm("Voulez-vous vraiment supprimer ce document ?")) return;
             const ok = await onDelete(document);
@@ -1334,7 +1345,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             title="Modifier le nom de ce document"
             type="button"
             className={`button-submit !tw-bg-${color}`}
-            disabled={isUpdating}
+            disabled={isUpdating || isLinkedToOtherPerson}
             onClick={(e) => {
               e.preventDefault();
               setIsEditing(true);

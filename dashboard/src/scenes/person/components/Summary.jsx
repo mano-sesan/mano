@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState, organisationState } from "../../../recoil/auth";
 import { Actions } from "./ActionsPerson";
@@ -11,11 +12,13 @@ import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
 import PersonDocumentsAlt from "./PersonDocumentsAlt";
+import PersonDocuments from "./PersonDocuments";
 
 export default function Summary({ person }) {
   const user = useRecoilValue(userState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
   const organisation = useRecoilValue(organisationState);
+  const [useNewDocumentSystem, setUseNewDocumentSystem] = useState(true);
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
@@ -46,8 +49,19 @@ export default function Summary({ person }) {
                   <PassagesRencontres person={person} />
                 </div>
               )}
-              <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-                <PersonDocumentsAlt person={person} />
+              <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
+                {useNewDocumentSystem ? <PersonDocumentsAlt person={person} /> : <PersonDocuments person={person} />}
+              </div>
+              {/* Toggle button for testing */}
+              <div className="tw-flex tw-justify-end tw-pr-4">
+                <button
+                  type="button"
+                  onClick={() => setUseNewDocumentSystem(!useNewDocumentSystem)}
+                  className="button-classic"
+                  title={useNewDocumentSystem ? "Afficher l'ancien système" : "Afficher le nouveau système"}
+                >
+                  {useNewDocumentSystem ? "Afficher l'ancien système" : "Afficher le nouveau système"}
+                </button>
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import {
   PencilSquareIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
+import { UsersIcon } from "@heroicons/react/16/solid";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -27,6 +28,7 @@ import cn from "classnames";
 import { handleFilesUpload, DocumentModal } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
+import { groupsState } from "../../../recoil/groups";
 
 interface PersonDocumentsAltProps {
   person: PersonPopulated;
@@ -41,12 +43,14 @@ function DocumentTree({
   expandedItems,
   onDocumentClick,
   onFolderEdit,
+  currentPersonId,
 }: {
   treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
   onSaveOrder: (itemId: string, newChildren: string[]) => void;
   expandedItems: string[];
   onDocumentClick: (document: DocumentWithLinkedItem) => void;
   onFolderEdit: (folder: FolderWithLinkedItem) => void;
+  currentPersonId: string;
 }) {
   const syncDataLoader = {
     getItem: (id: string) => treeData[id],
@@ -60,7 +64,18 @@ function DocumentTree({
     rootItemId: "root",
     getItemName: (item) => item.getItemData().name,
     isItemFolder: (item) => item.getItemData().type === "folder",
-    canDrag: (items) => items.every((item) => item.getItemData().movable !== false),
+    canDrag: (items) =>
+      items.every((item) => {
+        const data = item.getItemData();
+        // Can't drag if explicitly not movable
+        if (data.movable === false) return false;
+        // Can't drag documents that belong to other persons in the group
+        if (data.type === "document") {
+          const doc = data as DocumentWithLinkedItem;
+          if (doc.linkedItem && doc.linkedItem._id !== currentPersonId) return false;
+        }
+        return true;
+      }),
     canReorder: true,
     onDrop: createOnDropHandler((item, newChildren) => {
       onSaveOrder(item.getId(), newChildren);
@@ -79,6 +94,11 @@ function DocumentTree({
         const isFolder = itemData.type === "folder";
         const level = item.getItemMeta().level;
         const isDraggingOver = (item.isDraggingOver?.() && item.isUnorderedDragTarget?.()) || false;
+
+        // Check if document is from another person in the group
+        const isFromOtherPerson =
+          !isFolder && (itemData as DocumentWithLinkedItem).linkedItem && (itemData as DocumentWithLinkedItem).linkedItem._id !== currentPersonId;
+        const isGroupDocument = !isFolder && (itemData as DocumentWithLinkedItem).group;
 
         return (
           <div
@@ -121,7 +141,13 @@ function DocumentTree({
             {/* Name */}
             <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
               <span>{itemData.name}</span>
-              {itemData.movable === false && <LockClosedIcon className="tw-w-3 tw-h-3 tw-text-gray-700" title="Ne peut pas être déplacé" />}
+              {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
+              {(itemData.movable === false || isFromOtherPerson) && (
+                <LockClosedIcon
+                  className="tw-w-3 tw-h-3 tw-text-gray-700"
+                  title={isFromOtherPerson ? "Document d'un autre membre de la famille" : "Ne peut pas être déplacé"}
+                />
+              )}
             </span>
 
             {/* Edit button for folders (only visible on hover and if movable) */}
@@ -168,6 +194,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
+  const groups = useRecoilValue(groupsState);
 
   // Build default folders and all documents
   const allDocuments = useMemo(() => {
@@ -298,6 +325,13 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     };
     return buildFolderTree(undefined, 0);
   }, [allDocuments]);
+
+  const canToggleGroupCheck = useMemo(() => {
+    if (!organisation.groupsEnabled) return false;
+    const group = groups.find((group) => (group.persons || []).includes(person._id));
+    if (!group) return false;
+    return true;
+  }, [groups, person._id, organisation.groupsEnabled]);
 
   const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
     if (!person) return;
@@ -659,6 +693,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           expandedItems={defaultExpandedItems}
           onDocumentClick={setDocumentToEdit}
           onFolderEdit={setFolderToEdit}
+          currentPersonId={person._id}
         />
 
         {isInDropzone && (
@@ -749,6 +784,12 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           personId={person._id}
           onClose={() => setDocumentToEdit(null)}
           onDelete={async (document) => {
+            // Prevent deletion of documents from other persons in the group
+            if (document.linkedItem && document.linkedItem._id !== person._id) {
+              toast.error("Vous pouvez supprimer ce document uniquement depuis la personne initiale de ce document familial");
+              return false;
+            }
+
             // Delete the document from the API
             const [documentError] = await tryFetchExpectOk(async () => {
               return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
@@ -813,7 +854,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             await refresh();
             toast.success("Document mis à jour");
           }}
-          canToggleGroupCheck={false}
+          canToggleGroupCheck={canToggleGroupCheck}
           showAssociatedItem={false}
           color="main"
         />
