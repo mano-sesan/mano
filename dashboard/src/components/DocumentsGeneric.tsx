@@ -1118,6 +1118,8 @@ interface DocumentModalProps<T extends DocumentWithLinkedItem> {
   canToggleGroupCheck: boolean;
   showAssociatedItem: boolean;
   color: string;
+  externalIsUpdating?: boolean;
+  externalIsDeleting?: boolean;
 }
 
 export function DocumentModal<T extends DocumentWithLinkedItem>({
@@ -1129,16 +1131,22 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   showAssociatedItem,
   canToggleGroupCheck,
   color,
+  externalIsUpdating,
+  externalIsDeleting,
 }: DocumentModalProps<T>) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
   const location = useLocation();
   const initialName = useMemo(() => document.name, [document.name]);
   const [name, setName] = useState(initialName);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [internalIsUpdating, setInternalIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const canSave = useMemo(() => isEditing && name !== initialName, [name, initialName, isEditing]);
   const history = useHistory();
+
+  // Use external loading states if provided, otherwise use internal state
+  const isUpdating = externalIsUpdating !== undefined ? externalIsUpdating : internalIsUpdating;
+  const isDeleting = externalIsDeleting !== undefined ? externalIsDeleting : false;
 
   const contentType = document.file.mimetype;
 
@@ -1155,9 +1163,9 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                setIsUpdating(true);
+                if (externalIsUpdating === undefined) setInternalIsUpdating(true);
                 await onSubmit({ ...document, name });
-                setIsUpdating(false);
+                if (externalIsUpdating === undefined) setInternalIsUpdating(false);
                 setIsEditing(false);
               }}
             >
@@ -1240,8 +1248,9 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                     defaultChecked={document.group}
                     value={document?.group ? "true" : "false"}
                     onChange={async () => {
+                      if (externalIsUpdating === undefined) setInternalIsUpdating(true);
                       await onSubmit({ ...document, group: !document.group });
-                      setIsUpdating(false);
+                      if (externalIsUpdating === undefined) setInternalIsUpdating(false);
                       setIsEditing(false);
                     }}
                   />
@@ -1316,7 +1325,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
           type="button"
           name="cancel"
           className="button-cancel"
-          disabled={isUpdating}
+          disabled={isUpdating || isDeleting}
           onClick={() => {
             onClose();
           }}
@@ -1326,18 +1335,24 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
         <button
           type="button"
           className="button-destructive"
-          disabled={isUpdating || isLinkedToOtherPerson}
+          disabled={isUpdating || isDeleting || isLinkedToOtherPerson}
           onClick={async () => {
             if (!window.confirm("Voulez-vous vraiment supprimer ce document ?")) return;
             const ok = await onDelete(document);
             if (ok) onClose();
           }}
         >
-          Supprimer
+          {isDeleting ? "Suppression..." : "Supprimer"}
         </button>
         {(isEditing || canSave) && (
-          <button title="Sauvegarder ce document" type="submit" className={`button-submit !tw-bg-${color}`} form="edit-document-form">
-            Sauvegarder
+          <button
+            title="Sauvegarder ce document"
+            type="submit"
+            className={`button-submit !tw-bg-${color}`}
+            form="edit-document-form"
+            disabled={isUpdating || isDeleting}
+          >
+            {isUpdating ? "Enregistrement..." : "Sauvegarder"}
           </button>
         )}
         {!isEditing && (
@@ -1345,7 +1360,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             title="Modifier le nom de ce document"
             type="button"
             className={`button-submit !tw-bg-${color}`}
-            disabled={isUpdating || isLinkedToOtherPerson}
+            disabled={isUpdating || isDeleting || isLinkedToOtherPerson}
             onClick={(e) => {
               e.preventDefault();
               setIsEditing(true);
