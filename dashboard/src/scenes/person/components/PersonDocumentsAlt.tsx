@@ -194,6 +194,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
+  const [isUpdatingDocument, setIsUpdatingDocument] = useState(false);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const groups = useRecoilValue(groupsState);
 
   // Build default folders and all documents
@@ -790,12 +792,15 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
               return false;
             }
 
+            setIsDeletingDocument(true);
+
             // Delete the document from the API
             const [documentError] = await tryFetchExpectOk(async () => {
               return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
             });
             if (documentError) {
               toast.error("Erreur lors de la suppression du document");
+              setIsDeletingDocument(false);
               return false;
             }
 
@@ -803,6 +808,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             const freshPerson = await loadFreshPersonData(person._id);
             if (!freshPerson) {
               toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+              setIsDeletingDocument(false);
               return false;
             }
 
@@ -818,19 +824,24 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             });
             if (personError) {
               toast.error("Erreur lors de la suppression du document");
+              setIsDeletingDocument(false);
               return false;
             }
 
-            setDocumentToEdit(null);
             await refresh();
+            setIsDeletingDocument(false);
+            setDocumentToEdit(null);
             toast.success("Document supprimé");
             return true;
           }}
           onSubmit={async (documentOrFolder) => {
+            setIsUpdatingDocument(true);
+
             // Load fresh person data
             const freshPerson = await loadFreshPersonData(person._id);
             if (!freshPerson) {
               toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+              setIsUpdatingDocument(false);
               return;
             }
 
@@ -848,15 +859,20 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             });
             if (personError) {
               toast.error("Erreur lors de la mise à jour du document");
+              setIsUpdatingDocument(false);
               return;
             }
-            setDocumentToEdit(null);
+
             await refresh();
+            setIsUpdatingDocument(false);
+            setDocumentToEdit(null);
             toast.success("Document mis à jour");
           }}
           canToggleGroupCheck={canToggleGroupCheck}
           showAssociatedItem={false}
           color="main"
+          externalIsUpdating={isUpdatingDocument}
+          externalIsDeleting={isDeletingDocument}
         />
       )}
 
