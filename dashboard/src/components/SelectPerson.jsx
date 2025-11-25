@@ -2,6 +2,7 @@ import { useHistory } from "react-router-dom";
 import { selector, useRecoilValue } from "recoil";
 import { personsState, sortPersons } from "../recoil/persons";
 import SelectCustom from "./SelectCustom";
+import { formatDateWithFullMonth } from "../services/date";
 
 const sortedPersonsByNameSelector = selector({
   key: "sortedPersonsByNameSelector",
@@ -50,21 +51,28 @@ const SelectPerson = ({
         getOptionLabel={(i) => (i?.otherNames ? `${i?.name} ${i?.otherNames}` : i?.name)}
         formatOptionLabel={(i, options) => {
           return (
-            <div className="tw-flex tw-items-center">
-              {i?.name}
-              {Boolean(i?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{i?.otherNames}</span>}
-              {!disableAccessToPerson && options.context !== "menu" && (
-                <button
-                  type="button"
-                  className="tw-ml-2 tw-font-semibold tw-text-sm tw-text-main tw-z-50"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    history.push(`/person/${i._id}`);
-                  }}
-                >
-                  Accéder au dossier
-                </button>
+            <div className={i?.outOfActiveList ? "tw-flex tw-flex-col" : "tw-flex tw-items-center"}>
+              <div className={`tw-flex tw-items-center ${i?.outOfActiveList ? "tw-text-black50" : ""}`}>
+                {i?.name}
+                {Boolean(i?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{i?.otherNames}</span>}
+                {!disableAccessToPerson && options.context !== "menu" && (
+                  <button
+                    type="button"
+                    className="tw-ml-2 tw-font-semibold tw-text-sm tw-text-main tw-z-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      history.push(`/person/${i._id}`);
+                    }}
+                  >
+                    Accéder au dossier
+                  </button>
+                )}
+              </div>
+              {i?.outOfActiveList && (
+                <div className="tw-text-xs tw-text-black50">
+                  Sortie de file active{i?.outOfActiveListDate && ` - ${formatDateWithFullMonth(i.outOfActiveListDate)}`}
+                </div>
               )}
             </div>
           );
