@@ -2,8 +2,16 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon, PencilSquareIcon, PhotoIcon } from "@heroicons/react/24/outline";
-import { FolderPlusIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
+import {
+  FolderPlusIcon,
+  DocumentPlusIcon,
+  LockClosedIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  DocumentIcon,
+  PencilSquareIcon,
+  PhotoIcon,
+} from "@heroicons/react/24/outline";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -78,8 +86,8 @@ function DocumentTree({
             {...item.getProps()}
             style={{ paddingLeft: `${level * 20}px` }}
             className={cn("hover:tw-text-main tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-group", {
-              "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
-              "tw-bg-main/50": isDraggingOver && isFolder,
+              // "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
+              "tw-bg-main50": isDraggingOver && isFolder,
             })}
             onClick={(e) => {
               // Only handle click on documents, not folders
@@ -113,7 +121,7 @@ function DocumentTree({
             {/* Name */}
             <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
               <span>{itemData.name}</span>
-              {itemData.movable === false && <LockClosedIcon className="tw-w-3 tw-h-3 tw-text-gray-400" title="Ne peut pas être déplacé" />}
+              {itemData.movable === false && <LockClosedIcon className="tw-w-3 tw-h-3 tw-text-gray-700" title="Ne peut pas être déplacé" />}
             </span>
 
             {/* Edit button for folders (only visible on hover and if movable) */}
@@ -134,7 +142,7 @@ function DocumentTree({
         );
       })}
       <div
-        className="tw-bg-main"
+        className="tw-bg-main75"
         style={{
           ...tree.getDragLineStyle(),
           height: "3px",
@@ -271,7 +279,14 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const folderOptions = useMemo(() => {
     const buildFolderTree = (parentId: string | undefined, level: number = 0): Array<{ _id: string; name: string; level: number }> => {
       return allDocuments
-        .filter((doc) => doc.type === "folder" && doc.parentId === parentId)
+        .filter((doc) => {
+          if (doc.type !== "folder") return false;
+          // At root level, include folders with parentId === undefined OR "root"
+          if (parentId === undefined) {
+            return doc.parentId === undefined || doc.parentId === "root";
+          }
+          return doc.parentId === parentId;
+        })
         .flatMap((folder) => [
           {
             _id: folder._id,
@@ -581,9 +596,9 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   };
 
   return (
-    <div className="tw-p-4">
-      <div className="tw-flex tw-justify-between tw-items-center">
-        <h3 className="tw-text-xl tw-mb-4">Documents</h3>
+    <div>
+      <div className="tw-flex tw-justify-between tw-items-center tw-border-b tw-border-main25 tw-py-2 tw-px-4">
+        <h3 className="tw-text-xl tw-mb-0">Documents</h3>
         <div className="tw-flex tw-gap-2">
           <button
             type="button"
@@ -622,7 +637,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       </div>
 
       <div
-        className="tw-relative"
+        className="tw-relative tw-p-4"
         onDragEnter={(e) => {
           // Only show drop zone if files are being dragged from outside (not internal tree items)
           if (e.dataTransfer.types.includes("Files")) {
