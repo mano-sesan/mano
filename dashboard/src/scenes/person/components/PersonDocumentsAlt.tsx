@@ -77,7 +77,7 @@ function DocumentTree({
             key={item.getId()}
             {...item.getProps()}
             style={{ paddingLeft: `${level * 20}px` }}
-            className={cn("tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-group", {
+            className={cn("hover:tw-text-main tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-group", {
               "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
               "tw-bg-main/50": isDraggingOver && isFolder,
             })}
@@ -99,12 +99,12 @@ function DocumentTree({
             {/* Icon */}
             {isFolder ? (
               item.isExpanded() ? (
-                <FolderOpenIcon className="tw-w-5 tw-h-5 tw-text-yellow-600" />
+                <FolderOpenIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600" />
               ) : (
-                <FolderIcon className="tw-w-5 tw-h-5 tw-text-yellow-600/60" />
+                <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
               )
             ) : (
-              <DocumentIcon className="tw-w-5 tw-h-5 tw-text-gray-600" />
+              <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
             )}
 
             {/* Name */}
