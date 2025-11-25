@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
+import { FolderPlusIcon, DocumentPlusIcon, FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -84,11 +85,21 @@ function DocumentTree({
               if (!isFolder) {
                 e.stopPropagation();
                 onDocumentClick(itemData as DocumentWithLinkedItem);
+              } else {
+                e.stopPropagation();
+                const itemId = item.getId();
+                if (item.isExpanded()) {
+                  item.collapse();
+                  onExpandedItemsChange(expandedItems.filter((id) => id !== itemId));
+                } else {
+                  item.expand();
+                  onExpandedItemsChange([...expandedItems, itemId]);
+                }
               }
             }}
           >
             {/* Expand/collapse button for folders */}
-            {isFolder && (
+            {/* isFolder && (
               <button
                 type="button"
                 onClick={(e) => {
@@ -106,28 +117,32 @@ function DocumentTree({
               >
                 {item.isExpanded() ? "▼" : "►"}
               </button>
-            )}
-            {!isFolder && <span className="tw-w-4" />}
+            ) */}
+            {/* {!isFolder && <span className="tw-w-4" />} */}
 
             {/* Icon */}
-            <span className="tw-text-lg">{isFolder ? (item.isExpanded() ? "📂" : "📁") : "📃"}</span>
+            {isFolder ? (
+              item.isExpanded() ? (
+                <FolderOpenIcon className="tw-w-5 tw-h-5 tw-text-yellow-600" />
+              ) : (
+                <FolderIcon className="tw-w-5 tw-h-5 tw-text-yellow-600/60" />
+              )
+            ) : (
+              <DocumentIcon className="tw-w-5 tw-h-5 tw-text-gray-600" />
+            )}
 
             {/* Name */}
-            <span className="tw-flex-1 tw-truncate">
-              {itemData.name}
-              {itemData.movable === false && (
-                <span className="tw-text-gray-400" title="Ne peut pas être déplacé">
-                  🔒
-                </span>
-              )}
+            <span className="tw-flex-1 tw-truncate tw-flex tw-items-center tw-gap-1">
+              <span>{itemData.name}</span>
+              {itemData.movable === false && <LockClosedIcon className="tw-w-3 tw-h-3 tw-text-gray-400" title="Ne peut pas être déplacé" />}
             </span>
           </div>
         );
       })}
       <div
+        className="tw-bg-main"
         style={{
           ...tree.getDragLineStyle(),
-          background: "black",
           height: "3px",
         }}
       />
@@ -386,8 +401,10 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       }
 
       console.log(`=== handleSaveOrder SUCCESS [${callId}] ===`);
+
+      // Wait for refresh to complete before showing success message
+      await refresh();
       toast.success("Documents mis à jour");
-      refresh();
     }, 100); // Wait 100ms to see if more drops come in
   };
 
@@ -432,9 +449,13 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       toast.error("Erreur lors de la création du document, vous pouvez contactez le support");
       return;
     }
+
+    // Wait for refresh to complete before showing success message
+    await refresh();
+
+    // Show success toast after data is refreshed and visible
     if (newDocuments.filter((d) => d.type === "document").length > 1) toast.success("Documents enregistrés !");
     if (newDocuments.filter((d) => d.type === "folder").length > 0) toast.success("Dossier créé !");
-    refresh();
   };
 
   const handleCreateFolder = async () => {
@@ -468,17 +489,19 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         <div className="tw-flex tw-gap-2">
           <button
             type="button"
-            className="tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
+            className="tw-flex tw-items-center tw-gap-1 tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
             onClick={() => setShowCreateFolderModal(true)}
           >
-            📁 Créer un dossier
+            <FolderPlusIcon className="tw-w-4 tw-h-4" />
+            Créer un dossier
           </button>
           <button
             type="button"
-            className="tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
+            className="tw-flex tw-items-center tw-gap-1 tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
             onClick={() => fileInputRef.current?.click()}
           >
-            + Ajouter un document
+            <DocumentPlusIcon className="tw-w-4 tw-h-4" />
+            Ajouter un document
           </button>
         </div>
         <input
@@ -595,9 +618,9 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
               return false;
             }
 
-            toast.success("Document supprimé");
             setDocumentToEdit(null);
-            refresh();
+            await refresh();
+            toast.success("Document supprimé");
             return true;
           }}
           onSubmit={async (documentOrFolder) => {
@@ -624,9 +647,9 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
               toast.error("Erreur lors de la mise à jour du document");
               return;
             }
-            toast.success("Document mis à jour");
             setDocumentToEdit(null);
-            refresh();
+            await refresh();
+            toast.success("Document mis à jour");
           }}
           canToggleGroupCheck={false}
           showAssociatedItem={false}
