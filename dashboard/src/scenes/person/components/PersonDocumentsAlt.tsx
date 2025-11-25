@@ -2,7 +2,8 @@ import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { FolderPlusIcon, DocumentPlusIcon, FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { FolderIcon, FolderOpenIcon, DocumentIcon, LockClosedIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import { FolderPlusIcon, DocumentPlusIcon } from "@heroicons/react/24/outline";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -30,14 +31,14 @@ function DocumentTree({
   treeData,
   onSaveOrder,
   expandedItems,
-  onExpandedItemsChange,
   onDocumentClick,
+  onFolderEdit,
 }: {
   treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
   onSaveOrder: (itemId: string, newChildren: string[]) => void;
   expandedItems: string[];
-  onExpandedItemsChange: (items: string[]) => void;
   onDocumentClick: (document: DocumentWithLinkedItem) => void;
+  onFolderEdit: (folder: FolderWithLinkedItem) => void;
 }) {
   const syncDataLoader = {
     getItem: (id: string) => treeData[id],
@@ -76,7 +77,7 @@ function DocumentTree({
             key={item.getId()}
             {...item.getProps()}
             style={{ paddingLeft: `${level * 20}px` }}
-            className={cn("tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer", {
+            className={cn("tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-group", {
               "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
               "tw-bg-main/50": isDraggingOver && isFolder,
             })}
@@ -87,39 +88,14 @@ function DocumentTree({
                 onDocumentClick(itemData as DocumentWithLinkedItem);
               } else {
                 e.stopPropagation();
-                const itemId = item.getId();
                 if (item.isExpanded()) {
                   item.collapse();
-                  onExpandedItemsChange(expandedItems.filter((id) => id !== itemId));
                 } else {
                   item.expand();
-                  onExpandedItemsChange([...expandedItems, itemId]);
                 }
               }
             }}
           >
-            {/* Expand/collapse button for folders */}
-            {/* isFolder && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const itemId = item.getId();
-                  if (item.isExpanded()) {
-                    item.collapse();
-                    onExpandedItemsChange(expandedItems.filter((id) => id !== itemId));
-                  } else {
-                    item.expand();
-                    onExpandedItemsChange([...expandedItems, itemId]);
-                  }
-                }}
-                className="tw-w-4 tw-text-gray-600"
-              >
-                {item.isExpanded() ? "▼" : "►"}
-              </button>
-            ) */}
-            {/* {!isFolder && <span className="tw-w-4" />} */}
-
             {/* Icon */}
             {isFolder ? (
               item.isExpanded() ? (
@@ -132,10 +108,25 @@ function DocumentTree({
             )}
 
             {/* Name */}
-            <span className="tw-flex-1 tw-truncate tw-flex tw-items-center tw-gap-1">
+            <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
               <span>{itemData.name}</span>
               {itemData.movable === false && <LockClosedIcon className="tw-w-3 tw-h-3 tw-text-gray-400" title="Ne peut pas être déplacé" />}
             </span>
+
+            {/* Edit button for folders (only visible on hover and if movable) */}
+            {isFolder && itemData.movable !== false && (
+              <button
+                type="button"
+                className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onFolderEdit(itemData as FolderWithLinkedItem);
+                }}
+                title="Éditer le dossier"
+              >
+                <PencilSquareIcon className="tw-w-4 tw-h-4 tw-text-gray-600" />
+              </button>
+            )}
           </div>
         );
       })}
@@ -160,9 +151,11 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isUpdatingFolder, setIsUpdatingFolder] = useState(false);
+  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [expandedItems, setExpandedItems] = useState<string[]>(["root"]);
   const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
+  const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
 
   // Build default folders and all documents
   const allDocuments = useMemo(() => {
@@ -254,10 +247,21 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allDocuments, person?._id]);
 
+  // Calculate which folders should be expanded - all non-empty folders
+  const defaultExpandedItems = useMemo(() => {
+    const expanded = ["root"];
+    Object.entries(treeData).forEach(([id, item]) => {
+      if (item.type === "folder" && item.children && item.children.length > 0) {
+        expanded.push(id);
+      }
+    });
+    return expanded;
+  }, [treeData]);
+
   // Create a key that changes when documents change to force tree re-render
   const treeKey = useMemo(() => {
-    return allDocuments.map((d) => d._id).join("-");
-  }, [allDocuments]);
+    return allDocuments.map((d) => d._id).join("-") + "-" + defaultExpandedItems.join("-");
+  }, [allDocuments, defaultExpandedItems]);
 
   const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
     if (!person) return;
@@ -482,6 +486,79 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     setIsCreatingFolder(false);
   };
 
+  const handleUpdateFolder = async (folder: FolderWithLinkedItem, newName: string) => {
+    setIsUpdatingFolder(true);
+
+    // Load fresh person data
+    const freshPerson = await loadFreshPersonData(person._id);
+    if (!freshPerson) {
+      toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+      setIsUpdatingFolder(false);
+      return;
+    }
+
+    const [personError] = await tryFetchExpectOk(async () => {
+      return API.put({
+        path: `/person/${person._id}`,
+        body: await encryptPerson({
+          ...freshPerson,
+          documents: (freshPerson.documents || []).map((d) => {
+            if (d._id === folder._id) return { ...d, name: newName };
+            return d;
+          }),
+        }),
+      });
+    });
+    if (personError) {
+      toast.error("Erreur lors de la mise à jour du dossier");
+      setIsUpdatingFolder(false);
+      return;
+    }
+
+    await refresh();
+    setIsUpdatingFolder(false);
+    setFolderToEdit(null);
+    toast.success("Dossier mis à jour");
+  };
+
+  const handleDeleteFolder = async (folder: FolderWithLinkedItem) => {
+    setIsDeletingFolder(true);
+
+    // Load fresh person data to prevent race conditions
+    const freshPerson = await loadFreshPersonData(person._id);
+    if (!freshPerson) {
+      toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+      setIsDeletingFolder(false);
+      return;
+    }
+
+    const [personError] = await tryFetchExpectOk(async () => {
+      return API.put({
+        path: `/person/${person._id}`,
+        body: await encryptPerson({
+          ...freshPerson,
+          documents: (freshPerson.documents || [])
+            .filter((f) => f._id !== folder._id)
+            .map((item) => {
+              // Move children to root
+              if (item.parentId === folder._id) return { ...item, parentId: undefined };
+              return item;
+            }),
+        }),
+      });
+    });
+    if (personError) {
+      toast.error("Erreur lors de la suppression du dossier");
+      setIsDeletingFolder(false);
+      return;
+    }
+
+    await refresh();
+    setIsDeletingFolder(false);
+    setFolderToEdit(null);
+    toast.success("Dossier supprimé");
+  };
+
   return (
     <div className="tw-p-4">
       <div className="tw-flex tw-justify-between tw-items-center">
@@ -489,19 +566,19 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         <div className="tw-flex tw-gap-2">
           <button
             type="button"
-            className="tw-flex tw-items-center tw-gap-1 tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
+            aria-label="Créer un dossier"
+            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
             onClick={() => setShowCreateFolderModal(true)}
           >
-            <FolderPlusIcon className="tw-w-4 tw-h-4" />
-            Créer un dossier
+            <FolderPlusIcon className="tw-w-5 tw-h-5" />
           </button>
           <button
             type="button"
-            className="tw-flex tw-items-center tw-gap-1 tw-text-sm tw-text-blue-600 hover:tw-text-blue-800 tw-font-medium"
+            aria-label="Ajouter un document"
+            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
             onClick={() => fileInputRef.current?.click()}
           >
-            <DocumentPlusIcon className="tw-w-4 tw-h-4" />
-            Ajouter un document
+            <DocumentPlusIcon className="tw-w-5 tw-h-5" />
           </button>
         </div>
         <input
@@ -528,9 +605,9 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         key={treeKey}
         treeData={treeData}
         onSaveOrder={handleSaveOrder}
-        expandedItems={expandedItems}
-        onExpandedItemsChange={setExpandedItems}
+        expandedItems={defaultExpandedItems}
         onDocumentClick={setDocumentToEdit}
+        onFolderEdit={setFolderToEdit}
       />
 
       {showCreateFolderModal && (
@@ -655,6 +732,72 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           showAssociatedItem={false}
           color="main"
         />
+      )}
+
+      {folderToEdit && (
+        <ModalContainer open onClose={() => setFolderToEdit(null)}>
+          <ModalHeader title="Éditer le dossier" />
+          <ModalBody>
+            <div className="tw-p-4">
+              <label htmlFor="edit-folder-name" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
+                Nom du dossier
+              </label>
+              <input
+                id="edit-folder-name"
+                type="text"
+                className="tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 focus:tw-border-blue-500 focus:tw-outline-none disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+                defaultValue={folderToEdit.name}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isUpdatingFolder && !isDeletingFolder) {
+                    const newName = (e.target as HTMLInputElement).value.trim();
+                    if (newName) {
+                      handleUpdateFolder(folderToEdit, newName);
+                    }
+                  }
+                }}
+                disabled={isUpdatingFolder || isDeletingFolder}
+                autoFocus
+                placeholder="Nom du dossier"
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <button
+              type="button"
+              className="tw-rounded tw-bg-gray-200 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-gray-700 hover:tw-bg-gray-300 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+              onClick={() => setFolderToEdit(null)}
+              disabled={isUpdatingFolder || isDeletingFolder}
+            >
+              Annuler
+            </button>
+            <button
+              type="button"
+              className="tw-rounded tw-bg-red-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-red-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+              onClick={async () => {
+                if (window.confirm("Voulez-vous vraiment supprimer ce dossier ?")) {
+                  await handleDeleteFolder(folderToEdit);
+                }
+              }}
+              disabled={isUpdatingFolder || isDeletingFolder}
+            >
+              {isDeletingFolder ? "Suppression..." : "Supprimer"}
+            </button>
+            <button
+              type="button"
+              className="tw-rounded tw-bg-blue-600 tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white hover:tw-bg-blue-700 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
+              onClick={() => {
+                const input = document.getElementById("edit-folder-name") as HTMLInputElement;
+                const newName = input?.value.trim();
+                if (newName) {
+                  handleUpdateFolder(folderToEdit, newName);
+                }
+              }}
+              disabled={isUpdatingFolder || isDeletingFolder}
+            >
+              {isUpdatingFolder ? "Enregistrement..." : "Enregistrer"}
+            </button>
+          </ModalFooter>
+        </ModalContainer>
       )}
     </div>
   );
