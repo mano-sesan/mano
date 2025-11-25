@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useRecoilValue } from "recoil";
 import { userState, organisationState } from "../../../recoil/auth";
 import { Actions } from "./ActionsPerson";
@@ -20,7 +19,8 @@ export default function Summary({ person }) {
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
   const organisation = useRecoilValue(organisationState);
 
-  const useNewDocumentSystem = organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development";
+  const useNewDocumentSystem =
+    (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
