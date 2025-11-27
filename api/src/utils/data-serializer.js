@@ -68,8 +68,8 @@ function serializeOrganisation(organisation) {
 
     /* services settings */
     groupedServices: organisation.groupedServices || [],
-    // For backwards compatibility with old frontend versions, we still send a flattened services array
-    // Should be removed after one week starting from 2025-11-20
+    // On doit le garder jusqu'à ce que l'app soit release et installée par tout le monde.
+    // À virer dans 6 mois, donc à partir de juin 2026.
     services: (organisation.groupedServices || []).reduce((flattenedServices, group) => [...flattenedServices, ...group.services], []),
 
     /* collaborations */
