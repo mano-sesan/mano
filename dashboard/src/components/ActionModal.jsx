@@ -525,9 +525,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                 ? [`Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`]
                 : []),
               ...(!["restricted-access"].includes(user.role) && !isNewAction ? ["Historique"] : []),
-              ...(!DISABLED_FEATURES["action-recurrentes"] && action.recurrence && action.recurrenceData.timeUnit
-                ? ["Voir toutes les occurrences"]
-                : []),
+              ...(action.recurrence && action.recurrenceData.timeUnit ? ["Voir toutes les occurrences"] : []),
             ]}
             onClick={(tab) => {
               if (tab.includes("Informations")) setActiveTab("Informations");
@@ -784,7 +782,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                       <CustomFieldDisplay value={action.completedAt} type="date-with-time" />
                     )}
                   </div>
-                  {!DISABLED_FEATURES["action-recurrentes"] && !isEditing && action.recurrence && action.recurrenceData.timeUnit && (
+                  {!isEditing && action.recurrence && action.recurrenceData.timeUnit && (
                     <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
                       <div className="tw-flex tw-items-center tw-text-sm">
                         <RepeatIcon className="tw-size-6 tw-mr-4 tw-text-main" />
@@ -799,34 +797,33 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                       </div>
                     </div>
                   )}
-                  {!DISABLED_FEATURES["action-recurrentes"] &&
-                    (isNewAction || (action.recurrence && action.recurrenceData.timeUnit && modalAction.isEditingAllNextOccurences)) && (
-                      <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
-                        <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
-                          <input
-                            type="checkbox"
-                            id="create-action-recurrent"
-                            className="tw-mr-2"
-                            name="recurrent"
-                            checked={action.isRecurrent}
-                            onChange={() => {
-                              handleChange({
-                                target: { name: "isRecurrent", checked: Boolean(!action.isRecurrent), value: Boolean(!action.isRecurrent) },
-                              });
-                            }}
-                          />
-                          Répéter cette action
-                          <RepeatIcon className="tw-size-5 tw-ml-2 tw-text-main" />
-                        </label>
-                        {action.isRecurrent && (
-                          <Recurrence
-                            startDate={action.dueAt}
-                            initialValues={action.recurrenceData}
-                            onChange={(recurrenceData) => handleChange({ target: { name: "recurrenceData", value: recurrenceData } })}
-                          />
-                        )}
-                      </div>
-                    )}
+                  {(isNewAction || (action.recurrence && action.recurrenceData.timeUnit && modalAction.isEditingAllNextOccurences)) && (
+                    <div className="tw-mb-4 tw-flex tw-flex-col tw-items-start tw-justify-start">
+                      <label htmlFor="create-action-recurrent" className="tw-flex tw-items-center tw-mb-4">
+                        <input
+                          type="checkbox"
+                          id="create-action-recurrent"
+                          className="tw-mr-2"
+                          name="recurrent"
+                          checked={action.isRecurrent}
+                          onChange={() => {
+                            handleChange({
+                              target: { name: "isRecurrent", checked: Boolean(!action.isRecurrent), value: Boolean(!action.isRecurrent) },
+                            });
+                          }}
+                        />
+                        Répéter cette action
+                        <RepeatIcon className="tw-size-5 tw-ml-2 tw-text-main" />
+                      </label>
+                      {action.isRecurrent && (
+                        <Recurrence
+                          startDate={action.dueAt}
+                          initialValues={action.recurrenceData}
+                          onChange={(recurrenceData) => handleChange({ target: { name: "recurrenceData", value: recurrenceData } })}
+                        />
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
