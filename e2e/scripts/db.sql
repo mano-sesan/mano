@@ -70,7 +70,6 @@ CREATE TABLE IF NOT EXISTS mano."Organisation" (
     encrypting boolean DEFAULT false,
     "receptionEnabled" boolean DEFAULT false,
     "groupsEnabled" boolean DEFAULT false,
-    services text[],
     collaborations text[],
     "customFieldsObs" jsonb,
     "fieldsPersonsCustomizableOptions" jsonb,
