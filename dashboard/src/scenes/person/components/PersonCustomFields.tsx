@@ -36,12 +36,6 @@ export default function PersonCustomFields({ person, sectionName, fields, isMedi
           </button>
         </div>
       </div>
-      {sectionName === "Informations sociales" && !!person.description && (
-        <div className="mb-4 mt-2">
-          <div className="tw-text-sm tw-font-semibold tw-text-main75">Description</div>
-          <CustomFieldDisplay showHistory type="textarea" value={person.description} name="description" person={person} />
-        </div>
-      )}
       <div className="tw-grid tw-grid-cols-3 tw-gap-2">
         {enabledFields.map((field, i) => {
           return (
