@@ -40,6 +40,7 @@ import DownloadTerritoriesImportExample from "../data-import-export/DownloadTerr
 import TerritoriesTypesSettings from "./TerritoriesTypesSettings";
 import { DefaultFoldersMedical, DefaultFoldersPersons } from "./DefaultFolders";
 import Errors from "./Errors";
+import ActionsWithoutPersons from "./ActionsWithoutPersons";
 import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
 import DownloadStructuresImportExample from "../data-import-export/DownloadStructuresImportExample";
 import ImportStructures from "../data-import-export/ImportStructures";
@@ -64,6 +65,7 @@ const getSettingTitle = (tabId) => {
   if (tabId === "export") return "Export des données";
   if (tabId === "poubelle") return "Données supprimées";
   if (tabId === "errors") return "Données en erreur";
+  if (tabId === "actions-without-persons") return "Actions sans personne";
   return "";
 };
 
@@ -170,6 +172,7 @@ const View = () => {
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "poubelle"} text="Données supprimées" onClick={() => setTab("poubelle")} />
             <MenuButton selected={tab === "errors"} text="Données en erreur" onClick={() => setTab("errors")} />
+            <MenuButton selected={tab === "actions-without-persons"} text="Actions sans personne" onClick={() => setTab("actions-without-persons")} />
           </div>
         </div>
         <div ref={scrollContainer} className="tw-basis-full tw-overflow-auto tw-px-6 tw-py-4">
@@ -521,6 +524,15 @@ const View = () => {
                       <TabTitle>Données en erreur</TabTitle>
                       <div>
                         <Errors />
+                      </div>
+                    </>
+                  );
+                case "actions-without-persons":
+                  return (
+                    <>
+                      <TabTitle>Actions sans personne associée</TabTitle>
+                      <div>
+                        <ActionsWithoutPersons />
                       </div>
                     </>
                   );
