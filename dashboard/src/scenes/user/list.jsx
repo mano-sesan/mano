@@ -16,9 +16,23 @@ import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
 import { emailRegex, errorMessage } from "../../utils";
 import UserStatus from "../../components/UserStatus";
+
+const getUserStatus = (user) => {
+  if (user.disabledAt) return "Désactivé";
+  if (user.decryptAttempts > 12 || user.loginAttempts > 12) return "Bloqué";
+  if (!user.lastLoginAt) return "Pas encore actif";
+  return "Actif";
+};
+
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
 const sortUsers = (sortBy, sortOrder) => (a, b) => {
+  if (sortBy === "status") {
+    const statusA = getUserStatus(a);
+    const statusB = getUserStatus(b);
+    if (statusA === statusB) return defaultSort(a, b, sortOrder);
+    return sortOrder === "ASC" ? statusA.localeCompare(statusB) : statusB.localeCompare(statusA);
+  }
   if (sortBy === "email") {
     return sortOrder === "ASC" ? a.email.localeCompare(b.email) : b.email.localeCompare(a.email);
   }
@@ -164,6 +178,10 @@ const List = () => {
           {
             title: "Statut du compte",
             dataKey: "status",
+            onSortOrder: setSortOrder,
+            onSortBy: setSortBy,
+            sortOrder,
+            sortBy,
             render: (i) => <UserStatus user={i} />,
           },
         ]}
