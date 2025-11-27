@@ -59,6 +59,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
       toast.success("L'organisation a été mise à jour !");
       setWorkbookData(null);
       setOrganisation(response.data);
+    } else {
+      toast.error("Impossible d'envoyer les données");
     }
   }
 
