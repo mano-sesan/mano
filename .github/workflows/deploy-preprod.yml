@@ -31,7 +31,7 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
         run: |
           cd website
-          yarn
+          yarn --immutable
           yarn build
       # On vérifie si le dossier dashboard a été modifié pour faire un build
       - name: Check for changes in dashboard directory
@@ -46,7 +46,7 @@ jobs:
         if: env.DASHBOARD_CHANGED == 'true'
         run: |
           cd dashboard
-          yarn
+          yarn --immutable
           yarn build
       # TODO pour plus tard, on pourrait deploy seulement le dossier qui a été modifié
       - name: Trigger deployment preprod

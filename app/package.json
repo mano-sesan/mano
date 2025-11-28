@@ -13,7 +13,7 @@
     "detox-test": "echo -p \"please npm run start NOWWW\" && detox test ./__tests__ --reuse --configuration android.debug",
     "detox-build-and-test": "npm run detox-build && npm run detox-test",
     "android-clean-start": "npm run clean:android && react-native run-android",
-    "postinstall": "npx jetify && npx patch-package",
+    "postinstall": "npx patch-package",
     "clean:android": "cd android && ./gradlew clean && cd ../ && adb uninstall com.sesan.mano",
     "build:android": "cd android && ./gradlew clean && ./gradlew bundleRelease && cd ../",
     "build:android-apk": "cd android && ./gradlew clean && ./gradlew assembleRelease && cd ../",
@@ -22,6 +22,11 @@
     "build-and-deploy-preprod:android": "npm run build:android-apk && ./upload-preprod.sh",
     "update-mobile-app-version": "node ./update-mobile-app-version.js",
     "publish-release-to-github": "node ./publish-release-to-github.js"
+  },
+  "dependenciesMeta": {
+    "patch-package": {
+      "built": true
+    }
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^4.1.0",

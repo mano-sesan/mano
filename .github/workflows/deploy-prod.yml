@@ -16,12 +16,12 @@ jobs:
           NEXT_TELEMETRY_DISABLED: 1
         run: |
           cd website
-          yarn
+          yarn --immutable
           yarn build
       - name: Build dashboard
         run: |
           cd dashboard
-          yarn
+          yarn --immutable
           yarn build
       - name: Trigger deployment prod
         env:

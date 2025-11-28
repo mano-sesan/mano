@@ -17,6 +17,14 @@
     "test:init-db": "PGDATABASE=manotest node ./e2e/scripts/init-db.js",
     "postinstall": "is-ci || husky install"
   },
+  "dependenciesMeta": {
+    "husky": {
+      "built": true
+    },
+    "is-ci": {
+      "built": true
+    }
+  },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "dayjs": "^1.11.6",
