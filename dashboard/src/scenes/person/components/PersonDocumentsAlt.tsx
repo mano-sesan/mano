@@ -27,7 +27,7 @@ import { removeOldDefaultFolders } from "../../../utils/documents";
 import { createOnDropHandler, dragAndDropFeature, hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
 import cn from "classnames";
-import { handleFilesUpload, DocumentModal } from "../../../components/DocumentsGeneric";
+import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { groupsState } from "../../../recoil/groups";
@@ -813,6 +813,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           <button type="button" className="button-cancel" onClick={() => setIsFullScreen(false)}>
             Fermer
           </button>
+          <ButtonDownloadAll documents={allDocuments as DocumentWithLinkedItem[]} />
           <button type="button" className="button-submit" onClick={() => setShowCreateFolderModal(true)}>
             Créer un dossier
           </button>
