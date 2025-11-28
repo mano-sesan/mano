@@ -11,12 +11,14 @@ import {
   DocumentIcon,
   PencilSquareIcon,
   PhotoIcon,
+  ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
 import { UsersIcon } from "@heroicons/react/16/solid";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import type { PersonPopulated } from "../../../types/person";
+import type { UserInstance } from "../../../types/user";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItem } from "../../../types/document";
 import { encryptAction } from "../../../recoil/actions";
 import { useDataLoader } from "../../../services/dataLoader";
@@ -178,6 +180,103 @@ function DocumentTree({
   );
 }
 
+interface DocumentsTreeWrapperProps {
+  treeKey: string;
+  treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
+  onSaveOrder: (itemId: string, newChildren: string[]) => void;
+  expandedItems: string[];
+  onDocumentClick: (document: DocumentWithLinkedItem) => void;
+  onFolderEdit: (folder: FolderWithLinkedItem) => void;
+  person: PersonPopulated;
+  user: UserInstance | null;
+  folderOptions: Array<{ _id: string; name: string; level: number }>;
+  onAddDocuments: (documents: Array<Document | Folder>) => Promise<void>;
+  className?: string;
+}
+
+function DocumentsTreeWrapper({
+  treeKey,
+  treeData,
+  onSaveOrder,
+  expandedItems,
+  onDocumentClick,
+  onFolderEdit,
+  person,
+  user,
+  folderOptions,
+  onAddDocuments,
+  className = "tw-relative tw-p-4",
+}: DocumentsTreeWrapperProps) {
+  const [isInDropzone, setIsInDropzone] = useState(false);
+
+  return (
+    <div
+      className={className}
+      onDragEnter={(e) => {
+        // Only show drop zone if files are being dragged from outside (not internal tree items)
+        if (e.dataTransfer.types.includes("Files")) {
+          e.preventDefault();
+          if (!isInDropzone) setIsInDropzone(true);
+        }
+      }}
+      onDragOver={(e) => {
+        // Only prevent default if files are being dragged from outside
+        if (e.dataTransfer.types.includes("Files")) {
+          e.preventDefault();
+        }
+      }}
+    >
+      <DocumentTree
+        key={treeKey}
+        treeData={treeData}
+        onSaveOrder={onSaveOrder}
+        expandedItems={expandedItems}
+        onDocumentClick={onDocumentClick}
+        onFolderEdit={onFolderEdit}
+        currentPersonId={person._id}
+      />
+
+      {isInDropzone && (
+        <div
+          className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
+          onDragOver={(e) => {
+            if (e.dataTransfer.types.includes("Files")) {
+              e.preventDefault();
+            }
+          }}
+          onDragLeave={(e) => {
+            // Only hide if we're leaving the drop zone itself (not entering a child element)
+            if (e.currentTarget === e.target) {
+              setIsInDropzone(false);
+            }
+          }}
+          onDrop={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsInDropzone(false);
+
+            // Only process if files are present
+            if (e.dataTransfer.files.length > 0) {
+              await handleFilesUpload({
+                files: e.dataTransfer.files,
+                personId: person._id,
+                user,
+                folders: folderOptions,
+                onSave: onAddDocuments,
+              });
+            }
+          }}
+        >
+          <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
+            <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
+            <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) {
   const { refresh } = useDataLoader();
   const organisation = useRecoilValue(organisationAuthentifiedState);
@@ -190,7 +289,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [isUpdatingFolder, setIsUpdatingFolder] = useState(false);
   const [isDeletingFolder, setIsDeletingFolder] = useState(false);
-  const [isInDropzone, setIsInDropzone] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
   const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
@@ -652,6 +751,14 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           >
             <DocumentPlusIcon className="tw-w-5 tw-h-5" />
           </button>
+          <button
+            type="button"
+            aria-label="Passer en plein écran"
+            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
+            onClick={() => setIsFullScreen(true)}
+          >
+            <ArrowsPointingOutIcon className="tw-w-5 tw-h-5" />
+          </button>
         </div>
         <input
           ref={fileInputRef}
@@ -672,70 +779,48 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         />
       </div>
 
-      <div
-        className="tw-relative tw-p-4"
-        onDragEnter={(e) => {
-          // Only show drop zone if files are being dragged from outside (not internal tree items)
-          if (e.dataTransfer.types.includes("Files")) {
-            e.preventDefault();
-            if (!isInDropzone) setIsInDropzone(true);
-          }
-        }}
-        onDragOver={(e) => {
-          // Only prevent default if files are being dragged from outside
-          if (e.dataTransfer.types.includes("Files")) {
-            e.preventDefault();
-          }
-        }}
-      >
-        <DocumentTree
-          key={treeKey}
-          treeData={treeData}
-          onSaveOrder={handleSaveOrder}
-          expandedItems={defaultExpandedItems}
-          onDocumentClick={setDocumentToEdit}
-          onFolderEdit={setFolderToEdit}
-          currentPersonId={person._id}
-        />
+      <DocumentsTreeWrapper
+        treeKey={treeKey}
+        treeData={treeData}
+        onSaveOrder={handleSaveOrder}
+        expandedItems={defaultExpandedItems}
+        onDocumentClick={setDocumentToEdit}
+        onFolderEdit={setFolderToEdit}
+        person={person}
+        user={user}
+        folderOptions={folderOptions}
+        onAddDocuments={handleAddDocuments}
+      />
 
-        {isInDropzone && (
-          <div
-            className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
-            onDragOver={(e) => {
-              if (e.dataTransfer.types.includes("Files")) {
-                e.preventDefault();
-              }
-            }}
-            onDragLeave={(e) => {
-              // Only hide if we're leaving the drop zone itself (not entering a child element)
-              if (e.currentTarget === e.target) {
-                setIsInDropzone(false);
-              }
-            }}
-            onDrop={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setIsInDropzone(false);
-
-              // Only process if files are present
-              if (e.dataTransfer.files.length > 0) {
-                await handleFilesUpload({
-                  files: e.dataTransfer.files,
-                  personId: person._id,
-                  user,
-                  folders: folderOptions,
-                  onSave: handleAddDocuments,
-                });
-              }
-            }}
-          >
-            <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
-              <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
-              <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
-            </div>
-          </div>
-        )}
-      </div>
+      <ModalContainer open={isFullScreen} onClose={() => setIsFullScreen(false)} size="full">
+        <ModalHeader title="Documents" onClose={() => setIsFullScreen(false)} />
+        <ModalBody>
+          <DocumentsTreeWrapper
+            className="tw-relative tw-p-4 tw-min-h-[80vh]"
+            treeKey={treeKey}
+            treeData={treeData}
+            onSaveOrder={handleSaveOrder}
+            expandedItems={defaultExpandedItems}
+            onDocumentClick={setDocumentToEdit}
+            onFolderEdit={setFolderToEdit}
+            person={person}
+            user={user}
+            folderOptions={folderOptions}
+            onAddDocuments={handleAddDocuments}
+          />
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" className="button-cancel" onClick={() => setIsFullScreen(false)}>
+            Fermer
+          </button>
+          <button type="button" className="button-submit" onClick={() => setShowCreateFolderModal(true)}>
+            Créer un dossier
+          </button>
+          <button type="button" className="button-submit" onClick={() => fileInputRef.current?.click()}>
+            Ajouter un document
+          </button>
+        </ModalFooter>
+      </ModalContainer>
 
       {showCreateFolderModal && (
         <ModalContainer open onClose={() => setShowCreateFolderModal(false)}>
