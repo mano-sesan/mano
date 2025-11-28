@@ -28,16 +28,16 @@ jobs:
           # cache: yarn
           # cache-dependency-path: "**/yarn.lock"
       - name: Install dependencies
-        run: yarn
+        run: yarn --immutable
 
       - name: Install dashboard dependencies
-        run: yarn --cwd ./dashboard
+        run: yarn --cwd ./dashboard  --immutable
 
       - name: Run Dashboard Jest tests
         run: yarn --cwd ./dashboard test
 
       - name: Install api dependencies
-        run: yarn --cwd ./api
+        run: yarn --cwd ./api  --immutable
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
