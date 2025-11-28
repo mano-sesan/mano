@@ -31,6 +31,8 @@ import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../../../co
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { groupsState } from "../../../recoil/groups";
+import UserName from "../../../components/UserName";
+import { formatDateWithFullMonth, formatTime } from "../../../services/date";
 
 interface PersonDocumentsAltProps {
   person: PersonPopulated;
@@ -46,6 +48,7 @@ function DocumentTree({
   onDocumentClick,
   onFolderEdit,
   currentPersonId,
+  isFullScreen,
 }: {
   treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
   onSaveOrder: (itemId: string, newChildren: string[]) => void;
@@ -53,6 +56,7 @@ function DocumentTree({
   onDocumentClick: (document: DocumentWithLinkedItem) => void;
   onFolderEdit: (folder: FolderWithLinkedItem) => void;
   currentPersonId: string;
+  isFullScreen?: boolean;
 }) {
   const syncDataLoader = {
     getItem: (id: string) => treeData[id],
@@ -88,7 +92,7 @@ function DocumentTree({
   });
 
   return (
-    <div {...tree.getContainerProps()} className="tw-text-xs tw-flex tw-flex-col">
+    <div {...tree.getContainerProps()} className={cn("tw-flex tw-flex-col", isFullScreen ? "tw-text-sm" : "tw-text-xs")}>
       {tree.getItems().map((item, _index) => {
         const itemData = item.getItemData();
         if (item.getId() === "root") return null;
@@ -106,10 +110,12 @@ function DocumentTree({
           <div
             key={item.getId()}
             {...item.getProps()}
-            style={{ paddingLeft: `${level * 20}px` }}
-            className={cn("hover:tw-text-main tw-px-1 tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-group", {
+            className={cn("tw-flex tw-items-center tw-cursor-pointer tw-group", {
               // "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
               "tw-bg-main50": isDraggingOver && isFolder,
+              "hover:tw-bg-gray-50": isFullScreen,
+              "hover:tw-text-main": !isFullScreen,
+              "tw-py-1": isFullScreen,
             })}
             onClick={(e) => {
               // Only handle click on documents, not folders
@@ -126,45 +132,63 @@ function DocumentTree({
               }
             }}
           >
-            {/* Icon */}
-            {isFolder ? (
-              item.isExpanded() ? (
-                <FolderOpenIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600" />
+            <div
+              className={cn("tw-flex-grow tw-flex tw-items-center tw-gap-2 tw-overflow-hidden", {
+                "hover:tw-text-main": isFullScreen,
+                "tw-px-1": !isFullScreen,
+              })}
+              style={{ paddingLeft: isFullScreen ? `${level * 20 + 4}px` : `${level * 20}px` }}
+            >
+              {/* Icon */}
+              {isFolder ? (
+                item.isExpanded() ? (
+                  <FolderOpenIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600" />
+                ) : (
+                  <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
+                )
+              ) : // If it's an image use the image icon
+              itemData.file.mimetype.startsWith("image/") ? (
+                <PhotoIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
               ) : (
-                <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
-              )
-            ) : // If it's an image use the image icon
-            itemData.file.mimetype.startsWith("image/") ? (
-              <PhotoIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
-            ) : (
-              <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
-            )}
-
-            {/* Name */}
-            <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
-              <span>{itemData.name}</span>
-              {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
-              {(itemData.movable === false || isFromOtherPerson) && (
-                <LockClosedIcon
-                  className="tw-w-3 tw-h-3 tw-text-gray-700"
-                  title={isFromOtherPerson ? "Document d'un autre membre de la famille" : "Ne peut pas être déplacé"}
-                />
+                <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
               )}
-            </span>
 
-            {/* Edit button for folders (only visible on hover and if movable) */}
-            {isFolder && itemData.movable !== false && (
-              <button
-                type="button"
-                className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFolderEdit(itemData as FolderWithLinkedItem);
-                }}
-                title="Éditer le dossier"
-              >
-                <PencilSquareIcon className="tw-w-4 tw-h-4 tw-text-gray-600" />
-              </button>
+              {/* Name */}
+              <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
+                <span>{itemData.name}</span>
+                {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
+                {(itemData.movable === false || isFromOtherPerson) && (
+                  <LockClosedIcon
+                    className="tw-w-3 tw-h-3 tw-text-gray-700"
+                    title={isFromOtherPerson ? "Document d'un autre membre de la famille" : "Ne peut pas être déplacé"}
+                  />
+                )}
+              </span>
+
+              {/* Edit button for folders (only visible on hover and if movable) */}
+              {isFolder && itemData.movable !== false && (
+                <button
+                  type="button"
+                  className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFolderEdit(itemData as FolderWithLinkedItem);
+                  }}
+                  title="Éditer le dossier"
+                >
+                  <PencilSquareIcon className="tw-w-4 tw-h-4 tw-text-gray-600" />
+                </button>
+              )}
+            </div>
+            {isFullScreen && (
+              <div className="tw-flex tw-items-center tw-gap-8 tw-px-4 tw-shrink-0 tw-text-xs tw-text-gray-500">
+                <div className="tw-w-40">
+                  Créé par <UserName id={itemData.createdBy} />
+                </div>
+                <div className="tw-w-40 tw-text-right">
+                  {formatDateWithFullMonth(itemData.createdAt)} {formatTime(itemData.createdAt)}
+                </div>
+              </div>
             )}
           </div>
         );
@@ -192,6 +216,7 @@ interface DocumentsTreeWrapperProps {
   folderOptions: Array<{ _id: string; name: string; level: number }>;
   onAddDocuments: (documents: Array<Document | Folder>) => Promise<void>;
   className?: string;
+  isFullScreen?: boolean;
 }
 
 function DocumentsTreeWrapper({
@@ -206,6 +231,7 @@ function DocumentsTreeWrapper({
   folderOptions,
   onAddDocuments,
   className = "tw-relative tw-p-4",
+  isFullScreen,
 }: DocumentsTreeWrapperProps) {
   const [isInDropzone, setIsInDropzone] = useState(false);
 
@@ -234,6 +260,7 @@ function DocumentsTreeWrapper({
         onDocumentClick={onDocumentClick}
         onFolderEdit={onFolderEdit}
         currentPersonId={person._id}
+        isFullScreen={isFullScreen}
       />
 
       {isInDropzone && (
@@ -807,6 +834,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             user={user}
             folderOptions={folderOptions}
             onAddDocuments={handleAddDocuments}
+            isFullScreen={true}
           />
         </ModalBody>
         <ModalFooter>
