@@ -212,11 +212,10 @@ interface DocumentsTreeWrapperProps {
   onDocumentClick: (document: DocumentWithLinkedItem) => void;
   onFolderEdit: (folder: FolderWithLinkedItem) => void;
   person: PersonPopulated;
-  user: UserInstance | null;
-  folderOptions: Array<{ _id: string; name: string; level: number }>;
-  onAddDocuments: (documents: Array<Document | Folder>) => Promise<void>;
   className?: string;
   isFullScreen?: boolean;
+  isInDropzone: boolean;
+  setIsInDropzone: (isInDropzone: boolean) => void;
 }
 
 function DocumentsTreeWrapper({
@@ -227,14 +226,11 @@ function DocumentsTreeWrapper({
   onDocumentClick,
   onFolderEdit,
   person,
-  user,
-  folderOptions,
-  onAddDocuments,
+  isInDropzone,
+  setIsInDropzone,
   className = "tw-relative tw-p-4",
   isFullScreen,
 }: DocumentsTreeWrapperProps) {
-  const [isInDropzone, setIsInDropzone] = useState(false);
-
   return (
     <div
       className={className}
@@ -262,44 +258,56 @@ function DocumentsTreeWrapper({
         currentPersonId={person._id}
         isFullScreen={isFullScreen}
       />
+    </div>
+  );
+}
 
-      {isInDropzone && (
-        <div
-          className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
-          onDragOver={(e) => {
-            if (e.dataTransfer.types.includes("Files")) {
-              e.preventDefault();
-            }
-          }}
-          onDragLeave={(e) => {
-            // Only hide if we're leaving the drop zone itself (not entering a child element)
-            if (e.currentTarget === e.target) {
-              setIsInDropzone(false);
-            }
-          }}
-          onDrop={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsInDropzone(false);
+function DocumentsDropzone({
+  setIsInDropzone,
+  onAddDocuments,
+  personId,
+  user,
+  folderOptions,
+}: {
+  setIsInDropzone: (val: boolean) => void;
+  onAddDocuments: (docs: Array<Document | Folder>) => Promise<void>;
+  personId: string;
+  user: UserInstance | null;
+  folderOptions: Array<{ _id: string; name: string; level: number }>;
+}) {
+  return (
+    <div
+      className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
+      onDragOver={(e) => {
+        if (e.dataTransfer.types.includes("Files")) {
+          e.preventDefault();
+        }
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) {
+          setIsInDropzone(false);
+        }
+      }}
+      onDrop={async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsInDropzone(false);
 
-            // Only process if files are present
-            if (e.dataTransfer.files.length > 0) {
-              await handleFilesUpload({
-                files: e.dataTransfer.files,
-                personId: person._id,
-                user,
-                folders: folderOptions,
-                onSave: onAddDocuments,
-              });
-            }
-          }}
-        >
-          <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
-            <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
-            <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
-          </div>
-        </div>
-      )}
+        if (e.dataTransfer.files.length > 0) {
+          await handleFilesUpload({
+            files: e.dataTransfer.files,
+            personId,
+            user,
+            folders: folderOptions,
+            onSave: onAddDocuments,
+          });
+        }
+      }}
+    >
+      <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
+        <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
+        <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
+      </div>
     </div>
   );
 }
@@ -322,6 +330,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
   const [isUpdatingDocument, setIsUpdatingDocument] = useState(false);
   const [isDeletingDocument, setIsDeletingDocument] = useState(false);
+  const [isInDropzone, setIsInDropzone] = useState(false);
   const groups = useRecoilValue(groupsState);
 
   // Build default folders and all documents
@@ -759,6 +768,15 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
 
   return (
     <div>
+      {isInDropzone && !isFullScreen && (
+        <DocumentsDropzone
+          setIsInDropzone={setIsInDropzone}
+          onAddDocuments={handleAddDocuments}
+          personId={person._id}
+          user={user}
+          folderOptions={folderOptions}
+        />
+      )}
       <div className="tw-flex tw-justify-between tw-items-center tw-border-b tw-border-main25 tw-py-2 tw-px-4">
         <h3 className="tw-text-xl tw-mb-0">Documents</h3>
         <div className="tw-flex tw-gap-2">
@@ -814,14 +832,22 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         onDocumentClick={setDocumentToEdit}
         onFolderEdit={setFolderToEdit}
         person={person}
-        user={user}
-        folderOptions={folderOptions}
-        onAddDocuments={handleAddDocuments}
+        isInDropzone={isInDropzone}
+        setIsInDropzone={setIsInDropzone}
       />
 
       <ModalContainer open={isFullScreen} onClose={() => setIsFullScreen(false)} size="full">
         <ModalHeader title="Documents" onClose={() => setIsFullScreen(false)} />
         <ModalBody>
+          {isInDropzone && isFullScreen && (
+            <DocumentsDropzone
+              setIsInDropzone={setIsInDropzone}
+              onAddDocuments={handleAddDocuments}
+              personId={person._id}
+              user={user}
+              folderOptions={folderOptions}
+            />
+          )}
           <DocumentsTreeWrapper
             className="tw-relative tw-p-4 tw-min-h-[80vh]"
             treeKey={treeKey}
@@ -831,9 +857,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             onDocumentClick={setDocumentToEdit}
             onFolderEdit={setFolderToEdit}
             person={person}
-            user={user}
-            folderOptions={folderOptions}
-            onAddDocuments={handleAddDocuments}
+            isInDropzone={isInDropzone}
+            setIsInDropzone={setIsInDropzone}
             isFullScreen={true}
           />
         </ModalBody>
