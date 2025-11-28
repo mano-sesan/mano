@@ -6,7 +6,10 @@
   "dependencies": {
     "@babel/runtime": "^7.14.5",
     "@e965/xlsx": "^0.20.1",
+    "@headless-tree/core": "^1.5.1",
+    "@headless-tree/react": "^1.5.1",
     "@headlessui/react": "^1.7.4",
+    "@heroicons/react": "^2.2.0",
     "@nivo/bar": "^0.85.1",
     "@nivo/core": "^0.85.1",
     "@nivo/line": "0.85.1",
