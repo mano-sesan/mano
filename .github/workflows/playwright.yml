@@ -37,7 +37,7 @@ jobs:
         run: yarn --cwd ./dashboard test
 
       - name: Install api dependencies
-        run: yarn --cwd ./api  --immutable
+        run: yarn --cwd ./api --immutable
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
