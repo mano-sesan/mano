@@ -1286,6 +1286,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                 className="tw-ml-2 tw-inline-flex tw-items-center tw-justify-center hover:tw-text-main"
                 onClick={() => setShowJson(!showJson)}
                 title="Voir les données brutes"
+                aria-label="Voir les données brutes"
               >
                 <Cog6ToothIcon className="tw-h-4 tw-w-4" />
               </button>
