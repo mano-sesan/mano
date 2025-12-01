@@ -3,7 +3,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 import { FolderIcon } from "@heroicons/react/24/outline";
-import { userState, organisationAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
+import { userState, organisationAuthentifiedState, userAuthentifiedState, organisationState } from "../recoil/auth";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { formatDateTimeWithNameOfDay } from "../services/date";
 import { FullScreenIcon } from "../assets/icons/FullScreenIcon";
@@ -21,7 +21,8 @@ import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import { capture } from "../services/sentry";
 import SelectCustom from "./SelectCustom";
-import { InformationCircleIcon } from "@heroicons/react/24/outline";
+import { InformationCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { MANO_TEST_ORG_ID } from "../config";
 
 // Upload progress state
 interface UploadProgress {
@@ -1136,11 +1137,13 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
 }: DocumentModalProps<T>) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
+  const organisation = useRecoilValue(organisationState);
   const location = useLocation();
   const initialName = useMemo(() => document.name, [document.name]);
   const [name, setName] = useState(initialName);
   const [internalIsUpdating, setInternalIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showJson, setShowJson] = useState(false);
   const canSave = useMemo(() => isEditing && name !== initialName, [name, initialName, isEditing]);
   const history = useHistory();
 
@@ -1151,6 +1154,8 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   const contentType = document.file.mimetype;
 
   const isLinkedToOtherPerson = !!document.group && personId !== document.linkedItem._id;
+
+  const canSeeInfo = (organisation?._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
 
   return (
     <ModalContainer open className="[overflow-wrap:anywhere]" size="prose">
@@ -1273,9 +1278,25 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               </div>
             )
           }
-          <small className="tw-pt-4 tw-opacity-60">
+          <div className="tw-text-sm tw-pt-4 tw-opacity-60 tw-flex tw-items-center tw-gap-1">
             Créé par <UserName id={document.createdBy} /> le {formatDateTimeWithNameOfDay(document.createdAt)}
-          </small>
+            {canSeeInfo && (
+              <button
+                type="button"
+                className="tw-ml-2 tw-inline-flex tw-items-center tw-justify-center hover:tw-text-main"
+                onClick={() => setShowJson(!showJson)}
+                title="Voir les données brutes"
+                aria-label="Voir les données brutes"
+              >
+                <Cog6ToothIcon className="tw-h-4 tw-w-4" />
+              </button>
+            )}
+          </div>
+          {showJson && (
+            <div className="tw-w-full tw-overflow-auto tw-rounded tw-bg-gray-100 tw-p-2 tw-text-xs tw-font-mono">
+              <pre>{JSON.stringify(document, null, 2)}</pre>
+            </div>
+          )}
           {!!showAssociatedItem && document?.linkedItem?.type === "treatment" && (
             <button
               onClick={() => {
