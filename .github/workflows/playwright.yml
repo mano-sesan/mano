@@ -31,7 +31,7 @@ jobs:
         run: yarn --immutable
 
       - name: Install dashboard dependencies
-        run: yarn --cwd ./dashboard  --immutable
+        run: yarn --cwd ./dashboard --immutable
 
       - name: Run Dashboard Jest tests
         run: yarn --cwd ./dashboard test
