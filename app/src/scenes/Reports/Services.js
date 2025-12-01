@@ -100,7 +100,7 @@ const Services = ({ navigation, route }) => {
     );
   };
 
-  if (!organisation.receptionEnabled || !organisation?.services || !groupedServices.length) return null;
+  if (!organisation.receptionEnabled || !organisation?.groupedServices || !groupedServices.length) return null;
 
   const selectedServices = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
     const service = (services || []).find((f) => f.service === e);
