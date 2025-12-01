@@ -475,11 +475,6 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
     if (!person) return;
 
-    const callId = Date.now();
-    console.log(`=== handleSaveOrder CALLED [${callId}] ===`);
-    console.log("itemId:", itemId);
-    console.log("newChildren:", newChildren);
-
     // Update the tree data structure immediately for UI responsiveness
     treeData[itemId].children = newChildren;
 
@@ -487,21 +482,15 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     // TODO: note de raph : probablement que cette histoire de timeout ne sert à rien
     // En fait si, sinon ça pète le tree, donc il faut postpone.
     if (saveTimeoutRef.current) {
-      console.log(`=== Clearing previous save timeout [${callId}] ===`);
       clearTimeout(saveTimeoutRef.current);
     }
 
     saveTimeoutRef.current = setTimeout(async () => {
-      console.log(`=== handleSaveOrder EXECUTING SAVE [${callId}] ===`);
-      console.log("treeData to save:", JSON.parse(JSON.stringify(treeData)));
-
       // Convert back to flat array with parentId
       const updatedDocs: DocumentOrFolder[] = [];
       const processItem = (id: string, parentId: string | undefined, position: number) => {
         const item = treeData[id];
         if (!item || id === "root") return;
-
-        console.log(`Processing item: ${id}, parentId: ${parentId}, position: ${position}`, item);
 
         // Remove the children property before saving (it's only for tree rendering, not part of document schema)
         const { children, ...itemWithoutChildren } = item;
@@ -523,12 +512,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           processItem(childId, "root", idx);
         });
       }
-
-      console.log("updatedDocs (all):", updatedDocs);
-
       // Save to API
       const personNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
-      console.log("personNextDocuments (filtered):", personNextDocuments);
 
       // Check if anything actually changed (prevent unnecessary saves for accidental micro-drags)
       // Compare only the structure: _id, parentId, and position (what matters for ordering)
@@ -545,34 +530,23 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         position: d.position,
       }));
 
-      console.log("=== COMPARISON DEBUG ===");
-      console.log("currentPersonDocuments (simplified):", currentPersonDocuments);
-      console.log("personNextDocuments (simplified):", nextPersonDocsSimplified);
-      console.log("Are they equal?", isEqual(currentPersonDocuments, nextPersonDocsSimplified));
-
       if (isEqual(currentPersonDocuments, nextPersonDocsSimplified)) {
-        console.log(`=== No changes detected, skipping save [${callId}] ===`);
         return;
       }
-      console.log("Changes detected, proceeding with save");
 
       // Load fresh person data to avoid overwriting concurrent changes
       const freshPerson = await loadFreshPersonData(person._id);
       if (!freshPerson) {
         toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-        console.log("=== handleSaveOrder ERROR: Could not load fresh data ===");
         return;
       }
-      console.log("Fresh person loaded, documents count:", freshPerson.documents?.length || 0);
 
       const groupDocuments = (freshPerson.documents || []).filter((docOrFolder) => {
         const document = docOrFolder as unknown as Document;
         return !!document.group;
       });
-      console.log("groupDocuments:", groupDocuments);
 
       const finalDocuments = [...personNextDocuments, ...groupDocuments];
-      console.log("finalDocuments to save:", finalDocuments);
 
       const [personError] = await tryFetchExpectOk(async () => {
         return API.put({
@@ -586,16 +560,12 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
 
       if (personError) {
         toast.error("Erreur lors de l'enregistrement des documents");
-        console.log("=== handleSaveOrder ERROR ===");
         return;
       }
 
       // Update action documents
       const actionNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "action");
       const actionIds = [...new Set(actionNextDocuments.map((d) => d.linkedItem._id))];
-
-      console.log("actionNextDocuments:", actionNextDocuments);
-      console.log("actionIds:", actionIds);
 
       for (const actionId of actionIds) {
         const action = freshPerson.actions.find((a) => a._id === actionId);
@@ -614,8 +584,6 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           });
         });
       }
-
-      console.log(`=== handleSaveOrder SUCCESS [${callId}] ===`);
 
       // Wait for refresh to complete before showing success message
       await refresh();
