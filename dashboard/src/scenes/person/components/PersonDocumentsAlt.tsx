@@ -103,8 +103,13 @@ function DocumentTree({
         const isDraggingOver = (item.isDraggingOver?.() && item.isUnorderedDragTarget?.()) || false;
 
         // Check if document is from another person in the group
+        const isFromAction =
+          !isFolder && (itemData as DocumentWithLinkedItem).linkedItem && (itemData as DocumentWithLinkedItem).linkedItem.type === "action";
         const isFromOtherPerson =
-          !isFolder && (itemData as DocumentWithLinkedItem).linkedItem && (itemData as DocumentWithLinkedItem).linkedItem._id !== currentPersonId;
+          !isFolder &&
+          (itemData as DocumentWithLinkedItem).linkedItem &&
+          (itemData as DocumentWithLinkedItem).linkedItem.type === "person" &&
+          (itemData as DocumentWithLinkedItem).linkedItem._id !== currentPersonId;
         const isGroupDocument = !isFolder && (itemData as DocumentWithLinkedItem).group;
 
         return (
@@ -158,10 +163,16 @@ function DocumentTree({
               <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
                 <span>{itemData.name}</span>
                 {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
-                {(itemData.movable === false || isFromOtherPerson) && (
+                {(itemData.movable === false || isFromOtherPerson || isFromAction) && (
                   <LockClosedIcon
                     className="tw-w-3 tw-h-3 tw-text-gray-700"
-                    title={isFromOtherPerson ? "Document d'un autre membre de la famille" : "Ne peut pas être déplacé"}
+                    title={
+                      isFromOtherPerson
+                        ? "Document d'un autre membre de la famille"
+                        : isFromAction
+                          ? "Document d'une action"
+                          : "Ne peut pas être déplacé"
+                    }
                   />
                 )}
               </span>
