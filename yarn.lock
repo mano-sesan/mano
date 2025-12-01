@@ -787,6 +787,11 @@ __metadata:
     node-talisman: "npm:^1.29.3"
     pg: "npm:^8.8.0"
     uuid: "npm:^9.0.0"
+  dependenciesMeta:
+    husky:
+      built: true
+    is-ci:
+      built: true
   languageName: unknown
   linkType: soft
 
