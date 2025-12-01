@@ -169,12 +169,13 @@ function DocumentTree({
               {isFolder && itemData.movable !== false && (
                 <button
                   type="button"
-                  className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible"
+                  className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible focus:tw-visible"
                   onClick={(e) => {
                     e.stopPropagation();
                     onFolderEdit(itemData as FolderWithLinkedItem);
                   }}
                   title="Éditer le dossier"
+                  aria-label="Éditer le dossier"
                 >
                   <PencilSquareIcon className="tw-w-4 tw-h-4 tw-text-gray-600" />
                 </button>
