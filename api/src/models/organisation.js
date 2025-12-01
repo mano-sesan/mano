@@ -39,7 +39,6 @@ module.exports = (sequelize, DataTypes) => {
     groupedServices: {
       type: DataTypes.JSONB, // example: [{"groupTitle": "injection", services: ["Garrot"]}]
     },
-    services: DataTypes.ARRAY(DataTypes.TEXT), // Obsolete column, kept for one week starting from 2025-11-20
     groupedCustomFieldsObs: DataTypes.JSONB,
     fieldsPersonsCustomizableOptions: DataTypes.JSONB,
     customFieldsPersons: DataTypes.JSONB,
