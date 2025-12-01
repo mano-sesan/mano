@@ -151,12 +151,7 @@ const TreatmentsFilters = ({ data, treatmentStatuses, setTreatmentStatuses }) =>
             />
           </div>
         </div>
-      ) : (
-        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
-          <AgendaMutedIcon />
-          Aucun traitement pour le moment
-        </div>
-      )}
+      ) : null}
     </>
   );
 };
