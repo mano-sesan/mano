@@ -2,7 +2,6 @@ import { useRecoilValue } from "recoil";
 import { userState, organisationState } from "../../../recoil/auth";
 import { Actions } from "./ActionsPerson";
 import { InfosMain } from "./InfosMain";
-import PersonDocuments from "./PersonDocuments";
 import PersonCustomFields from "./PersonCustomFields";
 import Comments from "./Comments";
 import DeletePersonButton from "./DeletePersonButton";
@@ -11,11 +10,17 @@ import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
+import PersonDocumentsAlt from "./PersonDocumentsAlt";
+import PersonDocuments from "./PersonDocuments";
+import { MANO_TEST_ORG_ID } from "../../../config";
 
 export default function Summary({ person }) {
   const user = useRecoilValue(userState);
   const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
   const organisation = useRecoilValue(organisationState);
+
+  const useNewDocumentSystem =
+    (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
@@ -52,8 +57,8 @@ export default function Summary({ person }) {
                   <PassagesRencontres person={person} />
                 </div>
               )}
-              <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-                <PersonDocuments person={person} />
+              <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
+                {useNewDocumentSystem ? <PersonDocumentsAlt person={person} /> : <PersonDocuments person={person} />}
               </div>
             </div>
           </div>
