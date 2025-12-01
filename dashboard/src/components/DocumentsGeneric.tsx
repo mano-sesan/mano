@@ -1155,7 +1155,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
 
   const isLinkedToOtherPerson = !!document.group && personId !== document.linkedItem._id;
 
-  const canSeeInfo = (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
+  const canSeeInfo = (organisation?._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
 
   return (
     <ModalContainer open className="[overflow-wrap:anywhere]" size="prose">
