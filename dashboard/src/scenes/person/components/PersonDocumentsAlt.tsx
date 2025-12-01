@@ -84,6 +84,7 @@ function DocumentTree({
       }),
     canReorder: true,
     onDrop: createOnDropHandler((item, newChildren) => {
+      if (!item.isExpanded()) item.expand();
       onSaveOrder(item.getId(), newChildren);
     }),
     indent: 20,
@@ -483,7 +484,8 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     treeData[itemId].children = newChildren;
 
     // Debounce the actual save - if multiple drops happen within 100ms, only save once
-    // TODO: note de raph : probablement que cette histoire de timeout ne sert à rien.
+    // TODO: note de raph : probablement que cette histoire de timeout ne sert à rien
+    // En fait si, sinon ça pète le tree, donc il faut postpone.
     if (saveTimeoutRef.current) {
       console.log(`=== Clearing previous save timeout [${callId}] ===`);
       clearTimeout(saveTimeoutRef.current);
@@ -618,7 +620,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       // Wait for refresh to complete before showing success message
       await refresh();
       toast.success("Documents mis à jour");
-    }, 100); // Wait 100ms to see if more drops come in
+    }, 0);
   };
 
   // Safety check after all hooks
