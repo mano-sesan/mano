@@ -147,7 +147,7 @@ function DocumentTree({
                   <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
                 )
               ) : // If it's an image use the image icon
-              itemData.file.mimetype.startsWith("image/") ? (
+              itemData.file?.mimetype?.startsWith("image/") ? (
                 <PhotoIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
               ) : (
                 <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
