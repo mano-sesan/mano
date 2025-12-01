@@ -141,6 +141,7 @@ export const itemsGroupedByPersonSelector = selector({
       const documentsForModule = [];
       const uniqueDocIds = {}; // to avoid duplicates
       for (const document of person.documents) {
+        if (!document) continue;
         if (uniqueDocIds[document._id]) continue;
         uniqueDocIds[document._id] = true;
         const documentForModule = {
