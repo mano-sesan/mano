@@ -482,6 +482,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     treeData[itemId].children = newChildren;
 
     // Debounce the actual save - if multiple drops happen within 100ms, only save once
+    // TODO: note de raph : probablement que cette histoire de timeout ne sert à rien.
     if (saveTimeoutRef.current) {
       console.log(`=== Clearing previous save timeout [${callId}] ===`);
       clearTimeout(saveTimeoutRef.current);

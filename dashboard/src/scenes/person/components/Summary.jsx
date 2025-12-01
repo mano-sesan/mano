@@ -52,11 +52,7 @@ export default function Summary({ person }) {
                 </div>
               )}
               <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
-                {useNewDocumentSystem && organisation._id !== MANO_TEST_ORG_ID ? (
-                  <PersonDocumentsAlt person={person} />
-                ) : (
-                  <PersonDocuments person={person} />
-                )}
+                {useNewDocumentSystem ? <PersonDocumentsAlt person={person} /> : <PersonDocuments person={person} />}
               </div>
             </div>
           </div>
