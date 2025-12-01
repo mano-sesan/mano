@@ -96,7 +96,7 @@ export const filterItem =
         }
         if (typeof itemValue === "string") {
           // For type text we trim and lower case the value.
-          if (filter.type === "text") {
+          if (["text", "textarea"].includes(filter.type)) {
             const trimmedItemValue = (itemValue || "").trim().toLowerCase();
             const trimmedFilterValue = (filterValue || "").trim().toLowerCase();
             if (trimmedItemValue.includes(trimmedFilterValue)) {
