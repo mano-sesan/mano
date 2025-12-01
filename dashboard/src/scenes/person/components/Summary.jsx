@@ -35,6 +35,12 @@ export default function Summary({ person }) {
         <>
           <div className="noprint tw-grid tw-grid-cols-12 tw-gap-4 tw-pt-4">
             <div className="tw-col-span-8 tw-flex tw-flex-col tw-gap-4">
+              {!!person.description && (
+                <div className="p-3 tw-min-h-[132px] tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-bg-zinc-50/80">
+                  <h4 className="tw-text-xl tw-mb-2">Description</h4>
+                  <div className="tw-rounded tw-bg-white tw-border tw-border-zinc-200 tw-p-2 [overflow-wrap:anywhere]">{person.description}</div>
+                </div>
+              )}
               {customFieldsPersons.map(({ name, fields }) => {
                 return <PersonCustomFields key={name} person={person} sectionName={name} fields={fields} />;
               })}
