@@ -27,6 +27,16 @@ fileignoreconfig:
   checksum: 2c19d1a80d3c9e50509b320c1bf294a86d3f8bc0a6ea2185d2d30ed913e5285f
 - filename: e2e/scripts/populate-db.ts
   checksum: 4dcf8959d9b95e0451eebbfa0bc372ada4b5186f8fbd65286454016c1434095d
+- filename: expo/src/App.tsx
+  checksum: ea5d8c71908cd0be95c07d19c5c440a00c47b07d20fe247ab4f1ce52a51ffef9
+- filename: expo/src/components/Loader.js
+  checksum: 499b6aef397a1fa94f58035201d5155e4c5e0200caa282389193ec30e74d29c9
+- filename: expo/src/components/Selects/SelectLabelled.js
+  checksum: 5f32b7931d610c6818cc1f3a27c97300939da76457882f959531b947d991dd1e
+- filename: expo/src/services/encryption.js
+  checksum: 135fa81942d3783dd9e77d46e5caaa56e4c69c610b2f65e5081f2863a6bd14d3
+- filename: expo/src/services/matomo.js
+  checksum: b9d39e6becb9b67bed07c43c300cab4fc1ebc1f13b3da65ee345ad5959abd6b2
 - filename: website/.yarnrc.yml
   checksum: 67aa1e699cae0e970cd67128e0d83e792c2d589d96df8a1d2dd5e6cc8d40b64d
 scopeconfig:
