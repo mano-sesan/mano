@@ -1,7 +1,7 @@
-import "react-native-reanimated";
 import "react-native-gesture-handler";
 import "./services/api-interface-with-app";
 import "./services/encryption";
+import "./global.css"
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import * as React from "react";
@@ -15,6 +15,7 @@ import Navigators from "./Navigators";
 import * as Application from 'expo-application';
 
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 250, fade: true });
 
 dayjs.locale("fr");
 dayjs.locale("fr");

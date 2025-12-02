@@ -1,8 +1,9 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
 import { withSentry } from "@sentry/react-native/expo";
 
-export const version = "2.5.5";
-export const buildNumber = "55";
+export const version = "3.16.1";
+export const buildNumber = "15";
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   return withSentry(
     {
@@ -86,15 +87,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           "expo-splash-screen",
           {
             backgroundColor: "#226854",
-            image: "./src/assets/adaptive-icon.png",
+            image: "./src/assets/splash-icon.png",
             imageHeight: 300,
             imageWidth: 300,
             resizeMode: "cover",
           },
         ],
         "expo-image-picker",
-        "expo-document-picker",
-        "expo-build-properties",
         [
           "react-native-permissions",
           {

@@ -38,6 +38,8 @@ module.exports = async ({ path, headers: { version, platform } }, res, next) => 
 
   const appVer = version.split(".").map((d) => parseInt(d));
 
+  console.log(appVer, MINIMUM_MOBILE_APP_VERSION);
+
   for (let i = 0; i < 3; i++) {
     if (appVer[i] > MINIMUM_MOBILE_APP_VERSION[i]) {
       return next();
