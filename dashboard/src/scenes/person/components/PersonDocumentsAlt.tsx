@@ -1,358 +1,35 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "react-toastify";
 import { useRecoilValue } from "recoil";
-import { v4 as uuidv4 } from "uuid";
-import {
-  FolderPlusIcon,
-  DocumentPlusIcon,
-  LockClosedIcon,
-  FolderIcon,
-  FolderOpenIcon,
-  DocumentIcon,
-  PencilSquareIcon,
-  PhotoIcon,
-  ArrowsPointingOutIcon,
-} from "@heroicons/react/24/outline";
-import { UsersIcon } from "@heroicons/react/16/solid";
-import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
+import { organisationAuthentifiedState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import type { PersonPopulated } from "../../../types/person";
-import type { UserInstance } from "../../../types/user";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItem } from "../../../types/document";
 import { encryptAction } from "../../../recoil/actions";
-import { useDataLoader } from "../../../services/dataLoader";
-import isEqual from "react-fast-compare";
 import { removeOldDefaultFolders } from "../../../utils/documents";
-import { createOnDropHandler, dragAndDropFeature, hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
-import { useTree } from "@headless-tree/react";
-import cn from "classnames";
-import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
-import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { groupsState } from "../../../recoil/groups";
-import UserName from "../../../components/UserName";
-import { formatDateWithFullMonth, formatTime } from "../../../services/date";
+import DocumentsAlt from "../../../components/DocumentsAlt";
 
 interface PersonDocumentsAltProps {
   person: PersonPopulated;
 }
 
-type DocumentOrFolder = DocumentWithLinkedItem | FolderWithLinkedItem;
-
-// Separate tree component that can be remounted with a key
-function DocumentTree({
-  treeData,
-  onSaveOrder,
-  expandedItems,
-  onDocumentClick,
-  onFolderEdit,
-  currentPersonId,
-  isFullScreen,
-}: {
-  treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
-  onSaveOrder: (itemId: string, newChildren: string[]) => void;
-  expandedItems: string[];
-  onDocumentClick: (document: DocumentWithLinkedItem) => void;
-  onFolderEdit: (folder: FolderWithLinkedItem) => void;
-  currentPersonId: string;
-  isFullScreen?: boolean;
-}) {
-  const syncDataLoader = {
-    getItem: (id: string) => treeData[id],
-    getChildren: (id: string) => treeData[id]?.children ?? [],
-  };
-
-  const tree = useTree<DocumentOrFolder & { children?: string[] }>({
-    initialState: {
-      expandedItems: expandedItems,
-    },
-    rootItemId: "root",
-    getItemName: (item) => item.getItemData().name,
-    isItemFolder: (item) => item.getItemData().type === "folder",
-    canDrag: (items) =>
-      items.every((item) => {
-        const data = item.getItemData();
-        // Can't drag if explicitly not movable
-        if (data.movable === false) return false;
-        // Can't drag documents that belong to other persons in the group
-        if (data.type === "document") {
-          const doc = data as DocumentWithLinkedItem;
-          if (doc.linkedItem && doc.linkedItem._id !== currentPersonId) return false;
-        }
-        return true;
-      }),
-    canReorder: true,
-    onDrop: createOnDropHandler((item, newChildren) => {
-      if (!item.isExpanded()) item.expand();
-      onSaveOrder(item.getId(), newChildren);
-    }),
-    indent: 20,
-    dataLoader: syncDataLoader,
-    features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
-  });
-
-  return (
-    <div {...tree.getContainerProps()} className={cn("tw-flex tw-flex-col", isFullScreen ? "tw-text-sm" : "tw-text-xs")}>
-      {tree.getItems().map((item, _index) => {
-        const itemData = item.getItemData();
-        if (item.getId() === "root") return null;
-
-        const isFolder = itemData.type === "folder";
-        const level = item.getItemMeta().level;
-        const isDraggingOver = (item.isDraggingOver?.() && item.isUnorderedDragTarget?.()) || false;
-
-        // Check if document is from another person in the group
-        const isFromAction =
-          !isFolder && (itemData as DocumentWithLinkedItem).linkedItem && (itemData as DocumentWithLinkedItem).linkedItem.type === "action";
-        const isFromOtherPerson =
-          !isFolder &&
-          (itemData as DocumentWithLinkedItem).linkedItem &&
-          (itemData as DocumentWithLinkedItem).linkedItem.type === "person" &&
-          (itemData as DocumentWithLinkedItem).linkedItem._id !== currentPersonId;
-        const isGroupDocument = !isFolder && (itemData as DocumentWithLinkedItem).group;
-
-        return (
-          <div
-            key={item.getId()}
-            {...item.getProps()}
-            className={cn("tw-flex tw-items-center tw-cursor-pointer tw-group", {
-              // "tw-bg-blue-50": item.isFocused() && !isDraggingOver,
-              "tw-bg-main50": isDraggingOver && isFolder,
-              "hover:tw-bg-gray-50": isFullScreen,
-              "hover:tw-text-main": !isFullScreen,
-              "tw-py-1": isFullScreen,
-            })}
-            onClick={(e) => {
-              // Only handle click on documents, not folders
-              if (!isFolder) {
-                e.stopPropagation();
-                onDocumentClick(itemData as DocumentWithLinkedItem);
-              } else {
-                e.stopPropagation();
-                if (item.isExpanded()) {
-                  item.collapse();
-                } else {
-                  item.expand();
-                }
-              }
-            }}
-          >
-            <div
-              className={cn("tw-flex-grow tw-flex tw-items-center tw-gap-2 tw-overflow-hidden", {
-                "hover:tw-text-main": isFullScreen,
-                "tw-px-1": !isFullScreen,
-              })}
-              style={{ paddingLeft: isFullScreen ? `${level * 20 + 4}px` : `${level * 20}px` }}
-            >
-              {/* Icon */}
-              {isFolder ? (
-                item.isExpanded() ? (
-                  <FolderOpenIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600" />
-                ) : (
-                  <FolderIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-yellow-600/60" />
-                )
-              ) : // If it's an image use the image icon
-              itemData.file?.mimetype?.startsWith("image/") ? (
-                <PhotoIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
-              ) : (
-                <DocumentIcon className="tw-min-w-5 tw-w-5 tw-h-5 tw-text-gray-600" />
-              )}
-
-              {/* Name */}
-              <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
-                <span>{itemData.name}</span>
-                {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
-                {(itemData.movable === false || isFromOtherPerson || isFromAction) && (
-                  <LockClosedIcon
-                    className="tw-w-3 tw-h-3 tw-text-gray-700"
-                    title={
-                      isFromOtherPerson
-                        ? "Document d'un autre membre de la famille"
-                        : isFromAction
-                          ? "Document d'une action"
-                          : "Ne peut pas être déplacé"
-                    }
-                  />
-                )}
-              </span>
-
-              {/* Edit button for folders (only visible on hover and if movable) */}
-              {isFolder && itemData.movable !== false && (
-                <button
-                  type="button"
-                  className="tw-p-1 tw-rounded hover:tw-scale-125 hover:tw-text-main tw-transition-colors tw-invisible group-hover:tw-visible focus:tw-visible"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFolderEdit(itemData as FolderWithLinkedItem);
-                  }}
-                  title="Éditer le dossier"
-                  aria-label="Éditer le dossier"
-                >
-                  <PencilSquareIcon className="tw-w-4 tw-h-4 tw-text-gray-600" />
-                </button>
-              )}
-            </div>
-            {isFullScreen && (
-              <div className="tw-flex tw-items-center tw-gap-8 tw-px-4 tw-shrink-0 tw-text-xs tw-text-gray-500">
-                <div className="tw-w-40">
-                  Créé par <UserName id={itemData.createdBy} />
-                </div>
-                <div className="tw-w-40 tw-text-right">
-                  {formatDateWithFullMonth(itemData.createdAt)} {formatTime(itemData.createdAt)}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <div
-        className="tw-bg-main75"
-        style={{
-          ...tree.getDragLineStyle(),
-          height: "3px",
-        }}
-      />
-    </div>
-  );
-}
-
-interface DocumentsTreeWrapperProps {
-  treeKey: string;
-  treeData: Record<string, DocumentOrFolder & { children?: string[] }>;
-  onSaveOrder: (itemId: string, newChildren: string[]) => void;
-  expandedItems: string[];
-  onDocumentClick: (document: DocumentWithLinkedItem) => void;
-  onFolderEdit: (folder: FolderWithLinkedItem) => void;
-  person: PersonPopulated;
-  className?: string;
-  isFullScreen?: boolean;
-  isInDropzone: boolean;
-  setIsInDropzone: (isInDropzone: boolean) => void;
-}
-
-function DocumentsTreeWrapper({
-  treeKey,
-  treeData,
-  onSaveOrder,
-  expandedItems,
-  onDocumentClick,
-  onFolderEdit,
-  person,
-  isInDropzone,
-  setIsInDropzone,
-  className = "tw-relative tw-p-4",
-  isFullScreen,
-}: DocumentsTreeWrapperProps) {
-  return (
-    <div
-      className={className}
-      onDragEnter={(e) => {
-        // Only show drop zone if files are being dragged from outside (not internal tree items)
-        if (e.dataTransfer.types.includes("Files")) {
-          e.preventDefault();
-          if (!isInDropzone) setIsInDropzone(true);
-        }
-      }}
-      onDragOver={(e) => {
-        // Only prevent default if files are being dragged from outside
-        if (e.dataTransfer.types.includes("Files")) {
-          e.preventDefault();
-        }
-      }}
-    >
-      <DocumentTree
-        key={treeKey}
-        treeData={treeData}
-        onSaveOrder={onSaveOrder}
-        expandedItems={expandedItems}
-        onDocumentClick={onDocumentClick}
-        onFolderEdit={onFolderEdit}
-        currentPersonId={person._id}
-        isFullScreen={isFullScreen}
-      />
-    </div>
-  );
-}
-
-function DocumentsDropzone({
-  setIsInDropzone,
-  onAddDocuments,
-  personId,
-  user,
-  folderOptions,
-}: {
-  setIsInDropzone: (val: boolean) => void;
-  onAddDocuments: (docs: Array<Document | Folder>) => Promise<void>;
-  personId: string;
-  user: UserInstance | null;
-  folderOptions: Array<{ _id: string; name: string; level: number }>;
-}) {
-  return (
-    <div
-      className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
-      onDragOver={(e) => {
-        if (e.dataTransfer.types.includes("Files")) {
-          e.preventDefault();
-        }
-      }}
-      onDragLeave={(e) => {
-        if (e.currentTarget === e.target) {
-          setIsInDropzone(false);
-        }
-      }}
-      onDrop={async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsInDropzone(false);
-
-        if (e.dataTransfer.files.length > 0) {
-          await handleFilesUpload({
-            files: e.dataTransfer.files,
-            personId,
-            user,
-            folders: folderOptions,
-            onSave: onAddDocuments,
-          });
-        }
-      }}
-    >
-      <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center">
-        <DocumentPlusIcon className="tw-mx-auto tw-h-16 tw-w-16" />
-        <p className="tw-mt-4 tw-text-lg tw-font-medium">Déposez vos fichiers ici</p>
-      </div>
-    </div>
-  );
-}
-
 export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) {
-  const { refresh } = useDataLoader();
   const organisation = useRecoilValue(organisationAuthentifiedState);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const user = useRecoilValue(userState);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [resetFileInputKey, setResetFileInputKey] = useState(0);
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
-  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [isUpdatingFolder, setIsUpdatingFolder] = useState(false);
-  const [isDeletingFolder, setIsDeletingFolder] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [documentToEdit, setDocumentToEdit] = useState<DocumentWithLinkedItem | null>(null);
-  const [folderToEdit, setFolderToEdit] = useState<FolderWithLinkedItem | null>(null);
-  const [isUpdatingDocument, setIsUpdatingDocument] = useState(false);
-  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
-  const [isInDropzone, setIsInDropzone] = useState(false);
   const groups = useRecoilValue(groupsState);
 
-  // Build default folders and all documents
-  const allDocuments = useMemo(() => {
+  // Build read-only folders (actions folder if needed)
+  const readOnlyFolders = useMemo(() => {
     if (!person) return [];
 
     const needsActionsFolder =
       !person.documentsForModule?.some((d) => d._id === "actions") && person.documentsForModule?.some((d) => d.linkedItem.type === "action");
+
+    if (!needsActionsFolder) return [];
 
     const actionsFolder: FolderWithLinkedItem = {
       _id: "actions",
@@ -369,114 +46,30 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       createdBy: "admin",
     };
 
-    const defaultFolders: Array<FolderWithLinkedItem> = (organisation.defaultPersonsFolders || []).map((folder) => ({
-      ...folder,
-      movable: false,
-      linkedItem: {
-        _id: person._id,
-        type: "person",
-      } as LinkedItem,
-    }));
+    return [actionsFolder];
+  }, [person]);
 
-    return [
-      needsActionsFolder ? actionsFolder : undefined,
-      ...removeOldDefaultFolders([...(person.documentsForModule || []), ...(person.groupDocuments || [])], defaultFolders),
-    ]
-      .filter((e) => e)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [person, organisation.defaultPersonsFolders]);
-
-  // Convert to tree data structure
-  const treeData = useMemo(() => {
-    if (!person) {
-      return {
-        root: {
-          _id: "root",
-          name: "Documents",
-          type: "folder",
-          children: [],
-          createdAt: new Date(),
-          createdBy: "system",
-        } as DocumentOrFolder & { children: string[] },
-      };
-    }
-
-    const data: Record<string, DocumentOrFolder & { children?: string[] }> = {
-      root: {
-        _id: "root",
-        name: "Documents",
-        type: "folder",
-        children: [],
-        createdAt: new Date(),
-        createdBy: "system",
-        linkedItem: { _id: person._id, type: "person" } as LinkedItem,
+  // Build default folders
+  const defaultFolders: Array<FolderWithLinkedItem> = useMemo(
+    () =>
+      (organisation.defaultPersonsFolders || []).map((folder) => ({
+        ...folder,
         movable: false,
-      } as FolderWithLinkedItem & { children: string[] },
-    };
+        linkedItem: {
+          _id: person._id,
+          type: "person",
+        } as LinkedItem,
+      })),
+    [organisation.defaultPersonsFolders, person._id]
+  );
 
-    // Add all items to data
-    allDocuments.forEach((item) => {
-      data[item._id] = { ...item, children: [] };
-    });
+  // All person documents (personal + group documents)
+  const personDocuments = useMemo(() => {
+    if (!person) return [];
+    return [...(person.documentsForModule || []), ...(person.groupDocuments || [])];
+  }, [person]);
 
-    // Build children arrays
-    allDocuments.forEach((item) => {
-      const parentId = item.parentId || "root";
-      if (data[parentId] && item.type === "folder") {
-        data[parentId].children = data[parentId].children || [];
-      }
-      if (data[parentId]) {
-        if (!data[parentId].children) data[parentId].children = [];
-        if (!data[parentId].children.includes(item._id)) {
-          data[parentId].children.push(item._id);
-        }
-      }
-    });
-
-    return data;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allDocuments, person?._id]);
-
-  // Calculate which folders should be expanded - all non-empty folders
-  const defaultExpandedItems = useMemo(() => {
-    const expanded = ["root"];
-    Object.entries(treeData).forEach(([id, item]) => {
-      if (item.type === "folder" && item.children && item.children.length > 0) {
-        expanded.push(id);
-      }
-    });
-    return expanded;
-  }, [treeData]);
-
-  // Create a key that changes when documents change to force tree re-render
-  const treeKey = useMemo(() => {
-    return allDocuments.map((d) => d._id).join("-") + "-" + defaultExpandedItems.join("-");
-  }, [allDocuments, defaultExpandedItems]);
-
-  // Build folder options for upload modal with tree structure
-  const folderOptions = useMemo(() => {
-    const buildFolderTree = (parentId: string | undefined, level: number = 0): Array<{ _id: string; name: string; level: number }> => {
-      return allDocuments
-        .filter((doc) => {
-          if (doc.type !== "folder") return false;
-          // At root level, include folders with parentId === undefined OR "root"
-          if (parentId === undefined) {
-            return doc.parentId === undefined || doc.parentId === "root";
-          }
-          return doc.parentId === parentId;
-        })
-        .flatMap((folder) => [
-          {
-            _id: folder._id,
-            name: folder.name,
-            level,
-          },
-          ...buildFolderTree(folder._id, level + 1),
-        ]);
-    };
-    return buildFolderTree(undefined, 0);
-  }, [allDocuments]);
-
+  // Can toggle group checkbox if groups enabled and person is in a group
   const canToggleGroupCheck = useMemo(() => {
     if (!organisation.groupsEnabled) return false;
     const group = groups.find((group) => (group.persons || []).includes(person._id));
@@ -484,207 +77,154 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     return true;
   }, [groups, person._id, organisation.groupsEnabled]);
 
-  const handleSaveOrder = async (itemId: string, newChildren: string[]) => {
-    if (!person) return;
-
-    // Update the tree data structure immediately for UI responsiveness
-    treeData[itemId].children = newChildren;
-
-    // Debounce the actual save - if multiple drops happen within 100ms, only save once
-    // TODO: note de raph : probablement que cette histoire de timeout ne sert à rien
-    // En fait si, sinon ça pète le tree, donc il faut postpone.
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
+  // Handlers for saving documents
+  const handleSaveDocuments = async (newDocuments: Array<Document | Folder>) => {
+    // Load fresh person data to prevent race conditions
+    const freshPerson = await loadFreshPersonData(person._id);
+    if (!freshPerson) {
+      toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+      return;
     }
 
-    saveTimeoutRef.current = setTimeout(async () => {
-      // Convert back to flat array with parentId
-      const updatedDocs: DocumentOrFolder[] = [];
-      const processItem = (id: string, parentId: string | undefined, position: number) => {
-        const item = treeData[id];
-        if (!item || id === "root") return;
+    const groupDocuments = (freshPerson.documents || []).filter((docOrFolder) => {
+      const document = docOrFolder as unknown as Document;
+      return !!document.group;
+    });
 
-        // Remove the children property before saving (it's only for tree rendering, not part of document schema)
-        const { children, ...itemWithoutChildren } = item;
-        updatedDocs.push({
-          ...itemWithoutChildren,
-          parentId: parentId === "root" ? undefined : parentId,
-          position,
-        } as DocumentOrFolder);
+    const [personError] = await tryFetchExpectOk(async () => {
+      return API.put({
+        path: `/person/${person._id}`,
+        body: await encryptPerson({
+          ...freshPerson,
+          documents: [...newDocuments, ...groupDocuments],
+        }),
+      });
+    });
 
-        if (item.children) {
-          item.children.forEach((childId, idx) => {
-            processItem(childId, id, idx);
-          });
-        }
-      };
+    if (personError) {
+      toast.error("Erreur lors de l'enregistrement des documents");
+      throw personError;
+    }
+  };
 
-      if (treeData.root.children) {
-        treeData.root.children.forEach((childId, idx) => {
-          processItem(childId, "root", idx);
-        });
+  const handleDeleteDocument = async (document: DocumentWithLinkedItem): Promise<boolean> => {
+    // Prevent deletion of documents from other persons in the group
+    if (document.linkedItem && document.linkedItem.type === "person" && document.linkedItem._id !== person._id) {
+      toast.error("Vous pouvez supprimer ce document uniquement depuis la personne initiale de ce document familial");
+      return false;
+    }
+
+    // Delete the document from the API
+    const [documentError] = await tryFetchExpectOk(async () => {
+      return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
+    });
+    if (documentError) {
+      toast.error("Erreur lors de la suppression du document");
+      return false;
+    }
+
+    if (document.linkedItem.type === "action") {
+      const action = person.actions?.find((a) => a._id === document.linkedItem._id);
+      if (!action) {
+        toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
+        capture(new Error("Error while deleting document (action not found)"), { extra: { document } });
+        return false;
       }
-      // Save to API
-      const personNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "person" && d._id !== "actions");
+      const [actionError] = await tryFetchExpectOk(async () => {
+        return API.put({
+          path: `/action/${action._id}`,
+          body: await encryptAction({
+            ...action,
+            documents: action.documents.filter((d) => d._id !== document._id),
+          }),
+        });
+      });
+      if (actionError) {
+        toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
+        return false;
+      }
+    } else {
+      // Load fresh person data
+      const freshPerson = await loadFreshPersonData(person._id);
+      if (!freshPerson) {
+        toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+        return false;
+      }
 
-      // Check if anything actually changed (prevent unnecessary saves for accidental micro-drags)
-      // Compare only the structure: _id, parentId, and position (what matters for ordering)
-      const currentPersonDocuments = (person.documents || [])
-        .filter((d) => {
-          const doc = d as DocumentOrFolder;
-          return doc.linkedItem?.type === "person" && d._id !== "actions";
-        })
-        .map((d) => ({ _id: d._id, parentId: d.parentId, position: d.position }));
+      // Update person documents
+      const [personError] = await tryFetchExpectOk(async () => {
+        return API.put({
+          path: `/person/${person._id}`,
+          body: await encryptPerson({
+            ...freshPerson,
+            documents: (freshPerson.documents || []).filter((d) => d._id !== document._id),
+          }),
+        });
+      });
+      if (personError) {
+        toast.error("Erreur lors de la suppression du document");
+        return false;
+      }
+    }
 
-      const nextPersonDocsSimplified = personNextDocuments.map((d) => ({
-        _id: d._id,
-        parentId: d.parentId,
-        position: d.position,
-      }));
+    return true;
+  };
 
-      if (isEqual(currentPersonDocuments, nextPersonDocsSimplified)) {
+  const handleUpdateDocument = async (documentOrFolder: DocumentWithLinkedItem) => {
+    if (documentOrFolder.linkedItem.type === "action") {
+      const action = person.actions?.find((a) => a._id === documentOrFolder.linkedItem._id);
+      if (!action) {
+        toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
+        capture(new Error("Error while updating document (action not found)"), { extra: { documentOrFolder } });
         return;
       }
-
-      // Load fresh person data to avoid overwriting concurrent changes
+      const [actionError] = await tryFetchExpectOk(async () => {
+        return API.put({
+          path: `/action/${action._id}`,
+          body: await encryptAction({
+            ...action,
+            documents: action.documents.map((d) => {
+              if (d._id === documentOrFolder._id) return documentOrFolder;
+              return d;
+            }),
+          }),
+        });
+      });
+      if (actionError) {
+        toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
+        return;
+      }
+    } else {
+      // Load fresh person data
       const freshPerson = await loadFreshPersonData(person._id);
       if (!freshPerson) {
         toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
         return;
       }
 
-      const groupDocuments = (freshPerson.documents || []).filter((docOrFolder) => {
-        const document = docOrFolder as unknown as Document;
-        return !!document.group;
-      });
-
-      const finalDocuments = [...personNextDocuments, ...groupDocuments];
-
       const [personError] = await tryFetchExpectOk(async () => {
         return API.put({
           path: `/person/${person._id}`,
           body: await encryptPerson({
             ...freshPerson,
-            documents: finalDocuments,
+            documents: (freshPerson.documents || []).map((d) => {
+              if (d._id === documentOrFolder._id) return documentOrFolder;
+              return d;
+            }),
           }),
         });
       });
-
       if (personError) {
-        toast.error("Erreur lors de l'enregistrement des documents");
+        toast.error("Erreur lors de la mise à jour du document");
         return;
       }
-
-      // Update action documents
-      const actionNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "action");
-      const actionIds = [...new Set(actionNextDocuments.map((d) => d.linkedItem._id))];
-
-      for (const actionId of actionIds) {
-        const action = freshPerson.actions.find((a) => a._id === actionId);
-        if (!action) continue;
-
-        const actionDocs = actionNextDocuments.filter((d) => d.linkedItem._id === actionId);
-        if (isEqual(action.documents, actionDocs)) continue;
-
-        await tryFetchExpectOk(async () => {
-          return API.put({
-            path: `/action/${actionId}`,
-            body: await encryptAction({
-              ...action,
-              documents: actionDocs,
-            }),
-          });
-        });
-      }
-
-      // Wait for refresh to complete before showing success message
-      await refresh();
-      toast.success("Documents mis à jour");
-    }, 0);
+    }
   };
 
-  // Safety check after all hooks
-  if (!person) {
-    return <div className="tw-p-4">Chargement...</div>;
-  }
-
-  const defaultFolders: Array<FolderWithLinkedItem> = (organisation.defaultPersonsFolders || []).map((folder) => ({
-    ...folder,
-    movable: false,
-    linkedItem: {
-      _id: person._id,
-      type: "person",
-    } as LinkedItem,
-  }));
-
-  const handleAddDocuments = async (newDocuments: Array<Document | Folder>) => {
-    if (!newDocuments || newDocuments.length === 0) return;
-
-    // Load fresh person data to prevent race conditions during long uploads
+  const handleUpdateFolder = async (folder: FolderWithLinkedItem) => {
     const freshPerson = await loadFreshPersonData(person._id);
     if (!freshPerson) {
       toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-      return;
-    }
-
-    const [personError] = await tryFetchExpectOk(async () => {
-      // Use fresh person data instead of stale prop
-      const oldDocuments = freshPerson.documents?.length ? [...freshPerson.documents] : [...defaultFolders];
-      return API.put({
-        path: `/person/${person._id}`,
-        body: await encryptPerson({
-          ...freshPerson, // Use fresh person data
-          // If there are no document yet and default documents are present,
-          // we save the default documents since they are modified by the user.
-          documents: [...oldDocuments, ...newDocuments],
-        }),
-      });
-    });
-    if (personError) {
-      toast.error("Erreur lors de la création du document, vous pouvez contacter le support");
-      return;
-    }
-
-    // Wait for refresh to complete before showing success message
-    await refresh();
-
-    // Show success toast after data is refreshed and visible
-    if (newDocuments.filter((d) => d.type === "document").length > 1) toast.success("Documents enregistrés !");
-    if (newDocuments.filter((d) => d.type === "folder").length > 0) toast.success("Dossier créé !");
-  };
-
-  const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) {
-      toast.error("Veuillez entrer un nom pour le dossier");
-      return;
-    }
-
-    setIsCreatingFolder(true);
-
-    const newFolder: Folder = {
-      _id: uuidv4(),
-      name: newFolderName.trim(),
-      type: "folder",
-      parentId: undefined,
-      position: undefined,
-      createdAt: new Date(),
-      createdBy: user?._id ?? "",
-    };
-
-    await handleAddDocuments([newFolder]);
-    setShowCreateFolderModal(false);
-    setNewFolderName("");
-    setIsCreatingFolder(false);
-  };
-
-  const handleUpdateFolder = async (folder: FolderWithLinkedItem, newName: string) => {
-    setIsUpdatingFolder(true);
-
-    // Load fresh person data
-    const freshPerson = await loadFreshPersonData(person._id);
-    if (!freshPerson) {
-      toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-      setIsUpdatingFolder(false);
       return;
     }
 
@@ -694,7 +234,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
         body: await encryptPerson({
           ...freshPerson,
           documents: (freshPerson.documents || []).map((d) => {
-            if (d._id === folder._id) return { ...d, name: newName };
+            if (d._id === folder._id) return folder;
             return d;
           }),
         }),
@@ -702,25 +242,15 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     });
     if (personError) {
       toast.error("Erreur lors de la mise à jour du dossier");
-      setIsUpdatingFolder(false);
-      return;
+      throw personError;
     }
-
-    await refresh();
-    setIsUpdatingFolder(false);
-    setFolderToEdit(null);
-    toast.success("Dossier mis à jour");
   };
 
-  const handleDeleteFolder = async (folder: FolderWithLinkedItem) => {
-    setIsDeletingFolder(true);
-
-    // Load fresh person data to prevent race conditions
+  const handleDeleteFolder = async (folder: FolderWithLinkedItem): Promise<boolean> => {
     const freshPerson = await loadFreshPersonData(person._id);
     if (!freshPerson) {
       toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-      setIsDeletingFolder(false);
-      return;
+      return false;
     }
 
     const [personError] = await tryFetchExpectOk(async () => {
@@ -740,376 +270,39 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
     });
     if (personError) {
       toast.error("Erreur lors de la suppression du dossier");
-      setIsDeletingFolder(false);
-      return;
+      return false;
     }
 
-    await refresh();
-    setIsDeletingFolder(false);
-    setFolderToEdit(null);
-    toast.success("Dossier supprimé");
+    return true;
   };
 
+  // Safety check
+  if (!person) {
+    return <div className="tw-p-4">Chargement...</div>;
+  }
+
   return (
-    <div>
-      {isInDropzone && !isFullScreen && (
-        <DocumentsDropzone
-          setIsInDropzone={setIsInDropzone}
-          onAddDocuments={handleAddDocuments}
-          personId={person._id}
-          user={user}
-          folderOptions={folderOptions}
-        />
-      )}
-      <div className="tw-flex tw-justify-between tw-items-center tw-border-b tw-border-main25 tw-py-2 tw-px-4">
-        <h3 className="tw-text-xl tw-mb-0">Documents</h3>
-        <div className="tw-flex tw-gap-2">
-          <button
-            type="button"
-            aria-label="Créer un dossier"
-            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
-            onClick={() => setShowCreateFolderModal(true)}
-          >
-            <FolderPlusIcon className="tw-w-5 tw-h-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Ajouter un document"
-            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <DocumentPlusIcon className="tw-w-5 tw-h-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Passer en plein écran"
-            className="tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-text-white tw-transition hover:tw-scale-110 tw-flex tw-items-center tw-justify-center"
-            onClick={() => setIsFullScreen(true)}
-          >
-            <ArrowsPointingOutIcon className="tw-w-5 tw-h-5" />
-          </button>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          key={resetFileInputKey}
-          className="tw-hidden"
-          onChange={async (e) => {
-            await handleFilesUpload({
-              files: e.target.files,
-              personId: person._id,
-              user,
-              folders: folderOptions,
-              onSave: handleAddDocuments,
-            });
-            setResetFileInputKey((k) => k + 1);
-          }}
-        />
-      </div>
-
-      <DocumentsTreeWrapper
-        treeKey={treeKey}
-        treeData={treeData}
-        onSaveOrder={handleSaveOrder}
-        expandedItems={defaultExpandedItems}
-        onDocumentClick={setDocumentToEdit}
-        onFolderEdit={setFolderToEdit}
-        person={person}
-        isInDropzone={isInDropzone}
-        setIsInDropzone={setIsInDropzone}
-      />
-
-      <ModalContainer open={isFullScreen} onClose={() => setIsFullScreen(false)} size="full">
-        <ModalHeader title="Documents" onClose={() => setIsFullScreen(false)} />
-        <ModalBody>
-          {isInDropzone && isFullScreen && (
-            <DocumentsDropzone
-              setIsInDropzone={setIsInDropzone}
-              onAddDocuments={handleAddDocuments}
-              personId={person._id}
-              user={user}
-              folderOptions={folderOptions}
-            />
-          )}
-          <DocumentsTreeWrapper
-            className="tw-relative tw-p-4 tw-min-h-[80vh]"
-            treeKey={treeKey}
-            treeData={treeData}
-            onSaveOrder={handleSaveOrder}
-            expandedItems={defaultExpandedItems}
-            onDocumentClick={setDocumentToEdit}
-            onFolderEdit={setFolderToEdit}
-            person={person}
-            isInDropzone={isInDropzone}
-            setIsInDropzone={setIsInDropzone}
-            isFullScreen={true}
-          />
-        </ModalBody>
-        <ModalFooter>
-          <button type="button" className="button-cancel" onClick={() => setIsFullScreen(false)}>
-            Fermer
-          </button>
-          <ButtonDownloadAll documents={allDocuments as DocumentWithLinkedItem[]} />
-          <button type="button" className="button-submit" onClick={() => setShowCreateFolderModal(true)}>
-            Créer un dossier
-          </button>
-          <button type="button" className="button-submit" onClick={() => fileInputRef.current?.click()}>
-            Ajouter un document
-          </button>
-        </ModalFooter>
-      </ModalContainer>
-
-      {showCreateFolderModal && (
-        <ModalContainer open onClose={() => setShowCreateFolderModal(false)}>
-          <ModalHeader title="Créer un nouveau dossier" />
-          <ModalBody>
-            <div className="tw-p-4">
-              <label htmlFor="folder-name" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
-                Nom du dossier
-              </label>
-              <input
-                id="folder-name"
-                type="text"
-                className="tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 focus:tw-border-blue-500 focus:tw-outline-none"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleCreateFolder();
-                  }
-                }}
-                autoFocus
-                placeholder="Entrez le nom du dossier"
-              />
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <button
-              type="button"
-              className="button-cancel"
-              onClick={() => {
-                setShowCreateFolderModal(false);
-                setNewFolderName("");
-              }}
-            >
-              Annuler
-            </button>
-            <button type="button" className="button-submit" onClick={handleCreateFolder} disabled={isCreatingFolder}>
-              {isCreatingFolder ? "Enregistrement..." : "Enregistrer"}
-            </button>
-          </ModalFooter>
-        </ModalContainer>
-      )}
-
-      {documentToEdit && (
-        <DocumentModal
-          document={documentToEdit}
-          key={documentToEdit._id}
-          personId={person._id}
-          onClose={() => setDocumentToEdit(null)}
-          onDelete={async (document) => {
-            // Prevent deletion of documents from other persons in the group
-            if (document.linkedItem && document.linkedItem.type === "person" && document.linkedItem._id !== person._id) {
-              toast.error("Vous pouvez supprimer ce document uniquement depuis la personne initiale de ce document familial");
-              return false;
-            }
-
-            setIsDeletingDocument(true);
-
-            // Delete the document from the API
-            const [documentError] = await tryFetchExpectOk(async () => {
-              return API.delete({ path: document.downloadPath ?? `/person/${person._id}/document/${document.file.filename}` });
-            });
-            if (documentError) {
-              toast.error("Erreur lors de la suppression du document");
-              setIsDeletingDocument(false);
-              return false;
-            }
-
-            if (document.linkedItem.type === "action") {
-              const action = person.actions?.find((a) => a._id === document.linkedItem._id);
-              if (!action) {
-                toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
-                capture(new Error("Error while deleting document (action not found)"), { extra: { document } });
-                setIsDeletingDocument(false);
-                return false;
-              }
-              const [actionError] = await tryFetchExpectOk(async () => {
-                return API.put({
-                  path: `/action/${action._id}`,
-                  body: await encryptAction({
-                    ...action,
-                    documents: action.documents.filter((d) => d._id !== document._id),
-                  }),
-                });
-              });
-              if (actionError) {
-                toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
-                setIsDeletingDocument(false);
-                return false;
-              }
-            } else {
-              // Load fresh person data
-              const freshPerson = await loadFreshPersonData(person._id);
-              if (!freshPerson) {
-                toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-                setIsDeletingDocument(false);
-                return false;
-              }
-
-              // Update person documents
-              const [personError] = await tryFetchExpectOk(async () => {
-                return API.put({
-                  path: `/person/${person._id}`,
-                  body: await encryptPerson({
-                    ...freshPerson,
-                    documents: (freshPerson.documents || []).filter((d) => d._id !== document._id),
-                  }),
-                });
-              });
-              if (personError) {
-                toast.error("Erreur lors de la suppression du document");
-                setIsDeletingDocument(false);
-                return false;
-              }
-            }
-
-            await refresh();
-            setIsDeletingDocument(false);
-            setDocumentToEdit(null);
-            toast.success("Document supprimé");
-            return true;
-          }}
-          onSubmit={async (documentOrFolder) => {
-            setIsUpdatingDocument(true);
-
-            if (documentOrFolder.linkedItem.type === "action") {
-              const action = person.actions?.find((a) => a._id === documentOrFolder.linkedItem._id);
-              if (!action) {
-                toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
-                capture(new Error("Error while updating document (action not found)"), { extra: { documentOrFolder } });
-                setIsUpdatingDocument(false);
-                return;
-              }
-              const [actionError] = await tryFetchExpectOk(async () => {
-                return API.put({
-                  path: `/action/${action._id}`,
-                  body: await encryptAction({
-                    ...action,
-                    documents: action.documents.map((d) => {
-                      if (d._id === documentOrFolder._id) return documentOrFolder;
-                      return d;
-                    }),
-                  }),
-                });
-              });
-              if (actionError) {
-                toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
-                setIsUpdatingDocument(false);
-                return;
-              }
-            } else {
-              // Load fresh person data
-              const freshPerson = await loadFreshPersonData(person._id);
-              if (!freshPerson) {
-                toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-                setIsUpdatingDocument(false);
-                return;
-              }
-
-              const [personError] = await tryFetchExpectOk(async () => {
-                return API.put({
-                  path: `/person/${person._id}`,
-                  body: await encryptPerson({
-                    ...freshPerson,
-                    documents: (freshPerson.documents || []).map((d) => {
-                      if (d._id === documentOrFolder._id) return documentOrFolder;
-                      return d;
-                    }),
-                  }),
-                });
-              });
-              if (personError) {
-                toast.error("Erreur lors de la mise à jour du document");
-                setIsUpdatingDocument(false);
-                return;
-              }
-            }
-
-            await refresh();
-            setIsUpdatingDocument(false);
-            setDocumentToEdit(null);
-            toast.success("Document mis à jour");
-          }}
-          canToggleGroupCheck={canToggleGroupCheck}
-          showAssociatedItem={true}
-          color="main"
-          externalIsUpdating={isUpdatingDocument}
-          externalIsDeleting={isDeletingDocument}
-        />
-      )}
-
-      {folderToEdit && (
-        <ModalContainer open onClose={() => setFolderToEdit(null)}>
-          <ModalHeader title="Éditer le dossier" />
-          <ModalBody>
-            <div className="tw-p-4">
-              <label htmlFor="edit-folder-name" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-2">
-                Nom du dossier
-              </label>
-              <input
-                id="edit-folder-name"
-                type="text"
-                className="tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 focus:tw-border-blue-500 focus:tw-outline-none disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
-                defaultValue={folderToEdit.name}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !isUpdatingFolder && !isDeletingFolder) {
-                    const newName = (e.target as HTMLInputElement).value.trim();
-                    if (newName) {
-                      handleUpdateFolder(folderToEdit, newName);
-                    }
-                  }
-                }}
-                disabled={isUpdatingFolder || isDeletingFolder}
-                autoFocus
-                placeholder="Nom du dossier"
-              />
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <button type="button" className="button-cancel" onClick={() => setFolderToEdit(null)} disabled={isUpdatingFolder || isDeletingFolder}>
-              Annuler
-            </button>
-            <button
-              type="button"
-              className="button-destructive"
-              onClick={async () => {
-                if (window.confirm("Voulez-vous vraiment supprimer ce dossier ?")) {
-                  await handleDeleteFolder(folderToEdit);
-                }
-              }}
-              disabled={isUpdatingFolder || isDeletingFolder}
-            >
-              {isDeletingFolder ? "Suppression..." : "Supprimer"}
-            </button>
-            <button
-              type="button"
-              className="button-submit"
-              onClick={() => {
-                const input = document.getElementById("edit-folder-name") as HTMLInputElement;
-                const newName = input?.value.trim();
-                if (newName) {
-                  handleUpdateFolder(folderToEdit, newName);
-                }
-              }}
-              disabled={isUpdatingFolder || isDeletingFolder}
-            >
-              {isUpdatingFolder ? "Enregistrement..." : "Enregistrer"}
-            </button>
-          </ModalFooter>
-        </ModalContainer>
-      )}
-    </div>
+    <DocumentsAlt
+      config={{
+        documents: personDocuments,
+        linkedItem: {
+          _id: person._id,
+          type: "person",
+        },
+        supportsFolders: true,
+        defaultFolders,
+        readOnlyFolders,
+        canToggleGroupCheck,
+        title: "Documents",
+        color: "main",
+        showFullScreen: true,
+        isInsideModal: false,
+        onSaveDocuments: handleSaveDocuments,
+        onDeleteDocument: handleDeleteDocument,
+        onDeleteFolder: handleDeleteFolder,
+        onUpdateDocument: handleUpdateDocument,
+        onUpdateFolder: handleUpdateFolder,
+      }}
+    />
   );
 }

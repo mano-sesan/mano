@@ -15,7 +15,9 @@ import { modalConfirmState } from "../../../components/ModalConfirm";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import UserName from "../../../components/UserName";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
+import TreatmentDocumentsAlt from "../../../components/TreatmentDocumentsAlt";
 import TabsNav from "../../../components/tailwind/TabsNav";
+import { MANO_TEST_ORG_ID } from "../../../config";
 import PersonName from "../../../components/PersonName";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage, isEmptyValue } from "../../../utils";
@@ -372,47 +374,59 @@ function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsS
               .filter(Boolean)
               .join(" ")}
           >
-            <DocumentsModule
-              personId={data.person}
-              color="blue-900"
-              showAssociatedItem={false}
-              documents={data.documents.map((doc) => ({
-                ...doc,
-                type: doc.type ?? "document", // or 'folder'
-                linkedItem: { _id: treatment?._id, type: "treatment" },
-              }))}
-              onAddDocuments={async (nextDocuments) => {
-                const newData = {
-                  ...data,
-                  documents: [...data.documents, ...nextDocuments],
-                };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-              }}
-              onDeleteDocument={async (document) => {
-                const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document supprimé");
-                return ok;
-              }}
-              onSubmitDocument={async (document) => {
-                const newData = {
-                  ...data,
-                  documents: data.documents.map((d) => {
-                    if (d._id === document._id) return document;
-                    return d;
-                  }),
-                };
-                setData(newData);
-                if (isNewTreatment) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document mis à jour");
-              }}
-            />
+            {(organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT ? (
+              <TreatmentDocumentsAlt
+                treatment={data}
+                onUpdateTreatment={async (updatedTreatment) => {
+                  setData(updatedTreatment);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData: updatedTreatment });
+                  if (ok) toast.success("Documents mis à jour");
+                }}
+              />
+            ) : (
+              <DocumentsModule
+                personId={data.person}
+                color="blue-900"
+                showAssociatedItem={false}
+                documents={data.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: treatment?._id, type: "treatment" },
+                }))}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...data,
+                    documents: [...data.documents, ...nextDocuments],
+                  };
+                  setData(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
+                  setData(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...data,
+                    documents: data.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setData(newData);
+                  if (isNewTreatment) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
+            )}
           </div>
           <div
             className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]

@@ -749,11 +749,25 @@ function NoDocumentsInTable({
   );
 }
 
-export function ClickableLabel({ doc, color }: { doc: DocumentWithLinkedItem; color: "main" | "blue-900" }) {
+export function ClickableLabel({
+  doc,
+  color,
+  hideLinkedItemType,
+}: {
+  doc: DocumentWithLinkedItem;
+  color: "main" | "blue-900";
+  hideLinkedItemType?: "action" | "consultation" | "treatment";
+}) {
   const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
   const setModalAction = useSetRecoilState(modalActionState);
   const location = useLocation();
   const history = useHistory();
+
+  // Don't show the link if we're hiding this type
+  if (hideLinkedItemType === doc.linkedItem.type) {
+    return null;
+  }
+
   return (
     <div>
       {doc.linkedItem.type === "action" ? (
@@ -1118,6 +1132,7 @@ interface DocumentModalProps<T extends DocumentWithLinkedItem> {
   onDelete: (document: T) => Promise<boolean>;
   canToggleGroupCheck: boolean;
   showAssociatedItem: boolean;
+  hideLinkedItemType?: "action" | "consultation" | "treatment";
   color: string;
   externalIsUpdating?: boolean;
   externalIsDeleting?: boolean;
@@ -1131,6 +1146,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   onSubmit,
   showAssociatedItem,
   canToggleGroupCheck,
+  hideLinkedItemType,
   color,
   externalIsUpdating,
   externalIsDeleting,
@@ -1297,7 +1313,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               <pre>{JSON.stringify(document, null, 2)}</pre>
             </div>
           )}
-          {!!showAssociatedItem && document?.linkedItem?.type === "treatment" && (
+          {!!showAssociatedItem && document?.linkedItem?.type === "treatment" && hideLinkedItemType !== "treatment" && (
             <button
               onClick={() => {
                 const searchParams = new URLSearchParams(history.location.search);
@@ -1310,7 +1326,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               Voir le traitement associé
             </button>
           )}
-          {!!showAssociatedItem && document?.linkedItem?.type === "action" && (
+          {!!showAssociatedItem && document?.linkedItem?.type === "action" && hideLinkedItemType !== "action" && (
             <button
               onClick={() => {
                 setModalAction({
@@ -1326,7 +1342,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               Voir l'action associée
             </button>
           )}
-          {!!showAssociatedItem && document?.linkedItem?.type === "consultation" && (
+          {!!showAssociatedItem && document?.linkedItem?.type === "consultation" && hideLinkedItemType !== "consultation" && (
             <button
               onClick={() => {
                 const searchParams = new URLSearchParams(history.location.search);
