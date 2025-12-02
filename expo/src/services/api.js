@@ -3,7 +3,7 @@ import { HOST, SCHEME, VERSION } from "../config";
 import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
-import { File, Paths } from "expo-file-system";
+import * as FileSystem from 'expo-file-system';
 import fetchRetry from "fetch-retry";
 import {
   getApiLevel,
@@ -263,15 +263,18 @@ class ApiService {
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
     }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
-    const file = new File(response.path());
-    const res = await file.base64();
+    const responsePath = response.path();
+    const res = await ReactNativeBlobUtil.fs.readFile(responsePath, 'base64');
     const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
-    const newPath = new File(Paths.cache, document.file.originalname);
+    const cacheDir = FileSystem.cacheDirectory;
+    const filePath = `${cacheDir}${document.file.originalname}`;
+    
     if (decrypted) {
-      await newPath.write(decrypted, { encoding: "base64" });
+      await FileSystem.writeAsStringAsync(filePath, decrypted, { 
+        encoding: FileSystem.EncodingType.Base64 
+      });
     }
-
-    return { path: newPath, decrypted };
+    return { path: filePath, decrypted };
   };
 
   // Upload a file to a path.

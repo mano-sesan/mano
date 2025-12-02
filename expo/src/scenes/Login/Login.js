@@ -77,7 +77,7 @@ const Login = ({ navigation }) => {
       }
       // check token
       const storedToken = await AsyncStorage.getItem("persistent_token");
-      if (!storedToken) return SplashScreen.hide({ duration: 250 });
+      if (!storedToken) return SplashScreen.hide();
       API.token = storedToken;
       const { token, ok, user } = await API.get({ path: "/user/signin-token" });
       if (ok && token && user) {
@@ -96,7 +96,7 @@ const Login = ({ navigation }) => {
       } else {
         await AsyncStorage.removeItem("persistent_token");
       }
-      SplashScreen.hide({ duration: 250 });
+      SplashScreen.hide();
       return setLoading(false);
     }, 500);
 

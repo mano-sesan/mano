@@ -1,8 +1,7 @@
-/* eslint-disable no-bitwise */
 import "fast-text-encoding"; // for TextEncoder
-const Buffer = require("buffer").Buffer;
 import sodium, { ready } from "react-native-libsodium";
 import rnBase64 from "react-native-base64";
+const Buffer = require("buffer").Buffer;
 // https://github.com/serenity-kit/react-native-libsodium?tab=readme-ov-file#usage
 // the lib doesn't export this value, so we need to define it manually
 sodium.crypto_secretbox_MACBYTES = 16;
@@ -14,7 +13,7 @@ Utils
 */
 
 const _appendBuffer = function (buffer1, buffer2) {
-  var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  let tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   tmp.set(new Uint8Array(buffer1), 0);
   tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
   return new Uint8Array(tmp.buffer);

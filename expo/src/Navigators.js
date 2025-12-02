@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as Sentry from "@sentry/react-native";
+import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, InteractionManager, AppState } from "react-native";
 import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
-import * as SplashScreen from "expo-splash-screen";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -152,7 +152,7 @@ const TerritoriesNavigator = () => {
 const NotificationsStack = createStackNavigator();
 const NotificationsNavigator = () => {
   return (
-    <NotificationsStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Notifications">
+    <NotificationsStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="NotificationsList">
       <NotificationsStack.Screen name="NotificationsList" component={Notifications} />
       <NotificationsStack.Screen name="PersonComment" component={Comment} />
     </NotificationsStack.Navigator>
@@ -392,7 +392,7 @@ const App = () => {
         ref={navigationRef}
         onReady={() => {
           API.navigation = navigationRef;
-          // SplashScreen.hideAsync();
+          SplashScreen.hide();
         }}
         theme={{
           ...DefaultTheme,

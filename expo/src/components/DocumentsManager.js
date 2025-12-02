@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Modal, View, Text, TouchableOpacity } from "react-native";
+import { Alert, Modal, View, Text, TouchableOpacity, Linking } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRecoilValue } from "recoil";
 import ScrollContainer from "./ScrollContainer";
@@ -7,7 +7,6 @@ import Button from "./Button";
 import API from "../services/api";
 import { capture } from "../services/sentry";
 import { userState } from "../recoil/auth";
-import { alertPhotosSetting, getCameraPermission, getPhotoLibraryPermission } from "../services/permissions-photo";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 import InputLabelled from "./InputLabelled";
@@ -15,9 +14,8 @@ import ButtonsContainer from "./ButtonsContainer";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import * as DocumentsPicker from "@react-native-documents/picker";
 import * as DocumentViewer from "@react-native-documents/viewer";
-
+import ReactNativeBlobUtil from "react-native-blob-util";
 import SelectLabelled from "./Selects/SelectLabelled";
-import { File } from "expo-file-system";
 
 // Cette fonction vient du dashboard pour transformer les documents en arbre
 const buildFolderTree = (items, rootFolderName, defaultParent) => {
@@ -105,6 +103,10 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
   const [loading, setLoading] = useState(false);
   const { showActionSheetWithOptions } = useActionSheet();
 
+  // Add the new permission hooks
+  const [cameraPermissionInformation, requestCameraPermission] = ImagePicker.useCameraPermissions();
+  const [mediaLibraryPermissionInformation, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
+
   const onAddPress = async () => {
     const options = ["Prendre une photo", "Bibliothèque d'images", "Naviguer dans les documents", "Annuler"];
     showActionSheetWithOptions(
@@ -115,14 +117,26 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
       async (buttonIndex) => {
         if (options[buttonIndex] === "Prendre une photo") {
           setLoading("camera");
-          const permission = await getCameraPermission();
-          if (!permission) {
-            alertPhotosSetting(new Error("Access to camera was denied", "camera"));
-            reset();
-            return;
+          
+          // Use the new camera permission hook
+          if (!cameraPermissionInformation?.granted) {
+            const permissionResult = await requestCameraPermission();
+            if (!permissionResult.granted) {
+              Alert.alert(
+                "Permission requise",
+                "L'accès à l'appareil photo est nécessaire pour prendre des photos.",
+                [
+                  { text: "Annuler", style: "cancel" },
+                  { text: "Réglages", onPress: () => Linking.openSettings() }
+                ]
+              );
+              reset();
+              return;
+            }
           }
+          
           const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ["images"],
+            mediaTypes: ['images'],
             base64: true,
             quality: 1,
           });
@@ -130,14 +144,26 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
         }
         if (options[buttonIndex] === "Bibliothèque d'images") {
           setLoading("photoLibrary");
-          const permission = await getPhotoLibraryPermission();
-          if (!permission) {
-            alertPhotosSetting(new Error("Access to photo library was denied", "images"));
-            reset();
-            return;
+          
+          // Use the new media library permission hook
+          if (!mediaLibraryPermissionInformation?.granted) {
+            const permissionResult = await requestMediaLibraryPermission();
+            if (!permissionResult.granted) {
+              Alert.alert(
+                "Permission requise",
+                "L'accès à la bibliothèque de photos est nécessaire pour sélectionner des images.",
+                [
+                  { text: "Annuler", style: "cancel" },
+                  { text: "Réglages", onPress: () => Linking.openSettings() }
+                ]
+              );
+              reset();
+              return;
+            }
           }
+          
           const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
+            mediaTypes: ['images'],
             base64: true,
             quality: 1,
           });
@@ -146,15 +172,21 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
         if (options[buttonIndex] === "Naviguer dans les documents") {
           setLoading("documents");
           try {
-            const document = await DocumentsPicker.pickSingle();
-            //   { "name": "Adobe Scan 19 janv. 2023.pdf",
-            //   "size": 222133, "type":
-            //   "application/pdf",
-            //   "uri": "content://com.adobe.scan.android.documents/document/root%3A1"
-            // }
-            const file = new File(document.uri);
-            const base64 = await file.base64();
-
+            const documents = await DocumentsPicker.pick({ allowMultiSelection: false });
+            const document = documents[0];
+            if (!document) return;
+            // [{
+            //   "convertibleToMimeTypes": null,
+            //   "error": null,
+            //   "hasRequestedType": true,
+            //   "isVirtual": false,
+            //   "name": "IMG_20251202_182411.jpg",
+            //   "nativeType": "image/jpeg",
+            //   "size": 30397,
+            //   "type": "image/jpeg",
+            //   "uri": "content://com.android.providers.media.documents/document/image%3A1000000023"
+            // }]
+            const base64 = await ReactNativeBlobUtil.fs.readFile(document.uri, 'base64');
             setAsset({
               ...document,
               type: "document",
@@ -163,6 +195,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
             });
             setName(document.name.replace(`.${document.name.split(".").reverse()[0]}`, "")); // remove extension
           } catch (docError) {
+            console.log("docError", docError);
             if (DocumentsPicker.isCancel(docError)) return;
             if (DocumentsPicker.isInProgress(docError)) return; // multiple pickers were opened, only the last will be considered
             Alert.alert("Désolé, une erreur est survenue", "L'équipe technique a été prévenue");
@@ -338,6 +371,8 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
             encryptedEntityKey: document.encryptedEntityKey,
             document,
           }).then(({ path }) => {
+            console.log("path", path);
+            console.log("document.file.type", document.file.type);
             DocumentViewer.viewDocument({ uri: path, mimeType: document.file.type })
               .then((f) => {
                 setIsDownloading(false);
