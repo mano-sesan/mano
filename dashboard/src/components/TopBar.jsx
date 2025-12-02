@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import logo from "../assets/logo-green-creux-plus-petit.png";
-import logoDecembre from "../assets/logo-decembre.png";
 import SelectTeam from "./SelectTeam";
 
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
@@ -41,9 +40,6 @@ const TopBar = () => {
     });
   }
 
-  // If current month is December, use the December logo, otherwise use the regular logo
-  const currentLogo = new Date().getMonth() === 11 ? logoDecembre : logo;
-
   return (
     <div className="tw-hidden tw-w-full sm:tw-block">
       <aside
@@ -72,7 +68,7 @@ const TopBar = () => {
             onClick={refresh}
             disabled={isLoading}
             style={{
-              backgroundImage: `url(${currentLogo})`,
+              backgroundImage: `url(${logo})`,
             }}
           />
         </div>
