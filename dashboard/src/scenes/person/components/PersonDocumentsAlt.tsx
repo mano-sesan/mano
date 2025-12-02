@@ -17,6 +17,7 @@ import { UsersIcon } from "@heroicons/react/16/solid";
 import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
+import { capture } from "../../../services/sentry";
 import type { PersonPopulated } from "../../../types/person";
 import type { UserInstance } from "../../../types/user";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItem } from "../../../types/document";
@@ -909,7 +910,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           onClose={() => setDocumentToEdit(null)}
           onDelete={async (document) => {
             // Prevent deletion of documents from other persons in the group
-            if (document.linkedItem && document.linkedItem._id !== person._id) {
+            if (document.linkedItem && document.linkedItem.type === "person" && document.linkedItem._id !== person._id) {
               toast.error("Vous pouvez supprimer ce document uniquement depuis la personne initiale de ce document familial");
               return false;
             }
@@ -926,28 +927,52 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
               return false;
             }
 
-            // Load fresh person data
-            const freshPerson = await loadFreshPersonData(person._id);
-            if (!freshPerson) {
-              toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-              setIsDeletingDocument(false);
-              return false;
-            }
-
-            // Update person documents
-            const [personError] = await tryFetchExpectOk(async () => {
-              return API.put({
-                path: `/person/${person._id}`,
-                body: await encryptPerson({
-                  ...freshPerson,
-                  documents: (freshPerson.documents || []).filter((d) => d._id !== document._id),
-                }),
+            if (document.linkedItem.type === "action") {
+              const action = person.actions?.find((a) => a._id === document.linkedItem._id);
+              if (!action) {
+                toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
+                capture(new Error("Error while deleting document (action not found)"), { extra: { document } });
+                setIsDeletingDocument(false);
+                return false;
+              }
+              const [actionError] = await tryFetchExpectOk(async () => {
+                return API.put({
+                  path: `/action/${action._id}`,
+                  body: await encryptAction({
+                    ...action,
+                    documents: action.documents.filter((d) => d._id !== document._id),
+                  }),
+                });
               });
-            });
-            if (personError) {
-              toast.error("Erreur lors de la suppression du document");
-              setIsDeletingDocument(false);
-              return false;
+              if (actionError) {
+                toast.error("Erreur lors de la suppression du document pour les actions liées, vous pouvez contactez le support");
+                setIsDeletingDocument(false);
+                return false;
+              }
+            } else {
+              // Load fresh person data
+              const freshPerson = await loadFreshPersonData(person._id);
+              if (!freshPerson) {
+                toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+                setIsDeletingDocument(false);
+                return false;
+              }
+
+              // Update person documents
+              const [personError] = await tryFetchExpectOk(async () => {
+                return API.put({
+                  path: `/person/${person._id}`,
+                  body: await encryptPerson({
+                    ...freshPerson,
+                    documents: (freshPerson.documents || []).filter((d) => d._id !== document._id),
+                  }),
+                });
+              });
+              if (personError) {
+                toast.error("Erreur lors de la suppression du document");
+                setIsDeletingDocument(false);
+                return false;
+              }
             }
 
             await refresh();
@@ -959,30 +984,57 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
           onSubmit={async (documentOrFolder) => {
             setIsUpdatingDocument(true);
 
-            // Load fresh person data
-            const freshPerson = await loadFreshPersonData(person._id);
-            if (!freshPerson) {
-              toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
-              setIsUpdatingDocument(false);
-              return;
-            }
-
-            const [personError] = await tryFetchExpectOk(async () => {
-              return API.put({
-                path: `/person/${person._id}`,
-                body: await encryptPerson({
-                  ...freshPerson,
-                  documents: (freshPerson.documents || []).map((d) => {
-                    if (d._id === documentOrFolder._id) return documentOrFolder;
-                    return d;
+            if (documentOrFolder.linkedItem.type === "action") {
+              const action = person.actions?.find((a) => a._id === documentOrFolder.linkedItem._id);
+              if (!action) {
+                toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
+                capture(new Error("Error while updating document (action not found)"), { extra: { documentOrFolder } });
+                setIsUpdatingDocument(false);
+                return;
+              }
+              const [actionError] = await tryFetchExpectOk(async () => {
+                return API.put({
+                  path: `/action/${action._id}`,
+                  body: await encryptAction({
+                    ...action,
+                    documents: action.documents.map((d) => {
+                      if (d._id === documentOrFolder._id) return documentOrFolder;
+                      return d;
+                    }),
                   }),
-                }),
+                });
               });
-            });
-            if (personError) {
-              toast.error("Erreur lors de la mise à jour du document");
-              setIsUpdatingDocument(false);
-              return;
+              if (actionError) {
+                toast.error("Erreur lors de la mise à jour du document pour les actions liées, vous pouvez contactez le support");
+                setIsUpdatingDocument(false);
+                return;
+              }
+            } else {
+              // Load fresh person data
+              const freshPerson = await loadFreshPersonData(person._id);
+              if (!freshPerson) {
+                toast.error("Erreur lors du chargement des données à jour. Veuillez réessayer.");
+                setIsUpdatingDocument(false);
+                return;
+              }
+
+              const [personError] = await tryFetchExpectOk(async () => {
+                return API.put({
+                  path: `/person/${person._id}`,
+                  body: await encryptPerson({
+                    ...freshPerson,
+                    documents: (freshPerson.documents || []).map((d) => {
+                      if (d._id === documentOrFolder._id) return documentOrFolder;
+                      return d;
+                    }),
+                  }),
+                });
+              });
+              if (personError) {
+                toast.error("Erreur lors de la mise à jour du document");
+                setIsUpdatingDocument(false);
+                return;
+              }
             }
 
             await refresh();
