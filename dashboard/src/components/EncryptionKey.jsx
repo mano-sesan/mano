@@ -444,10 +444,11 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   if (!doc?.file?.filename) {
     capture("no file filename in document", { extra: { doc, personId } });
   }
+  const initialPath = doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`;
   const [error, blob] = await tryFetchBlob(() =>
     API.download(
       {
-        path: doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`,
+        path: initialPath,
         encryptedEntityKey: doc.encryptedEntityKey,
       },
       fromKey
@@ -470,6 +471,7 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   );
   if (docResponseError || !docResponse.ok || !docResponse.data) {
     toast.error(errorMessage(docResponseError || docResponse.error));
+    capture("recryptDocument error updating document", { extra: { personId, error: docResponseError || docResponse.error, initialPath } });
     return;
   }
   const { data: file } = docResponse;
@@ -489,6 +491,7 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey) => {
   for (const doc of item.documents) {
     try {
       const recryptedDocument = await recryptDocument(doc, id, { fromKey: oldKey, toKey: newKey });
+      if (!recryptedDocument) continue;
       updatedDocuments.push(recryptedDocument);
     } catch (e) {
       console.error(e);
