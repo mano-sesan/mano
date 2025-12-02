@@ -991,7 +991,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
             toast.success("Document mis à jour");
           }}
           canToggleGroupCheck={canToggleGroupCheck}
-          showAssociatedItem={false}
+          showAssociatedItem={true}
           color="main"
           externalIsUpdating={isUpdatingDocument}
           externalIsDeleting={isDeletingDocument}
