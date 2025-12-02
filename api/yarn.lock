@@ -447,7 +447,7 @@ __metadata:
     helmet: "npm:^4.0.0"
     morgan: "npm:^1.10.0"
     multer: "npm:^2.0.2"
-    nodemailer: "npm:^7.0.7"
+    nodemailer: "npm:^7.0.11"
     nodemon: "npm:^2.0.15"
     passport: "npm:^0.6.0"
     passport-jwt: "npm:^4.0.0"
@@ -2968,10 +2968,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:^7.0.7":
-  version: 7.0.9
-  resolution: "nodemailer@npm:7.0.9"
-  checksum: 029af0c89d64a521aa9969196e44c13ef289c7f419264eed8d63682610999e06205b0fc264ab8ac65941dc3eefd3c435f23337a32880614cc199744c9be6209a
+"nodemailer@npm:^7.0.11":
+  version: 7.0.11
+  resolution: "nodemailer@npm:7.0.11"
+  checksum: 208f108fdb4c5dd0e3a2f013578d53dad505cf1b9c7a084f6d22fc9d6f3912daafb4a23793ca568ff848afc35f15f4eb24382d3f6f9fb8ede4a8410d4ca63618
   languageName: node
   linkType: hard
 
