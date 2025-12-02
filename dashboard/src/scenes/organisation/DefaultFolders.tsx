@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import DocumentsOrganizer from "../../components/DocumentsOrganizer";
 import { Folder } from "../../types/document";
 import { FolderModal } from "../../components/DocumentsGeneric";
 import { useRecoilValue } from "recoil";
@@ -7,18 +6,26 @@ import { organisationAuthentifiedState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";
+import FolderTreeEditorAlt from "../../components/FolderTreeEditorAlt";
 
 function DefaultFolders({
   errorText,
   organisationProperty,
+  title,
+  description,
+  color,
 }: {
   errorText: string;
   organisationProperty: "defaultPersonsFolders" | "defaultMedicalFolders";
+  title: string;
+  description: string;
+  color: "main" | "blue-900";
 }) {
   const organisation = useRecoilValue(organisationAuthentifiedState);
   const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
   const [addFolder, setAddFolder] = useState(false);
   const [items, setItems] = useState<Array<Folder>>(organisation[organisationProperty] || []);
+
   useEffect(() => {
     // FIXME: trouver une meilleure méthode de comparaison
     if (JSON.stringify(organisation[organisationProperty]) !== JSON.stringify(items)) {
@@ -37,24 +44,16 @@ function DefaultFolders({
 
   return (
     <>
-      <div className="tw-mb-8">
-        <div className="tw-border-l-4 tw-border-blue-500 tw-bg-blue-100 tw-p-4 tw-text-blue-700" role="alert">
-          Vous pouvez ajouter des dossiers qui seront affichés dans les documents de chaque personne.
-        </div>
-      </div>
-      <DocumentsOrganizer
-        items={items}
-        htmlId="social"
-        rootFolderName="Dossier Racine"
-        onSave={(items) => {
-          setItems(items);
-          return null;
-        }}
-        onFolderClick={(folder) => {
-          setFolderToEdit(folder);
-        }}
-        color="main"
+      <FolderTreeEditorAlt
+        folders={items}
+        onFoldersChange={setItems}
+        onFolderEdit={(folder) => setFolderToEdit(folder)}
+        onAddFolder={() => setAddFolder(true)}
+        color={color}
+        title={title}
+        description={description}
       />
+
       {addFolder || !!folderToEdit ? (
         <FolderModal
           key={`${addFolder}${folderToEdit?._id}`}
@@ -63,7 +62,7 @@ function DefaultFolders({
             setFolderToEdit(null);
             setAddFolder(false);
           }}
-          onDelete={() => {
+          onDelete={async () => {
             setItems(
               items
                 .filter((item) => item._id !== folderToEdit?._id)
@@ -72,36 +71,32 @@ function DefaultFolders({
                   return item;
                 })
             );
-            return null;
+            return true;
           }}
-          onSubmit={(folder) => {
+          onSubmit={async (folder) => {
             setFolderToEdit(null);
             setAddFolder(false);
             setItems(items.map((item) => (item._id === folder._id ? folder : item)));
-            return null;
           }}
-          onAddFolder={(folder) => {
+          onAddFolder={async (folder) => {
             setItems([...items, folder]);
-            return null;
           }}
-          color="main"
+          color={color}
         />
       ) : null}
-      <button
-        className="btn btn-primary"
-        onClick={() => {
-          setAddFolder(true);
-        }}
-      >
-        Ajouter un dossier
-      </button>
     </>
   );
 }
 
 export function DefaultFoldersPersons() {
   return (
-    <DefaultFolders errorText="Erreur lors de la mise à jour des dossiers par défaut des personnes" organisationProperty="defaultPersonsFolders" />
+    <DefaultFolders
+      errorText="Erreur lors de la mise à jour des dossiers par défaut des personnes"
+      organisationProperty="defaultPersonsFolders"
+      title="Dossiers par défaut des personnes"
+      description="Vous pouvez ajouter des dossiers qui seront affichés dans les documents de chaque personne."
+      color="main"
+    />
   );
 }
 
@@ -110,6 +105,9 @@ export function DefaultFoldersMedical() {
     <DefaultFolders
       errorText="Erreur lors de la mise à jour des dossiers par défaut des dossiers médicaux"
       organisationProperty="defaultMedicalFolders"
+      title="Dossiers par défaut des dossiers médicaux"
+      description="Vous pouvez ajouter des dossiers qui seront affichés dans les dossiers médicaux de chaque personne."
+      color="blue-900"
     />
   );
 }

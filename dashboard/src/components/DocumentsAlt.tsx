@@ -226,6 +226,13 @@ function DocumentTree({
                 </div>
               </div>
             )}
+            <div
+              className="tw-bg-main75"
+              style={{
+                ...tree?.getDragLineStyle?.(),
+                height: "3px",
+              }}
+            />
           </div>
         );
       })}
