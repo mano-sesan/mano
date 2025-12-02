@@ -144,6 +144,17 @@ function ObservationContent({
     setIsSubmitting(true);
     const [error, response] = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
     if (!error) {
+      if (observation?._id) {
+        const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
+        for (const r of rencontresToUpdate) {
+          await tryFetchExpectOk(async () =>
+            API.put({
+              path: `/rencontre/${r._id}`,
+              body: await encryptRencontre({ ...r, team: observation.team }),
+            })
+          );
+        }
+      }
       await refresh();
       toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
       onClose();
@@ -153,7 +164,7 @@ function ObservationContent({
           const [error] = await tryFetchExpectOk(async () =>
             API.post({
               path: "/rencontre",
-              body: await encryptRencontre({ ...rencontre, observation: response.data._id }),
+              body: await encryptRencontre({ ...rencontre, observation: response.data._id, team: observation.team }),
             })
           );
           if (error) {
@@ -318,7 +329,7 @@ function ObservationContent({
                           persons: [],
                           date: observation.observedAt ? observation.observedAt : dayjsInstance().toDate(),
                           user: user._id,
-                          team: team._id,
+                          team: observation.team || team._id,
                         });
                       }}
                     >
@@ -357,7 +368,13 @@ function ObservationContent({
                       name="team"
                       teams={user.role === "admin" ? teams : user.teams}
                       teamId={observation?.team}
-                      onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
+                      onChange={(team) => {
+                        setModalObservation((modalObservation) => ({
+                          ...modalObservation,
+                          observation: { ...observation, team: team._id },
+                          rencontresInProgress: modalObservation.rencontresInProgress.map((r) => ({ ...r, team: team._id })),
+                        }));
+                      }}
                       inputId="observation-select-team"
                       classNamePrefix="observation-select-team"
                     />
