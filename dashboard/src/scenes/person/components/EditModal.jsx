@@ -108,6 +108,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     let personSuccess = true;
     let medicalFileSuccess = true;
 
+    // Track the most recent updatedAt timestamp for race condition detection
+    let latestPersonUpdatedAt = person.updatedAt;
+
     // Save person data if it has changed
     if (personHasChanged) {
       const body = { ...personFormData };
@@ -185,12 +188,12 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
       }
       if (Object.keys(historyEntry.data).length) body.history = [...cleanHistory(person.history || []), historyEntry];
 
-      const [personError] = await tryFetchExpectOk(async () =>
+      const [personError, personResponse] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/person/${person._id}`,
           body: await encryptPerson(body),
           raceDetection: {
-            originalUpdatedAt: person.updatedAt,
+            originalUpdatedAt: latestPersonUpdatedAt,
             component: "EditModal",
           },
         })
@@ -199,6 +202,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
       if (personError) {
         personSuccess = false;
         success = false;
+      } else if (personResponse?.data?.updatedAt) {
+        // Update the latest timestamp from the response
+        latestPersonUpdatedAt = personResponse.data.updatedAt;
       }
     }
 
@@ -261,12 +267,12 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
         }
         if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
 
-        const [personError] = await tryFetchExpectOk(async () =>
+        const [personError, legacyResponse] = await tryFetchExpectOk(async () =>
           API.put({
             path: `/person/${person._id}`,
             body: await encryptPerson(bodySocial),
             raceDetection: {
-              originalUpdatedAt: person.updatedAt,
+              originalUpdatedAt: latestPersonUpdatedAt,
               component: "EditModal-LegacyFields",
             },
           })
@@ -274,6 +280,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
 
         if (personError) {
           success = false;
+        } else if (legacyResponse?.data?.updatedAt) {
+          // Update the latest timestamp from the response
+          latestPersonUpdatedAt = legacyResponse.data.updatedAt;
         }
       }
     }
