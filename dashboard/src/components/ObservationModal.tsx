@@ -98,7 +98,7 @@ function ObservationContent({
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
   }, [rencontres, observation]);
-  const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
+  const currentRencontres = [...rencontresInProgress, ...rencontresForObs.map((r) => ({ ...r, team: observation.team || r.team }))];
 
   const addTerritoryObs = async (obs: TerritoryObservationInstance) => {
     return tryFetchExpectOk(async () => API.post({ path: "/territory-observation", body: await encryptObs(customFieldsObs)(obs) }));
@@ -158,13 +158,8 @@ function ObservationContent({
             rencontreUpdateSuccess = false;
           }
         }
-        if (rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
-          toast.success("Les rencontres ont également été mises à jour");
-        } else if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
+        if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
           toast.error("Une ou plusieurs rencontres n'ont pas pu être mises à jour");
-        }
-        if (rencontresToUpdate.length > 0) {
-          await refresh();
         }
       }
       await refresh();
