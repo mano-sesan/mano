@@ -63,23 +63,22 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
 
   // If the cache is not empty, try again
-  return new Promise(async (resolve, reject) => { // Make executor async
+  return new Promise((resolve, reject) => {
     if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
-      try {
-        await setupDB(); // Await setupDB
-        resolve(true);
-      } catch (error) {
-        console.error("Error during setupDB in clearCache after clearing:", error);
-        capture(error, { tags: { calledFrom, iteration }, extra: { context: "setupDB in clearCache" } });
-        reject(error); // Reject if setupDB fails
-      }
+      setupDB()
+        .then(() => resolve(true))
+        .catch((error) => {
+          console.error("Error during setupDB in clearCache after clearing:", error);
+          capture(error, { tags: { calledFrom, iteration }, extra: { context: "setupDB in clearCache" } });
+          reject(error);
+        });
     } else {
       if (!localStorageEmpty) console.log(`localStorage not empty ${window.localStorage.key(0)}`);
       // if (!sessionStorageEmpty) console.log("sessionStorage not empty");
       if (!indexedDBEmpty) console.log("indexedDB not empty");
       clearCache("try again clearCache", iteration + 1)
         .then(resolve)
-        .catch(reject); // Propagate rejection
+        .catch(reject);
     }
   });
 }
