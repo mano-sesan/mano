@@ -419,8 +419,8 @@ const App = () => {
   );
 };
 
-export default Sentry.wrap(() => (
+export default () => (
   <RecoilRoot>
     <App />
   </RecoilRoot>
-));
+);

@@ -1,7 +1,7 @@
 import "react-native-gesture-handler";
 import "./services/api-interface-with-app";
 import "./services/encryption";
-import "./global.css"
+import "./global.css";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import * as React from "react";
@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import * as Sentry from "@sentry/react-native";
 import Navigators from "./Navigators";
-import * as Application from 'expo-application';
+import * as Application from "expo-application";
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({ duration: 250, fade: true });
@@ -49,7 +49,7 @@ Sentry.init({
   // ],
 });
 
-export function App() {
+function App() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     NexaBlackItalic: require("./assets/fonts/Nexa-Black-Italic.otf"),
@@ -73,3 +73,5 @@ export function App() {
 
   return <Navigators />;
 }
+
+export default Sentry.wrap(App);
