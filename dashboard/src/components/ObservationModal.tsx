@@ -145,6 +145,8 @@ function ObservationContent({
     const [error, response] = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
     if (!error) {
       if (observation?._id) {
+        // When updating an existing observation, synchronize the team of all associated rencontres
+        // with the observation's team to maintain consistency
         const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
         let rencontreUpdateSuccess = true;
         for (const r of rencontresToUpdate) {
