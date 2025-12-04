@@ -12,7 +12,9 @@ import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomField
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";
+import PersonDocumentsMedicalAlt from "./PersonDocumentsMedicalAlt";
 import { MedicalFilePrint } from "./MedicalFilePrint";
+import { MANO_TEST_ORG_ID } from "../../../config";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import CommentsMedical from "./CommentsMedical";
 import type { PersonPopulated } from "../../../types/person";
@@ -95,7 +97,15 @@ export default function MedicalFile({ person }: MedicalFileProps) {
           <Consultations person={person} />
         </div>
         <div className="tw-col-span-4 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-          {["restricted-access"].includes(user.role) ? <PersonDocumentsMedical person={person} /> : <CommentsMedical person={person} />}
+          {["restricted-access"].includes(user.role) ? (
+            (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT ? (
+              <PersonDocumentsMedicalAlt person={person} />
+            ) : (
+              <PersonDocumentsMedical person={person} />
+            )
+          ) : (
+            <CommentsMedical person={person} />
+          )}
         </div>
       </div>
       {!["restricted-access"].includes(user.role) && (
@@ -119,7 +129,11 @@ export default function MedicalFile({ person }: MedicalFileProps) {
                 <Treatments person={person} />
               </div>
               <div className="tw-h-[400px] tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-                <PersonDocumentsMedical person={person} />
+                {(organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT ? (
+                  <PersonDocumentsMedicalAlt person={person} />
+                ) : (
+                  <PersonDocumentsMedical person={person} />
+                )}
               </div>
             </div>
           </div>
