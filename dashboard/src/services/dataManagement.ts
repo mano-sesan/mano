@@ -8,22 +8,37 @@ const manoDB = "mano";
 const storeName = "store";
 
 let customStore: UseStore | null = null;
-const savedCacheKey = window.localStorage.getItem("mano-currentCacheKey");
-if (savedCacheKey !== dashboardCurrentCacheKey) {
-  setupDB();
-  clearCache("savedCacheKey diff dashboardCurrentCacheKey");
-} else {
-  setupDB();
-}
 
-function setupDB() {
+(async () => {
+  try {
+    const savedCacheKey = window.localStorage.getItem("mano-currentCacheKey");
+    if (savedCacheKey !== dashboardCurrentCacheKey) {
+      await setupDB(); // Await setupDB
+      await clearCache("savedCacheKey diff dashboardCurrentCacheKey"); // Await clearCache
+    } else {
+      await setupDB(); // Await setupDB
+    }
+  } catch (initError) {
+    console.error("Error during initial DB setup:", initError);
+    capture(initError, { extra: { context: "Initial database setup process" } });
+  }
+})();
+
+async function setupDB() {
   // Vidage du store historique qui ne sert plus à rien, mais qui peut-être encore présent
   const legacyStore = createStore(legacyManoDB, legacyStoreName);
-  clear(legacyStore).catch(capture);
+  await clear(legacyStore).catch(capture); // Await the clear operation
   // Pour plus tard, quand on sera sûr qu'elle n'est plus utilisée, on devrait même pouvoir la supprimer !
   // Fin du legacy
   window.localStorage.setItem("mano-currentCacheKey", dashboardCurrentCacheKey);
   customStore = createStore(manoDB, storeName);
+  try {
+    // Perform a simple operation to ensure the database is open and ready.
+    await keys(customStore); // Await a simple operation
+  } catch (error) {
+    capture(error, { extra: { context: "setupDB: new store readiness check failed" } });
+    throw new Error(`Failed to ensure new database store readiness: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 async function deleteDB() {
@@ -48,15 +63,22 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   const indexedDBEmpty = customStore ? (await keys(customStore)).length === 0 : true;
 
   // If the cache is not empty, try again
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (localStorageEmpty && sessionStorageEmpty && indexedDBEmpty) {
-      setupDB();
-      resolve(true);
+      setupDB()
+        .then(() => resolve(true))
+        .catch((error) => {
+          console.error("Error during setupDB in clearCache after clearing:", error);
+          capture(error, { tags: { calledFrom, iteration }, extra: { context: "setupDB in clearCache" } });
+          reject(error);
+        });
     } else {
       if (!localStorageEmpty) console.log(`localStorage not empty ${window.localStorage.key(0)}`);
       // if (!sessionStorageEmpty) console.log("sessionStorage not empty");
       if (!indexedDBEmpty) console.log("indexedDB not empty");
-      clearCache("try again clearCache", iteration + 1).then(resolve);
+      clearCache("try again clearCache", iteration + 1)
+        .then(resolve)
+        .catch(reject);
     }
   });
 }
@@ -68,7 +90,7 @@ export async function setCacheItem(key: string, value: any) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {
       // Si on a une erreur de type "connection is closing", on va essayer de réinitialiser
       // la connexion à la base de données et de sauvegarder la donnée à nouveau
-      setupDB();
+      await setupDB(); // Await setupDB before retrying
       try {
         await set(key, value, customStore);
       } catch (error) {
@@ -89,7 +111,7 @@ export async function getCacheItem(key: string) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {
       // Si on a une erreur de type "connection is closing", on va essayer de réinitialiser
       // la connexion à la base de données et de récupérer la donnée à nouveau
-      setupDB();
+      await setupDB(); // Await setupDB before retrying
       try {
         const data = await get(key, customStore);
         return data;
