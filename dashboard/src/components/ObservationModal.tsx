@@ -196,7 +196,7 @@ function ObservationContent({
                       .filter(Boolean)
                       .join(" ")}
                   >
-                    {groupedCustomFieldsObs.length > 1 ? name : "Informations"}
+                    {groupedCustomFieldsObs.length > 1 || name !== "Groupe par défaut" ? name : "Informations"}
                   </button>
                 </li>
               ))}
