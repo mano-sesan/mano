@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -9,7 +8,6 @@ const collectionName = "passage";
 export const passagesState = atom({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 const encryptedFields = ["person", "team", "user", "date", "comment"];

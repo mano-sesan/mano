@@ -351,9 +351,7 @@ const MergeTwoPersons = ({ person }) => {
     }
     toast.success("Fusion réussie !");
 
-    setPersons((persons) => persons.filter((p) => p._id !== personToMergeAndDelete._id));
-
-    refresh();
+    await refresh();
 
     handleClose();
     // We do not set isSubmitting to false here because the modal will be closed

@@ -209,12 +209,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePersons = await getCacheItemDefaultValue("person", []);
       if (newPersons.length) {
-        setPersons(mergeItems(cachePersons, newPersons));
+        const mergedPersons = mergeItems(cachePersons, newPersons);
+        setPersons(mergedPersons);
+        await setCacheItem("person", mergedPersons);
       } else {
         setPersons(cachePersons);
       }
     } else if (newPersons.length) {
-      setPersons((latestPersons) => mergeItems(latestPersons, newPersons));
+      let mergedPersons;
+      setPersons((latestPersons) => {
+        mergedPersons = mergeItems(latestPersons, newPersons);
+        return mergedPersons;
+      });
+      await setCacheItem("person", mergedPersons);
     }
 
     let newGroups = [];
@@ -238,12 +245,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheGroups = await getCacheItemDefaultValue("group", []);
       if (newGroups.length) {
-        setGroups(mergeItems(cacheGroups, newGroups));
+        const mergedGroups = mergeItems(cacheGroups, newGroups);
+        setGroups(mergedGroups);
+        await setCacheItem("group", mergedGroups);
       } else {
         setGroups(cacheGroups);
       }
     } else if (newGroups.length) {
-      setGroups((latestGroups) => mergeItems(latestGroups, newGroups));
+      let mergedGroups;
+      setGroups((latestGroups) => {
+        mergedGroups = mergeItems(latestGroups, newGroups);
+        return mergedGroups;
+      });
+      await setCacheItem("group", mergedGroups);
     }
 
     let newReports = [];
@@ -267,12 +281,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheReports = await getCacheItemDefaultValue("report", []);
       if (newReports.length) {
-        setReports(mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+        const mergedReports = mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
+        setReports(mergedReports);
+        await setCacheItem("report", mergedReports);
       } else {
         setReports(cacheReports);
       }
     } else if (newReports.length) {
-      setReports((latestReports) => mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      let mergedReports;
+      setReports((latestReports) => {
+        mergedReports = mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
+        return mergedReports;
+      });
+      await setCacheItem("report", mergedReports);
     }
 
     let newPassages = [];
@@ -296,12 +317,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePassages = await getCacheItemDefaultValue("passage", []);
       if (newPassages.length) {
-        setPassages(mergeItems(cachePassages, newPassages));
+        const mergedPassages = mergeItems(cachePassages, newPassages);
+        setPassages(mergedPassages);
+        await setCacheItem("passage", mergedPassages);
       } else {
         setPassages(cachePassages);
       }
     } else if (newPassages.length) {
-      setPassages((latestPassages) => mergeItems(latestPassages, newPassages));
+      let mergedPassages;
+      setPassages((latestPassages) => {
+        mergedPassages = mergeItems(latestPassages, newPassages);
+        return mergedPassages;
+      });
+      await setCacheItem("passage", mergedPassages);
     }
 
     let newRencontres = [];
@@ -325,12 +353,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRencontres = await getCacheItemDefaultValue("rencontre", []);
       if (newRencontres.length) {
-        setRencontres(mergeItems(cacheRencontres, newRencontres));
+        const mergedRencontres = mergeItems(cacheRencontres, newRencontres);
+        setRencontres(mergedRencontres);
+        await setCacheItem("rencontre", mergedRencontres);
       } else {
         setRencontres(cacheRencontres);
       }
     } else if (newRencontres.length) {
-      setRencontres((latestRencontres) => mergeItems(latestRencontres, newRencontres));
+      let mergedRencontres;
+      setRencontres((latestRencontres) => {
+        mergedRencontres = mergeItems(latestRencontres, newRencontres);
+        return mergedRencontres;
+      });
+      await setCacheItem("rencontre", mergedRencontres);
     }
 
     let newActions = [];
@@ -354,12 +389,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheActions = await getCacheItemDefaultValue("action", []);
       if (newActions.length) {
-        setActions(mergeItems(cacheActions, newActions));
+        const mergedActions = mergeItems(cacheActions, newActions);
+        setActions(mergedActions);
+        await setCacheItem("action", mergedActions);
       } else {
         setActions(cacheActions);
       }
     } else if (newActions.length) {
-      setActions((latestActions) => mergeItems(latestActions, newActions));
+      let mergedActions;
+      setActions((latestActions) => {
+        mergedActions = mergeItems(latestActions, newActions);
+        return mergedActions;
+      });
+      await setCacheItem("action", mergedActions);
     }
 
     let newRecurrences = [];
@@ -383,12 +425,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRecurrences = await getCacheItemDefaultValue("recurrence", []);
       if (newRecurrences.length) {
-        setRecurrences(mergeItems(cacheRecurrences, newRecurrences));
+        const mergedRecurrences = mergeItems(cacheRecurrences, newRecurrences);
+        setRecurrences(mergedRecurrences);
+        await setCacheItem("recurrence", mergedRecurrences);
       } else {
         setRecurrences(cacheRecurrences);
       }
     } else if (newRecurrences.length) {
-      setRecurrences((latestRecurrences) => mergeItems(latestRecurrences, newRecurrences));
+      let mergedRecurrences;
+      setRecurrences((latestRecurrences) => {
+        mergedRecurrences = mergeItems(latestRecurrences, newRecurrences);
+        return mergedRecurrences;
+      });
+      await setCacheItem("recurrence", mergedRecurrences);
     }
 
     let newTerritories = [];
@@ -412,12 +461,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheTerritories = await getCacheItemDefaultValue("territory", []);
       if (newTerritories.length) {
-        setTerritories(mergeItems(cacheTerritories, newTerritories));
+        const mergedTerritories = mergeItems(cacheTerritories, newTerritories);
+        setTerritories(mergedTerritories);
+        await setCacheItem("territory", mergedTerritories);
       } else {
         setTerritories(cacheTerritories);
       }
     } else if (newTerritories.length) {
-      setTerritories((latestTerritories) => mergeItems(latestTerritories, newTerritories));
+      let mergedTerritories;
+      setTerritories((latestTerritories) => {
+        mergedTerritories = mergeItems(latestTerritories, newTerritories);
+        return mergedTerritories;
+      });
+      await setCacheItem("territory", mergedTerritories);
     }
 
     let newPlaces = [];
@@ -441,12 +497,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePlaces = await getCacheItemDefaultValue("place", []);
       if (newPlaces.length) {
-        setPlaces(mergeItems(cachePlaces, newPlaces));
+        const mergedPlaces = mergeItems(cachePlaces, newPlaces);
+        setPlaces(mergedPlaces);
+        await setCacheItem("place", mergedPlaces);
       } else {
         setPlaces(cachePlaces);
       }
     } else if (newPlaces.length) {
-      setPlaces((latestPlaces) => mergeItems(latestPlaces, newPlaces));
+      let mergedPlaces;
+      setPlaces((latestPlaces) => {
+        mergedPlaces = mergeItems(latestPlaces, newPlaces);
+        return mergedPlaces;
+      });
+      await setCacheItem("place", mergedPlaces);
     }
 
     let newRelsPersonPlace = [];
@@ -470,12 +533,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRelsPersonPlace = await getCacheItemDefaultValue("relPersonPlace", []);
       if (newRelsPersonPlace.length) {
-        setRelsPersonPlace(mergeItems(cacheRelsPersonPlace, newRelsPersonPlace));
+        const mergedRelsPersonPlace = mergeItems(cacheRelsPersonPlace, newRelsPersonPlace);
+        setRelsPersonPlace(mergedRelsPersonPlace);
+        await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
       } else {
         setRelsPersonPlace(cacheRelsPersonPlace);
       }
     } else if (newRelsPersonPlace.length) {
-      setRelsPersonPlace((latestRelsPersonPlace) => mergeItems(latestRelsPersonPlace, newRelsPersonPlace));
+      let mergedRelsPersonPlace;
+      setRelsPersonPlace((latestRelsPersonPlace) => {
+        mergedRelsPersonPlace = mergeItems(latestRelsPersonPlace, newRelsPersonPlace);
+        return mergedRelsPersonPlace;
+      });
+      await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
     }
 
     let newTerritoryObservations = [];
@@ -499,12 +569,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheTerritoryObservations = await getCacheItemDefaultValue("territory-observation", []);
       if (newTerritoryObservations.length) {
-        setTerritoryObservations(mergeItems(cacheTerritoryObservations, newTerritoryObservations));
+        const mergedTerritoryObservations = mergeItems(cacheTerritoryObservations, newTerritoryObservations);
+        setTerritoryObservations(mergedTerritoryObservations);
+        await setCacheItem("territory-observation", mergedTerritoryObservations);
       } else {
         setTerritoryObservations(cacheTerritoryObservations);
       }
     } else if (newTerritoryObservations.length) {
-      setTerritoryObservations((latestTerritoryObservations) => mergeItems(latestTerritoryObservations, newTerritoryObservations));
+      let mergedTerritoryObservations;
+      setTerritoryObservations((latestTerritoryObservations) => {
+        mergedTerritoryObservations = mergeItems(latestTerritoryObservations, newTerritoryObservations);
+        return mergedTerritoryObservations;
+      });
+      await setCacheItem("territory-observation", mergedTerritoryObservations);
     }
 
     let newComments = [];
@@ -528,12 +605,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheComments = await getCacheItemDefaultValue("comment", []);
       if (newComments.length) {
-        setComments(mergeItems(cacheComments, newComments));
+        const mergedComments = mergeItems(cacheComments, newComments);
+        setComments(mergedComments);
+        await setCacheItem("comment", mergedComments);
       } else {
         setComments(cacheComments);
       }
     } else if (newComments.length) {
-      setComments((latestComments) => mergeItems(latestComments, newComments));
+      let mergedComments;
+      setComments((latestComments) => {
+        mergedComments = mergeItems(latestComments, newComments);
+        return mergedComments;
+      });
+      await setCacheItem("comment", mergedComments);
     }
 
     let newConsultations = [];
@@ -559,12 +643,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
       if (newConsultations.length) {
-        setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+        const mergedConsultations = mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
+        setConsultations(mergedConsultations);
+        await setCacheItem("consultation", mergedConsultations);
       } else {
         setConsultations(cacheConsultations);
       }
     } else if (newConsultations.length) {
-      setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      let mergedConsultations;
+      setConsultations((latestConsultations) => {
+        mergedConsultations = mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
+        return mergedConsultations;
+      });
+      await setCacheItem("consultation", mergedConsultations);
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -592,12 +683,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (isStartingInitialLoad) {
         const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
         if (newTreatments.length) {
-          setTreatments(mergeItems(cacheTreatments, newTreatments));
+          const mergedTreatments = mergeItems(cacheTreatments, newTreatments);
+          setTreatments(mergedTreatments);
+          await setCacheItem("treatment", mergedTreatments);
         } else {
           setTreatments(cacheTreatments);
         }
       } else if (newTreatments.length) {
-        setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
+        let mergedTreatments;
+        setTreatments((latestTreatments) => {
+          mergedTreatments = mergeItems(latestTreatments, newTreatments);
+          return mergedTreatments;
+        });
+        await setCacheItem("treatment", mergedTreatments);
       }
     }
 
@@ -626,12 +724,19 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (isStartingInitialLoad) {
         const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
         if (newMedicalFiles.length) {
-          setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
+          const mergedMedicalFiles = mergeItems(cacheMedicalFiles, newMedicalFiles);
+          setMedicalFiles(mergedMedicalFiles);
+          await setCacheItem("medical-file", mergedMedicalFiles);
         } else {
           setMedicalFiles(cacheMedicalFiles);
         }
       } else if (newMedicalFiles.length) {
-        setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
+        let mergedMedicalFiles;
+        setMedicalFiles((latestMedicalFiles) => {
+          mergedMedicalFiles = mergeItems(latestMedicalFiles, newMedicalFiles);
+          return mergedMedicalFiles;
+        });
+        await setCacheItem("medical-file", mergedMedicalFiles);
       }
     }
 

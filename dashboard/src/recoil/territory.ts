@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { encryptItem } from "../services/encryption";
@@ -12,7 +11,6 @@ const collectionName = "territory";
 export const territoriesState = atom<Array<TerritoryInstance>>({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 const encryptedFields = ["name", "perimeter", "description", "types", "user"];

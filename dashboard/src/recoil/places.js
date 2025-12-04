@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom } from "recoil";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -9,7 +8,6 @@ const collectionName = "place";
 export const placesState = atom({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 const encryptedFields = ["user", "name"];

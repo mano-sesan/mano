@@ -1,7 +1,7 @@
 import { organisationState } from "./auth";
 import { atom, selector } from "recoil";
 import type { RecoilValueReadOnly } from "recoil";
-import { setCacheItem } from "../services/dataManagement";
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -13,7 +13,6 @@ const collectionName = "territory-observation";
 export const territoryObservationsState = atom<Array<TerritoryObservationInstance>>({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 export const customFieldsObsSelector: RecoilValueReadOnly<Array<CustomField>> = selector({
