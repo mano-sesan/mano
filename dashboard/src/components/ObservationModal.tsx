@@ -98,7 +98,7 @@ function ObservationContent({
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
   }, [rencontres, observation]);
-  const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
+  const currentRencontres = [...rencontresInProgress, ...rencontresForObs.map((r) => ({ ...r, team: observation.team || r.team }))];
 
   const addTerritoryObs = async (obs: TerritoryObservationInstance) => {
     return tryFetchExpectOk(async () => API.post({ path: "/territory-observation", body: await encryptObs(customFieldsObs)(obs) }));
@@ -144,6 +144,26 @@ function ObservationContent({
     setIsSubmitting(true);
     const [error, response] = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
     if (!error) {
+      if (observation?._id) {
+        // When updating an existing observation, synchronize the team of all associated rencontres
+        // with the observation's team to maintain consistency
+        const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
+        let rencontreUpdateSuccess = true;
+        for (const r of rencontresToUpdate) {
+          const [error] = await tryFetchExpectOk(async () =>
+            API.put({
+              path: `/rencontre/${r._id}`,
+              body: await encryptRencontre({ ...r, team: observation.team }),
+            })
+          );
+          if (error) {
+            rencontreUpdateSuccess = false;
+          }
+        }
+        if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
+          toast.error("Une ou plusieurs rencontres n'ont pas pu être mises à jour");
+        }
+      }
       await refresh();
       toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
       onClose();
@@ -153,7 +173,7 @@ function ObservationContent({
           const [error] = await tryFetchExpectOk(async () =>
             API.post({
               path: "/rencontre",
-              body: await encryptRencontre({ ...rencontre, observation: response.data._id }),
+              body: await encryptRencontre({ ...rencontre, observation: response.data._id, team: observation.team }),
             })
           );
           if (error) {
@@ -318,7 +338,7 @@ function ObservationContent({
                           persons: [],
                           date: observation.observedAt ? observation.observedAt : dayjsInstance().toDate(),
                           user: user._id,
-                          team: team._id,
+                          team: observation.team || team._id,
                         });
                       }}
                     >
@@ -357,7 +377,13 @@ function ObservationContent({
                       name="team"
                       teams={user.role === "admin" ? teams : user.teams}
                       teamId={observation?.team}
-                      onChange={(team) => handleChange({ target: { value: team._id, name: "team" } })}
+                      onChange={(team) => {
+                        setModalObservation((modalObservation) => ({
+                          ...modalObservation,
+                          observation: { ...observation, team: team._id },
+                          rencontresInProgress: modalObservation.rencontresInProgress.map((r) => ({ ...r, team: team._id })),
+                        }));
+                      }}
                       inputId="observation-select-team"
                       classNamePrefix="observation-select-team"
                     />
