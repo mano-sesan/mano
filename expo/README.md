@@ -31,3 +31,10 @@
   ```
 
 
+## Compile for production
+
+- Just run 
+
+  ```sh
+  yarn build-local:android-aab
+  ```
