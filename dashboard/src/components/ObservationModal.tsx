@@ -146,13 +146,25 @@ function ObservationContent({
     if (!error) {
       if (observation?._id) {
         const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
+        let rencontreUpdateSuccess = true;
         for (const r of rencontresToUpdate) {
-          await tryFetchExpectOk(async () =>
+          const [error] = await tryFetchExpectOk(async () =>
             API.put({
               path: `/rencontre/${r._id}`,
               body: await encryptRencontre({ ...r, team: observation.team }),
             })
           );
+          if (error) {
+            rencontreUpdateSuccess = false;
+          }
+        }
+        if (rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
+          toast.success("Les rencontres ont également été mises à jour");
+        } else if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
+          toast.error("Une ou plusieurs rencontres n'ont pas pu être mises à jour");
+        }
+        if (rencontresToUpdate.length > 0) {
+          await refresh();
         }
       }
       await refresh();
