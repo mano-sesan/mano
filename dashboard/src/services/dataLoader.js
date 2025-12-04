@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 // Pour l'historique git, avant le code était ici : dashboard/src/components/DataLoader.jsx
 import { useEffect } from "react";
-import { atom, useRecoilState, useSetRecoilState } from "recoil";
+import { atom, useRecoilState, useSetRecoilState, useRecoilCallback } from "recoil";
 import { toast } from "react-toastify";
 
 import { personsState } from "../recoil/persons";
@@ -71,6 +71,173 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setConsultations = useSetRecoilState(consultationsState);
   const setTreatments = useSetRecoilState(treatmentsState);
   const setMedicalFiles = useSetRecoilState(medicalFileState);
+
+  // useRecoilCallback hooks for merging state and caching to IndexedDB
+  // This pattern ensures we access the latest state value when merging
+  const mergePersonsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newPersons) => {
+        const currentPersons = await snapshot.getPromise(personsState);
+        const mergedPersons = mergeItems(currentPersons, newPersons);
+        set(personsState, mergedPersons);
+        await setCacheItem("person", mergedPersons);
+      },
+    []
+  );
+
+  const mergeGroupsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newGroups) => {
+        const currentGroups = await snapshot.getPromise(groupsState);
+        const mergedGroups = mergeItems(currentGroups, newGroups);
+        set(groupsState, mergedGroups);
+        await setCacheItem("group", mergedGroups);
+      },
+    []
+  );
+
+  const mergeReportsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newReports) => {
+        const currentReports = await snapshot.getPromise(reportsState);
+        const mergedReports = mergeItems(currentReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
+        set(reportsState, mergedReports);
+        await setCacheItem("report", mergedReports);
+      },
+    []
+  );
+
+  const mergePassagesAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newPassages) => {
+        const currentPassages = await snapshot.getPromise(passagesState);
+        const mergedPassages = mergeItems(currentPassages, newPassages);
+        set(passagesState, mergedPassages);
+        await setCacheItem("passage", mergedPassages);
+      },
+    []
+  );
+
+  const mergeRencontresAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newRencontres) => {
+        const currentRencontres = await snapshot.getPromise(rencontresState);
+        const mergedRencontres = mergeItems(currentRencontres, newRencontres);
+        set(rencontresState, mergedRencontres);
+        await setCacheItem("rencontre", mergedRencontres);
+      },
+    []
+  );
+
+  const mergeActionsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newActions) => {
+        const currentActions = await snapshot.getPromise(actionsState);
+        const mergedActions = mergeItems(currentActions, newActions);
+        set(actionsState, mergedActions);
+        await setCacheItem("action", mergedActions);
+      },
+    []
+  );
+
+  const mergeRecurrencesAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newRecurrences) => {
+        const currentRecurrences = await snapshot.getPromise(recurrencesState);
+        const mergedRecurrences = mergeItems(currentRecurrences, newRecurrences);
+        set(recurrencesState, mergedRecurrences);
+        await setCacheItem("recurrence", mergedRecurrences);
+      },
+    []
+  );
+
+  const mergeTerritoriesAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newTerritories) => {
+        const currentTerritories = await snapshot.getPromise(territoriesState);
+        const mergedTerritories = mergeItems(currentTerritories, newTerritories);
+        set(territoriesState, mergedTerritories);
+        await setCacheItem("territory", mergedTerritories);
+      },
+    []
+  );
+
+  const mergePlacesAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newPlaces) => {
+        const currentPlaces = await snapshot.getPromise(placesState);
+        const mergedPlaces = mergeItems(currentPlaces, newPlaces);
+        set(placesState, mergedPlaces);
+        await setCacheItem("place", mergedPlaces);
+      },
+    []
+  );
+
+  const mergeRelsPersonPlaceAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newRelsPersonPlace) => {
+        const currentRelsPersonPlace = await snapshot.getPromise(relsPersonPlaceState);
+        const mergedRelsPersonPlace = mergeItems(currentRelsPersonPlace, newRelsPersonPlace);
+        set(relsPersonPlaceState, mergedRelsPersonPlace);
+        await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
+      },
+    []
+  );
+
+  const mergeTerritoryObservationsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newTerritoryObservations) => {
+        const currentTerritoryObservations = await snapshot.getPromise(territoryObservationsState);
+        const mergedTerritoryObservations = mergeItems(currentTerritoryObservations, newTerritoryObservations);
+        set(territoryObservationsState, mergedTerritoryObservations);
+        await setCacheItem("territory-observation", mergedTerritoryObservations);
+      },
+    []
+  );
+
+  const mergeCommentsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newComments) => {
+        const currentComments = await snapshot.getPromise(commentsState);
+        const mergedComments = mergeItems(currentComments, newComments);
+        set(commentsState, mergedComments);
+        await setCacheItem("comment", mergedComments);
+      },
+    []
+  );
+
+  const mergeConsultationsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newConsultations) => {
+        const currentConsultations = await snapshot.getPromise(consultationsState);
+        const mergedConsultations = mergeItems(currentConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
+        set(consultationsState, mergedConsultations);
+        await setCacheItem("consultation", mergedConsultations);
+      },
+    []
+  );
+
+  const mergeTreatmentsAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newTreatments) => {
+        const currentTreatments = await snapshot.getPromise(treatmentsState);
+        const mergedTreatments = mergeItems(currentTreatments, newTreatments);
+        set(treatmentsState, mergedTreatments);
+        await setCacheItem("treatment", mergedTreatments);
+      },
+    []
+  );
+
+  const mergeMedicalFilesAndCache = useRecoilCallback(
+    ({ snapshot, set }) =>
+      async (newMedicalFiles) => {
+        const currentMedicalFiles = await snapshot.getPromise(medicalFileState);
+        const mergedMedicalFiles = mergeItems(currentMedicalFiles, newMedicalFiles);
+        set(medicalFileState, mergedMedicalFiles);
+        await setCacheItem("medical-file", mergedMedicalFiles);
+      },
+    []
+  );
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)
@@ -216,12 +383,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPersons(cachePersons);
       }
     } else if (newPersons.length) {
-      let mergedPersons;
-      setPersons((latestPersons) => {
-        mergedPersons = mergeItems(latestPersons, newPersons);
-        return mergedPersons;
-      });
-      await setCacheItem("person", mergedPersons);
+      await mergePersonsAndCache(newPersons);
     }
 
     let newGroups = [];
@@ -252,12 +414,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setGroups(cacheGroups);
       }
     } else if (newGroups.length) {
-      let mergedGroups;
-      setGroups((latestGroups) => {
-        mergedGroups = mergeItems(latestGroups, newGroups);
-        return mergedGroups;
-      });
-      await setCacheItem("group", mergedGroups);
+      await mergeGroupsAndCache(newGroups);
     }
 
     let newReports = [];
@@ -288,12 +445,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setReports(cacheReports);
       }
     } else if (newReports.length) {
-      let mergedReports;
-      setReports((latestReports) => {
-        mergedReports = mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
-        return mergedReports;
-      });
-      await setCacheItem("report", mergedReports);
+      await mergeReportsAndCache(newReports);
     }
 
     let newPassages = [];
@@ -324,12 +476,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPassages(cachePassages);
       }
     } else if (newPassages.length) {
-      let mergedPassages;
-      setPassages((latestPassages) => {
-        mergedPassages = mergeItems(latestPassages, newPassages);
-        return mergedPassages;
-      });
-      await setCacheItem("passage", mergedPassages);
+      await mergePassagesAndCache(newPassages);
     }
 
     let newRencontres = [];
@@ -360,12 +507,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRencontres(cacheRencontres);
       }
     } else if (newRencontres.length) {
-      let mergedRencontres;
-      setRencontres((latestRencontres) => {
-        mergedRencontres = mergeItems(latestRencontres, newRencontres);
-        return mergedRencontres;
-      });
-      await setCacheItem("rencontre", mergedRencontres);
+      await mergeRencontresAndCache(newRencontres);
     }
 
     let newActions = [];
@@ -396,12 +538,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setActions(cacheActions);
       }
     } else if (newActions.length) {
-      let mergedActions;
-      setActions((latestActions) => {
-        mergedActions = mergeItems(latestActions, newActions);
-        return mergedActions;
-      });
-      await setCacheItem("action", mergedActions);
+      await mergeActionsAndCache(newActions);
     }
 
     let newRecurrences = [];
@@ -432,12 +569,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRecurrences(cacheRecurrences);
       }
     } else if (newRecurrences.length) {
-      let mergedRecurrences;
-      setRecurrences((latestRecurrences) => {
-        mergedRecurrences = mergeItems(latestRecurrences, newRecurrences);
-        return mergedRecurrences;
-      });
-      await setCacheItem("recurrence", mergedRecurrences);
+      await mergeRecurrencesAndCache(newRecurrences);
     }
 
     let newTerritories = [];
@@ -468,12 +600,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setTerritories(cacheTerritories);
       }
     } else if (newTerritories.length) {
-      let mergedTerritories;
-      setTerritories((latestTerritories) => {
-        mergedTerritories = mergeItems(latestTerritories, newTerritories);
-        return mergedTerritories;
-      });
-      await setCacheItem("territory", mergedTerritories);
+      await mergeTerritoriesAndCache(newTerritories);
     }
 
     let newPlaces = [];
@@ -504,12 +631,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setPlaces(cachePlaces);
       }
     } else if (newPlaces.length) {
-      let mergedPlaces;
-      setPlaces((latestPlaces) => {
-        mergedPlaces = mergeItems(latestPlaces, newPlaces);
-        return mergedPlaces;
-      });
-      await setCacheItem("place", mergedPlaces);
+      await mergePlacesAndCache(newPlaces);
     }
 
     let newRelsPersonPlace = [];
@@ -540,12 +662,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setRelsPersonPlace(cacheRelsPersonPlace);
       }
     } else if (newRelsPersonPlace.length) {
-      let mergedRelsPersonPlace;
-      setRelsPersonPlace((latestRelsPersonPlace) => {
-        mergedRelsPersonPlace = mergeItems(latestRelsPersonPlace, newRelsPersonPlace);
-        return mergedRelsPersonPlace;
-      });
-      await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
+      await mergeRelsPersonPlaceAndCache(newRelsPersonPlace);
     }
 
     let newTerritoryObservations = [];
@@ -576,12 +693,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setTerritoryObservations(cacheTerritoryObservations);
       }
     } else if (newTerritoryObservations.length) {
-      let mergedTerritoryObservations;
-      setTerritoryObservations((latestTerritoryObservations) => {
-        mergedTerritoryObservations = mergeItems(latestTerritoryObservations, newTerritoryObservations);
-        return mergedTerritoryObservations;
-      });
-      await setCacheItem("territory-observation", mergedTerritoryObservations);
+      await mergeTerritoryObservationsAndCache(newTerritoryObservations);
     }
 
     let newComments = [];
@@ -612,12 +724,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setComments(cacheComments);
       }
     } else if (newComments.length) {
-      let mergedComments;
-      setComments((latestComments) => {
-        mergedComments = mergeItems(latestComments, newComments);
-        return mergedComments;
-      });
-      await setCacheItem("comment", mergedComments);
+      await mergeCommentsAndCache(newComments);
     }
 
     let newConsultations = [];
@@ -650,12 +757,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         setConsultations(cacheConsultations);
       }
     } else if (newConsultations.length) {
-      let mergedConsultations;
-      setConsultations((latestConsultations) => {
-        mergedConsultations = mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
-        return mergedConsultations;
-      });
-      await setCacheItem("consultation", mergedConsultations);
+      await mergeConsultationsAndCache(newConsultations);
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -690,12 +792,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           setTreatments(cacheTreatments);
         }
       } else if (newTreatments.length) {
-        let mergedTreatments;
-        setTreatments((latestTreatments) => {
-          mergedTreatments = mergeItems(latestTreatments, newTreatments);
-          return mergedTreatments;
-        });
-        await setCacheItem("treatment", mergedTreatments);
+        await mergeTreatmentsAndCache(newTreatments);
       }
     }
 
@@ -731,12 +828,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           setMedicalFiles(cacheMedicalFiles);
         }
       } else if (newMedicalFiles.length) {
-        let mergedMedicalFiles;
-        setMedicalFiles((latestMedicalFiles) => {
-          mergedMedicalFiles = mergeItems(latestMedicalFiles, newMedicalFiles);
-          return mergedMedicalFiles;
-        });
-        await setCacheItem("medical-file", mergedMedicalFiles);
+        await mergeMedicalFilesAndCache(newMedicalFiles);
       }
     }
 
