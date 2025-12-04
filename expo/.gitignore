@@ -129,3 +129,6 @@ ios/sentry.properties
 # !.env.production
 
 questionnaire.json
+.env.local
+
+.env.local
