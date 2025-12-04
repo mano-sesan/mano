@@ -304,15 +304,6 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
           {user.role !== "restricted-access" ? (
             <TabsNav
               className="tw-px-3 tw-py-2"
-              renderTab={(tab) => {
-                if (tab.includes("Constantes"))
-                  return (
-                    <>
-                      Constantes <span className="tw-rounded tw-border-none tw-bg-red-700 tw-px-1.5 tw-py-0.5 tw-text-xs tw-text-white">beta</span>
-                    </>
-                  );
-                return tab;
-              }}
               tabs={[
                 "Informations",
                 "Constantes",
