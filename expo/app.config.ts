@@ -1,8 +1,10 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
 import { withSentry } from "@sentry/react-native/expo";
 
-export const version = "3.16.1";
-export const buildNumber = "15";
+export const version = "3.17.0";
+export const buildNumber = "52";
+
+const packageId = "com.sesan.mano.expo";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return withSentry(
@@ -31,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           foregroundImage: "./src/assets/adaptive-icon.png",
           backgroundColor: "#226854",
         },
-        package: "com.sesan.mano",
+        package: packageId,
         versionCode: Number(buildNumber),
         permissions: [
           "android.permission.INTERNET",
@@ -103,6 +105,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ],
       extra: {
         SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+        eas: {
+          projectId: "171cbb77-d20e-43fa-a66f-06a89418baa5",
+        },
       },
     },
     {
@@ -110,6 +115,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       authToken: process.env.SENTRY_AUTH_TOKEN,
       project: "mano",
       organization: "mano",
-    },
+    }
   );
 };
