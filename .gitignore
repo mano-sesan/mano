@@ -17,3 +17,5 @@ test-local.js
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+package-lock.json
+**/package-lock.json
