@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
@@ -17,7 +16,6 @@ export const reportsState = atom({
   effects: [
     ({ onSet }) =>
       onSet(async (newValue: Array<ReportInstance>) => {
-        setCacheItem(collectionName, newValue);
         /* check if duplicate reports */
         const duplicateReports = Object.entries(
           newValue.reduce<Record<string, Array<ReportInstance>>>((reportsByDate, report) => {

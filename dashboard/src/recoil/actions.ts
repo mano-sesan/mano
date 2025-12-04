@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom, selector } from "recoil";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils";
@@ -11,7 +10,6 @@ const collectionName = "action";
 export const actionsState = atom<Array<ActionInstance>>({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 export const actionsCategoriesSelector = selector({

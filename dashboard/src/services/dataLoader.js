@@ -22,6 +22,7 @@ import { organisationState, teamsState, userState } from "../recoil/auth";
 
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
+import { getRecoil } from "recoil-nexus";
 import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { errorMessage } from "../utils";
@@ -209,12 +210,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePersons = await getCacheItemDefaultValue("person", []);
       if (newPersons.length) {
-        setPersons(mergeItems(cachePersons, newPersons));
+        const mergedPersons = mergeItems(cachePersons, newPersons);
+        setPersons(mergedPersons);
+        await setCacheItem("person", mergedPersons);
       } else {
         setPersons(cachePersons);
       }
     } else if (newPersons.length) {
-      setPersons((latestPersons) => mergeItems(latestPersons, newPersons));
+      const latestPersons = getRecoil(personsState);
+      const mergedPersons = mergeItems(latestPersons, newPersons);
+      setPersons(mergedPersons);
+      await setCacheItem("person", mergedPersons);
     }
 
     let newGroups = [];
@@ -238,12 +244,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheGroups = await getCacheItemDefaultValue("group", []);
       if (newGroups.length) {
-        setGroups(mergeItems(cacheGroups, newGroups));
+        const mergedGroups = mergeItems(cacheGroups, newGroups);
+        setGroups(mergedGroups);
+        await setCacheItem("group", mergedGroups);
       } else {
         setGroups(cacheGroups);
       }
     } else if (newGroups.length) {
-      setGroups((latestGroups) => mergeItems(latestGroups, newGroups));
+      const latestGroups = getRecoil(groupsState);
+      const mergedGroups = mergeItems(latestGroups, newGroups);
+      setGroups(mergedGroups);
+      await setCacheItem("group", mergedGroups);
     }
 
     let newReports = [];
@@ -267,12 +278,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheReports = await getCacheItemDefaultValue("report", []);
       if (newReports.length) {
-        setReports(mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+        const mergedReports = mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
+        setReports(mergedReports);
+        await setCacheItem("report", mergedReports);
       } else {
         setReports(cacheReports);
       }
     } else if (newReports.length) {
-      setReports((latestReports) => mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      const latestReports = getRecoil(reportsState);
+      const mergedReports = mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date });
+      setReports(mergedReports);
+      await setCacheItem("report", mergedReports);
     }
 
     let newPassages = [];
@@ -296,12 +312,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePassages = await getCacheItemDefaultValue("passage", []);
       if (newPassages.length) {
-        setPassages(mergeItems(cachePassages, newPassages));
+        const mergedPassages = mergeItems(cachePassages, newPassages);
+        setPassages(mergedPassages);
+        await setCacheItem("passage", mergedPassages);
       } else {
         setPassages(cachePassages);
       }
     } else if (newPassages.length) {
-      setPassages((latestPassages) => mergeItems(latestPassages, newPassages));
+      const latestPassages = getRecoil(passagesState);
+      const mergedPassages = mergeItems(latestPassages, newPassages);
+      setPassages(mergedPassages);
+      await setCacheItem("passage", mergedPassages);
     }
 
     let newRencontres = [];
@@ -325,12 +346,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRencontres = await getCacheItemDefaultValue("rencontre", []);
       if (newRencontres.length) {
-        setRencontres(mergeItems(cacheRencontres, newRencontres));
+        const mergedRencontres = mergeItems(cacheRencontres, newRencontres);
+        setRencontres(mergedRencontres);
+        await setCacheItem("rencontre", mergedRencontres);
       } else {
         setRencontres(cacheRencontres);
       }
     } else if (newRencontres.length) {
-      setRencontres((latestRencontres) => mergeItems(latestRencontres, newRencontres));
+      const latestRencontres = getRecoil(rencontresState);
+      const mergedRencontres = mergeItems(latestRencontres, newRencontres);
+      setRencontres(mergedRencontres);
+      await setCacheItem("rencontre", mergedRencontres);
     }
 
     let newActions = [];
@@ -354,12 +380,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheActions = await getCacheItemDefaultValue("action", []);
       if (newActions.length) {
-        setActions(mergeItems(cacheActions, newActions));
+        const mergedActions = mergeItems(cacheActions, newActions);
+        setActions(mergedActions);
+        await setCacheItem("action", mergedActions);
       } else {
         setActions(cacheActions);
       }
     } else if (newActions.length) {
-      setActions((latestActions) => mergeItems(latestActions, newActions));
+      const latestActions = getRecoil(actionsState);
+      const mergedActions = mergeItems(latestActions, newActions);
+      setActions(mergedActions);
+      await setCacheItem("action", mergedActions);
     }
 
     let newRecurrences = [];
@@ -383,12 +414,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRecurrences = await getCacheItemDefaultValue("recurrence", []);
       if (newRecurrences.length) {
-        setRecurrences(mergeItems(cacheRecurrences, newRecurrences));
+        const mergedRecurrences = mergeItems(cacheRecurrences, newRecurrences);
+        setRecurrences(mergedRecurrences);
+        await setCacheItem("recurrence", mergedRecurrences);
       } else {
         setRecurrences(cacheRecurrences);
       }
     } else if (newRecurrences.length) {
-      setRecurrences((latestRecurrences) => mergeItems(latestRecurrences, newRecurrences));
+      const latestRecurrences = getRecoil(recurrencesState);
+      const mergedRecurrences = mergeItems(latestRecurrences, newRecurrences);
+      setRecurrences(mergedRecurrences);
+      await setCacheItem("recurrence", mergedRecurrences);
     }
 
     let newTerritories = [];
@@ -412,12 +448,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheTerritories = await getCacheItemDefaultValue("territory", []);
       if (newTerritories.length) {
-        setTerritories(mergeItems(cacheTerritories, newTerritories));
+        const mergedTerritories = mergeItems(cacheTerritories, newTerritories);
+        setTerritories(mergedTerritories);
+        await setCacheItem("territory", mergedTerritories);
       } else {
         setTerritories(cacheTerritories);
       }
     } else if (newTerritories.length) {
-      setTerritories((latestTerritories) => mergeItems(latestTerritories, newTerritories));
+      const latestTerritories = getRecoil(territoriesState);
+      const mergedTerritories = mergeItems(latestTerritories, newTerritories);
+      setTerritories(mergedTerritories);
+      await setCacheItem("territory", mergedTerritories);
     }
 
     let newPlaces = [];
@@ -441,12 +482,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cachePlaces = await getCacheItemDefaultValue("place", []);
       if (newPlaces.length) {
-        setPlaces(mergeItems(cachePlaces, newPlaces));
+        const mergedPlaces = mergeItems(cachePlaces, newPlaces);
+        setPlaces(mergedPlaces);
+        await setCacheItem("place", mergedPlaces);
       } else {
         setPlaces(cachePlaces);
       }
     } else if (newPlaces.length) {
-      setPlaces((latestPlaces) => mergeItems(latestPlaces, newPlaces));
+      const latestPlaces = getRecoil(placesState);
+      const mergedPlaces = mergeItems(latestPlaces, newPlaces);
+      setPlaces(mergedPlaces);
+      await setCacheItem("place", mergedPlaces);
     }
 
     let newRelsPersonPlace = [];
@@ -470,12 +516,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheRelsPersonPlace = await getCacheItemDefaultValue("relPersonPlace", []);
       if (newRelsPersonPlace.length) {
-        setRelsPersonPlace(mergeItems(cacheRelsPersonPlace, newRelsPersonPlace));
+        const mergedRelsPersonPlace = mergeItems(cacheRelsPersonPlace, newRelsPersonPlace);
+        setRelsPersonPlace(mergedRelsPersonPlace);
+        await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
       } else {
         setRelsPersonPlace(cacheRelsPersonPlace);
       }
     } else if (newRelsPersonPlace.length) {
-      setRelsPersonPlace((latestRelsPersonPlace) => mergeItems(latestRelsPersonPlace, newRelsPersonPlace));
+      const latestRelsPersonPlace = getRecoil(relsPersonPlaceState);
+      const mergedRelsPersonPlace = mergeItems(latestRelsPersonPlace, newRelsPersonPlace);
+      setRelsPersonPlace(mergedRelsPersonPlace);
+      await setCacheItem("relPersonPlace", mergedRelsPersonPlace);
     }
 
     let newTerritoryObservations = [];
@@ -499,12 +550,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheTerritoryObservations = await getCacheItemDefaultValue("territory-observation", []);
       if (newTerritoryObservations.length) {
-        setTerritoryObservations(mergeItems(cacheTerritoryObservations, newTerritoryObservations));
+        const mergedTerritoryObservations = mergeItems(cacheTerritoryObservations, newTerritoryObservations);
+        setTerritoryObservations(mergedTerritoryObservations);
+        await setCacheItem("territory-observation", mergedTerritoryObservations);
       } else {
         setTerritoryObservations(cacheTerritoryObservations);
       }
     } else if (newTerritoryObservations.length) {
-      setTerritoryObservations((latestTerritoryObservations) => mergeItems(latestTerritoryObservations, newTerritoryObservations));
+      const latestTerritoryObservations = getRecoil(territoryObservationsState);
+      const mergedTerritoryObservations = mergeItems(latestTerritoryObservations, newTerritoryObservations);
+      setTerritoryObservations(mergedTerritoryObservations);
+      await setCacheItem("territory-observation", mergedTerritoryObservations);
     }
 
     let newComments = [];
@@ -528,12 +584,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheComments = await getCacheItemDefaultValue("comment", []);
       if (newComments.length) {
-        setComments(mergeItems(cacheComments, newComments));
+        const mergedComments = mergeItems(cacheComments, newComments);
+        setComments(mergedComments);
+        await setCacheItem("comment", mergedComments);
       } else {
         setComments(cacheComments);
       }
     } else if (newComments.length) {
-      setComments((latestComments) => mergeItems(latestComments, newComments));
+      const latestComments = getRecoil(commentsState);
+      const mergedComments = mergeItems(latestComments, newComments);
+      setComments(mergedComments);
+      await setCacheItem("comment", mergedComments);
     }
 
     let newConsultations = [];
@@ -559,12 +620,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (isStartingInitialLoad) {
       const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
       if (newConsultations.length) {
-        setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+        const mergedConsultations = mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
+        setConsultations(mergedConsultations);
+        await setCacheItem("consultation", mergedConsultations);
       } else {
         setConsultations(cacheConsultations);
       }
     } else if (newConsultations.length) {
-      setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      const latestConsultations = getRecoil(consultationsState);
+      const mergedConsultations = mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation });
+      setConsultations(mergedConsultations);
+      await setCacheItem("consultation", mergedConsultations);
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -592,12 +658,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (isStartingInitialLoad) {
         const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
         if (newTreatments.length) {
-          setTreatments(mergeItems(cacheTreatments, newTreatments));
+          const mergedTreatments = mergeItems(cacheTreatments, newTreatments);
+          setTreatments(mergedTreatments);
+          await setCacheItem("treatment", mergedTreatments);
         } else {
           setTreatments(cacheTreatments);
         }
       } else if (newTreatments.length) {
-        setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
+        const latestTreatments = getRecoil(treatmentsState);
+        const mergedTreatments = mergeItems(latestTreatments, newTreatments);
+        setTreatments(mergedTreatments);
+        await setCacheItem("treatment", mergedTreatments);
       }
     }
 
@@ -626,12 +697,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (isStartingInitialLoad) {
         const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
         if (newMedicalFiles.length) {
-          setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
+          const mergedMedicalFiles = mergeItems(cacheMedicalFiles, newMedicalFiles);
+          setMedicalFiles(mergedMedicalFiles);
+          await setCacheItem("medical-file", mergedMedicalFiles);
         } else {
           setMedicalFiles(cacheMedicalFiles);
         }
       } else if (newMedicalFiles.length) {
-        setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
+        const latestMedicalFiles = getRecoil(medicalFileState);
+        const mergedMedicalFiles = mergeItems(latestMedicalFiles, newMedicalFiles);
+        setMedicalFiles(mergedMedicalFiles);
+        await setCacheItem("medical-file", mergedMedicalFiles);
       }
     }
 

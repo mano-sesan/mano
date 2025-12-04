@@ -1,4 +1,3 @@
-import { setCacheItem } from "../services/dataManagement";
 import { atom, selector, useRecoilValue } from "recoil";
 import { organisationState } from "./auth";
 import { flattenedActionsCategoriesSelector } from "./actions";
@@ -12,7 +11,6 @@ const collectionName = "person";
 export const personsState = atom<PersonInstance[]>({
   key: collectionName,
   default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
 });
 
 /*
