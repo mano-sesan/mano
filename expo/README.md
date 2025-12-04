@@ -7,7 +7,7 @@
 - Install the dependencies:
 
   ```sh
-  npx expo install
+  yarn
   ```
 
 - Prebuild first
