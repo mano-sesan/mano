@@ -1,22 +1,19 @@
 import { useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
-import type { RecoilValueReadOnly } from "recoil";
-import { organisationAuthentifiedState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
-import { groupsState } from "../../../recoil/groups";
 import type { PersonPopulated, PersonInstance } from "../../../types/person";
 import type { Document, FolderWithLinkedItem, LinkedItem } from "../../../types/document";
 import type { UUIDV4 } from "../../../types/uuid";
-import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
 import { useDataLoader } from "../../../services/dataLoader";
 import isEqual from "react-fast-compare";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { removeOldDefaultFolders } from "../../../utils/documents";
+import { useStore } from "../../../store";
+import { organisationAuthentifiedSelector, personsObjectSelector } from "../../../store/selectors";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -26,10 +23,10 @@ type PersonIndex = Record<UUIDV4, PersonInstance>;
 
 const PersonDocuments = ({ person }: PersonDocumentsProps) => {
   const { refresh } = useDataLoader();
-  const organisation = useRecoilValue(organisationAuthentifiedState);
-  const groups = useRecoilValue(groupsState);
+  const organisation = useStore(organisationAuthentifiedSelector);
+  const groups = useStore((state) => state.groups);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const persons = useRecoilValue<PersonIndex>(personsObjectSelector as RecoilValueReadOnly<PersonIndex>);
+  const persons = useStore(personsObjectSelector) as PersonIndex;
 
   const needsActionsFolder =
     !person.documentsForModule?.some((d) => d._id === "actions") && person.documentsForModule?.some((d) => d.linkedItem.type === "action");

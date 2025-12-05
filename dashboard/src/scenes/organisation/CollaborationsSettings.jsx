@@ -1,16 +1,16 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useStore } from "../../store";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import { prepareReportForEncryption } from "../../recoil/reports";
 import { encryptItem } from "../../services/encryption";
 
 function CollaborationsSettings() {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
   const dataFormatted = useMemo(() => {
     return [
       {
@@ -51,7 +51,8 @@ function CollaborationsSettings() {
 }
 
 const AddCollaboration = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   const onAddCategory = async (e) => {
     e.preventDefault();
@@ -99,8 +100,9 @@ const AddCollaboration = () => {
 const Collaboration = ({ item: collaboration }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingCategory, setIsEditingCollaboration] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const reports = useRecoilValue(reportsState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const reports = useStore((state) => state.reports);
 
   const { refresh } = useDataLoader();
 

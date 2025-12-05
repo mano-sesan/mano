@@ -1,16 +1,15 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * Place state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "place";
-export const placesState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const placesState = { key: "place" };
 
 const encryptedFields = ["user", "name"];
 

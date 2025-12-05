@@ -1,43 +1,43 @@
 import structuredClone from "@ungap/structured-clone";
 import SelectAsInput from "../../../components/SelectAsInput";
-import {
-  allowedPersonFieldsInHistorySelector,
-  customFieldsPersonsSelector,
-  fieldsPersonsCustomizableOptionsSelector,
-  flattenedCustomFieldsPersonsSelector,
-  personFieldsSelector,
-  personsState,
-  usePreparePersonForEncryption,
-} from "../../../recoil/persons";
+import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
-import { currentTeamState, teamsState, userState } from "../../../recoil/auth";
-import { useRecoilState, useRecoilValue } from "recoil";
 import CustomFieldInput from "../../../components/CustomFieldInput";
 import { useMemo, useState } from "react";
 import ButtonCustom from "../../../components/ButtonCustom";
 import { toast } from "react-toastify";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import DatePicker from "../../../components/DatePicker";
-import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { encryptMedicalFile } from "../../../recoil/medicalFiles";
 import { useDataLoader } from "../../../services/dataLoader";
 import { cleanHistory } from "../../../utils/person-history";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import SelectCustom from "../../../components/SelectCustom";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../../utils";
+import { useStore } from "../../../store";
+import {
+  allowedPersonFieldsInHistorySelector,
+  customFieldsPersonsSelector,
+  fieldsPersonsCustomizableOptionsSelector,
+  flattenedCustomFieldsPersonsSelector,
+  personFieldsSelector,
+  customFieldsMedicalFileSelector,
+  groupedCustomFieldsMedicalFileSelector,
+} from "../../../store/selectors";
 
 export default function EditModal({ person, selectedPanel, onClose, isMedicalFile = false }) {
   const { refresh } = useDataLoader();
   const [openPanels, setOpenPanels] = useState([selectedPanel]);
-  const user = useRecoilValue(userState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
-  const team = useRecoilValue(currentTeamState);
-  const [persons] = useRecoilState(personsState);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
+  const user = useStore((state) => state.user);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
+  const allowedFieldsInHistory = useStore(allowedPersonFieldsInHistorySelector);
+  const team = useStore((state) => state.currentTeam);
+  const persons = useStore((state) => state.persons);
+  const flatCustomFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const groupedCustomFieldsMedicalFile = useStore(groupedCustomFieldsMedicalFileSelector);
   const [isOutOfTeamsModalOpen, setIsOutOfTeamsModalOpen] = useState(false);
   const [updatedPersonFormValues, setUpdatedPersonFormValues] = useState();
   const medicalFile = person.medicalFile;
@@ -324,7 +324,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
   }, [groupedCustomFieldsMedicalFile, flattenedCustomFieldsPersons]);
 
   const { encryptPerson } = usePreparePersonForEncryption();
-  const personFields = useRecoilValue(personFieldsSelector);
+  const personFields = useStore(personFieldsSelector);
 
   async function saveAndClose(body, outOfActiveListReasons = null) {
     body.entityKey = person.entityKey;
@@ -680,8 +680,8 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
 }
 
 function OutOfTeamsModal({ open, onClose, removedTeams }) {
-  const teams = useRecoilValue(teamsState);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
+  const teams = useStore((state) => state.teams);
+  const fieldsPersonsCustomizableOptions = useStore(fieldsPersonsCustomizableOptionsSelector);
   const [outOfActiveListReasons, setOutOfActiveListReasons] = useState(removedTeams.reduce((acc, team) => ({ ...acc, [team]: [] }), {}));
   return (
     <ModalContainer open={open} size="3xl" backdrop="static">

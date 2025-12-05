@@ -1,16 +1,15 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * Passage state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "passage";
-export const passagesState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const passagesState = { key: "passage" };
 
 const encryptedFields = ["person", "team", "user", "date", "comment"];
 

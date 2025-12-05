@@ -1,18 +1,17 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * Rencontre state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "rencontre";
-export const rencontresState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const rencontresState = { key: "rencontre" };
 
-const encryptedFields = ["person", "team", "user", "date", "observation", "comment"];
+const encryptedFields = ["person", "team", "user", "date", "comment", "observation"];
 
 export const prepareRencontreForEncryption = (rencontre, { checkRequiredFields = true } = {}) => {
   if (checkRequiredFields) {
@@ -25,9 +24,6 @@ export const prepareRencontreForEncryption = (rencontre, { checkRequiredFields =
       }
       if (!looseUuidRegex.test(rencontre.user)) {
         throw new Error("Rencontre is missing user");
-      }
-      if (!rencontre.date) {
-        throw new Error("Rencontre is missing date");
       }
     } catch (error) {
       toast.error(

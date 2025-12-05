@@ -1,15 +1,15 @@
-import { useRecoilValue } from "recoil";
 import { useHistory } from "react-router-dom";
-import { organisationState, userState, encryptionKeyLengthState, MINIMUM_ENCRYPTION_KEY_LENGTH } from "../recoil/auth";
+import { useStore } from "../store";
 import { dayjsInstance, formatDateWithNameOfDay } from "../services/date";
+import { MINIMUM_ENCRYPTION_KEY_LENGTH } from "../recoil/auth";
 
 const encryptionChangeOfKeyEnabled = true;
 const MAY_24_2024 = "2024-05-24";
 
 export default function EncryptionWarnings() {
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const encryptionKeyLength = useRecoilValue(encryptionKeyLengthState);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
+  const encryptionKeyLength = useStore((state) => state.encryptionKeyLength);
   const history = useHistory();
 
   // Only show for admin users

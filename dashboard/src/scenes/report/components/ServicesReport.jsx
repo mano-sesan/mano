@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
-import { organisationState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
+import { servicesSelector } from "../../../store/selectors";
 import IncrementorSmall from "../../../components/IncrementorSmall";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
-import { servicesSelector } from "../../../recoil/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
@@ -19,8 +18,8 @@ const ErrorOnGetServices = () => (
 );
 
 export default function ServicesReport({ period, selectedTeamsObject }) {
-  const organisation = useRecoilValue(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const groupedServices = useStore(servicesSelector);
   const [show, setShow] = useState([]);
   const [fullScreen, setFullScreen] = useState(false);
   // `service` structure is: { `team-id-xxx`: { `service-name`: 1, ... }, ... }
@@ -236,7 +235,7 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
 }
 
 const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useStore(servicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];

@@ -1,9 +1,9 @@
 import { useMemo, useState, useEffect } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 import { FolderIcon } from "@heroicons/react/24/outline";
-import { userState, organisationAuthentifiedState, userAuthentifiedState, organisationState } from "../recoil/auth";
+import { useStore, defaultModalActionState } from "../store";
+import { organisationAuthentifiedSelector, userAuthentifiedSelector, itemsGroupedByActionSelector } from "../store/selectors";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { formatDateTimeWithNameOfDay } from "../services/date";
 import { FullScreenIcon } from "../assets/icons/FullScreenIcon";
@@ -17,8 +17,6 @@ import { toast } from "react-toastify";
 import DocumentsOrganizer from "./DocumentsOrganizer";
 import { decryptFile, encryptFile, getHashedOrgEncryptionKey } from "../services/encryption";
 import { ZipWriter, BlobWriter, BlobReader } from "@zip.js/zip.js";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
-import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import { capture } from "../services/sentry";
 import SelectCustom from "./SelectCustom";
 import { InformationCircleIcon, Cog6ToothIcon } from "@heroicons/react/24/outline";
@@ -317,7 +315,7 @@ function DocumentsFullScreen<T extends DocumentWithLinkedItem | FolderWithLinked
   onEditFolderRequest,
 }: DocumentsFullScreenProps<T>) {
   const withDocumentOrganizer = !!onSaveNewOrder;
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
   const [enableDropZone, setEnableDropZone] = useState(true);
   const [debug, setDebug] = useState(false);
 
@@ -598,7 +596,7 @@ export function DocumentTableWithFolders({
   onFolderClick,
   onAddDocuments,
 }: DocumentTableProps) {
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
 
   const sortedDocuments = useMemo(() => {
     const flattenTree = (
@@ -750,8 +748,8 @@ function NoDocumentsInTable({
 }
 
 export function ClickableLabel({ doc, color }: { doc: DocumentWithLinkedItem; color: "main" | "blue-900" }) {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const setModalAction = useSetRecoilState(modalActionState);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
+  const setModalAction = useStore((state) => state.setModalAction);
   const location = useLocation();
   const history = useHistory();
   return (
@@ -814,7 +812,7 @@ export function DocumentTable({
   withClickableLabel,
   onAddDocuments,
 }: DocumentTableProps) {
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
   if (!documents.length) {
     return <NoDocumentsInTable showAddDocumentButton={showAddDocumentButton} color={color} onAddDocuments={onAddDocuments} personId={personId} />;
   }
@@ -882,7 +880,7 @@ interface AddDocumentInputProps {
 
 function AddDocumentInput({ personId, onAddDocuments }: AddDocumentInputProps) {
   const [resetFileInputKey, setResetFileInputKey] = useState(0); // to be able to use file input multiple times
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
 
   return (
     <input
@@ -926,7 +924,7 @@ function DocumentsDropZone({ children, personId, onAddDocuments, color, classNam
   // https://stackoverflow.com/a/16403756/5225096
   // https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
 
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [isInDropzone, setIsInDropzone] = useState(false);
 
   if (!showAddDocumentButton) {
@@ -1135,9 +1133,9 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   externalIsUpdating,
   externalIsDeleting,
 }: DocumentModalProps<T>) {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const organisation = useRecoilValue(organisationState);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
+  const setModalAction = useStore((state) => state.setModalAction);
+  const organisation = useStore((state) => state.organisation);
   const location = useLocation();
   const initialName = useMemo(() => document.name, [document.name]);
   const [name, setName] = useState(initialName);
@@ -1413,7 +1411,7 @@ export function FolderModal<T extends FolderWithLinkedItem | Folder>({
   color,
 }: FolderModalProps<T>) {
   const isNewFolder = !folder?._id;
-  const user = useRecoilValue(userAuthentifiedState);
+  const user = useStore(userAuthentifiedSelector);
 
   const initialName = useMemo(() => folder?.name, [folder?.name]);
   const [name, setName] = useState(initialName ?? "");

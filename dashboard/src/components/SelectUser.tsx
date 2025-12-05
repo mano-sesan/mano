@@ -1,9 +1,8 @@
-import { useRecoilValue } from "recoil";
-import { usersState } from "../recoil/auth";
+import { useStore } from "../store";
 import SelectCustom from "./SelectCustom";
 
 const SelectUser = ({ value, onChange, ...props }) => {
-  const allUsers = useRecoilValue(usersState);
+  const allUsers = useStore((state) => state.users);
 
   return (
     <SelectCustom

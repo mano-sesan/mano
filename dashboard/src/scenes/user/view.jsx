@@ -3,12 +3,11 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../../store";
 
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
-import { deletedUsersState, organisationState, usersState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -19,10 +18,11 @@ const View = () => {
   const [localUser, setLocalUser] = useState(null);
   const { id } = useParams();
   const history = useHistory();
-  const [user, setUser] = useRecoilState(userState);
-  const setUsers = useSetRecoilState(usersState);
-  const setDeletedUsers = useSetRecoilState(deletedUsersState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const setUsers = useStore((state) => state.setUsers);
+  const setDeletedUsers = useStore((state) => state.setDeletedUsers);
+  const organisation = useStore((state) => state.organisation);
   const [isReactivatingUser, setIsReactivatingUser] = useState(false);
 
   useTitle(`Utilisateur ${user?.name}`);
@@ -66,7 +66,7 @@ const View = () => {
             if (body.email && !emailRegex.test(body.email)) return toast.error("Email invalide");
             if (!body.name) return toast.error("Le nom doit faire au moins un caractère");
             if (user._id === id && body.role !== "admin") {
-              return toast.error("Vous ne pouvez pas modifier votre rôle : déconnectez-vous et demandez à un autre administrateur de le faire");
+              return toast.error("Vous ne pouvez pas modifier votre rôle : déconnectez-vous et demandez à un autre administrateur de le faire");
             }
             body.organisation = organisation._id;
             const [error, response] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));

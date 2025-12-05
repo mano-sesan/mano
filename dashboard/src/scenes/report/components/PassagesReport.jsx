@@ -4,15 +4,14 @@ import Passage from "../../../components/Passage";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
-import { currentTeamState, userState, usersState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
+import { personsObjectSelector } from "../../../store/selectors";
 import UserName from "../../../components/UserName";
 import TagTeam from "../../../components/TagTeam";
 import PersonName from "../../../components/PersonName";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { sortPassages } from "../../../recoil/passages";
-import { personsObjectSelector } from "../../../recoil/selectors";
 
 export const PassagesReport = ({ passages, period, selectedTeams }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -57,10 +56,10 @@ export const PassagesReport = ({ passages, period, selectedTeams }) => {
 };
 
 const PassagesTable = ({ period, passages, selectedTeams }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsObjectSelector);
-  const user = useRecoilValue(userState);
-  const users = useRecoilValue(usersState);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const persons = useStore(personsObjectSelector);
+  const user = useStore((state) => state.user);
+  const users = useStore((state) => state.users);
   const [passageToEdit, setPassageToEdit] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("report-passage-sortBy", "dueAt");
   const [sortOrder, setSortOrder] = useLocalStorage("report-passage-sortOrder", "ASC");

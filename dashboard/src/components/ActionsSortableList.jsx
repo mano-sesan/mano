@@ -1,12 +1,11 @@
 import { useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore, defaultModalActionState } from "../store";
 import Table from "./table";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import PersonName from "./PersonName";
 import { CANCEL, DONE, sortActionsOrConsultations, TODO } from "../recoil/actions";
-import { currentTeamState, organisationState, userState } from "../recoil/auth";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import useTitle from "../services/useTitle";
 import ConsultationButton from "./ConsultationButton";
@@ -18,7 +17,6 @@ import useSearchParamState from "../services/useSearchParamState";
 import DescriptionIcon from "./DescriptionIcon";
 import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
 import UserName from "./UserName";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
@@ -33,11 +31,11 @@ const ActionsSortableList = ({
   columns = ["urgentOrGroupOrConsultation", "dueAt", "name", "person", "status", "team"],
 }) => {
   useTitle("Agenda");
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useStore((state) => state.setModalAction);
   const history = useHistory();
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const organisation = useStore((state) => state.organisation);
   const [sortBy, setSortBy] = useLocalStorage(localStorageSortByName, "dueAt");
   const [sortOrder, setSortOrder] = useLocalStorage(localStorageSortOrderName, defaultOrder);
   const [page, setPage] = useSearchParamState("page", 0, { resetToDefaultIfTheFollowingValueChange: currentTeam?._id });

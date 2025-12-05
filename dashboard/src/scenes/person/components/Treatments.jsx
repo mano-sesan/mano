@@ -1,10 +1,8 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
 import { useHistory } from "react-router-dom";
-import { userState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateWithFullMonth } from "../../../services/date";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
-import { treatmentsState } from "../../../recoil/treatments";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";
@@ -42,7 +40,7 @@ const treatmentStatusOptions = [
 
 export const Treatments = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
-  const allTreatments = useRecoilValue(treatmentsState);
+  const allTreatments = useStore((state) => state.treatments);
   const [treatmentStatuses, setTreatmentStatuses] = useLocalStorage("treatment-statuses", []);
 
   const treatments = useMemo(
@@ -157,7 +155,7 @@ const TreatmentsFilters = ({ data, treatmentStatuses, setTreatmentStatuses }) =>
 };
 
 const TreatmentsTable = ({ filteredData }) => {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const history = useHistory();
 
   const displayTreatment = (treatment) => {

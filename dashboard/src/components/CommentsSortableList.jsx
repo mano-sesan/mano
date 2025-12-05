@@ -2,16 +2,14 @@ import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import Table from "./table";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
-import { organisationState, userState } from "../recoil/auth";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore, defaultModalActionState } from "../store";
+import { itemsGroupedByActionSelector } from "../store/selectors";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import PersonName from "./PersonName";
 import { useLocalStorage } from "../services/useLocalStorage";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../recoil/comments";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
-import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import ConsultationButton from "./ConsultationButton";
 import { NoComments } from "./CommentsGeneric";
 import SelectTeamMultiple from "./SelectTeamMultiple";
@@ -24,10 +22,10 @@ export default function CommentsSortableList({
   onCommentClick = undefined,
   withFilters = false,
 }) {
-  const setModalAction = useSetRecoilState(modalActionState);
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const setModalAction = useStore((state) => state.setModalAction);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
   const [filterOnlyMine, setFilterOnlyMine] = useState(false);
   const location = useLocation();

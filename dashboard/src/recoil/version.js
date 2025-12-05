@@ -1,33 +1,14 @@
-import { atom, selector } from "recoil";
+/**
+ * Version state
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { dayjsInstance } from "../services/date";
 
-export const deploymentDateState = atom({
-  key: "deploymentDateState",
-  default: null,
-});
+// State references for backward compatibility
+export const deploymentDateState = { key: "deploymentDateState" };
+export const deploymentCommitState = { key: "deploymentCommitState" };
 
-export const deploymentCommitState = atom({
-  key: "deploymentCommitState",
-  default: null,
-});
-
-export const deploymentShortCommitSHAState = selector({
-  key: "shortCommitSHAState",
-  get: ({ get }) => {
-    const fullSHA = get(deploymentCommitState);
-    return (fullSHA || "-").substring(0, 7);
-  },
-});
-
-export const showOutdateAlertBannerState = selector({
-  key: "showOutdateAlertBannerState",
-  get: ({ get }) => {
-    const deploymentCommit = get(deploymentCommitState);
-    const deploymentDate = get(deploymentDateState);
-    if (!deploymentCommit || !deploymentDate) return false;
-    return (
-      dayjsInstance(deploymentDate).isAfter(dayjsInstance(window.localStorage.getItem("deploymentDate"))) &&
-      deploymentCommit !== window.localStorage.getItem("deploymentCommit")
-    );
-  },
-});
+// These are selector references - use showOutdateAlertBannerSelector from store/selectors instead
+export const deploymentShortCommitSHAState = { key: "shortCommitSHAState" };
+export const showOutdateAlertBannerState = { key: "showOutdateAlertBannerState" };

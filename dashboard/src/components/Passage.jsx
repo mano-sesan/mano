@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
-import { teamsState, userState } from "../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../store";
 import API, { tryFetchExpectOk } from "../services/api";
 import { encryptPassage } from "../recoil/passages";
 import SelectTeam from "./SelectTeam";
@@ -15,8 +14,8 @@ import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/
 import { useDataLoader } from "../services/dataLoader";
 
 const Passage = ({ passage, personId, onFinished }) => {
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
+  const user = useStore((state) => state.user);
+  const teams = useStore((state) => state.teams);
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();

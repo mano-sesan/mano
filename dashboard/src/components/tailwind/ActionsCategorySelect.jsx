@@ -1,14 +1,17 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { selector, useRecoilValue } from "recoil";
-import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../../recoil/actions";
+import { useStore } from "../../store";
+import { actionsCategoriesSelector, flattenedActionsCategoriesSelector } from "../../store/selectors";
 import SortableJS from "sortablejs";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./Modal";
 
-const categoriesSortedByMostUsedSelector = selector({
-  key: "categoriesSortedByMostUsedSelector",
-  get: ({ get }) => {
-    const actions = get(actionsState);
-    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+const allCatsTitle = "Toutes les catégories";
+
+// Compute categories sorted by most used in the last 30 days
+function useCategoriesSortedByMostUsed() {
+  const actions = useStore((state) => state.actions);
+  const flattenedActionsCategories = useStore(flattenedActionsCategoriesSelector);
+
+  return useMemo(() => {
     if (!actions?.length) return [];
 
     const thirtyDaysAgo = new Date();
@@ -28,14 +31,14 @@ const categoriesSortedByMostUsedSelector = selector({
       .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
       .map(([category]) => category)
       .filter((category) => flattenedActionsCategories.includes(category));
-  },
-});
+  }, [actions, flattenedActionsCategories]);
+}
 
-const allCatsTitle = "Toutes les catégories";
-const allGroupsWithGroupForAllCategories = selector({
-  key: "allGroupsWithGroupForAllCategories",
-  get: ({ get }) => {
-    const groupedCategories = get(actionsCategoriesSelector);
+// Compute all groups with a group for all categories
+function useAllGroupsWithGroupForAllCategories() {
+  const groupedCategories = useStore(actionsCategoriesSelector);
+
+  return useMemo(() => {
     const allCats = groupedCategories.reduce((acc, group) => {
       return [...acc, ...group.categories];
     }, []);
@@ -46,14 +49,14 @@ const allGroupsWithGroupForAllCategories = selector({
         categories: allCats,
       },
     ];
-  },
-});
+  }, [groupedCategories]);
+}
 
 const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDisabled }) => {
   const [open, setOpen] = useState(false);
   const [modalIsOpened, setModalIsOpened] = useState(false);
-  const allGroups = useRecoilValue(allGroupsWithGroupForAllCategories);
-  const categoriesSortedByMostUsed = useRecoilValue(categoriesSortedByMostUsedSelector);
+  const allGroups = useAllGroupsWithGroupForAllCategories();
+  const categoriesSortedByMostUsed = useCategoriesSortedByMostUsed();
   const [selected, setSelected] = useState(() => values || []);
   const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);

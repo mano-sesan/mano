@@ -1,5 +1,5 @@
-import { useRecoilValue } from "recoil";
-import { currentTeamAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
+import { useStore } from "../store";
+import { currentTeamAuthentifiedSelector, userAuthentifiedSelector } from "../store/selectors";
 import API, { tryFetchExpectOk } from "../services/api";
 import { DONE, encryptAction, TODO } from "../recoil/actions";
 import { usePreparePersonForEncryption } from "../recoil/persons";
@@ -8,8 +8,8 @@ const numberOfPersons = 200;
 const numberOfActionsPerPerson = 10;
 
 export default function AddPersons() {
-  const currentTeam = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
+  const currentTeam = useStore(currentTeamAuthentifiedSelector);
+  const user = useStore(userAuthentifiedSelector);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   async function onClick() {

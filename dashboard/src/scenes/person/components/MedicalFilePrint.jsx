@@ -1,30 +1,30 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
-import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import { currentTeamState, organisationState, usersState } from "../../../recoil/auth";
 import { dayjsInstance } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { sortActionsOrConsultations } from "../../../recoil/actions";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
-import { treatmentsState } from "../../../recoil/treatments";
-import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
+import { useStore } from "../../../store";
+import {
+  flattenedCustomFieldsPersonsSelector,
+  customFieldsMedicalFileSelector,
+  arrayOfitemsGroupedByConsultationSelector,
+} from "../../../store/selectors";
 
 export function MedicalFilePrint({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const allConsultations = useRecoilValue(arrayOfitemsGroupedByConsultationSelector);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const team = useRecoilValue(currentTeamState);
+  const organisation = useStore((state) => state.organisation);
+  const allConsultations = useStore(arrayOfitemsGroupedByConsultationSelector);
+  const allTreatments = useStore((state) => state.treatments);
+  const team = useStore((state) => state.currentTeam);
 
   const [consultationTypes] = useLocalStorage("consultation-types", []);
   const [consultationStatuses] = useLocalStorage("consultation-statuses", []);
   const [consultationsSortBy] = useLocalStorage("consultations-sortBy", "dueAt");
   const [consultationsSortOrder] = useLocalStorage("consultations-sortOrder", "ASC");
 
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
 
-  const users = useRecoilValue(usersState);
+  const users = useStore((state) => state.users);
 
   const personConsultations = useMemo(() => (allConsultations || []).filter((c) => c.person === person._id), [allConsultations, person._id]);
   const personConsultationsFiltered = useMemo(

@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import {
   FolderPlusIcon,
@@ -14,7 +13,8 @@ import {
   ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
 import { UsersIcon } from "@heroicons/react/16/solid";
-import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
+import { useStore } from "../../../store";
+import { organisationAuthentifiedSelector } from "../../../store/selectors";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
@@ -31,7 +31,6 @@ import cn from "classnames";
 import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
-import { groupsState } from "../../../recoil/groups";
 import UserName from "../../../components/UserName";
 import { formatDateWithFullMonth, formatTime } from "../../../services/date";
 
@@ -328,9 +327,9 @@ function DocumentsDropzone({
 
 export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) {
   const { refresh } = useDataLoader();
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resetFileInputKey, setResetFileInputKey] = useState(0);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -345,7 +344,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [isUpdatingDocument, setIsUpdatingDocument] = useState(false);
   const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const [isInDropzone, setIsInDropzone] = useState(false);
-  const groups = useRecoilValue(groupsState);
+  const groups = useStore((state) => state.groups);
 
   // Build default folders and all documents
   const allDocuments = useMemo(() => {

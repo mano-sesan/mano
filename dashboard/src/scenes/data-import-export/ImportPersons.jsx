@@ -1,28 +1,28 @@
 import { useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
-import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../recoil/persons";
-import { teamsState, userState } from "../../recoil/auth";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
+import { useStore } from "../../store";
+import { personFieldsIncludingCustomFieldsSelector, customFieldsMedicalFileSelector } from "../../store/selectors";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import { prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
 import { encryptItem } from "../../services/encryption";
 import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportPersons() {
-  const user = useRecoilValue(userState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const user = useStore((state) => state.user);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
   const fileDialogRef = useRef(null);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
-  const existingPersons = useRecoilValue(personsState);
+  const teams = useStore((state) => state.teams);
+  const existingPersons = useStore((state) => state.persons);
 
   const { encryptPerson } = usePreparePersonForEncryption();
 

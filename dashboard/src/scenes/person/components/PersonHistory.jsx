@@ -1,15 +1,13 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
-import { deletedUsersState, teamsState, userState, usersState } from "../../../recoil/auth";
-import { personFieldsIncludingCustomFieldsSelector } from "../../../recoil/persons";
 import { formatDateWithFullMonth, dayjsInstance } from "../../../services/date";
-import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
 import { cleanHistory } from "../../../utils/person-history";
 import PersonTeamHistory from "./PersonTeamHistory";
+import { useStore } from "../../../store";
+import { personFieldsIncludingCustomFieldsSelector, customFieldsMedicalFileSelector } from "../../../store/selectors";
 
 function UserName({ id, name }) {
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const users = useStore((state) => state.users);
+  const deletedUsers = useStore((state) => state.deletedUsers);
 
   const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
   if (user) return user.name || "Utilisateur sans nom";
@@ -18,16 +16,16 @@ function UserName({ id, name }) {
 }
 
 export default function PersonHistory({ person }) {
-  const teams = useRecoilValue(teamsState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const teams = useStore((state) => state.teams);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
   const allPossibleFields = [
     ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
     ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
   ];
-  const user = useRecoilValue(userState);
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const user = useStore((state) => state.user);
+  const users = useStore((state) => state.users);
+  const deletedUsers = useStore((state) => state.deletedUsers);
   const history = useMemo(() => {
     const personHistory = cleanHistory(person.history || []);
     if (!user.healthcareProfessional) return personHistory.reverse();

@@ -4,9 +4,8 @@ import { ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reac
 import logo from "../assets/logo-green-creux-plus-petit.png";
 import SelectTeam from "./SelectTeam";
 
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
+import { useStore } from "../store";
 import API, { tryFetchExpectOk } from "../services/api";
-import { useRecoilState, useRecoilValue } from "recoil";
 import Notification from "./Notification";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import ColorHeaderBand from "./ColorHeaderBand";
@@ -18,10 +17,11 @@ import { useDataLoader } from "../services/dataLoader";
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const teams = useRecoilValue(teamsState);
-  const [currentTeam, setCurrentTeam] = useRecoilState(currentTeamState);
+  const user = useStore((s) => s.user);
+  const organisation = useStore((s) => s.organisation);
+  const teams = useStore((s) => s.teams);
+  const currentTeam = useStore((s) => s.currentTeam);
+  const setCurrentTeam = useStore((s) => s.setCurrentTeam);
 
   const { refresh, isLoading } = useDataLoader();
 

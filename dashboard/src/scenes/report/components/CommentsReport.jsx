@@ -2,15 +2,14 @@ import { useMemo, useState } from "react";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import TabsNav from "../../../components/tailwind/TabsNav";
-import { userState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import CommentsSortableList from "../../../components/CommentsSortableList";
 
 export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
   const [activeTab, setActiveTab] = useLocalStorage("reports-comments-toggle", "Commentaires");
   const [fullScreen, setFullScreen] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const canSeeMedicalData = ["admin", "normal"].includes(user.role) && !!user.healthcareProfessional;
 
   // On affiche les commentaires médicaux partagés par les professionnels de santés

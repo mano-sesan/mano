@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
-import { currentTeamState, teamsState, userState } from "../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../store";
 import API, { tryFetchExpectOk } from "../services/api";
 import SelectTeam from "./SelectTeam";
 import SelectPerson from "./SelectPerson";
@@ -16,9 +15,9 @@ import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import { useDataLoader } from "../services/dataLoader";
 
 const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToPerson = false }) => {
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const user = useStore((state) => state.user);
+  const teams = useStore((state) => state.teams);
+  const currentTeam = useStore((state) => state.currentTeam);
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();

@@ -1,14 +1,11 @@
-import { useRecoilValue } from "recoil";
 import structuredClone from "@ungap/structured-clone";
-import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
 import { Consultations } from "./Consultations";
 import { InfosMain } from "./InfosMain";
 import PersonCustomFields from "./PersonCustomFields";
 import DeletePersonButton from "./DeletePersonButton";
 import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
-import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { encryptMedicalFile } from "../../../recoil/medicalFiles";
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";
@@ -20,6 +17,14 @@ import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
 import { useDataLoader } from "../../../services/dataLoader";
 import { toast } from "react-toastify";
+import { useStore } from "../../../store";
+import {
+  organisationAuthentifiedSelector,
+  userAuthentifiedSelector,
+  flattenedCustomFieldsPersonsSelector,
+  customFieldsMedicalFileSelector,
+  groupedCustomFieldsMedicalFileSelector,
+} from "../../../store/selectors";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -27,11 +32,11 @@ interface MedicalFileProps {
 
 export default function MedicalFile({ person }: MedicalFileProps) {
   const { refresh } = useDataLoader();
-  const user = useRecoilValue(userAuthentifiedState);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const user = useStore(userAuthentifiedSelector);
+  const flatCustomFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const groupedCustomFieldsMedicalFile = useStore(groupedCustomFieldsMedicalFileSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
+  const organisation = useStore(organisationAuthentifiedSelector);
   // These custom fields are displayed by default, because they where displayed before they became custom fields
   // Maybe we should reconsider this legacy in 2024-2025.
   const groupedCustomFieldsMedicalFileWithLegacyFields: CustomFieldsGroup[] = useMemo(() => {

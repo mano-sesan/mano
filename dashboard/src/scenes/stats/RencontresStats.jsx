@@ -4,8 +4,7 @@ import { getPieData } from "./utils";
 import Filters from "../../components/Filters";
 import { Block } from "./Blocks";
 import { SelectedPersonsModal } from "./PersonsStats";
-import { userState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
 import SelectCustom from "../../components/SelectCustom";
 
 const NO_TERRITORY_KEY = "__NO_TERRITORY__";
@@ -32,7 +31,7 @@ const RencontresStats = ({
   const [genderSlice, setGenderSlice] = useState(null);
   const [territoriesSlice, setTerritoriesSlice] = useState(null);
   // const [selectedTerritories, setSelectedTerritories] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;

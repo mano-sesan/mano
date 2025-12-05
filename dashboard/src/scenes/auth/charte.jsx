@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useRecoilState } from "recoil";
 import ButtonCustom from "../../components/ButtonCustom";
-import { userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import API, { tryFetchExpectOk } from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
 
 const Charte = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useRecoilState(userState);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
 
   const onSigninValidated = async () => {
     setLoading(true);
@@ -39,24 +39,24 @@ const Charte = () => {
         </p>
         <h2 className="tw-mt-4 tw-mb-2 tw-text-main">Objectifs et approche terrain</h2>
         <p>
-          MANO a pour finalité d’outiller ses utilisateurs dans l’accompagnement de leurs publics et de faciliter l’activité quotidienne ainsi que le
+          MANO a pour finalité d'outiller ses utilisateurs dans l'accompagnement de leurs publics et de faciliter l'activité quotidienne ainsi que le
           suivi des actions engagées avec les usagers.
         </p>
         <p>
-          L’équipe MANO s’engage à concevoir tout développement en restant au plus proche de l’éthique professionnelle inhérente au travail social et
+          L'équipe MANO s'engage à concevoir tout développement en restant au plus proche de l'éthique professionnelle inhérente au travail social et
           médico-social des utilisateurs.
         </p>
         <p>
-          L’équipe MANO s’engage à organiser un écosystème collaboratif : des réunions interservices utilisant l’outil sont organisées au minimum tous
-          les trois mois. Ces rencontres sont l'occasion d’échanger sur les pratiques et expériences liées à MANO, et de remonter les besoins
+          L'équipe MANO s'engage à organiser un écosystème collaboratif : des réunions interservices utilisant l'outil sont organisées au minimum tous
+          les trois mois. Ces rencontres sont l'occasion d'échanger sur les pratiques et expériences liées à MANO, et de remonter les besoins
           identifiés sur le terrain.
         </p>
         <p>
-          L’équipe MANO s’engage à prendre en compte les retours du terrain et à inclure les professionnels dans le processus de développement de
+          L'équipe MANO s'engage à prendre en compte les retours du terrain et à inclure les professionnels dans le processus de développement de
           l'outil.
         </p>
         <h2 className="tw-mt-4 tw-mb-2 tw-text-main">Installation et prise en main</h2>
-        <p>L’équipe MANO s’engage à :</p>
+        <p>L'équipe MANO s'engage à :</p>
         <ol className="tw-list-inside tw-list-disc">
           <li>Présenter l'outil et former les équipes utilisatrices.</li>
           <li>Accompagner les équipes dans l'utilisation de MANO sur le terrain.</li>
@@ -65,7 +65,7 @@ const Charte = () => {
         <h2 className="tw-mt-4 tw-mb-2 tw-text-main">Évolution de l'outil</h2>
         <p>
           MANO évolue en continu. Les modifications apportées se basent sur les retours des utilisateurs. Pour ce faire, les utilisateurs doivent
-          remonter leurs besoins ou propositions d'évolution à la personne responsable de leur accompagnement à l’utilisation de MANO.
+          remonter leurs besoins ou propositions d'évolution à la personne responsable de leur accompagnement à l'utilisation de MANO.
         </p>
         <p>Les équipes peuvent également regrouper leurs retours et les soumettre lors des réunions interservices.</p>
         <h2 className="tw-mt-4 tw-mb-2 tw-text-main">Aspects juridiques et protection des données</h2>

@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useRecoilValue } from "recoil";
-import { organisationState } from "../../recoil/auth";
 import { download } from "../../utils";
 import { getHashedOrgEncryptionKey } from "../../services/encryption";
 import { BlobReader } from "@zip.js/zip.js";
@@ -11,12 +9,13 @@ import API, { tryFetchBlob } from "../../services/api";
 import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import { decryptFile } from "../../services/encryption";
-import { arrayOfitemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { useStore } from "../../store";
+import { arrayOfItemsGroupedByPersonSelector } from "../../store/selectors";
 
 export default function ExportFiles() {
   const [isDownloading, setIsDownloading] = useState(false);
-  const persons = useRecoilValue(arrayOfitemsGroupedByPersonSelector);
-  const organisation = useRecoilValue(organisationState);
+  const persons = useStore(arrayOfItemsGroupedByPersonSelector);
+  const organisation = useStore((state) => state.organisation);
 
   return (
     <>

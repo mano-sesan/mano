@@ -5,300 +5,211 @@ import dayjs from "dayjs";
 import UserName from "../../components/UserName";
 import Search from "../../components/search";
 import TagTeam from "../../components/TagTeam";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { actionsState } from "../../recoil/actions";
-import { personsState, sortPersons } from "../../recoil/persons";
-import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { sortTerritories, territoriesState } from "../../recoil/territory";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
-import {
-  arrayOfitemsGroupedByPersonSelector,
-  itemsGroupedByPersonSelector,
-  onlyFilledObservationsTerritories,
-  personsObjectSelector,
-  usersObjectSelector,
-} from "../../recoil/selectors";
+import { sortPersons } from "../../recoil/persons";
+import { sortTerritories } from "../../recoil/territory";
 import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth, formatDateWithNameOfDay } from "../../services/date";
 import { useDataLoader } from "../../services/dataLoader";
-import { placesState } from "../../recoil/places";
 import { filterBySearch } from "./utils";
-import { commentsState } from "../../recoil/comments";
-import { passagesState } from "../../recoil/passages";
-import { rencontresState } from "../../recoil/rencontres";
 import useTitle from "../../services/useTitle";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { consultationsState } from "../../recoil/consultations";
-import { medicalFileState } from "../../recoil/medicalFiles";
-import { treatmentsState } from "../../recoil/treatments";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import TreatmentsSortableList from "../person/components/TreatmentsSortableList";
 import CommentsSortableList from "../../components/CommentsSortableList";
 import PersonName from "../../components/PersonName";
-import { reportsState } from "../../recoil/reports";
+import { useStore } from "../../store";
+import {
+  onlyFilledObservationsTerritoriesSelector,
+  personsObjectSelector,
+  usersObjectSelector,
+  customFieldsObsSelector,
+  itemsGroupedByPersonSelector,
+} from "../../store/selectors";
 
-const personsWithFormattedBirthDateSelector = selector({
-  key: "personsWithFormattedBirthDateSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    const personsWithBirthdateFormatted = persons.map((person) => ({
-      ...person,
-      birthDate: formatBirthDate(person.birthDate),
-    }));
-    return personsWithBirthdateFormatted;
-  },
-});
+// Helper functions to compute data (converted from Recoil selectors)
+function computePersonsWithFormattedBirthDate(persons) {
+  return persons.map((person) => ({
+    ...person,
+    birthDate: formatBirthDate(person.birthDate),
+  }));
+}
 
-const personsFilteredBySearchForSearchSelector = selectorFamily({
-  key: "personsFilteredBySearchForSearchSelector",
-  get:
-    ({ search }) =>
-    ({ get }) => {
-      const persons = get(personsWithFormattedBirthDateSelector);
-      const personsPopulated = get(itemsGroupedByPersonSelector);
-      const user = get(userState);
-      const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
-      if (!search?.length) return [];
-      return filterBySearch(search, persons, excludeFields).map((p) => personsPopulated[p._id]);
-    },
-});
-
-const documentsWithPersonSelector = selector({
-  key: "documentsWithPersonSelector",
-  get: ({ get }) => {
-    const persons = get(arrayOfitemsGroupedByPersonSelector);
-    const user = get(userState);
-    const documents = [];
-    for (const person of persons) {
-      for (const document of person.documentsForModule || []) {
-        let type;
-        if (document.linkedItem.type === "person") {
-          type = "Personne";
-        } else if (document.linkedItem.type === "action") {
-          type = "Action";
-        } else if (document.linkedItem.type === "consultation") {
-          type = "Consultation";
-        } else if (document.linkedItem.type === "treatment") {
-          type = "Traitement";
-        }
+function computeDocumentsWithPerson(personsPopulated, user) {
+  const documents = [];
+  for (const person of personsPopulated) {
+    for (const document of person.documentsForModule || []) {
+      let type;
+      if (document.linkedItem.type === "person") {
+        type = "Personne";
+      } else if (document.linkedItem.type === "action") {
+        type = "Action";
+      } else if (document.linkedItem.type === "consultation") {
+        type = "Consultation";
+      } else if (document.linkedItem.type === "treatment") {
+        type = "Traitement";
+      }
+      documents.push({
+        _id: document._id,
+        group: document.group,
+        name: document.name,
+        person: person._id,
+        type: type,
+        createdAt: document.createdAt,
+        createdBy: document.createdBy,
+      });
+    }
+    if (user?.healthcareProfessional) {
+      for (const document of person.medicalFile?.documents || []) {
         documents.push({
           _id: document._id,
           group: document.group,
           name: document.name,
           person: person._id,
-          type: type,
+          type: "Dossier médical",
           createdAt: document.createdAt,
           createdBy: document.createdBy,
         });
       }
-      if (user.healthcareProfessional) {
-        for (const document of person.medicalFile?.documents || []) {
+      for (const consultation of person.consultations || []) {
+        for (const document of consultation.documents || []) {
           documents.push({
             _id: document._id,
             group: document.group,
             name: document.name,
             person: person._id,
-            type: "Dossier médical",
+            type: "Consultation",
+            createdAt: consultation.createdAt,
+            createdBy: document.createdBy,
+          });
+        }
+      }
+      for (const treatment of person.treatments || []) {
+        for (const document of treatment.documents || []) {
+          documents.push({
+            _id: document._id,
+            group: document.group,
+            name: document.name,
+            person: person._id,
+            type: "Traitement",
             createdAt: document.createdAt,
             createdBy: document.createdBy,
           });
         }
-        for (const consultation of person.consultations || []) {
-          for (const document of consultation.documents || []) {
-            documents.push({
-              _id: document._id,
-              group: document.group,
-              name: document.name,
-              person: person._id,
-              type: "Consultation",
-              createdAt: consultation.createdAt,
-              createdBy: document.createdBy,
-            });
-          }
-        }
-        for (const treatment of person.treatments || []) {
-          for (const document of treatment.documents || []) {
-            documents.push({
-              _id: document._id,
-              group: document.group,
-              name: document.name,
-              person: person._id,
-              type: "Traitement",
-              createdAt: document.createdAt,
-              createdBy: document.createdBy,
-            });
-          }
-        }
       }
     }
-    return documents;
-  },
-});
+  }
+  return documents;
+}
 
-const documentsFilteredBySearchForSearchSelector = selectorFamily({
-  key: "documentsFilteredBySearchForSearchSelector",
-  get:
-    ({ search }) =>
-    ({ get }) => {
-      const documents = get(documentsWithPersonSelector);
-      const users = get(usersObjectSelector);
-      const personsPopulated = get(itemsGroupedByPersonSelector);
-      if (!search?.length) return [];
-      return filterBySearch(search, documents).map((d) => ({
-        ...d,
-        personPopulated: personsPopulated[d.person],
-        userPopulated: users[d.createdBy],
-      }));
-    },
-});
+function computeActionsObject(actions) {
+  const actionsObject = {};
+  for (const action of actions) {
+    actionsObject[action._id] = { ...action };
+  }
+  return actionsObject;
+}
 
-const actionsObjectSelector = selector({
-  key: "actionsObjectSelector",
-  get: ({ get }) => {
-    const actions = get(actionsState);
-    const actionsObject = {};
-    for (const action of actions) {
-      actionsObject[action._id] = { ...action };
-    }
-    return actionsObject;
-  },
-});
+function computeAllCommentsWithPassagesAndRencontres(comments, passages, rencontres, usersObject, personsObject, actionsObject) {
+  const allComments = [];
 
-const allCommentsWithPassagesAndRencontresSelector = selector({
-  key: "allCommentsWithPassagesAndRencontresSelector",
-  get: ({ get }) => {
-    const comments = get(commentsState);
-    const passages = get(passagesState);
-    const rencontres = get(rencontresState);
-    const users = get(usersObjectSelector);
-    const personsObject = get(personsObjectSelector);
-    const actions = get(actionsObjectSelector);
+  // Add regular comments
+  for (const comment of comments) {
+    const commentType = comment.person ? "person" : comment.action ? "action" : "unknown";
+    allComments.push({
+      ...comment,
+      type: commentType,
+      userPopulated: usersObject[comment.user],
+      actionPopulated: comment.action ? actionsObject[comment.action] : null,
+      personPopulated: comment.person ? personsObject[comment.person] : comment.action ? personsObject[actionsObject[comment.action]?.person] : null,
+    });
+  }
 
-    const allComments = [];
-
-    // Add regular comments
-    for (const comment of comments) {
-      const commentType = comment.person ? "person" : comment.action ? "action" : "unknown";
+  // Add passage comments
+  for (const passage of passages) {
+    if (passage.comment) {
       allComments.push({
-        ...comment,
-        type: commentType,
-        userPopulated: users[comment.user],
-        actionPopulated: comment.action ? actions[comment.action] : null,
-        personPopulated: comment.person ? personsObject[comment.person] : comment.action ? personsObject[actions[comment.action]?.person] : null,
+        _id: `passage-${passage._id}`,
+        comment: passage.comment,
+        type: "passage",
+        date: passage.date,
+        user: passage.user,
+        team: passage.team,
+        person: passage.person,
+        passage: passage._id,
+        userPopulated: usersObject[passage.user],
+        personPopulated: passage.person ? personsObject[passage.person] : null,
+        createdAt: passage.createdAt,
       });
     }
+  }
 
-    // Add passage comments
-    for (const passage of passages) {
-      if (passage.comment) {
-        allComments.push({
-          _id: `passage-${passage._id}`,
-          comment: passage.comment,
-          type: "passage",
-          date: passage.date,
-          user: passage.user,
-          team: passage.team,
-          person: passage.person,
-          passage: passage._id,
-          userPopulated: users[passage.user],
-          personPopulated: passage.person ? personsObject[passage.person] : null,
-          createdAt: passage.createdAt,
-        });
-      }
+  // Add rencontre comments
+  for (const rencontre of rencontres) {
+    if (rencontre.comment) {
+      allComments.push({
+        _id: `rencontre-${rencontre._id}`,
+        comment: rencontre.comment,
+        type: "rencontre",
+        date: rencontre.date,
+        user: rencontre.user,
+        team: rencontre.team,
+        person: rencontre.person,
+        rencontre: rencontre._id,
+        observation: rencontre.observation,
+        userPopulated: usersObject[rencontre.user],
+        personPopulated: personsObject[rencontre.person],
+        createdAt: rencontre.createdAt,
+      });
     }
+  }
 
-    // Add rencontre comments
-    for (const rencontre of rencontres) {
-      if (rencontre.comment) {
-        allComments.push({
-          _id: `rencontre-${rencontre._id}`,
-          comment: rencontre.comment,
-          type: "rencontre",
-          date: rencontre.date,
-          user: rencontre.user,
-          team: rencontre.team,
-          person: rencontre.person,
-          rencontre: rencontre._id,
-          observation: rencontre.observation,
-          userPopulated: users[rencontre.user],
-          personPopulated: personsObject[rencontre.person],
-          createdAt: rencontre.createdAt,
-        });
-      }
-    }
+  return allComments;
+}
 
-    return allComments;
-  },
-});
+function computeTerritoriesObject(territories) {
+  const territoriesObject = {};
+  for (const territory of territories) {
+    territoriesObject[territory._id] = { ...territory };
+  }
+  return territoriesObject;
+}
 
-const allCommentsFilteredBySearchSelector = selectorFamily({
-  key: "allCommentsFilteredBySearchSelector",
-  get:
-    ({ search }) =>
-    ({ get }) => {
-      const allComments = get(allCommentsWithPassagesAndRencontresSelector);
-      if (!search?.length) return [];
-      return filterBySearch(search, allComments);
-    },
-});
-const territoriesObjectSelector = selector({
-  key: "territoriesObjectSelector",
-  get: ({ get }) => {
-    const territories = get(territoriesState);
-    const territoriesObject = {};
-    for (const territory of territories) {
-      territoriesObject[territory._id] = { ...territory };
-    }
-    return territoriesObject;
-  },
-});
-
-const populatedObservationsSelector = selector({
-  key: "populatedObservationsSelector",
-  get: ({ get }) => {
-    const observations = get(territoryObservationsState);
-    const territory = get(territoriesObjectSelector);
-    const populatedObservations = {};
-    for (const obs of observations) {
-      populatedObservations[obs._id] = { ...obs, territory: territory[obs.territory] };
-    }
-    return populatedObservations;
-  },
-});
-
-const observationsBySearchSelector = selectorFamily({
-  key: "observationsBySearchSelector",
-  get:
-    ({ search }) =>
-    ({ get }) => {
-      const populatedObservations = get(populatedObservationsSelector);
-      const observations = get(onlyFilledObservationsTerritories);
-      if (!search?.length) return [];
-      const observationsFilteredBySearch = filterBySearch(search, observations);
-      return observationsFilteredBySearch.map((obs) => populatedObservations[obs._id]).filter(Boolean);
-    },
-});
+function computePopulatedObservations(territoryObservations, territoriesObject) {
+  const populatedObservations = {};
+  for (const obs of territoryObservations) {
+    populatedObservations[obs._id] = { ...obs, territory: territoriesObject[obs.territory] };
+  }
+  return populatedObservations;
+}
 
 const View = () => {
   useTitle("Recherche");
   useDataLoader({ refreshOnMount: true });
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
 
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", "Actions");
 
-  const allActions = useRecoilValue(actionsState);
-  const allConsultations = useRecoilValue(consultationsState);
-  const allMedicalFiles = useRecoilValue(medicalFileState);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const allTerritories = useRecoilValue(territoriesState);
-  const allPlaces = useRecoilValue(placesState);
-  const allReports = useRecoilValue(reportsState);
-  const personsObject = useRecoilValue(personsObjectSelector);
+  const allActions = useStore((state) => state.actions);
+  const allConsultations = useStore((state) => state.consultations);
+  const allMedicalFiles = useStore((state) => state.medicalFiles);
+  const allTreatments = useStore((state) => state.treatments);
+  const allTerritories = useStore((state) => state.territories);
+  const allPlaces = useStore((state) => state.places);
+  const allReports = useStore((state) => state.reports);
+  const allPersons = useStore((state) => state.persons);
+  const allComments = useStore((state) => state.comments);
+  const allPassages = useStore((state) => state.passages);
+  const allRencontres = useStore((state) => state.rencontres);
+  const allTerritoryObservations = useStore((state) => state.territoryObservations);
+  const personsObject = useStore(personsObjectSelector);
+  const usersObject = useStore(usersObjectSelector);
+  const personsPopulated = useStore(itemsGroupedByPersonSelector);
+  const personsPopulatedArray = useMemo(() => Object.values(personsPopulated), [personsPopulated]);
+  const onlyFilledObservations = useStore(onlyFilledObservationsTerritoriesSelector);
 
   const actions = useMemo(() => {
     if (!search?.length) return [];
@@ -321,14 +232,40 @@ const View = () => {
       search,
       allConsultations.filter((c) => {
         if (!c.onlyVisibleBy?.length) return true;
-        return c.onlyVisibleBy.includes(user._id);
+        return c.onlyVisibleBy.includes(user?._id);
       })
     );
-  }, [search, allConsultations, user._id]);
+  }, [search, allConsultations, user?._id]);
 
-  const persons = useRecoilValue(personsFilteredBySearchForSearchSelector({ search }));
-  const documents = useRecoilValue(documentsFilteredBySearchForSearchSelector({ search }));
-  const comments = useRecoilValue(allCommentsFilteredBySearchSelector({ search }));
+  // Computed: persons filtered by search
+  const personsWithFormattedBirthDate = useMemo(() => computePersonsWithFormattedBirthDate(allPersons), [allPersons]);
+  const persons = useMemo(() => {
+    const excludeFields = user?.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
+    if (!search?.length) return [];
+    return filterBySearch(search, personsWithFormattedBirthDate, excludeFields).map((p) => personsPopulated[p._id]);
+  }, [search, personsWithFormattedBirthDate, personsPopulated, user?.healthcareProfessional]);
+
+  // Computed: documents filtered by search
+  const documentsWithPerson = useMemo(() => computeDocumentsWithPerson(personsPopulatedArray, user), [personsPopulatedArray, user]);
+  const documents = useMemo(() => {
+    if (!search?.length) return [];
+    return filterBySearch(search, documentsWithPerson).map((d) => ({
+      ...d,
+      personPopulated: personsPopulated[d.person],
+      userPopulated: usersObject[d.createdBy],
+    }));
+  }, [search, documentsWithPerson, personsPopulated, usersObject]);
+
+  // Computed: comments filtered by search
+  const actionsObject = useMemo(() => computeActionsObject(allActions), [allActions]);
+  const allCommentsWithPassagesAndRencontres = useMemo(
+    () => computeAllCommentsWithPassagesAndRencontres(allComments, allPassages, allRencontres, usersObject, personsObject, actionsObject),
+    [allComments, allPassages, allRencontres, usersObject, personsObject, actionsObject]
+  );
+  const comments = useMemo(() => {
+    if (!search?.length) return [];
+    return filterBySearch(search, allCommentsWithPassagesAndRencontres);
+  }, [search, allCommentsWithPassagesAndRencontres]);
 
   const places = useMemo(() => {
     if (!search?.length) return [];
@@ -345,7 +282,17 @@ const View = () => {
     return filterBySearch(search, allTerritories);
   }, [search, allTerritories]);
 
-  const observations = useRecoilValue(observationsBySearchSelector({ search }));
+  // Computed: observations filtered by search
+  const territoriesObject = useMemo(() => computeTerritoriesObject(allTerritories), [allTerritories]);
+  const populatedObservations = useMemo(
+    () => computePopulatedObservations(allTerritoryObservations, territoriesObject),
+    [allTerritoryObservations, territoriesObject]
+  );
+  const observations = useMemo(() => {
+    if (!search?.length) return [];
+    const observationsFilteredBySearch = filterBySearch(search, onlyFilledObservations);
+    return observationsFilteredBySearch.map((obs) => populatedObservations[obs._id]).filter(Boolean);
+  }, [search, onlyFilledObservations, populatedObservations]);
 
   const tabsConfig = useMemo(() => {
     const baseTabsConfig = [
@@ -433,8 +380,8 @@ const View = () => {
 
 const Persons = ({ persons }) => {
   const history = useHistory();
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
+  const teams = useStore((state) => state.teams);
+  const organisation = useStore((state) => state.organisation);
 
   const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
@@ -520,7 +467,7 @@ const Persons = ({ persons }) => {
 
 const Documents = ({ documents }) => {
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
 
   const [sortBy, setSortBy] = useLocalStorage("documents-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("documents-sortOrder", "ASC");
@@ -698,8 +645,8 @@ const Territories = ({ territories }) => {
 };
 
 const Places = ({ places }) => {
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const persons = useRecoilValue(personsState);
+  const relsPersonPlace = useStore((state) => state.relsPersonPlace);
+  const persons = useStore((state) => state.persons);
 
   if (!places?.length) return <div />;
   const moreThanOne = places.length > 1;
@@ -738,8 +685,8 @@ const Places = ({ places }) => {
 
 const TerritoryObservations = ({ observations }) => {
   const history = useHistory();
-  const team = useRecoilValue(currentTeamState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const team = useStore((state) => state.currentTeam);
+  const customFieldsObs = useStore(customFieldsObsSelector);
 
   if (!observations?.length) return <div />;
   const moreThanOne = observations.length > 1;

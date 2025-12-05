@@ -3,8 +3,8 @@ import SelectCustom from "./SelectCustom";
 import { dayjsInstance } from "../services/date";
 import type { FilterableField } from "../types/field";
 import type { IndicatorValue, IndicatorsSelection, IndicatorsBase } from "../types/evolutivesStats";
-import { useRecoilValue } from "recoil";
-import { evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
+import { useStore } from "../store";
+import { evolutiveStatsIndicatorsBaseSelector } from "../store/selectors";
 
 interface EvolutiveStatsSelectorProps {
   onChange: (selection: IndicatorsSelection, saveInURLParams: boolean) => void;
@@ -15,7 +15,7 @@ interface EvolutiveStatsSelectorProps {
 
 const emptySelection = { fieldName: null, type: null, fromValue: null, toValue: null };
 const EvolutiveStatsSelector = ({ onChange, selection, title = "", saveInURLParams = false }: EvolutiveStatsSelectorProps) => {
-  const indicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
+  const indicatorsBase = useStore(evolutiveStatsIndicatorsBaseSelector);
 
   selection = selection.length ? selection : [emptySelection];
   const onAddIndicator = () => onChange([...selection, emptySelection], saveInURLParams);

@@ -2,39 +2,30 @@ import { useState, useEffect } from "react";
 import validator from "validator";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import { detect } from "detect-browser";
 import ButtonCustom from "../../components/ButtonCustom";
 import { DEFAULT_ORGANISATION_KEY } from "../../config";
 import PasswordInput from "../../components/PasswordInput";
-import {
-  currentTeamState,
-  deletedUsersState,
-  encryptionKeyLengthState,
-  organisationState,
-  sessionInitialDateTimestamp,
-  teamsState,
-  usersState,
-  userState,
-} from "../../recoil/auth";
+import { useStore } from "../../store";
+import { deploymentShortCommitSHASelector } from "../../store/selectors";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { deploymentShortCommitSHAState } from "../../recoil/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
 import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";
-import { modalConfirmState } from "../../components/ModalConfirm";
 import { useDataLoader } from "../../services/dataLoader";
 
 const SignIn = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const setSessionInitialTimestamp = useSetRecoilState(sessionInitialDateTimestamp);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const setTeams = useSetRecoilState(teamsState);
-  const setUsers = useSetRecoilState(usersState);
-  const setDeletedUsers = useSetRecoilState(deletedUsersState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const [user, setUser] = useRecoilState(userState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const setSessionInitialTimestamp = useStore((state) => state.setSessionInitialDateTimestamp);
+  const setCurrentTeam = useStore((state) => state.setCurrentTeam);
+  const setTeams = useStore((state) => state.setTeams);
+  const setUsers = useStore((state) => state.setUsers);
+  const setDeletedUsers = useStore((state) => state.setDeletedUsers);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
   const history = useHistory();
   const location = useLocation();
   const [showErrors, setShowErrors] = useState(false);
@@ -51,8 +42,8 @@ const SignIn = () => {
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
 
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
-  const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
+  const deploymentCommit = useStore(deploymentShortCommitSHASelector);
+  const setEncryptionKeyLength = useStore((state) => state.setEncryptionKeyLength);
 
   const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
   const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "", otp: "" });

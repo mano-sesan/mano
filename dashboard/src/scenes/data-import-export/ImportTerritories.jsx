@@ -1,24 +1,24 @@
 import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
-import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { teamsState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
+import { flattenedTerritoriesTypesSelector } from "../../store/selectors";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
+import { encryptTerritory, territoriesFields } from "../../recoil/territory";
 import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportTerritories() {
-  const user = useRecoilValue(userState);
-  const territoriesTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const user = useStore((state) => state.user);
+  const territoriesTypes = useStore(flattenedTerritoriesTypesSelector);
   const fileDialogRef = useRef(null);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
 
   const [showImportSummary, setShowImportSummary] = useState(false);
   const [territoriesToImport, setTerritoriesToImport] = useState([]);

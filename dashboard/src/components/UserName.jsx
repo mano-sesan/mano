@@ -1,11 +1,10 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
-import { deletedUsersState, usersState } from "../recoil/auth";
+import { useStore } from "../store";
 import SelectUser from "./SelectUser";
 
 const UserName = ({ id, wrapper = (name) => name, canAddUser = null, handleChange = null, className = "" }) => {
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const users = useStore((state) => state.users);
+  const deletedUsers = useStore((state) => state.deletedUsers);
 
   const user = users.find((u) => u._id === id);
   const deletedUser = deletedUsers.find((u) => u._id === id);

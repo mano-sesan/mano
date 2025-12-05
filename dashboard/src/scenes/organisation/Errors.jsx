@@ -1,8 +1,7 @@
 import API, { tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
-import { useRecoilValue } from "recoil";
 import structuredClone from "@ungap/structured-clone";
-import { organisationState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import { useEffect, useState } from "react";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
@@ -47,13 +46,13 @@ async function fetchErrored(organisationId, path) {
 }
 
 export default function Errors() {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const { refresh } = useDataLoader();
   const [open, setOpen] = useState(false);
   const [item, setItem] = useState(undefined);
   const [data, setData] = useState(undefined);
   const [loadingInfo, setLoadingInfo] = useState("");
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
 
   async function fetchData() {
     let res = [];
@@ -456,7 +455,7 @@ export default function Errors() {
 }
 
 function ModalRepair({ open, setOpen, setData, item }) {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [key, setKey] = useState("");
   const { refresh } = useDataLoader();
 

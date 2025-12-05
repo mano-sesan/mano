@@ -1,7 +1,6 @@
 import React from "react";
 import { typeOptions } from "../utils";
-import { useRecoilValue } from "recoil";
-import { teamsState } from "../recoil/auth";
+import { useStore } from "../store";
 
 const CustomFieldSetting = ({ customField }) => {
   const { type, label, options = [], showInStats } = customField;
@@ -22,7 +21,7 @@ const CustomFieldSetting = ({ customField }) => {
 
 const VisibleBy = ({ customField }) => {
   const { enabledTeams, enabled } = customField;
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
   if (!enabled) {
     if (!enabledTeams?.length) {
       return <>Non activé</>;

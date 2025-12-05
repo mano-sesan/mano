@@ -1,9 +1,8 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
-import { teamsState } from "../recoil/auth";
+import { useStore } from "../store";
 
 const TagTeam = ({ teamId }) => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
   const teamIndex = teams?.findIndex((t) => t._id === teamId);
   const team = teams?.find((t) => t._id === teamId);
   if (!team) return null;

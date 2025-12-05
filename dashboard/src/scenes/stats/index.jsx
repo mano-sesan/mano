@@ -1,20 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { selectorFamily, useRecoilValue } from "recoil";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import {
-  fieldsPersonsCustomizableOptionsSelector,
-  filterPersonsBaseSelector,
-  personFieldsSelector,
-  flattenedCustomFieldsPersonsSelector,
-  personTypesByFieldsNamesSelector,
-} from "../../recoil/persons";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } from "../../recoil/actions";
-import { reportsState } from "../../recoil/reports";
-import { territoriesState } from "../../recoil/territory";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
-import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../recoil/selectors";
+import { DONE } from "../../recoil/actions";
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
@@ -35,11 +21,25 @@ import ButtonCustom from "../../components/ButtonCustom";
 import dayjs from "dayjs";
 import { filterItem } from "../../components/Filters";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import { useStore } from "../../store";
+import {
+  fieldsPersonsCustomizableOptionsSelector,
+  filterPersonsBaseSelector,
+  personFieldsSelector,
+  flattenedCustomFieldsPersonsSelector,
+  personTypesByFieldsNamesSelector,
+  customFieldsObsSelector,
+  actionsCategoriesSelector,
+  flattenedActionsCategoriesSelector,
+  flattenedCustomFieldsConsultationsSelector,
+  customFieldsMedicalFileSelector,
+  populatedPassagesSelector,
+  arrayOfItemsGroupedByPersonSelector,
+} from "../../store/selectors";
 
 const tabs = [
   "Général",
@@ -422,23 +422,23 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
 const Stats = () => {
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
+  const organisation = useStore((state) => state.organisation);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const teams = useStore((state) => state.teams);
+  const user = useStore((state) => state.user);
 
-  const allreports = useRecoilValue(reportsState);
-  const allObservations = useRecoilValue(territoryObservationsState);
-  const allPassagesPopulated = useRecoilValue(populatedPassagesSelector);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const consultationFields = useRecoilValue(flattenedCustomFieldsConsultationsSelector);
-  const personFields = useRecoilValue(personFieldsSelector);
-  const territories = useRecoilValue(territoriesState);
-  const allCategories = useRecoilValue(flattenedActionsCategoriesSelector);
-  const groupsCategories = useRecoilValue(actionsCategoriesSelector);
+  const allreports = useStore((state) => state.reports);
+  const allObservations = useStore((state) => state.territoryObservations);
+  const allPassagesPopulated = useStore(populatedPassagesSelector);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const fieldsPersonsCustomizableOptions = useStore(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const consultationFields = useStore(flattenedCustomFieldsConsultationsSelector);
+  const personFields = useStore(personFieldsSelector);
+  const territories = useStore((state) => state.territories);
+  const allCategories = useStore(flattenedActionsCategoriesSelector);
+  const groupsCategories = useStore(actionsCategoriesSelector);
 
   const [activeTab, setActiveTab] = useLocalStorage("stats-tabCaption", "Général");
   const [filterPersons, setFilterPersons] = useLocalStorage("stats-filterPersons-defaultEverybody", initFilters);
@@ -517,8 +517,8 @@ const Stats = () => {
    *
   */
 
-  const allRawPersons = useRecoilValue(arrayOfitemsGroupedByPersonSelector);
-  const personTypesByFieldsNames = useRecoilValue(personTypesByFieldsNamesSelector);
+  const allRawPersons = useStore(arrayOfItemsGroupedByPersonSelector);
+  const personTypesByFieldsNames = useStore(personTypesByFieldsNamesSelector);
 
   const allPersons = useMemo(() => {
     return personsForStatsSelector(period, allRawPersons, personTypesByFieldsNames);
@@ -663,7 +663,7 @@ const Stats = () => {
     return reportsFiltered;
   }, [allreports, defaultIsoDates, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData]);
 
-  const filterPersonsBase = useRecoilValue(filterPersonsBaseSelector);
+  const filterPersonsBase = useStore(filterPersonsBaseSelector);
   // Add enabled custom fields in filters.
   const filterPersonsWithAllFields = useMemo(() => {
     const filterBase = [

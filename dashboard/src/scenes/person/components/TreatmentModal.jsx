@@ -1,17 +1,13 @@
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { organisationState, userState } from "../../../recoil/auth";
 import { dayjsInstance, outOfBoundariesDate } from "../../../services/date";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { allowedTreatmentFieldsInHistory, encryptTreatment } from "../../../recoil/treatments";
 import DatePicker from "../../../components/DatePicker";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
-import { itemsGroupedByTreatmentSelector } from "../../../recoil/selectors";
-import { modalConfirmState } from "../../../components/ModalConfirm";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import UserName from "../../../components/UserName";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
@@ -21,6 +17,8 @@ import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage, isEmptyValue } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 import isEqual from "react-fast-compare";
+import { useStore } from "../../../store";
+import { itemsGroupedByTreatmentSelector } from "../../../store/selectors";
 
 export default function TreatmentModal() {
   const [treatmentIdForModal, setTreatmentIdForModal] = useState(null);
@@ -74,10 +72,10 @@ export default function TreatmentModal() {
 }
 
 function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
-  const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const treatmentsObjects = useStore(itemsGroupedByTreatmentSelector);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
   const { refresh } = useDataLoader();
 
   const treatment = treatmentId ? treatmentsObjects[treatmentId] : null;

@@ -1,16 +1,17 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, encryptAction } from "../../recoil/actions";
-import { organisationState, userState } from "../../recoil/auth";
+import { encryptAction } from "../../recoil/actions";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import { useDataLoader } from "../../services/dataLoader";
+import { useStore } from "../../store";
+import { actionsCategoriesSelector, flattenedActionsCategoriesSelector } from "../../store/selectors";
 
 const ActionCategoriesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const actionsGroupedCategories = useRecoilValue(actionsCategoriesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const actionsGroupedCategories = useStore(actionsCategoriesSelector);
   const dataFormatted = useMemo(() => {
     return actionsGroupedCategories.map(({ groupTitle, categories }) => ({
       groupTitle,
@@ -120,10 +121,11 @@ const ActionCategoriesSettings = () => {
 };
 
 const AddCategory = ({ groupTitle }) => {
-  const actionsGroupedCategories = useRecoilValue(actionsCategoriesSelector);
-  const flattenedCategories = useRecoilValue(flattenedActionsCategoriesSelector);
+  const actionsGroupedCategories = useStore(actionsCategoriesSelector);
+  const flattenedCategories = useStore(flattenedActionsCategoriesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   const onAddCategory = async (e) => {
     e.preventDefault();
@@ -177,13 +179,14 @@ const AddCategory = ({ groupTitle }) => {
 
 const Category = ({ item: category, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const actions = useRecoilValue(actionsState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const actions = useStore((state) => state.actions);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
-  const actionsGroupedCategories = useRecoilValue(actionsCategoriesSelector);
-  const flattenedCategories = useRecoilValue(flattenedActionsCategoriesSelector);
+  const actionsGroupedCategories = useStore(actionsCategoriesSelector);
+  const flattenedCategories = useStore(flattenedActionsCategoriesSelector);
   const { refresh } = useDataLoader();
 
   const onEditCategory = async (e) => {

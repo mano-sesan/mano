@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
 import structuredClone from "@ungap/structured-clone";
-import { teamsState, usersState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
@@ -60,8 +59,9 @@ const sortUsers = (sortBy, sortOrder) => (a, b) => {
 const List = () => {
   useTitle("Utilisateurs");
 
-  const [users, setUsers] = useRecoilState(usersState);
-  const user = useRecoilValue(userState);
+  const users = useStore((state) => state.users);
+  const setUsers = useStore((state) => state.setUsers);
+  const user = useStore((state) => state.user);
 
   const history = useHistory();
 
@@ -195,7 +195,7 @@ const Create = ({ onChange, users }) => {
   const emailInputRef = React.useRef(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
   const initialState = useMemo(() => {
     return {
       name: "",

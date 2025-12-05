@@ -1,5 +1,5 @@
-import { useRecoilValue } from "recoil";
-import { currentTeamAuthentifiedState } from "../../../recoil/auth";
+import { useStore } from "../../../store";
+import { currentTeamAuthentifiedSelector } from "../../../store/selectors";
 import { useMemo, useState } from "react";
 import EditModal from "./EditModal";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
@@ -15,7 +15,7 @@ interface PersonCustomFieldsProps {
 
 export default function PersonCustomFields({ person, sectionName, fields, isMedicalFile = false }: PersonCustomFieldsProps) {
   const [editModal, setEditModal] = useState("");
-  const team = useRecoilValue(currentTeamAuthentifiedState);
+  const team = useStore(currentTeamAuthentifiedSelector);
   const enabledFields = useMemo(() => {
     return fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
   }, [fields, team]);

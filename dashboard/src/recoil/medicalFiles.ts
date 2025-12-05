@@ -1,39 +1,19 @@
-import { atom, selector } from "recoil";
-import { organisationAuthentifiedState } from "./auth";
-import { capture } from "../services/sentry";
-import { toast } from "react-toastify";
+/**
+ * Medical File state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
+import { toast } from "react-toastify";
+import { capture } from "../services/sentry";
 import type { MedicalFileInstance, NewMedicalFileInstance } from "../types/medicalFile";
-import type { CustomField } from "../types/field";
 import { encryptItem } from "../services/encryption";
+import { CustomField } from "../types/field";
 
-const collectionName = "medical-file";
-export const medicalFileState = atom<MedicalFileInstance[]>({
-  key: collectionName,
-  default: [],
-});
+// State reference for backward compatibility
+export const medicalFileState = { key: "medical-file" };
 
-export const customFieldsMedicalFileSelector = selector<CustomField[]>({
-  key: "customFieldsMedicalFileSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationAuthentifiedState);
-    if (Array.isArray(organisation.customFieldsMedicalFile)) return organisation.customFieldsMedicalFile;
-    return defaultMedicalFileCustomFields;
-  },
-});
-
-export const groupedCustomFieldsMedicalFileSelector = selector({
-  key: "groupedCustomFieldsMedicalFileSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationAuthentifiedState);
-    if (Array.isArray(organisation.groupedCustomFieldsMedicalFile) && organisation.groupedCustomFieldsMedicalFile.length)
-      return organisation.groupedCustomFieldsMedicalFile;
-    return [{ name: "Groupe par défaut", fields: defaultMedicalFileCustomFields }];
-  },
-});
-
-const encryptedFields = ["person", "documents", "comments", "history"];
-
+const encryptedFields: Array<keyof MedicalFileInstance> = ["person", "documents", "comments"];
 export const prepareMedicalFileForEncryption =
   (customFieldsMedicalFile: CustomField[]) =>
   (medicalFile: MedicalFileInstance | NewMedicalFileInstance, { checkRequiredFields = true } = {}) => {
@@ -72,14 +52,3 @@ export const encryptMedicalFile =
   (medicalFile: MedicalFileInstance | NewMedicalFileInstance, { checkRequiredFields = true } = {}) => {
     return encryptItem(prepareMedicalFileForEncryption(customFieldsMedicalFile)(medicalFile, { checkRequiredFields }));
   };
-
-const defaultMedicalFileCustomFields: CustomField[] = [
-  {
-    name: "numeroSecuriteSociale",
-    label: "Numéro de sécurité sociale",
-    type: "text",
-    enabled: true,
-    required: false,
-    showInStats: false,
-  },
-];

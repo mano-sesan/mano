@@ -1,9 +1,7 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * Recurrence state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
 
-const collectionName = "recurrence";
-export const recurrencesState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const recurrencesState = { key: "recurrence" };

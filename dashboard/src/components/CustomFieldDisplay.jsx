@@ -2,9 +2,8 @@ import React, { useMemo } from "react";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatDuration } from "../services/date";
 import { TimeModalButton } from "./HelpButtonAndModal";
 import UserName from "./UserName";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
-import { personFieldsIncludingCustomFieldsSelector } from "../recoil/persons";
-import { customFieldsMedicalFileSelector } from "../recoil/medicalFiles";
+import { useStore } from "../store";
+import { personFieldsIncludingCustomFieldsSelector } from "../store/selectors";
 import { LineChart } from "../scenes/person/components/Constantes";
 
 const showBoolean = (value) => {
@@ -13,6 +12,28 @@ const showBoolean = (value) => {
   if (!value) return "";
   return "Oui";
 };
+
+// Hook to get all possible fields (person + medical file)
+function useAllPossibleFields() {
+  const organisation = useStore((state) => state.organisation);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+
+  return useMemo(() => {
+    const customFieldsMedicalFile = organisation?.customFieldsMedicalFile || [];
+    return [
+      ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
+      ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
+    ];
+  }, [personFieldsIncludingCustomFields, organisation?.customFieldsMedicalFile]);
+}
+
+// Hook to get a specific person field by name
+function usePersonField(name) {
+  const allPossibleFields = useAllPossibleFields();
+  return useMemo(() => {
+    return allPossibleFields.find((f) => f.name === name);
+  }, [allPossibleFields, name]);
+}
 
 export default function CustomFieldDisplay({ type, value, name = null, showHistory = false, person = null }) {
   if (value === undefined || value === null) return <span className="tw-text-gray-300">Non renseigné</span>;
@@ -56,33 +77,9 @@ export default function CustomFieldDisplay({ type, value, name = null, showHisto
   );
 }
 
-const allPossibleFieldsSelector = selector({
-  key: "allPossibleFieldsSelector",
-  get: ({ get }) => {
-    const personFieldsIncludingCustomFields = get(personFieldsIncludingCustomFieldsSelector);
-    const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
-    const allPossibleFields = [
-      ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
-      ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
-    ];
-    return allPossibleFields;
-  },
-});
-
-const personFieldSelector = selectorFamily({
-  key: "personFieldSelector",
-  get:
-    ({ name }) =>
-    ({ get }) => {
-      const allPossibleFields = get(allPossibleFieldsSelector);
-      const personField = allPossibleFields.find((f) => f.name === name);
-      return personField;
-    },
-});
-
 function FieldHistory({ name = null, person = null }) {
   const [calendarDayCreatedAt, timeCreatedAt] = dayjsInstance(person?.createdAt).format("DD/MM/YYYY HH:mm").split(" ");
-  const personField = useRecoilValue(personFieldSelector({ name }));
+  const personField = usePersonField(name);
   const fieldHistory = useMemo(() => {
     const _fieldHistory = [];
     // Get the appropriate history based on whether it's a medical file field

@@ -1,35 +1,31 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
-import { organisationState } from "./auth";
+/**
+ * Action state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
+import { useStore } from "../store";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 import { ActionInstance } from "../types/action";
 
-const collectionName = "action";
-export const actionsState = atom<Array<ActionInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility (use useStore instead)
+export const actionsState = { key: "action" };
 
-export const actionsCategoriesSelector = selector({
-  key: "actionsCategoriesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (organisation.actionsGroupedCategories) return organisation.actionsGroupedCategories;
-    return [{ groupTitle: "Toutes mes catégories", categories: [] }];
-  },
-});
+// Selector functions
+export const actionsCategoriesSelector_fn = (state: { organisation: any }) => {
+  if (state.organisation?.actionsGroupedCategories) return state.organisation.actionsGroupedCategories;
+  return [{ groupTitle: "Toutes mes catégories", categories: [] }];
+};
 
-export const flattenedActionsCategoriesSelector = selector({
-  key: "flattenedActionsCategoriesSelector",
-  get: ({ get }) => {
-    const actionsGroupedCategories = get(actionsCategoriesSelector);
-    return actionsGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
-  },
-});
+export const flattenedActionsCategoriesSelector_fn = (state: { organisation: any }): string[] => {
+  const actionsGroupedCategories = actionsCategoriesSelector_fn(state);
+  return actionsGroupedCategories.reduce(
+    (allCategories: string[], { categories }: { categories: string[] }) => [...allCategories, ...categories],
+    []
+  );
+};
 
 const encryptedFields: Array<keyof ActionInstance> = [
   "category",
@@ -84,7 +80,7 @@ export const prepareActionForEncryption = (action: ActionInstance, { checkRequir
       throw error;
     }
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (const field of encryptedFields) {
     decrypted[field] = action[field];
   }
@@ -133,7 +129,7 @@ const sortDoneOrCancel = (a: ActionInstance, b: ActionInstance, sortOrder: "ASC"
   return sortOrder === "ASC" ? 1 : -1;
 };
 
-export const getName = (item) => {
+export const getName = (item: any) => {
   if (item.name) return item.name;
   if (item.isConsultation) return `Consultation ${item.type}`;
   if (item.categories?.length) return item.categories.join(", ");
@@ -142,8 +138,8 @@ export const getName = (item) => {
 
 export const sortActionsOrConsultations =
   (sortBy = "dueAt", sortOrder: "ASC" | "DESC" = "ASC") =>
-  (a, b) => {
-    const defaultSort = (a, b) => {
+  (a: any, b: any) => {
+    const defaultSort = (a: any, b: any) => {
       const aDate = [DONE, CANCEL].includes(a.status) ? a.completedAt : a.dueAt;
       const bDate = [DONE, CANCEL].includes(b.status) ? b.completedAt : b.dueAt;
       return sortOrder === "ASC" ? new Date(bDate).getTime() - new Date(aDate).getTime() : new Date(aDate).getTime() - new Date(bDate).getTime();

@@ -3,11 +3,10 @@ import { useState } from "react";
 import EditModal from "./EditModal";
 import TagTeam from "../../../components/TagTeam";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
-import { userState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
 
 export function InfosMain({ person, isMedicalFile }) {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [editModal, setEditModal] = useState(false);
   return (
     <div>

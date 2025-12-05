@@ -1,19 +1,17 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+/**
+ * Territory state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { encryptItem } from "../services/encryption";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import type { TerritoryInstance, ReadyToEncryptTerritoryInstance } from "../types/territory";
 import type { PredefinedField } from "../types/field";
-import { organisationState } from "./auth";
 
-const collectionName = "territory";
-export const territoriesState = atom<Array<TerritoryInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const territoriesState = { key: "territory" };
 
 const encryptedFields = ["name", "perimeter", "description", "types", "user"];
 
@@ -34,9 +32,9 @@ export const prepareTerritoryForEncryption = (territory: TerritoryInstance, { ch
       throw error;
     }
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (const field of encryptedFields) {
-    decrypted[field] = territory[field];
+    decrypted[field] = (territory as any)[field];
   }
   return {
     _id: territory._id,
@@ -55,9 +53,7 @@ export async function encryptTerritory(territory: TerritoryInstance, { checkRequ
 }
 
 type SortOrder = "ASC" | "DESC";
-
 type SortBy = "name" | "createdAt" | "types" | "perimeter" | "description" | "lastObservationDate";
-
 type TerritoryWithLastObservation = TerritoryInstance & { lastObservationDate: Date | string };
 
 const defaultSort = (a: TerritoryInstance, b: TerritoryInstance, sortOrder: SortOrder) =>
@@ -102,33 +98,9 @@ export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: Ter
 };
 
 export const territoriesFields = (territoriesTypes: Array<string>): Array<PredefinedField> => [
-  {
-    name: "name",
-    label: "Nom",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "perimeter",
-    label: "Périmètre",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
+  { name: "name", label: "Nom", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "perimeter", label: "Périmètre", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "description", label: "Description", type: "textarea", encrypted: true, importable: true, filterable: true, enabled: true },
   {
     name: "types",
     label: "Types",
@@ -141,18 +113,12 @@ export const territoriesFields = (territoriesTypes: Array<string>): Array<Predef
   },
 ];
 
-export const territoriesTypesSelector = selector({
-  key: "territoriesTypesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation.territoriesGroupedTypes;
-  },
-});
+// Selector functions
+export const territoriesTypesSelector_fn = (state: { organisation: any }) => {
+  return state.organisation?.territoriesGroupedTypes || [];
+};
 
-export const flattenedTerritoriesTypesSelector = selector({
-  key: "flattenedTerritoriesTypesSelector",
-  get: ({ get }) => {
-    const territoriesGroupedTypes = get(territoriesTypesSelector);
-    return territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], []);
-  },
-});
+export const flattenedTerritoriesTypesSelector_fn = (state: { organisation: any }): string[] => {
+  const types = territoriesTypesSelector_fn(state);
+  return types.reduce((all: string[], { types }: { types: string[] }) => [...all, ...types], []);
+};

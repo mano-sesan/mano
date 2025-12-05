@@ -1,29 +1,26 @@
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useHistory } from "react-router-dom";
+import { useStore, defaultModalActionState } from "../store";
 import { DONE, TODO, CANCEL, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
 import { now } from "../services/date";
 import { toast } from "react-toastify";
-import { currentTeamState, organisationState, userState } from "../recoil/auth";
 import { encryptConsultation } from "../recoil/consultations";
 import { ConsultationInstance } from "../types/consultation";
 import { ActionInstance, ActionStatus } from "../types/action";
 import { useDataLoader } from "../services/dataLoader";
-import { modalConfirmState } from "./ModalConfirm";
 import { encryptComment } from "../recoil/comments";
 import { decryptItem } from "../services/encryption";
-import { defaultModalActionState } from "../recoil/modal";
-import { modalActionState } from "../recoil/modal";
-import { useHistory } from "react-router-dom";
+
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
   return action.isConsultation !== undefined && action.isConsultation;
 }
 
 export default function ActionStatusSelect({ action }: { action: ActionInstance | ConsultationInstance }) {
-  const organisation = useRecoilValue(organisationState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const organisation = useStore((state) => state.organisation);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+  const setModalAction = useStore((state) => state.setModalAction);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const user = useStore((state) => state.user);
   const { refresh } = useDataLoader();
   const history = useHistory();
 
@@ -96,7 +93,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
             setModalConfirmState({
               open: true,
               options: {
-                title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
+                title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
                 subTitle: "Avec une date ultérieure par exemple",
                 buttons: [
                   {

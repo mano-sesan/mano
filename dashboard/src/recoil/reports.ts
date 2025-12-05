@@ -1,88 +1,26 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+/**
+ * Report state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { capture } from "../services/sentry";
-import { organisationState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
-import API from "../services/api";
 import type { ReportInstance, ReadyToEncryptReportInstance } from "../types/report";
-import { keepOnlyOneReportAndReturnReportToDelete } from "../utils/delete-duplicated-reports";
-
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "report";
-export const reportsState = atom({
-  key: collectionName,
-  default: [],
-  effects: [
-    ({ onSet }) =>
-      onSet(async (newValue: Array<ReportInstance>) => {
-        setCacheItem(collectionName, newValue);
-        /* check if duplicate reports */
-        const duplicateReports = Object.entries(
-          newValue.reduce<Record<string, Array<ReportInstance>>>((reportsByDate, report) => {
-            // TIL: undefined < '2022-11-25' === false. So we need to check if report.date is defined.
-            if (!report.date || report.date < "2022-11-25") return reportsByDate;
-            if (!reportsByDate[`${report.date}-${report.team}`]) reportsByDate[`${report.date}-${report.team}`] = [];
-            reportsByDate[`${report.date}-${report.team}`].push(report);
-            return reportsByDate;
-          }, {})
-        ).filter(([_key, reportsByDate]) => reportsByDate.length > 1);
-        if (duplicateReports.length > 0) {
-          for (const [key, reportsByDate] of duplicateReports) {
-            const reportsToDelete = keepOnlyOneReportAndReturnReportToDelete(reportsByDate);
-            for (const reportToDelete of reportsToDelete) {
-              // TODO : réfléchir si on traite les erreurs ici ou si on les laisse remonter
-              await API.delete({ path: `/report/${reportToDelete._id}` });
-            }
-            capture(new Error("Duplicated reports " + key), {
-              extra: {
-                [key]: reportsByDate.map((report) => ({
-                  _id: report._id,
-                  date: report.date,
-                  team: report.team,
-                  createdAt: report.createdAt,
-                  deletedAt: report.deletedAt,
-                  description: report.description,
-                  collaborations: report.collaborations,
-                  organisation: report.organisation,
-                })),
-                reportsToDelete: reportsToDelete.map((report) => ({
-                  _id: report._id,
-                  date: report.date,
-                  team: report.team,
-                  createdAt: report.createdAt,
-                  deletedAt: report.deletedAt,
-                  description: report.description,
-                  collaborations: report.collaborations,
-                  organisation: report.organisation,
-                })),
-              },
-              tags: {
-                unique_id: key,
-              },
-            });
-          }
-        }
-      }),
-  ],
-});
+// State reference for backward compatibility
+export const reportsState = { key: "report" };
 
-export const servicesSelector = selector({
-  key: "servicesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation.groupedServices || [];
-  },
-});
+// Selector functions
+export const servicesSelector_fn = (state: { organisation: any }) => {
+  return state.organisation?.groupedServices || [];
+};
 
-export const flattenedServicesSelector = selector({
-  key: "flattenedServicesSelector",
-  get: ({ get }) => {
-    const groupedServices = get(servicesSelector);
-    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
-  },
-});
+export const flattenedServicesSelector_fn = (state: { organisation: any }): string[] => {
+  const services = servicesSelector_fn(state);
+  return services.reduce((all: string[], { services }: { services: string[] }) => [...all, ...services], []);
+};
 
 const encryptedFields = ["description", "team", "date", "collaborations", "updatedBy"];
 
@@ -103,9 +41,9 @@ export function prepareReportForEncryption(report: ReportInstance, { checkRequir
       throw error;
     }
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (const field of encryptedFields) {
-    decrypted[field] = report[field];
+    decrypted[field] = (report as any)[field];
   }
   return {
     _id: report._id,

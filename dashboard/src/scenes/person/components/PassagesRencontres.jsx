@@ -1,11 +1,9 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useLocation, useHistory } from "react-router-dom";
 import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
 import TagTeam from "../../../components/TagTeam";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
-import { currentTeamState, userState, organisationState, usersState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { capitalize } from "../../../utils";
@@ -14,13 +12,12 @@ import { useLocalStorage } from "../../../services/useLocalStorage";
 import Table from "../../../components/table";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import { sortRencontres } from "../../../recoil/rencontres";
-import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
-import { territoryObservationsState } from "../../../recoil/territoryObservations";
+import { useStore, defaultModalObservationState } from "../../../store";
 
 export default function PassagesRencontres({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
+  const currentTeam = useStore((state) => state.currentTeam);
   const [fullScreen, setFullScreen] = useState(false);
   const [selected, setSelected] = useState(organisation.passagesEnabled ? "passages" : "rencontres");
   const history = useHistory();
@@ -247,7 +244,7 @@ function PassagesTableSmall({ personPassages }) {
 
 function PassagesTable({ personPassages }) {
   const history = useHistory();
-  const users = useRecoilValue(usersState);
+  const users = useStore((state) => state.users);
   const [sortBy, setSortBy] = useLocalStorage("person-passages-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("person-passages-sortOrder", "ASC");
 
@@ -324,9 +321,9 @@ function PassagesTable({ personPassages }) {
 
 function RencontresTable({ personRencontres }) {
   const history = useHistory();
-  const users = useRecoilValue(usersState);
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const allObservations = useRecoilValue(territoryObservationsState);
+  const users = useStore((state) => state.users);
+  const setModalObservation = useStore((state) => state.setModalObservation);
+  const allObservations = useStore((state) => state.territoryObservations);
   const [sortBy, setSortBy] = useLocalStorage("person-rencontres-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "ASC");
 
@@ -426,8 +423,8 @@ function RencontresTable({ personRencontres }) {
 
 function RencontresTableSmall({ personRencontres }) {
   const history = useHistory();
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const allObservations = useRecoilValue(territoryObservationsState);
+  const setModalObservation = useStore((state) => state.setModalObservation);
+  const allObservations = useStore((state) => state.territoryObservations);
   return (
     <table className="table table-striped">
       <tbody className="small">

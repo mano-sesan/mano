@@ -1,20 +1,15 @@
 import { useState, useCallback } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import {
-  customFieldsMedicalFileSelector,
-  groupedCustomFieldsMedicalFileSelector,
-  medicalFileState,
-  prepareMedicalFileForEncryption,
-} from "../../recoil/medicalFiles";
+import { prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { EditCustomField } from "../../components/TableCustomFields";
 import { encryptItem } from "../../services/encryption";
 import { errorMessage } from "../../utils";
+import { useStore } from "../../store";
+import { customFieldsMedicalFileSelector, groupedCustomFieldsMedicalFileSelector } from "../../store/selectors";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -25,9 +20,10 @@ const sanitizeFields = (field) => {
 };
 
 const MedicalFileSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const flatCustomFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const groupedCustomFieldsMedicalFile = useStore(groupedCustomFieldsMedicalFileSelector);
   const dataFormatted = groupedCustomFieldsMedicalFile.map((group) => ({
     groupTitle: group.name,
     items: group.fields,
@@ -136,9 +132,10 @@ const MedicalFileSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const groupedCustomFieldsMedicalFile = useStore(groupedCustomFieldsMedicalFileSelector);
+  const flatCustomFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -220,10 +217,11 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const medicalFiles = useStore((state) => state.medicalFiles);
+  const groupedCustomFieldsMedicalFile = useStore(groupedCustomFieldsMedicalFileSelector);
+  const flatCustomFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
 
   const { refresh } = useDataLoader();
 

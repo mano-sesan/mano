@@ -1,29 +1,28 @@
 import { useMemo } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
-import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { sortTerritoriesObservations } from "../../recoil/territoryObservations";
+import { useStore } from "../../store";
+import { customFieldsObsSelector, currentTeamAuthentifiedSelector, userAuthentifiedSelector } from "../../store/selectors";
+import { defaultModalObservationState } from "../../store";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance } from "../../services/date";
 import UserName from "../../components/UserName";
-import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from "../../recoil/auth";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
-import { rencontresState } from "../../recoil/rencontres";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
-import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 
 const List = ({ territory = {} }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
+  const setModalObservation = useStore((state) => state.setModalObservation);
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "observedAt");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
-  const territoryObservations = useRecoilValue(territoryObservationsState);
-  const users = useRecoilValue(usersState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const rencontres = useRecoilValue(rencontresState);
+  const territoryObservations = useStore((state) => state.territoryObservations);
+  const users = useStore((state) => state.users);
+  const team = useStore(currentTeamAuthentifiedSelector);
+  const user = useStore(userAuthentifiedSelector);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const rencontres = useStore((state) => state.rencontres);
 
   const filteredObservations = useMemo(
     () => territoryObservations.filter((obs) => obs.territory === territory._id),

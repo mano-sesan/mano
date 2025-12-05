@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
-import { organisationState, userState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
 import { Block } from "./Blocks";
 import CustomFieldsStats from "./CustomFieldsStats";
 import Filters from "../../components/Filters";
@@ -11,6 +9,7 @@ import ActionsSortableList from "../../components/ActionsSortableList";
 import { capitalize } from "../../utils";
 import { mappedIdsToLabels } from "../../recoil/actions";
 import SelectCustom from "../../components/SelectCustom";
+import { useStore } from "../../store";
 
 export default function ConsultationsStats({
   consultations,
@@ -23,10 +22,10 @@ export default function ConsultationsStats({
   consultationsStatuses = [],
   setConsultationsStatuses = () => {},
 }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
   const [slicedData, setSlicedData] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
 
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;

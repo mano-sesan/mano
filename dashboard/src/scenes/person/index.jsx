@@ -4,11 +4,10 @@ import SentryRoute from "../../components/Sentryroute";
 
 import List from "./list";
 import View from "./view";
-import { useRecoilValue } from "recoil";
-import { currentTeamState } from "../../recoil/auth";
+import { useStore } from "../../store";
 
 const Router = () => {
-  const currentTeam = useRecoilValue(currentTeamState);
+  const currentTeam = useStore((state) => state.currentTeam);
 
   if (!currentTeam) return null;
 

@@ -1,12 +1,12 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
-import { personsObjectSelector } from "../recoil/selectors";
+import { useStore } from "../store";
+import { personsObjectSelector } from "../store/selectors";
 import { getPersonInfo } from "../utils/get-person-infos";
 
 export default function PersonName({ item, onClick = null, redirectToTab = "Résumé" }) {
   const history = useHistory();
-  const persons = useRecoilValue(personsObjectSelector);
+  const persons = useStore(personsObjectSelector);
   const person = item?.personPopulated ?? persons[item.person];
 
   return (

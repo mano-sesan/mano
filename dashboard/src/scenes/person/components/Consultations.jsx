@@ -1,14 +1,11 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
 import { useHistory } from "react-router-dom";
-import { organisationState, userState } from "../../../recoil/auth";
 import { CANCEL, DONE, mappedIdsToLabels } from "../../../recoil/actions";
 import SelectCustom from "../../../components/SelectCustom";
 import TagTeam from "../../../components/TagTeam";
 import ActionOrConsultationName from "../../../components/ActionOrConsultationName";
 import { formatDateWithNameOfDay, formatTime } from "../../../services/date";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { disableConsultationRow } from "../../../recoil/consultations";
@@ -19,12 +16,14 @@ import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import DocumentIcon from "../../../components/DocumentIcon";
 import CommentIcon from "../../../components/CommentIcon";
 import ActionsSortableList from "../../../components/ActionsSortableList";
+import { useStore } from "../../../store";
+import { arrayOfitemsGroupedByConsultationSelector } from "../../../store/selectors";
 
 export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
   const history = useHistory();
 
-  const allConsultations = useRecoilValue(arrayOfitemsGroupedByConsultationSelector);
+  const allConsultations = useStore(arrayOfitemsGroupedByConsultationSelector);
   const [consultationTypes, setConsultationTypes] = useLocalStorage("consultation-types", []);
   const [consultationStatuses, setConsultationStatuses] = useLocalStorage("consultation-statuses", []);
 
@@ -121,7 +120,7 @@ export const Consultations = ({ person }) => {
 };
 
 const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatuses, consultationStatuses, consultationTypes }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
 
   return (
     <>
@@ -171,7 +170,7 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
 };
 
 const ConsultationsTable = ({ filteredData }) => {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const history = useHistory();
 
   return (

@@ -1,5 +1,5 @@
-import { useRecoilValue } from "recoil";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
+import { useStore } from "../../../store";
+import { arrayOfitemsGroupedByConsultationSelector } from "../../../store/selectors";
 import { useMemo } from "react";
 import { dayjsInstance } from "../../../services/date";
 import { Datum, ResponsiveLine } from "@nivo/line";
@@ -9,7 +9,7 @@ import { ColorSchemeId } from "@nivo/colors";
 const TEXT_NOT_ENOUGH_DATA = "Pas assez de données pour afficher le graphique d'évolution, vous devez effectuer au moins deux consultations";
 
 export default function Constantes({ person }: { person: PersonPopulated }) {
-  const allConsultations = useRecoilValue(arrayOfitemsGroupedByConsultationSelector);
+  const allConsultations = useStore(arrayOfitemsGroupedByConsultationSelector);
 
   const personConsultations = useMemo(() => (allConsultations || []).filter((c) => c.person === person._id), [allConsultations, person._id]);
   const personConsultationsFiltered = useMemo(

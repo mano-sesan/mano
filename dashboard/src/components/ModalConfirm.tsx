@@ -1,19 +1,5 @@
-import { atom, useRecoilState } from "recoil";
+import { useStore, type ModalConfirmState } from "../store";
 import { ModalContainer, ModalFooter, ModalBody, ModalHeader } from "./tailwind/Modal";
-
-type ModalConfirmState = {
-  open: boolean;
-  options: {
-    title: string;
-    subTitle: string;
-    buttons: {
-      text: string;
-      onClick?: () => void;
-      style?: string;
-      className?: string;
-    }[];
-  };
-};
 
 const closedState: ModalConfirmState = {
   open: false,
@@ -39,19 +25,15 @@ const closedState: ModalConfirmState = {
   },
 };
 
-export const modalConfirmState = atom({
-  key: "modalConfirmState",
-  default: closedState,
-});
+// For backward compatibility
+export const modalConfirmState = { key: "modalConfirmState" };
 
 const ModalConfirm = () => {
-  const [
-    {
-      open,
-      options: { title, subTitle, buttons },
-    },
-    setModalConfirmState,
-  ] = useRecoilState(modalConfirmState);
+  const modalConfirm = useStore((state) => state.modalConfirm);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+
+  const { open, options } = modalConfirm;
+  const { title, subTitle, buttons } = options;
 
   const close = () => setModalConfirmState((prevState) => ({ ...prevState, open: false }));
 

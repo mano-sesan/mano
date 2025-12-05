@@ -1,18 +1,11 @@
 import { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import EncryptionKey from "../../components/EncryptionKey";
-import {
-  fieldsPersonsCustomizableOptionsSelector,
-  personFieldsIncludingCustomFieldsSelector,
-  personsState,
-  usePreparePersonForEncryption,
-} from "../../recoil/persons";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
 import TableCustomFields from "../../components/TableCustomFields";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import ExportData from "../data-import-export/ExportData";
 import ImportPersons from "../data-import-export/ImportPersons";
@@ -31,19 +24,26 @@ import PersonCustomFieldsSettings from "./PersonCustomFieldsSettings";
 import StructuresCategoriesSettings from "./StructuresCategoriesSettings";
 import Poubelle from "./Poubelle";
 import CollaborationsSettings from "./CollaborationsSettings";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import { encryptItem } from "../../services/encryption";
 import { errorMessage } from "../../utils";
 import ImportTerritories from "../data-import-export/ImportTerritories";
-import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
+import { territoriesFields } from "../../recoil/territory";
 import DownloadTerritoriesImportExample from "../data-import-export/DownloadTerritoriesImportExample";
 import TerritoriesTypesSettings from "./TerritoriesTypesSettings";
 import { DefaultFoldersMedical, DefaultFoldersPersons } from "./DefaultFolders";
 import Errors from "./Errors";
-import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
+import { structuresFields } from "../../recoil/structures";
 import DownloadStructuresImportExample from "../data-import-export/DownloadStructuresImportExample";
 import ImportStructures from "../data-import-export/ImportStructures";
 import ExportFiles from "../data-import-export/ExportFiles";
+import { useStore } from "../../store";
+import {
+  fieldsPersonsCustomizableOptionsSelector,
+  personFieldsIncludingCustomFieldsSelector,
+  customFieldsMedicalFileSelector,
+  flattenedTerritoriesTypesSelector,
+  flattenedStructuresCategoriesSelector,
+} from "../../store/selectors";
 
 const getSettingTitle = (tabId) => {
   if (tabId === "infos") return "Informations";
@@ -82,14 +82,15 @@ function MenuButton({ selected, text, onClick }: { selected: boolean; text: stri
 const encryptionChangeOfKeyEnabled = true;
 
 const View = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
-  const territoriesTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
-  const structuresCategories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const fieldsPersonsCustomizableOptions = useStore(fieldsPersonsCustomizableOptionsSelector);
+  const territoriesTypes = useStore(flattenedTerritoriesTypesSelector);
+  const structuresCategories = useStore(flattenedStructuresCategoriesSelector);
 
-  const persons = useRecoilValue(personsState);
+  const persons = useStore((state) => state.persons);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
   const [refreshErrorKey, setRefreshErrorKey] = useState(0);
   const { refresh } = useDataLoader();

@@ -1,17 +1,15 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
+import { useStore } from "../../../store";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { encryptComment } from "../../../recoil/comments";
 import API, { tryFetchExpectOk } from "../../../services/api";
-import { organisationState } from "../../../recoil/auth";
-import { groupsState } from "../../../recoil/groups";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 
 export default function Comments({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const groups = useRecoilValue(groupsState);
+  const organisation = useStore((state) => state.organisation);
+  const groups = useStore((state) => state.groups);
   const { refresh } = useDataLoader();
 
   // On affiche les commentaires médicaux partagés par les professionnels de santés

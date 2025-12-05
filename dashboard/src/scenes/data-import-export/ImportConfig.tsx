@@ -1,23 +1,23 @@
 import React, { MutableRefObject, useRef, useState } from "react";
 import { utils, read, writeFile, WorkBook } from "@e965/xlsx";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import ButtonCustom from "../../components/ButtonCustom";
 import { newCustomField, typeOptions } from "../../utils";
-import { organisationState, teamsState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";
 import { CustomField, CustomFieldsGroup, FieldType } from "../../types/field";
+import { useStore } from "../../store";
 
 const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HTMLDivElement> }) => {
   const fileDialogRef = useRef<HTMLInputElement>(null);
   const [workbookData, setWorkbookData] = useState<WorkbookData | null>(null);
   const [reloadKey, setReloadKey] = useState(0); // because input type 'file' doesn't trigger 'onChange' for uploading twice the same file
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const teams = useRecoilValue(teamsState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const teams = useStore((state) => state.teams);
 
   const verifyFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files[0];

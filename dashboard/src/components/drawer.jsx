@@ -1,31 +1,27 @@
 import { NavLink } from "react-router-dom";
-import { atom, useRecoilState, useRecoilValue } from "recoil";
-import { organisationState, teamsState, userState } from "../recoil/auth";
+import { useStore } from "../store";
+import { deploymentShortCommitSHASelector } from "../store/selectors";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
-import { deploymentShortCommitSHAState } from "../recoil/version";
 import AddPersons from "./AddPersons";
 import { useEffect, useState } from "react";
 import API from "../services/api";
 
-export const showDrawerState = atom({
-  key: "showDrawerState",
-  default: false,
-});
-
 const Drawer = () => {
-  const [user, setUser] = useRecoilState(userState);
-  const organisation = useRecoilValue(organisationState);
-  const teams = useRecoilValue(teamsState);
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
+  const user = useStore((s) => s.user);
+  const setUser = useStore((s) => s.setUser);
+  const organisation = useStore((s) => s.organisation);
+  const teams = useStore((s) => s.teams);
+  const deploymentCommit = useStore(deploymentShortCommitSHASelector);
+  const showDrawer = useStore((s) => s.showDrawer);
+  const setShowDrawer = useStore((s) => s.setShowDrawer);
 
   const onboardingForEncryption = !organisation.encryptionEnabled;
   const onboardingForTeams = !teams.length;
   const role = user.role;
 
   const isOnboarding = onboardingForEncryption || onboardingForTeams;
-  const [showDrawer, setShowDrawer] = useRecoilState(showDrawerState);
 
   const isDesktop = useMinimumWidth("sm");
 
@@ -172,7 +168,7 @@ const Drawer = () => {
             >
               <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
               <div className="tw-px-2 tw-py-2 tw-text-center tw-text-xs tw-font-semibold">
-                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l’avez pas déjà fait&nbsp;?
+                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l'avez pas déjà fait&nbsp;?
               </div>
             </a>
             <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
@@ -204,5 +200,8 @@ const Drawer = () => {
     </nav>
   );
 };
+
+// For backward compatibility with old import pattern
+export const showDrawerState = { key: "showDrawerState" };
 
 export default Drawer;

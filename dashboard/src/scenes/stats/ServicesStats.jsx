@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import { servicesSelector } from "../../store/selectors";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import { dayjsInstance } from "../../services/date";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
-import { servicesSelector } from "../../recoil/reports";
 
 const ServicesStats = ({ period, teamIds }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useStore(servicesSelector);
   const allServices = useMemo(() => {
     return groupedServices.reduce((services, group) => [...services, ...group.services], []);
   }, [groupedServices]);

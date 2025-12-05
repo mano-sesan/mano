@@ -1,18 +1,17 @@
 import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
-import { userState } from "../../recoil/auth";
+import { useStore } from "../../store";
+import { itemsGroupedByPersonSelector } from "../../store/selectors";
 import { dayjsInstance } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { groupsState, encryptGroup } from "../../recoil/groups";
+import { encryptGroup } from "../../recoil/groups";
 import SelectPerson from "../../components/SelectPerson";
 import { useDataLoader } from "../../services/dataLoader";
 import PersonName from "../../components/PersonName";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import type { PersonPopulated } from "../../types/person";
 import type { Relation, GroupInstance } from "../../types/group";
 import type { UUIDV4 } from "../../types/uuid";
@@ -22,9 +21,9 @@ interface PersonFamilyProps {
 }
 
 const PersonFamily = ({ person }: PersonFamilyProps) => {
-  const [groups] = useRecoilState(groupsState);
-  const user = useRecoilValue(userState);
-  const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
+  const groups = useStore((state) => state.groups);
+  const user = useStore((state) => state.user);
+  const itemsGroupedByPerson = useStore(itemsGroupedByPersonSelector);
   const [newRelationModalOpen, setNewRelationModalOpen] = useState(false);
   const [relationToEdit, setRelationToEdit] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -278,7 +277,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
 
 const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, setIsSubmitting }) => {
   const [newPersonId, setNewPersonId] = useState(null);
-  const persons = useRecoilValue(itemsGroupedByPersonSelector);
+  const persons = useStore(itemsGroupedByPersonSelector);
   const newRelationExistingGroup = persons[newPersonId]?.group as GroupInstance;
   const personExistingGroup = persons[person._id]?.group as GroupInstance;
 
@@ -419,7 +418,7 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, set
 };
 
 const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit, isSubmitting, deletingRelationId, setIsSubmitting }) => {
-  const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
+  const itemsGroupedByPerson = useStore(itemsGroupedByPersonSelector);
 
   const personId1 = relationToEdit?.persons[0];
   const personId2 = relationToEdit?.persons[1];

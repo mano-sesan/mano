@@ -1,15 +1,14 @@
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { sortActionsOrConsultations } from "../../../recoil/actions";
-import { personsState } from "../../../recoil/persons";
 import { ModalContainer, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { NotificationActionList, NotificationCommentList } from "../../../components/Notification";
 
 export default function Priorites({ actions, comments }) {
   const [showModal, setShowModal] = useState(false);
-  const persons = useRecoilValue(personsState);
+  const persons = useStore((state) => state.persons);
 
   const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
   const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");

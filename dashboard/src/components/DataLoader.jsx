@@ -1,15 +1,13 @@
-import { useRecoilValue } from "recoil";
-
+import { useStore } from "../store";
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
-import { fullScreenState, isLoadingState, loadingTextState, progressState, totalState } from "../services/dataLoader";
 
 export default function DataLoader() {
-  const isLoading = useRecoilValue(isLoadingState);
-  const fullScreen = useRecoilValue(fullScreenState);
-  const loadingText = useRecoilValue(loadingTextState);
-  const progress = useRecoilValue(progressState);
-  const total = useRecoilValue(totalState);
+  const isLoading = useStore((state) => state.isLoading);
+  const fullScreen = useStore((state) => state.fullScreen);
+  const loadingText = useStore((state) => state.loadingText);
+  const progress = useStore((state) => state.progress);
+  const total = useStore((state) => state.total);
 
   if (!isLoading) return <RandomPicturePreloader />;
   if (!total && !fullScreen) return null;

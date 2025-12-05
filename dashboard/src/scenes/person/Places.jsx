@@ -1,25 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
-import { organisationState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import { dayjsInstance } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
-import { placesState, encryptPlace } from "../../recoil/places";
+import { encryptPlace } from "../../recoil/places";
 import SelectUser from "../../components/SelectUser";
 import { toast } from "react-toastify";
-import { encryptRelPersonPlace, relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { encryptRelPersonPlace } from "../../recoil/relPersonPlace";
 import QuestionMarkButton from "../../components/QuestionMarkButton";
 import { errorMessage } from "../../utils";
 import { decryptItem } from "../../services/encryption";
 
 const PersonPlaces = ({ person }) => {
-  const user = useRecoilValue(userState);
-  const places = useRecoilValue(placesState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const places = useStore((state) => state.places);
+  const organisation = useStore((state) => state.organisation);
 
   const [relPersonPlaceModal, setRelPersonPlaceModal] = useState(null);
   const [placeToEdit, setPlaceToEdit] = useState(null);
@@ -187,8 +186,9 @@ const PersonPlaces = ({ person }) => {
 };
 
 const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPlaceToEdit }) => {
-  const [places, setPlaces] = useRecoilState(placesState);
-  const me = useRecoilValue(userState);
+  const places = useStore((state) => state.places);
+  const setPlaces = useStore((state) => state.setPlaces);
+  const me = useStore((state) => state.user);
   const [placeId, setPlaceId] = useState(relPersonPlaceModal?.place);
   const [userId, setUserId] = useState(relPersonPlaceModal?.user ?? me._id);
   const [updating, setUpdating] = useState(false);
@@ -223,7 +223,7 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
     // On doit mettre à jour les places à la main pour être sûr qu'elles sont prêtes directement
     // Ce problème est visible dans les tests unitaires, qui peuvent parfois rater si on ne fait pas ça.
     // Il existe peut-être une meilleure solution.
-    setPlaces((places) =>
+    setPlaces(
       [decryptedData, ...places].sort((p1, p2) =>
         p1?.name?.toLocaleLowerCase().localeCompare(p2.name?.toLocaleLowerCase(), "fr", { ignorPunctuation: true, sensitivity: "base" })
       )
@@ -336,9 +336,9 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
 };
 
 const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
-  const [places] = useRecoilState(placesState);
-  const [relsPersonPlace] = useRecoilState(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const places = useStore((state) => state.places);
+  const relsPersonPlace = useStore((state) => state.relsPersonPlace);
+  const user = useStore((state) => state.user);
 
   const [updating, setUpdating] = useState(false);
 
