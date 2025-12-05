@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { selector, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
@@ -36,19 +36,16 @@ function personsToOptions(persons, actions, passages, rencontres, urgentActions)
   }));
 }
 
-const searchablePersonsSelector = selector({
-  key: "searchablePersonsSelectorForReception",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return persons.map((person) => {
-      return {
-        ...person,
-        searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
-          .join(" ")
-          .toLowerCase(),
-      };
-    });
-  },
+const searchablePersonsSelector = atom((get) => {
+  const persons = get(personsState);
+  return persons.map((person) => {
+    return {
+      ...person,
+      searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
+        .join(" ")
+        .toLowerCase(),
+    };
+  });
 });
 
 // This function is used to filter persons by search string. It ignores diacritics and accents.

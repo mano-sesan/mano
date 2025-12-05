@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { selector, selectorFamily, useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Search from "../../components/search";
@@ -36,80 +36,81 @@ import { getPersonInfo } from "../../utils/get-person-infos";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
 const limit = 20;
 
-const personsFilteredSelector = selectorFamily({
-  key: "personsFilteredSelector",
-  get:
-    ({ viewAllOrganisationData, filters, alertness }) =>
-    ({ get }) => {
-      const personsWithBirthDate = get(personsWithMedicalFileAndConsultationsMergedSelector);
-      const currentTeam = get(currentTeamState);
-      let pFiltered = personsWithBirthDate;
-      if (filters?.filter((f) => Boolean(f?.value)).length) pFiltered = filterData(pFiltered, filters);
-      if (alertness) pFiltered = pFiltered.filter((p) => !!p.alertness);
-      if (viewAllOrganisationData) return pFiltered;
-      return pFiltered.filter((p) => p.assignedTeams?.includes(currentTeam._id));
-    },
-});
+// Hook to filter persons with search and filters (replaces selectorFamily)
+function usePersonsFilteredBySearch({ viewAllOrganisationData, filters, alertness, search, sortBy, sortOrder }) {
+  const personsWithBirthDate = useAtomValue(personsWithMedicalFileAndConsultationsMergedSelector);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
 
-const personsFilteredBySearchSelector = selectorFamily({
-  key: "personsFilteredBySearchSelector",
-  get:
-    ({ viewAllOrganisationData, filters, alertness, search, sortBy, sortOrder }) =>
-    ({ get }) => {
-      const personsFiltered = get(personsFilteredSelector({ viewAllOrganisationData, filters, alertness }));
-      const personsSorted = [...personsFiltered].sort(sortPersons(sortBy, sortOrder));
-      const user = get(userState);
-
-      if (!search?.length) {
-        return personsSorted;
-      }
-
-      const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
-      const restrictedFields =
-        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
-
-      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields, restrictedFields);
-
-      return personsfilteredBySearch;
-    },
-});
-
-const filterPersonsWithAllFieldsSelector = selector({
-  key: "filterPersonsWithAllFieldsSelector",
-  get: ({ get }) => {
-    const places = get(placesState);
-    const user = get(userState);
-    const team = get(currentTeamState);
-    const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector);
-    const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
-    const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
-    const consultationFields = get(flattenedCustomFieldsConsultationsSelector);
-    const filterPersonsBase = get(filterPersonsBaseSelector);
-
-    const filterBase = [
-      ...filterPersonsBase,
-      ...fieldsPersonsCustomizableOptions.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
-      ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
-      {
-        label: "Lieux fréquentés",
-        field: "places",
-        options: [...new Set(places.map((place) => place.name))],
-      },
-    ];
-    if (user.healthcareProfessional) {
-      filterBase.push(
-        ...customFieldsMedicalFile
-          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
-          .map((a) => ({ field: a.name, category: "medicalFile", ...a }))
-      );
-      filterBase.push(
-        ...consultationFields
-          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
-          .map((a) => ({ field: a.name, category: "flattenedConsultations", ...a }))
-      );
+  return useMemo(() => {
+    // First filter persons
+    let pFiltered = personsWithBirthDate;
+    if (filters?.filter((f) => Boolean(f?.value)).length) pFiltered = filterData(pFiltered, filters);
+    if (alertness) pFiltered = pFiltered.filter((p) => !!p.alertness);
+    if (!viewAllOrganisationData) {
+      pFiltered = pFiltered.filter((p) => p.assignedTeams?.includes(currentTeam._id));
     }
-    return filterBase;
-  },
+
+    // Then sort
+    const personsSorted = [...pFiltered].sort(sortPersons(sortBy, sortOrder));
+
+    // Then search
+    if (!search?.length) {
+      return personsSorted;
+    }
+
+    const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
+    const restrictedFields =
+      user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
+
+    return filterBySearch(search, personsSorted, excludeFields, restrictedFields);
+  }, [
+    personsWithBirthDate,
+    currentTeam._id,
+    filters,
+    alertness,
+    viewAllOrganisationData,
+    sortBy,
+    sortOrder,
+    search,
+    user.healthcareProfessional,
+    user.role,
+  ]);
+}
+
+const filterPersonsWithAllFieldsSelector = atom((get) => {
+  const places = get(placesState);
+  const user = get(userState);
+  const team = get(currentTeamState);
+  const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
+  const consultationFields = get(flattenedCustomFieldsConsultationsSelector);
+  const filterPersonsBase = get(filterPersonsBaseSelector);
+
+  const filterBase = [
+    ...filterPersonsBase,
+    ...fieldsPersonsCustomizableOptions.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
+    ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
+    {
+      label: "Lieux fréquentés",
+      field: "places",
+      options: [...new Set(places.map((place) => place.name))],
+    },
+  ];
+  if (user.healthcareProfessional) {
+    filterBase.push(
+      ...customFieldsMedicalFile
+        .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+        .map((a) => ({ field: a.name, category: "medicalFile", ...a }))
+    );
+    filterBase.push(
+      ...consultationFields
+        .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+        .map((a) => ({ field: a.name, category: "flattenedConsultations", ...a }))
+    );
+  }
+  return filterBase;
 });
 
 const List = () => {
@@ -135,9 +136,7 @@ const List = () => {
   const { refresh } = useDataLoader();
   const viewAllOrganisationData = organisation.checkboxShowAllOrgaPersons && viewAllOrganisationDataChecked;
 
-  const personsFilteredBySearch = useAtomValue(
-    personsFilteredBySearchSelector({ search, viewAllOrganisationData, filters, alertness, sortBy, sortOrder })
-  );
+  const personsFilteredBySearch = usePersonsFilteredBySearch({ search, viewAllOrganisationData, filters, alertness, sortBy, sortOrder });
 
   const data = useMemo(() => {
     return personsFilteredBySearch.filter((_, index) => index < (page + 1) * limit && index >= page * limit);

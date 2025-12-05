@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../recoil/persons";
-import { selector, useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../services/api";
 import { formatBirthDate } from "../services/date";
@@ -24,19 +24,16 @@ function personsToOptions(persons) {
   }));
 }
 
-const searchablePersonsSelector = selector({
-  key: "searchablePersonsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return persons.map((person) => {
-      return {
-        ...person,
-        searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
-          .join(" ")
-          .toLowerCase(),
-      };
-    });
-  },
+const searchablePersonsSelector = atom((get) => {
+  const persons = get(personsState);
+  return persons.map((person) => {
+    return {
+      ...person,
+      searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
+        .join(" ")
+        .toLowerCase(),
+    };
+  });
 });
 
 // This function is used to filter persons by search string. It ignores diacritics and accents.

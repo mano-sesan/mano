@@ -15,7 +15,7 @@ import SelectStatus from "../../components/SelectStatus";
 import { defaultActionForModal, TODO } from "../../recoil/actions";
 import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../recoil/auth";
 import { personsState } from "../../recoil/persons";
-import { selector, selectorFamily, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtomValue, useSetAtom } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
 import { passagesState, encryptPassage, sortPassages } from "../../recoil/passages";
@@ -32,72 +32,52 @@ import { defaultModalActionState, modalActionState } from "../../recoil/modal";
 import { flattenedServicesSelector } from "../../recoil/reports";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
-const actionsForCurrentTeamSelector = selector({
-  key: "actionsForCurrentTeamSelector",
-  get: ({ get }) => {
-    const actions = get(arrayOfitemsGroupedByActionSelector);
-    const currentTeam = get(currentTeamState);
-    return actions.filter((a) => (Array.isArray(a.teams) ? a.teams.includes(currentTeam._id) : a.team === currentTeam._id));
-  },
+const actionsForCurrentTeamSelector = atom((get) => {
+  const actions = get(arrayOfitemsGroupedByActionSelector);
+  const currentTeam = get(currentTeamState);
+  return actions.filter((a) => (Array.isArray(a.teams) ? a.teams.includes(currentTeam._id) : a.team === currentTeam._id));
 });
 
-const consultationsByAuthorizationSelector = selector({
-  key: "consultationsByAuthorizationSelector",
-  get: ({ get }) => {
-    const user = get(userState);
-    const consultations = get(arrayOfitemsGroupedByConsultationSelector);
+const consultationsByAuthorizationSelector = atom((get) => {
+  const user = get(userState);
+  const consultations = get(arrayOfitemsGroupedByConsultationSelector);
 
-    if (!user.healthcareProfessional) return [];
-    return consultations.filter((consult) => !consult.onlyVisibleBy?.length || consult.onlyVisibleBy.includes(user._id));
-  },
+  if (!user.healthcareProfessional) return [];
+  return consultations.filter((consult) => !consult.onlyVisibleBy?.length || consult.onlyVisibleBy.includes(user._id));
 });
 
-const actionsByStatusSelector = selectorFamily({
-  key: "actionsByStatusSelector",
-  get:
-    ({ status }) =>
-    ({ get }) => {
-      const actions = get(actionsForCurrentTeamSelector);
-      return actions.filter((a) => a.status === status);
-    },
+// Hook to filter actions by status (replaces selectorFamily)
+function useActionsByStatus(status) {
+  const actions = useAtomValue(actionsForCurrentTeamSelector);
+  return useMemo(() => actions.filter((a) => a.status === status), [actions, status]);
+}
+
+// Hook to filter consultations by status (replaces selectorFamily)
+function useConsultationsByStatus(status) {
+  const consultations = useAtomValue(consultationsByAuthorizationSelector);
+  return useMemo(() => consultations.filter((a) => a.status === status), [consultations, status]);
+}
+
+const todaysReportSelector = atom((get) => {
+  const teamsReports = get(currentTeamReportsSelector);
+  return teamsReports.find((rep) => isToday(rep.date));
 });
 
-const consultationsByStatusSelector = selectorFamily({
-  key: "consultationsByStatusSelector",
-  get:
-    ({ status }) =>
-    ({ get }) => {
-      const consultations = get(consultationsByAuthorizationSelector);
-      return consultations.filter((a) => a.status === status);
-    },
-});
-
-const todaysReportSelector = selector({
-  key: "todaysReportSelector",
-  get: ({ get }) => {
-    const teamsReports = get(currentTeamReportsSelector);
-    return teamsReports.find((rep) => isToday(rep.date));
-  },
-});
-
-const todaysPassagesSelector = selector({
-  key: "todaysPassagesSelector",
-  get: ({ get }) => {
-    const passages = get(passagesState);
-    const currentTeam = get(currentTeamState);
-    return passages
-      .filter((p) => p.team === currentTeam?._id)
-      .filter((p) =>
-        getIsDayWithinHoursOffsetOfPeriod(
-          p.date,
-          {
-            referenceStartDay: dayjs(),
-            referenceEndDay: dayjs(),
-          },
-          currentTeam?.nightSession ? 12 : 0
-        )
-      );
-  },
+const todaysPassagesSelector = atom((get) => {
+  const passages = get(passagesState);
+  const currentTeam = get(currentTeamState);
+  return passages
+    .filter((p) => p.team === currentTeam?._id)
+    .filter((p) =>
+      getIsDayWithinHoursOffsetOfPeriod(
+        p.date,
+        {
+          referenceStartDay: dayjs(),
+          referenceEndDay: dayjs(),
+        },
+        currentTeam?.nightSession ? 12 : 0
+      )
+    );
 });
 
 const Reception = () => {
@@ -108,8 +88,8 @@ const Reception = () => {
   const organisation = useAtomValue(organisationState);
   const passages = useAtomValue(todaysPassagesSelector);
   const [status, setStatus] = useState(TODO);
-  const actionsByStatus = useAtomValue(actionsByStatusSelector({ status }));
-  const consultationsByStatus = useAtomValue(consultationsByStatusSelector({ status }));
+  const actionsByStatus = useActionsByStatus(status);
+  const consultationsByStatus = useConsultationsByStatus(status);
   const [services, setServices] = useState(null);
   const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
   const setModalAction = useSetAtom(modalActionState);

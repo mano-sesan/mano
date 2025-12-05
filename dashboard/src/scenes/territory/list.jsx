@@ -4,7 +4,7 @@ import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
-import { useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Loading from "../../components/loading";
@@ -21,28 +21,24 @@ import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
-import { selector } from "jotai";
 
-const territoriesWithObservations = selector({
-  key: "territoriesWithObservations",
-  get: ({ get }) => {
-    const territories = get(territoriesState);
-    const territoryObservations = get(onlyFilledObservationsTerritories);
+const territoriesWithObservations = atom((get) => {
+  const territories = get(territoriesState);
+  const territoryObservations = get(onlyFilledObservationsTerritories);
 
-    const observationsByTerritory = {};
-    for (const obs of territoryObservations) {
-      if (!observationsByTerritory[obs.territory]) {
-        observationsByTerritory[obs.territory] = [];
-      }
-      observationsByTerritory[obs.territory].push(obs);
+  const observationsByTerritory = {};
+  for (const obs of territoryObservations) {
+    if (!observationsByTerritory[obs.territory]) {
+      observationsByTerritory[obs.territory] = [];
     }
-    return territories.map((t) => ({
-      ...t,
-      observations: observationsByTerritory[t._id] || [],
-      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
-        ?.createdAt,
-    }));
-  },
+    observationsByTerritory[obs.territory].push(obs);
+  }
+  return territories.map((t) => ({
+    ...t,
+    observations: observationsByTerritory[t._id] || [],
+    lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
+      ?.createdAt,
+  }));
 });
 
 const List = () => {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { selectorFamily, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
   fieldsPersonsCustomizableOptionsSelector,

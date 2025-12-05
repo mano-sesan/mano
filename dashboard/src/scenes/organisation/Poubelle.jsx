@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { selector, useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -33,24 +33,21 @@ async function fetchPersons(organisationId) {
   return decryptedData;
 }
 
-const mergedPersonIdsSelector = selector({
-  key: "mergedPersonIdsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    const mergedIds = new Set();
+const mergedPersonIdsSelector = atom((get) => {
+  const persons = get(personsState);
+  const mergedIds = new Set();
 
-    for (const person of persons) {
-      if (!person.history) continue;
+  for (const person of persons) {
+    if (!person.history) continue;
 
-      for (const historyEntry of person.history) {
-        if (historyEntry.data?.merge?._id) {
-          mergedIds.add(historyEntry.data.merge._id);
-        }
+    for (const historyEntry of person.history) {
+      if (historyEntry.data?.merge?._id) {
+        mergedIds.add(historyEntry.data.merge._id);
       }
     }
+  }
 
-    return Array.from(mergedIds);
-  },
+  return Array.from(mergedIds);
 });
 
 export default function Poubelle() {

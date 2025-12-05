@@ -1,15 +1,12 @@
 import { useHistory } from "react-router-dom";
-import { selector, useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { personsState, sortPersons } from "../recoil/persons";
 import SelectCustom from "./SelectCustom";
 import { formatDateWithFullMonth } from "../services/date";
 
-const sortedPersonsByNameSelector = selector({
-  key: "sortedPersonsByNameSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return [...persons].sort(sortPersons("name", "ASC"));
-  },
+const sortedPersonsByNameSelector = atom((get) => {
+  const persons = get(personsState);
+  return [...persons].sort(sortPersons("name", "ASC"));
 });
 
 const SelectPerson = ({

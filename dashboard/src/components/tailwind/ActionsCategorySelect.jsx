@@ -1,52 +1,46 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { selector, useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../../recoil/actions";
 import SortableJS from "sortablejs";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./Modal";
 
-const categoriesSortedByMostUsedSelector = selector({
-  key: "categoriesSortedByMostUsedSelector",
-  get: ({ get }) => {
-    const actions = get(actionsState);
-    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
-    if (!actions?.length) return [];
+const categoriesSortedByMostUsedSelector = atom((get) => {
+  const actions = get(actionsState);
+  const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+  if (!actions?.length) return [];
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const categories = {};
-    for (const action of actions) {
-      if (!action.categories) continue;
-      if (new Date(action.createdAt) < thirtyDaysAgo) continue;
-      for (const category of action.categories) {
-        if (!categories[category]) categories[category] = 0;
-        categories[category]++;
-      }
+  const categories = {};
+  for (const action of actions) {
+    if (!action.categories) continue;
+    if (new Date(action.createdAt) < thirtyDaysAgo) continue;
+    for (const category of action.categories) {
+      if (!categories[category]) categories[category] = 0;
+      categories[category]++;
     }
+  }
 
-    return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
-      .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
-      .map(([category]) => category)
-      .filter((category) => flattenedActionsCategories.includes(category));
-  },
+  return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
+    .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
+    .map(([category]) => category)
+    .filter((category) => flattenedActionsCategories.includes(category));
 });
 
 const allCatsTitle = "Toutes les catégories";
-const allGroupsWithGroupForAllCategories = selector({
-  key: "allGroupsWithGroupForAllCategories",
-  get: ({ get }) => {
-    const groupedCategories = get(actionsCategoriesSelector);
-    const allCats = groupedCategories.reduce((acc, group) => {
-      return [...acc, ...group.categories];
-    }, []);
-    return [
-      ...groupedCategories,
-      {
-        groupTitle: allCatsTitle,
-        categories: allCats,
-      },
-    ];
-  },
+const allGroupsWithGroupForAllCategories = atom((get) => {
+  const groupedCategories = get(actionsCategoriesSelector);
+  const allCats = groupedCategories.reduce((acc, group) => {
+    return [...acc, ...group.categories];
+  }, []);
+  return [
+    ...groupedCategories,
+    {
+      groupTitle: allCatsTitle,
+      categories: allCats,
+    },
+  ];
 });
 
 const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDisabled }) => {
