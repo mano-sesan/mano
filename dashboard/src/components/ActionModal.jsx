@@ -1,7 +1,7 @@
 import { useState, useMemo, Fragment } from "react";
 import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
@@ -42,7 +42,7 @@ import { useDataLoader } from "../services/dataLoader";
 import { isEmptyValue } from "../utils";
 
 export default function ActionModal() {
-  const [modalAction, setModalAction] = useRecoilState(modalActionState);
+  const [modalAction, setModalAction] = useAtom(modalActionState);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -84,15 +84,15 @@ export default function ActionModal() {
 
 function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
   const location = useLocation();
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const [modalAction, setModalAction] = useRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const recurrences = useRecoilValue(recurrencesState);
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const groups = useRecoilValue(groupsState);
+  const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
+  const [modalAction, setModalAction] = useAtom(modalActionState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const recurrences = useAtomValue(recurrencesState);
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const setModalConfirmState = useSetAtom(modalConfirmState);
+  const groups = useAtomValue(groupsState);
   const { refresh } = useDataLoader();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const isEditing = modalAction.isEditing;
@@ -1126,7 +1126,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
 }
 
 function AllOccurrences({ action, onAfterActionClick }) {
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const person = useAtomValue(itemsGroupedByPersonSelector)[action.person];
   const actions = (person?.actions || []).filter((e) => e.recurrence === action.recurrence);
   const [isAfterOpen, setIsAfterOpen] = useState(true);
   const [isBeforeOpen, setIsBeforeOpen] = useState(false);
@@ -1200,12 +1200,12 @@ function AllOccurrences({ action, onAfterActionClick }) {
 }
 
 function NextOccurrences({ action, setIsTransitioning }) {
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const person = useAtomValue(itemsGroupedByPersonSelector)[action.person];
   const actions =
     person?.actions
       .filter((e) => e.recurrence === action.recurrence)
       .filter((a) => dayjsInstance(a.completedAt || a.dueAt).isAfter(dayjsInstance(action.completedAt || action.dueAt))) || [];
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const location = useLocation();
 
   if (!actions.length)
@@ -1254,7 +1254,7 @@ function NextOccurrences({ action, setIsTransitioning }) {
 
 function ActionHistory({ action }) {
   const history = useMemo(() => [...(action?.history || [])].reverse(), [action?.history]);
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   return (
     <div>

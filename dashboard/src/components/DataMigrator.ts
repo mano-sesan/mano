@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { organisationState, userState } from "../recoil/auth";
 import { usePreparePersonForEncryption } from "../recoil/persons";
 import { loadingTextState } from "../services/dataLoader";
@@ -12,9 +12,9 @@ const LOADING_TEXT = "Mise à jour des données de votre organisation…";
 
 /*eslint no-unused-vars: "off"*/
 export default function useDataMigrator() {
-  const setLoadingText = useSetRecoilState(loadingTextState);
-  const user = useRecoilValue(userState);
-  const setOrganisation = useSetRecoilState(organisationState);
+  const setLoadingText = useSetAtom(loadingTextState);
+  const user = useAtomValue(userState);
+  const setOrganisation = useSetAtom(organisationState);
 
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
 

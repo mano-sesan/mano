@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import {
   FolderPlusIcon,
@@ -328,9 +328,9 @@ function DocumentsDropzone({
 
 export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) {
   const { refresh } = useDataLoader();
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useAtomValue(organisationAuthentifiedState);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resetFileInputKey, setResetFileInputKey] = useState(0);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -345,7 +345,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
   const [isUpdatingDocument, setIsUpdatingDocument] = useState(false);
   const [isDeletingDocument, setIsDeletingDocument] = useState(false);
   const [isInDropzone, setIsInDropzone] = useState(false);
-  const groups = useRecoilValue(groupsState);
+  const groups = useAtomValue(groupsState);
 
   // Build default folders and all documents
   const allDocuments = useMemo(() => {

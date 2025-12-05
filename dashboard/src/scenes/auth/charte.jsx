@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
 import { userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -7,7 +7,7 @@ import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
 
 const Charte = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useRecoilState(userState);
+  const [user, setUser] = useAtom(userState);
 
   const onSigninValidated = async () => {
     setLoading(true);

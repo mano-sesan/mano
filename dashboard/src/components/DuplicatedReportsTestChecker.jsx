@@ -1,8 +1,8 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { reportsState } from "../recoil/reports";
 
 const DuplicatedReportsTestChecker = () => {
-  const reports = useRecoilValue(reportsState);
+  const reports = useAtomValue(reportsState);
   const duplicateReports = Object.entries(
     reports.reduce((reportsByDate, report) => {
       if (!reportsByDate[`${report.date}-${report.team}`]) reportsByDate[`${report.date}-${report.team}`] = [];

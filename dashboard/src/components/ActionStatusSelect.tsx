@@ -1,4 +1,4 @@
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { DONE, TODO, CANCEL, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
 import { now } from "../services/date";
@@ -19,11 +19,11 @@ function isConsultation(action: ActionInstance | ConsultationInstance): action i
 }
 
 export default function ActionStatusSelect({ action }: { action: ActionInstance | ConsultationInstance }) {
-  const organisation = useRecoilValue(organisationState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const setModalConfirmState = useSetAtom(modalConfirmState);
+  const setModalAction = useSetAtom(modalActionState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
   const { refresh } = useDataLoader();
   const history = useHistory();
 

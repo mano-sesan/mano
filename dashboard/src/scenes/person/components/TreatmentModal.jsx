@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useHistory, useLocation } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { organisationState, userState } from "../../../recoil/auth";
@@ -74,10 +74,10 @@ export default function TreatmentModal() {
 }
 
 function TreatmentContent({ treatmentId, onClose, personId, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
-  const treatmentsObjects = useRecoilValue(itemsGroupedByTreatmentSelector);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const treatmentsObjects = useAtomValue(itemsGroupedByTreatmentSelector);
+  const setModalConfirmState = useSetAtom(modalConfirmState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
   const { refresh } = useDataLoader();
 
   const treatment = treatmentId ? treatmentsObjects[treatmentId] : null;

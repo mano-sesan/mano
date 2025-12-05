@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { teamsState } from "../recoil/auth";
 
 export default function ColorHeaderBand({ teamId }) {
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   const teamIndex = teams?.findIndex((t) => t._id === teamId);
   const team = teams[teamIndex];
   const color = teamsColors[teamIndex % teamsColors?.length];

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import { dayjsInstance } from "../../services/date";
@@ -9,7 +9,7 @@ import SelectCustom from "../../components/SelectCustom";
 import { servicesSelector } from "../../recoil/reports";
 
 const ServicesStats = ({ period, teamIds }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
   const allServices = useMemo(() => {
     return groupedServices.reduce((services, group) => [...services, ...group.services], []);
   }, [groupedServices]);

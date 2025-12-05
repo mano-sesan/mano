@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../../recoil/medicalFiles";
 import { CommentsModule } from "../../../components/CommentsGeneric";
@@ -9,7 +9,7 @@ import { useDataLoader } from "../../../services/dataLoader";
 
 const CommentsMedical = ({ person }) => {
   const { refresh } = useDataLoader();
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
 
   const medicalFile = person.medicalFile;
   const commentsMedical = useMemo(

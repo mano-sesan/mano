@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -59,21 +59,21 @@ const initMergeValue = (field, originPerson = {}, personToMergeAndDelete = {}) =
 
 const MergeTwoPersons = ({ person }) => {
   const [open, setOpen] = useState(false);
-  const [persons, setPersons] = useRecoilState(personsState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const comments = useRecoilValue(commentsState);
-  const actions = useRecoilValue(actionsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const groups = useRecoilValue(groupsState);
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const consultations = useRecoilValue(consultationsState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const treatments = useRecoilValue(treatmentsState);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const [persons, setPersons] = useAtom(personsState);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const comments = useAtomValue(commentsState);
+  const actions = useAtomValue(actionsState);
+  const passages = useAtomValue(passagesState);
+  const rencontres = useAtomValue(rencontresState);
+  const groups = useAtomValue(groupsState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
+  const consultations = useAtomValue(consultationsState);
+  const medicalFiles = useAtomValue(medicalFileState);
+  const treatments = useAtomValue(treatmentsState);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
@@ -92,8 +92,8 @@ const MergeTwoPersons = ({ person }) => {
     setValues({});
   };
 
-  const allFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
+  const allFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
 
   const personsToMergeWith = useMemo(() => persons.filter((p) => p._id !== originPerson?._id), [persons, originPerson]);
 

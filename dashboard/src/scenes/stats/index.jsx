@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { selectorFamily, useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
   fieldsPersonsCustomizableOptionsSelector,
@@ -422,23 +422,23 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
 const Stats = () => {
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
 
-  const allreports = useRecoilValue(reportsState);
-  const allObservations = useRecoilValue(territoryObservationsState);
-  const allPassagesPopulated = useRecoilValue(populatedPassagesSelector);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const consultationFields = useRecoilValue(flattenedCustomFieldsConsultationsSelector);
-  const personFields = useRecoilValue(personFieldsSelector);
-  const territories = useRecoilValue(territoriesState);
-  const allCategories = useRecoilValue(flattenedActionsCategoriesSelector);
-  const groupsCategories = useRecoilValue(actionsCategoriesSelector);
+  const allreports = useAtomValue(reportsState);
+  const allObservations = useAtomValue(territoryObservationsState);
+  const allPassagesPopulated = useAtomValue(populatedPassagesSelector);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const consultationFields = useAtomValue(flattenedCustomFieldsConsultationsSelector);
+  const personFields = useAtomValue(personFieldsSelector);
+  const territories = useAtomValue(territoriesState);
+  const allCategories = useAtomValue(flattenedActionsCategoriesSelector);
+  const groupsCategories = useAtomValue(actionsCategoriesSelector);
 
   const [activeTab, setActiveTab] = useLocalStorage("stats-tabCaption", "Général");
   const [filterPersons, setFilterPersons] = useLocalStorage("stats-filterPersons-defaultEverybody", initFilters);
@@ -517,8 +517,8 @@ const Stats = () => {
    *
   */
 
-  const allRawPersons = useRecoilValue(arrayOfitemsGroupedByPersonSelector);
-  const personTypesByFieldsNames = useRecoilValue(personTypesByFieldsNamesSelector);
+  const allRawPersons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+  const personTypesByFieldsNames = useAtomValue(personTypesByFieldsNamesSelector);
 
   const allPersons = useMemo(() => {
     return personsForStatsSelector(period, allRawPersons, personTypesByFieldsNames);
@@ -663,7 +663,7 @@ const Stats = () => {
     return reportsFiltered;
   }, [allreports, defaultIsoDates, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData]);
 
-  const filterPersonsBase = useRecoilValue(filterPersonsBaseSelector);
+  const filterPersonsBase = useAtomValue(filterPersonsBaseSelector);
   // Add enabled custom fields in filters.
   const filterPersonsWithAllFields = useMemo(() => {
     const filterBase = [

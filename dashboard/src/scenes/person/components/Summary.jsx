@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState, organisationState } from "../../../recoil/auth";
 import { Actions } from "./ActionsPerson";
 import { InfosMain } from "./InfosMain";
@@ -15,9 +15,9 @@ import PersonDocuments from "./PersonDocuments";
 import { MANO_TEST_ORG_ID } from "../../../config";
 
 export default function Summary({ person }) {
-  const user = useRecoilValue(userState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const organisation = useRecoilValue(organisationState);
+  const user = useAtomValue(userState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
+  const organisation = useAtomValue(organisationState);
 
   const useNewDocumentSystem =
     (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;

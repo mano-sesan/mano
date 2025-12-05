@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
@@ -43,8 +43,8 @@ const ObservationsStats = ({
   period,
   selectedTeams,
 }: ObservationsStatsProps) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const currentTeam = useAtomValue(currentTeamState);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
 
   const filterBase: Array<FilterableField> = useMemo(() => {
     // Get all unique territory types from territories
@@ -86,7 +86,7 @@ const ObservationsStats = ({
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const onSliceClick = (newSlice: string, fieldName: FilterableField["field"], observationsConcerned = observations) => {
     if (["stats-only"].includes(user.role)) return;
@@ -196,11 +196,11 @@ const ObservationsStats = ({
 };
 
 const SelectedObsModal = ({ open, onClose, observations, territories, title, onAfterLeave, selectedTeams, period }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const teams = useRecoilValue(teamsState);
-  const team = useRecoilValue(currentTeamState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const users = useRecoilValue(usersState);
+  const setModalObservation = useSetAtom(modalObservationState);
+  const teams = useAtomValue(teamsState);
+  const team = useAtomValue(currentTeamState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const users = useAtomValue(usersState);
   const location = useLocation();
 
   const exportXlsx = () => {

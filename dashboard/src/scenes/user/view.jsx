@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
@@ -19,10 +19,10 @@ const View = () => {
   const [localUser, setLocalUser] = useState(null);
   const { id } = useParams();
   const history = useHistory();
-  const [user, setUser] = useRecoilState(userState);
-  const setUsers = useSetRecoilState(usersState);
-  const setDeletedUsers = useSetRecoilState(deletedUsersState);
-  const organisation = useRecoilValue(organisationState);
+  const [user, setUser] = useAtom(userState);
+  const setUsers = useSetAtom(usersState);
+  const setDeletedUsers = useSetAtom(deletedUsersState);
+  const organisation = useAtomValue(organisationState);
   const [isReactivatingUser, setIsReactivatingUser] = useState(false);
 
   useTitle(`Utilisateur ${user?.name}`);

@@ -1,13 +1,13 @@
 import React from "react";
 import { userState } from "../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { disableConsultationRow } from "../recoil/consultations";
 import { getName } from "../recoil/actions";
 import UserName from "./UserName";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 
 export default function ActionOrConsultationName({ item, hideType = false }) {
-  const me = useRecoilValue(userState);
+  const me = useAtomValue(userState);
   if (!!item.isConsultation && disableConsultationRow(item, me)) {
     if (!me.healthcareProfessional) return <div />; // a non healthcare professional cannot see the name of a consultation anyway
     return (

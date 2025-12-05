@@ -1,5 +1,5 @@
 import { useHistory, useLocation, useParams } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import Places from "./Places";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -28,15 +28,15 @@ export default function View() {
   const { refresh } = useDataLoader();
 
   const [, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
-  const organisation = useRecoilValue(organisationState);
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[personId];
-  const groups = useRecoilValue(groupsState);
+  const organisation = useAtomValue(organisationState);
+  const person = useAtomValue(itemsGroupedByPersonSelector)[personId];
+  const groups = useAtomValue(groupsState);
 
   const personGroup = useMemo(() => {
     return groups.find((group) => group?.persons?.includes?.(personId)) || { persons: [], relations: [] };
   }, [groups, personId]);
 
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get("tab") || "Résumé";
   const setCurrentTab = (tab) => {

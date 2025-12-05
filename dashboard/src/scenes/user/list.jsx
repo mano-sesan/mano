@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
 import { teamsState, usersState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
@@ -60,8 +60,8 @@ const sortUsers = (sortBy, sortOrder) => (a, b) => {
 const List = () => {
   useTitle("Utilisateurs");
 
-  const [users, setUsers] = useRecoilState(usersState);
-  const user = useRecoilValue(userState);
+  const [users, setUsers] = useAtom(usersState);
+  const user = useAtomValue(userState);
 
   const history = useHistory();
 
@@ -195,7 +195,7 @@ const Create = ({ onChange, users }) => {
   const emailInputRef = React.useRef(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   const initialState = useMemo(() => {
     return {
       name: "",

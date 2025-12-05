@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -10,7 +10,7 @@ import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
 import { encryptItem } from "../../services/encryption";
 
 function CollaborationsSettings() {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const dataFormatted = useMemo(() => {
     return [
       {
@@ -51,7 +51,7 @@ function CollaborationsSettings() {
 }
 
 const AddCollaboration = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
   const onAddCategory = async (e) => {
     e.preventDefault();
@@ -99,8 +99,8 @@ const AddCollaboration = () => {
 const Collaboration = ({ item: collaboration }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingCategory, setIsEditingCollaboration] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const reports = useRecoilValue(reportsState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const reports = useAtomValue(reportsState);
 
   const { refresh } = useDataLoader();
 

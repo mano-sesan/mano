@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -9,8 +9,8 @@ import { servicesSelector, flattenedServicesSelector } from "../../recoil/report
 import DragAndDropSettings from "./DragAndDropSettings";
 
 const ServicesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const groupedServices = useAtomValue(servicesSelector);
   const dataFormatted = useMemo(() => {
     return groupedServices.map(({ groupTitle, services }) => ({
       groupTitle,
@@ -136,11 +136,11 @@ const ServicesSettings = () => {
 };
 
 const AddService = ({ groupTitle }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
-  // const reports = useRecoilValue(reportsState);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
+  // const reports = useAtomValue(reportsState);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
   const onAddService = async (e) => {
     e.preventDefault();
@@ -197,10 +197,10 @@ const AddService = ({ groupTitle }) => {
 const Service = ({ item: service, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
-  const groupedServices = useRecoilValue(servicesSelector);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
   const { refresh } = useDataLoader();
 
   const onEditService = async (e) => {

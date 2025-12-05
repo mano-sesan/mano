@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
@@ -58,15 +58,15 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
 };
 
 const ObservationsTable = ({ period, observations, selectedTeams }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
+  const setModalObservation = useSetAtom(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("report-territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("report-territory-obs-sortOrder", "ASC");
-  const territories = useRecoilValue(territoriesState);
-  const teams = useRecoilValue(teamsState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const users = useRecoilValue(usersState);
+  const territories = useAtomValue(territoriesState);
+  const teams = useAtomValue(teamsState);
+  const team = useAtomValue(currentTeamAuthentifiedState);
+  const user = useAtomValue(userAuthentifiedState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const users = useAtomValue(usersState);
   const location = useLocation();
 
   const exportXlsx = () => {

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import Table from "./table";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import ActionOrConsultationName from "./ActionOrConsultationName";
@@ -33,11 +33,11 @@ const ActionsSortableList = ({
   columns = ["urgentOrGroupOrConsultation", "dueAt", "name", "person", "status", "team"],
 }) => {
   useTitle("Agenda");
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const history = useHistory();
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
   const [sortBy, setSortBy] = useLocalStorage(localStorageSortByName, "dueAt");
   const [sortOrder, setSortOrder] = useLocalStorage(localStorageSortOrderName, defaultOrder);
   const [page, setPage] = useSearchParamState("page", 0, { resetToDefaultIfTheFollowingValueChange: currentTeam?._id });

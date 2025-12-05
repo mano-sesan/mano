@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
 import { organisationState, userState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { Block } from "./Blocks";
 import CustomFieldsStats from "./CustomFieldsStats";
 import Filters from "../../components/Filters";
@@ -23,10 +23,10 @@ export default function ConsultationsStats({
   consultationsStatuses = [],
   setConsultationsStatuses = () => {},
 }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
   const [slicedData, setSlicedData] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;

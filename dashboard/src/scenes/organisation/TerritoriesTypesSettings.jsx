@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -9,8 +9,8 @@ import DragAndDropSettings from "./DragAndDropSettings";
 import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesState, territoriesTypesSelector } from "../../recoil/territory";
 
 const TerritoriesTypesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const territoriesGroupedTypes = useAtomValue(territoriesTypesSelector);
   const dataFormatted = useMemo(() => {
     return territoriesGroupedTypes.map(({ groupTitle, types }) => ({
       groupTitle,
@@ -50,10 +50,10 @@ const TerritoriesTypesSettings = () => {
 };
 
 const AddType = ({ groupTitle }) => {
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
-  const flattenedTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoriesGroupedTypes = useAtomValue(territoriesTypesSelector);
+  const flattenedTypes = useAtomValue(flattenedTerritoriesTypesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
   const onAddType = async (e) => {
     e.preventDefault();
@@ -107,13 +107,13 @@ const AddType = ({ groupTitle }) => {
 
 const TerritoryType = ({ item: type, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [isEditingType, setIsEditingType] = useState(false);
-  const territories = useRecoilValue(territoriesState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const territories = useAtomValue(territoriesState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
-  const flattenedTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoriesGroupedTypes = useAtomValue(territoriesTypesSelector);
+  const flattenedTypes = useAtomValue(flattenedTerritoriesTypesSelector);
   const { refresh } = useDataLoader();
 
   const onEditType = async (e) => {

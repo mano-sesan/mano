@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -18,9 +18,9 @@ const sanitizeFields = (field) => {
 };
 
 const PersonCustomFieldsSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const dataFormatted = useMemo(() => {
     return customFieldsPersons.map(({ name, fields }) => ({
       groupTitle: name,
@@ -134,9 +134,9 @@ const PersonCustomFieldsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -220,10 +220,10 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const allPersons = useRecoilValue(personsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const allPersons = useAtomValue(personsState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();

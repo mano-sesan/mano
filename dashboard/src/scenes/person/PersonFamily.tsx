@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
@@ -22,9 +22,9 @@ interface PersonFamilyProps {
 }
 
 const PersonFamily = ({ person }: PersonFamilyProps) => {
-  const [groups] = useRecoilState(groupsState);
-  const user = useRecoilValue(userState);
-  const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
+  const [groups] = useAtom(groupsState);
+  const user = useAtomValue(userState);
+  const itemsGroupedByPerson = useAtomValue(itemsGroupedByPersonSelector);
   const [newRelationModalOpen, setNewRelationModalOpen] = useState(false);
   const [relationToEdit, setRelationToEdit] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -278,7 +278,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
 
 const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, setIsSubmitting }) => {
   const [newPersonId, setNewPersonId] = useState(null);
-  const persons = useRecoilValue(itemsGroupedByPersonSelector);
+  const persons = useAtomValue(itemsGroupedByPersonSelector);
   const newRelationExistingGroup = persons[newPersonId]?.group as GroupInstance;
   const personExistingGroup = persons[person._id]?.group as GroupInstance;
 
@@ -419,7 +419,7 @@ const NewRelation = ({ open, setOpen, onAddFamilyLink, person, isSubmitting, set
 };
 
 const EditRelation = ({ open, setOpen, onEditRelation, onDeleteRelation, relationToEdit, isSubmitting, deletingRelationId, setIsSubmitting }) => {
-  const itemsGroupedByPerson = useRecoilValue(itemsGroupedByPersonSelector);
+  const itemsGroupedByPerson = useAtomValue(itemsGroupedByPersonSelector);
 
   const personId1 = relationToEdit?.persons[0];
   const personId2 = relationToEdit?.persons[1];

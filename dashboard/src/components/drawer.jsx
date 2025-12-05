@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { atom, useRecoilState, useRecoilValue } from "recoil";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { organisationState, teamsState, userState } from "../recoil/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
@@ -15,17 +15,17 @@ export const showDrawerState = atom({
 });
 
 const Drawer = () => {
-  const [user, setUser] = useRecoilState(userState);
-  const organisation = useRecoilValue(organisationState);
-  const teams = useRecoilValue(teamsState);
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
+  const [user, setUser] = useAtom(userState);
+  const organisation = useAtomValue(organisationState);
+  const teams = useAtomValue(teamsState);
+  const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
 
   const onboardingForEncryption = !organisation.encryptionEnabled;
   const onboardingForTeams = !teams.length;
   const role = user.role;
 
   const isOnboarding = onboardingForEncryption || onboardingForTeams;
-  const [showDrawer, setShowDrawer] = useRecoilState(showDrawerState);
+  const [showDrawer, setShowDrawer] = useAtom(showDrawerState);
 
   const isDesktop = useMinimumWidth("sm");
 

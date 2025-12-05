@@ -9,7 +9,7 @@ import { dayjsInstance } from "../../../services/date";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { usersState } from "../../../recoil/auth";
 
 export default function Transmissions({ userId, period, selectedTeamsObject, reports }) {
@@ -238,7 +238,7 @@ function concatTransmissions(text1, text2) {
 
 function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userId }) {
   const teamId = team?._id;
-  const users = useRecoilValue(usersState);
+  const users = useAtomValue(usersState);
   const { refresh } = useDataLoader();
   const [isSubmitting, setIsSubmitting] = useState(false);
 

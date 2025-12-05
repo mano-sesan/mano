@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { currentTeamAuthentifiedState, teamsState, userState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatTime } from "../../../services/date";
@@ -9,10 +9,10 @@ import { PersonPopulated } from "../../../types/person";
 import UserName from "../../../components/UserName";
 
 export function SummaryPrint({ person }: { person: PersonPopulated }) {
-  const user = useRecoilValue(userState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const teams = useRecoilValue(teamsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const user = useAtomValue(userState);
+  const team = useAtomValue(currentTeamAuthentifiedState);
+  const teams = useAtomValue(teamsState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
   const actions = person.actions || [];
   const personPassages = useMemo(
     () => [...(person?.passages || [])].sort((r1, r2) => (dayjsInstance(r1.date).isBefore(dayjsInstance(r2.date), "day") ? 1 : -1)),

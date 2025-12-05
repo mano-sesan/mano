@@ -1,5 +1,5 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector, useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
+import { atomWithCache } from "../store";
 import { organisationState } from "./auth";
 import { flattenedActionsCategoriesSelector } from "./actions";
 import { toast } from "react-toastify";
@@ -9,211 +9,183 @@ import type { PredefinedField, CustomField, CustomOrPredefinedField, FilterableF
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "person";
-export const personsState = atom<PersonInstance[]>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+export const personsState = atomWithCache<PersonInstance[]>(collectionName, []);
 
 /*
 
 All fields for person are
-- personFieldsSelector: fields chosen by Mano, they afre fixed and cannot be changed (yet) by the user
+- personFieldsSelector: fields chosen by Mano, they are fixed and cannot be changed (yet) by the user
 - fieldsPersonsCustomizableOptionsSelector: fields chosen by Mano but that can have options chosen by the user
 - customFieldsPersonsSelector: fields chosen by the user
 
 */
-export const personFieldsSelector = selector({
-  key: "personFieldsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation?.personFields || [];
-  },
+export const personFieldsSelector = atom((get) => {
+  const organisation = get(organisationState);
+  return organisation?.personFields || [];
 });
 
-export const fieldsPersonsCustomizableOptionsSelector = selector<CustomField[]>({
-  key: "fieldsPersonsCustomizableOptionsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return (organisation?.fieldsPersonsCustomizableOptions || []) as CustomField[];
-  },
+export const fieldsPersonsCustomizableOptionsSelector = atom<CustomField[]>((get) => {
+  const organisation = get(organisationState);
+  return (organisation?.fieldsPersonsCustomizableOptions || []) as CustomField[];
 });
 
-export const customFieldsPersonsSelector = selector({
-  key: "customFieldsPersonsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation?.customFieldsPersons || [];
-  },
+export const customFieldsPersonsSelector = atom((get) => {
+  const organisation = get(organisationState);
+  return organisation?.customFieldsPersons || [];
 });
 
-export const flattenedCustomFieldsPersonsSelector = selector({
-  key: "flattenedCustomFieldsPersonsSelector",
-  get: ({ get }) => {
-    const customFieldsPersonsSections = get(customFieldsPersonsSelector);
-    const customFieldsPersons = [];
-    for (const section of customFieldsPersonsSections) {
-      for (const field of section.fields) {
-        customFieldsPersons.push(field);
-      }
+export const flattenedCustomFieldsPersonsSelector = atom((get) => {
+  const customFieldsPersonsSections = get(customFieldsPersonsSelector);
+  const customFieldsPersons = [];
+  for (const section of customFieldsPersonsSections) {
+    for (const field of section.fields) {
+      customFieldsPersons.push(field);
     }
-    return customFieldsPersons;
-  },
+  }
+  return customFieldsPersons;
 });
 
 /* Other utils selector */
 
-export const personFieldsIncludingCustomFieldsSelector = selector({
-  key: "personFieldsIncludingCustomFieldsSelector",
-  get: ({ get }) => {
-    const personFields = get(personFieldsSelector) as PredefinedField[];
-    const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector) as CustomField[];
-    const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
-    return [
-      ...personFields,
-      ...[...fieldsPersonsCustomizableOptions, ...flattenedCustomFieldsPersons].map((f) => {
-        const field: CustomOrPredefinedField = {
-          name: f.name,
-          type: f.type,
-          label: f.label,
-          enabled: f.enabled,
-          enabledTeams: f.enabledTeams || undefined,
-          encrypted: true,
-          importable: true,
-          options: f.options || undefined,
-          filterable: true,
-        };
-        return field;
-      }),
-    ];
-  },
+export const personFieldsIncludingCustomFieldsSelector = atom((get) => {
+  const personFields = get(personFieldsSelector) as PredefinedField[];
+  const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector) as CustomField[];
+  const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
+  return [
+    ...personFields,
+    ...[...fieldsPersonsCustomizableOptions, ...flattenedCustomFieldsPersons].map((f) => {
+      const field: CustomOrPredefinedField = {
+        name: f.name,
+        type: f.type,
+        label: f.label,
+        enabled: f.enabled,
+        enabledTeams: f.enabledTeams || undefined,
+        encrypted: true,
+        importable: true,
+        options: f.options || undefined,
+        filterable: true,
+      };
+      return field;
+    }),
+  ];
 });
 
-export const personTypesByFieldsNamesSelector = selector({
-  key: "personTypesByFieldsNamesSelector",
-  get: ({ get }) => {
-    const personFieldsIncludingCustomFields = get(personFieldsIncludingCustomFieldsSelector);
-    const personTypesByFieldsNames = {};
-    for (const field of personFieldsIncludingCustomFields) {
-      personTypesByFieldsNames[field.name] = field.type;
-    }
-    return personTypesByFieldsNames;
-  },
+export const personTypesByFieldsNamesSelector = atom((get) => {
+  const personFieldsIncludingCustomFields = get(personFieldsIncludingCustomFieldsSelector);
+  const personTypesByFieldsNames = {};
+  for (const field of personFieldsIncludingCustomFields) {
+    personTypesByFieldsNames[field.name] = field.type;
+  }
+  return personTypesByFieldsNames;
 });
 
 export const forbiddenPersonFieldsInHistory = ["history", "createdAt", "updatedAt", "documents"];
 
-export const allowedPersonFieldsInHistorySelector = selector({
-  key: "allowedPersonFieldsInHistorySelector",
-  get: ({ get }) => {
-    const allFields = get(personFieldsIncludingCustomFieldsSelector);
-    return allFields.map((f) => f.name).filter((f) => !forbiddenPersonFieldsInHistory.includes(f));
-  },
+export const allowedPersonFieldsInHistorySelector = atom((get) => {
+  const allFields = get(personFieldsIncludingCustomFieldsSelector);
+  return allFields.map((f) => f.name).filter((f) => !forbiddenPersonFieldsInHistory.includes(f));
 });
 
-export const filterPersonsBaseSelector = selector({
-  key: "filterPersonsBaseSelector",
-  get: ({ get }) => {
-    const personFields = get(personFieldsSelector) as PredefinedField[];
-    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
-    const filterPersonsBase: Array<FilterableField> = [];
-    for (const field of personFields) {
-      if (!field.filterable) continue;
+export const filterPersonsBaseSelector = atom((get) => {
+  const personFields = get(personFieldsSelector) as PredefinedField[];
+  const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+  const filterPersonsBase: Array<FilterableField> = [];
+  for (const field of personFields) {
+    if (!field.filterable) continue;
+    filterPersonsBase.push({
+      // why ? IDK
+      field: field.name,
+      name: field.name,
+      ...field,
+    });
+    if (field.name === "birthdate") {
       filterPersonsBase.push({
-        // why ? IDK
-        field: field.name,
-        name: field.name,
-        ...field,
+        field: "age",
+        name: "age",
+        label: "Age (en années)",
+        type: "number",
       });
-      if (field.name === "birthdate") {
-        filterPersonsBase.push({
-          field: "age",
-          name: "age",
-          label: "Age (en années)",
-          type: "number",
-        });
-      }
     }
-    const followUpFilter: FilterableField = {
-      field: "followSinceMonths",
-      name: "followSinceMonths",
-      label: "Suivi depuis (en mois)",
-      type: "number",
-    };
-    filterPersonsBase.push(followUpFilter);
-    const followBySelectedTeamDuringPeriodFilter: FilterableField = {
-      field: "startFollowBySelectedTeamDuringPeriod",
-      name: "startFollowBySelectedTeamDuringPeriod",
-      label: "Début de suivi par l'équipe(s) sélectionnée(s) pendant la période définie",
-      type: "boolean",
-    };
-    filterPersonsBase.push(followBySelectedTeamDuringPeriodFilter);
-    const hasAtLeastOneConsultationFilter: FilterableField = {
-      field: "hasAtLeastOneConsultation",
-      name: "hasAtLeastOneConsultation",
-      label: "A eu une consultation",
-      type: "boolean",
-    };
-    filterPersonsBase.push(hasAtLeastOneConsultationFilter);
-    const numberOfConsultationsFilter: FilterableField = {
-      field: "numberOfConsultations",
-      name: "numberOfConsultations",
-      label: "Nombre de consultations",
-      type: "number",
-    };
-    filterPersonsBase.push(numberOfConsultationsFilter);
-    const numberOfActionsFilter: FilterableField = {
-      field: "numberOfActions",
-      name: "numberOfActions",
-      label: "Nombre d'actions",
-      type: "number",
-    };
-    filterPersonsBase.push(numberOfActionsFilter);
-    const actionsCategoriesFilter: FilterableField = {
-      field: "actionCategories",
-      name: "actionCategories",
-      label: "A bénéficié d'une catégorie d'action",
-      type: "enum",
-      options: flattenedActionsCategories,
-    };
-    filterPersonsBase.push(actionsCategoriesFilter);
-    const numberOfTreatmentsFilter: FilterableField = {
-      field: "numberOfTreatments",
-      name: "numberOfTreatments",
-      label: "Nombre de traitements",
-      type: "number",
-    };
-    filterPersonsBase.push(numberOfTreatmentsFilter);
-    const numberOfPassagesFilter: FilterableField = {
-      field: "numberOfPassages",
-      name: "numberOfPassages",
-      label: "Nombre de passages",
-      type: "number",
-    };
-    filterPersonsBase.push(numberOfPassagesFilter);
-    const numberOfRencontresFilter: FilterableField = {
-      field: "numberOfRencontres",
-      name: "numberOfRencontres",
-      label: "Nombre de rencontres",
-      type: "number",
-    };
-    filterPersonsBase.push(numberOfRencontresFilter);
-    const lastUpdateCheckForGDPRFilter: FilterableField = {
-      field: "lastUpdateCheckForGDPR",
-      name: "lastUpdateCheckForGDPR",
-      label: "Date de dernière interaction",
-      type: "date",
-    };
-    filterPersonsBase.push(lastUpdateCheckForGDPRFilter);
-    const belongsToAFamilyFilter: FilterableField = {
-      field: "group",
-      name: "belongsToAFamily",
-      label: "Appartient à une famille",
-      type: "boolean",
-    };
-    filterPersonsBase.push(belongsToAFamilyFilter);
-    return filterPersonsBase;
-  },
+  }
+  const followUpFilter: FilterableField = {
+    field: "followSinceMonths",
+    name: "followSinceMonths",
+    label: "Suivi depuis (en mois)",
+    type: "number",
+  };
+  filterPersonsBase.push(followUpFilter);
+  const followBySelectedTeamDuringPeriodFilter: FilterableField = {
+    field: "startFollowBySelectedTeamDuringPeriod",
+    name: "startFollowBySelectedTeamDuringPeriod",
+    label: "Début de suivi par l'équipe(s) sélectionnée(s) pendant la période définie",
+    type: "boolean",
+  };
+  filterPersonsBase.push(followBySelectedTeamDuringPeriodFilter);
+  const hasAtLeastOneConsultationFilter: FilterableField = {
+    field: "hasAtLeastOneConsultation",
+    name: "hasAtLeastOneConsultation",
+    label: "A eu une consultation",
+    type: "boolean",
+  };
+  filterPersonsBase.push(hasAtLeastOneConsultationFilter);
+  const numberOfConsultationsFilter: FilterableField = {
+    field: "numberOfConsultations",
+    name: "numberOfConsultations",
+    label: "Nombre de consultations",
+    type: "number",
+  };
+  filterPersonsBase.push(numberOfConsultationsFilter);
+  const numberOfActionsFilter: FilterableField = {
+    field: "numberOfActions",
+    name: "numberOfActions",
+    label: "Nombre d'actions",
+    type: "number",
+  };
+  filterPersonsBase.push(numberOfActionsFilter);
+  const actionsCategoriesFilter: FilterableField = {
+    field: "actionCategories",
+    name: "actionCategories",
+    label: "A bénéficié d'une catégorie d'action",
+    type: "enum",
+    options: flattenedActionsCategories,
+  };
+  filterPersonsBase.push(actionsCategoriesFilter);
+  const numberOfTreatmentsFilter: FilterableField = {
+    field: "numberOfTreatments",
+    name: "numberOfTreatments",
+    label: "Nombre de traitements",
+    type: "number",
+  };
+  filterPersonsBase.push(numberOfTreatmentsFilter);
+  const numberOfPassagesFilter: FilterableField = {
+    field: "numberOfPassages",
+    name: "numberOfPassages",
+    label: "Nombre de passages",
+    type: "number",
+  };
+  filterPersonsBase.push(numberOfPassagesFilter);
+  const numberOfRencontresFilter: FilterableField = {
+    field: "numberOfRencontres",
+    name: "numberOfRencontres",
+    label: "Nombre de rencontres",
+    type: "number",
+  };
+  filterPersonsBase.push(numberOfRencontresFilter);
+  const lastUpdateCheckForGDPRFilter: FilterableField = {
+    field: "lastUpdateCheckForGDPR",
+    name: "lastUpdateCheckForGDPR",
+    label: "Date de dernière interaction",
+    type: "date",
+  };
+  filterPersonsBase.push(lastUpdateCheckForGDPRFilter);
+  const belongsToAFamilyFilter: FilterableField = {
+    field: "group",
+    name: "belongsToAFamily",
+    label: "Appartient à une famille",
+    type: "boolean",
+  };
+  filterPersonsBase.push(belongsToAFamilyFilter);
+  return filterPersonsBase;
 });
 
 /*
@@ -223,9 +195,9 @@ Prepare for encryption hook
 */
 
 export const usePreparePersonForEncryption = () => {
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
-  const personFields = useRecoilValue(personFieldsSelector) as PredefinedField[];
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
+  const personFields = useAtomValue(personFieldsSelector) as PredefinedField[];
   const preparePersonForEncryption = (person: PersonInstance, { checkRequiredFields = true } = {}) => {
     if (checkRequiredFields) {
       try {

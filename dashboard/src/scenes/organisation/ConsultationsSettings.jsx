@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -20,8 +20,8 @@ const sanitizeFields = (field) => {
 };
 
 const ConsultationsSettings = () => {
-  const allConsultations = useRecoilValue(consultationsState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const allConsultations = useAtomValue(consultationsState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const consultationFields = organisation.consultations;
   const dataFormatted = useMemo(() => {
     return consultationFields.map(({ name, fields }) => ({
@@ -149,7 +149,7 @@ const ConsultationsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const consultationFields = organisation.consultations;
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
@@ -234,8 +234,8 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const allConsultations = useRecoilValue(consultationsState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const allConsultations = useAtomValue(consultationsState);
   const consultationFields = organisation.consultations;
 
   const { refresh } = useDataLoader();

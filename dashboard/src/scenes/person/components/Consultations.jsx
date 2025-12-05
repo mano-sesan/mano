@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useHistory } from "react-router-dom";
 import { organisationState, userState } from "../../../recoil/auth";
 import { CANCEL, DONE, mappedIdsToLabels } from "../../../recoil/actions";
@@ -24,7 +24,7 @@ export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
   const history = useHistory();
 
-  const allConsultations = useRecoilValue(arrayOfitemsGroupedByConsultationSelector);
+  const allConsultations = useAtomValue(arrayOfitemsGroupedByConsultationSelector);
   const [consultationTypes, setConsultationTypes] = useLocalStorage("consultation-types", []);
   const [consultationStatuses, setConsultationStatuses] = useLocalStorage("consultation-statuses", []);
 
@@ -121,7 +121,7 @@ export const Consultations = ({ person }) => {
 };
 
 const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatuses, consultationStatuses, consultationTypes }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   return (
     <>
@@ -171,7 +171,7 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
 };
 
 const ConsultationsTable = ({ filteredData }) => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const history = useHistory();
 
   return (

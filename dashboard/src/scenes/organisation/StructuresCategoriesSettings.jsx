@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -9,8 +9,8 @@ import DragAndDropSettings from "./DragAndDropSettings";
 import { flattenedStructuresCategoriesSelector, structuresCategoriesSelector } from "../../recoil/structures";
 
 const StructuresCategoriesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const structuresGroupedCategories = useRecoilValue(structuresCategoriesSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const structuresGroupedCategories = useAtomValue(structuresCategoriesSelector);
   const dataFormatted = useMemo(() => {
     return structuresGroupedCategories.map(({ groupTitle, categories }) => ({
       groupTitle,
@@ -50,10 +50,10 @@ const StructuresCategoriesSettings = () => {
 };
 
 const AddCategory = ({ groupTitle }) => {
-  const structuresGroupedCategories = useRecoilValue(structuresCategoriesSelector);
-  const flattenedCategories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const structuresGroupedCategories = useAtomValue(structuresCategoriesSelector);
+  const flattenedCategories = useAtomValue(flattenedStructuresCategoriesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
   const onAddCategory = async (e) => {
     e.preventDefault();
@@ -108,10 +108,10 @@ const AddCategory = ({ groupTitle }) => {
 const Category = ({ item: category, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
-  const structuresGroupedCategories = useRecoilValue(structuresCategoriesSelector);
-  const flattenedCategories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const structuresGroupedCategories = useAtomValue(structuresCategoriesSelector);
+  const flattenedCategories = useAtomValue(flattenedStructuresCategoriesSelector);
   const { refresh } = useDataLoader();
 
   const onEditCategory = async (e) => {

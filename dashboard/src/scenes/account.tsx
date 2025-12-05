@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import Loading from "../components/loading";
 import ChangePassword from "../components/ChangePassword";
 import { userState } from "../recoil/auth";
@@ -12,7 +12,7 @@ import { errorMessage } from "../utils";
 import { capture } from "../services/sentry";
 
 const Account = () => {
-  const [user, setUser] = useRecoilState(userState);
+  const [user, setUser] = useAtom(userState);
 
   if (!user) return <Loading />;
 

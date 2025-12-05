@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../recoil/persons";
-import { selector, useRecoilState, useRecoilValue } from "recoil";
+import { atom, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../services/api";
 import { formatBirthDate } from "../services/date";
@@ -24,19 +24,16 @@ function personsToOptions(persons) {
   }));
 }
 
-const searchablePersonsSelector = selector({
-  key: "searchablePersonsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return persons.map((person) => {
-      return {
-        ...person,
-        searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
-          .join(" ")
-          .toLowerCase(),
-      };
-    });
-  },
+const searchablePersonsSelector = atom((get) => {
+  const persons = get(personsState);
+  return persons.map((person) => {
+    return {
+      ...person,
+      searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
+        .join(" ")
+        .toLowerCase(),
+    };
+  });
 });
 
 // This function is used to filter persons by search string. It ignores diacritics and accents.
@@ -59,15 +56,15 @@ const filterEasySearch = (search, items = []) => {
 
 const SelectAndCreatePerson = ({ value, onChange }) => {
   const { refresh } = useDataLoader();
-  const [persons] = useRecoilState(personsState);
+  const [persons] = useAtom(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
 
   const optionsExist = useRef(null);
   const { encryptPerson } = usePreparePersonForEncryption();
 
-  const searchablePersons = useRecoilValue(searchablePersonsSelector);
+  const searchablePersons = useAtomValue(searchablePersonsSelector);
 
   return (
     <AsyncSelect

@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
@@ -16,13 +16,13 @@ import { encryptItem } from "../../services/encryption";
 import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportPersons() {
-  const user = useRecoilValue(userState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const user = useAtomValue(userState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const fileDialogRef = useRef(null);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
-  const existingPersons = useRecoilValue(personsState);
+  const teams = useAtomValue(teamsState);
+  const existingPersons = useAtomValue(personsState);
 
   const { encryptPerson } = usePreparePersonForEncryption();
 

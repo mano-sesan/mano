@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamState } from "../../recoil/auth";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import { BlockDateWithTime, BlockTotal } from "./Blocks";
@@ -6,7 +6,7 @@ import { getMultichoiceBarData, getPieData } from "./utils";
 import { capitalize } from "../../utils";
 
 const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleForMultiChoice }) => {
-  const team = useRecoilValue(currentTeamState);
+  const team = useAtomValue(currentTeamState);
 
   const customFieldsInStats = customFields
     .filter((f) => f)

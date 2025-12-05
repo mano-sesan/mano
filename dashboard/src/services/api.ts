@@ -1,4 +1,4 @@
-import { getRecoil, setRecoil } from "recoil-nexus";
+import { store } from "../store";
 import { HOST, SCHEME } from "../config";
 import { organisationState } from "../recoil/auth";
 import { deploymentCommitState, deploymentDateState } from "../recoil/version";
@@ -29,7 +29,7 @@ class Api {
   }
 
   protected organisationEncryptionStatus() {
-    const organisation = getRecoil(organisationState) || {
+    const organisation = store.get(organisationState) || {
       encryptionLastUpdateAt: undefined,
       encryptionEnabled: undefined,
       migrationLastUpdateAt: undefined,
@@ -44,15 +44,15 @@ class Api {
   protected updateDeploymentStatus(response: Response) {
     if (!response?.headers) return;
     if (response.headers.has("x-api-deployment-commit")) {
-      setRecoil(deploymentCommitState, response.headers.get("x-api-deployment-commit"));
+      store.set(deploymentCommitState as any, response.headers.get("x-api-deployment-commit"));
       if (!window.localStorage.getItem("deploymentCommit")) {
-        window.localStorage.setItem("deploymentCommit", response.headers.get("x-api-deployment-commit"));
+        window.localStorage.setItem("deploymentCommit", response.headers.get("x-api-deployment-commit")!);
       }
     }
     if (response.headers.has("x-api-deployment-date")) {
-      setRecoil(deploymentDateState, response.headers.get("x-api-deployment-date"));
+      store.set(deploymentDateState as any, response.headers.get("x-api-deployment-date"));
       if (!window.localStorage.getItem("deploymentDate")) {
-        window.localStorage.setItem("deploymentDate", response.headers.get("x-api-deployment-date"));
+        window.localStorage.setItem("deploymentDate", response.headers.get("x-api-deployment-date")!);
       }
     }
   }

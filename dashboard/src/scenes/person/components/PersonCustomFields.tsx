@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamAuthentifiedState } from "../../../recoil/auth";
 import { useMemo, useState } from "react";
 import EditModal from "./EditModal";
@@ -15,7 +15,7 @@ interface PersonCustomFieldsProps {
 
 export default function PersonCustomFields({ person, sectionName, fields, isMedicalFile = false }: PersonCustomFieldsProps) {
   const [editModal, setEditModal] = useState("");
-  const team = useRecoilValue(currentTeamAuthentifiedState);
+  const team = useAtomValue(currentTeamAuthentifiedState);
   const enabledFields = useMemo(() => {
     return fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
   }, [fields, team]);

@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../recoil/persons";
 import { utils, writeFile } from "@e965/xlsx";
 import { dayjsInstance } from "../../services/date";
@@ -13,15 +13,15 @@ import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
-  const teams = useRecoilValue(teamsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsState);
-  const territories = useRecoilValue(territoriesState);
-  const user = useRecoilValue(userState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const consultationsFields = useRecoilValue(consultationFieldsSelector);
+  const teams = useAtomValue(teamsState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const persons = useAtomValue(personsState);
+  const territories = useAtomValue(territoriesState);
+  const user = useAtomValue(userState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const consultationsFields = useAtomValue(consultationFieldsSelector);
   const [users, setUsers] = useState([]);
 
   // Helper function to safely truncate text values for Excel export

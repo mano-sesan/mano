@@ -1,13 +1,13 @@
 import React from "react";
 import { Switch } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 import List from "./list";
 import SentryRoute from "../../components/Sentryroute";
 import { currentTeamState } from "../../recoil/auth";
 
 const Router = () => {
-  const currentTeam = useRecoilValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   if (!currentTeam) return null;
 

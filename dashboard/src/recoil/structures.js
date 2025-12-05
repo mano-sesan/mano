@@ -1,20 +1,14 @@
-import { selector } from "recoil";
+import { atom } from "jotai";
 import { organisationState } from "./auth";
 
-export const structuresCategoriesSelector = selector({
-  key: "structuresCategoriesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation.structuresGroupedCategories;
-  },
+export const structuresCategoriesSelector = atom((get) => {
+  const organisation = get(organisationState);
+  return organisation?.structuresGroupedCategories;
 });
 
-export const flattenedStructuresCategoriesSelector = selector({
-  key: "flattenedStructuresCategoriesSelector",
-  get: ({ get }) => {
-    const structuresGroupedCategories = get(structuresCategoriesSelector);
-    return structuresGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
-  },
+export const flattenedStructuresCategoriesSelector = atom((get) => {
+  const structuresGroupedCategories = get(structuresCategoriesSelector);
+  return structuresGroupedCategories?.reduce((allCategories, { categories }) => [...allCategories, ...categories], []) ?? [];
 });
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));

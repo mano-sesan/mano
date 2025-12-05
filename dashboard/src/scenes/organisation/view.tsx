@@ -1,7 +1,7 @@
 import { MouseEventHandler, useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import EncryptionKey from "../../components/EncryptionKey";
@@ -82,14 +82,14 @@ function MenuButton({ selected, text, onClick }: { selected: boolean; text: stri
 const encryptionChangeOfKeyEnabled = true;
 
 const View = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
-  const territoriesTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
-  const structuresCategories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
+  const territoriesTypes = useAtomValue(flattenedTerritoriesTypesSelector);
+  const structuresCategories = useAtomValue(flattenedStructuresCategoriesSelector);
 
-  const persons = useRecoilValue(personsState);
+  const persons = useAtomValue(personsState);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
   const [refreshErrorKey, setRefreshErrorKey] = useState(0);
   const { refresh } = useDataLoader();

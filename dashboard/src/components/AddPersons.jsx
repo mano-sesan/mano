@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
 import API, { tryFetchExpectOk } from "../services/api";
 import { DONE, encryptAction, TODO } from "../recoil/actions";
@@ -8,8 +8,8 @@ const numberOfPersons = 200;
 const numberOfActionsPerPerson = 10;
 
 export default function AddPersons() {
-  const currentTeam = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
+  const currentTeam = useAtomValue(currentTeamAuthentifiedState);
+  const user = useAtomValue(userAuthentifiedState);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   async function onClick() {

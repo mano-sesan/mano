@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import DatePicker from "./DatePicker";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation, useHistory } from "react-router-dom";
@@ -30,7 +30,7 @@ import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../utils";
 
 export default function ConsultationModal() {
-  const consultationsObjects = useRecoilValue(itemsGroupedByConsultationSelector);
+  const consultationsObjects = useAtomValue(itemsGroupedByConsultationSelector);
   const history = useHistory();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -98,15 +98,15 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
 });
 
 function ConsultationContent({ personId, consultation, date, onClose }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const searchParams = new URLSearchParams(location.search);
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   const history = useHistory();
 
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const setModalConfirmState = useSetAtom(modalConfirmState);
+  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
   const { refresh } = useDataLoader();
 
   const newConsultationInitialStateRef = useRef(newConsultationInitialState(organisation._id, personId, user._id, date, teams));
@@ -871,8 +871,8 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
 
 function ConsultationHistory({ consultation }) {
   const history = useMemo(() => [...(consultation?.history || [])].reverse(), [consultation?.history]);
-  const teams = useRecoilValue(teamsState);
-  const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const teams = useAtomValue(teamsState);
+  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
 
   return (
     <div>

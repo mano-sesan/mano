@@ -1,13 +1,13 @@
 import { ModalBody, ModalContainer, ModalHeader } from "./tailwind/Modal";
 import { Link } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../recoil/auth";
 import ButtonCustom from "./ButtonCustom";
 
 //Organisation
 
 const OnboardingEndModal = ({ open, setOpen }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   return (
     <ModalContainer open={open} onClose={() => setOpen(false)} size="4xl">

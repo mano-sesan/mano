@@ -9,7 +9,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import NightSessionModale from "../../components/NightSessionModale";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { actionsState, encryptAction } from "../../recoil/actions";
@@ -33,17 +33,17 @@ const View = () => {
   const { id } = useParams();
   const history = useHistory();
 
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const actions = useRecoilValue(actionsState);
-  const consultations = useRecoilValue(consultationsState);
-  const comments = useRecoilValue(commentsState);
-  const observations = useRecoilValue(territoryObservationsState);
-  const persons = useRecoilValue(personsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const reports = useRecoilValue(reportsState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const actions = useAtomValue(actionsState);
+  const consultations = useAtomValue(consultationsState);
+  const comments = useAtomValue(commentsState);
+  const observations = useAtomValue(territoryObservationsState);
+  const persons = useAtomValue(personsState);
+  const passages = useAtomValue(passagesState);
+  const rencontres = useAtomValue(rencontresState);
+  const reports = useAtomValue(reportsState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferSelectedTeam, setTransferSelectedTeam] = useState(null);
   const { encryptPerson } = usePreparePersonForEncryption();
@@ -73,8 +73,8 @@ const View = () => {
 
   useTitle(`Équipes ${team?.name}`);
 
-  const [currentTeam, setCurrentTeam] = useRecoilState(currentTeamState);
-  const [teams, setTeams] = useRecoilState(teamsState);
+  const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
+  const [teams, setTeams] = useAtom(teamsState);
 
   const getTeam = async () => {
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/team/${id}` }));

@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import SelectCustom from "../../components/SelectCustom";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -11,7 +11,7 @@ const NoOptionsMessage = () => (
 );
 
 const SelectAndCreateCollaboration = ({ values, onChange, className = "", inputId }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
 
   const onChangeRequest = (newCollabs) => {
     onChange({ currentTarget: { value: newCollabs || [], name: "collaborations" } });

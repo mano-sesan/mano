@@ -1,5 +1,5 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+import { atom } from "jotai";
+import { atomWithCache } from "../store";
 import { looseUuidRegex } from "../utils";
 import { encryptItem } from "../services/encryption";
 import { toast } from "react-toastify";
@@ -9,11 +9,7 @@ import type { PredefinedField } from "../types/field";
 import { organisationState } from "./auth";
 
 const collectionName = "territory";
-export const territoriesState = atom<Array<TerritoryInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+export const territoriesState = atomWithCache<Array<TerritoryInstance>>(collectionName, []);
 
 const encryptedFields = ["name", "perimeter", "description", "types", "user"];
 
@@ -141,18 +137,12 @@ export const territoriesFields = (territoriesTypes: Array<string>): Array<Predef
   },
 ];
 
-export const territoriesTypesSelector = selector({
-  key: "territoriesTypesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation.territoriesGroupedTypes;
-  },
+export const territoriesTypesSelector = atom((get) => {
+  const organisation = get(organisationState);
+  return organisation?.territoriesGroupedTypes;
 });
 
-export const flattenedTerritoriesTypesSelector = selector({
-  key: "flattenedTerritoriesTypesSelector",
-  get: ({ get }) => {
-    const territoriesGroupedTypes = get(territoriesTypesSelector);
-    return territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], []);
-  },
+export const flattenedTerritoriesTypesSelector = atom((get) => {
+  const territoriesGroupedTypes = get(territoriesTypesSelector);
+  return territoriesGroupedTypes?.reduce((allTypes, { types }) => [...allTypes, ...types], []) ?? [];
 });

@@ -1,7 +1,6 @@
+import { atom } from "jotai";
 import { organisationState } from "./auth";
-import { atom, selector } from "recoil";
-import type { RecoilValueReadOnly } from "recoil";
-import { setCacheItem } from "../services/dataManagement";
+import { atomWithCache } from "../store";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -10,28 +9,18 @@ import type { CustomField, CustomFieldsGroup } from "../types/field";
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "territory-observation";
-export const territoryObservationsState = atom<Array<TerritoryObservationInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+export const territoryObservationsState = atomWithCache<Array<TerritoryObservationInstance>>(collectionName, []);
+
+export const customFieldsObsSelector = atom<Array<CustomField>>((get) => {
+  const organisation = get(organisationState);
+  if (Array.isArray(organisation?.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
+  return defaultCustomFields;
 });
 
-export const customFieldsObsSelector: RecoilValueReadOnly<Array<CustomField>> = selector({
-  key: "customFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
-    return defaultCustomFields;
-  },
-});
-
-export const groupedCustomFieldsObsSelector: RecoilValueReadOnly<Array<CustomFieldsGroup>> = selector({
-  key: "groupedCustomFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
-    return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
-  },
+export const groupedCustomFieldsObsSelector = atom<Array<CustomFieldsGroup>>((get) => {
+  const organisation = get(organisationState);
+  if (Array.isArray(organisation?.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
+  return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
 });
 
 export const defaultCustomFields: Array<CustomField> = [

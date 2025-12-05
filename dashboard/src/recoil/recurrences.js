@@ -1,9 +1,4 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+import { atomWithCache } from "../store";
 
 const collectionName = "recurrence";
-export const recurrencesState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+export const recurrencesState = atomWithCache(collectionName, []);

@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { actionsState, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
 import { commentsState, encryptComment } from "../recoil/comments";
@@ -14,16 +14,16 @@ import { encryptItem } from "../services/encryption";
 import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 
 export function useDeletePerson() {
-  const persons = useRecoilValue(itemsGroupedByPersonSelector);
-  const actions = useRecoilValue(actionsState);
-  const comments = useRecoilValue(commentsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const consultations = useRecoilValue(consultationsState);
-  const treatments = useRecoilValue(treatmentsState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const persons = useAtomValue(itemsGroupedByPersonSelector);
+  const actions = useAtomValue(actionsState);
+  const comments = useAtomValue(commentsState);
+  const passages = useAtomValue(passagesState);
+  const rencontres = useAtomValue(rencontresState);
+  const consultations = useAtomValue(consultationsState);
+  const treatments = useAtomValue(treatmentsState);
+  const medicalFiles = useAtomValue(medicalFileState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
+  const user = useAtomValue(userState);
 
   async function deletePerson(personId) {
     const person = persons[personId];

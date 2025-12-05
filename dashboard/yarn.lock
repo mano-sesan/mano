@@ -5753,6 +5753,7 @@ __metadata:
     formik: "npm:^2.2.9"
     idb-keyval: "npm:^6.2.1"
     jest: "npm:^29.7.0"
+    jotai: "npm:^2.10.0"
     libsodium: "npm:^0.7.9"
     libsodium-wrappers: "npm:^0.7.9"
     postcss: "npm:^8.4.35"
@@ -5769,8 +5770,6 @@ __metadata:
     react-select: "npm:^5.7.0"
     react-toastify: "npm:^9.1.3"
     reactstrap: "npm:^8.9.0"
-    recoil: "npm:^0.7.6"
-    recoil-nexus: "npm:^0.4.0"
     sass: "npm:^1.48.0"
     serve: "npm:^14.2.1"
     sortablejs: "npm:^1.14.0"
@@ -7412,13 +7411,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hamt_plus@npm:1.0.2":
-  version: 1.0.2
-  resolution: "hamt_plus@npm:1.0.2"
-  checksum: c5aa5cc08228e8cc2a90150fef680bd5b09f16a327bdab799daeb80fd3c987663308b14e2c6718abdf75afce21d29607e35f2705eb336a14aa935c0ca5949ce7
-  languageName: node
-  linkType: hard
-
 "has-bigints@npm:^1.0.1, has-bigints@npm:^1.0.2":
   version: 1.0.2
   resolution: "has-bigints@npm:1.0.2"
@@ -8752,6 +8744,27 @@ __metadata:
   bin:
     jiti: bin/jiti.js
   checksum: 7f361219fe6c7a5e440d5f1dba4ab763a5538d2df8708cdc22561cf25ea3e44b837687931fca7cdd8cdd9f567300e90be989dd1321650045012d8f9ed6aab07f
+  languageName: node
+  linkType: hard
+
+"jotai@npm:^2.10.0":
+  version: 2.15.2
+  resolution: "jotai@npm:2.15.2"
+  peerDependencies:
+    "@babel/core": ">=7.0.0"
+    "@babel/template": ">=7.0.0"
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@babel/template":
+      optional: true
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: b8ffd26f8429d5512aa4f5204027a9ae43da5229f28e8e16df0558f5cbde56c2c5149883354ea977cba4a1e89f566d19cc37324dd3df53741582a38c8ad31d5a
   languageName: node
   linkType: hard
 
@@ -10620,35 +10633,6 @@ __metadata:
   dependencies:
     picomatch: "npm:^2.2.1"
   checksum: 6fa848cf63d1b82ab4e985f4cf72bd55b7dcfd8e0a376905804e48c3634b7e749170940ba77b32804d5fe93b3cc521aa95a8d7e7d725f830da6d93f3669ce66b
-  languageName: node
-  linkType: hard
-
-"recoil-nexus@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "recoil-nexus@npm:0.4.0"
-  peerDependencies:
-    "@types/react": ">=16.8.0"
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-    recoil: ">=0.2.0"
-    typescript: ">=4.1.0"
-  checksum: a758424334515a8a3306f6c284170fc634da164fec83e63606bd116b95508613960687389a2b955637d4040930377d952e0254ee9b48bf8a31b663927c73426c
-  languageName: node
-  linkType: hard
-
-"recoil@npm:^0.7.6":
-  version: 0.7.6
-  resolution: "recoil@npm:0.7.6"
-  dependencies:
-    hamt_plus: "npm:1.0.2"
-  peerDependencies:
-    react: ">=16.13.1"
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 32d27ed12be773961692742062649986cabfa759d87fccd8f15d5b2278b188c09ddfe75d3dead85ecbb0a345aa62b778780d4197cfc9ad91e78b8018571562d2
   languageName: node
   linkType: hard
 

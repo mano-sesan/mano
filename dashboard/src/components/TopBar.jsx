@@ -6,7 +6,7 @@ import SelectTeam from "./SelectTeam";
 
 import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import API, { tryFetchExpectOk } from "../services/api";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import Notification from "./Notification";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import ColorHeaderBand from "./ColorHeaderBand";
@@ -18,10 +18,10 @@ import { useDataLoader } from "../services/dataLoader";
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const teams = useRecoilValue(teamsState);
-  const [currentTeam, setCurrentTeam] = useRecoilState(currentTeamState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const teams = useAtomValue(teamsState);
+  const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
 
   const { refresh, isLoading } = useDataLoader();
 

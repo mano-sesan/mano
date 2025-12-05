@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useHistory } from "react-router-dom";
 import { userState } from "../../../recoil/auth";
 import { dayjsInstance, formatDateWithFullMonth } from "../../../services/date";
@@ -42,7 +42,7 @@ const treatmentStatusOptions = [
 
 export const Treatments = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
-  const allTreatments = useRecoilValue(treatmentsState);
+  const allTreatments = useAtomValue(treatmentsState);
   const [treatmentStatuses, setTreatmentStatuses] = useLocalStorage("treatment-statuses", []);
 
   const treatments = useMemo(
@@ -157,7 +157,7 @@ const TreatmentsFilters = ({ data, treatmentStatuses, setTreatmentStatuses }) =>
 };
 
 const TreatmentsTable = ({ filteredData }) => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const history = useHistory();
 
   const displayTreatment = (treatment) => {

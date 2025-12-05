@@ -3,7 +3,7 @@ import { Col, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, Row } from
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import Table from "../../components/table";
@@ -34,7 +34,7 @@ const sortTeams = (sortBy, sortOrder) => (a, b) => {
 };
 
 const List = () => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   const history = useHistory();
   useTitle("Équipes");
   const [sortBy, setSortBy] = useLocalStorage("users-sortBy", "name");
@@ -91,10 +91,10 @@ const List = () => {
 //Organisation
 
 const Create = () => {
-  const [teams, setTeams] = useRecoilState(teamsState);
-  const [user, setUser] = useRecoilState(userState);
-  const organisation = useRecoilValue(organisationState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
+  const [teams, setTeams] = useAtom(teamsState);
+  const [user, setUser] = useAtom(userState);
+  const organisation = useAtomValue(organisationState);
+  const setCurrentTeam = useSetAtom(currentTeamState);
   const [open, setOpen] = useState(!teams.length);
 
   const [onboardingEndModalOpen, setOnboardingEndModalOpen] = useState(false);

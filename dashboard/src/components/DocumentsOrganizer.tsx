@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SortableJS from "sortablejs";
 import type { DocumentWithLinkedItem, DocumentOrFolderId, FolderWithLinkedItem, Folder } from "../types/document";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationAuthentifiedState } from "../recoil/auth";
 import UserName from "./UserName";
 import { formatDateTimeWithNameOfDay } from "../services/date";
@@ -335,7 +335,7 @@ interface DocumentRowProps {
 }
 
 function DocumentRow({ document, level, parentIsOpen, position, parentId, color, onDocumentClick, debug }: DocumentRowProps) {
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useAtomValue(organisationAuthentifiedState);
 
   return (
     <div

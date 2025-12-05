@@ -1,4 +1,4 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { modalObservationState } from "../recoil/modal";
 import { useMemo, useState } from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
@@ -25,7 +25,7 @@ import UserName from "./UserName";
 import { useLocation } from "react-router-dom";
 
 export default function ObservationModal() {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
+  const [modalObservation, setModalObservation] = useAtom(modalObservationState);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -77,20 +77,20 @@ function ObservationContent({
   isDeleting: boolean;
   setIsDeleting: (isDeleting: boolean) => void;
 }) {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const territories = useRecoilValue(territoriesState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const [modalObservation, setModalObservation] = useAtom(modalObservationState);
+  const user = useAtomValue(userAuthentifiedState);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationAuthentifiedState);
+  const team = useAtomValue(currentTeamAuthentifiedState);
+  const territories = useAtomValue(territoriesState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
 
-  const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
+  const rencontres = useAtomValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
   const rencontresInProgress = modalObservation.rencontresInProgress;

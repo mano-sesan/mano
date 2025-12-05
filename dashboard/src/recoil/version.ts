@@ -1,8 +1,9 @@
 import { atom } from "jotai";
 import { dayjsInstance } from "../services/date";
 
-export const deploymentDateState = atom(null);
-export const deploymentCommitState = atom(null);
+// Using explicit type assertion for writable atoms
+export const deploymentDateState = atom<string | null>(null);
+export const deploymentCommitState = atom<string | null>(null);
 
 // Derived atom for short commit SHA
 export const deploymentShortCommitSHAState = atom((get) => {

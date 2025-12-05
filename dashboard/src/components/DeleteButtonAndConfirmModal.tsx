@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState } from "../recoil/auth";
 import type { UserInstance } from "../types/user";
 import ConfirmModal from "./ConfirmModal";
@@ -32,7 +32,7 @@ const DeleteButtonAndConfirmModal = ({
   className = "",
   disabledTitle = "Vous n'avez pas le droit de supprimer cet élément",
 }: DeleteButtonAndConfirmModalProps) => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [open, setOpen] = useState(false);
 
   return (
