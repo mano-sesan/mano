@@ -1,15 +1,14 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
+import { prepareConsultationForEncryption } from "../../recoil/consultations";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { encryptItem } from "../../services/encryption";
 import { errorMessage } from "../../utils";
+import { useStore } from "../../store";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -20,8 +19,9 @@ const sanitizeFields = (field) => {
 };
 
 const ConsultationsSettings = () => {
-  const allConsultations = useRecoilValue(consultationsState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const allConsultations = useStore((state) => state.consultations);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
   const consultationFields = organisation.consultations;
   const dataFormatted = useMemo(() => {
     return consultationFields.map(({ name, fields }) => ({
@@ -149,7 +149,8 @@ const ConsultationsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
   const consultationFields = organisation.consultations;
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
@@ -234,8 +235,9 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const allConsultations = useRecoilValue(consultationsState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const allConsultations = useStore((state) => state.consultations);
   const consultationFields = organisation.consultations;
 
   const { refresh } = useDataLoader();

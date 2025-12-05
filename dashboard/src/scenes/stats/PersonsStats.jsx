@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
@@ -11,13 +10,13 @@ import { capture } from "../../services/sentry";
 import { Block } from "./Blocks";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { organisationState, teamsState, userState } from "../../recoil/auth";
-import { customFieldsPersonsSelector, personFieldsIncludingCustomFieldsSelector, sortPersons } from "../../recoil/persons";
+import { sortPersons } from "../../recoil/persons";
 import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
 import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
-import { groupsState } from "../../recoil/groups";
+import { useStore } from "../../store";
+import { customFieldsPersonsSelector, personFieldsIncludingCustomFieldsSelector } from "../../store/selectors";
 import EvolutiveStatsSelector from "../../components/EvolutiveStatsSelector";
 import EvolutiveStatsViewer from "../../components/EvolutiveStatsViewer";
 import { capitalize } from "../../utils";
@@ -38,9 +37,9 @@ export default function PersonStats({
   viewAllOrganisationData,
   selectedTeamsObjectWithOwnPeriod,
 }) {
-  const allGroups = useRecoilValue(groupsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const user = useRecoilValue(userState);
+  const allGroups = useStore((state) => state.groups);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const user = useStore((state) => state.user);
 
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
@@ -565,9 +564,9 @@ const Teams = ({ person: { _id, assignedTeams } }) => (
 
 export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLeave, sliceField, isFieldInMedicalFile = false }) => {
   const history = useHistory();
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
+  const teams = useStore((state) => state.teams);
+  const organisation = useStore((state) => state.organisation);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
 
   const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
@@ -739,7 +738,7 @@ function StatsPersonsByFamille({ groupsForPersons }) {
 }
 
 const FollowTimeByTeamBar = ({ persons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, period }) => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
 
   // Calculate average follow time per team
   const followTimeByTeam = useMemo(() => {

@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
-import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
+import { useStore } from "../../store";
+import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector } from "../../store/selectors";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -18,9 +18,10 @@ const sanitizeFields = (field) => {
 };
 
 const PersonCustomFieldsSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
   const dataFormatted = useMemo(() => {
     return customFieldsPersons.map(({ name, fields }) => ({
       groupTitle: name,
@@ -134,9 +135,10 @@ const PersonCustomFieldsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -220,10 +222,11 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const allPersons = useRecoilValue(personsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const allPersons = useStore((state) => state.persons);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();

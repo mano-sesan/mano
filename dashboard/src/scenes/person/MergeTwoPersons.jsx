@@ -1,7 +1,6 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -11,26 +10,26 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import UserName from "../../components/UserName";
 import Table from "../../components/table";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
-import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
-import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
-import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
-import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
-import {
-  allowedPersonFieldsInHistorySelector,
-  personFieldsIncludingCustomFieldsSelector,
-  personsState,
-  usePreparePersonForEncryption,
-} from "../../recoil/persons";
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
-import { prepareTreatmentForEncryption, treatmentsState } from "../../recoil/treatments";
+import { prepareActionForEncryption } from "../../recoil/actions";
+import { prepareCommentForEncryption } from "../../recoil/comments";
+import { prepareConsultationForEncryption } from "../../recoil/consultations";
+import { prepareGroupForEncryption } from "../../recoil/groups";
+import { prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import { preparePassageForEncryption } from "../../recoil/passages";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
+import { prepareRelPersonPlaceForEncryption } from "../../recoil/relPersonPlace";
+import { prepareRencontreForEncryption } from "../../recoil/rencontres";
+import { prepareTreatmentForEncryption } from "../../recoil/treatments";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";
 import { isEmptyValue } from "../../utils";
+import { useStore } from "../../store";
+import {
+  personFieldsIncludingCustomFieldsSelector,
+  allowedPersonFieldsInHistorySelector,
+  customFieldsMedicalFileSelector,
+} from "../../store/selectors";
 
 const getRawValue = (field, value) => {
   try {
@@ -59,21 +58,22 @@ const initMergeValue = (field, originPerson = {}, personToMergeAndDelete = {}) =
 
 const MergeTwoPersons = ({ person }) => {
   const [open, setOpen] = useState(false);
-  const [persons, setPersons] = useRecoilState(personsState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const comments = useRecoilValue(commentsState);
-  const actions = useRecoilValue(actionsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const groups = useRecoilValue(groupsState);
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const consultations = useRecoilValue(consultationsState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const treatments = useRecoilValue(treatmentsState);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const persons = useStore((state) => state.persons);
+  const setPersons = useStore((state) => state.setPersons);
+  const teams = useStore((state) => state.teams);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const comments = useStore((state) => state.comments);
+  const actions = useStore((state) => state.actions);
+  const passages = useStore((state) => state.passages);
+  const rencontres = useStore((state) => state.rencontres);
+  const groups = useStore((state) => state.groups);
+  const relsPersonPlace = useStore((state) => state.relsPersonPlace);
+  const consultations = useStore((state) => state.consultations);
+  const medicalFiles = useStore((state) => state.medicalFiles);
+  const treatments = useStore((state) => state.treatments);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
@@ -92,8 +92,8 @@ const MergeTwoPersons = ({ person }) => {
     setValues({});
   };
 
-  const allFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
+  const allFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const allowedFieldsInHistory = useStore(allowedPersonFieldsInHistorySelector);
 
   const personsToMergeWith = useMemo(() => persons.filter((p) => p._id !== originPerson?._id), [persons, originPerson]);
 

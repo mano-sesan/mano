@@ -17,14 +17,13 @@ import { checkEncryptedVerificationKey, derivedMasterKey } from "../../services/
 import SuperadminOrganisationSettings from "./SuperadminOrganisationSettings";
 import SuperadminOrganisationUsers from "./SuperadminOrgationsationUsers";
 import SuperadminUsersSearch from "./SuperadminUsersSearch";
-import { useRecoilValue } from "recoil";
-import { userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import { Redirect } from "react-router-dom";
 import TopBar from "../../components/TopBar";
 import ReactDiffViewer from "react-diff-viewer-continued";
 
 const SuperAdmin = () => {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [organisations, setOrganisations] = useState(null);
   const [updateKey, setUpdateKey] = useState(null);
   const [sortBy, setSortBy] = useState("countersTotal");

@@ -2,7 +2,7 @@ import dayjs from "dayjs";
 import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { useStore, defaultModalActionState } from "../store";
-import { computeArrayOfItemsGroupedByAction, computeItemsGroupedByAction } from "../store/selectors";
+import { arrayOfitemsGroupedByActionSelector, itemsGroupedByActionSelector } from "../store/selectors";
 import { useLocalStorage } from "../services/useLocalStorage";
 import { CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { encryptComment, sortComments } from "../recoil/comments";
@@ -23,8 +23,11 @@ export default function Notification() {
   const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
   const [showModal, setShowModal] = useState(false);
 
-  const arrayOfActions = useStore(computeArrayOfItemsGroupedByAction);
+  const arrayOfActions = useStore(arrayOfitemsGroupedByActionSelector);
+  const itemsGrouped = useStore(itemsGroupedByActionSelector);
   const currentTeam = useStore((state) => state.currentTeam);
+  const persons = useStore((state) => state.persons);
+  const comments = useStore((state) => state.comments);
 
   const actions = useMemo(() => {
     return actionsWithoutFutureRecurrences(
@@ -37,10 +40,6 @@ export default function Notification() {
       })
     ).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
   }, [arrayOfActions, currentTeam, actionsSortBy, actionsSortOrder]);
-
-  const itemsGrouped = useStore(computeItemsGroupedByAction);
-  const persons = useStore((state) => state.persons);
-  const comments = useStore((state) => state.comments);
 
   const urgentComments = useMemo(() => {
     const result = [];
@@ -245,7 +244,7 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
 };
 
 export const NotificationCommentList = ({ setShowModal, comments, title, showTeam = false }) => {
-  const actionsObjects = useStore(computeItemsGroupedByAction);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
   const history = useHistory();
   const setModalAction = useStore((state) => state.setModalAction);
   const location = useLocation();

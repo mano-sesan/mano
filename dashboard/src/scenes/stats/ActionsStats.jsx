@@ -6,10 +6,9 @@ import { getMultichoiceBarData } from "./utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import Filters from "../../components/Filters";
-import { useRecoilValue } from "recoil";
-import { userState } from "../../recoil/auth";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { SelectedPersonsModal } from "./PersonsStats";
+import { useStore } from "../../store";
+import { itemsGroupedByPersonSelector } from "../../store/selectors";
 
 const ActionsStats = ({
   // data
@@ -35,8 +34,8 @@ const ActionsStats = ({
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [groupSlice, setGroupSlice] = useState(null);
   const [categorySlice, setCategorySlice] = useState(null);
-  const user = useRecoilValue(userState);
-  const persons = useRecoilValue(itemsGroupedByPersonSelector);
+  const user = useStore((state) => state.user);
+  const persons = useStore(itemsGroupedByPersonSelector);
 
   const filteredActionsBySlice = useMemo(() => {
     if (groupSlice) {

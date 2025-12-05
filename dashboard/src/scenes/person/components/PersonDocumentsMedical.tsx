@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
-import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
 import { prepareConsultationForEncryption, encryptConsultation } from "../../../recoil/consultations";
-import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption, encryptMedicalFile } from "../../../recoil/medicalFiles";
+import { prepareMedicalFileForEncryption, encryptMedicalFile } from "../../../recoil/medicalFiles";
 import { encryptTreatment } from "../../../recoil/treatments";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
@@ -13,21 +11,23 @@ import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } f
 import { useDataLoader } from "../../../services/dataLoader";
 import { encryptItem } from "../../../services/encryption";
 import { removeOldDefaultFolders } from "../../../utils/documents";
+import { useStore } from "../../../store";
+import { organisationAuthentifiedSelector, userAuthentifiedSelector, customFieldsMedicalFileSelector } from "../../../store/selectors";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
 }
 
 const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
-  const user = useRecoilValue(userAuthentifiedState);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const user = useStore(userAuthentifiedSelector);
+  const organisation = useStore(organisationAuthentifiedSelector);
   const { refresh } = useDataLoader();
 
   const consultations = useMemo(() => person.consultations ?? [], [person.consultations]);
 
   const treatments = useMemo(() => person.treatments ?? [], [person.treatments]);
 
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
   const medicalFile = person.medicalFile;
 
   const defaultFolders: Array<FolderWithLinkedItem> = organisation.defaultMedicalFolders.map((folder) => ({

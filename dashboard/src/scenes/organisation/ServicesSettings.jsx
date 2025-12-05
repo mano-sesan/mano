@@ -1,16 +1,16 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
-import { servicesSelector, flattenedServicesSelector } from "../../recoil/reports";
 import DragAndDropSettings from "./DragAndDropSettings";
+import { useStore } from "../../store";
+import { servicesSelector, flattenedServicesSelector } from "../../store/selectors";
 
 const ServicesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const groupedServices = useStore(servicesSelector);
   const dataFormatted = useMemo(() => {
     return groupedServices.map(({ groupTitle, services }) => ({
       groupTitle,
@@ -136,11 +136,12 @@ const ServicesSettings = () => {
 };
 
 const AddService = ({ groupTitle }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
-  // const reports = useRecoilValue(reportsState);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useStore(servicesSelector);
+  // const reports = useStore((state) => state.reports);
+  const flattenedServices = useStore(flattenedServicesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   const onAddService = async (e) => {
     e.preventDefault();
@@ -197,10 +198,11 @@ const AddService = ({ groupTitle }) => {
 const Service = ({ item: service, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingService, setIsEditingService] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
-  const groupedServices = useRecoilValue(servicesSelector);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useStore(servicesSelector);
+  const flattenedServices = useStore(flattenedServicesSelector);
   const { refresh } = useDataLoader();
 
   const onEditService = async (e) => {

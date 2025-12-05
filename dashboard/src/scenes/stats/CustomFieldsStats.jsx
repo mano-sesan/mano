@@ -1,12 +1,11 @@
-import { useRecoilValue } from "recoil";
-import { currentTeamState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import { BlockDateWithTime, BlockTotal } from "./Blocks";
 import { getMultichoiceBarData, getPieData } from "./utils";
 import { capitalize } from "../../utils";
 
 const CustomFieldsStats = ({ customFields, data, help, onSliceClick, totalTitleForMultiChoice }) => {
-  const team = useRecoilValue(currentTeamState);
+  const team = useStore((state) => state.currentTeam);
 
   const customFieldsInStats = customFields
     .filter((f) => f)

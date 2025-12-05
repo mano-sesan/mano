@@ -7,6 +7,7 @@ import {
   flattenedCustomFieldsPersonsSelector,
   customFieldsMedicalFileSelector,
   flattenedCustomFieldsConsultationsSelector,
+  filterPersonsBaseSelector,
 } from "../../store/selectors";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
@@ -14,7 +15,6 @@ import Search from "../../components/search";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
 import CreatePerson from "./CreatePerson";
-import { filterPersonsBaseSelector, sortPersons } from "../../recoil/persons";
 import TagTeam from "../../components/TagTeam";
 import Filters, { filterData } from "../../components/Filters";
 import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
@@ -31,6 +31,7 @@ import PersonName from "../../components/PersonName";
 import { useDeletePerson } from "../../services/useDeletePerson";
 import { getPersonInfo } from "../../utils/get-person-infos";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import { sortPersons } from "../../recoil/persons";
 const limit = 20;
 
 const List = () => {
@@ -48,7 +49,7 @@ const List = () => {
   const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
   const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
   const consultationFields = useStore(flattenedCustomFieldsConsultationsSelector);
-  const filterPersonsBase = filterPersonsBaseSelector;
+  const filterPersonsBase = useStore(filterPersonsBaseSelector);
 
   // Local state
   const [search, setSearch] = useSearchParamState("search", "");

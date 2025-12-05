@@ -1,20 +1,15 @@
 import { useState, useCallback } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import {
-  customFieldsObsSelector,
-  groupedCustomFieldsObsSelector,
-  prepareObsForEncryption,
-  territoryObservationsState,
-} from "../../recoil/territoryObservations";
+import { prepareObsForEncryption } from "../../recoil/territoryObservations";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { EditCustomField } from "../../components/TableCustomFields";
 import { encryptItem } from "../../services/encryption";
 import { errorMessage } from "../../utils";
+import { useStore } from "../../store";
+import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../store/selectors";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};
@@ -25,9 +20,10 @@ const sanitizeFields = (field) => {
 };
 
 const ObservationsSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const flatCustomFieldsObs = useStore(customFieldsObsSelector);
+  const groupedCustomFieldsObs = useStore(groupedCustomFieldsObsSelector);
 
   const dataFormatted = groupedCustomFieldsObs.map((group) => ({
     groupTitle: group.name,
@@ -137,9 +133,10 @@ const ObservationsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const groupedCustomFieldsObs = useStore(groupedCustomFieldsObsSelector);
+  const flatCustomFieldsObs = useStore(customFieldsObsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -222,10 +219,11 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const observations = useRecoilValue(territoryObservationsState);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const observations = useStore((state) => state.territoryObservations);
+  const groupedCustomFieldsObs = useStore(groupedCustomFieldsObsSelector);
+  const flatCustomFieldsObs = useStore(customFieldsObsSelector);
 
   const { refresh } = useDataLoader();
 

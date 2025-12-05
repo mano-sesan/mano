@@ -22,6 +22,48 @@ import { useStore, type CommentInstance, type PassageInstance, type PlaceInstanc
 import { ageFromBirthdateAsYear, dayjsInstance, formatBirthDate } from "../services/date";
 import { extractInfosFromHistory } from "../utils/person-history";
 import { excludeConsultationsFieldsFromSearch } from "../recoil/consultations";
+import { Document, DocumentWithLinkedItem } from "../types/document";
+
+// === Memoization Utilities ===
+// Simple memoization for selectors - caches last result if inputs haven't changed
+
+type SelectorCache<T> = {
+  deps: unknown[];
+  result: T;
+};
+
+const selectorCaches = new Map<string, SelectorCache<unknown>>();
+
+function createMemoizedSelector<TState, TResult>(
+  name: string,
+  getDeps: (state: TState) => unknown[],
+  compute: (state: TState) => TResult
+): (state: TState) => TResult {
+  return (state: TState): TResult => {
+    const deps = getDeps(state);
+    const cached = selectorCaches.get(name) as SelectorCache<TResult> | undefined;
+
+    if (cached) {
+      // Check if all deps are the same by reference
+      let depsMatch = cached.deps.length === deps.length;
+      if (depsMatch) {
+        for (let i = 0; i < deps.length; i++) {
+          if (cached.deps[i] !== deps[i]) {
+            depsMatch = false;
+            break;
+          }
+        }
+      }
+      if (depsMatch) {
+        return cached.result;
+      }
+    }
+
+    const result = compute(state);
+    selectorCaches.set(name, { deps, result });
+    return result;
+  };
+}
 
 // === Auth Selectors ===
 
@@ -127,6 +169,26 @@ export const groupedCustomFieldsObsSelector = (state: { organisation: Organisati
   const org = state.organisation;
   if (Array.isArray(org?.groupedCustomFieldsObs) && org.groupedCustomFieldsObs.length) return org.groupedCustomFieldsObs;
   return [{ name: "Groupe par défaut", fields: defaultCustomFieldsObs }];
+};
+
+// === Medical File Selectors ===
+
+export const defaultMedicalFileCustomFields: CustomField[] = [];
+
+export const customFieldsMedicalFileSelector = (state: { organisation: OrganisationInstance | null }): CustomField[] => {
+  const org = state.organisation;
+  if (Array.isArray(org?.customFieldsMedicalFile) && org.customFieldsMedicalFile.length) {
+    return org.customFieldsMedicalFile;
+  }
+  return defaultMedicalFileCustomFields;
+};
+
+export const groupedCustomFieldsMedicalFileSelector = (state: { organisation: OrganisationInstance | null }): CustomFieldsGroup[] => {
+  const org = state.organisation;
+  if (Array.isArray(org?.groupedCustomFieldsMedicalFile) && org.groupedCustomFieldsMedicalFile.length) {
+    return org.groupedCustomFieldsMedicalFile;
+  }
+  return [{ name: "Groupe par défaut", fields: defaultMedicalFileCustomFields }];
 };
 
 export const defaultCustomFieldsObs: CustomField[] = [
@@ -463,7 +525,7 @@ export function computeItemsGroupedByPerson(state: {
       };
       documentsForModule.push(documentForModule);
       personsObject[person._id].interactions.push(document.createdAt);
-      if (!document.group) continue;
+      if (!(document as Document).group) continue;
       if (!personsObject[person._id].group) continue;
       for (const personIdInGroup of personsObject[person._id].group.persons) {
         if (personIdInGroup === person._id) continue;
@@ -949,14 +1011,158 @@ export function computeItemsGroupedByTreatment(state: {
   return result;
 }
 
-// Selector wrappers for compute functions
-export const itemsGroupedByActionSelector = computeItemsGroupedByAction;
-export const arrayOfitemsGroupedByActionSelector = computeArrayOfItemsGroupedByAction;
-export const itemsGroupedByConsultationSelector = computeItemsGroupedByConsultation;
-export const arrayOfitemsGroupedByConsultationSelector = computeArrayOfItemsGroupedByConsultation;
-export const itemsGroupedByPersonSelector = computeItemsGroupedByPerson;
-export const arrayOfItemsGroupedByPersonSelector = computeArrayOfItemsGroupedByPerson;
-export const personsWithMedicalFileAndConsultationsMergedSelector = computePersonsWithMedicalFileAndConsultationsMerged;
+// === Memoized Selectors ===
+// These selectors cache their results and only recompute when dependencies change
+
+type StoreState = {
+  actions: ActionInstance[];
+  consultations: ConsultationInstance[];
+  treatments: TreatmentInstance[];
+  persons: PersonInstance[];
+  users: UserInstance[];
+  places: PlaceInstance[];
+  relsPersonPlace: RelPersonPlaceInstance[];
+  comments: CommentInstance[];
+  passages: PassageInstance[];
+  groups: GroupInstance[];
+  medicalFiles: MedicalFileInstance[];
+  reports: ReportInstance[];
+  rencontres: RencontreInstance[];
+  territories: TerritoryInstance[];
+  territoryObservations: TerritoryObservationInstance[];
+  user: UserInstance | null;
+};
+
+// Memoized selector for actions grouped by ID with populated person/user
+export const itemsGroupedByActionSelector = createMemoizedSelector<StoreState, Record<string, any>>(
+  "itemsGroupedByAction",
+  (state) => [state.actions, state.persons, state.users, state.places, state.relsPersonPlace, state.comments],
+  computeItemsGroupedByAction
+);
+
+// Memoized selector for actions as array with populated person/user
+export const arrayOfitemsGroupedByActionSelector = createMemoizedSelector<StoreState, any[]>(
+  "arrayOfitemsGroupedByAction",
+  (state) => [state.actions, state.persons, state.users, state.places, state.relsPersonPlace, state.comments],
+  computeArrayOfItemsGroupedByAction
+);
+
+// Memoized selector for consultations grouped by ID with populated person/user
+export const itemsGroupedByConsultationSelector = createMemoizedSelector<StoreState, Record<string, any>>(
+  "itemsGroupedByConsultation",
+  (state) => [state.consultations, state.persons, state.users, state.places, state.relsPersonPlace],
+  computeItemsGroupedByConsultation
+);
+
+// Memoized selector for consultations as array with populated person/user
+export const arrayOfitemsGroupedByConsultationSelector = createMemoizedSelector<StoreState, any[]>(
+  "arrayOfitemsGroupedByConsultation",
+  (state) => [state.consultations, state.persons, state.users, state.places, state.relsPersonPlace],
+  computeArrayOfItemsGroupedByConsultation
+);
+
+// Memoized selector for treatments grouped by ID with populated person/user
+export const itemsGroupedByTreatmentSelector = createMemoizedSelector<StoreState, Record<string, any>>(
+  "itemsGroupedByTreatment",
+  (state) => [state.treatments, state.persons, state.users, state.places, state.relsPersonPlace],
+  computeItemsGroupedByTreatment
+);
+
+// Memoized selector for persons grouped by ID with all related data
+export const itemsGroupedByPersonSelector = createMemoizedSelector<StoreState, Record<string, any>>(
+  "itemsGroupedByPerson",
+  (state) => [
+    state.persons,
+    state.groups,
+    state.actions,
+    state.consultations,
+    state.treatments,
+    state.medicalFiles,
+    state.reports,
+    state.rencontres,
+    state.passages,
+    state.territories,
+    state.territoryObservations,
+    state.places,
+    state.relsPersonPlace,
+    state.comments,
+    state.user,
+    state.users,
+  ],
+  computeItemsGroupedByPerson
+);
+
+// Memoized selector for persons as array with all related data
+export const arrayOfItemsGroupedByPersonSelector = createMemoizedSelector<StoreState, any[]>(
+  "arrayOfItemsGroupedByPerson",
+  (state) => [
+    state.persons,
+    state.groups,
+    state.actions,
+    state.consultations,
+    state.treatments,
+    state.medicalFiles,
+    state.reports,
+    state.rencontres,
+    state.passages,
+    state.territories,
+    state.territoryObservations,
+    state.places,
+    state.relsPersonPlace,
+    state.comments,
+    state.user,
+    state.users,
+  ],
+  computeArrayOfItemsGroupedByPerson
+);
+
+// Memoized selector for populated passages
+export const populatedPassagesSelector = createMemoizedSelector<StoreState, PopulatedPassage[]>(
+  "populatedPassages",
+  (state) => [
+    state.passages,
+    state.persons,
+    state.groups,
+    state.actions,
+    state.consultations,
+    state.treatments,
+    state.medicalFiles,
+    state.reports,
+    state.rencontres,
+    state.territories,
+    state.territoryObservations,
+    state.places,
+    state.relsPersonPlace,
+    state.comments,
+    state.user,
+    state.users,
+  ],
+  computePopulatedPassages
+);
+
+// Memoized selector for persons with medical file and consultations merged
+export const personsWithMedicalFileAndConsultationsMergedSelector = createMemoizedSelector<StoreState, any[]>(
+  "personsWithMedicalFileAndConsultationsMerged",
+  (state) => [
+    state.persons,
+    state.groups,
+    state.actions,
+    state.consultations,
+    state.treatments,
+    state.medicalFiles,
+    state.reports,
+    state.rencontres,
+    state.passages,
+    state.territories,
+    state.territoryObservations,
+    state.places,
+    state.relsPersonPlace,
+    state.comments,
+    state.user,
+    state.users,
+  ],
+  computePersonsWithMedicalFileAndConsultationsMerged
+);
 
 // Populated passages
 export function computePopulatedPassages(state: {

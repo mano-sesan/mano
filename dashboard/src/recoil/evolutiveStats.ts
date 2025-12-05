@@ -49,6 +49,19 @@ export function computeEvolutiveStatsForPersons({
   viewAllOrganisationData: boolean;
   selectedTeamsObjectWithOwnPeriod: Record<UUIDV4, PeriodISODate>;
 }): EvolutiveStatRenderData {
+  // concepts:
+  // we select "indicators" (for now only one by one is possible) that are fields of the person
+  // one indicator is: one `field`, one `fromValue` and one `toValue`
+  // we want to see the number of switches from `fromValue` to `toValue` for the `field` of the persons - one person can have multiple switches
+  // if only `field` is defined, we present nothing for now
+  // if `fromValue` is defined, we present nothing from now - we will present the number of switches to any values from the `fromValue`
+  // if `toValue` is defined, we present two numbers only
+  // how do we calculate ?
+  // we start by the snapshot at the initial value (a snapshot is the picture of a person at a given date)
+  // then we go forward in time, and when we meet an entry in the history for the field,
+  // we ignore the history dates outside the period
+  // we check the number of switches from `fromValue` to `toValue` for the field during the period
+  // CAREFUL: if there is an `intermediateValue` between `fromValue` and `toValue`, it's not a switch
   const startDateConsolidated = startDate
     ? dayjsInstance(dayjsInstance(startDate).startOf("day").format("YYYY-MM-DD"))
     : dayjsInstance(startHistoryFeatureDate);

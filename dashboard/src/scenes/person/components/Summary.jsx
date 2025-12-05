@@ -1,5 +1,5 @@
-import { useRecoilValue } from "recoil";
-import { userState, organisationState } from "../../../recoil/auth";
+import { useStore } from "../../../store";
+import { customFieldsPersonsSelector } from "../../../store/selectors";
 import { Actions } from "./ActionsPerson";
 import { InfosMain } from "./InfosMain";
 import PersonCustomFields from "./PersonCustomFields";
@@ -8,16 +8,15 @@ import DeletePersonButton from "./DeletePersonButton";
 import PassagesRencontres from "./PassagesRencontres";
 import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
-import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
 import PersonDocumentsAlt from "./PersonDocumentsAlt";
 import PersonDocuments from "./PersonDocuments";
 import { MANO_TEST_ORG_ID } from "../../../config";
 
 export default function Summary({ person }) {
-  const user = useRecoilValue(userState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const customFieldsPersons = useStore(customFieldsPersonsSelector);
+  const organisation = useStore((state) => state.organisation);
 
   const useNewDocumentSystem =
     (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;

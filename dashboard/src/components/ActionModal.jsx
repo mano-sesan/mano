@@ -2,7 +2,7 @@ import { useState, useMemo, Fragment } from "react";
 import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
 import { useStore } from "../store";
-import { computeItemsGroupedByAction, computeItemsGroupedByPerson } from "../store/selectors";
+import { itemsGroupedByActionSelector, itemsGroupedByPersonSelector } from "../store/selectors";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
@@ -81,7 +81,7 @@ export default function ActionModal() {
 
 function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
   const location = useLocation();
-  const actionsObjects = useStore(computeItemsGroupedByAction);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
   const modalAction = useStore((state) => state.modalAction);
   const setModalAction = useStore((state) => state.setModalAction);
   const teams = useStore((state) => state.teams);
@@ -1124,7 +1124,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
 }
 
 function AllOccurrences({ action, onAfterActionClick }) {
-  const personsGrouped = useStore(computeItemsGroupedByPerson);
+  const personsGrouped = useStore(itemsGroupedByPersonSelector);
   const person = personsGrouped[action.person];
   const actions = (person?.actions || []).filter((e) => e.recurrence === action.recurrence);
   const [isAfterOpen, setIsAfterOpen] = useState(true);
@@ -1199,7 +1199,7 @@ function AllOccurrences({ action, onAfterActionClick }) {
 }
 
 function NextOccurrences({ action, setIsTransitioning }) {
-  const personsGrouped = useStore(computeItemsGroupedByPerson);
+  const personsGrouped = useStore(itemsGroupedByPersonSelector);
   const person = personsGrouped[action.person];
   const actions =
     person?.actions

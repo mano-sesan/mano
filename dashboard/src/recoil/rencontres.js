@@ -52,3 +52,35 @@ export const prepareRencontreForEncryption = (rencontre, { checkRequiredFields =
 export async function encryptRencontre(rencontre, { checkRequiredFields = true } = {}) {
   return encryptItem(prepareRencontreForEncryption(rencontre, { checkRequiredFields }));
 }
+
+export const sortRencontres =
+  (sortBy = "date", sortOrder = "ASC") =>
+  (a, b) => {
+    const defaultSort = (a, b) =>
+      sortOrder === "ASC" ? new Date(b.date).getTime() - new Date(a.date).getTime() : new Date(a.date).getTime() - new Date(b.date).getTime();
+    if (sortBy === "date") {
+      return defaultSort(a, b);
+    }
+    if (sortBy === "person") {
+      if (!a.personPopulated && !b.personPopulated) return defaultSort(a, b);
+      if (!a.personPopulated) return sortOrder === "ASC" ? 1 : -1;
+      if (!b.personPopulated) return sortOrder === "ASC" ? -1 : 1;
+      return sortOrder === "ASC"
+        ? a.personPopulated.name.localeCompare(b.personPopulated.name)
+        : b.personPopulated.name.localeCompare(a.personPopulated.name);
+    }
+    if (sortBy === "user") {
+      if (!a.userPopulated && !b.userPopulated) return defaultSort(a, b);
+      if (!a.userPopulated) return sortOrder === "ASC" ? 1 : -1;
+      if (!b.userPopulated) return sortOrder === "ASC" ? -1 : 1;
+      return sortOrder === "ASC"
+        ? a.userPopulated.name.localeCompare(b.userPopulated.name)
+        : b.userPopulated.name.localeCompare(a.userPopulated.name);
+    }
+    if (sortBy === "comment") {
+      if (!a.comment) return sortOrder === "ASC" ? 1 : -1;
+      if (!b.comment) return sortOrder === "ASC" ? -1 : 1;
+      return sortOrder === "ASC" ? a.comment.localeCompare(b.comment) : b.comment.localeCompare(a.comment);
+    }
+    return a[sortBy] > b[sortBy] ? 1 : -1;
+  };

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import DatePicker from "./DatePicker";
 import { useStore } from "../store";
-import { computeItemsGroupedByConsultation, consultationsFieldsIncludingCustomFieldsSelector } from "../store/selectors";
+import { consultationsFieldsIncludingCustomFieldsSelector, itemsGroupedByConsultationSelector } from "../store/selectors";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation, useHistory } from "react-router-dom";
@@ -28,16 +28,15 @@ import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../utils";
 
 export default function ConsultationModal() {
-  const consultationsObjects = useStore(computeItemsGroupedByConsultation);
+  const consultationsObjects = useStore(itemsGroupedByConsultationSelector);
+
   const history = useHistory();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const currentConsultationId = searchParams.get("consultationId");
   const newConsultation = searchParams.get("newConsultation");
-  const currentConsultation = useMemo(() => {
-    if (!currentConsultationId) return null;
-    return consultationsObjects[currentConsultationId];
-  }, [currentConsultationId, consultationsObjects]);
+
+  const currentConsultation = currentConsultationId ? consultationsObjects[currentConsultationId] : null;
   const personId = searchParams.get("personId");
   const date = searchParams.get("dueAt") || searchParams.get("completedAt");
 

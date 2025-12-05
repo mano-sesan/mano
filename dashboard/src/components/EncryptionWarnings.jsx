@@ -1,6 +1,7 @@
 import { useHistory } from "react-router-dom";
-import { useStore, MINIMUM_ENCRYPTION_KEY_LENGTH } from "../store";
+import { useStore } from "../store";
 import { dayjsInstance, formatDateWithNameOfDay } from "../services/date";
+import { MINIMUM_ENCRYPTION_KEY_LENGTH } from "../recoil/auth";
 
 const encryptionChangeOfKeyEnabled = true;
 const MAY_24_2024 = "2024-05-24";

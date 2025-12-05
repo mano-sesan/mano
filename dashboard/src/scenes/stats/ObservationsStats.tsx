@@ -1,13 +1,10 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { currentTeamState, teamsState, usersState, userState } from "../../recoil/auth";
 import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
 import { dayjsInstance } from "../../services/date";
-import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../recoil/territoryObservations";
 import Filters, { filterData } from "../../components/Filters";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
@@ -21,8 +18,9 @@ import type { TeamInstance } from "../../types/team";
 import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
 import { capitalize } from "../../utils";
-import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 import { useLocation } from "react-router-dom";
+import { useStore, defaultModalObservationState } from "../../store";
+import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../store/selectors";
 
 interface ObservationsStatsProps {
   territories: Array<TerritoryInstance>;
@@ -43,8 +41,8 @@ const ObservationsStats = ({
   period,
   selectedTeams,
 }: ObservationsStatsProps) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const groupedCustomFieldsObs = useStore(groupedCustomFieldsObsSelector);
 
   const filterBase: Array<FilterableField> = useMemo(() => {
     // Get all unique territory types from territories
@@ -86,7 +84,7 @@ const ObservationsStats = ({
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
 
   const onSliceClick = (newSlice: string, fieldName: FilterableField["field"], observationsConcerned = observations) => {
     if (["stats-only"].includes(user.role)) return;
@@ -196,11 +194,11 @@ const ObservationsStats = ({
 };
 
 const SelectedObsModal = ({ open, onClose, observations, territories, title, onAfterLeave, selectedTeams, period }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const teams = useRecoilValue(teamsState);
-  const team = useRecoilValue(currentTeamState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const users = useRecoilValue(usersState);
+  const setModalObservation = useStore((state) => state.setModalObservation);
+  const teams = useStore((state) => state.teams);
+  const team = useStore((state) => state.currentTeam);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const users = useStore((state) => state.users);
   const location = useLocation();
 
   const exportXlsx = () => {

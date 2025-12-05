@@ -1,27 +1,27 @@
 import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
-import { useRecoilValue } from "recoil";
-import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../recoil/persons";
 import { utils, writeFile } from "@e965/xlsx";
 import { dayjsInstance } from "../../services/date";
-import { currentTeamState, teamsState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { customFieldsObsSelector } from "../../recoil/territoryObservations";
-import { territoriesState } from "../../recoil/territory";
-import { consultationFieldsSelector } from "../../recoil/consultations";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { useStore } from "../../store";
+import {
+  personFieldsIncludingCustomFieldsSelector,
+  customFieldsObsSelector,
+  consultationFieldsSelector,
+  customFieldsMedicalFileSelector,
+} from "../../store/selectors";
 
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
-  const teams = useRecoilValue(teamsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsState);
-  const territories = useRecoilValue(territoriesState);
-  const user = useRecoilValue(userState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const consultationsFields = useRecoilValue(consultationFieldsSelector);
+  const teams = useStore((state) => state.teams);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const persons = useStore((state) => state.persons);
+  const territories = useStore((state) => state.territories);
+  const user = useStore((state) => state.user);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const consultationsFields = useStore(consultationFieldsSelector);
   const [users, setUsers] = useState([]);
 
   // Helper function to safely truncate text values for Excel export
