@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
+import { useStore } from "../../store";
 import SelectCustom from "../../components/SelectCustom";
-import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 
 const NoOptionsMessage = () => (
@@ -11,7 +10,8 @@ const NoOptionsMessage = () => (
 );
 
 const SelectAndCreateCollaboration = ({ values, onChange, className = "", inputId }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   const onChangeRequest = (newCollabs) => {
     onChange({ currentTarget: { value: newCollabs || [], name: "collaborations" } });

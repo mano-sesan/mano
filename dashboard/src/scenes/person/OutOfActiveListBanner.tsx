@@ -1,10 +1,9 @@
 import { formatDateWithFullMonth } from "../../services/date";
-import { currentTeamState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
 import { HistoryEntryForOutOfTeamsInformations, OutOfTeamsInformation, PersonInstance, FieldChangeData } from "../../types/person";
 
 export default function OutOfActiveListBanner({ person }: { person: PersonInstance }) {
-  const team = useRecoilValue(currentTeamState);
+  const team = useStore((state) => state.currentTeam);
 
   if (person.outOfActiveList) {
     return (

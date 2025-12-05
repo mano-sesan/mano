@@ -1,14 +1,13 @@
-import { useRecoilValue } from "recoil";
-import { computeEvolutiveStatsForPersons, evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
+import { computeEvolutiveStatsForPersons } from "../recoil/evolutiveStats";
 import type { PersonPopulated } from "../types/person";
 import type { IndicatorsSelection } from "../types/evolutivesStats";
 import { useState, useMemo } from "react";
 import { capture } from "../services/sentry";
 import type { FilterableField } from "../types/field";
 import { SelectedPersonsModal } from "../scenes/stats/PersonsStats";
-import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { CustomResponsivePie } from "../scenes/stats/Charts";
-import { userAuthentifiedState } from "../recoil/auth";
+import { useStore } from "../store";
+import { itemsGroupedByPersonSelector, evolutiveStatsIndicatorsBaseSelector, userAuthentifiedSelector } from "../store/selectors";
 
 interface EvolutiveStatsViewerProps {
   evolutiveStatsIndicators: IndicatorsSelection;
@@ -32,9 +31,9 @@ export default function EvolutiveStatsViewer({
 }: EvolutiveStatsViewerProps) {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [modalValueEnd, setModalValueEnd] = useState<string | null>(null);
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const user = useRecoilValue(userAuthentifiedState);
-  const evolutiveStatsIndicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
+  const personsObject = useStore(itemsGroupedByPersonSelector);
+  const user = useStore(userAuthentifiedSelector);
+  const evolutiveStatsIndicatorsBase = useStore(evolutiveStatsIndicatorsBaseSelector);
 
   const evolutiveStatsPerson = useMemo(() => {
     return computeEvolutiveStatsForPersons({

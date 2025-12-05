@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
-import { teamsState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
+import { fieldsPersonsCustomizableOptionsSelector } from "../../store/selectors";
 import ButtonCustom from "../../components/ButtonCustom";
-import { fieldsPersonsCustomizableOptionsSelector, usePreparePersonForEncryption } from "../../recoil/persons";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { outOfBoundariesDate } from "../../services/date";
 import SelectCustom from "../../components/SelectCustom";
@@ -16,12 +16,12 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../compo
 const OutOfActiveList = ({ person }) => {
   const [open, setOpen] = useState(false);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
 
   const { encryptPerson } = usePreparePersonForEncryption();
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
 
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
+  const fieldsPersonsCustomizableOptions = useStore(fieldsPersonsCustomizableOptionsSelector);
 
   const reintegerInActiveList = async () => {
     const historyEntry = {

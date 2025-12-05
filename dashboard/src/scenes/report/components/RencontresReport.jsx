@@ -3,14 +3,13 @@ import dayjs from "dayjs";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
-import { currentTeamState, userState, usersState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
+import { personsObjectSelector } from "../../../store/selectors";
 import UserName from "../../../components/UserName";
 import TagTeam from "../../../components/TagTeam";
 import PersonName from "../../../components/PersonName";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import Rencontre from "../../../components/Rencontre";
-import { personsObjectSelector } from "../../../recoil/selectors";
 import { sortRencontres } from "../../../recoil/rencontres";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 
@@ -57,10 +56,10 @@ export const RencontresReport = ({ rencontres, period, selectedTeams }) => {
 };
 
 const RencontresTable = ({ period, rencontres, selectedTeams }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsObjectSelector);
-  const user = useRecoilValue(userState);
-  const users = useRecoilValue(usersState);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const persons = useStore(personsObjectSelector);
+  const user = useStore((state) => state.user);
+  const users = useStore((state) => state.users);
   const [rencontreToEdit, setRencontreToEdit] = useState(null);
 
   const [sortBy, setSortBy] = useLocalStorage("report-rencontre-sortBy", "dueAt");

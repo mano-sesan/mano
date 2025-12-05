@@ -1,32 +1,29 @@
 import { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import {
+  personsWithMedicalFileAndConsultationsMergedSelector,
+  fieldsPersonsCustomizableOptionsSelector,
+  flattenedCustomFieldsPersonsSelector,
+  customFieldsMedicalFileSelector,
+  flattenedCustomFieldsConsultationsSelector,
+} from "../../store/selectors";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Search from "../../components/search";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
 import CreatePerson from "./CreatePerson";
-import {
-  fieldsPersonsCustomizableOptionsSelector,
-  filterPersonsBaseSelector,
-  flattenedCustomFieldsPersonsSelector,
-  sortPersons,
-} from "../../recoil/persons";
+import { filterPersonsBaseSelector, sortPersons } from "../../recoil/persons";
 import TagTeam from "../../components/TagTeam";
 import Filters, { filterData } from "../../components/Filters";
 import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
-import { personsWithMedicalFileAndConsultationsMergedSelector } from "../../recoil/selectors";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { placesState } from "../../recoil/places";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -36,60 +33,44 @@ import { getPersonInfo } from "../../utils/get-person-infos";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
 const limit = 20;
 
-const personsFilteredSelector = selectorFamily({
-  key: "personsFilteredSelector",
-  get:
-    ({ viewAllOrganisationData, filters, alertness }) =>
-    ({ get }) => {
-      const personsWithBirthDate = get(personsWithMedicalFileAndConsultationsMergedSelector);
-      const currentTeam = get(currentTeamState);
-      let pFiltered = personsWithBirthDate;
-      if (filters?.filter((f) => Boolean(f?.value)).length) pFiltered = filterData(pFiltered, filters);
-      if (alertness) pFiltered = pFiltered.filter((p) => !!p.alertness);
-      if (viewAllOrganisationData) return pFiltered;
-      return pFiltered.filter((p) => p.assignedTeams?.includes(currentTeam._id));
-    },
-});
+const List = () => {
+  useTitle("Personnes");
+  useDataLoader({ refreshOnMount: true });
+  const isDesktop = useMinimumWidth("sm");
 
-const personsFilteredBySearchSelector = selectorFamily({
-  key: "personsFilteredBySearchSelector",
-  get:
-    ({ viewAllOrganisationData, filters, alertness, search, sortBy, sortOrder }) =>
-    ({ get }) => {
-      const personsFiltered = get(personsFilteredSelector({ viewAllOrganisationData, filters, alertness }));
-      const personsSorted = [...personsFiltered].sort(sortPersons(sortBy, sortOrder));
-      const user = get(userState);
+  // State from Zustand
+  const personsWithBirthDate = useStore(personsWithMedicalFileAndConsultationsMergedSelector);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
+  const places = useStore((state) => state.places);
+  const fieldsPersonsCustomizableOptions = useStore(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = useStore(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
+  const consultationFields = useStore(flattenedCustomFieldsConsultationsSelector);
+  const filterPersonsBase = filterPersonsBaseSelector;
 
-      if (!search?.length) {
-        return personsSorted;
-      }
+  // Local state
+  const [search, setSearch] = useSearchParamState("search", "");
+  const [lastPersonsViewed, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
+  const [alertness, setFilterAlertness] = useLocalStorage("person-alertness", false);
+  const [viewAllOrganisationDataChecked, setViewAllOrganisationData] = useLocalStorage("person-allOrg", true);
+  const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
+  const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
+  const [filters, setFilters] = useLocalStorage("person-filters", []);
+  const [page, setPage] = useSearchParamState("page", 0);
+  const [deleteMultiple, setDeleteMultiple] = useState(false);
+  const [checkedForDelete, setCheckedForDelete] = useState([]);
+  const deletePerson = useDeletePerson();
+  const { refresh } = useDataLoader();
+  const viewAllOrganisationData = organisation.checkboxShowAllOrgaPersons && viewAllOrganisationDataChecked;
 
-      const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
-      const restrictedFields =
-        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
-
-      const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields, restrictedFields);
-
-      return personsfilteredBySearch;
-    },
-});
-
-const filterPersonsWithAllFieldsSelector = selector({
-  key: "filterPersonsWithAllFieldsSelector",
-  get: ({ get }) => {
-    const places = get(placesState);
-    const user = get(userState);
-    const team = get(currentTeamState);
-    const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector);
-    const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
-    const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
-    const consultationFields = get(flattenedCustomFieldsConsultationsSelector);
-    const filterPersonsBase = get(filterPersonsBaseSelector);
-
+  // Compute filter fields (converted from filterPersonsWithAllFieldsSelector)
+  const filterPersonsWithAllFields = useMemo(() => {
     const filterBase = [
       ...filterPersonsBase,
-      ...fieldsPersonsCustomizableOptions.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
-      ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(team._id)).map((a) => ({ field: a.name, ...a })),
+      ...fieldsPersonsCustomizableOptions.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a })),
+      ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a })),
       {
         label: "Lieux fréquentés",
         field: "places",
@@ -99,45 +80,52 @@ const filterPersonsWithAllFieldsSelector = selector({
     if (user.healthcareProfessional) {
       filterBase.push(
         ...customFieldsMedicalFile
-          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
           .map((a) => ({ field: a.name, category: "medicalFile", ...a }))
       );
       filterBase.push(
         ...consultationFields
-          .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
           .map((a) => ({ field: a.name, category: "flattenedConsultations", ...a }))
       );
     }
     return filterBase;
-  },
-});
+  }, [
+    filterPersonsBase,
+    fieldsPersonsCustomizableOptions,
+    flattenedCustomFieldsPersons,
+    places,
+    user.healthcareProfessional,
+    customFieldsMedicalFile,
+    consultationFields,
+    currentTeam._id,
+  ]);
 
-const List = () => {
-  useTitle("Personnes");
-  useDataLoader({ refreshOnMount: true });
-  const isDesktop = useMinimumWidth("sm");
-  const filterPersonsWithAllFields = useRecoilValue(filterPersonsWithAllFieldsSelector);
+  // Filter persons (converted from personsFilteredSelector)
+  const personsFiltered = useMemo(() => {
+    let pFiltered = personsWithBirthDate;
+    if (filters?.filter((f) => Boolean(f?.value)).length) pFiltered = filterData(pFiltered, filters);
+    if (alertness) pFiltered = pFiltered.filter((p) => !!p.alertness);
+    if (viewAllOrganisationData) return pFiltered;
+    return pFiltered.filter((p) => p.assignedTeams?.includes(currentTeam._id));
+  }, [personsWithBirthDate, filters, alertness, viewAllOrganisationData, currentTeam._id]);
 
-  const [search, setSearch] = useSearchParamState("search", "");
-  const [lastPersonsViewed, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
-  const [alertness, setFilterAlertness] = useLocalStorage("person-alertness", false);
-  const [viewAllOrganisationDataChecked, setViewAllOrganisationData] = useLocalStorage("person-allOrg", true);
-  const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
-  const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
-  const [filters, setFilters] = useLocalStorage("person-filters", []);
-  const [page, setPage] = useSearchParamState("page", 0);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const [deleteMultiple, setDeleteMultiple] = useState(false);
-  const [checkedForDelete, setCheckedForDelete] = useState([]);
-  const deletePerson = useDeletePerson();
-  const { refresh } = useDataLoader();
-  const viewAllOrganisationData = organisation.checkboxShowAllOrgaPersons && viewAllOrganisationDataChecked;
+  // Filter and sort by search (converted from personsFilteredBySearchSelector)
+  const personsFilteredBySearch = useMemo(() => {
+    const personsSorted = [...personsFiltered].sort(sortPersons(sortBy, sortOrder));
 
-  const personsFilteredBySearch = useRecoilValue(
-    personsFilteredBySearchSelector({ search, viewAllOrganisationData, filters, alertness, sortBy, sortOrder })
-  );
+    if (!search?.length) {
+      return personsSorted;
+    }
+
+    const excludeFields = user.healthcareProfessional ? [] : ["consultations", "treatments", "commentsMedical", "medicalFile"];
+    const restrictedFields =
+      user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
+
+    const personsfilteredBySearch = filterBySearch(search, personsSorted, excludeFields, restrictedFields);
+
+    return personsfilteredBySearch;
+  }, [personsFiltered, sortBy, sortOrder, search, user.healthcareProfessional, user.role]);
 
   const data = useMemo(() => {
     return personsFilteredBySearch.filter((_, index) => index < (page + 1) * limit && index >= page * limit);
@@ -161,11 +149,11 @@ const List = () => {
           Personnes suivies par{" "}
           {viewAllOrganisationData ? (
             <>
-              l’organisation <b>{organisation.name}</b>
+              l'organisation <b>{organisation.name}</b>
             </>
           ) : (
             <>
-              l’équipe <b>{currentTeam?.name || ""}</b>
+              l'équipe <b>{currentTeam?.name || ""}</b>
             </>
           )}
         </div>

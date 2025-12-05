@@ -1,18 +1,17 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
 import TagTeam from "../../../components/TagTeam";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
-import { territoriesState } from "../../../recoil/territory";
 import { dayjsInstance } from "../../../services/date";
-import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
-import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
+import { useStore } from "../../../store";
+import { customFieldsObsSelector, currentTeamAuthentifiedSelector, userAuthentifiedSelector } from "../../../store/selectors";
+import { defaultModalObservationState } from "../../../store";
+import { sortTerritoriesObservations } from "../../../recoil/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
 import { useLocation } from "react-router-dom";
 
 export const ObservationsReport = ({ observations, period, selectedTeams }) => {
@@ -58,15 +57,15 @@ export const ObservationsReport = ({ observations, period, selectedTeams }) => {
 };
 
 const ObservationsTable = ({ period, observations, selectedTeams }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
+  const setModalObservation = useStore((state) => state.setModalObservation);
   const [sortBy, setSortBy] = useLocalStorage("report-territory-obs-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("report-territory-obs-sortOrder", "ASC");
-  const territories = useRecoilValue(territoriesState);
-  const teams = useRecoilValue(teamsState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const users = useRecoilValue(usersState);
+  const territories = useStore((state) => state.territories);
+  const teams = useStore((state) => state.teams);
+  const team = useStore(currentTeamAuthentifiedSelector);
+  const user = useStore(userAuthentifiedSelector);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const users = useStore((state) => state.users);
   const location = useLocation();
 
   const exportXlsx = () => {

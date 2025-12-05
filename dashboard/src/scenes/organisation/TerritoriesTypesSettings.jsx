@@ -1,16 +1,17 @@
 import { useState, useCallback, useMemo } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import { territoriesTypesSelector, flattenedTerritoriesTypesSelector } from "../../store/selectors";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesState, territoriesTypesSelector } from "../../recoil/territory";
+import { encryptTerritory } from "../../recoil/territory";
 
 const TerritoriesTypesSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const territoriesGroupedTypes = useStore(territoriesTypesSelector);
   const dataFormatted = useMemo(() => {
     return territoriesGroupedTypes.map(({ groupTitle, types }) => ({
       groupTitle,
@@ -50,10 +51,11 @@ const TerritoriesTypesSettings = () => {
 };
 
 const AddType = ({ groupTitle }) => {
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
-  const flattenedTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoriesGroupedTypes = useStore(territoriesTypesSelector);
+  const flattenedTypes = useStore(flattenedTerritoriesTypesSelector);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   const onAddType = async (e) => {
     e.preventDefault();
@@ -107,13 +109,14 @@ const AddType = ({ groupTitle }) => {
 
 const TerritoryType = ({ item: type, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const [isEditingType, setIsEditingType] = useState(false);
-  const territories = useRecoilValue(territoriesState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const territories = useStore((state) => state.territories);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
-  const territoriesGroupedTypes = useRecoilValue(territoriesTypesSelector);
-  const flattenedTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoriesGroupedTypes = useStore(territoriesTypesSelector);
+  const flattenedTypes = useStore(flattenedTerritoriesTypesSelector);
   const { refresh } = useDataLoader();
 
   const onEditType = async (e) => {

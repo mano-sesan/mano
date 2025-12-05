@@ -1,18 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { selector, useRecoilValue } from "recoil";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import API, { tryFetchExpectOk } from "../../services/api";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
-import { organisationState, usersState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import TagTeam from "../../components/TagTeam";
 import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import { personsState, sortPersons } from "../../recoil/persons";
+import { sortPersons } from "../../recoil/persons";
 import PersonName from "../../components/PersonName";
 import ActionOrConsultationName from "../../components/ActionOrConsultationName";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
@@ -33,37 +32,36 @@ async function fetchPersons(organisationId) {
   return decryptedData;
 }
 
-const mergedPersonIdsSelector = selector({
-  key: "mergedPersonIdsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    const mergedIds = new Set();
+// Selector function to get merged person IDs
+const getMergedPersonIds = (persons) => {
+  const mergedIds = new Set();
 
-    for (const person of persons) {
-      if (!person.history) continue;
+  for (const person of persons) {
+    if (!person.history) continue;
 
-      for (const historyEntry of person.history) {
-        if (historyEntry.data?.merge?._id) {
-          mergedIds.add(historyEntry.data.merge._id);
-        }
+    for (const historyEntry of person.history) {
+      if (historyEntry.data?.merge?._id) {
+        mergedIds.add(historyEntry.data.merge._id);
       }
     }
+  }
 
-    return Array.from(mergedIds);
-  },
-});
+  return Array.from(mergedIds);
+};
 
 export default function Poubelle() {
   const { refresh } = useDataLoader();
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
   const [persons, setPersons] = useState();
   const [data, setData] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
   const [refreshKey, setRefreshKey] = useState(0);
-  const users = useRecoilValue(usersState);
-  const mergedPersonIds = useRecoilValue(mergedPersonIdsSelector);
+  const users = useStore((state) => state.users);
+  const allPersons = useStore((state) => state.persons);
+
+  const mergedPersonIds = useMemo(() => getMergedPersonIds(allPersons), [allPersons]);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {

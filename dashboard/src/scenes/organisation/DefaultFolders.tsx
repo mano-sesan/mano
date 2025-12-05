@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import DocumentsOrganizer from "../../components/DocumentsOrganizer";
 import { Folder } from "../../types/document";
 import { FolderModal } from "../../components/DocumentsGeneric";
-import { useRecoilValue } from "recoil";
-import { organisationAuthentifiedState } from "../../recoil/auth";
+import { useStore } from "../../store";
+import { organisationAuthentifiedSelector } from "../../store/selectors";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";
@@ -15,7 +15,7 @@ function DefaultFolders({
   errorText: string;
   organisationProperty: "defaultPersonsFolders" | "defaultMedicalFolders";
 }) {
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
   const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
   const [addFolder, setAddFolder] = useState(false);
   const [items, setItems] = useState<Array<Folder>>(organisation[organisationProperty] || []);

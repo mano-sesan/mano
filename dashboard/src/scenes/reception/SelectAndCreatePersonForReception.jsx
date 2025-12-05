@@ -1,16 +1,13 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { selector, useRecoilState, useRecoilValue } from "recoil";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
+import { useStore } from "../../store";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
-import { TODO, actionsState } from "../../recoil/actions";
-import { passagesState } from "../../recoil/passages";
-import { rencontresState } from "../../recoil/rencontres";
+import { TODO } from "../../recoil/actions";
 import { useHistory } from "react-router-dom";
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { theme } from "../../config";
 import dayjs from "dayjs";
@@ -36,21 +33,6 @@ function personsToOptions(persons, actions, passages, rencontres, urgentActions)
   }));
 }
 
-const searchablePersonsSelector = selector({
-  key: "searchablePersonsSelectorForReception",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return persons.map((person) => {
-      return {
-        ...person,
-        searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
-          .join(" ")
-          .toLowerCase(),
-      };
-    });
-  },
-});
-
 // This function is used to filter persons by search string. It ignores diacritics and accents.
 const filterEasySearch = (search, items = []) => {
   const searchNormalized = removeDiatricsAndAccents((search || "").toLocaleLowerCase());
@@ -71,19 +53,28 @@ const filterEasySearch = (search, items = []) => {
 
 const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
   const { refresh } = useDataLoader();
-  const [persons] = useRecoilState(personsState);
+  const persons = useStore((state) => state.persons);
   const [isDisabled, setIsDisabled] = useState(false);
-  const actions = useRecoilValue(actionsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
+  const actions = useStore((state) => state.actions);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
+  const passages = useStore((state) => state.passages);
+  const rencontres = useStore((state) => state.rencontres);
 
   const optionsExist = useRef(null);
   const { encryptPerson } = usePreparePersonForEncryption();
 
-  const searchablePersons = useRecoilValue(searchablePersonsSelector);
+  const searchablePersons = useMemo(() => {
+    return persons.map((person) => {
+      return {
+        ...person,
+        searchString: [removeDiatricsAndAccents(person.name), removeDiatricsAndAccents(person.otherNames), formatBirthDate(person.birthdate)]
+          .join(" ")
+          .toLowerCase(),
+      };
+    });
+  }, [persons]);
 
   const lastActions = useMemo(() => {
     return Object.values(
@@ -251,7 +242,7 @@ const PersonSelected = ({ person, showLinkToPerson }) => {
 
 const Person = ({ person, showLinkToPerson }) => {
   const history = useHistory();
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   return (
     <div className="-tw-mt-2 tw-border-t tw-border-t-gray-300 tw-pb-1 tw-pt-2.5">
       <div className="tw-mb-1 tw-flex tw-gap-1">
@@ -315,7 +306,7 @@ const Person = ({ person, showLinkToPerson }) => {
             person.lastPassage?.date ? (
               isToday(person.lastPassage?.date) ? (
                 <div className="tw-mt-1">
-                  <div className="tw-rounded tw-bg-violet-700 tw-px-1 tw-py-0.5 tw-font-bold tw-text-white tw-w-fit">Aujourd’hui</div>
+                  <div className="tw-rounded tw-bg-violet-700 tw-px-1 tw-py-0.5 tw-font-bold tw-text-white tw-w-fit">Aujourd'hui</div>
                 </div>
               ) : (
                 formatCalendarDate(person.lastPassage?.date)

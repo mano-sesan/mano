@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../../store";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import type { PersonPopulated } from "../../../types/person";
 import Search from "../../../components/search";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
 import Table from "../../../components/table";
-import { userState } from "../../../recoil/auth";
 import { formatDateWithFullMonth } from "../../../services/date";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { filterBySearch } from "../../search/utils";
@@ -48,7 +47,7 @@ export default function SearchInPerson({ person }: { person: PersonPopulated }) 
 }
 
 function SearchResults({ person, search }: { person: PersonPopulated; search: string }) {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const initTabs = useMemo(() => {
     const defaultTabs = ["Actions", "Commentaires non médicaux", "Lieux", "Documents non médicaux"];
     if (!user.healthcareProfessional) return defaultTabs;

@@ -3,13 +3,10 @@ import { useParams } from "react-router-dom";
 import { addOneDay, dateForDatePicker, formatDateWithNameOfDay, dayjsInstance } from "../../services/date";
 import { TODO } from "../../recoil/actions";
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { flattenedServicesSelector, reportsState } from "../../recoil/reports";
-import { selectorFamily, useRecoilValue } from "recoil";
-import { passagesState } from "../../recoil/passages";
+import { useStore } from "../../store";
+import { flattenedServicesSelector, arrayOfItemsGroupedByPersonSelector, onlyFilledObservationsTerritoriesSelector } from "../../store/selectors";
 import useTitle from "../../services/useTitle";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
-import { arrayOfitemsGroupedByPersonSelector, onlyFilledObservationsTerritories } from "../../recoil/selectors";
 import { ActionsOrConsultationsReport } from "./components/ActionsOrConsultationsReport";
 import ServicesReport from "./components/ServicesReport";
 import DateRangePickerWithPresets, { formatPeriod, reportsPresets } from "../../components/DateRangePickerWithPresets";
@@ -38,198 +35,202 @@ const getPeriodTitle = (date, nightSession) => {
   );
 };
 
-const itemsForReportsSelector = selectorFamily({
-  key: "itemsForReportsSelector",
-  get:
-    ({ period, viewAllOrganisationData, selectedTeamsObjectWithOwnPeriod }) =>
-    ({ get }) => {
-      const filterItemByTeam = (item, key) => {
-        if (viewAllOrganisationData) return true;
-        if (Array.isArray(item[key])) {
-          for (const team of item[key]) {
-            if (selectedTeamsObjectWithOwnPeriod[team]) return true;
-          }
-        }
-        return !!selectedTeamsObjectWithOwnPeriod[item[key]];
-      };
-
-      const allPersons = get(arrayOfitemsGroupedByPersonSelector);
-      const allObservations = get(onlyFilledObservationsTerritories);
-      const allPassages = get(passagesState);
-      const allReports = get(reportsState);
-
-      const defaultIsoDates = {
-        isoStartDate: dayjsInstance(period.startDate).toISOString(),
-        isoEndDate: dayjsInstance(period.endDate).toISOString(),
-      };
-
-      const personsCreated = {};
-      const personsUpdated = {};
-      const actions = {};
-      const actionsCreated = {};
-      const consultations = {};
-      const consultationsCreated = {};
-      const comments = {};
-      const commentsMedical = {};
-      const passages = {};
-      const rencontres = {};
-      const observations = {};
-      const reports = {};
-
-      for (let person of allPersons) {
-        // get persons for reports for period
-        const createdDate = person.followedSince || person.createdAt;
-
-        const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
-          viewAllOrganisationData,
-          selectedTeamsObjectWithOwnPeriod,
-          assignedTeamsPeriods: person.assignedTeamsPeriods,
-          isoEndDate: defaultIsoDates.isoEndDate,
-          isoStartDate: defaultIsoDates.isoStartDate,
-        });
-        if (personIsInAssignedTeamDuringPeriod) {
-          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[person.assignedTeams] ?? defaultIsoDates;
-          if (createdDate >= isoStartDate && createdDate < isoEndDate) {
-            personsCreated[person._id] = person;
-            personsUpdated[person._id] = person;
-          }
-          for (const date of person.interactions) {
-            if (date < isoStartDate) continue;
-            if (date >= isoEndDate) continue;
-            personsUpdated[person._id] = person;
-            break;
-          }
-        }
-        // get actions for period
-        for (const action of person.actions || []) {
-          if (!filterItemByTeam(action, "teams")) continue;
-          if (Array.isArray(action.teams)) {
-            let isIncluded = false;
-            for (const team of action.teams) {
-              const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
-              if (action.createdAt >= isoStartDate && action.createdAt < isoEndDate) {
-                actionsCreated[action._id] = action;
-              }
-              if (action.completedAt >= isoStartDate && action.completedAt < isoEndDate) {
-                isIncluded = true;
-                continue;
-              }
-              if (action.status !== TODO) continue;
-              if (action.dueAt >= isoStartDate && action.dueAt < isoEndDate) {
-                isIncluded = true;
-              }
-            }
-            if (!isIncluded) continue;
-            actions[action._id] = action;
-          }
-        }
-        for (const consultation of person.consultations || []) {
-          if (!filterItemByTeam(consultation, "teams")) continue;
-          if (Array.isArray(consultation.teams)) {
-            let isIncluded = false;
-            for (const team of consultation.teams) {
-              const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
-              if (consultation.createdAt >= isoStartDate && consultation.createdAt < isoEndDate) {
-                consultationsCreated[consultation._id] = consultation;
-              }
-              if (consultation.completedAt >= isoStartDate && consultation.completedAt < isoEndDate) {
-                isIncluded = true;
-                continue;
-              }
-              if (consultation.status !== TODO) continue;
-              if (consultation.dueAt >= isoStartDate && consultation.dueAt < isoEndDate) {
-                isIncluded = true;
-              }
-            }
-            if (!isIncluded) continue;
-            consultations[consultation._id] = consultation;
-          }
-        }
-        for (const rencontre of person.rencontres || []) {
-          if (!filterItemByTeam(rencontre, "team")) continue;
-          const date = rencontre.date;
-          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[rencontre.team] ?? defaultIsoDates;
-          if (date < isoStartDate) continue;
-          if (date >= isoEndDate) continue;
-          rencontres[rencontre._id] = rencontre;
-        }
-        for (const commentMedical of person.commentsMedical || []) {
-          if (!filterItemByTeam(commentMedical, "team")) continue;
-          const date = commentMedical.date;
-          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[commentMedical.team] ?? defaultIsoDates;
-          if (date < isoStartDate) continue;
-          if (date >= isoEndDate) continue;
-          commentsMedical[commentMedical._id] = commentMedical;
-        }
-        for (const comment of person.comments || []) {
-          if (!filterItemByTeam(comment, "team")) continue;
-          const date = comment.date;
-          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[comment.team] ?? defaultIsoDates;
-          if (date < isoStartDate) continue;
-          if (date >= isoEndDate) continue;
-          comments[comment._id] = { ...comment, person: person._id };
-        }
+// Helper function to compute items for reports (converted from Recoil selectorFamily)
+function computeItemsForReports({
+  period,
+  viewAllOrganisationData,
+  selectedTeamsObjectWithOwnPeriod,
+  allPersons,
+  allObservations,
+  allPassages,
+  allReports,
+}) {
+  const filterItemByTeam = (item, key) => {
+    if (viewAllOrganisationData) return true;
+    if (Array.isArray(item[key])) {
+      for (const team of item[key]) {
+        if (selectedTeamsObjectWithOwnPeriod[team]) return true;
       }
+    }
+    return !!selectedTeamsObjectWithOwnPeriod[item[key]];
+  };
 
-      // all passages here and not above because some passages are not linked to a person
-      for (const passage of allPassages) {
-        if (!filterItemByTeam(passage, "team")) continue;
-        const date = passage.date;
-        // Je ne sais pas pourquoi, mais il semblerait que certains passages n'aient pas de date.
-        // cf: https://www.notion.so/mano-sesan/Bug-affichage-des-passage-6f539d3706c04b27b1290a39763d91e5
-        if (!date) continue;
-        const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[passage.team] ?? defaultIsoDates;
+  const defaultIsoDates = {
+    isoStartDate: dayjsInstance(period.startDate).toISOString(),
+    isoEndDate: dayjsInstance(period.endDate).toISOString(),
+  };
+
+  const personsCreated = {};
+  const personsUpdated = {};
+  const actions = {};
+  const actionsCreated = {};
+  const consultations = {};
+  const consultationsCreated = {};
+  const comments = {};
+  const commentsMedical = {};
+  const passages = {};
+  const rencontres = {};
+  const observations = {};
+  const reports = {};
+
+  for (let person of allPersons) {
+    // get persons for reports for period
+    const createdDate = person.followedSince || person.createdAt;
+
+    const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
+      viewAllOrganisationData,
+      selectedTeamsObjectWithOwnPeriod,
+      assignedTeamsPeriods: person.assignedTeamsPeriods,
+      isoEndDate: defaultIsoDates.isoEndDate,
+      isoStartDate: defaultIsoDates.isoStartDate,
+    });
+    if (personIsInAssignedTeamDuringPeriod) {
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[person.assignedTeams] ?? defaultIsoDates;
+      if (createdDate >= isoStartDate && createdDate < isoEndDate) {
+        personsCreated[person._id] = person;
+        personsUpdated[person._id] = person;
+      }
+      for (const date of person.interactions) {
         if (date < isoStartDate) continue;
         if (date >= isoEndDate) continue;
-        passages[passage._id] = passage;
+        personsUpdated[person._id] = person;
+        break;
       }
-
-      for (const observation of allObservations) {
-        if (!filterItemByTeam(observation, "team")) continue;
-        const date = observation.observedAt;
-        const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[observation.team] ?? defaultIsoDates;
-        if (date < isoStartDate) continue;
-        if (date >= isoEndDate) continue;
-        observations[observation._id] = observation;
+    }
+    // get actions for period
+    for (const action of person.actions || []) {
+      if (!filterItemByTeam(action, "teams")) continue;
+      if (Array.isArray(action.teams)) {
+        let isIncluded = false;
+        for (const team of action.teams) {
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
+          if (action.createdAt >= isoStartDate && action.createdAt < isoEndDate) {
+            actionsCreated[action._id] = action;
+          }
+          if (action.completedAt >= isoStartDate && action.completedAt < isoEndDate) {
+            isIncluded = true;
+            continue;
+          }
+          if (action.status !== TODO) continue;
+          if (action.dueAt >= isoStartDate && action.dueAt < isoEndDate) {
+            isIncluded = true;
+          }
+        }
+        if (!isIncluded) continue;
+        actions[action._id] = action;
       }
-
-      // Attention à ne pas comparer des isoDates avec des dates yyyy-mm-dd
-      const startDateForReports = dayjsInstance(defaultIsoDates.isoStartDate).format("YYYY-MM-DD");
-      const endDateForReports = dayjsInstance(defaultIsoDates.isoEndDate).format("YYYY-MM-DD");
-      for (const report of allReports) {
-        if (!filterItemByTeam(report, "team")) continue;
-        const date = report.date;
-        if (date < startDateForReports) continue;
-        if (date > endDateForReports) continue;
-        reports[report._id] = report;
+    }
+    for (const consultation of person.consultations || []) {
+      if (!filterItemByTeam(consultation, "teams")) continue;
+      if (Array.isArray(consultation.teams)) {
+        let isIncluded = false;
+        for (const team of consultation.teams) {
+          const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
+          if (consultation.createdAt >= isoStartDate && consultation.createdAt < isoEndDate) {
+            consultationsCreated[consultation._id] = consultation;
+          }
+          if (consultation.completedAt >= isoStartDate && consultation.completedAt < isoEndDate) {
+            isIncluded = true;
+            continue;
+          }
+          if (consultation.status !== TODO) continue;
+          if (consultation.dueAt >= isoStartDate && consultation.dueAt < isoEndDate) {
+            isIncluded = true;
+          }
+        }
+        if (!isIncluded) continue;
+        consultations[consultation._id] = consultation;
       }
+    }
+    for (const rencontre of person.rencontres || []) {
+      if (!filterItemByTeam(rencontre, "team")) continue;
+      const date = rencontre.date;
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[rencontre.team] ?? defaultIsoDates;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      rencontres[rencontre._id] = rencontre;
+    }
+    for (const commentMedical of person.commentsMedical || []) {
+      if (!filterItemByTeam(commentMedical, "team")) continue;
+      const date = commentMedical.date;
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[commentMedical.team] ?? defaultIsoDates;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      commentsMedical[commentMedical._id] = commentMedical;
+    }
+    for (const comment of person.comments || []) {
+      if (!filterItemByTeam(comment, "team")) continue;
+      const date = comment.date;
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[comment.team] ?? defaultIsoDates;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      comments[comment._id] = { ...comment, person: person._id };
+    }
+  }
 
-      return {
-        personsCreated: Object.values(personsCreated),
-        personsUpdated: Object.values(personsUpdated),
-        actions: Object.values(actions),
-        actionsCreated: Object.values(actionsCreated),
-        consultations: Object.values(consultations),
-        consultationsCreated: Object.values(consultationsCreated),
-        comments: Object.values(comments),
-        commentsMedical: Object.values(commentsMedical),
-        passages: Object.values(passages).sort((a, b) => (a.date >= b.date ? -1 : 1)),
-        rencontres: Object.values(rencontres).sort((a, b) => (a.date >= b.date ? -1 : 1)),
-        observations: Object.values(observations).sort((a, b) => (a.date >= b.date ? -1 : 1)),
-        reports: Object.values(reports),
-      };
-    },
-});
+  // all passages here and not above because some passages are not linked to a person
+  for (const passage of allPassages) {
+    if (!filterItemByTeam(passage, "team")) continue;
+    const date = passage.date;
+    // Je ne sais pas pourquoi, mais il semblerait que certains passages n'aient pas de date.
+    // cf: https://www.notion.so/mano-sesan/Bug-affichage-des-passage-6f539d3706c04b27b1290a39763d91e5
+    if (!date) continue;
+    const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[passage.team] ?? defaultIsoDates;
+    if (date < isoStartDate) continue;
+    if (date >= isoEndDate) continue;
+    passages[passage._id] = passage;
+  }
+
+  for (const observation of allObservations) {
+    if (!filterItemByTeam(observation, "team")) continue;
+    const date = observation.observedAt;
+    const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[observation.team] ?? defaultIsoDates;
+    if (date < isoStartDate) continue;
+    if (date >= isoEndDate) continue;
+    observations[observation._id] = observation;
+  }
+
+  // Attention à ne pas comparer des isoDates avec des dates yyyy-mm-dd
+  const startDateForReports = dayjsInstance(defaultIsoDates.isoStartDate).format("YYYY-MM-DD");
+  const endDateForReports = dayjsInstance(defaultIsoDates.isoEndDate).format("YYYY-MM-DD");
+  for (const report of allReports) {
+    if (!filterItemByTeam(report, "team")) continue;
+    const date = report.date;
+    if (date < startDateForReports) continue;
+    if (date > endDateForReports) continue;
+    reports[report._id] = report;
+  }
+
+  return {
+    personsCreated: Object.values(personsCreated),
+    personsUpdated: Object.values(personsUpdated),
+    actions: Object.values(actions),
+    actionsCreated: Object.values(actionsCreated),
+    consultations: Object.values(consultations),
+    consultationsCreated: Object.values(consultationsCreated),
+    comments: Object.values(comments),
+    commentsMedical: Object.values(commentsMedical),
+    passages: Object.values(passages).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+    rencontres: Object.values(rencontres).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+    observations: Object.values(observations).sort((a, b) => (a.date >= b.date ? -1 : 1)),
+    reports: Object.values(reports),
+  };
+}
 
 const defaultPreset = reportsPresets[0];
 
 const View = () => {
   const { dateString } = useParams();
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
+  const flattenedServices = useStore(flattenedServicesSelector);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const teams = useStore((state) => state.teams);
+  const allPersons = useStore(arrayOfItemsGroupedByPersonSelector);
+  const allObservations = useStore(onlyFilledObservationsTerritoriesSelector);
+  const allPassages = useStore((state) => state.passages);
+  const allReports = useStore((state) => state.reports);
+
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("reports-allOrg", teams.length === 1);
   const [selectedTeamIds, setSelectedTeamIds] = useLocalStorage("reports-teams", currentTeam?._id ? [currentTeam._id] : []);
 
@@ -276,12 +277,18 @@ const View = () => {
     reports,
     actionsCreated,
     consultationsCreated,
-  } = useRecoilValue(
-    itemsForReportsSelector({
-      period,
-      viewAllOrganisationData,
-      selectedTeamsObjectWithOwnPeriod,
-    })
+  } = useMemo(
+    () =>
+      computeItemsForReports({
+        period,
+        viewAllOrganisationData,
+        selectedTeamsObjectWithOwnPeriod,
+        allPersons,
+        allObservations,
+        allPassages,
+        allReports,
+      }),
+    [period, viewAllOrganisationData, selectedTeamsObjectWithOwnPeriod, allPersons, allObservations, allPassages, allReports]
   );
 
   useTitle(`${dayjsInstance(dateString).format("DD-MM-YYYY")} - Compte rendu`);

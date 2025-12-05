@@ -989,3 +989,6 @@ export function computePopulatedPassages(state: {
     })
     .filter((p): p is PopulatedPassage => p !== null);
 }
+
+// Aliases for backward compatibility
+export const onlyFilledObservationsTerritories = onlyFilledObservationsTerritoriesSelector;

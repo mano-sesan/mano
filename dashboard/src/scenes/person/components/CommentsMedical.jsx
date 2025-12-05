@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
 import { v4 as uuidv4 } from "uuid";
-import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../../recoil/medicalFiles";
+import { useStore } from "../../../store";
+import { customFieldsMedicalFileSelector } from "../../../store/selectors";
+import { encryptMedicalFile } from "../../../recoil/medicalFiles";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { toast } from "react-toastify";
@@ -9,7 +10,7 @@ import { useDataLoader } from "../../../services/dataLoader";
 
 const CommentsMedical = ({ person }) => {
   const { refresh } = useDataLoader();
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
 
   const medicalFile = person.medicalFile;
   const commentsMedical = useMemo(

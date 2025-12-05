@@ -1,14 +1,12 @@
-import { useRecoilValue } from "recoil";
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState } from "../../recoil/auth";
-import { personFieldsIncludingCustomFieldsSelector } from "../../recoil/persons";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { useStore } from "../../store";
+import { personFieldsIncludingCustomFieldsSelector, customFieldsMedicalFileSelector } from "../../store/selectors";
 
 export default function DownloadPersonsImportExample() {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const personFieldsIncludingCustomFields = useStore(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useStore(customFieldsMedicalFileSelector);
 
   function placeholder(f) {
     if (f.options?.length) return f.options[0];

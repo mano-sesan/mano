@@ -1,13 +1,13 @@
 import { useMemo } from "react";
-import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory } from "react-router-dom";
 import Search from "../../components/search";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import ActionsWeekly from "../../components/ActionsWeekly";
 import SelectCustom from "../../components/SelectCustom";
 import { defaultActionForModal, mappedIdsToLabels, TODO } from "../../recoil/actions";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector } from "../../recoil/selectors";
+import { useStore } from "../../store";
+import { arrayOfitemsGroupedByActionSelector, arrayOfitemsGroupedByConsultationSelector } from "../../store/selectors";
+import { defaultModalActionState } from "../../store";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
@@ -19,116 +19,20 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { dayjsInstance } from "../../services/date";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { defaultModalActionState, modalActionState } from "../../recoil/modal";
 
 const showAsOptions = ["Calendrier", "Liste", "Hebdomadaire"];
 const showTypeOptions = ["Actions et consultations", "Actions", "Consultations"];
 
-const actionsByTeamAndStatusSelector = selectorFamily({
-  key: "actionsByTeamAndStatusSelector",
-  get:
-    ({ statuses, categories, teamIds, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory }) =>
-    ({ get }) => {
-      const actions = get(arrayOfitemsGroupedByActionSelector);
-      const teams = get(teamsState);
-      const orgTeamIds = teams.map((t) => t._id);
-
-      const actionsByTeamAndStatus = actions.filter((action) => {
-        if (!viewAllOrganisationData) {
-          if (teamIds.length) {
-            if (Array.isArray(action.teams)) {
-              if (!teamIds.some((t) => action.teams.includes(t))) return false;
-            } else {
-              if (!teamIds.includes(action.team)) return false;
-            }
-          }
-        }
-        if (viewNoTeamData) {
-          const actionTeams = (Array.isArray(action.teams) ? action.teams : [action.team]).filter((teamId) => orgTeamIds.includes(teamId));
-          if (actionTeams.length) return false;
-        }
-        if (statuses.length) {
-          if (!statuses.includes(action.status)) return false;
-        }
-        if (actionsWithNoCategory) {
-          if (action.categories?.length) return false;
-        }
-        if (categories.length) {
-          if (!categories.some((c) => action.categories?.includes(c))) {
-            return false;
-          }
-        }
-        return true;
-      });
-      return actionsByTeamAndStatus;
-    },
-});
-
-const consultationsByStatusSelector = selectorFamily({
-  key: "consultationsByStatusSelector",
-  get:
-    ({ statuses, teamIds, consultationTypes, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory }) =>
-    ({ get }) => {
-      const teams = get(teamsState);
-      const orgTeamIds = teams.map((t) => t._id);
-
-      // On retourne seulement les actions si "Actions sans catégorie" est coché
-      if (actionsWithNoCategory) return [];
-      const consultations = get(arrayOfitemsGroupedByConsultationSelector);
-      const consultationsByStatus = consultations.filter((consultation) => {
-        if (!viewAllOrganisationData) {
-          if (teamIds.length) {
-            if (consultation.teams?.length && !teamIds.some((t) => consultation.teams.includes(t))) return false;
-          }
-        }
-        if (viewNoTeamData) {
-          if (consultation.teams?.filter((teamId) => orgTeamIds.includes(teamId))?.length) return false;
-        }
-        if (statuses.length) {
-          if (!statuses.includes(consultation.status)) return false;
-        }
-        if (consultationTypes?.length) {
-          if (!consultationTypes.includes(consultation.type)) return false;
-        }
-        return true;
-      });
-      return consultationsByStatus;
-    },
-});
-
-const dataFilteredBySearchSelector = selectorFamily({
-  key: "dataFilteredBySearchSelector",
-  get:
-    ({ search, statuses, categories, teamIds, viewAllOrganisationData, viewNoTeamData, actionsWithNoCategory, showType, consultationTypes }) =>
-    ({ get }) => {
-      const actions =
-        showType === "Actions" || showType === "Actions et consultations"
-          ? get(actionsByTeamAndStatusSelector({ statuses, categories, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory }))
-          : [];
-      // When we filter by category, we don't want to see all consultations.
-      const consultations =
-        !categories?.length && (showType === "Consultations" || showType === "Actions et consultations")
-          ? get(
-              consultationsByStatusSelector({ statuses, consultationTypes, teamIds, viewNoTeamData, viewAllOrganisationData, actionsWithNoCategory })
-            )
-          : [];
-
-      if (!search) {
-        return [...actions, ...consultations];
-      }
-      const actionsFiltered = filterBySearch(search, actions);
-      const consultationsFiltered = filterBySearch(search, consultations);
-      return [...actionsFiltered, ...consultationsFiltered];
-    },
-});
-
 const List = () => {
   useTitle("Agenda");
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const setModalAction = useSetRecoilState(modalActionState);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const user = useStore((state) => state.user);
+  const teams = useStore((state) => state.teams);
+  const organisation = useStore((state) => state.organisation);
+  const setModalAction = useStore((state) => state.setModalAction);
+
+  const actions = useStore(arrayOfitemsGroupedByActionSelector);
+  const consultations = useStore(arrayOfitemsGroupedByConsultationSelector);
 
   const history = useHistory();
   const [search, setSearch] = useSearchParamState("search", "");
@@ -144,19 +48,77 @@ const List = () => {
   const [showAs, setShowAs] = useLocalStorage("action-showAs", showAsOptions[0]); // calendar, list
   const [showType, setShowType] = useLocalStorage("action-showType", "Actions et consultations"); // actions, consultations, both
 
-  const dataConsolidated = useRecoilValue(
-    dataFilteredBySearchSelector({
-      search,
-      statuses,
-      categories,
-      showType,
-      consultationTypes,
-      teamIds: selectedTeamIds,
-      viewAllOrganisationData,
-      viewNoTeamData,
-      actionsWithNoCategory,
-    })
-  );
+  const orgTeamIds = useMemo(() => teams.map((t) => t._id), [teams]);
+
+  // Filter actions by team and status
+  const actionsByTeamAndStatus = useMemo(() => {
+    return actions.filter((action) => {
+      if (!viewAllOrganisationData) {
+        if (selectedTeamIds.length) {
+          if (Array.isArray(action.teams)) {
+            if (!selectedTeamIds.some((t) => action.teams.includes(t))) return false;
+          } else {
+            if (!selectedTeamIds.includes(action.team)) return false;
+          }
+        }
+      }
+      if (viewNoTeamData) {
+        const actionTeams = (Array.isArray(action.teams) ? action.teams : [action.team]).filter((teamId) => orgTeamIds.includes(teamId));
+        if (actionTeams.length) return false;
+      }
+      if (statuses.length) {
+        if (!statuses.includes(action.status)) return false;
+      }
+      if (actionsWithNoCategory) {
+        if (action.categories?.length) return false;
+      }
+      if (categories.length) {
+        if (!categories.some((c) => action.categories?.includes(c))) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [actions, viewAllOrganisationData, selectedTeamIds, viewNoTeamData, orgTeamIds, statuses, actionsWithNoCategory, categories]);
+
+  // Filter consultations by status
+  const consultationsByStatus = useMemo(() => {
+    // On retourne seulement les actions si "Actions sans catégorie" est coché
+    if (actionsWithNoCategory) return [];
+    return consultations.filter((consultation) => {
+      if (!viewAllOrganisationData) {
+        if (selectedTeamIds.length) {
+          if (consultation.teams?.length && !selectedTeamIds.some((t) => consultation.teams.includes(t))) return false;
+        }
+      }
+      if (viewNoTeamData) {
+        if (consultation.teams?.filter((teamId) => orgTeamIds.includes(teamId))?.length) return false;
+      }
+      if (statuses.length) {
+        if (!statuses.includes(consultation.status)) return false;
+      }
+      if (consultationTypes?.length) {
+        if (!consultationTypes.includes(consultation.type)) return false;
+      }
+      return true;
+    });
+  }, [consultations, actionsWithNoCategory, viewAllOrganisationData, selectedTeamIds, viewNoTeamData, orgTeamIds, statuses, consultationTypes]);
+
+  // Final data filtered by search
+  const dataConsolidated = useMemo(() => {
+    const actionsFiltered = showType === "Actions" || showType === "Actions et consultations" ? actionsByTeamAndStatus : [];
+    // When we filter by category, we don't want to see all consultations.
+    const consultationsFiltered =
+      !categories?.length && (showType === "Consultations" || showType === "Actions et consultations") ? consultationsByStatus : [];
+
+    if (!search) {
+      return [...actionsFiltered, ...consultationsFiltered];
+    }
+    const actionsSearched = filterBySearch(search, actionsFiltered);
+    const consultationsSearched = filterBySearch(search, consultationsFiltered);
+    return [...actionsSearched, ...consultationsSearched];
+  }, [showType, actionsByTeamAndStatus, categories?.length, consultationsByStatus, search]);
+
   const isDesktop = useMinimumWidth("sm");
 
   const selectedTeams = useMemo(() => {

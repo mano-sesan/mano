@@ -2,23 +2,23 @@ import { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { dayjsInstance, formatDateWithNameOfDay, getIsDayWithinHoursOffsetOfPeriod, isToday, now, startOfToday } from "../../services/date";
+import { useStore } from "../../store";
 import {
   arrayOfitemsGroupedByActionSelector,
   arrayOfitemsGroupedByConsultationSelector,
   currentTeamReportsSelector,
   personsObjectSelector,
-} from "../../recoil/selectors";
+  flattenedServicesSelector,
+} from "../../store/selectors";
 import SelectAndCreatePersonForReception from "./SelectAndCreatePersonForReception";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
 import { defaultActionForModal, TODO } from "../../recoil/actions";
-import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../recoil/auth";
-import { personsState } from "../../recoil/persons";
-import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
+import { defaultModalActionState } from "../../store";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
-import { passagesState, encryptPassage, sortPassages } from "../../recoil/passages";
+import { encryptPassage, sortPassages } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
 import plusIcon from "../../assets/icons/plus-icon.svg";
 import PersonName from "../../components/PersonName";
@@ -28,63 +28,57 @@ import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { defaultModalActionState, modalActionState } from "../../recoil/modal";
-import { flattenedServicesSelector } from "../../recoil/reports";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
-const actionsForCurrentTeamSelector = selector({
-  key: "actionsForCurrentTeamSelector",
-  get: ({ get }) => {
-    const actions = get(arrayOfitemsGroupedByActionSelector);
-    const currentTeam = get(currentTeamState);
+const Reception = () => {
+  useTitle("Accueil");
+  const { refresh } = useDataLoader();
+  const flattenedServices = useStore(flattenedServicesSelector);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const organisation = useStore((state) => state.organisation);
+  const passages = useStore((state) => state.passages);
+  const user = useStore((state) => state.user);
+  const persons = useStore((state) => state.persons);
+  const teams = useStore((state) => state.teams);
+  const users = useStore((state) => state.users);
+  const setModalAction = useStore((state) => state.setModalAction);
+
+  const actions = useStore(arrayOfitemsGroupedByActionSelector);
+  const consultations = useStore(arrayOfitemsGroupedByConsultationSelector);
+  const teamsReports = useStore(currentTeamReportsSelector);
+
+  const actionsForCurrentTeam = useMemo(() => {
     return actions.filter((a) => (Array.isArray(a.teams) ? a.teams.includes(currentTeam._id) : a.team === currentTeam._id));
-  },
-});
+  }, [actions, currentTeam._id]);
 
-const consultationsByAuthorizationSelector = selector({
-  key: "consultationsByAuthorizationSelector",
-  get: ({ get }) => {
-    const user = get(userState);
-    const consultations = get(arrayOfitemsGroupedByConsultationSelector);
-
+  const consultationsByAuthorization = useMemo(() => {
     if (!user.healthcareProfessional) return [];
     return consultations.filter((consult) => !consult.onlyVisibleBy?.length || consult.onlyVisibleBy.includes(user._id));
-  },
-});
+  }, [consultations, user.healthcareProfessional, user._id]);
 
-const actionsByStatusSelector = selectorFamily({
-  key: "actionsByStatusSelector",
-  get:
-    ({ status }) =>
-    ({ get }) => {
-      const actions = get(actionsForCurrentTeamSelector);
-      return actions.filter((a) => a.status === status);
-    },
-});
+  const [status, setStatus] = useState(TODO);
 
-const consultationsByStatusSelector = selectorFamily({
-  key: "consultationsByStatusSelector",
-  get:
-    ({ status }) =>
-    ({ get }) => {
-      const consultations = get(consultationsByAuthorizationSelector);
-      return consultations.filter((a) => a.status === status);
-    },
-});
+  const actionsByStatus = useMemo(() => {
+    return actionsForCurrentTeam.filter((a) => a.status === status);
+  }, [actionsForCurrentTeam, status]);
 
-const todaysReportSelector = selector({
-  key: "todaysReportSelector",
-  get: ({ get }) => {
-    const teamsReports = get(currentTeamReportsSelector);
+  const consultationsByStatus = useMemo(() => {
+    return consultationsByAuthorization.filter((a) => a.status === status);
+  }, [consultationsByAuthorization, status]);
+
+  const [services, setServices] = useState(null);
+  const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
+
+  const dataConsolidated = useMemo(
+    () => [...actionsByStatus, ...consultationsByStatus].sort((a, b) => new Date(b.completedAt || b.dueAt) - new Date(a.completedAt || a.dueAt)),
+    [actionsByStatus, consultationsByStatus]
+  );
+
+  const todaysReport = useMemo(() => {
     return teamsReports.find((rep) => isToday(rep.date));
-  },
-});
+  }, [teamsReports]);
 
-const todaysPassagesSelector = selector({
-  key: "todaysPassagesSelector",
-  get: ({ get }) => {
-    const passages = get(passagesState);
-    const currentTeam = get(currentTeamState);
+  const todaysPassages = useMemo(() => {
     return passages
       .filter((p) => p.team === currentTeam?._id)
       .filter((p) =>
@@ -97,33 +91,7 @@ const todaysPassagesSelector = selector({
           currentTeam?.nightSession ? 12 : 0
         )
       );
-  },
-});
-
-const Reception = () => {
-  useTitle("Accueil");
-  const { refresh } = useDataLoader();
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const passages = useRecoilValue(todaysPassagesSelector);
-  const [status, setStatus] = useState(TODO);
-  const actionsByStatus = useRecoilValue(actionsByStatusSelector({ status }));
-  const consultationsByStatus = useRecoilValue(consultationsByStatusSelector({ status }));
-  const [services, setServices] = useState(null);
-  const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
-
-  const dataConsolidated = useMemo(
-    () => [...actionsByStatus, ...consultationsByStatus].sort((a, b) => new Date(b.completedAt || b.dueAt) - new Date(a.completedAt || a.dueAt)),
-    [actionsByStatus, consultationsByStatus]
-  );
-
-  const todaysReport = useRecoilValue(todaysReportSelector);
-  const user = useRecoilValue(userState);
-
-  const persons = useRecoilValue(personsState);
+  }, [passages, currentTeam]);
 
   const history = useHistory();
   const location = useLocation();
@@ -283,7 +251,7 @@ const Reception = () => {
           {!!organisation.passagesEnabled && (
             <div className="tw-mb-4 tw-flex tw-flex-col tw-items-center tw-gap-4 tw-rounded-lg tw-bg-gray-100 tw-px-2 tw-py-8 tw-text-center">
               <h5 id="passages-title">
-                {passages.length} passage{passages.length > 1 ? "s" : ""}
+                {todaysPassages.length} passage{todaysPassages.length > 1 ? "s" : ""}
               </h5>
               <ButtonCustom
                 onClick={onAddAnonymousPassage}
@@ -294,7 +262,7 @@ const Reception = () => {
                 id="add-anonymous-passage"
                 disabled={addingPassage}
               />
-              {!!passages.length && (
+              {!!todaysPassages.length && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <ButtonCustom
                     type="button"
@@ -323,14 +291,14 @@ const Reception = () => {
           )}
         </div>
       </div>
-      <PassagesToday isOpen={todaysPassagesOpen} setOpen={setTodaysPassagesOpen} passages={passages} />
+      <PassagesToday isOpen={todaysPassagesOpen} setOpen={setTodaysPassagesOpen} passages={todaysPassages} />
     </>
   );
 };
 
 const PassagesToday = ({ passages, isOpen, setOpen }) => {
-  const persons = useRecoilValue(personsObjectSelector);
-  const users = useRecoilValue(usersState);
+  const persons = useStore(personsObjectSelector);
+  const users = useStore((state) => state.users);
   const [passageToEdit, setPassageToEdit] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("reception-passage-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("reception-passage-sortOrder", "ASC");

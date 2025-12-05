@@ -1,10 +1,11 @@
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import { flattenedTerritoriesTypesSelector } from "../../store/selectors";
+import { territoriesFields } from "../../recoil/territory";
 
 export default function DownloadTerritoriesImportExample() {
-  const territoriesTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoriesTypes = useStore(flattenedTerritoriesTypesSelector);
   function placeholder(f) {
     if (f.options?.length) return f.options[0];
     return "test";

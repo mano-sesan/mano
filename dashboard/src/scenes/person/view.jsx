@@ -1,7 +1,7 @@
 import { useHistory, useLocation, useParams } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import { itemsGroupedByPersonSelector } from "../../store/selectors";
 import Places from "./Places";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import API, { tryFetchExpectOk } from "../../services/api";
 import History from "./components/PersonHistory";
 import MedicalFile from "./components/MedicalFile";
@@ -10,9 +10,7 @@ import BackButton from "../../components/backButton";
 import UserName from "../../components/UserName";
 import { usePreparePersonForEncryption } from "../../recoil/persons";
 import { toast } from "react-toastify";
-import { organisationState, userState } from "../../recoil/auth";
 import PersonFamily from "./PersonFamily";
-import { groupsState } from "../../recoil/groups";
 import TabsNav from "../../components/tailwind/TabsNav";
 import { useDataLoader } from "../../services/dataLoader";
 import SearchInPerson from "./components/SearchInPerson";
@@ -28,15 +26,16 @@ export default function View() {
   const { refresh } = useDataLoader();
 
   const [, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
-  const organisation = useRecoilValue(organisationState);
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[personId];
-  const groups = useRecoilValue(groupsState);
+  const organisation = useStore((state) => state.organisation);
+  const personsObject = useStore(itemsGroupedByPersonSelector);
+  const person = personsObject[personId];
+  const groups = useStore((state) => state.groups);
 
   const personGroup = useMemo(() => {
     return groups.find((group) => group?.persons?.includes?.(personId)) || { persons: [], relations: [] };
   }, [groups, personId]);
 
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const searchParams = new URLSearchParams(location.search);
   const currentTab = searchParams.get("tab") || "Résumé";
   const setCurrentTab = (tab) => {

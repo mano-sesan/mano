@@ -4,31 +4,29 @@ import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../../store";
+import { onlyFilledObservationsTerritories, flattenedTerritoriesTypesSelector } from "../../store/selectors";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Loading from "../../components/loading";
 import Table from "../../components/table";
 import ButtonCustom from "../../components/ButtonCustom";
 import Search from "../../components/search";
-import { territoriesState, sortTerritories, encryptTerritory, flattenedTerritoriesTypesSelector } from "../../recoil/territory";
+import { sortTerritories, encryptTerritory } from "../../recoil/territory";
 import SelectCustom from "../../components/SelectCustom";
-import { onlyFilledObservationsTerritories } from "../../recoil/selectors";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import { formatDateWithFullMonth } from "../../services/date";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
-import { selector } from "recoil";
 
-const territoriesWithObservations = selector({
-  key: "territoriesWithObservations",
-  get: ({ get }) => {
-    const territories = get(territoriesState);
-    const territoryObservations = get(onlyFilledObservationsTerritories);
+// Custom hook to get territories with observations
+const useTerritoriesWithObservations = () => {
+  const territories = useStore((state) => state.territories);
+  const territoryObservations = useStore(onlyFilledObservationsTerritories);
 
+  return useMemo(() => {
     const observationsByTerritory = {};
     for (const obs of territoryObservations) {
       if (!observationsByTerritory[obs.territory]) {
@@ -42,11 +40,11 @@ const territoriesWithObservations = selector({
       lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
         ?.createdAt,
     }));
-  },
-});
+  }, [territories, territoryObservations]);
+};
 
 const List = () => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
   const history = useHistory();
   useTitle("Territoires");
   useDataLoader({ refreshOnMount: true });
@@ -54,8 +52,8 @@ const List = () => {
   const [page, setPage] = useSearchParamState("page", 0);
   const [search, setSearch] = useSearchParamState("search", "");
 
-  const territories = useRecoilValue(territoriesWithObservations);
-  const territoryObservations = useRecoilValue(onlyFilledObservationsTerritories);
+  const territories = useTerritoriesWithObservations();
+  const territoryObservations = useStore(onlyFilledObservationsTerritories);
   const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
 
@@ -177,8 +175,8 @@ const List = () => {
 
 export const CreateTerritory = () => {
   const [open, setOpen] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const user = useStore((state) => state.user);
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
@@ -200,10 +198,10 @@ export const CreateTerritory = () => {
 export function TerritoryModal({ open, setOpen, territory = {} }) {
   const { refresh } = useDataLoader();
   const history = useHistory();
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
   const isNew = !territory._id;
   const initialValues = { name: "", types: [], perimeter: "", description: "", ...territory };
-  const territoryTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoryTypes = useStore(flattenedTerritoriesTypesSelector);
 
   return (
     <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
