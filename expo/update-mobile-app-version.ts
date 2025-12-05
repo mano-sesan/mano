@@ -1,7 +1,8 @@
-const semver = require("semver");
-const fs = require("fs");
-const currentBuildNumber = require("./app.json").version.buildNumber; // ex: 127
-const currentVersion = require("./app.json").version.buildName; // ex: 2.1.1
+import semver, { type ReleaseType } from "semver";
+import fs from "fs";
+import { buildNumber, version } from "./app.config";
+const currentBuildNumber = Number(buildNumber);
+const currentVersion = String(version);
 
 let release = process.argv[2] || "minor";
 const validRelease = ["minor", "major", "patch"];
@@ -10,8 +11,11 @@ if (!validRelease.includes(release)) {
   process.exit(1);
 }
 
-const newVersion = semver.inc(currentVersion, release);
+const newVersion = semver.inc(currentVersion, release as ReleaseType);
 const newBuildNumber = currentBuildNumber + 1;
+
+console.log("🥳 Updating version to " + newVersion);
+console.log("🥳 Updating build number to " + newBuildNumber);
 
 // Replace the version in the package.json file via regex and save it
 const packageJson = fs.readFileSync("package.json", "utf8");
@@ -22,7 +26,7 @@ fs.writeFileSync("package.json", newPackageJson);
 const appJson = fs.readFileSync("app.config.ts", "utf8");
 const newAppJson = appJson
   .replace(/version = "[^"]+"/, `version = "${newVersion}"`)
-  .replace(/buildNumber "[^"]+"/, `buildNumber "${newBuildNumber}"`);
+  .replace(/buildNumber = "[^"]+"/, `buildNumber = ${newBuildNumber}`);
 fs.writeFileSync("app.config.ts", newAppJson);
 
 // Replace the mobileAppVersion in the ../api/package.json file via regex and save it
