@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { selector, useRecoilState, useRecoilValue } from "recoil";
+import { selector, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatBirthDate, formatCalendarDate, isToday } from "../../services/date";
@@ -71,19 +71,19 @@ const filterEasySearch = (search, items = []) => {
 
 const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
   const { refresh } = useDataLoader();
-  const [persons] = useRecoilState(personsState);
+  const [persons] = useAtom(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
-  const actions = useRecoilValue(actionsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
+  const actions = useAtomValue(actionsState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const passages = useAtomValue(passagesState);
+  const rencontres = useAtomValue(rencontresState);
 
   const optionsExist = useRef(null);
   const { encryptPerson } = usePreparePersonForEncryption();
 
-  const searchablePersons = useRecoilValue(searchablePersonsSelector);
+  const searchablePersons = useAtomValue(searchablePersonsSelector);
 
   const lastActions = useMemo(() => {
     return Object.values(
@@ -251,7 +251,7 @@ const PersonSelected = ({ person, showLinkToPerson }) => {
 
 const Person = ({ person, showLinkToPerson }) => {
   const history = useHistory();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   return (
     <div className="-tw-mt-2 tw-border-t tw-border-t-gray-300 tw-pb-1 tw-pt-2.5">
       <div className="tw-mb-1 tw-flex tw-gap-1">

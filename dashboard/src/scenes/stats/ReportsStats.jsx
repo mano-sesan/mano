@@ -2,10 +2,10 @@ import React from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
 import { organisationState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 const ReportsStats = ({ reports }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   return (
     <>
       <h3 className="tw-my-5 tw-text-xl">Statistiques des comptes-rendus</h3>

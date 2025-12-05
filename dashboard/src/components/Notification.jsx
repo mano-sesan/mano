@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import React, { useMemo, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useLocalStorage } from "../services/useLocalStorage";
 import { CANCEL, DONE, encryptAction, sortActionsOrConsultations, TODO } from "../recoil/actions";
 import { currentTeamState, userState } from "../recoil/auth";
@@ -26,8 +26,8 @@ export default function Notification() {
   const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
   const [showModal, setShowModal] = useState(false);
 
-  const arrayOfActions = useRecoilValue(arrayOfitemsGroupedByActionSelector);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const arrayOfActions = useAtomValue(arrayOfitemsGroupedByActionSelector);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const actions = useMemo(() => {
     return actionsWithoutFutureRecurrences(
@@ -41,9 +41,9 @@ export default function Notification() {
     ).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder));
   }, [arrayOfActions, currentTeam, actionsSortBy, actionsSortOrder]);
 
-  const itemsGrouped = useRecoilValue(itemsGroupedByActionSelector);
-  const persons = useRecoilValue(personsState);
-  const comments = useRecoilValue(commentsState);
+  const itemsGrouped = useAtomValue(itemsGroupedByActionSelector);
+  const persons = useAtomValue(personsState);
+  const comments = useAtomValue(commentsState);
 
   const urgentComments = useMemo(() => {
     const result = [];
@@ -119,10 +119,10 @@ export default function Notification() {
 
 export const NotificationActionList = ({ setShowModal, actions, setSortOrder, setSortBy, sortBy, sortOrder, title, showTeam = false }) => {
   const history = useHistory();
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const location = useLocation();
 
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const { refresh } = useDataLoader();
   if (!actions.length) return null;
   return (
@@ -248,12 +248,12 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
 };
 
 export const NotificationCommentList = ({ setShowModal, comments, title, showTeam = false }) => {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
+  const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
   const history = useHistory();
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const location = useLocation();
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
   const { refresh } = useDataLoader();
   const [sortOrder, setSortOrder] = useLocalStorage("comments-notification-sortOrder", "ASC");
   const [sortBy, setSortBy] = useLocalStorage("comments-notification-sortBy", "date");

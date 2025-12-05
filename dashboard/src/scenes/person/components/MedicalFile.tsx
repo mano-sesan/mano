@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
 import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
 import { Consultations } from "./Consultations";
@@ -27,11 +27,11 @@ interface MedicalFileProps {
 
 export default function MedicalFile({ person }: MedicalFileProps) {
   const { refresh } = useDataLoader();
-  const user = useRecoilValue(userAuthentifiedState);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const user = useAtomValue(userAuthentifiedState);
+  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const organisation = useAtomValue(organisationAuthentifiedState);
   // These custom fields are displayed by default, because they where displayed before they became custom fields
   // Maybe we should reconsider this legacy in 2024-2025.
   const groupedCustomFieldsMedicalFileWithLegacyFields: CustomFieldsGroup[] = useMemo(() => {

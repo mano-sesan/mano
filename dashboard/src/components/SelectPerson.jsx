@@ -1,5 +1,5 @@
 import { useHistory } from "react-router-dom";
-import { selector, useRecoilValue } from "recoil";
+import { selector, useAtomValue } from "jotai";
 import { personsState, sortPersons } from "../recoil/persons";
 import SelectCustom from "./SelectCustom";
 import { formatDateWithFullMonth } from "../services/date";
@@ -24,7 +24,7 @@ const SelectPerson = ({
   name = "person",
   ...props
 }) => {
-  const sortedPersonsByName = useRecoilValue(sortedPersonsByNameSelector);
+  const sortedPersonsByName = useAtomValue(sortedPersonsByNameSelector);
   const history = useHistory();
 
   return (

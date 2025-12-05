@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { selector, selectorFamily, useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Search from "../../components/search";
@@ -116,7 +116,7 @@ const List = () => {
   useTitle("Personnes");
   useDataLoader({ refreshOnMount: true });
   const isDesktop = useMinimumWidth("sm");
-  const filterPersonsWithAllFields = useRecoilValue(filterPersonsWithAllFieldsSelector);
+  const filterPersonsWithAllFields = useAtomValue(filterPersonsWithAllFieldsSelector);
 
   const [search, setSearch] = useSearchParamState("search", "");
   const [lastPersonsViewed, setLastPersonsViewed] = useLocalStorage("lastPersonsViewed", []);
@@ -126,16 +126,16 @@ const List = () => {
   const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
   const [filters, setFilters] = useLocalStorage("person-filters", []);
   const [page, setPage] = useSearchParamState("page", 0);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
   const [deleteMultiple, setDeleteMultiple] = useState(false);
   const [checkedForDelete, setCheckedForDelete] = useState([]);
   const deletePerson = useDeletePerson();
   const { refresh } = useDataLoader();
   const viewAllOrganisationData = organisation.checkboxShowAllOrgaPersons && viewAllOrganisationDataChecked;
 
-  const personsFilteredBySearch = useRecoilValue(
+  const personsFilteredBySearch = useAtomValue(
     personsFilteredBySearchSelector({ search, viewAllOrganisationData, filters, alertness, sortBy, sortOrder })
   );
 

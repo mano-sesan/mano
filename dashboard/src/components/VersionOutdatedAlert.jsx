@@ -1,10 +1,10 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "../recoil/version";
 
 export default function VersionOutdatedAlert() {
-  const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
-  const deploymentCommit = useRecoilValue(deploymentCommitState);
-  const deploymentDate = useRecoilValue(deploymentDateState);
+  const showOutdateAlertBanner = useAtomValue(showOutdateAlertBannerState);
+  const deploymentCommit = useAtomValue(deploymentCommitState);
+  const deploymentDate = useAtomValue(deploymentDateState);
 
   if (!showOutdateAlertBanner) return null;
 

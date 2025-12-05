@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
 import { prepareConsultationForEncryption, encryptConsultation } from "../../../recoil/consultations";
 import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption, encryptMedicalFile } from "../../../recoil/medicalFiles";
@@ -19,15 +19,15 @@ interface PersonDocumentsProps {
 }
 
 const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
-  const user = useRecoilValue(userAuthentifiedState);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const user = useAtomValue(userAuthentifiedState);
+  const organisation = useAtomValue(organisationAuthentifiedState);
   const { refresh } = useDataLoader();
 
   const consultations = useMemo(() => person.consultations ?? [], [person.consultations]);
 
   const treatments = useMemo(() => person.treatments ?? [], [person.treatments]);
 
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const medicalFile = person.medicalFile;
 
   const defaultFolders: Array<FolderWithLinkedItem> = organisation.defaultMedicalFolders.map((folder) => ({

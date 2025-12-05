@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { selector, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHistory } from "react-router-dom";
 
 import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../recoil/auth";
@@ -101,11 +101,11 @@ const totalRecyptionDurationSelector = selector({
 });
 
 const EncryptionKey = ({ isMain }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const totalRecyptionDuration = useRecoilValue(totalRecyptionDurationSelector);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const totalRecyptionDuration = useAtomValue(totalRecyptionDurationSelector);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const setEncryptionKeyLength = useSetAtom(encryptionKeyLengthState);
   const previousKey = useRef(null);
 
   const onboardingForEncryption = isMain && !organisation.encryptionEnabled;

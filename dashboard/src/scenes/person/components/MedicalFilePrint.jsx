@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
 import { currentTeamState, organisationState, usersState } from "../../../recoil/auth";
 import { dayjsInstance } from "../../../services/date";
@@ -11,20 +11,20 @@ import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 
 export function MedicalFilePrint({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const allConsultations = useRecoilValue(arrayOfitemsGroupedByConsultationSelector);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const team = useRecoilValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const allConsultations = useAtomValue(arrayOfitemsGroupedByConsultationSelector);
+  const allTreatments = useAtomValue(treatmentsState);
+  const team = useAtomValue(currentTeamState);
 
   const [consultationTypes] = useLocalStorage("consultation-types", []);
   const [consultationStatuses] = useLocalStorage("consultation-statuses", []);
   const [consultationsSortBy] = useLocalStorage("consultations-sortBy", "dueAt");
   const [consultationsSortOrder] = useLocalStorage("consultations-sortOrder", "ASC");
 
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
-  const users = useRecoilValue(usersState);
+  const users = useAtomValue(usersState);
 
   const personConsultations = useMemo(() => (allConsultations || []).filter((c) => c.person === person._id), [allConsultations, person._id]);
   const personConsultationsFiltered = useMemo(

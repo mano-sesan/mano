@@ -1,6 +1,6 @@
 import React from "react";
 import { typeOptions } from "../utils";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { teamsState } from "../recoil/auth";
 
 const CustomFieldSetting = ({ customField }) => {
@@ -22,7 +22,7 @@ const CustomFieldSetting = ({ customField }) => {
 
 const VisibleBy = ({ customField }) => {
   const { enabledTeams, enabled } = customField;
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   if (!enabled) {
     if (!enabledTeams?.length) {
       return <>Non activé</>;

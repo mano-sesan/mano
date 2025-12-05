@@ -1,5 +1,5 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+import { atom } from "jotai";
+import { atomWithCache } from "../store";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
@@ -8,27 +8,17 @@ import { encryptItem } from "../services/encryption";
 import { ActionInstance } from "../types/action";
 
 const collectionName = "action";
-export const actionsState = atom<Array<ActionInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
+export const actionsState = atomWithCache<Array<ActionInstance>>(collectionName, []);
+
+export const actionsCategoriesSelector = atom((get) => {
+  const organisation = get(organisationState);
+  if (organisation?.actionsGroupedCategories) return organisation.actionsGroupedCategories;
+  return [{ groupTitle: "Toutes mes catégories", categories: [] }];
 });
 
-export const actionsCategoriesSelector = selector({
-  key: "actionsCategoriesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (organisation.actionsGroupedCategories) return organisation.actionsGroupedCategories;
-    return [{ groupTitle: "Toutes mes catégories", categories: [] }];
-  },
-});
-
-export const flattenedActionsCategoriesSelector = selector({
-  key: "flattenedActionsCategoriesSelector",
-  get: ({ get }) => {
-    const actionsGroupedCategories = get(actionsCategoriesSelector);
-    return actionsGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
-  },
+export const flattenedActionsCategoriesSelector = atom((get) => {
+  const actionsGroupedCategories = get(actionsCategoriesSelector);
+  return actionsGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
 });
 
 const encryptedFields: Array<keyof ActionInstance> = [

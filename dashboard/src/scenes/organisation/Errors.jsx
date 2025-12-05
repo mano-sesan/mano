@@ -1,6 +1,6 @@
 import API, { tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
 import { organisationState, userState } from "../../recoil/auth";
 import { useEffect, useState } from "react";
@@ -47,13 +47,13 @@ async function fetchErrored(organisationId, path) {
 }
 
 export default function Errors() {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const { refresh } = useDataLoader();
   const [open, setOpen] = useState(false);
   const [item, setItem] = useState(undefined);
   const [data, setData] = useState(undefined);
   const [loadingInfo, setLoadingInfo] = useState("");
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   async function fetchData() {
     let res = [];
@@ -456,7 +456,7 @@ export default function Errors() {
 }
 
 function ModalRepair({ open, setOpen, setData, item }) {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [key, setKey] = useState("");
   const { refresh } = useDataLoader();
 

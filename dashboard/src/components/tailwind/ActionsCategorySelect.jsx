@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { selector, useRecoilValue } from "recoil";
+import { selector, useAtomValue } from "jotai";
 import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../../recoil/actions";
 import SortableJS from "sortablejs";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./Modal";
@@ -52,8 +52,8 @@ const allGroupsWithGroupForAllCategories = selector({
 const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDisabled }) => {
   const [open, setOpen] = useState(false);
   const [modalIsOpened, setModalIsOpened] = useState(false);
-  const allGroups = useRecoilValue(allGroupsWithGroupForAllCategories);
-  const categoriesSortedByMostUsed = useRecoilValue(categoriesSortedByMostUsedSelector);
+  const allGroups = useAtomValue(allGroupsWithGroupForAllCategories);
+  const categoriesSortedByMostUsed = useAtomValue(categoriesSortedByMostUsedSelector);
   const [selected, setSelected] = useState(() => values || []);
   const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
@@ -38,9 +38,9 @@ export default function PersonStats({
   viewAllOrganisationData,
   selectedTeamsObjectWithOwnPeriod,
 }) {
-  const allGroups = useRecoilValue(groupsState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
-  const user = useRecoilValue(userState);
+  const allGroups = useAtomValue(groupsState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
+  const user = useAtomValue(userState);
 
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
@@ -565,9 +565,9 @@ const Teams = ({ person: { _id, assignedTeams } }) => (
 
 export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLeave, sliceField, isFieldInMedicalFile = false }) => {
   const history = useHistory();
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
 
   const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
@@ -739,7 +739,7 @@ function StatsPersonsByFamille({ groupsForPersons }) {
 }
 
 const FollowTimeByTeamBar = ({ persons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, period }) => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   // Calculate average follow time per team
   const followTimeByTeam = useMemo(() => {

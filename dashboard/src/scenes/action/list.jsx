@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
+import { selectorFamily, useAtomValue, useSetAtom } from "jotai";
 import { useHistory } from "react-router-dom";
 import Search from "../../components/search";
 import ActionsCalendar from "../../components/ActionsCalendar";
@@ -124,11 +124,11 @@ const dataFilteredBySearchSelector = selectorFamily({
 
 const List = () => {
   useTitle("Agenda");
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
-  const setModalAction = useSetRecoilState(modalActionState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
 
   const history = useHistory();
   const [search, setSearch] = useSearchParamState("search", "");
@@ -144,7 +144,7 @@ const List = () => {
   const [showAs, setShowAs] = useLocalStorage("action-showAs", showAsOptions[0]); // calendar, list
   const [showType, setShowType] = useLocalStorage("action-showType", "Actions et consultations"); // actions, consultations, both
 
-  const dataConsolidated = useRecoilValue(
+  const dataConsolidated = useAtomValue(
     dataFilteredBySearchSelector({
       search,
       statuses,

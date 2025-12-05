@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useLocation, useHistory } from "react-router-dom";
 import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
@@ -18,9 +18,9 @@ import { defaultModalObservationState, modalObservationState } from "../../../re
 import { territoryObservationsState } from "../../../recoil/territoryObservations";
 
 export default function PassagesRencontres({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
   const [fullScreen, setFullScreen] = useState(false);
   const [selected, setSelected] = useState(organisation.passagesEnabled ? "passages" : "rencontres");
   const history = useHistory();
@@ -247,7 +247,7 @@ function PassagesTableSmall({ personPassages }) {
 
 function PassagesTable({ personPassages }) {
   const history = useHistory();
-  const users = useRecoilValue(usersState);
+  const users = useAtomValue(usersState);
   const [sortBy, setSortBy] = useLocalStorage("person-passages-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("person-passages-sortOrder", "ASC");
 
@@ -324,9 +324,9 @@ function PassagesTable({ personPassages }) {
 
 function RencontresTable({ personRencontres }) {
   const history = useHistory();
-  const users = useRecoilValue(usersState);
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const allObservations = useRecoilValue(territoryObservationsState);
+  const users = useAtomValue(usersState);
+  const setModalObservation = useSetAtom(modalObservationState);
+  const allObservations = useAtomValue(territoryObservationsState);
   const [sortBy, setSortBy] = useLocalStorage("person-rencontres-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("person-rencontres-sortOrder", "ASC");
 
@@ -426,8 +426,8 @@ function RencontresTable({ personRencontres }) {
 
 function RencontresTableSmall({ personRencontres }) {
   const history = useHistory();
-  const setModalObservation = useSetRecoilState(modalObservationState);
-  const allObservations = useRecoilValue(territoryObservationsState);
+  const setModalObservation = useSetAtom(modalObservationState);
+  const allObservations = useAtomValue(territoryObservationsState);
   return (
     <table className="table table-striped">
       <tbody className="small">

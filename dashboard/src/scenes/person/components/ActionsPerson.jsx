@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
+import { useAtomValue, selectorFamily, useSetAtom } from "jotai";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels, TODO } from "../../../recoil/actions";
 import { useLocation } from "react-router-dom";
@@ -58,16 +58,16 @@ const filteredPersonActionsSelector = selectorFamily({
 });
 
 export const Actions = ({ person }) => {
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const setModalAction = useSetRecoilState(modalActionState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
   const data = person?.actions || [];
   const [fullScreen, setFullScreen] = useState(false);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterStatus, setFilterStatus] = useState([]);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
-  const filteredData = useRecoilValue(filteredPersonActionsSelector({ personId: person._id, filterCategories, filterStatus, filterTeamIds }));
+  const filteredData = useAtomValue(filteredPersonActionsSelector({ personId: person._id, filterCategories, filterStatus, filterTeamIds }));
 
   return (
     <section title="Actions de la personne suivie" className="tw-relative tw-overflow-x-hidden">
@@ -167,7 +167,7 @@ export const Actions = ({ person }) => {
 };
 
 const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilterStatus, filterStatus, filterTeamIds, filterCategories }) => {
-  const categories = useRecoilValue(flattenedActionsCategoriesSelector);
+  const categories = useAtomValue(flattenedActionsCategoriesSelector);
 
   const catsSelect = ["-- Aucune --", ...(categories || [])];
   return (
@@ -227,8 +227,8 @@ const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilter
 
 const ActionsTable = ({ filteredData }) => {
   const location = useLocation();
-  const setModalAction = useSetRecoilState(modalActionState);
-  const organisation = useRecoilValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
+  const organisation = useAtomValue(organisationState);
 
   return (
     <table className="table table-striped">

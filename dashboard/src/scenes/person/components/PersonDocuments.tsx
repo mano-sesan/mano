@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
-import type { RecoilValueReadOnly } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationAuthentifiedState } from "../../../recoil/auth";
 import { usePreparePersonForEncryption } from "../../../recoil/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
@@ -26,10 +25,10 @@ type PersonIndex = Record<UUIDV4, PersonInstance>;
 
 const PersonDocuments = ({ person }: PersonDocumentsProps) => {
   const { refresh } = useDataLoader();
-  const organisation = useRecoilValue(organisationAuthentifiedState);
-  const groups = useRecoilValue(groupsState);
+  const organisation = useAtomValue(organisationAuthentifiedState);
+  const groups = useAtomValue(groupsState);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const persons = useRecoilValue<PersonIndex>(personsObjectSelector as RecoilValueReadOnly<PersonIndex>);
+  const persons = useAtomValue(personsObjectSelector) as PersonIndex;
 
   const needsActionsFolder =
     !person.documentsForModule?.some((d) => d._id === "actions") && person.documentsForModule?.some((d) => d.linkedItem.type === "action");

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
 import { organisationState, userState } from "../../recoil/auth";
@@ -17,9 +17,9 @@ import { errorMessage } from "../../utils";
 import { decryptItem } from "../../services/encryption";
 
 const PersonPlaces = ({ person }) => {
-  const user = useRecoilValue(userState);
-  const places = useRecoilValue(placesState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useAtomValue(userState);
+  const places = useAtomValue(placesState);
+  const organisation = useAtomValue(organisationState);
 
   const [relPersonPlaceModal, setRelPersonPlaceModal] = useState(null);
   const [placeToEdit, setPlaceToEdit] = useState(null);
@@ -187,8 +187,8 @@ const PersonPlaces = ({ person }) => {
 };
 
 const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPlaceToEdit }) => {
-  const [places, setPlaces] = useRecoilState(placesState);
-  const me = useRecoilValue(userState);
+  const [places, setPlaces] = useAtom(placesState);
+  const me = useAtomValue(userState);
   const [placeId, setPlaceId] = useState(relPersonPlaceModal?.place);
   const [userId, setUserId] = useState(relPersonPlaceModal?.user ?? me._id);
   const [updating, setUpdating] = useState(false);
@@ -336,9 +336,9 @@ const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPl
 };
 
 const EditRelPersonPlaceModal = ({ open, setOpen, placeToEdit }) => {
-  const [places] = useRecoilState(placesState);
-  const [relsPersonPlace] = useRecoilState(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const [places] = useAtom(placesState);
+  const [relsPersonPlace] = useAtom(relsPersonPlaceState);
+  const user = useAtomValue(userState);
 
   const [updating, setUpdating] = useState(false);
 

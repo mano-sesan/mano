@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatDuration } from "../services/date";
 import { TimeModalButton } from "./HelpButtonAndModal";
 import UserName from "./UserName";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { selector, selectorFamily, useAtomValue } from "jotai";
 import { personFieldsIncludingCustomFieldsSelector } from "../recoil/persons";
 import { customFieldsMedicalFileSelector } from "../recoil/medicalFiles";
 import { LineChart } from "../scenes/person/components/Constantes";
@@ -82,7 +82,7 @@ const personFieldSelector = selectorFamily({
 
 function FieldHistory({ name = null, person = null }) {
   const [calendarDayCreatedAt, timeCreatedAt] = dayjsInstance(person?.createdAt).format("DD/MM/YYYY HH:mm").split(" ");
-  const personField = useRecoilValue(personFieldSelector({ name }));
+  const personField = useAtomValue(personFieldSelector({ name }));
   const fieldHistory = useMemo(() => {
     const _fieldHistory = [];
     // Get the appropriate history based on whether it's a medical file field

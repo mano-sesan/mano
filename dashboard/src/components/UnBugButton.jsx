@@ -1,11 +1,11 @@
 import React from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../recoil/auth";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 
 export default function UnBugButton({ onResetCacheAndLogout }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   return (
     <>

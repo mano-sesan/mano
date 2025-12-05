@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { selector, useRecoilValue } from "recoil";
+import { selector, useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router-dom";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -56,14 +56,14 @@ const mergedPersonIdsSelector = selector({
 export default function Poubelle() {
   const { refresh } = useDataLoader();
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const [persons, setPersons] = useState();
   const [data, setData] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
   const [refreshKey, setRefreshKey] = useState(0);
-  const users = useRecoilValue(usersState);
-  const mergedPersonIds = useRecoilValue(mergedPersonIdsSelector);
+  const users = useAtomValue(usersState);
+  const mergedPersonIds = useAtomValue(mergedPersonIdsSelector);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {

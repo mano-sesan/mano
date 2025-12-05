@@ -1,4 +1,4 @@
-import { selector } from "recoil";
+import { atom } from "jotai";
 import structuredClone from "@ungap/structured-clone";
 import { capture } from "../services/sentry";
 import type { PersonPopulated } from "../types/person";
@@ -15,35 +15,32 @@ import { mergedPersonAssignedTeamPeriodsWithQueryPeriod } from "../utils/person-
 import { getPersonSnapshotAtDate } from "../utils/person-snapshot";
 import { getValueByField } from "../utils/person-get-value-by-field";
 
-export const evolutiveStatsIndicatorsBaseSelector = selector({
-  key: "evolutiveStatsIndicatorsBaseSelector",
-  get: ({ get }) => {
-    const allFields = get(personFieldsIncludingCustomFieldsSelector);
-    const currentTeam = get(currentTeamState);
-    const indicatorsBase = allFields
-      .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
-      .filter((f) => {
-        if (f.name === "history") return false;
-        if (f.name === "documents") return false;
-        switch (f.type) {
-          case "text":
-          case "textarea":
-          case "date":
-          case "duration":
-          case "date-with-time":
-            return false;
-          case "multi-choice":
-          case "number":
-          case "yes-no":
-          case "enum":
-          case "boolean":
-          default:
-            return f.filterable;
-        }
-      });
+export const evolutiveStatsIndicatorsBaseSelector = atom((get) => {
+  const allFields = get(personFieldsIncludingCustomFieldsSelector);
+  const currentTeam = get(currentTeamState);
+  const indicatorsBase = allFields
+    .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam?._id))
+    .filter((f) => {
+      if (f.name === "history") return false;
+      if (f.name === "documents") return false;
+      switch (f.type) {
+        case "text":
+        case "textarea":
+        case "date":
+        case "duration":
+        case "date-with-time":
+          return false;
+        case "multi-choice":
+        case "number":
+        case "yes-no":
+        case "enum":
+        case "boolean":
+        default:
+          return f.filterable;
+      }
+    });
 
-    return indicatorsBase;
-  },
+  return indicatorsBase;
 });
 
 export const startHistoryFeatureDate = "2022-09-23";

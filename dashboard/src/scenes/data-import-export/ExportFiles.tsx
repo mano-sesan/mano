@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../../recoil/auth";
 import { download } from "../../utils";
 import { getHashedOrgEncryptionKey } from "../../services/encryption";
@@ -15,8 +15,8 @@ import { arrayOfitemsGroupedByPersonSelector } from "../../recoil/selectors";
 
 export default function ExportFiles() {
   const [isDownloading, setIsDownloading] = useState(false);
-  const persons = useRecoilValue(arrayOfitemsGroupedByPersonSelector);
-  const organisation = useRecoilValue(organisationState);
+  const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+  const organisation = useAtomValue(organisationState);
 
   return (
     <>

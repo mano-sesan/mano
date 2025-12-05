@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { encryptComment } from "../../../recoil/comments";
@@ -10,8 +10,8 @@ import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 
 export default function Comments({ person }) {
-  const organisation = useRecoilValue(organisationState);
-  const groups = useRecoilValue(groupsState);
+  const organisation = useAtomValue(organisationState);
+  const groups = useAtomValue(groupsState);
   const { refresh } = useDataLoader();
 
   // On affiche les commentaires médicaux partagés par les professionnels de santés

@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState } from "../../recoil/auth";
@@ -6,9 +6,9 @@ import { personFieldsIncludingCustomFieldsSelector } from "../../recoil/persons"
 import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
 
 export default function DownloadPersonsImportExample() {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const currentTeam = useAtomValue(currentTeamState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
 
   function placeholder(f) {
     if (f.options?.length) return f.options[0];

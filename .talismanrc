@@ -23,6 +23,8 @@ fileignoreconfig:
   checksum: 585c8eb934a41fb71a68fdbae70d79223968efd1daa50b8f6882565a127e49da
 - filename: dashboard/src/recoil/evolutiveStats.ts
   checksum: 705052edbac7a842f439e66bf6b28f9232ba50c7a19b1da058ce288d4c016405
+- filename: dashboard/src/recoil/selectors.js
+  checksum: 65eb1a07c0861fa41e02571c88fadc7536245583ec8bc3e189cb1a1178d4331b
 - filename: dashboard/src/scenes/organisation/SuperadminUsersManagement.tsx
   checksum: 2c19d1a80d3c9e50509b320c1bf294a86d3f8bc0a6ea2185d2d30ed913e5285f
 - filename: e2e/scripts/populate-db.ts

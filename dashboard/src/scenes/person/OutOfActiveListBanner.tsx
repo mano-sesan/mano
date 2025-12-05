@@ -1,10 +1,10 @@
 import { formatDateWithFullMonth } from "../../services/date";
 import { currentTeamState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { HistoryEntryForOutOfTeamsInformations, OutOfTeamsInformation, PersonInstance, FieldChangeData } from "../../types/person";
 
 export default function OutOfActiveListBanner({ person }: { person: PersonInstance }) {
-  const team = useRecoilValue(currentTeamState);
+  const team = useAtomValue(currentTeamState);
 
   if (person.outOfActiveList) {
     return (

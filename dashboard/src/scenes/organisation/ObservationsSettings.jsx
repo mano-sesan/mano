@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -25,9 +25,9 @@ const sanitizeFields = (field) => {
 };
 
 const ObservationsSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const flatCustomFieldsObs = useAtomValue(customFieldsObsSelector);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
 
   const dataFormatted = groupedCustomFieldsObs.map((group) => ({
     groupTitle: group.name,
@@ -137,9 +137,9 @@ const ObservationsSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
+  const flatCustomFieldsObs = useAtomValue(customFieldsObsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -222,10 +222,10 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const observations = useRecoilValue(territoryObservationsState);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const observations = useAtomValue(territoryObservationsState);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
+  const flatCustomFieldsObs = useAtomValue(customFieldsObsSelector);
 
   const { refresh } = useDataLoader();
 

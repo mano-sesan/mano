@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -303,10 +303,10 @@ function CommentsTable({
   small = false,
   withFilters = false,
 }: CommentsTableProps) {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
+  const setModalAction = useSetAtom(modalActionState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
   const history = useHistory();
   const location = useLocation();
 
@@ -514,7 +514,7 @@ interface CommentDisplayProps {
 }
 
 function CommentDisplay({ comment, onClose, onEditComment, color = "main" }: CommentDisplayProps) {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const isEditable = useMemo(() => {
     if (comment.user === user?._id) return true;
@@ -622,10 +622,10 @@ function CommentModal({
   personId,
   color,
 }: CommentModalProps) {
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const teams = useAtomValue(teamsState);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isEditable = useMemo(() => {

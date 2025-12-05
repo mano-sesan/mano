@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 // Pour l'historique git, avant le code était ici : dashboard/src/components/DataLoader.jsx
 import { useEffect } from "react";
-import { atom, useRecoilState, useSetRecoilState } from "recoil";
+import { atom, useAtom, useSetAtom, useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 
 import { personsState } from "../recoil/persons";
@@ -29,48 +29,54 @@ import { recurrencesState } from "../recoil/recurrences";
 import { capture } from "./sentry";
 
 // Update to flush cache.
-export const isLoadingState = atom({ key: "isLoadingState", default: false });
-export const fullScreenState = atom({ key: "fullScreenState", default: true });
-export const progressState = atom({ key: "progressState", default: null });
-export const totalState = atom({ key: "totalState", default: null });
-export const totalLoadingDurationState = atom({
-  key: "totalLoadingDurationState",
-  default: 0,
-  effects: [({ onSet }) => onSet((newValue) => window.localStorage.setItem("totalLoadingDuration", newValue))],
-});
+export const isLoadingState = atom(false);
+export const fullScreenState = atom(true);
+export const progressState = atom(null);
+export const totalState = atom(null);
+
+// Atom with localStorage effect
+const totalLoadingDurationBaseAtom = atom(0);
+export const totalLoadingDurationState = atom(
+  (get) => get(totalLoadingDurationBaseAtom),
+  (get, set, newValue) => {
+    set(totalLoadingDurationBaseAtom, newValue);
+    window.localStorage.setItem("totalLoadingDuration", newValue);
+  }
+);
+
 const initialLoadingTextState = "En attente de chargement";
-export const loadingTextState = atom({ key: "loadingTextState", default: initialLoadingTextState });
-export const initialLoadIsDoneState = atom({ key: "initialLoadIsDoneState", default: false });
+export const loadingTextState = atom(initialLoadingTextState);
+export const initialLoadIsDoneState = atom(false);
 
 export function useDataLoader(options = { refreshOnMount: false }) {
-  const [fullScreen, setFullScreen] = useRecoilState(fullScreenState);
-  const [isLoading, setIsLoading] = useRecoilState(isLoadingState);
-  const setLoadingText = useSetRecoilState(loadingTextState);
-  const setInitialLoadIsDone = useSetRecoilState(initialLoadIsDoneState);
-  const setTotalLoadingDuration = useSetRecoilState(totalLoadingDurationState);
-  const setProgress = useSetRecoilState(progressState);
-  const setTotal = useSetRecoilState(totalState);
+  const [fullScreen, setFullScreen] = useAtom(fullScreenState);
+  const [isLoading, setIsLoading] = useAtom(isLoadingState);
+  const setLoadingText = useSetAtom(loadingTextState);
+  const setInitialLoadIsDone = useSetAtom(initialLoadIsDoneState);
+  const setTotalLoadingDuration = useSetAtom(totalLoadingDurationState);
+  const setProgress = useSetAtom(progressState);
+  const setTotal = useSetAtom(totalState);
 
-  const [user, setUser] = useRecoilState(userState);
-  const [teams, setTeams] = useRecoilState(teamsState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [user, setUser] = useAtom(userState);
+  const [teams, setTeams] = useAtom(teamsState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const { migrateData } = useDataMigrator();
 
-  const setPersons = useSetRecoilState(personsState);
-  const setGroups = useSetRecoilState(groupsState);
-  const setReports = useSetRecoilState(reportsState);
-  const setPassages = useSetRecoilState(passagesState);
-  const setRencontres = useSetRecoilState(rencontresState);
-  const setActions = useSetRecoilState(actionsState);
-  const setRecurrences = useSetRecoilState(recurrencesState);
-  const setTerritories = useSetRecoilState(territoriesState);
-  const setPlaces = useSetRecoilState(placesState);
-  const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
-  const setTerritoryObservations = useSetRecoilState(territoryObservationsState);
-  const setComments = useSetRecoilState(commentsState);
-  const setConsultations = useSetRecoilState(consultationsState);
-  const setTreatments = useSetRecoilState(treatmentsState);
-  const setMedicalFiles = useSetRecoilState(medicalFileState);
+  const setPersons = useSetAtom(personsState);
+  const setGroups = useSetAtom(groupsState);
+  const setReports = useSetAtom(reportsState);
+  const setPassages = useSetAtom(passagesState);
+  const setRencontres = useSetAtom(rencontresState);
+  const setActions = useSetAtom(actionsState);
+  const setRecurrences = useSetAtom(recurrencesState);
+  const setTerritories = useSetAtom(territoriesState);
+  const setPlaces = useSetAtom(placesState);
+  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const setTerritoryObservations = useSetAtom(territoryObservationsState);
+  const setComments = useSetAtom(commentsState);
+  const setConsultations = useSetAtom(consultationsState);
+  const setTreatments = useSetAtom(treatmentsState);
+  const setMedicalFiles = useSetAtom(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)

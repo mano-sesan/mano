@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -6,10 +6,7 @@ import type { TreatmentInstance } from "../types/treatment";
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "treatment";
-export const treatmentsState = atom<TreatmentInstance[]>({
-  key: collectionName,
-  default: [],
-});
+export const treatmentsState = atom<TreatmentInstance[]>([]);
 
 const encryptedFields: Array<keyof TreatmentInstance> = [
   "person",

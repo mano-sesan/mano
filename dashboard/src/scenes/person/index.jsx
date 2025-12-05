@@ -4,11 +4,11 @@ import SentryRoute from "../../components/Sentryroute";
 
 import List from "./list";
 import View from "./view";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamState } from "../../recoil/auth";
 
 const Router = () => {
-  const currentTeam = useRecoilValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   if (!currentTeam) return null;
 

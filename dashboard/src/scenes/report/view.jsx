@@ -5,7 +5,7 @@ import { TODO } from "../../recoil/actions";
 import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import { flattenedServicesSelector, reportsState } from "../../recoil/reports";
-import { selectorFamily, useRecoilValue } from "recoil";
+import { selectorFamily, useAtomValue } from "jotai";
 import { passagesState } from "../../recoil/passages";
 import useTitle from "../../services/useTitle";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
@@ -225,11 +225,11 @@ const defaultPreset = reportsPresets[0];
 
 const View = () => {
   const { dateString } = useParams();
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const teams = useAtomValue(teamsState);
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("reports-allOrg", teams.length === 1);
   const [selectedTeamIds, setSelectedTeamIds] = useLocalStorage("reports-teams", currentTeam?._id ? [currentTeam._id] : []);
 
@@ -276,7 +276,7 @@ const View = () => {
     reports,
     actionsCreated,
     consultationsCreated,
-  } = useRecoilValue(
+  } = useAtomValue(
     itemsForReportsSelector({
       period,
       viewAllOrganisationData,

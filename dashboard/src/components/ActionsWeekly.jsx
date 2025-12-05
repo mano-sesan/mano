@@ -1,6 +1,6 @@
 import { forwardRef, useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import DatePicker from "react-datepicker";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { dayjsInstance, formatTime } from "../services/date";
@@ -122,10 +122,10 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
 }
 
 function ActionsOfDay({ actions }) {
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
 
   const sortedActions = [
     // Urgent actions first

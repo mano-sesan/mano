@@ -15,7 +15,7 @@ import SelectStatus from "../../components/SelectStatus";
 import { defaultActionForModal, TODO } from "../../recoil/actions";
 import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../recoil/auth";
 import { personsState } from "../../recoil/persons";
-import { selector, selectorFamily, useRecoilValue, useSetRecoilState } from "recoil";
+import { selector, selectorFamily, useAtomValue, useSetAtom } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
 import { passagesState, encryptPassage, sortPassages } from "../../recoil/passages";
@@ -103,27 +103,27 @@ const todaysPassagesSelector = selector({
 const Reception = () => {
   useTitle("Accueil");
   const { refresh } = useDataLoader();
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const passages = useRecoilValue(todaysPassagesSelector);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const passages = useAtomValue(todaysPassagesSelector);
   const [status, setStatus] = useState(TODO);
-  const actionsByStatus = useRecoilValue(actionsByStatusSelector({ status }));
-  const consultationsByStatus = useRecoilValue(consultationsByStatusSelector({ status }));
+  const actionsByStatus = useAtomValue(actionsByStatusSelector({ status }));
+  const consultationsByStatus = useAtomValue(consultationsByStatusSelector({ status }));
   const [services, setServices] = useState(null);
   const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
+  const setModalAction = useSetAtom(modalActionState);
+  const teams = useAtomValue(teamsState);
 
   const dataConsolidated = useMemo(
     () => [...actionsByStatus, ...consultationsByStatus].sort((a, b) => new Date(b.completedAt || b.dueAt) - new Date(a.completedAt || a.dueAt)),
     [actionsByStatus, consultationsByStatus]
   );
 
-  const todaysReport = useRecoilValue(todaysReportSelector);
-  const user = useRecoilValue(userState);
+  const todaysReport = useAtomValue(todaysReportSelector);
+  const user = useAtomValue(userState);
 
-  const persons = useRecoilValue(personsState);
+  const persons = useAtomValue(personsState);
 
   const history = useHistory();
   const location = useLocation();
@@ -329,8 +329,8 @@ const Reception = () => {
 };
 
 const PassagesToday = ({ passages, isOpen, setOpen }) => {
-  const persons = useRecoilValue(personsObjectSelector);
-  const users = useRecoilValue(usersState);
+  const persons = useAtomValue(personsObjectSelector);
+  const users = useAtomValue(usersState);
   const [passageToEdit, setPassageToEdit] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("reception-passage-sortBy", "date");
   const [sortOrder, setSortOrder] = useLocalStorage("reception-passage-sortOrder", "ASC");

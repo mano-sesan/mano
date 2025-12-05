@@ -10,7 +10,7 @@ import { actionsState } from "../../recoil/actions";
 import { placesState } from "../../recoil/places";
 import { reportsState, flattenedServicesSelector } from "../../recoil/reports";
 import { territoriesState } from "../../recoil/territory";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { passagesState } from "../../recoil/passages";
 import { rencontresState } from "../../recoil/rencontres";
 import { consultationsState } from "../../recoil/consultations";
@@ -70,28 +70,28 @@ const createSheet = (data) => {
 
 const ExportData = () => {
   const [isExporting, setIsExporting] = useState(false);
-  const teams = useRecoilValue(teamsState);
-  const users = useRecoilValue(usersState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const teams = useAtomValue(teamsState);
+  const users = useAtomValue(usersState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
 
-  const allPersons = useRecoilValue(personsState);
-  const allActions = useRecoilValue(actionsState);
-  const allComments = useRecoilValue(commentsState);
-  const allReports = useRecoilValue(reportsState);
-  const allTerritories = useRecoilValue(territoriesState);
-  const allObservations = useRecoilValue(territoryObservationsState);
-  const allPlaces = useRecoilValue(placesState);
-  const allPassages = useRecoilValue(passagesState);
-  const allConsultations = useRecoilValue(consultationsState);
-  const allMedicalFiles = useRecoilValue(medicalFileState);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const allRencontres = useRecoilValue(rencontresState);
+  const allPersons = useAtomValue(personsState);
+  const allActions = useAtomValue(actionsState);
+  const allComments = useAtomValue(commentsState);
+  const allReports = useAtomValue(reportsState);
+  const allTerritories = useAtomValue(territoriesState);
+  const allObservations = useAtomValue(territoryObservationsState);
+  const allPlaces = useAtomValue(placesState);
+  const allPassages = useAtomValue(passagesState);
+  const allConsultations = useAtomValue(consultationsState);
+  const allMedicalFiles = useAtomValue(medicalFileState);
+  const allTreatments = useAtomValue(treatmentsState);
+  const allRencontres = useAtomValue(rencontresState);
 
-  const personsFields = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const observationsFields = useRecoilValue(customFieldsObsSelector);
-  const medicalFields = useRecoilValue(customFieldsMedicalFileSelector);
+  const personsFields = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const observationsFields = useAtomValue(customFieldsObsSelector);
+  const medicalFields = useAtomValue(customFieldsMedicalFileSelector);
   const consultationFields = organisation.consultations.map(({ fields }) => fields).flat();
 
   const onExportToCSV = async () => {

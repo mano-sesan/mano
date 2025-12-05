@@ -3,7 +3,7 @@ import validator from "validator";
 import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
 import API, { tryFetch } from "../../services/api";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { deploymentShortCommitSHAState } from "../../recoil/version";
 import { errorMessage } from "../../utils";
 import { useLocation } from "react-router-dom";
@@ -11,7 +11,7 @@ import { useLocation } from "react-router-dom";
 const View = () => {
   const location = useLocation();
   const [done, setDone] = useState(false);
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
+  const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
 
   const [resetForm, setResetForm] = useState({
     email: "",

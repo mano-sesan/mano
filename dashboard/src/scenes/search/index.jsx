@@ -10,7 +10,7 @@ import { actionsState } from "../../recoil/actions";
 import { personsState, sortPersons } from "../../recoil/persons";
 import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import { sortTerritories, territoriesState } from "../../recoil/territory";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { selector, selectorFamily, useAtomValue } from "jotai";
 import {
   arrayOfitemsGroupedByPersonSelector,
   itemsGroupedByPersonSelector,
@@ -285,20 +285,20 @@ const observationsBySearchSelector = selectorFamily({
 const View = () => {
   useTitle("Recherche");
   useDataLoader({ refreshOnMount: true });
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
 
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", "Actions");
 
-  const allActions = useRecoilValue(actionsState);
-  const allConsultations = useRecoilValue(consultationsState);
-  const allMedicalFiles = useRecoilValue(medicalFileState);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const allTerritories = useRecoilValue(territoriesState);
-  const allPlaces = useRecoilValue(placesState);
-  const allReports = useRecoilValue(reportsState);
-  const personsObject = useRecoilValue(personsObjectSelector);
+  const allActions = useAtomValue(actionsState);
+  const allConsultations = useAtomValue(consultationsState);
+  const allMedicalFiles = useAtomValue(medicalFileState);
+  const allTreatments = useAtomValue(treatmentsState);
+  const allTerritories = useAtomValue(territoriesState);
+  const allPlaces = useAtomValue(placesState);
+  const allReports = useAtomValue(reportsState);
+  const personsObject = useAtomValue(personsObjectSelector);
 
   const actions = useMemo(() => {
     if (!search?.length) return [];
@@ -326,9 +326,9 @@ const View = () => {
     );
   }, [search, allConsultations, user._id]);
 
-  const persons = useRecoilValue(personsFilteredBySearchForSearchSelector({ search }));
-  const documents = useRecoilValue(documentsFilteredBySearchForSearchSelector({ search }));
-  const comments = useRecoilValue(allCommentsFilteredBySearchSelector({ search }));
+  const persons = useAtomValue(personsFilteredBySearchForSearchSelector({ search }));
+  const documents = useAtomValue(documentsFilteredBySearchForSearchSelector({ search }));
+  const comments = useAtomValue(allCommentsFilteredBySearchSelector({ search }));
 
   const places = useMemo(() => {
     if (!search?.length) return [];
@@ -345,7 +345,7 @@ const View = () => {
     return filterBySearch(search, allTerritories);
   }, [search, allTerritories]);
 
-  const observations = useRecoilValue(observationsBySearchSelector({ search }));
+  const observations = useAtomValue(observationsBySearchSelector({ search }));
 
   const tabsConfig = useMemo(() => {
     const baseTabsConfig = [
@@ -433,8 +433,8 @@ const View = () => {
 
 const Persons = ({ persons }) => {
   const history = useHistory();
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationState);
 
   const [sortBy, setSortBy] = useLocalStorage("person-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-sortOrder", "ASC");
@@ -520,7 +520,7 @@ const Persons = ({ persons }) => {
 
 const Documents = ({ documents }) => {
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   const [sortBy, setSortBy] = useLocalStorage("documents-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("documents-sortOrder", "ASC");
@@ -698,8 +698,8 @@ const Territories = ({ territories }) => {
 };
 
 const Places = ({ places }) => {
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const persons = useRecoilValue(personsState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
+  const persons = useAtomValue(personsState);
 
   if (!places?.length) return <div />;
   const moreThanOne = places.length > 1;
@@ -738,8 +738,8 @@ const Places = ({ places }) => {
 
 const TerritoryObservations = ({ observations }) => {
   const history = useHistory();
-  const team = useRecoilValue(currentTeamState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const team = useAtomValue(currentTeamState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
 
   if (!observations?.length) return <div />;
   const moreThanOne = observations.length > 1;
