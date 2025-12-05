@@ -6,13 +6,12 @@
     "get-ip": "./get-ip.sh",
     "prebuild": "npx expo prebuild --clean --platform android",
     "start": "npm run get-ip && expo start --dev-client --clear",
+    "android": "npx expo run:android --device",
     "build-dev-android": "npx expo run:android --device",
     "build-local:android-aab": "eas build -p android --local",
     "aab-to-apk": "java -jar ./bundletool.jar build-apks --bundle=$AAB_FILE --output=./temp.apks --mode=universal && unzip -o ./temp.apks -d ./apk-output && mv ./apk-output/universal.apk ./$(basename $AAB_FILE .aab).apk && rm -rf ./apk-output ./temp.apks && echo 'APK generated successfully'",
     "update-mobile-app-version": "npx tsx ./update-mobile-app-version.ts",
-    "typecheck": "tsc -b",
-    "ios": "expo run:ios",
-    "android": "expo run:android"
+    "typecheck": "tsc -b"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^4.1.0",
