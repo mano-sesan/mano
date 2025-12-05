@@ -1,6 +1,4 @@
-import { Suspense, useEffect } from "react";
-import { RecoilEnv, RecoilRoot, useRecoilValue } from "recoil";
-import RecoilNexus from "recoil-nexus";
+import { useEffect } from "react";
 import { Router, Switch, Redirect } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
@@ -23,7 +21,8 @@ import Drawer from "./components/drawer";
 import Reception from "./scenes/reception";
 import ActionModal from "./components/ActionModal";
 import Charte from "./scenes/auth/charte";
-import { userState } from "./recoil/auth";
+import { useStore } from "./store";
+import { showOutdateAlertBannerSelector } from "./store/selectors";
 import API, { tryFetch } from "./services/api";
 import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
@@ -41,14 +40,11 @@ import TreatmentModal from "./scenes/person/components/TreatmentModal";
 import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
 import { getHashedOrgEncryptionKey } from "./services/encryption";
-import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./recoil/version";
 import Sandbox from "./scenes/sandbox";
-import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
+import { useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/DocumentsGeneric";
-
-RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -110,9 +106,12 @@ function abortRequests() {
 }
 
 const App = () => {
-  const user = useRecoilValue(userState);
-  const initialLoadIsDone = useRecoilValue(initialLoadIsDoneState);
-  const { refresh } = useDataLoader();
+  const user = useStore((state) => state.user);
+  const initialLoadIsDone = useStore((state) => state.initialLoadIsDone);
+  const deploymentCommit = useStore((state) => state.deploymentCommit);
+  const deploymentDate = useStore((state) => state.deploymentDate);
+  const showOutdateAlertBanner = useStore(showOutdateAlertBannerSelector);
+  const { refresh, isFullScreen: fullScreen } = useDataLoader();
   const apiToken = API.getToken();
 
   // Abort all pending requests (that listen to this signal)
@@ -141,10 +140,6 @@ const App = () => {
       window.removeEventListener("focus", handleFocus);
     };
   }, [initialLoadIsDone, refresh, apiToken]);
-
-  const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
-  const deploymentCommit = useRecoilValue(deploymentCommitState);
-  const deploymentDate = useRecoilValue(deploymentDateState);
 
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     abortRequests();
@@ -194,8 +189,8 @@ const App = () => {
 };
 
 const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
-  const { fullScreen } = useDataLoader();
-  const user = useRecoilValue(userState);
+  const { isFullScreen: fullScreen } = useDataLoader();
+  const user = useStore((state) => state.user);
   if (!!user && !user?.termsAccepted)
     return (
       <main className="main">
@@ -243,16 +238,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
   );
 };
 
+// No need for RecoilRoot wrapper with Zustand!
 export default function ContextedApp() {
-  return (
-    <RecoilRoot>
-      {/* We need React.Suspense here because default values for `person`, `action` etc. tables is an async cache request */}
-      {/* https://recoiljs.org/docs/guides/asynchronous-data-queries#query-default-atom-values */}
-      <Suspense fallback={<div></div>}>
-        {/* Recoil Nexus allows to use Recoil state outside React tree */}
-        <RecoilNexus />
-        <App />
-      </Suspense>
-    </RecoilRoot>
-  );
+  return <App />;
 }

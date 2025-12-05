@@ -1,21 +1,17 @@
-import { selector } from "recoil";
-import { organisationState } from "./auth";
+/**
+ * Structure state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
 
-export const structuresCategoriesSelector = selector({
-  key: "structuresCategoriesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation.structuresGroupedCategories;
-  },
-});
+// Selector functions
+export const structuresCategoriesSelector_fn = (state) => {
+  return state.organisation?.structuresGroupedCategories || [];
+};
 
-export const flattenedStructuresCategoriesSelector = selector({
-  key: "flattenedStructuresCategoriesSelector",
-  get: ({ get }) => {
-    const structuresGroupedCategories = get(structuresCategoriesSelector);
-    return structuresGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
-  },
-});
+export const flattenedStructuresCategoriesSelector_fn = (state) => {
+  const categories = structuresCategoriesSelector_fn(state);
+  return categories.reduce((all, { categories }) => [...all, ...categories], []);
+};
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -58,60 +54,12 @@ export const sortStructures = (sortBy, sortOrder) => (a, b) => {
 };
 
 export const structuresFields = (structuresTypes) => [
-  {
-    name: "name",
-    label: "Nom",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "adresse",
-    label: "Adresse",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "postcode",
-    label: "Code postal",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "city",
-    label: "Ville",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
-  {
-    name: "phone",
-    label: "Téléphone",
-    type: "text",
-    encrypted: true,
-    importable: true,
-    filterable: true,
-    enabled: true,
-  },
+  { name: "name", label: "Nom", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "description", label: "Description", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "adresse", label: "Adresse", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "postcode", label: "Code postal", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "city", label: "Ville", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
+  { name: "phone", label: "Téléphone", type: "text", encrypted: true, importable: true, filterable: true, enabled: true },
   {
     name: "categories",
     label: "Catégories",

@@ -1,14 +1,13 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * Group state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import type { GroupInstance } from "../types/group";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "group";
-export const groupsState = atom<GroupInstance[]>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const groupsState = { key: "group" };
 
 const encryptedFields: Array<keyof GroupInstance> = ["persons", "relations"];
 

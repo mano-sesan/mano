@@ -1,7 +1,8 @@
-import { organisationState } from "./auth";
-import { atom, selector } from "recoil";
-import type { RecoilValueReadOnly } from "recoil";
-import { setCacheItem } from "../services/dataManagement";
+/**
+ * Territory Observation state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
@@ -9,30 +10,23 @@ import type { TerritoryObservationInstance, ReadyToEncryptTerritoryObservationIn
 import type { CustomField, CustomFieldsGroup } from "../types/field";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "territory-observation";
-export const territoryObservationsState = atom<Array<TerritoryObservationInstance>>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const territoryObservationsState = { key: "territory-observation" };
 
-export const customFieldsObsSelector: RecoilValueReadOnly<Array<CustomField>> = selector({
-  key: "customFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
-    return defaultCustomFields;
-  },
-});
+// Selector functions
+export const customFieldsObsSelector_fn = (state: { organisation: any }): CustomField[] => {
+  if (Array.isArray(state.organisation?.customFieldsObs) && state.organisation.customFieldsObs.length) {
+    return state.organisation.customFieldsObs;
+  }
+  return defaultCustomFields;
+};
 
-export const groupedCustomFieldsObsSelector: RecoilValueReadOnly<Array<CustomFieldsGroup>> = selector({
-  key: "groupedCustomFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
-    return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
-  },
-});
+export const groupedCustomFieldsObsSelector_fn = (state: { organisation: any }): CustomFieldsGroup[] => {
+  if (Array.isArray(state.organisation?.groupedCustomFieldsObs) && state.organisation.groupedCustomFieldsObs.length) {
+    return state.organisation.groupedCustomFieldsObs;
+  }
+  return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
+};
 
 export const defaultCustomFields: Array<CustomField> = [
   {
@@ -51,22 +45,8 @@ export const defaultCustomFields: Array<CustomField> = [
     required: true,
     showInStats: true,
   },
-  {
-    name: "police",
-    label: "Présence policière",
-    type: "yes-no",
-    enabled: true,
-    required: true,
-    showInStats: true,
-  },
-  {
-    name: "material",
-    label: "Nombre de matériel ramassé",
-    type: "number",
-    enabled: true,
-    required: true,
-    showInStats: true,
-  },
+  { name: "police", label: "Présence policière", type: "yes-no", enabled: true, required: true, showInStats: true },
+  { name: "material", label: "Nombre de matériel ramassé", type: "number", enabled: true, required: true, showInStats: true },
   {
     name: "atmosphere",
     label: "Ambiance",
@@ -84,14 +64,7 @@ export const defaultCustomFields: Array<CustomField> = [
     required: true,
     showInStats: true,
   },
-  {
-    name: "comment",
-    label: "Commentaire",
-    type: "textarea",
-    enabled: true,
-    required: true,
-    showInStats: true,
-  },
+  { name: "comment", label: "Commentaire", type: "textarea", enabled: true, required: true, showInStats: true },
 ];
 
 const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
@@ -122,9 +95,9 @@ export const prepareObsForEncryption =
       }
     }
     const encryptedFields = [...customFields.map((f) => f.name), ...compulsoryEncryptedFields];
-    const decrypted = {};
+    const decrypted: Record<string, any> = {};
     for (const field of encryptedFields) {
-      decrypted[field] = obs[field];
+      decrypted[field] = (obs as any)[field];
     }
     return {
       _id: obs._id,
@@ -145,8 +118,7 @@ export const encryptObs =
   };
 
 type SortOrder = "ASC" | "DESC";
-
-type SortBy = "observedAt";
+type SortBy = "observedAt" | "territoryName" | "userName";
 
 export const sortTerritoriesObservations =
   (sortBy: SortBy, sortOrder: SortOrder) => (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => {
@@ -156,9 +128,14 @@ export const sortTerritoriesObservations =
         : new Date(a.observedAt || a.createdAt).getTime() - new Date(b.observedAt || b.createdAt).getTime();
     }
     if (sortBy === "territoryName") {
-      return sortOrder === "ASC" ? a.territoryName.localeCompare(b.territoryName) : b.territoryName.localeCompare(a.territoryName);
+      return sortOrder === "ASC"
+        ? ((a as any).territoryName || "").localeCompare((b as any).territoryName || "")
+        : ((b as any).territoryName || "").localeCompare((a as any).territoryName || "");
     }
     if (sortBy === "userName") {
-      return sortOrder === "ASC" ? (a.userName || "").localeCompare(b.userName || "") : (b.userName || "").localeCompare(a.userName || "");
+      return sortOrder === "ASC"
+        ? ((a as any).userName || "").localeCompare((b as any).userName || "")
+        : ((b as any).userName || "").localeCompare((a as any).userName || "");
     }
+    return 0;
   };

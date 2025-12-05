@@ -1,16 +1,14 @@
 import { NavLink } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 import TerritoryIcon from "../assets/icons/TerritoryIcon";
 import PersonIcon from "../assets/icons/PersonIcon";
 import Notification from "./Notification";
 import DotsIcon from "../assets/icons/DotsIcon";
-import { showDrawerState } from "./drawer";
-import { userState } from "../recoil/auth";
 
 export default function BottomBar() {
-  const user = useRecoilValue(userState);
-  const setShowDrawer = useSetRecoilState(showDrawerState);
+  const user = useStore((s) => s.user);
+  const setShowDrawer = useStore((s) => s.setShowDrawer);
   return (
     <nav
       title="Tab bar pour navigation sur mobile"

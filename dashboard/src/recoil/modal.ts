@@ -1,69 +1,19 @@
-import { atom } from "recoil";
-import { ActionInstance } from "../types/action";
-import { TerritoryObservationInstance } from "../types/territoryObs";
-import { RencontreInstance } from "../types/rencontre";
+/**
+ * Modal state
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
 
-type ModalActionState = {
-  open: boolean;
-  from?: string;
-  isForMultiplePerson?: boolean;
-  isEditing?: boolean;
-  isEditingAllNextOccurences?: boolean;
-  action?: Partial<ActionInstance>;
-};
+import { useStore, defaultModalActionState, defaultModalObservationState } from "../store";
+import type { ActionInstance } from "../types/action";
+import type { TerritoryObservationInstance } from "../types/territoryObs";
+import type { RencontreInstance } from "../types/rencontre";
 
-export const defaultModalActionState = (): ModalActionState => ({
-  open: false,
-  from: "/reception",
-  isEditing: false,
-  isForMultiplePerson: false,
-  isEditingAllNextOccurences: false,
-  action: null,
-});
+// Re-export types
+export type { ModalActionState, ModalObservationState } from "../store";
 
-const localStorageEffect =
-  <T>(key: string) =>
-  ({
-    setSelf,
-    onSet,
-  }: {
-    setSelf: (value: T) => void;
-    onSet: (callback: (newValue: T, oldValue: T | undefined, isReset: boolean) => void) => void;
-  }) => {
-    const savedValue = localStorage.getItem(key);
-    if (savedValue != null) {
-      setSelf(JSON.parse(savedValue));
-    }
+// Re-export default state creators
+export { defaultModalActionState, defaultModalObservationState };
 
-    onSet((newValue, _, isReset) => {
-      isReset ? localStorage.removeItem(key) : localStorage.setItem(key, JSON.stringify(newValue));
-    });
-  };
-
-export const modalActionState = atom<ModalActionState>({
-  key: "modalAction",
-  default: defaultModalActionState(),
-  effects: [localStorageEffect("modalActionValue")],
-});
-
-type ModalObservationState = {
-  open: boolean;
-  from?: string;
-  isEditing?: boolean;
-  observation?: Partial<TerritoryObservationInstance>;
-  rencontresInProgress?: RencontreInstance[];
-};
-
-export const defaultModalObservationState = (): ModalObservationState => ({
-  open: false,
-  from: "/territory",
-  isEditing: false,
-  observation: null,
-  rencontresInProgress: [],
-});
-
-export const modalObservationState = atom<ModalObservationState>({
-  key: "modalObservation",
-  default: defaultModalObservationState(),
-  effects: [localStorageEffect("modalObservationValue")],
-});
+// State references for backward compatibility
+export const modalActionState = { key: "modalAction" };
+export const modalObservationState = { key: "modalObservation" };

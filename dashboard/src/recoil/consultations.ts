@@ -1,18 +1,18 @@
-import { atom, selector } from "recoil";
+/**
+ * Consultation state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import type { ConsultationInstance } from "../types/consultation";
 import type { CustomFieldsGroup } from "../types/field";
 import type { UserInstance } from "../types/user";
-import { organisationState } from "./auth";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "consultation";
-export const consultationsState = atom<ConsultationInstance[]>({
-  key: collectionName,
-  default: [],
-});
+// State reference for backward compatibility
+export const consultationsState = { key: "consultation" };
 
 const encryptedFields: Array<keyof ConsultationInstance> = [
   // Normal fields
@@ -62,52 +62,36 @@ export const excludeConsultationsFieldsFromSearch = new Set([
   "constantes-tension-arterielle-diastolique",
 ]);
 
-export const consultationFieldsSelector = selector({
-  key: "consultationFieldsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation?.consultations || [];
-  },
-});
+// Selector functions
+export const consultationFieldsSelector_fn = (state: { organisation: any }): CustomFieldsGroup[] => {
+  return state.organisation?.consultations || [];
+};
 
-export const flattenedCustomFieldsConsultationsSelector = selector({
-  key: "flattenedCustomFieldsConsultationsSelector",
-  get: ({ get }) => {
-    const customFieldsConsultationsSections = get(consultationFieldsSelector);
-    const customFieldsConsultations = [];
-    for (const section of customFieldsConsultationsSections) {
-      for (const field of section.fields) {
-        customFieldsConsultations.push(field);
-      }
+export const flattenedCustomFieldsConsultationsSelector_fn = (state: { organisation: any }) => {
+  const sections = consultationFieldsSelector_fn(state);
+  const result: any[] = [];
+  for (const section of sections) {
+    for (const field of section.fields) {
+      result.push(field);
     }
-    return customFieldsConsultations;
-  },
-});
+  }
+  return result;
+};
 
-/* Other utils selector */
-
-export const consultationsFieldsIncludingCustomFieldsSelector = selector({
-  key: "consultationsFieldsIncludingCustomFieldsSelector",
-  get: ({ get }) => {
-    const flattenedCustomFieldsConsultations = get(flattenedCustomFieldsConsultationsSelector);
-    return [
-      { name: "name", label: "Nom" },
-      { name: "type", label: "Type" },
-      { name: "onlyVisibleBy", label: "Seulement visible par moi" },
-      { name: "person", label: "Personne suivie" },
-      { name: "teams", label: ":Equipe(s) en charge" },
-      { name: "completedAt", label: "Faite le" },
-      { name: "dueAt", label: "À faire le" },
-      { name: "status", label: "Statut" },
-      ...flattenedCustomFieldsConsultations.map((f) => {
-        return {
-          name: f.name,
-          label: f.label,
-        };
-      }),
-    ];
-  },
-});
+export const consultationsFieldsIncludingCustomFieldsSelector_fn = (state: { organisation: any }) => {
+  const flattenedCustom = flattenedCustomFieldsConsultationsSelector_fn(state);
+  return [
+    { name: "name", label: "Nom" },
+    { name: "type", label: "Type" },
+    { name: "onlyVisibleBy", label: "Seulement visible par moi" },
+    { name: "person", label: "Personne suivie" },
+    { name: "teams", label: ":Equipe(s) en charge" },
+    { name: "completedAt", label: "Faite le" },
+    { name: "dueAt", label: "À faire le" },
+    { name: "status", label: "Statut" },
+    ...flattenedCustom.map((f: any) => ({ name: f.name, label: f.label })),
+  ];
+};
 
 export const prepareConsultationForEncryption =
   (customFieldsConsultations: CustomFieldsGroup[]) =>
@@ -120,11 +104,6 @@ export const prepareConsultationForEncryption =
         if (!looseUuidRegex.test(consultation.user)) {
           throw new Error("Consultation is missing user");
         }
-        // we don't force the team (yet) because it's blocking with automatic updates of consultation
-        // like merge people + change custom fields
-        // if (!looseUuidRegex.test(consultation.teams)) {
-        //   throw new Error('Consultation is missing teams');
-        // }
       } catch (error) {
         toast.error(
           "La consultation n'a pas été sauvegardée car son format était incorrect. Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."

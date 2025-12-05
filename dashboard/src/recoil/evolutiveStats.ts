@@ -1,4 +1,8 @@
-import { selector } from "recoil";
+/**
+ * Evolutive Stats utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import structuredClone from "@ungap/structured-clone";
 import { capture } from "../services/sentry";
 import type { PersonPopulated } from "../types/person";
@@ -8,43 +12,11 @@ import type { EvolutiveStatOption } from "../types/evolutivesStats";
 import type { UUIDV4 } from "../types/uuid";
 import type { PeriodISODate } from "../types/date";
 import { dayjsInstance } from "../services/date";
-import { forbiddenPersonFieldsInHistory, personFieldsIncludingCustomFieldsSelector } from "./persons";
+import { forbiddenPersonFieldsInHistory } from "./persons";
 import type { Dayjs } from "dayjs";
-import { currentTeamState } from "./auth";
 import { mergedPersonAssignedTeamPeriodsWithQueryPeriod } from "../utils/person-merge-assigned-team-periods-with-query-period";
 import { getPersonSnapshotAtDate } from "../utils/person-snapshot";
 import { getValueByField } from "../utils/person-get-value-by-field";
-
-export const evolutiveStatsIndicatorsBaseSelector = selector({
-  key: "evolutiveStatsIndicatorsBaseSelector",
-  get: ({ get }) => {
-    const allFields = get(personFieldsIncludingCustomFieldsSelector);
-    const currentTeam = get(currentTeamState);
-    const indicatorsBase = allFields
-      .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
-      .filter((f) => {
-        if (f.name === "history") return false;
-        if (f.name === "documents") return false;
-        switch (f.type) {
-          case "text":
-          case "textarea":
-          case "date":
-          case "duration":
-          case "date-with-time":
-            return false;
-          case "multi-choice":
-          case "number":
-          case "yes-no":
-          case "enum":
-          case "boolean":
-          default:
-            return f.filterable;
-        }
-      });
-
-    return indicatorsBase;
-  },
-});
 
 export const startHistoryFeatureDate = "2022-09-23";
 
@@ -77,20 +49,6 @@ export function computeEvolutiveStatsForPersons({
   viewAllOrganisationData: boolean;
   selectedTeamsObjectWithOwnPeriod: Record<UUIDV4, PeriodISODate>;
 }): EvolutiveStatRenderData {
-  // concepts:
-  // we select "indicators" (for now only one by one is possible) that are fields of the person
-  // one indicator is: one `field`, one `fromValue` and one `toValue`
-  // we want to see the number of switches from `fromValue` to `toValue` for the `field` of the persons - one person can have multiple switches
-  // if only `field` is defined, we present nothing for now
-  // if `fromValue` is defined, we present nothing from now - we will present the number of switches to any values from the `fromValue`
-  // if `toValue` is defined, we present two numbers only
-  // how do we calculate ?
-  // we start by the snapshot at the initial value (a snapshot is the picture of a person at a given date)
-  // then we go forward in time, and when we meet an entry in the history for the field,
-  // we ignore the history dates outside the period
-  // we check the number of switches from `fromValue` to `toValue` for the field during the period
-  // CAREFUL: if there is an `intermediateValue` between `fromValue` and `toValue`, it's not a switch
-
   const startDateConsolidated = startDate
     ? dayjsInstance(dayjsInstance(startDate).startOf("day").format("YYYY-MM-DD"))
     : dayjsInstance(startHistoryFeatureDate);
@@ -106,15 +64,14 @@ export function computeEvolutiveStatsForPersons({
   const indicator = evolutiveStatsIndicators[0];
   const field = evolutiveStatsIndicatorsBase.find((f) => f.name === indicator.fieldName);
   const indicatorFieldName = field?.name;
-  const indicatorFieldLabel = field?.label; // exemple: "Ressources"
+  const indicatorFieldLabel = field?.label;
   const indicatorFieldType = field?.type;
 
   const valueStart = indicator?.fromValue;
   const valueEnd = indicator?.toValue;
 
-  const typesByFields = { [indicatorFieldName]: indicatorFieldType };
+  const typesByFields = { [indicatorFieldName || ""]: indicatorFieldType };
 
-  // FIXME: should we have evolutive stats on a single day ?
   if (startDateConsolidated.isSame(endDateConsolidated))
     return {
       countSwitched: 0,
@@ -157,14 +114,14 @@ export function computeEvolutiveStatsForPersons({
 
       for (const historyItem of person.history ?? []) {
         const historyDate = dayjsInstance(historyItem.date).format("YYYY-MM-DD");
-        if (periodStartDate === historyDate) continue; // we don't want to take the snapshot date (it's already done before the loop)
+        if (periodStartDate === historyDate) continue;
         if (historyDate < initSnapshotDate) continue;
         if (historyDate > queryEndDateFormatted) break;
 
         let nextPerson = structuredClone(currentPerson);
         for (const historyChangeField of Object.keys(historyItem.data)) {
-          if (historyChangeField !== indicatorFieldName) continue; // we support only one indicator for now
-          if (forbiddenPersonFieldsInHistory.includes(indicatorFieldName)) continue;
+          if (historyChangeField !== indicatorFieldName) continue;
+          if (forbiddenPersonFieldsInHistory.includes(indicatorFieldName || "")) continue;
           if (indicatorFieldName === "merge") continue;
           const oldValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].oldValue);
           const historyNewValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].newValue);
@@ -182,9 +139,6 @@ export function computeEvolutiveStatsForPersons({
                 oldValue,
                 historyNewValue,
                 currentPersonValue,
-                // currentPerson,
-                // person,
-                // initSnapshot,
               },
             });
           }
@@ -199,8 +153,6 @@ export function computeEvolutiveStatsForPersons({
         const nextValue = Array.isArray(nextRawValue) ? nextRawValue : [nextRawValue].filter(Boolean);
 
         if (historyDate >= queryStartDateFormatted) {
-          // now we have the person at the date of the history item
-
           if (currentValue.includes(valueStart)) {
             if (!nextValue.includes(valueStart)) {
               countSwitchedValueDuringThePeriod++;
@@ -221,15 +173,13 @@ export function computeEvolutiveStatsForPersons({
         if (!personsIdsSwitchedByValue[valueStart]) {
           personsIdsSwitchedByValue[valueStart] = [];
         }
-        // FIXME: is there a bug here ? we don'tcheck if the person has the valueStart, should we ?
-        personsIdsSwitchedByValue[valueStart].push(person._id); // from `fromValue` to `fromValue`
+        personsIdsSwitchedByValue[valueStart].push(person._id);
       }
     }
   }
 
   const countSwitched = personsIdsSwitchedByValue[valueEnd]?.length ?? 0;
   const personsIdsSwitched = [...new Set(personsIdsSwitchedByValue[valueEnd] ?? [])];
-  // TODO FIXME: is this percentage really useful ?
   const countPersonSwitched = personsIdsSwitched.length;
   const percentSwitched = Math.round((persons.length ? countPersonSwitched / persons.length : 0) * 100);
 
@@ -245,3 +195,6 @@ export function computeEvolutiveStatsForPersons({
     personsIdsSwitchedByValue,
   };
 }
+
+// Re-export evolutive stats indicators selector
+export { evolutiveStatsIndicatorsBaseSelector } from "../store/selectors";

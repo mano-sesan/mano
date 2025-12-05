@@ -1,18 +1,17 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+/**
+ * RelPersonPlace state and utilities
+ * NOTE: State is now managed by Zustand. Import from '../store' for direct access.
+ */
+
 import { looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import { capture } from "../services/sentry";
 import { encryptItem } from "../services/encryption";
 
-const collectionName = "relPersonPlace";
-export const relsPersonPlaceState = atom({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+// State reference for backward compatibility
+export const relsPersonPlaceState = { key: "relPersonPlace" };
 
-const encryptedFields = ["place", "person", "user"];
+const encryptedFields = ["person", "place", "user"];
 
 export const prepareRelPersonPlaceForEncryption = (relPersonPlace, { checkRequiredFields = true } = {}) => {
   if (checkRequiredFields) {
@@ -28,7 +27,7 @@ export const prepareRelPersonPlaceForEncryption = (relPersonPlace, { checkRequir
       }
     } catch (error) {
       toast.error(
-        "Le lieu n'a pas été sauvegardé car son format était incorrect. Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+        "La relation personne-lieu n'a pas été sauvegardée car son format était incorrect. Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
       );
       capture(error);
       throw error;

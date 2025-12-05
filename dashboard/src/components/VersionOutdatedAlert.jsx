@@ -1,10 +1,10 @@
-import { useRecoilValue } from "recoil";
-import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "../recoil/version";
+import { useStore } from "../store";
+import { showOutdateAlertBannerSelector } from "../store/selectors";
 
 export default function VersionOutdatedAlert() {
-  const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
-  const deploymentCommit = useRecoilValue(deploymentCommitState);
-  const deploymentDate = useRecoilValue(deploymentDateState);
+  const showOutdateAlertBanner = useStore(showOutdateAlertBannerSelector);
+  const deploymentCommit = useStore((s) => s.deploymentCommit);
+  const deploymentDate = useStore((s) => s.deploymentDate);
 
   if (!showOutdateAlertBanner) return null;
 

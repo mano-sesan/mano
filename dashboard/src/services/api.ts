@@ -1,9 +1,8 @@
-import { getRecoil, setRecoil } from "recoil-nexus";
+import { getState, setState } from "../store";
 import { HOST, SCHEME } from "../config";
-import { organisationState } from "../recoil/auth";
-import { deploymentCommitState, deploymentDateState } from "../recoil/version";
 import { capture } from "./sentry";
 import { toast } from "react-toastify";
+
 class AuthError extends Error {
   constructor() {
     super("Connexion expirée");
@@ -29,7 +28,7 @@ class Api {
   }
 
   protected organisationEncryptionStatus() {
-    const organisation = getRecoil(organisationState) || {
+    const organisation = getState().organisation || {
       encryptionLastUpdateAt: undefined,
       encryptionEnabled: undefined,
       migrationLastUpdateAt: undefined,
@@ -44,15 +43,17 @@ class Api {
   protected updateDeploymentStatus(response: Response) {
     if (!response?.headers) return;
     if (response.headers.has("x-api-deployment-commit")) {
-      setRecoil(deploymentCommitState, response.headers.get("x-api-deployment-commit"));
+      const commit = response.headers.get("x-api-deployment-commit");
+      setState({ deploymentCommit: commit });
       if (!window.localStorage.getItem("deploymentCommit")) {
-        window.localStorage.setItem("deploymentCommit", response.headers.get("x-api-deployment-commit"));
+        window.localStorage.setItem("deploymentCommit", commit || "");
       }
     }
     if (response.headers.has("x-api-deployment-date")) {
-      setRecoil(deploymentDateState, response.headers.get("x-api-deployment-date"));
+      const date = response.headers.get("x-api-deployment-date");
+      setState({ deploymentDate: date });
       if (!window.localStorage.getItem("deploymentDate")) {
-        window.localStorage.setItem("deploymentDate", response.headers.get("x-api-deployment-date"));
+        window.localStorage.setItem("deploymentDate", date || "");
       }
     }
   }
@@ -219,10 +220,10 @@ export async function tryFetchBlob<T extends Blob>(callback: FetchCallback<T>): 
     const result = await callback();
     return [undefined, result];
   } catch (error) {
-    console.log("error.name in tryFetchBlob", error.name);
+    console.log("error.name in tryFetchBlob", (error as Error).name);
     if (error instanceof AuthError) window.location.href = "/auth?disconnected=1";
     else capture(error);
-    return [error, undefined];
+    return [error as Error, undefined];
   }
 }
 
@@ -239,22 +240,22 @@ export async function tryFetch<T extends ApiResponse>(callback: FetchCallback<T>
     if (result && !result.ok) return [new Error(result.error), result];
     return [undefined, result];
   } catch (error) {
-    console.log("error.name in tryFetch", error.name);
+    console.log("error.name in tryFetch", (error as Error).name);
     console.log("signal aborted", API.abortController.signal.aborted);
     console.log("signal aborted reason", API.abortController.signal.reason); // Aborted by navigation
     if (error instanceof AuthError) {
       window.sessionStorage.setItem("redirectPath", window.location.pathname);
       window.location.href = "/auth?disconnected=1";
-    } else if (error.name === "BeforeUnloadAbortError") {
+    } else if ((error as Error).name === "BeforeUnloadAbortError") {
       console.log("BeforeUnloadAbortError", error);
-    } else if (API?.abortController?.signal?.reason?.message?.includes?.("Aborted by navigation")) {
+    } else if ((API?.abortController?.signal?.reason as any)?.message?.includes?.("Aborted by navigation")) {
       console.log("Reason Signal Aborted by navigation", error);
-    } else if (validateEncryptionErrors.includes(error.message)) {
-      toast.error(error.message);
+    } else if (validateEncryptionErrors.includes((error as Error).message)) {
+      toast.error((error as Error).message);
     } else {
       capture(error);
     }
-    return [error, undefined];
+    return [error as Error, undefined];
   }
 }
 
@@ -267,21 +268,21 @@ export async function tryFetchExpectOk<T extends ApiResponse>(callback: FetchCal
     if (result && result?.ok === false) throw new Error(result.error);
     return [undefined, result];
   } catch (error) {
-    console.log("error.name in tryFetchExpectOk", error.name);
+    console.log("error.name in tryFetchExpectOk", (error as Error).name);
     console.log("signal aborted", API.abortController.signal.aborted);
     console.log("signal aborted reason", API.abortController.signal.reason); // Aborted by navigation
     if (error instanceof AuthError) {
       window.location.href = "/auth?disconnected=1";
-    } else if (error.name === "BeforeUnloadAbortError") {
+    } else if ((error as Error).name === "BeforeUnloadAbortError") {
       console.log("BeforeUnloadAbortError", error);
-    } else if (API?.abortController?.signal?.reason?.message?.includes?.("Aborted by navigation")) {
+    } else if ((API?.abortController?.signal?.reason as any)?.message?.includes?.("Aborted by navigation")) {
       console.log("Reason Signal Aborted by navigation", error);
-    } else if (validateEncryptionErrors.includes(error.message)) {
-      toast.error(error.message);
+    } else if (validateEncryptionErrors.includes((error as Error).message)) {
+      toast.error((error as Error).message);
     } else {
       capture(error);
     }
-    return [error, undefined];
+    return [error as Error, undefined];
   }
 }
 
