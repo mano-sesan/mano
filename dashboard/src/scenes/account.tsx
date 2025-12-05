@@ -1,10 +1,9 @@
 import React, { useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
 import Loading from "../components/loading";
 import ChangePassword from "../components/ChangePassword";
-import { userState } from "../recoil/auth";
+import { useStore } from "../store";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import { ModalBody, ModalContainer, ModalHeader, ModalFooter } from "../components/tailwind/Modal";
 import DeleteButtonAndConfirmModal from "../components/DeleteButtonAndConfirmModal";
@@ -12,7 +11,8 @@ import { errorMessage } from "../utils";
 import { capture } from "../services/sentry";
 
 const Account = () => {
-  const [user, setUser] = useRecoilState(userState);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
 
   if (!user) return <Loading />;
 

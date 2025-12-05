@@ -40,6 +40,7 @@ import {
   evolutiveStatsIndicatorsBaseSelector,
   currentTeamReportsSelector,
 } from "../store/selectors";
+import { dayjsInstance } from "../services/date";
 
 // State key type
 type StateKey = { key: string };
@@ -88,7 +89,6 @@ const stateKeyToSelector: Record<string, (state: any) => any> = {
   shortCommitSHAState: (s) => (s.deploymentCommit || "-").substring(0, 7),
   showOutdateAlertBannerState: (s) => {
     if (!s.deploymentCommit || !s.deploymentDate) return false;
-    const { dayjsInstance } = require("../services/date");
     return (
       dayjsInstance(s.deploymentDate).isAfter(dayjsInstance(window.localStorage.getItem("deploymentDate"))) &&
       s.deploymentCommit !== window.localStorage.getItem("deploymentCommit")
@@ -98,6 +98,7 @@ const stateKeyToSelector: Record<string, (state: any) => any> = {
   // Modal state
   modalAction: (s) => s.modalAction,
   modalObservation: (s) => s.modalObservation,
+  modalConfirmState: (s) => s.modalConfirm,
 
   // UI state
   showDrawerState: (s) => s.showDrawer,
@@ -179,6 +180,7 @@ const stateKeyToSetter: Record<string, string> = {
   // Modal state
   modalAction: "setModalAction",
   modalObservation: "setModalObservation",
+  modalConfirmState: "setModalConfirm",
 
   // UI state
   showDrawerState: "setShowDrawer",

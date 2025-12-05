@@ -1,10 +1,9 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
-import { teamsState } from "../recoil/auth";
+import { useStore } from "../store";
 import SelectCustom from "./SelectCustom";
 
 const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNamePrefix, isDisabled = false }) => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
 
   return (
     <SelectCustom

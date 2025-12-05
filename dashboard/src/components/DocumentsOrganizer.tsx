@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SortableJS from "sortablejs";
 import type { DocumentWithLinkedItem, DocumentOrFolderId, FolderWithLinkedItem, Folder } from "../types/document";
-import { useRecoilValue } from "recoil";
-import { organisationAuthentifiedState } from "../recoil/auth";
+import { useStore } from "../store";
+import { organisationAuthentifiedSelector } from "../store/selectors";
 import UserName from "./UserName";
 import { formatDateTimeWithNameOfDay } from "../services/date";
 
@@ -335,7 +335,7 @@ interface DocumentRowProps {
 }
 
 function DocumentRow({ document, level, parentIsOpen, position, parentId, color, onDocumentClick, debug }: DocumentRowProps) {
-  const organisation = useRecoilValue(organisationAuthentifiedState);
+  const organisation = useStore(organisationAuthentifiedSelector);
 
   return (
     <div

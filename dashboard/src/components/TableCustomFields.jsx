@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { useRecoilState } from "recoil";
-import { organisationState } from "../recoil/auth";
+import { useStore } from "../store";
 import API, { tryFetchExpectOk } from "../services/api";
 import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";
@@ -30,7 +29,8 @@ const TableCustomFields = ({ data, fields, customFields, extractData = null, key
   const [isNewField, setIsNewField] = useState(false);
 
   const [tableKey, setTableKey] = useState(0);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
 
   function onUpdate(fieldToUpdate, fields) {
     setMutableData(mutableData.map((f) => (f.name === fieldToUpdate.name ? { ...f, ...fields } : f)));

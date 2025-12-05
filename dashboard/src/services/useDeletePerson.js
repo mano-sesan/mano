@@ -1,29 +1,22 @@
-import { useRecoilValue } from "recoil";
-import { actionsState, encryptAction } from "../recoil/actions";
+import { useStore } from "../store";
+import { itemsGroupedByPersonSelector } from "../store/selectors";
+import { encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
-import { commentsState, encryptComment } from "../recoil/comments";
-import { passagesState } from "../recoil/passages";
-import { rencontresState } from "../recoil/rencontres";
-import { relsPersonPlaceState } from "../recoil/relPersonPlace";
-import { medicalFileState } from "../recoil/medicalFiles";
-import { consultationsState } from "../recoil/consultations";
-import { treatmentsState } from "../recoil/treatments";
-import { userState } from "../recoil/auth";
+import { encryptComment } from "../recoil/comments";
 import { prepareGroupForEncryption } from "../recoil/groups";
 import { encryptItem } from "../services/encryption";
-import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 
 export function useDeletePerson() {
-  const persons = useRecoilValue(itemsGroupedByPersonSelector);
-  const actions = useRecoilValue(actionsState);
-  const comments = useRecoilValue(commentsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const consultations = useRecoilValue(consultationsState);
-  const treatments = useRecoilValue(treatmentsState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const persons = useStore(itemsGroupedByPersonSelector);
+  const actions = useStore((state) => state.actions);
+  const comments = useStore((state) => state.comments);
+  const passages = useStore((state) => state.passages);
+  const rencontres = useStore((state) => state.rencontres);
+  const consultations = useStore((state) => state.consultations);
+  const treatments = useStore((state) => state.treatments);
+  const medicalFiles = useStore((state) => state.medicalFiles);
+  const relsPersonPlace = useStore((state) => state.relsPersonPlace);
+  const user = useStore((state) => state.user);
 
   async function deletePerson(personId) {
     const person = persons[personId];
@@ -36,7 +29,7 @@ export function useDeletePerson() {
     ) {
       if (
         !window.confirm(
-          "Des données médicales sont associées à cette personne. Si vous la supprimez, ces données seront également effacées. Vous n’avez pas accès à ces données médicales car vous n’êtes pas un·e professionnel·le de santé. Voulez-vous supprimer cette personne et toutes ses données ?"
+          "Des données médicales sont associées à cette personne. Si vous la supprimez, ces données seront également effacées. Vous n'avez pas accès à ces données médicales car vous n'êtes pas un·e professionnel·le de santé. Voulez-vous supprimer cette personne et toutes ses données ?"
         )
       )
         return [null, null];

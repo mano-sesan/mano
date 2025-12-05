@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
 import { addOneDay, dayjsInstance, formatCalendarDate, formatDateTimeWithNameOfDay, formatTime, subtractOneDay } from "../services/date";
 import Table from "./table";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import PersonName from "./PersonName";
 import ConsultationButton from "./ConsultationButton";
-import { organisationState, userState } from "../recoil/auth";
 import { disableConsultationRow } from "../recoil/consultations";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import { CANCEL, DONE, sortActionsOrConsultations, TODO } from "../recoil/actions";
@@ -15,16 +14,16 @@ import { useLocalStorage } from "../services/useLocalStorage";
 import TabsNav from "./tailwind/TabsNav";
 import DescriptionIcon from "./DescriptionIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
+import { defaultModalActionState } from "../store";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useStore((state) => state.setModalAction);
   const history = useHistory();
   const location = useLocation();
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
   const [theDayBeforeActions, setTheDayBeforeActions] = useState([]);
   const [theDayAfterActions, setTheDayAfterActions] = useState([]);
   const [theCurrentDayActions, setTheCurrentDayActions] = useState([]);

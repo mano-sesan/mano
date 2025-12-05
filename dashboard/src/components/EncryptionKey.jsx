@@ -1,24 +1,10 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useMemo } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
 import { useHistory } from "react-router-dom";
 
-import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../recoil/auth";
-import { personsState } from "../recoil/persons";
-import { groupsState } from "../recoil/groups";
-import { treatmentsState } from "../recoil/treatments";
-import { actionsState } from "../recoil/actions";
-import { medicalFileState } from "../recoil/medicalFiles";
-import { passagesState } from "../recoil/passages";
-import { rencontresState } from "../recoil/rencontres";
-import { reportsState } from "../recoil/reports";
-import { territoriesState } from "../recoil/territory";
-import { placesState } from "../recoil/places";
-import { relsPersonPlaceState } from "../recoil/relPersonPlace";
-import { territoryObservationsState } from "../recoil/territoryObservations";
-import { consultationsState } from "../recoil/consultations";
-import { commentsState } from "../recoil/comments";
+import { MINIMUM_ENCRYPTION_KEY_LENGTH } from "../recoil/auth";
 
 import {
   encryptVerificationKey,
@@ -32,39 +18,40 @@ import { capture } from "../services/sentry";
 import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
-import { totalLoadingDurationState, useDataLoader } from "../services/dataLoader";
+import { useDataLoader } from "../services/dataLoader";
 
-const totalNumberOfItemsSelector = selector({
-  key: "totalNumberOfItemsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
+// Compute total number of items for progress bar
+function useTotalNumberOfItems() {
+  const persons = useStore((state) => state.persons);
+  const groups = useStore((state) => state.groups);
+  const treatments = useStore((state) => state.treatments);
+  const actions = useStore((state) => state.actions);
+  const medicalFiles = useStore((state) => state.medicalFiles);
+  const passages = useStore((state) => state.passages);
+  const rencontres = useStore((state) => state.rencontres);
+  const reports = useStore((state) => state.reports);
+  const territories = useStore((state) => state.territories);
+  const places = useStore((state) => state.places);
+  const relsPersonPlace = useStore((state) => state.relsPersonPlace);
+  const territoryObservations = useStore((state) => state.territoryObservations);
+  const consultations = useStore((state) => state.consultations);
+  const comments = useStore((state) => state.comments);
+
+  return useMemo(() => {
     const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
-    const groups = get(groupsState);
-    const treatments = get(treatmentsState);
     const treatmentsDocuments = treatments.reduce(
       (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
       0
     );
-    const actions = get(actionsState);
     const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
-    const medicalFiles = get(medicalFileState);
     const medicalFilesDocuments = medicalFiles.reduce(
       (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
       0
     );
-    const passages = get(passagesState);
-    const rencontres = get(rencontresState);
-    const reports = get(reportsState);
-    const territories = get(territoriesState);
-    const places = get(placesState);
-    const relsPersonPlace = get(relsPersonPlaceState);
-    const territoryObservations = get(territoryObservationsState);
-    const consultations = get(consultationsState);
     const consultationsDocuments = consultations.reduce(
       (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
       0
     );
-    const comments = get(commentsState);
 
     const documents = personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments;
 
@@ -85,27 +72,44 @@ const totalNumberOfItemsSelector = selector({
       consultations.length +
       comments.length
     );
-  },
-});
+  }, [
+    persons,
+    groups,
+    treatments,
+    actions,
+    medicalFiles,
+    passages,
+    rencontres,
+    reports,
+    territories,
+    places,
+    relsPersonPlace,
+    territoryObservations,
+    consultations,
+    comments,
+  ]);
+}
 
-const totalRecyptionDurationSelector = selector({
-  key: "totalRecyptionDurationSelector",
-  get: ({ get }) => {
-    let totalLoadingDuration = get(totalLoadingDurationState);
-    const totalNumberOfItems = get(totalNumberOfItemsSelector);
+function useTotalRecryptionDuration() {
+  const totalLoadingDuration = useStore((state) => state.totalLoadingDuration);
+  const totalNumberOfItems = useTotalNumberOfItems();
+
+  return useMemo(() => {
+    let duration = totalLoadingDuration;
     // the target here is to show the user a progress bar that is not stuck at 100% nor at 0% for a long time
-    if (!totalLoadingDuration) totalLoadingDuration = (totalNumberOfItems / 1000) * 4; // 4 seconds per 1000 item (more than the 4 seconds experienced in Arnaud's computer)
+    if (!duration) duration = (totalNumberOfItems / 1000) * 4; // 4 seconds per 1000 item (more than the 4 seconds experienced in Arnaud's computer)
     const theoreticalDuration = totalNumberOfItems * 2; // get all and decrypt + encrypt all and upload
     return theoreticalDuration * 2; // better have a reencryption finished with half a status bar than a full status bar with a reencryption not finished
-  },
-});
+  }, [totalLoadingDuration, totalNumberOfItems]);
+}
 
 const EncryptionKey = ({ isMain }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const totalRecyptionDuration = useRecoilValue(totalRecyptionDurationSelector);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
+  const organisation = useStore((state) => state.organisation);
+  const setOrganisation = useStore((state) => state.setOrganisation);
+  const totalRecyptionDuration = useTotalRecryptionDuration();
+  const teams = useStore((state) => state.teams);
+  const user = useStore((state) => state.user);
+  const setEncryptionKeyLength = useStore((state) => state.setEncryptionKeyLength);
   const previousKey = useRef(null);
 
   const onboardingForEncryption = isMain && !organisation.encryptionEnabled;

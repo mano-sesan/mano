@@ -1,12 +1,12 @@
 import { useState, useMemo, Fragment } from "react";
 import isEqual from "react-fast-compare";
 import DatePicker from "./DatePicker";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
+import { computeItemsGroupedByAction, computeItemsGroupedByPerson } from "../store/selectors";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
 import { allowedActionFieldsInHistory, encryptAction } from "../recoil/actions";
 import API, { tryFetchExpectOk } from "../services/api";
 import { dayjsInstance, outOfBoundariesDate } from "../services/date";
@@ -20,21 +20,17 @@ import UserName from "./UserName";
 import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
 import CustomFieldDisplay from "./CustomFieldDisplay";
-import { itemsGroupedByActionSelector, itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
 import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
 import AutoResizeTextarea from "./AutoresizeTextArea";
-import { groupsState } from "../recoil/groups";
 import { encryptComment } from "../recoil/comments";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
+import { defaultModalActionState } from "../store";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
-import { DISABLED_FEATURES } from "../config";
 import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
-import { recurrencesState } from "../recoil/recurrences";
 import ActionStatusSelect from "./ActionStatusSelect";
 import DateBloc from "./DateBloc";
 import ActionsSortableList from "./ActionsSortableList";
@@ -42,7 +38,8 @@ import { useDataLoader } from "../services/dataLoader";
 import { isEmptyValue } from "../utils";
 
 export default function ActionModal() {
-  const [modalAction, setModalAction] = useRecoilState(modalActionState);
+  const modalAction = useStore((state) => state.modalAction);
+  const setModalAction = useStore((state) => state.setModalAction);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -74,7 +71,7 @@ export default function ActionModal() {
           setIsDeleting={setIsDeleting}
           onClose={() => {
             setResetAfterLeave(true);
-            setModalAction((modalAction) => ({ ...modalAction, open: false }));
+            setModalAction({ ...modalAction, open: false });
           }}
         />
       ) : null}
@@ -84,15 +81,16 @@ export default function ActionModal() {
 
 function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting, isDeleting, setIsDeleting }) {
   const location = useLocation();
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const [modalAction, setModalAction] = useRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const recurrences = useRecoilValue(recurrencesState);
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const groups = useRecoilValue(groupsState);
+  const actionsObjects = useStore(computeItemsGroupedByAction);
+  const modalAction = useStore((state) => state.modalAction);
+  const setModalAction = useStore((state) => state.setModalAction);
+  const teams = useStore((state) => state.teams);
+  const user = useStore((state) => state.user);
+  const recurrences = useStore((state) => state.recurrences);
+  const organisation = useStore((state) => state.organisation);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+  const groups = useStore((state) => state.groups);
   const { refresh } = useDataLoader();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const isEditing = modalAction.isEditing;
@@ -457,7 +455,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
       toast.error("Vous ne pouvez pas sélectionner plusieurs personnes si des documents sont déjà associés à cette action.");
       return;
     }
-    setModalAction((modalAction) => ({ ...modalAction, isEditing: true, action: { ...action, [name]: value } }));
+    setModalAction({ ...modalAction, isEditing: true, action: { ...action, [name]: value } });
   };
 
   return (
@@ -1066,7 +1064,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                setModalAction((modalAction) => ({ ...modalAction, isEditing: true }));
+                setModalAction({ ...modalAction, isEditing: true });
               }}
               className={["button-submit", activeTab === "Informations" ? "tw-visible" : "tw-invisible"].join(" ")}
               disabled={isDeleting}
@@ -1098,7 +1096,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
                         e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: true }));
+                        setModalAction({ ...modalAction, isEditing: true, isEditingAllNextOccurences: true });
                       }}
                     >
                       Cette action et toutes les suivantes
@@ -1109,7 +1107,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
                         e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: false }));
+                        setModalAction({ ...modalAction, isEditing: true, isEditingAllNextOccurences: false });
                       }}
                     >
                       Cette action uniquement
@@ -1126,7 +1124,8 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
 }
 
 function AllOccurrences({ action, onAfterActionClick }) {
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const personsGrouped = useStore(computeItemsGroupedByPerson);
+  const person = personsGrouped[action.person];
   const actions = (person?.actions || []).filter((e) => e.recurrence === action.recurrence);
   const [isAfterOpen, setIsAfterOpen] = useState(true);
   const [isBeforeOpen, setIsBeforeOpen] = useState(false);
@@ -1200,12 +1199,13 @@ function AllOccurrences({ action, onAfterActionClick }) {
 }
 
 function NextOccurrences({ action, setIsTransitioning }) {
-  const person = useRecoilValue(itemsGroupedByPersonSelector)[action.person];
+  const personsGrouped = useStore(computeItemsGroupedByPerson);
+  const person = personsGrouped[action.person];
   const actions =
     person?.actions
       .filter((e) => e.recurrence === action.recurrence)
       .filter((a) => dayjsInstance(a.completedAt || a.dueAt).isAfter(dayjsInstance(action.completedAt || action.dueAt))) || [];
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useStore((state) => state.setModalAction);
   const location = useLocation();
 
   if (!actions.length)
@@ -1254,7 +1254,7 @@ function NextOccurrences({ action, setIsTransitioning }) {
 
 function ActionHistory({ action }) {
   const history = useMemo(() => [...(action?.history || [])].reverse(), [action?.history]);
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
 
   return (
     <div>
@@ -1323,7 +1323,7 @@ function ActionHistory({ action }) {
                 <UserName id={action.user} />
               </td>
               <td className="tw-max-w-prose">
-                <p>Création de l’action</p>
+                <p>Création de l'action</p>
               </td>
             </tr>
           )}

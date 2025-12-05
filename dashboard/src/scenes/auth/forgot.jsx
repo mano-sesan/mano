@@ -3,15 +3,15 @@ import validator from "validator";
 import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
 import API, { tryFetch } from "../../services/api";
-import { useRecoilValue } from "recoil";
-import { deploymentShortCommitSHAState } from "../../recoil/version";
+import { useStore } from "../../store";
+import { deploymentShortCommitSHASelector } from "../../store/selectors";
 import { errorMessage } from "../../utils";
 import { useLocation } from "react-router-dom";
 
 const View = () => {
   const location = useLocation();
   const [done, setDone] = useState(false);
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
+  const deploymentCommit = useStore(deploymentShortCommitSHASelector);
 
   const [resetForm, setResetForm] = useState({
     email: "",

@@ -1,11 +1,10 @@
 import React from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
-import { useRecoilValue } from "recoil";
-import { organisationState } from "../recoil/auth";
+import { useStore } from "../store";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 
 export default function UnBugButton({ onResetCacheAndLogout }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   return (
     <>
@@ -20,7 +19,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
       </button>
       {isModalOpen && (
         <ModalContainer open={isModalOpen} onClose={() => setIsModalOpen(false)} size="xl">
-          <ModalHeader toggle={() => setIsModalOpen(false)} title="Besoin d'aide ? 🪲" />
+          <ModalHeader toggle={() => setIsModalOpen(false)} title="Besoin d'aide ? 🪲" />
           <ModalBody className="tw-p-4 tw-text-gray-700">
             <ol className="tw-list-decimal tw-space-y-3 tw-ml-8">
               <li>

@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from "react";
-import { useRecoilValue, useSetRecoilState } from "recoil";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import TagTeam from "./TagTeam";
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
+import { useStore, defaultModalActionState } from "../store";
+import { itemsGroupedByActionSelector } from "../store/selectors";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../services/date";
 import { outOfBoundariesDate } from "../services/date";
@@ -17,8 +17,6 @@ import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
-import { itemsGroupedByActionSelector } from "../recoil/selectors";
 import CommentsSortableList from "./CommentsSortableList";
 
 /*
@@ -303,10 +301,10 @@ function CommentsTable({
   small = false,
   withFilters = false,
 }: CommentsTableProps) {
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const actionsObjects = useStore(itemsGroupedByActionSelector);
+  const setModalAction = useStore((state) => state.setModalAction);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
   const history = useHistory();
   const location = useLocation();
 
@@ -514,7 +512,7 @@ interface CommentDisplayProps {
 }
 
 function CommentDisplay({ comment, onClose, onEditComment, color = "main" }: CommentDisplayProps) {
-  const user = useRecoilValue(userState);
+  const user = useStore((state) => state.user);
 
   const isEditable = useMemo(() => {
     if (comment.user === user?._id) return true;
@@ -622,10 +620,10 @@ function CommentModal({
   personId,
   color,
 }: CommentModalProps) {
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teams = useRecoilValue(teamsState);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const teams = useStore((state) => state.teams);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isEditable = useMemo(() => {

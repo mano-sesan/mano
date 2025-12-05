@@ -1,12 +1,10 @@
-import { useRecoilState, useRecoilValue } from "recoil";
-import { modalObservationState } from "../recoil/modal";
+import { useStore } from "../store";
+import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../store/selectors";
 import { useMemo, useState } from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
-import { currentTeamAuthentifiedState, organisationAuthentifiedState, teamsState, userAuthentifiedState } from "../recoil/auth";
-import { territoriesState } from "../recoil/territory";
-import { customFieldsObsSelector, encryptObs, groupedCustomFieldsObsSelector } from "../recoil/territoryObservations";
+import { encryptObs } from "../recoil/territoryObservations";
 import { RencontreInstance } from "../types/rencontre";
-import { encryptRencontre, rencontresState } from "../recoil/rencontres";
+import { encryptRencontre } from "../recoil/rencontres";
 import { useDataLoader } from "../services/dataLoader";
 import Table from "./table";
 import CustomFieldInput from "./CustomFieldInput";
@@ -25,7 +23,8 @@ import UserName from "./UserName";
 import { useLocation } from "react-router-dom";
 
 export default function ObservationModal() {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
+  const modalObservation = useStore((state) => state.modalObservation);
+  const setModalObservation = useStore((state) => state.setModalObservation);
   const [resetAfterLeave, setResetAfterLeave] = useState(false);
   const location = useLocation();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,7 +51,7 @@ export default function ObservationModal() {
           key={modalObservation.observation._id + String(open)}
           onClose={() => {
             setResetAfterLeave(true);
-            setModalObservation((modalObservation) => ({ ...modalObservation, open: false }));
+            setModalObservation({ ...modalObservation, open: false });
           }}
           isSubmitting={isSubmitting}
           setIsSubmitting={setIsSubmitting}
@@ -77,20 +76,21 @@ function ObservationContent({
   isDeleting: boolean;
   setIsDeleting: (isDeleting: boolean) => void;
 }) {
-  const [modalObservation, setModalObservation] = useRecoilState(modalObservationState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationAuthentifiedState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const territories = useRecoilValue(territoriesState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const modalObservation = useStore((state) => state.modalObservation);
+  const setModalObservation = useStore((state) => state.setModalObservation);
+  const user = useStore((state) => state.user);
+  const teams = useStore((state) => state.teams);
+  const organisation = useStore((state) => state.organisation);
+  const team = useStore((state) => state.currentTeam);
+  const territories = useStore((state) => state.territories);
+  const customFieldsObs = useStore(customFieldsObsSelector);
+  const groupedCustomFieldsObs = useStore(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
 
-  const rencontres = useRecoilValue<Array<RencontreInstance>>(rencontresState);
+  const rencontres = useStore((state) => state.rencontres);
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
   const rencontresInProgress = modalObservation.rencontresInProgress;
@@ -192,7 +192,7 @@ function ObservationContent({
   const handleChange = (event) => {
     const target = event.currentTarget || event.target;
     const { name, value } = target;
-    setModalObservation((modalObservation) => ({ ...modalObservation, observation: { ...observation, [name]: value } }));
+    setModalObservation({ ...modalObservation, observation: { ...observation, [name]: value } });
   };
 
   return (
@@ -314,10 +314,10 @@ function ObservationContent({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const nextRencontres = rencontresInProgress.filter((r) => r.person !== rencontre.person);
-                                setModalObservation((modalObservation) => ({
+                                setModalObservation({
                                   ...modalObservation,
                                   rencontresInProgress: nextRencontres,
-                                }));
+                                });
                               }}
                               className="button-destructive"
                             >
@@ -378,11 +378,11 @@ function ObservationContent({
                       teams={user.role === "admin" ? teams : user.teams}
                       teamId={observation?.team}
                       onChange={(team) => {
-                        setModalObservation((modalObservation) => ({
+                        setModalObservation({
                           ...modalObservation,
                           observation: { ...observation, team: team._id },
                           rencontresInProgress: modalObservation.rencontresInProgress.map((r) => ({ ...r, team: team._id })),
-                        }));
+                        });
                       }}
                       inputId="observation-select-team"
                       classNamePrefix="observation-select-team"
@@ -453,10 +453,10 @@ function ObservationContent({
               : (rencontres: Array<RencontreInstance>) => {
                   if (!rencontres.length) return;
                   const nextRencontres = [...rencontresInProgress.filter((r) => !rencontres.map((e) => e.person).includes(r.person)), ...rencontres];
-                  setModalObservation((modalObservation) => ({
+                  setModalObservation({
                     ...modalObservation,
                     rencontresInProgress: nextRencontres,
-                  }));
+                  });
                 }
           }
         />

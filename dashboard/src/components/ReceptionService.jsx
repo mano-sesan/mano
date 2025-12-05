@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
-import { servicesSelector, flattenedServicesSelector } from "../recoil/reports";
-import { useRecoilValue } from "recoil";
+import { useStore } from "../store";
+import { servicesSelector, flattenedServicesSelector } from "../store/selectors";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
 import IncrementorSmall from "./IncrementorSmall";
 import { capture } from "../services/sentry";
 
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useStore(servicesSelector);
+  const flattenedServices = useStore(flattenedServicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(
@@ -29,8 +29,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
         }, {});
         const mergedServices = Object.fromEntries(
           // We need to initialize all services from organisation.
-          flattenedServices.map((key) => [key, (servicesFromDatabase[key] || 0)])
-
+          flattenedServices.map((key) => [key, servicesFromDatabase[key] || 0])
         );
         setServices(mergedServices);
       });

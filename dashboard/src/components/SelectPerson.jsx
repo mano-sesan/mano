@@ -1,16 +1,9 @@
 import { useHistory } from "react-router-dom";
-import { selector, useRecoilValue } from "recoil";
-import { personsState, sortPersons } from "../recoil/persons";
+import { useMemo } from "react";
+import { useStore } from "../store";
+import { sortPersons } from "../recoil/persons";
 import SelectCustom from "./SelectCustom";
 import { formatDateWithFullMonth } from "../services/date";
-
-const sortedPersonsByNameSelector = selector({
-  key: "sortedPersonsByNameSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    return [...persons].sort(sortPersons("name", "ASC"));
-  },
-});
 
 const SelectPerson = ({
   value = "",
@@ -24,7 +17,8 @@ const SelectPerson = ({
   name = "person",
   ...props
 }) => {
-  const sortedPersonsByName = useRecoilValue(sortedPersonsByNameSelector);
+  const persons = useStore((state) => state.persons);
+  const sortedPersonsByName = useMemo(() => [...persons].sort(sortPersons("name", "ASC")), [persons]);
   const history = useHistory();
 
   return (

@@ -949,6 +949,15 @@ export function computeItemsGroupedByTreatment(state: {
   return result;
 }
 
+// Selector wrappers for compute functions
+export const itemsGroupedByActionSelector = computeItemsGroupedByAction;
+export const arrayOfitemsGroupedByActionSelector = computeArrayOfItemsGroupedByAction;
+export const itemsGroupedByConsultationSelector = computeItemsGroupedByConsultation;
+export const arrayOfitemsGroupedByConsultationSelector = computeArrayOfItemsGroupedByConsultation;
+export const itemsGroupedByPersonSelector = computeItemsGroupedByPerson;
+export const arrayOfItemsGroupedByPersonSelector = computeArrayOfItemsGroupedByPerson;
+export const personsWithMedicalFileAndConsultationsMergedSelector = computePersonsWithMedicalFileAndConsultationsMerged;
+
 // Populated passages
 export function computePopulatedPassages(state: {
   passages: PassageInstance[];

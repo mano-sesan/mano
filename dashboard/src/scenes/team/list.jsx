@@ -3,12 +3,11 @@ import { Col, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, Row } from
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../../store";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import Table from "../../components/table";
 import NightSessionModale from "../../components/NightSessionModale";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import OnboardingEndModal from "../../components/OnboardingEndModal";
 import { formatDateWithFullMonth } from "../../services/date";
@@ -34,7 +33,7 @@ const sortTeams = (sortBy, sortOrder) => (a, b) => {
 };
 
 const List = () => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
   const history = useHistory();
   useTitle("Équipes");
   const [sortBy, setSortBy] = useLocalStorage("users-sortBy", "name");
@@ -91,10 +90,12 @@ const List = () => {
 //Organisation
 
 const Create = () => {
-  const [teams, setTeams] = useRecoilState(teamsState);
-  const [user, setUser] = useRecoilState(userState);
-  const organisation = useRecoilValue(organisationState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
+  const teams = useStore((state) => state.teams);
+  const setTeams = useStore((state) => state.setTeams);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const organisation = useStore((state) => state.organisation);
+  const setCurrentTeam = useStore((state) => state.setCurrentTeam);
   const [open, setOpen] = useState(!teams.length);
 
   const [onboardingEndModalOpen, setOnboardingEndModalOpen] = useState(false);
@@ -142,7 +143,7 @@ const Create = () => {
                 })
               );
               if (userPutError) {
-                toast.error(errorMessage(meError));
+                toast.error(errorMessage(userPutError));
                 return actions.setSubmitting(false);
               }
               const [meError, meResponse] = await tryFetchExpectOk(async () => API.get({ path: "/user/me" }));

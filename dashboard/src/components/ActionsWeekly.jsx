@@ -1,18 +1,17 @@
 import { forwardRef, useMemo } from "react";
 import { useHistory } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
 import DatePicker from "react-datepicker";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
 import { dayjsInstance, formatTime } from "../services/date";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import PersonName from "./PersonName";
-import { organisationState, userState } from "../recoil/auth";
 import TagTeam from "./TagTeam";
 import useSearchParamState from "../services/useSearchParamState";
 import { disableConsultationRow } from "../recoil/consultations";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
+import { defaultModalActionState } from "../store";
 import DescriptionIcon from "./DescriptionIcon";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
@@ -122,10 +121,10 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
 }
 
 function ActionsOfDay({ actions }) {
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useStore((state) => state.setModalAction);
   const history = useHistory();
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const organisation = useStore((state) => state.organisation);
+  const user = useStore((state) => state.user);
 
   const sortedActions = [
     // Urgent actions first

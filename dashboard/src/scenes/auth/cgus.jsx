@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useRecoilState } from "recoil";
 import ButtonCustom from "../../components/ButtonCustom";
-import { userState } from "../../recoil/auth";
+import { useStore } from "../../store";
 import API, { tryFetchExpectOk } from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
 
 const CGUs = () => {
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useRecoilState(userState);
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
 
   const onSigninValidated = async () => {
     setLoading(true);

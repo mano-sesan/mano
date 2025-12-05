@@ -1,16 +1,15 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import DatePicker from "./DatePicker";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useStore } from "../store";
+import { computeItemsGroupedByConsultation, consultationsFieldsIncludingCustomFieldsSelector } from "../store/selectors";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { useLocation, useHistory } from "react-router-dom";
 import { CANCEL, DONE, TODO } from "../recoil/actions";
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
-import { consultationsFieldsIncludingCustomFieldsSelector, encryptConsultation } from "../recoil/consultations";
+import { encryptConsultation } from "../recoil/consultations";
 import API, { tryFetchExpectOk } from "../services/api";
 import { dayjsInstance } from "../services/date";
 import CustomFieldInput from "./CustomFieldInput";
-import { modalConfirmState } from "./ModalConfirm";
 import SelectAsInput from "./SelectAsInput";
 import SelectStatus from "./SelectStatus";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./tailwind/Modal";
@@ -21,7 +20,6 @@ import UserName from "./UserName";
 import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
 import CustomFieldDisplay from "./CustomFieldDisplay";
-import { itemsGroupedByConsultationSelector } from "../recoil/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
 import TabsNav from "./tailwind/TabsNav";
 import { decryptItem } from "../services/encryption";
@@ -30,7 +28,7 @@ import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../utils";
 
 export default function ConsultationModal() {
-  const consultationsObjects = useRecoilValue(itemsGroupedByConsultationSelector);
+  const consultationsObjects = useStore(computeItemsGroupedByConsultation);
   const history = useHistory();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -98,15 +96,15 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
 });
 
 function ConsultationContent({ personId, consultation, date, onClose }) {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useStore((state) => state.organisation);
   const searchParams = new URLSearchParams(location.search);
-  const teams = useRecoilValue(teamsState);
+  const teams = useStore((state) => state.teams);
   const history = useHistory();
 
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const user = useStore((state) => state.user);
+  const setModalConfirmState = useStore((state) => state.setModalConfirm);
+  const consultationsFieldsIncludingCustomFields = useStore(consultationsFieldsIncludingCustomFieldsSelector);
   const { refresh } = useDataLoader();
 
   const newConsultationInitialStateRef = useRef(newConsultationInitialState(organisation._id, personId, user._id, date, teams));
@@ -196,7 +194,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       setModalConfirmState({
         open: true,
         options: {
-          title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
+          title: "Cette consulation est annulée, voulez-vous la dupliquer ?",
           subTitle: "Avec une date ultérieure par exemple",
           buttons: [
             {
@@ -829,7 +827,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
                 return;
               }
               await refresh();
-              toast.success("Consultation supprimée !");
+              toast.success("Consultation supprimée !");
               onClose();
               setIsFetching(false);
             }}
@@ -871,8 +869,8 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
 
 function ConsultationHistory({ consultation }) {
   const history = useMemo(() => [...(consultation?.history || [])].reverse(), [consultation?.history]);
-  const teams = useRecoilValue(teamsState);
-  const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const teams = useStore((state) => state.teams);
+  const consultationsFieldsIncludingCustomFields = useStore(consultationsFieldsIncludingCustomFieldsSelector);
 
   return (
     <div>

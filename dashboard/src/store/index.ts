@@ -149,10 +149,35 @@ interface VersionState {
   deploymentCommit: string | null;
 }
 
+// Modal confirm state type
+export interface ModalConfirmState {
+  open: boolean;
+  options: {
+    title: string;
+    subTitle: string;
+    buttons: {
+      text: string;
+      onClick?: () => void;
+      style?: string;
+      className?: string;
+    }[];
+  };
+}
+
+const defaultModalConfirmState = (): ModalConfirmState => ({
+  open: false,
+  options: {
+    title: "Voulez-vous enregistrer cet élément ?",
+    subTitle: "",
+    buttons: [],
+  },
+});
+
 // Modal state type
 interface ModalState {
   modalAction: ModalActionState;
   modalObservation: ModalObservationState;
+  modalConfirm: ModalConfirmState;
 }
 
 // UI state type
@@ -207,6 +232,7 @@ interface Store extends DataState, AuthState, LoadingState, VersionState, ModalS
   // Modal setters
   setModalAction: (state: Partial<ModalActionState>) => void;
   setModalObservation: (state: Partial<ModalObservationState>) => void;
+  setModalConfirm: (state: Partial<ModalConfirmState> | ((prev: ModalConfirmState) => ModalConfirmState)) => void;
 
   // UI setters
   setShowDrawer: (show: boolean) => void;
@@ -304,6 +330,7 @@ export const useStore = create<Store>()(
       // Modal state - initial values (loaded from localStorage)
       modalAction: loadModalActionFromStorage(),
       modalObservation: loadModalObservationFromStorage(),
+      modalConfirm: defaultModalConfirmState(),
 
       // UI state - initial values
       showDrawer: false,
@@ -453,6 +480,14 @@ export const useStore = create<Store>()(
         set((state) => {
           Object.assign(state.modalObservation, newState);
         }),
+      setModalConfirm: (newState) =>
+        set((state) => {
+          if (typeof newState === "function") {
+            state.modalConfirm = newState(state.modalConfirm);
+          } else {
+            Object.assign(state.modalConfirm, newState);
+          }
+        }),
 
       // UI setters
       setShowDrawer: (show) =>
@@ -498,6 +533,7 @@ export const useStore = create<Store>()(
           // Reset modals
           state.modalAction = defaultModalActionState();
           state.modalObservation = defaultModalObservationState();
+          state.modalConfirm = defaultModalConfirmState();
           // Reset UI
           state.showDrawer = false;
         }),

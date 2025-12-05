@@ -7,23 +7,23 @@ import { toast } from "react-toastify";
 import Loading from "../../components/loading";
 import ButtonCustom from "../../components/ButtonCustom";
 import NightSessionModale from "../../components/NightSessionModale";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
+import { useStore } from "../../store";
+import { customFieldsObsSelector } from "../../store/selectors";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
-import { useRecoilState, useRecoilValue } from "recoil";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import { actionsState, encryptAction } from "../../recoil/actions";
-import { consultationsState, encryptConsultation } from "../../recoil/consultations";
-import { commentsState, encryptComment } from "../../recoil/comments";
-import { customFieldsObsSelector, encryptObs, territoryObservationsState } from "../../recoil/territoryObservations";
-import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { encryptPassage, passagesState } from "../../recoil/passages";
-import { encryptRencontre, rencontresState } from "../../recoil/rencontres";
+import { encryptAction } from "../../recoil/actions";
+import { encryptConsultation } from "../../recoil/consultations";
+import { encryptComment } from "../../recoil/comments";
+import { encryptObs } from "../../recoil/territoryObservations";
+import { usePreparePersonForEncryption } from "../../recoil/persons";
+import { encryptPassage } from "../../recoil/passages";
+import { encryptRencontre } from "../../recoil/rencontres";
 import BackButton from "../../components/backButton";
 import { errorMessage } from "../../utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectTeam from "../../components/SelectTeam";
-import { encryptReport, reportsState } from "../../recoil/reports";
+import { encryptReport } from "../../recoil/reports";
 import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 import ConfirmModal from "../../components/ConfirmModal";
@@ -33,17 +33,17 @@ const View = () => {
   const { id } = useParams();
   const history = useHistory();
 
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const actions = useRecoilValue(actionsState);
-  const consultations = useRecoilValue(consultationsState);
-  const comments = useRecoilValue(commentsState);
-  const observations = useRecoilValue(territoryObservationsState);
-  const persons = useRecoilValue(personsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const reports = useRecoilValue(reportsState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
+  const user = useStore((state) => state.user);
+  const organisation = useStore((state) => state.organisation);
+  const actions = useStore((state) => state.actions);
+  const consultations = useStore((state) => state.consultations);
+  const comments = useStore((state) => state.comments);
+  const observations = useStore((state) => state.territoryObservations);
+  const persons = useStore((state) => state.persons);
+  const passages = useStore((state) => state.passages);
+  const rencontres = useStore((state) => state.rencontres);
+  const reports = useStore((state) => state.reports);
+  const customFieldsObs = useStore(customFieldsObsSelector);
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [transferSelectedTeam, setTransferSelectedTeam] = useState(null);
   const { encryptPerson } = usePreparePersonForEncryption();
@@ -73,8 +73,10 @@ const View = () => {
 
   useTitle(`Équipes ${team?.name}`);
 
-  const [currentTeam, setCurrentTeam] = useRecoilState(currentTeamState);
-  const [teams, setTeams] = useRecoilState(teamsState);
+  const currentTeam = useStore((state) => state.currentTeam);
+  const setCurrentTeam = useStore((state) => state.setCurrentTeam);
+  const teams = useStore((state) => state.teams);
+  const setTeams = useStore((state) => state.setTeams);
 
   const getTeam = async () => {
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/team/${id}` }));
