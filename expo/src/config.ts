@@ -1,0 +1,27 @@
+import * as Application from 'expo-application';
+
+const SCHEME = process.env.EXPO_PUBLIC_SCHEME;
+const HOST = process.env.EXPO_PUBLIC_HOST;
+const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV;
+const MANO_DOWNLOAD_URL = "https://mano.sesan.fr/download";
+const MANO_TEST_ORGANISATION_ID = process.env.EXPO_PUBLIC_MANO_TEST_ORGANISATION_ID;
+const MATOMO_SITE_ID = process.env.EXPO_PUBLIC_MATOMO_SITE_ID;
+const MATOMO_URL = process.env.EXPO_PUBLIC_MATOMO_URL;
+const VERSION = `${Application.nativeApplicationVersion}`;
+const DEVMODE_PASSWORD = process.env.EXPO_PUBLIC_DEVMODE_PASSWORD || "";
+const DEVMODE_ENCRYPTION_KEY = process.env.EXPO_PUBLIC_DEVMODE_ENCRYPTION_KEY || "";
+const DEVMODE_HIDE_STATUS_BAR = process.env.EXPO_PUBLIC_DEVMODE_HIDE_STATUS_BAR || false;
+
+export {
+  SCHEME,
+  HOST,
+  APP_ENV,
+  MANO_DOWNLOAD_URL,
+  MANO_TEST_ORGANISATION_ID,
+  MATOMO_SITE_ID,
+  MATOMO_URL,
+  VERSION,
+  DEVMODE_PASSWORD,
+  DEVMODE_ENCRYPTION_KEY,
+  DEVMODE_HIDE_STATUS_BAR,
+};
