@@ -44,7 +44,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [isLoading, setIsLoading] = useAtom(isLoadingState);
   const setLoadingText = useSetAtom(loadingTextState);
   const setInitialLoadIsDone = useSetAtom(initialLoadIsDoneState);
-  const setTotalLoadingDuration = useSetAtom(totalLoadingDurationState);
   const setProgress = useSetAtom(progressState);
   const setTotal = useSetAtom(totalState);
 
