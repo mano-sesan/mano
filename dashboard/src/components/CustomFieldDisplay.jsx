@@ -90,77 +90,80 @@ function FieldHistory({ name = null, person = null }) {
       //   { x: "2024-11-14", y: 30 },
       // ];
       for (const historyItem of historySource) {
-        const newValue = historyItem.data[name]?.newValue;
-        if (newValue === undefined || newValue === null) continue;
-        _fieldHistory.push({
-          x: dayjsInstance(historyItem.date).toISOString(),
-          y: newValue,
-        });
+        if (historyItem.data[name]) {
+          _fieldHistory.push({ x: dayjsInstance(historyItem.date).format("YYYY-MM-DD"), y: historyItem.data[name].newValue });
+        }
       }
-      return _fieldHistory;
+      return _fieldHistory.sort((a, b) => (a.x > b.x ? 1 : -1));
+    } else {
+      for (const historyItem of historySource) {
+        if (historyItem.data[name]) {
+          _fieldHistory.push(historyItem);
+        }
+      }
+      return _fieldHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
-    for (const historyItem of historySource) {
-      const newValue = historyItem.data[name]?.newValue;
-      const oldValue = historyItem.data[name]?.oldValue;
-      const [calendarDay, time] = dayjsInstance(historyItem.date).format("DD/MM/YYYY HH:mm").split(" ");
-      if (newValue === undefined && oldValue === undefined) continue;
-      _fieldHistory.push({
-        calendarDay,
-        time,
-        newValue,
-        oldValue,
-        user: historyItem.user,
-      });
-    }
-    return _fieldHistory;
-  }, [personField?.isMedicalFile, personField?.type, person?.medicalFile?.history, person?.history, name]);
+  }, [person?.history, person?.medicalFile?.history, name, personField?.type, personField?.isMedicalFile]);
 
-  if (!fieldHistory.length) return null;
-  if (personField?.type === "number" && fieldHistory.length > 1) {
-    return <LineChart data={fieldHistory} label={personField?.label} />;
-  }
+  if (!name || !fieldHistory?.length) return null;
+
   return (
-    <TimeModalButton
-      title={`Historique du champ ${personField?.label}`}
-      help={() => (
-        <table className="tw-table-auto tw-overflow-auto tw-border-separate tw-border-spacing-2">
-          <thead>
-            <tr>
-              <th className="tw-text-left">Date</th>
-              <th className="tw-text-left">Heure</th>
-              <th className="tw-text-left">Valeur</th>
-              <th className="tw-text-left">Ancienne valeur</th>
-              <th className="tw-text-left">Utilisateur</th>
-            </tr>
-          </thead>
-          <tbody className="">
-            {fieldHistory.map((historyItem, index) => (
-              <tr key={index}>
-                <td className="tw-text-left tw-whitespace-nowrap">{historyItem.calendarDay}</td>
-                <td className="tw-text-left tw-whitespace-nowrap">{historyItem.time}</td>
-                <td className="tw-text-left">
-                  <CustomFieldDisplay type={personField?.type} value={historyItem.newValue} />
-                </td>
-                <td className="tw-text-left">
-                  <CustomFieldDisplay type={personField?.type} value={historyItem.oldValue} />
-                </td>
-                <td className="tw-text-left">
-                  <UserName id={historyItem.user} />
-                </td>
+    <div className="tw-absolute -tw-top-5 tw-right-0 tw-z-10">
+      <TimeModalButton title={`Historique du champ ${personField?.label}`} size="3xl">
+        {personField?.type === "number" && fieldHistory?.length > 1 ? (
+          <LineChart data={fieldHistory} name={personField?.label} scheme="set1" unit="" />
+        ) : (
+          <table className="table table-striped table-bordered">
+            <thead>
+              <tr className="tw-cursor-default">
+                <th>Date</th>
+                <th>Utilisateur</th>
+                <th>Valeur</th>
               </tr>
-            ))}
-            {!!person?.createdAt && (
-              <tr>
-                <td className="tw-text-left tw-whitespace-nowrap tw-font-semibold">{calendarDayCreatedAt}</td>
-                <td className="tw-text-left tw-whitespace-nowrap tw-font-semibold">{timeCreatedAt}</td>
-                <td className="tw-text-left tw-font-semibold" colSpan={3}>
-                  Création du dossier
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      )}
-    />
+            </thead>
+            <tbody className="small">
+              {fieldHistory.map((historyItem) => {
+                const [calendarDay, time] = dayjsInstance(historyItem.date).format("DD/MM/YYYY HH:mm").split(" ");
+                return (
+                  <tr key={historyItem.date} className="tw-cursor-default">
+                    <td>
+                      <span>{calendarDay}</span>
+                      <span className="tw-ml-4">{time}</span>
+                    </td>
+                    <td>
+                      <UserName id={historyItem.user} name={historyItem.userName} />
+                    </td>
+                    <td className="tw-max-w-prose">
+                      {Object.entries(historyItem.data).map(([key, value]) => {
+                        if (key !== name) return null;
+                        return (
+                          <p key={key} data-test-id={`${personField?.label || "Champs personnalisé supprimé"}: ➔ ${JSON.stringify(value.newValue)}`}>
+                            <code className={personField?.isMedicalFile ? "tw-text-blue-900" : "tw-text-main"}>{JSON.stringify(value.newValue)}</code>
+                          </p>
+                        );
+                      })}
+                    </td>
+                  </tr>
+                );
+              })}
+              {person?.createdAt && (
+                <tr key={person.createdAt} className="tw-cursor-default">
+                  <td>
+                    <span>{calendarDayCreatedAt}</span>
+                    <span className="tw-ml-4">{timeCreatedAt}</span>
+                  </td>
+                  <td>
+                    <UserName id={person.user} />
+                  </td>
+                  <td className="tw-max-w-prose">
+                    <p>Création de la personne</p>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </TimeModalButton>
+    </div>
   );
 }
