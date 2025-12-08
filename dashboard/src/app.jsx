@@ -242,6 +242,8 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
 };
 
 export default function ContextedApp() {
+  // TODO: check if provider is needed
+  // https://jotai.org/docs/core/provider
   return (
     <Provider store={store}>
       <App />

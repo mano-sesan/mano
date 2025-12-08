@@ -7,10 +7,8 @@ import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import { groupsState } from "../../../recoil/groups";
-import type { PersonPopulated, PersonInstance } from "../../../types/person";
+import type { PersonPopulated } from "../../../types/person";
 import type { Document, FolderWithLinkedItem, LinkedItem } from "../../../types/document";
-import type { UUIDV4 } from "../../../types/uuid";
-import { personsObjectSelector } from "../../../recoil/selectors";
 import { encryptAction } from "../../../recoil/actions";
 import { useDataLoader } from "../../../services/dataLoader";
 import isEqual from "react-fast-compare";
@@ -21,14 +19,11 @@ interface PersonDocumentsProps {
   person: PersonPopulated;
 }
 
-type PersonIndex = Record<UUIDV4, PersonInstance>;
-
 const PersonDocuments = ({ person }: PersonDocumentsProps) => {
   const { refresh } = useDataLoader();
   const organisation = useAtomValue(organisationAuthentifiedState);
   const groups = useAtomValue(groupsState);
   const { encryptPerson } = usePreparePersonForEncryption();
-  const persons = useAtomValue(personsObjectSelector) as PersonIndex;
 
   const needsActionsFolder =
     !person.documentsForModule?.some((d) => d._id === "actions") && person.documentsForModule?.some((d) => d.linkedItem.type === "action");

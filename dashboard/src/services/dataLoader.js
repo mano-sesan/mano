@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 // Pour l'historique git, avant le code était ici : dashboard/src/components/DataLoader.jsx
 import { useEffect } from "react";
-import { atom, useAtom, useSetAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useSetAtom } from "jotai";
 import { toast } from "react-toastify";
 
 import { personsState } from "../recoil/persons";

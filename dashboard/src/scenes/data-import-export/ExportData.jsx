@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { utils, writeFile } from "@e965/xlsx";
 
-import ButtonCustom from "../../components/ButtonCustom";
 import { flattenedCustomFieldsPersonsSelector, personsState } from "../../recoil/persons";
 import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
 import { organisationState, teamsState, usersState, userState } from "../../recoil/auth";
 import { commentsState } from "../../recoil/comments";
 import { actionsState } from "../../recoil/actions";
 import { placesState } from "../../recoil/places";
-import { reportsState, flattenedServicesSelector } from "../../recoil/reports";
+import { reportsState } from "../../recoil/reports";
 import { territoriesState } from "../../recoil/territory";
 import { useAtomValue } from "jotai";
 import { passagesState } from "../../recoil/passages";
@@ -74,7 +73,6 @@ const ExportData = () => {
   const users = useAtomValue(usersState);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
-  const flattenedServices = useAtomValue(flattenedServicesSelector);
 
   const allPersons = useAtomValue(personsState);
   const allActions = useAtomValue(actionsState);
