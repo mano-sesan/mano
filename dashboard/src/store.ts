@@ -28,23 +28,6 @@ export function atomWithCache<T>(collectionName: string, initialValue: T): Primi
   return derivedAtom as unknown as PrimitiveAtom<T>;
 }
 
-// Creates an atom with a custom side effect on write
-export function atomWithEffect<T>(initialValue: T, onSet: (newValue: T) => void | Promise<void>): PrimitiveAtom<T> {
-  const baseAtom = atom<T>(initialValue);
-
-  const derivedAtom = atom(
-    (get) => get(baseAtom),
-    (get, set, update: SetStateAction<T>) => {
-      const currentValue = get(baseAtom);
-      const newValue = typeof update === "function" ? (update as (prev: T) => T)(currentValue) : update;
-      set(baseAtom, newValue);
-      onSet(newValue);
-    }
-  );
-
-  return derivedAtom as unknown as PrimitiveAtom<T>;
-}
-
 // Creates an atom that syncs with localStorage
 export function atomWithLocalStorage<T>(key: string, initialValue: T): PrimitiveAtom<T> {
   const getInitialValue = (): T => {
