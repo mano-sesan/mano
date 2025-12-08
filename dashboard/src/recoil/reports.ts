@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, type SetStateAction } from "jotai";
 import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
@@ -17,7 +17,10 @@ const reportsBaseAtom = atom<ReportInstance[]>([]);
 // Derived atom with cache persistence and duplicate checking
 export const reportsState = atom(
   (get) => get(reportsBaseAtom),
-  async (get, set, newValue: ReportInstance[]) => {
+  async (get, set, update: SetStateAction<ReportInstance[]>) => {
+    // Resolve the update - it could be a value or a function
+    const currentValue = get(reportsBaseAtom);
+    const newValue = typeof update === "function" ? update(currentValue) : update;
     set(reportsBaseAtom, newValue);
     setCacheItem(collectionName, newValue);
 

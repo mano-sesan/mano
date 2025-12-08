@@ -1,4 +1,4 @@
-import { atom, createStore, type PrimitiveAtom } from "jotai";
+import { atom, createStore, type PrimitiveAtom, type SetStateAction } from "jotai";
 import { setCacheItem } from "./services/dataManagement";
 
 // Central Jotai store - allows reading/writing atoms outside React components
@@ -12,7 +12,10 @@ export function atomWithCache<T>(collectionName: string, initialValue: T): Primi
 
   const derivedAtom = atom(
     (get) => get(baseAtom),
-    (get, set, newValue: T) => {
+    (get, set, update: SetStateAction<T>) => {
+      // Resolve the update - it could be a value or a function
+      const currentValue = get(baseAtom);
+      const newValue = typeof update === "function" ? (update as (prev: T) => T)(currentValue) : update;
       set(baseAtom, newValue);
       // Persist to IndexedDB cache (fire and forget)
       setCacheItem(collectionName, newValue);
@@ -31,7 +34,9 @@ export function atomWithEffect<T>(initialValue: T, onSet: (newValue: T) => void 
 
   const derivedAtom = atom(
     (get) => get(baseAtom),
-    (get, set, newValue: T) => {
+    (get, set, update: SetStateAction<T>) => {
+      const currentValue = get(baseAtom);
+      const newValue = typeof update === "function" ? (update as (prev: T) => T)(currentValue) : update;
       set(baseAtom, newValue);
       onSet(newValue);
     }
@@ -52,7 +57,9 @@ export function atomWithLocalStorage<T>(key: string, initialValue: T): Primitive
 
   const derivedAtom = atom(
     (get) => get(baseAtom),
-    (get, set, newValue: T) => {
+    (get, set, update: SetStateAction<T>) => {
+      const currentValue = get(baseAtom);
+      const newValue = typeof update === "function" ? (update as (prev: T) => T)(currentValue) : update;
       set(baseAtom, newValue);
       if (JSON.stringify(newValue) === JSON.stringify(initialValue)) {
         localStorage.removeItem(key);
