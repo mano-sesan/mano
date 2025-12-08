@@ -76,10 +76,10 @@ function DocumentTree({
         const data = item.getItemData();
         // Can't drag if explicitly not movable
         if (data.movable === false) return false;
-        // Can't drag documents that belong to other persons in the group
+        // Can't drag documents that belong to other persons in the group (family documents)
         if (data.type === "document") {
           const doc = data as DocumentWithLinkedItem;
-          if (doc.linkedItem && doc.linkedItem._id !== currentPersonId) return false;
+          if (doc.linkedItem && doc.linkedItem.type === "person" && doc.linkedItem._id !== currentPersonId) return false;
         }
         return true;
       }),
@@ -103,9 +103,7 @@ function DocumentTree({
         const level = item.getItemMeta().level;
         const isDraggingOver = (item.isDraggingOver?.() && item.isUnorderedDragTarget?.()) || false;
 
-        // Check if document is from another person in the group
-        const isFromAction =
-          !isFolder && (itemData as DocumentWithLinkedItem).linkedItem && (itemData as DocumentWithLinkedItem).linkedItem.type === "action";
+        // Check if document is from another person in the group (family documents)
         const isFromOtherPerson =
           !isFolder &&
           (itemData as DocumentWithLinkedItem).linkedItem &&
@@ -164,16 +162,10 @@ function DocumentTree({
               <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
                 <span>{itemData.name}</span>
                 {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
-                {(itemData.movable === false || isFromOtherPerson || isFromAction) && (
+                {(itemData.movable === false || isFromOtherPerson) && (
                   <LockClosedIcon
                     className="tw-w-3 tw-h-3 tw-text-gray-700"
-                    title={
-                      isFromOtherPerson
-                        ? "Document d'un autre membre de la famille"
-                        : isFromAction
-                          ? "Document d'une action"
-                          : "Ne peut pas être déplacé"
-                    }
+                    title={isFromOtherPerson ? "Document d'un autre membre de la famille" : "Ne peut pas être déplacé"}
                   />
                 )}
               </span>
