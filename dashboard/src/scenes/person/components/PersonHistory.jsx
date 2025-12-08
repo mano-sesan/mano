@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { deletedUsersState, teamsState, userState, usersState } from "../../../recoil/auth";
 import { personFieldsIncludingCustomFieldsSelector } from "../../../recoil/persons";
 import { formatDateWithFullMonth, dayjsInstance } from "../../../services/date";
@@ -8,8 +8,8 @@ import { cleanHistory } from "../../../utils/person-history";
 import PersonTeamHistory from "./PersonTeamHistory";
 
 function UserName({ id, name }) {
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const users = useAtomValue(usersState);
+  const deletedUsers = useAtomValue(deletedUsersState);
 
   const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
   if (user) return user.name || "Utilisateur sans nom";
@@ -18,16 +18,16 @@ function UserName({ id, name }) {
 }
 
 export default function PersonHistory({ person }) {
-  const teams = useRecoilValue(teamsState);
-  const personFieldsIncludingCustomFields = useRecoilValue(personFieldsIncludingCustomFieldsSelector);
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const teams = useAtomValue(teamsState);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const allPossibleFields = [
     ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
     ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
   ];
-  const user = useRecoilValue(userState);
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const user = useAtomValue(userState);
+  const users = useAtomValue(usersState);
+  const deletedUsers = useAtomValue(deletedUsersState);
   const history = useMemo(() => {
     const personHistory = cleanHistory(person.history || []);
     if (!user.healthcareProfessional) return personHistory.reverse();

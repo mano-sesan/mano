@@ -1,8 +1,8 @@
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { teamsState } from "../recoil/auth";
 
 export default function TableCustomFieldTeamSelector({ field, onUpdate }) {
-  const [teams] = useRecoilState(teamsState);
+  const [teams] = useAtom(teamsState);
   return (
     <div className="text-left">
       <div>

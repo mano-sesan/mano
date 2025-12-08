@@ -6,7 +6,7 @@ import Filters, { filterData } from "../../components/Filters";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import { capture } from "../../services/sentry";
 import { userState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { capitalize } from "../../utils";
 
 const MedicalFilesStats = ({
@@ -23,7 +23,7 @@ const MedicalFilesStats = ({
   const [sliceField, setSliceField] = useState(null);
   const [sliceValue, setSliceValue] = useState(null);
   const [slicedData, setSlicedData] = useState([]);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;

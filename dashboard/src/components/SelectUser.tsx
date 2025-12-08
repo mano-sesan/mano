@@ -1,9 +1,9 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { usersState } from "../recoil/auth";
 import SelectCustom from "./SelectCustom";
 
 const SelectUser = ({ value, onChange, ...props }) => {
-  const allUsers = useRecoilValue(usersState);
+  const allUsers = useAtomValue(usersState);
 
   return (
     <SelectCustom

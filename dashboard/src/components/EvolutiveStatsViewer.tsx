@@ -1,4 +1,4 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { computeEvolutiveStatsForPersons, evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
 import type { PersonPopulated } from "../types/person";
 import type { IndicatorsSelection } from "../types/evolutivesStats";
@@ -32,9 +32,9 @@ export default function EvolutiveStatsViewer({
 }: EvolutiveStatsViewerProps) {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [modalValueEnd, setModalValueEnd] = useState<string | null>(null);
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const user = useRecoilValue(userAuthentifiedState);
-  const evolutiveStatsIndicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const user = useAtomValue(userAuthentifiedState);
+  const evolutiveStatsIndicatorsBase = useAtomValue(evolutiveStatsIndicatorsBaseSelector);
 
   const evolutiveStatsPerson = useMemo(() => {
     return computeEvolutiveStatsForPersons({

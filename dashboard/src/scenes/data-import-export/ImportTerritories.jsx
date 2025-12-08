@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
@@ -14,11 +14,11 @@ import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesFields 
 import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportTerritories() {
-  const user = useRecoilValue(userState);
-  const territoriesTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const user = useAtomValue(userState);
+  const territoriesTypes = useAtomValue(flattenedTerritoriesTypesSelector);
   const fileDialogRef = useRef(null);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   const [showImportSummary, setShowImportSummary] = useState(false);
   const [territoriesToImport, setTerritoriesToImport] = useState([]);

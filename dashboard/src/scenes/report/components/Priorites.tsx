@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { sortActionsOrConsultations } from "../../../recoil/actions";
 import { personsState } from "../../../recoil/persons";
@@ -9,7 +9,7 @@ import { NotificationActionList, NotificationCommentList } from "../../../compon
 
 export default function Priorites({ actions, comments }) {
   const [showModal, setShowModal] = useState(false);
-  const persons = useRecoilValue(personsState);
+  const persons = useAtomValue(personsState);
 
   const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
   const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");

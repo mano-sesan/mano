@@ -3,7 +3,7 @@ import SelectCustom from "./SelectCustom";
 import { dayjsInstance } from "../services/date";
 import type { FilterableField } from "../types/field";
 import type { IndicatorValue, IndicatorsSelection, IndicatorsBase } from "../types/evolutivesStats";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
 
 interface EvolutiveStatsSelectorProps {
@@ -15,7 +15,7 @@ interface EvolutiveStatsSelectorProps {
 
 const emptySelection = { fieldName: null, type: null, fromValue: null, toValue: null };
 const EvolutiveStatsSelector = ({ onChange, selection, title = "", saveInURLParams = false }: EvolutiveStatsSelectorProps) => {
-  const indicatorsBase = useRecoilValue(evolutiveStatsIndicatorsBaseSelector);
+  const indicatorsBase = useAtomValue(evolutiveStatsIndicatorsBaseSelector);
 
   selection = selection.length ? selection : [emptySelection];
   const onAddIndicator = () => onChange([...selection, emptySelection], saveInURLParams);

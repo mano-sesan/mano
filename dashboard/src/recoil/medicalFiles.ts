@@ -1,4 +1,4 @@
-import { atom, selector } from "recoil";
+import { atom } from "jotai";
 import { organisationAuthentifiedState } from "./auth";
 import { capture } from "../services/sentry";
 import { toast } from "react-toastify";
@@ -8,28 +8,19 @@ import type { CustomField } from "../types/field";
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "medical-file";
-export const medicalFileState = atom<MedicalFileInstance[]>({
-  key: collectionName,
-  default: [],
+export const medicalFileState = atom<MedicalFileInstance[]>([]);
+
+export const customFieldsMedicalFileSelector = atom<CustomField[]>((get) => {
+  const organisation = get(organisationAuthentifiedState);
+  if (Array.isArray(organisation.customFieldsMedicalFile)) return organisation.customFieldsMedicalFile;
+  return defaultMedicalFileCustomFields;
 });
 
-export const customFieldsMedicalFileSelector = selector<CustomField[]>({
-  key: "customFieldsMedicalFileSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationAuthentifiedState);
-    if (Array.isArray(organisation.customFieldsMedicalFile)) return organisation.customFieldsMedicalFile;
-    return defaultMedicalFileCustomFields;
-  },
-});
-
-export const groupedCustomFieldsMedicalFileSelector = selector({
-  key: "groupedCustomFieldsMedicalFileSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationAuthentifiedState);
-    if (Array.isArray(organisation.groupedCustomFieldsMedicalFile) && organisation.groupedCustomFieldsMedicalFile.length)
-      return organisation.groupedCustomFieldsMedicalFile;
-    return [{ name: "Groupe par défaut", fields: defaultMedicalFileCustomFields }];
-  },
+export const groupedCustomFieldsMedicalFileSelector = atom((get) => {
+  const organisation = get(organisationAuthentifiedState);
+  if (Array.isArray(organisation.groupedCustomFieldsMedicalFile) && organisation.groupedCustomFieldsMedicalFile.length)
+    return organisation.groupedCustomFieldsMedicalFile;
+  return [{ name: "Groupe par défaut", fields: defaultMedicalFileCustomFields }];
 });
 
 const encryptedFields = ["person", "documents", "comments", "history"];

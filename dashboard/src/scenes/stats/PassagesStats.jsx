@@ -3,7 +3,7 @@ import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import { getMultichoiceBarData, getPieData } from "./utils";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import Filters from "../../components/Filters";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState } from "../../recoil/auth";
 import { groupByPeriod } from "../../utils/group-by-period";
 
@@ -20,7 +20,7 @@ const PassagesStats = ({
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const filterTitle = useMemo(() => {
     if (!filterPersons.length) return `Filtrer par personnes suivies :`;
     if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;

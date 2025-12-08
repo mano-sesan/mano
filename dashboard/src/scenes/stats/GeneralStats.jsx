@@ -1,7 +1,7 @@
 import { Block } from "./Blocks";
 import Filters from "../../components/Filters";
 import { organisationState } from "../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 const GeneralStats = ({
   personsCreated,
@@ -14,7 +14,7 @@ const GeneralStats = ({
   filterPersons,
   setFilterPersons,
 }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   return (
     <>
       <h3 className="tw-my-5 tw-text-xl">Statistiques générales</h3>

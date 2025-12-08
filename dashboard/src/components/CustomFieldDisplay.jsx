@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatDuration } from "../services/date";
 import { TimeModalButton } from "./HelpButtonAndModal";
 import UserName from "./UserName";
-import { selector, selectorFamily, useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
 import { personFieldsIncludingCustomFieldsSelector } from "../recoil/persons";
 import { customFieldsMedicalFileSelector } from "../recoil/medicalFiles";
 import { LineChart } from "../scenes/person/components/Constantes";
@@ -56,33 +56,25 @@ export default function CustomFieldDisplay({ type, value, name = null, showHisto
   );
 }
 
-const allPossibleFieldsSelector = selector({
-  key: "allPossibleFieldsSelector",
-  get: ({ get }) => {
-    const personFieldsIncludingCustomFields = get(personFieldsIncludingCustomFieldsSelector);
-    const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
-    const allPossibleFields = [
-      ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
-      ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
-    ];
-    return allPossibleFields;
-  },
+const allPossibleFieldsSelector = atom((get) => {
+  const personFieldsIncludingCustomFields = get(personFieldsIncludingCustomFieldsSelector);
+  const customFieldsMedicalFile = get(customFieldsMedicalFileSelector);
+  const allPossibleFields = [
+    ...personFieldsIncludingCustomFields.map((f) => ({ ...f, isMedicalFile: false })),
+    ...customFieldsMedicalFile.map((f) => ({ ...f, isMedicalFile: true })),
+  ];
+  return allPossibleFields;
 });
 
-const personFieldSelector = selectorFamily({
-  key: "personFieldSelector",
-  get:
-    ({ name }) =>
-    ({ get }) => {
-      const allPossibleFields = get(allPossibleFieldsSelector);
-      const personField = allPossibleFields.find((f) => f.name === name);
-      return personField;
-    },
-});
+// Hook to get a person field by name (replaces selectorFamily pattern)
+function usePersonField(name) {
+  const allPossibleFields = useAtomValue(allPossibleFieldsSelector);
+  return useMemo(() => allPossibleFields.find((f) => f.name === name), [allPossibleFields, name]);
+}
 
 function FieldHistory({ name = null, person = null }) {
   const [calendarDayCreatedAt, timeCreatedAt] = dayjsInstance(person?.createdAt).format("DD/MM/YYYY HH:mm").split(" ");
-  const personField = useRecoilValue(personFieldSelector({ name }));
+  const personField = usePersonField(name);
   const fieldHistory = useMemo(() => {
     const _fieldHistory = [];
     // Get the appropriate history based on whether it's a medical file field

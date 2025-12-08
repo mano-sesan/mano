@@ -3,7 +3,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import Table from "./table";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import { organisationState, userState } from "../recoil/auth";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import UserName from "./UserName";
 import TagTeam from "./TagTeam";
 import PersonName from "./PersonName";
@@ -24,10 +24,10 @@ export default function CommentsSortableList({
   onCommentClick = undefined,
   withFilters = false,
 }) {
-  const setModalAction = useSetRecoilState(modalActionState);
-  const actionsObjects = useRecoilValue(itemsGroupedByActionSelector);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const setModalAction = useSetAtom(modalActionState);
+  const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
   const [filterOnlyMine, setFilterOnlyMine] = useState(false);
   const location = useLocation();

@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
 import { teamsState, userState } from "../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../services/api";
 import { encryptPassage } from "../recoil/passages";
 import SelectTeam from "./SelectTeam";
@@ -15,8 +15,8 @@ import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/
 import { useDataLoader } from "../services/dataLoader";
 
 const Passage = ({ passage, personId, onFinished }) => {
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
+  const user = useAtomValue(userState);
+  const teams = useAtomValue(teamsState);
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();

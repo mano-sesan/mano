@@ -1,14 +1,9 @@
-import { setCacheItem } from "../services/dataManagement";
-import { atom } from "recoil";
+import { atomWithCache } from "../store";
 import type { GroupInstance } from "../types/group";
 import { encryptItem } from "../services/encryption";
 
 const collectionName = "group";
-export const groupsState = atom<GroupInstance[]>({
-  key: collectionName,
-  default: [],
-  effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))],
-});
+export const groupsState = atomWithCache<GroupInstance[]>(collectionName, []);
 
 const encryptedFields: Array<keyof GroupInstance> = ["persons", "relations"];
 

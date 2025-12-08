@@ -1,10 +1,10 @@
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
 
 export default function DownloadStructuresImportExample() {
-  const structuresCategories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const structuresCategories = useAtomValue(flattenedStructuresCategoriesSelector);
   function placeholder(f) {
     if (f.options?.length) return f.options[0];
     return "test";

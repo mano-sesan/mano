@@ -1,6 +1,6 @@
-import { Suspense, useEffect } from "react";
-import { RecoilEnv, RecoilRoot, useRecoilValue } from "recoil";
-import RecoilNexus from "recoil-nexus";
+import { useEffect } from "react";
+import { Provider, useAtomValue } from "jotai";
+import { store } from "./store";
 import { Router, Switch, Redirect } from "react-router-dom";
 import { createBrowserHistory } from "history";
 import * as Sentry from "@sentry/react";
@@ -47,8 +47,6 @@ import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/DocumentsGeneric";
-
-RecoilEnv.RECOIL_DUPLICATE_ATOM_KEY_CHECKING_ENABLED = import.meta.env.VITE_DISABLE_RECOIL_DUPLICATE_ATOM_KEY_CHECKING ? false : true;
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -110,8 +108,8 @@ function abortRequests() {
 }
 
 const App = () => {
-  const user = useRecoilValue(userState);
-  const initialLoadIsDone = useRecoilValue(initialLoadIsDoneState);
+  const user = useAtomValue(userState);
+  const initialLoadIsDone = useAtomValue(initialLoadIsDoneState);
   const { refresh } = useDataLoader();
   const apiToken = API.getToken();
 
@@ -142,9 +140,9 @@ const App = () => {
     };
   }, [initialLoadIsDone, refresh, apiToken]);
 
-  const showOutdateAlertBanner = useRecoilValue(showOutdateAlertBannerState);
-  const deploymentCommit = useRecoilValue(deploymentCommitState);
-  const deploymentDate = useRecoilValue(deploymentDateState);
+  const showOutdateAlertBanner = useAtomValue(showOutdateAlertBannerState);
+  const deploymentCommit = useAtomValue(deploymentCommitState);
+  const deploymentDate = useAtomValue(deploymentDateState);
 
   if (!user && showOutdateAlertBanner && !window.localStorage.getItem("automaticReload")) {
     abortRequests();
@@ -195,7 +193,7 @@ const App = () => {
 
 const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
   const { fullScreen } = useDataLoader();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   if (!!user && !user?.termsAccepted)
     return (
       <main className="main">
@@ -244,15 +242,11 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
 };
 
 export default function ContextedApp() {
+  // TODO: check if provider is needed
+  // https://jotai.org/docs/core/provider
   return (
-    <RecoilRoot>
-      {/* We need React.Suspense here because default values for `person`, `action` etc. tables is an async cache request */}
-      {/* https://recoiljs.org/docs/guides/asynchronous-data-queries#query-default-atom-values */}
-      <Suspense fallback={<div></div>}>
-        {/* Recoil Nexus allows to use Recoil state outside React tree */}
-        <RecoilNexus />
-        <App />
-      </Suspense>
-    </RecoilRoot>
+    <Provider store={store}>
+      <App />
+    </Provider>
   );
 }

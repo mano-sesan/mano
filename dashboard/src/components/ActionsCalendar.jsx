@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useHistory, useLocation } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { addOneDay, dayjsInstance, formatCalendarDate, formatDateTimeWithNameOfDay, formatTime, subtractOneDay } from "../services/date";
 import Table from "./table";
 import ActionOrConsultationName from "./ActionOrConsultationName";
@@ -20,11 +20,11 @@ import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
-  const setModalAction = useSetRecoilState(modalActionState);
+  const setModalAction = useSetAtom(modalActionState);
   const history = useHistory();
   const location = useLocation();
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
   const [theDayBeforeActions, setTheDayBeforeActions] = useState([]);
   const [theDayAfterActions, setTheDayAfterActions] = useState([]);
   const [theCurrentDayActions, setTheCurrentDayActions] = useState([]);

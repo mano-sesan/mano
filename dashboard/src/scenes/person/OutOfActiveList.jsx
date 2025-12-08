@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { teamsState, userState } from "../../recoil/auth";
 import ButtonCustom from "../../components/ButtonCustom";
 import { fieldsPersonsCustomizableOptionsSelector, usePreparePersonForEncryption } from "../../recoil/persons";
@@ -16,12 +16,12 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../compo
 const OutOfActiveList = ({ person }) => {
   const [open, setOpen] = useState(false);
   const { refresh } = useDataLoader();
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   const { encryptPerson } = usePreparePersonForEncryption();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
 
   const reintegerInActiveList = async () => {
     const historyEntry = {

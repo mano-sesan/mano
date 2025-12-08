@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
 import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance } from "../../services/date";
@@ -15,15 +15,15 @@ import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
 
 const List = ({ territory = {} }) => {
-  const setModalObservation = useSetRecoilState(modalObservationState);
+  const setModalObservation = useSetAtom(modalObservationState);
   const [sortBy, setSortBy] = useLocalStorage("territory-obs-sortBy", "observedAt");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-obs-sortOrder", "ASC");
-  const territoryObservations = useRecoilValue(territoryObservationsState);
-  const users = useRecoilValue(usersState);
-  const team = useRecoilValue(currentTeamAuthentifiedState);
-  const user = useRecoilValue(userAuthentifiedState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const rencontres = useRecoilValue(rencontresState);
+  const territoryObservations = useAtomValue(territoryObservationsState);
+  const users = useAtomValue(usersState);
+  const team = useAtomValue(currentTeamAuthentifiedState);
+  const user = useAtomValue(userAuthentifiedState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const rencontres = useAtomValue(rencontresState);
 
   const filteredObservations = useMemo(
     () => territoryObservations.filter((obs) => obs.territory === territory._id),

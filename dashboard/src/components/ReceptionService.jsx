@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { servicesSelector, flattenedServicesSelector } from "../recoil/reports";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
 import IncrementorSmall from "./IncrementorSmall";
 import { capture } from "../services/sentry";
 
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(

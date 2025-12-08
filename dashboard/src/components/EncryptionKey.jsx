@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
-import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHistory } from "react-router-dom";
 
 import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../recoil/auth";
@@ -32,80 +32,72 @@ import { capture } from "../services/sentry";
 import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
-import { totalLoadingDurationState, useDataLoader } from "../services/dataLoader";
+import { useDataLoader } from "../services/dataLoader";
 
-const totalNumberOfItemsSelector = selector({
-  key: "totalNumberOfItemsSelector",
-  get: ({ get }) => {
-    const persons = get(personsState);
-    const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
-    const groups = get(groupsState);
-    const treatments = get(treatmentsState);
-    const treatmentsDocuments = treatments.reduce(
-      (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
-      0
-    );
-    const actions = get(actionsState);
-    const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
-    const medicalFiles = get(medicalFileState);
-    const medicalFilesDocuments = medicalFiles.reduce(
-      (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
-      0
-    );
-    const passages = get(passagesState);
-    const rencontres = get(rencontresState);
-    const reports = get(reportsState);
-    const territories = get(territoriesState);
-    const places = get(placesState);
-    const relsPersonPlace = get(relsPersonPlaceState);
-    const territoryObservations = get(territoryObservationsState);
-    const consultations = get(consultationsState);
-    const consultationsDocuments = consultations.reduce(
-      (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
-      0
-    );
-    const comments = get(commentsState);
+const totalNumberOfItemsSelector = atom((get) => {
+  const persons = get(personsState);
+  const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const groups = get(groupsState);
+  const treatments = get(treatmentsState);
+  const treatmentsDocuments = treatments.reduce(
+    (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    0
+  );
+  const actions = get(actionsState);
+  const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const medicalFiles = get(medicalFileState);
+  const medicalFilesDocuments = medicalFiles.reduce(
+    (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    0
+  );
+  const passages = get(passagesState);
+  const rencontres = get(rencontresState);
+  const reports = get(reportsState);
+  const territories = get(territoriesState);
+  const places = get(placesState);
+  const relsPersonPlace = get(relsPersonPlaceState);
+  const territoryObservations = get(territoryObservationsState);
+  const consultations = get(consultationsState);
+  const consultationsDocuments = consultations.reduce(
+    (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    0
+  );
+  const comments = get(commentsState);
 
-    const documents = personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments;
+  const documents = personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments;
 
-    return (
-      persons.length +
-      documents +
-      groups.length +
-      treatments.length +
-      actions.length +
-      medicalFiles.length +
-      passages.length +
-      rencontres.length +
-      reports.length +
-      territories.length +
-      places.length +
-      relsPersonPlace.length +
-      territoryObservations.length +
-      consultations.length +
-      comments.length
-    );
-  },
+  return (
+    persons.length +
+    documents +
+    groups.length +
+    treatments.length +
+    actions.length +
+    medicalFiles.length +
+    passages.length +
+    rencontres.length +
+    reports.length +
+    territories.length +
+    places.length +
+    relsPersonPlace.length +
+    territoryObservations.length +
+    consultations.length +
+    comments.length
+  );
 });
 
-const totalRecyptionDurationSelector = selector({
-  key: "totalRecyptionDurationSelector",
-  get: ({ get }) => {
-    let totalLoadingDuration = get(totalLoadingDurationState);
-    const totalNumberOfItems = get(totalNumberOfItemsSelector);
-    // the target here is to show the user a progress bar that is not stuck at 100% nor at 0% for a long time
-    if (!totalLoadingDuration) totalLoadingDuration = (totalNumberOfItems / 1000) * 4; // 4 seconds per 1000 item (more than the 4 seconds experienced in Arnaud's computer)
-    const theoreticalDuration = totalNumberOfItems * 2; // get all and decrypt + encrypt all and upload
-    return theoreticalDuration * 2; // better have a reencryption finished with half a status bar than a full status bar with a reencryption not finished
-  },
+const totalRecyptionDurationSelector = atom((get) => {
+  const totalNumberOfItems = get(totalNumberOfItemsSelector);
+  // the target here is to show the user a progress bar that is not stuck at 100% nor at 0% for a long time
+  const theoreticalDuration = totalNumberOfItems * 2; // get all and decrypt + encrypt all and upload
+  return theoreticalDuration * 2; // better have a reencryption finished with half a status bar than a full status bar with a reencryption not finished
 });
 
 const EncryptionKey = ({ isMain }) => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const totalRecyptionDuration = useRecoilValue(totalRecyptionDurationSelector);
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const totalRecyptionDuration = useAtomValue(totalRecyptionDurationSelector);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const setEncryptionKeyLength = useSetAtom(encryptionKeyLengthState);
   const previousKey = useRef(null);
 
   const onboardingForEncryption = isMain && !organisation.encryptionEnabled;

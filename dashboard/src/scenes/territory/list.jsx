@@ -4,7 +4,7 @@ import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
-import { useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import Page from "../../components/pagination";
 import Loading from "../../components/loading";
@@ -21,32 +21,28 @@ import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
-import { selector } from "recoil";
 
-const territoriesWithObservations = selector({
-  key: "territoriesWithObservations",
-  get: ({ get }) => {
-    const territories = get(territoriesState);
-    const territoryObservations = get(onlyFilledObservationsTerritories);
+const territoriesWithObservations = atom((get) => {
+  const territories = get(territoriesState);
+  const territoryObservations = get(onlyFilledObservationsTerritories);
 
-    const observationsByTerritory = {};
-    for (const obs of territoryObservations) {
-      if (!observationsByTerritory[obs.territory]) {
-        observationsByTerritory[obs.territory] = [];
-      }
-      observationsByTerritory[obs.territory].push(obs);
+  const observationsByTerritory = {};
+  for (const obs of territoryObservations) {
+    if (!observationsByTerritory[obs.territory]) {
+      observationsByTerritory[obs.territory] = [];
     }
-    return territories.map((t) => ({
-      ...t,
-      observations: observationsByTerritory[t._id] || [],
-      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
-        ?.createdAt,
-    }));
-  },
+    observationsByTerritory[obs.territory].push(obs);
+  }
+  return territories.map((t) => ({
+    ...t,
+    observations: observationsByTerritory[t._id] || [],
+    lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0]
+      ?.createdAt,
+  }));
 });
 
 const List = () => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const history = useHistory();
   useTitle("Territoires");
   useDataLoader({ refreshOnMount: true });
@@ -54,8 +50,8 @@ const List = () => {
   const [page, setPage] = useSearchParamState("page", 0);
   const [search, setSearch] = useSearchParamState("search", "");
 
-  const territories = useRecoilValue(territoriesWithObservations);
-  const territoryObservations = useRecoilValue(onlyFilledObservationsTerritories);
+  const territories = useAtomValue(territoriesWithObservations);
+  const territoryObservations = useAtomValue(onlyFilledObservationsTerritories);
   const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
 
@@ -177,8 +173,8 @@ const List = () => {
 
 export const CreateTerritory = () => {
   const [open, setOpen] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
 
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
@@ -200,10 +196,10 @@ export const CreateTerritory = () => {
 export function TerritoryModal({ open, setOpen, territory = {} }) {
   const { refresh } = useDataLoader();
   const history = useHistory();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const isNew = !territory._id;
   const initialValues = { name: "", types: [], perimeter: "", description: "", ...territory };
-  const territoryTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoryTypes = useAtomValue(flattenedTerritoriesTypesSelector);
 
   return (
     <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">

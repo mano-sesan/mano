@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import validator from "validator";
 import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { detect } from "detect-browser";
 import ButtonCustom from "../../components/ButtonCustom";
 import { DEFAULT_ORGANISATION_KEY } from "../../config";
@@ -27,14 +27,14 @@ import { modalConfirmState } from "../../components/ModalConfirm";
 import { useDataLoader } from "../../services/dataLoader";
 
 const SignIn = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const setSessionInitialTimestamp = useSetRecoilState(sessionInitialDateTimestamp);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const setTeams = useSetRecoilState(teamsState);
-  const setUsers = useSetRecoilState(usersState);
-  const setDeletedUsers = useSetRecoilState(deletedUsersState);
-  const setModalConfirmState = useSetRecoilState(modalConfirmState);
-  const [user, setUser] = useRecoilState(userState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const setSessionInitialTimestamp = useSetAtom(sessionInitialDateTimestamp);
+  const setCurrentTeam = useSetAtom(currentTeamState);
+  const setTeams = useSetAtom(teamsState);
+  const setUsers = useSetAtom(usersState);
+  const setDeletedUsers = useSetAtom(deletedUsersState);
+  const setModalConfirmState = useSetAtom(modalConfirmState);
+  const [user, setUser] = useAtom(userState);
   const history = useHistory();
   const location = useLocation();
   const [showErrors, setShowErrors] = useState(false);
@@ -51,8 +51,8 @@ const SignIn = () => {
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
 
-  const deploymentCommit = useRecoilValue(deploymentShortCommitSHAState);
-  const setEncryptionKeyLength = useSetRecoilState(encryptionKeyLengthState);
+  const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
+  const setEncryptionKeyLength = useSetAtom(encryptionKeyLengthState);
 
   const [signinForm, setSigninForm] = useState({ email: "", password: "", orgEncryptionKey: DEFAULT_ORGANISATION_KEY || "" });
   const [signinFormErrors, setSigninFormErrors] = useState({ email: "", password: "", orgEncryptionKey: "", otp: "" });

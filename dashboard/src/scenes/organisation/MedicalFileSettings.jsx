@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
 import { organisationState } from "../../recoil/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
@@ -25,9 +25,9 @@ const sanitizeFields = (field) => {
 };
 
 const MedicalFileSettings = () => {
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
   const dataFormatted = groupedCustomFieldsMedicalFile.map((group) => ({
     groupTitle: group.name,
     items: group.fields,
@@ -136,9 +136,9 @@ const MedicalFileSettings = () => {
 };
 
 const AddField = ({ groupTitle: typeName }) => {
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
+  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -220,10 +220,10 @@ const replaceOldChoiceByNewChoice = (data, oldChoice, newChoice, field) => {
 const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isEditingField, setIsEditingField] = useState(false);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const groupedCustomFieldsMedicalFile = useRecoilValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const medicalFiles = useAtomValue(medicalFileState);
+  const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
+  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
 
   const { refresh } = useDataLoader();
 

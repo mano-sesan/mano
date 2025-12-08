@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import type { PersonPopulated } from "../../../types/person";
 import Search from "../../../components/search";
@@ -48,7 +48,7 @@ export default function SearchInPerson({ person }: { person: PersonPopulated }) 
 }
 
 function SearchResults({ person, search }: { person: PersonPopulated; search: string }) {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const initTabs = useMemo(() => {
     const defaultTabs = ["Actions", "Commentaires non médicaux", "Lieux", "Documents non médicaux"];
     if (!user.healthcareProfessional) return defaultTabs;

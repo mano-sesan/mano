@@ -5,7 +5,7 @@ import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../co
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
 import { currentTeamState, userState, usersState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import UserName from "../../../components/UserName";
 import TagTeam from "../../../components/TagTeam";
 import PersonName from "../../../components/PersonName";
@@ -57,10 +57,10 @@ export const PassagesReport = ({ passages, period, selectedTeams }) => {
 };
 
 const PassagesTable = ({ period, passages, selectedTeams }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const persons = useRecoilValue(personsObjectSelector);
-  const user = useRecoilValue(userState);
-  const users = useRecoilValue(usersState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const persons = useAtomValue(personsObjectSelector);
+  const user = useAtomValue(userState);
+  const users = useAtomValue(usersState);
   const [passageToEdit, setPassageToEdit] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("report-passage-sortBy", "dueAt");
   const [sortOrder, setSortOrder] = useLocalStorage("report-passage-sortOrder", "ASC");

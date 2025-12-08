@@ -7,7 +7,7 @@ import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { dayjsInstance } from "../../../services/date";
 import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
@@ -16,9 +16,9 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
   const [activeTab, setActiveTab] = useLocalStorage("reports-actions-consultation-toggle", "Actions");
   const [fullScreen, setFullScreen] = useState(false);
   const [filterStatus, setFilterStatus] = useState([TODO, DONE, CANCEL]);
-  const setModalAction = useSetRecoilState(modalActionState);
-  const teams = useRecoilValue(teamsState);
-  const organisation = useRecoilValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
+  const teams = useAtomValue(teamsState);
+  const organisation = useAtomValue(organisationState);
 
   const hasCreatedAtFilter = filterStatus.includes("CREATED");
   const filteredActions = actions.filter((item) => !filterStatus.length || filterStatus.includes(item.status));
@@ -41,7 +41,7 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
   const data = activeTab.includes("Actions") ? actions : consultations;
   const filteredData = activeTab.includes("Actions") ? filteredActions : filteredConsultations;
   const history = useHistory();
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const canSeeMedicalData = ["admin", "normal"].includes(user.role) && !!user.healthcareProfessional;
 

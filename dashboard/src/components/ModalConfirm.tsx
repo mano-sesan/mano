@@ -1,4 +1,4 @@
-import { atom, useRecoilState } from "recoil";
+import { atom, useAtom } from "jotai";
 import { ModalContainer, ModalFooter, ModalBody, ModalHeader } from "./tailwind/Modal";
 
 type ModalConfirmState = {
@@ -39,10 +39,7 @@ const closedState: ModalConfirmState = {
   },
 };
 
-export const modalConfirmState = atom({
-  key: "modalConfirmState",
-  default: closedState,
-});
+export const modalConfirmState = atom(closedState);
 
 const ModalConfirm = () => {
   const [
@@ -51,7 +48,7 @@ const ModalConfirm = () => {
       options: { title, subTitle, buttons },
     },
     setModalConfirmState,
-  ] = useRecoilState(modalConfirmState);
+  ] = useAtom(modalConfirmState);
 
   const close = () => setModalConfirmState((prevState) => ({ ...prevState, open: false }));
 

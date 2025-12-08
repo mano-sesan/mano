@@ -1,9 +1,9 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { teamsState } from "../recoil/auth";
 
 const TagTeam = ({ teamId }) => {
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
   const teamIndex = teams?.findIndex((t) => t._id === teamId);
   const team = teams?.find((t) => t._id === teamId);
   if (!team) return null;

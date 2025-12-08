@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { organisationState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import IncrementorSmall from "../../../components/IncrementorSmall";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
@@ -19,8 +19,8 @@ const ErrorOnGetServices = () => (
 );
 
 export default function ServicesReport({ period, selectedTeamsObject }) {
-  const organisation = useRecoilValue(organisationState);
-  const groupedServices = useRecoilValue(servicesSelector);
+  const organisation = useAtomValue(organisationState);
+  const groupedServices = useAtomValue(servicesSelector);
   const [show, setShow] = useState([]);
   const [fullScreen, setFullScreen] = useState(false);
   // `service` structure is: { `team-id-xxx`: { `service-name`: 1, ... }, ... }
@@ -236,7 +236,7 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
 }
 
 const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];

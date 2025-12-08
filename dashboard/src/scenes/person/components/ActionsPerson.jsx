@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useRecoilValue, selectorFamily, useSetRecoilState } from "recoil";
+import { useMemo, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
 import { organisationState, teamsState, userState } from "../../../recoil/auth";
 import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels, TODO } from "../../../recoil/actions";
 import { useLocation } from "react-router-dom";
@@ -22,52 +22,52 @@ import ActionsSortableList from "../../../components/ActionsSortableList";
 import CommentIcon from "../../../components/CommentIcon";
 import DocumentIcon from "../../../components/DocumentIcon";
 
-const filteredPersonActionsSelector = selectorFamily({
-  key: "filteredPersonActionsSelector",
-  get:
-    ({ personId, filterCategories, filterStatus, filterTeamIds }) =>
-    ({ get }) => {
-      const person = get(itemsGroupedByPersonSelector)[personId];
-      let actionsToSet = person?.actions || [];
+// Hook to filter person actions (replaces selectorFamily)
+function useFilteredPersonActions({ personId, filterCategories, filterStatus, filterTeamIds }) {
+  const itemsGroupedByPerson = useAtomValue(itemsGroupedByPersonSelector);
 
-      // Process sur les actions pour les récurrentes
-      actionsToSet = actionsWithoutFutureRecurrences(actionsToSet);
+  return useMemo(() => {
+    const person = itemsGroupedByPerson[personId];
+    let actionsToSet = person?.actions || [];
 
-      if (filterCategories.length) {
-        actionsToSet = actionsToSet.filter((a) =>
-          filterCategories.some((c) => (c === "-- Aucune --" ? a.categories?.length === 0 : a.categories?.includes(c)))
-        );
-      }
-      if (filterStatus.length) {
-        actionsToSet = actionsToSet.filter((a) => filterStatus.some((s) => a.status === s));
-      }
-      if (filterTeamIds.length) {
-        actionsToSet = actionsToSet.filter((action) => {
-          if (Array.isArray(action.teams)) {
-            if (!filterTeamIds.some((t) => action.teams.includes(t))) return false;
-          } else {
-            if (!filterTeamIds.includes(action.team)) return false;
-          }
-          return true;
-        });
-      }
-      return [...actionsToSet]
-        .sort((p1, p2) => ((p1.completedAt || p1.dueAt) > (p2.completedAt || p2.dueAt) ? -1 : 1))
-        .map((a) => (a.urgent && a.status === TODO ? { ...a, style: { backgroundColor: "#fecaca99" } } : a));
-    },
-});
+    // Process sur les actions pour les récurrentes
+    actionsToSet = actionsWithoutFutureRecurrences(actionsToSet);
+
+    if (filterCategories.length) {
+      actionsToSet = actionsToSet.filter((a) =>
+        filterCategories.some((c) => (c === "-- Aucune --" ? a.categories?.length === 0 : a.categories?.includes(c)))
+      );
+    }
+    if (filterStatus.length) {
+      actionsToSet = actionsToSet.filter((a) => filterStatus.some((s) => a.status === s));
+    }
+    if (filterTeamIds.length) {
+      actionsToSet = actionsToSet.filter((action) => {
+        if (Array.isArray(action.teams)) {
+          if (!filterTeamIds.some((t) => action.teams.includes(t))) return false;
+        } else {
+          if (!filterTeamIds.includes(action.team)) return false;
+        }
+        return true;
+      });
+    }
+    return [...actionsToSet]
+      .sort((p1, p2) => ((p1.completedAt || p1.dueAt) > (p2.completedAt || p2.dueAt) ? -1 : 1))
+      .map((a) => (a.urgent && a.status === TODO ? { ...a, style: { backgroundColor: "#fecaca99" } } : a));
+  }, [itemsGroupedByPerson, personId, filterCategories, filterStatus, filterTeamIds]);
+}
 
 export const Actions = ({ person }) => {
-  const teams = useRecoilValue(teamsState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const setModalAction = useSetRecoilState(modalActionState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
   const data = person?.actions || [];
   const [fullScreen, setFullScreen] = useState(false);
   const [filterCategories, setFilterCategories] = useState([]);
   const [filterStatus, setFilterStatus] = useState([]);
   const [filterTeamIds, setFilterTeamIds] = useState([]);
-  const filteredData = useRecoilValue(filteredPersonActionsSelector({ personId: person._id, filterCategories, filterStatus, filterTeamIds }));
+  const filteredData = useFilteredPersonActions({ personId: person._id, filterCategories, filterStatus, filterTeamIds });
 
   return (
     <section title="Actions de la personne suivie" className="tw-relative tw-overflow-x-hidden">
@@ -167,7 +167,7 @@ export const Actions = ({ person }) => {
 };
 
 const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilterStatus, filterStatus, filterTeamIds, filterCategories }) => {
-  const categories = useRecoilValue(flattenedActionsCategoriesSelector);
+  const categories = useAtomValue(flattenedActionsCategoriesSelector);
 
   const catsSelect = ["-- Aucune --", ...(categories || [])];
   return (
@@ -227,8 +227,8 @@ const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilter
 
 const ActionsTable = ({ filteredData }) => {
   const location = useLocation();
-  const setModalAction = useSetRecoilState(modalActionState);
-  const organisation = useRecoilValue(organisationState);
+  const setModalAction = useSetAtom(modalActionState);
+  const organisation = useAtomValue(organisationState);
 
   return (
     <table className="table table-striped">

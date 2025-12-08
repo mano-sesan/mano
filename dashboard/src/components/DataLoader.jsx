@@ -1,15 +1,15 @@
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
 import { fullScreenState, isLoadingState, loadingTextState, progressState, totalState } from "../services/dataLoader";
 
 export default function DataLoader() {
-  const isLoading = useRecoilValue(isLoadingState);
-  const fullScreen = useRecoilValue(fullScreenState);
-  const loadingText = useRecoilValue(loadingTextState);
-  const progress = useRecoilValue(progressState);
-  const total = useRecoilValue(totalState);
+  const isLoading = useAtomValue(isLoadingState);
+  const fullScreen = useAtomValue(fullScreenState);
+  const loadingText = useAtomValue(loadingTextState);
+  const progress = useAtomValue(progressState);
+  const total = useAtomValue(totalState);
 
   if (!isLoading) return <RandomPicturePreloader />;
   if (!total && !fullScreen) return null;

@@ -9,7 +9,7 @@ import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState } from "../../recoil/auth";
 import { flattenedStructuresCategoriesSelector, sortStructures } from "../../recoil/structures";
 import { filterBySearch } from "../search/utils";
@@ -17,7 +17,7 @@ import { errorMessage } from "../../utils";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
 const List = () => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [structures, setStructures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useLocalStorage("structures-sortBy", "dueAt");
@@ -169,8 +169,8 @@ const List = () => {
 };
 
 const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLeave }) => {
-  const user = useRecoilValue(userState);
-  const categories = useRecoilValue(flattenedStructuresCategoriesSelector);
+  const user = useAtomValue(userState);
+  const categories = useAtomValue(flattenedStructuresCategoriesSelector);
 
   const [structure, setStructure] = useState(initStructure);
   const [isSubmitting, setIsSubmitting] = useState(false);

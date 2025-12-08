@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import utc from "dayjs/plugin/utc";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState, sessionInitialDateTimestamp } from "../recoil/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../services/encryption";
@@ -24,7 +24,7 @@ const SessionCountDownLimiter = () => {
   const sessionStart = useRef(Date.now());
   const [sessionSeconds, setSessionSeconds] = useState(Math.floor((Date.now() - sessionStart.current) / 1000));
   const stopwatchInterval = useRef(null);
-  const sessionInitialTimestamp = useRecoilValue(sessionInitialDateTimestamp);
+  const sessionInitialTimestamp = useAtomValue(sessionInitialDateTimestamp);
 
   useEffect(() => {
     stopwatchInterval.current = setInterval(() => {
@@ -93,7 +93,7 @@ const SessionCountDownLimiter = () => {
 
 const ReloadModal = ({ open, onSuccess }) => {
   const [encryptionKey, setEncryptionKey] = useState("");
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();

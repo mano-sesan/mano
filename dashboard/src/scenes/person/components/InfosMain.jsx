@@ -4,10 +4,10 @@ import EditModal from "./EditModal";
 import TagTeam from "../../../components/TagTeam";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
 import { userState } from "../../../recoil/auth";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 export function InfosMain({ person, isMedicalFile }) {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [editModal, setEditModal] = useState(false);
   return (
     <div>

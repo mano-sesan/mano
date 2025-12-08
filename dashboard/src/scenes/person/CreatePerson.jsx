@@ -7,7 +7,7 @@ import personIcon from "../../assets/icons/person-icon.svg";
 import ButtonCustom from "../../components/ButtonCustom";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import dayjs from "dayjs";
@@ -17,10 +17,10 @@ import { ModalBody, ModalContainer, ModalHeader } from "../../components/tailwin
 const CreatePerson = () => {
   const { refresh } = useDataLoader();
   const [open, setOpen] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
   const history = useHistory();
-  const [persons] = useRecoilState(personsState);
+  const [persons] = useAtom(personsState);
   const { encryptPerson } = usePreparePersonForEncryption();
 
   return (
