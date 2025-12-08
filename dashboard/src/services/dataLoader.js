@@ -35,15 +35,6 @@ export const progressState = atom(null);
 export const totalState = atom(null);
 
 // Atom with localStorage effect
-const totalLoadingDurationBaseAtom = atom(0);
-export const totalLoadingDurationState = atom(
-  (get) => get(totalLoadingDurationBaseAtom),
-  (get, set, newValue) => {
-    set(totalLoadingDurationBaseAtom, newValue);
-    window.localStorage.setItem("totalLoadingDuration", newValue);
-  }
-);
-
 const initialLoadingTextState = "En attente de chargement";
 export const loadingTextState = atom(initialLoadingTextState);
 export const initialLoadIsDoneState = atom(false);
@@ -649,7 +640,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (!getHashedOrgEncryptionKey()) return false;
     // On enregistre également l'identifiant de l'organisation
     setCacheItem("organisationId", organisationId);
-    if (!lastLoadValue) setTotalLoadingDuration((d) => d + Date.now() - now);
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setLoadingText("En attente de rafraichissement");
     // On ne reset pas les valeurs de progress et total si on est en initial load

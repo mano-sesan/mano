@@ -32,7 +32,7 @@ import { capture } from "../services/sentry";
 import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
-import { totalLoadingDurationState, useDataLoader } from "../services/dataLoader";
+import { useDataLoader } from "../services/dataLoader";
 
 const totalNumberOfItemsSelector = atom((get) => {
   const persons = get(personsState);
@@ -86,10 +86,8 @@ const totalNumberOfItemsSelector = atom((get) => {
 });
 
 const totalRecyptionDurationSelector = atom((get) => {
-  let totalLoadingDuration = get(totalLoadingDurationState);
   const totalNumberOfItems = get(totalNumberOfItemsSelector);
   // the target here is to show the user a progress bar that is not stuck at 100% nor at 0% for a long time
-  if (!totalLoadingDuration) totalLoadingDuration = (totalNumberOfItems / 1000) * 4; // 4 seconds per 1000 item (more than the 4 seconds experienced in Arnaud's computer)
   const theoreticalDuration = totalNumberOfItems * 2; // get all and decrypt + encrypt all and upload
   return theoreticalDuration * 2; // better have a reencryption finished with half a status bar than a full status bar with a reencryption not finished
 });
