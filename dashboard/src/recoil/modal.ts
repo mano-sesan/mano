@@ -1,4 +1,3 @@
-import { atom } from "jotai";
 import { atomWithLocalStorage } from "../store";
 import { ActionInstance } from "../types/action";
 import { TerritoryObservationInstance } from "../types/territoryObs";
