@@ -123,7 +123,23 @@ const App = () => {
 
   useEffect(() => {
     const handleFocus = () => {
-      if (apiToken) {
+      // why `!window.location.pathname.includes("/auth")` ?
+      // EXPLANATION: in global_cache-when-logout.spec.ts:L77, we do
+      // `await page.goto("http://localhost:8090/auth");`
+      // changing the url from the url input implies a blur to go to the url input,
+      // then a focus back on the window
+      // which send two events: 'focus' and 'beforeunload'
+      // 'focus' drives to `refresh()` if user is logged in
+      // 'beforeunload' abort all pending requests, including the ones in `refresh()` if the requests `/check-auth`  went fast enough
+      // aborting requests in `refresh()` clears the cache on line `await clearCache("resetLoaderOnError");`
+      // clearing the cach cleares also the localStorage value of `previously-logged-in`
+      // which prevent `/signin-token` to be called and the `#orgEncryptionKey` from appearing on the login page
+      // which makes the test fails sometimes
+      // so is it safe to add this condition ? well,
+      // normally, the users never touch the url input for navigation to a /person or whatever, even not for /auth
+      // so this check is basically only for tests
+      // and checking only /auth makes sense as you shouldn't need to /check-auth on /auth page anyway
+      if (apiToken && !window.location.pathname.includes("/auth")) {
         // Cela déclenchera un logout si la session est expirée
         tryFetch(() => API.getAbortable({ path: "/check-auth" })).then(() => {
           // On ne recharge que s'il y a une clé de chiffrement
