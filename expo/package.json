@@ -11,7 +11,8 @@
     "build-local:android-aab": "eas build -p android --local",
     "aab-to-apk": "java -jar ./bundletool.jar build-apks --bundle=$AAB_FILE --output=./temp.apks --mode=universal && unzip -o ./temp.apks -d ./apk-output && mv ./apk-output/universal.apk ./$(basename $AAB_FILE .aab).apk && rm -rf ./apk-output ./temp.apks && echo 'APK generated successfully'",
     "update-mobile-app-version": "npx tsx ./update-mobile-app-version.ts",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^4.1.0",

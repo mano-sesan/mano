@@ -1,4 +1,3 @@
-import { storage } from "../services/dataManagement";
 import { atom } from "jotai";
 import { organisationState } from "./auth";
 import { looseUuidRegex, dateRegex } from "../utils/regex";
@@ -7,7 +6,7 @@ import { Alert } from "react-native";
 import { atomWithCache } from "@/store";
 import { ReportInstance } from "@/types/report";
 
-const reportsBaseAtom = atomWithCache<ReportInstance[]>("report", []);
+export const reportsState = atomWithCache<Array<ReportInstance>>("report", []);
 
 export const servicesSelector = atom((get) => {
   const organisation = get(organisationState)!;

@@ -1,11 +1,10 @@
-import { atom } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { actionsState, CANCEL, DONE, TODO } from "./actions";
 import { currentTeamState } from "./auth";
 import { commentsState } from "./comments";
 import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
-import { territoriesState } from "./territory";
 import { isComingInDays, isPassed, isToday, isTomorrow } from "../services/date";
 import { filterBySearch } from "../utils/search";
 import { consultationsState } from "./consultations";

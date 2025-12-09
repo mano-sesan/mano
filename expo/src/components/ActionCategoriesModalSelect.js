@@ -15,28 +15,27 @@ import styled from "styled-components/native";
 import colors from "../utils/colors";
 
 const categoriesSortedByMostUsedSelector = atom((get) => {
-    const actions = get(actionsState);
-    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
-    if (!actions?.length) return [];
+  const actions = get(actionsState);
+  const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+  if (!actions?.length) return [];
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const categories = {};
-    for (const action of actions) {
-      if (!action.categories) continue;
-      if (new Date(action.createdAt) < thirtyDaysAgo) continue;
-      for (const category of action.categories) {
-        if (!categories[category]) categories[category] = 0;
-        categories[category]++;
-      }
+  const categories = {};
+  for (const action of actions) {
+    if (!action.categories) continue;
+    if (new Date(action.createdAt) < thirtyDaysAgo) continue;
+    for (const category of action.categories) {
+      if (!categories[category]) categories[category] = 0;
+      categories[category]++;
     }
+  }
 
-    return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
-      .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
-      .map(([category]) => category)
-      .filter((category) => flattenedActionsCategories.includes(category));
-  },
+  return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
+    .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
+    .map(([category]) => category)
+    .filter((category) => flattenedActionsCategories.includes(category));
 });
 
 const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMostUsed }) => {

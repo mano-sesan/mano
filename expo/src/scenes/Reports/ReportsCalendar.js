@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import React, { useCallback, useState } from "react";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { RefreshControl } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";

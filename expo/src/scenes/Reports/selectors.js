@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { CANCEL, DONE } from "../../recoil/actions";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { commentsState } from "../../recoil/comments";
