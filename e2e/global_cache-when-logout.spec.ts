@@ -74,6 +74,7 @@ test("Person creation", async ({ page }) => {
   await expect(page).toHaveURL("http://localhost:8090/person");
   await expect(page.getByRole("cell", { name: person1Name })).toBeVisible();
   await page.goto("http://localhost:8090/auth");
+  await expect(page.locator("#orgEncryptionKey")).toBeVisible({ timeout: 5000 });
   await page.locator("#orgEncryptionKey").pressSequentially("plouf");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
