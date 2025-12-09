@@ -65,6 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           mode: "production",
         },
       ],
+      ["react-native-libsodium", {}],
       [
         "expo-font",
         {
