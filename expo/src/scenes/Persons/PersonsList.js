@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { Animated } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import SceneContainer from "../../components/SceneContainer";
