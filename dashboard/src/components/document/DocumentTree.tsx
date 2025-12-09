@@ -5,7 +5,7 @@ import { LockClosedIcon } from "@heroicons/react/24/outline";
 import { createOnDropHandler, dragAndDropFeature, hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
 import cn from "classnames";
-import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } from "../../types/document";
+import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItemType } from "../../types/document";
 import type { UserInstance } from "../../types/user";
 import { handleFilesUpload } from "../../components/DocumentsGeneric";
 import UserName from "../../components/UserName";
@@ -280,7 +280,7 @@ export function DocumentsDropzone({ setIsInDropzone, onAddDocuments, personId, u
 }
 
 // Utility hook for building tree data
-export function useDocumentTreeData(allDocuments: DocumentOrFolder[], currentId: string) {
+export function useDocumentTreeData(allDocuments: DocumentOrFolder[], currentId: string, entityType: LinkedItemType = "person") {
   const treeData = useMemo(() => {
     if (!currentId) {
       return {
@@ -303,7 +303,7 @@ export function useDocumentTreeData(allDocuments: DocumentOrFolder[], currentId:
         children: [],
         createdAt: new Date(),
         createdBy: "system",
-        linkedItem: { _id: currentId, type: "person" },
+        linkedItem: { _id: currentId, type: entityType },
         movable: false,
       } as FolderWithLinkedItem & { children: string[] },
     };
@@ -328,7 +328,7 @@ export function useDocumentTreeData(allDocuments: DocumentOrFolder[], currentId:
     });
 
     return data;
-  }, [allDocuments, currentId]);
+  }, [allDocuments, currentId, entityType]);
 
   // Calculate which folders should be expanded - all non-empty folders
   const defaultExpandedItems = useMemo(() => {
