@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import dayjs from "dayjs";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -14,10 +14,10 @@ import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiChe
 import { currentTeamState, teamsState, userState } from "../../recoil/auth";
 
 const NewPersonForm = ({ navigation, route }) => {
-  const [persons, setPersons] = useRecoilState(personsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const teams = useRecoilValue(teamsState);
+  const [persons, setPersons] = useAtom(personsState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const teams = useAtomValue(teamsState);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 
   const [name, setName] = useState("");

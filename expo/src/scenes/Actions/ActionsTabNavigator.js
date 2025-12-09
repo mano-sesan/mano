@@ -9,7 +9,7 @@ import Tabs from "../../components/Tabs";
 import { actionsFiltersState, CANCEL, DONE, TODO } from "../../recoil/actions";
 import { INCOMINGDAYS, PASSED, TODAY } from "../../recoil/selectors";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 
 const TopTab = createMaterialTopTabNavigator();
 const SubTab = createMaterialTopTabNavigator();
@@ -140,7 +140,7 @@ const TodoNavigator = () => {
 };
 
 const ActionsTabBar = (props) => {
-  const actionsFilters = useRecoilValue(actionsFiltersState);
+  const actionsFilters = useAtomValue(actionsFiltersState);
   const { key, ...rest } = props;
   const navigation = useNavigation();
   const route = useRoute();

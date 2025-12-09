@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
-import { useRecoilValue, useRecoilState, useSetRecoilState } from "recoil";
+import { useAtomValue, useAtom, useSetAtom } from "jotai";
 import { useFocusEffect } from "@react-navigation/native";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
@@ -42,13 +42,13 @@ const cleanValue = (value) => {
 };
 
 const Consultation = ({ navigation, route }) => {
-  const [allConsultations, setAllConsultations] = useRecoilState(consultationsState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const [allConsultations, setAllConsultations] = useAtom(consultationsState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
   const person = route?.params?.personDB || route?.params?.person;
-  const consultationsFieldsIncludingCustomFields = useRecoilValue(consultationsFieldsIncludingCustomFieldsSelector);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const consultationDB = useMemo(() => {
     if (route?.params?.consultationDB?._id) {

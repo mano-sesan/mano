@@ -10,62 +10,54 @@ import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
 import { arrayOfitemsGroupedByPersonSelector, itemsGroupedByPersonSelector } from "../../recoil/selectors";
-import { selector, selectorFamily, useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { loadingState, refreshTriggerState } from "../../components/Loader";
 import { filterBySearch } from "../../utils/search";
 import { useIsFocused } from "@react-navigation/native";
 import { userState } from "../../recoil/auth";
 
-const personsFilteredSelector = selectorFamily({
-  key: "personsFilteredSelector",
-  get:
-    ({ filterTeams, filterOutOfActiveList, filterAlertness }) =>
-    ({ get }) => {
-      const persons = get(arrayOfitemsGroupedByPersonSelector);
-      let personsFiltered = persons;
-      if (filterOutOfActiveList) {
-        personsFiltered = personsFiltered.filter((p) => (filterOutOfActiveList === "Oui" ? p.outOfActiveList : !p.outOfActiveList));
-      }
-      if (filterAlertness) personsFiltered = personsFiltered.filter((p) => !!p.alertness);
-      if (filterTeams.length) {
-        personsFiltered = personsFiltered.filter((p) => {
-          const assignedTeams = p.assignedTeams || [];
-          for (let assignedTeam of assignedTeams) {
-            if (filterTeams.includes(assignedTeam)) return true;
-          }
-          return false;
-        });
-      }
-      return personsFiltered;
-    },
-});
+function usePersonsFilteredSelector(filterTeams, filterOutOfActiveList, filterAlertness) {
+  const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+  return useMemo(() => {
+    let personsFiltered = persons;
+    if (filterOutOfActiveList) {
+      personsFiltered = personsFiltered.filter((p) => (filterOutOfActiveList === "Oui" ? p.outOfActiveList : !p.outOfActiveList));
+    }
+    if (filterAlertness) personsFiltered = personsFiltered.filter((p) => !!p.alertness);
+    if (filterTeams.length) {
+      personsFiltered = personsFiltered.filter((p) => {
+        const assignedTeams = p.assignedTeams || [];
+        for (let assignedTeam of assignedTeams) {
+          if (filterTeams.includes(assignedTeam)) return true;
+        }
+        return false;
+      });
+    }
+    return personsFiltered;
+  }, [filterTeams, filterOutOfActiveList, filterAlertness, persons]);
+}
 
-const personsFilteredBySearchSelector = selectorFamily({
-  key: "personsFilteredBySearchSelector",
-  get:
-    ({ filterTeams, filterOutOfActiveList, filterAlertness, search }) =>
-    ({ get }) => {
-      const user = get(userState);
-      if (!search?.length && !filterTeams.length && !filterOutOfActiveList && !filterAlertness) {
-        const persons = get(arrayOfitemsGroupedByPersonSelector);
-        return persons;
-      }
+function usePersonsFilteredBySearchSelector(filterTeams, filterOutOfActiveList, filterAlertness, search) {
+  const user = useAtomValue(userState);
+  if (!search?.length && !filterTeams.length && !filterOutOfActiveList && !filterAlertness) {
+    const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+    return persons;
+  }
 
-      const personsFiltered = get(personsFilteredSelector({ filterTeams, filterAlertness, filterOutOfActiveList }));
+  const personsFiltered = usePersonsFilteredSelector(filterTeams, filterOutOfActiveList, filterAlertness);
 
-      const restrictedFields =
-        user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
+  const restrictedFields =
+    user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : null;
 
-      const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
+  const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
-      return personsfilteredBySearch;
-    },
-});
+  return personsfilteredBySearch;
+}
 
 const PersonsList = ({ navigation, route }) => {
   const [search, setSearch] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const loading = useRecoilValue(loadingState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const loading = useAtomValue(loadingState);
   const params = route?.params?.filters || {};
 
   const filterTeams = params?.filterTeams || [];
@@ -73,14 +65,7 @@ const PersonsList = ({ navigation, route }) => {
   const filterOutOfActiveList = params?.filterOutOfActiveList || "";
   const numberOfFilters = Number(Boolean(filterAlertness)) + filterTeams.length + Number(["Oui", "Non"].includes(filterOutOfActiveList));
 
-  const filteredPersons = useRecoilValue(
-    personsFilteredBySearchSelector({
-      search,
-      filterTeams,
-      filterAlertness,
-      filterOutOfActiveList,
-    })
-  );
+  const filteredPersons = usePersonsFilteredBySearchSelector(filterTeams, filterOutOfActiveList, filterAlertness, search);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

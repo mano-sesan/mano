@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -13,9 +13,9 @@ import { userState } from "../../recoil/auth";
 const NewTerritoryForm = ({ navigation, route }) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
-  const setTerritories = useSetRecoilState(territoriesState);
+  const setTerritories = useSetAtom(territoriesState);
 
   const onBack = () => {
     backRequestHandledRef.current = true;

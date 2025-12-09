@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { View } from "react-native";
 import ScrollContainer from "../../components/ScrollContainer";
 import SubHeader from "../../components/SubHeader";
@@ -23,8 +23,8 @@ const PersonSection = ({
   fields,
   name: sectionName,
 }) => {
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
   const scrollViewRef = useRef(null);
 
   return (

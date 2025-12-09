@@ -1,4 +1,4 @@
-import { selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import * as Sentry from "@sentry/react-native";
 import React, { useCallback, useMemo } from "react";
 import { actionsState, TODO } from "../../recoil/actions";
@@ -17,51 +17,48 @@ import { actionsObjectSelector, itemsGroupedByPersonSelector } from "../../recoi
 import API from "../../services/api";
 import { Alert } from "react-native";
 
-export const urgentItemsSelector = selector({
-  key: "urgentItemsSelector",
-  get: ({ get }) => {
-    const currentTeam = get(currentTeamState);
-    const persons = get(itemsGroupedByPersonSelector);
-    const actions = get(actionsState);
-    const actionsObject = get(actionsObjectSelector);
-    const comments = get(commentsState);
-    const actionsFiltered = [];
-    for (const action of actions) {
-      if (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) {
-        if (action.status === TODO && action.urgent) {
-          actionsFiltered.push({ ...action, isAction: true });
-        }
+export const urgentItemsSelector = atom((get) => {
+  const currentTeam = get(currentTeamState);
+  const persons = get(itemsGroupedByPersonSelector);
+  const actions = get(actionsState);
+  const actionsObject = get(actionsObjectSelector);
+  const comments = get(commentsState);
+  const actionsFiltered = [];
+  for (const action of actions) {
+    if (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) {
+      if (action.status === TODO && action.urgent) {
+        actionsFiltered.push({ ...action, isAction: true });
       }
     }
-    const commentsFiltered = [];
-    for (const comment of comments) {
-      if (!comment.urgent) continue;
-      if (comment.team !== currentTeam?._id) continue;
-      if (!comment.action && !comment.person) continue;
-      const commentPopulated = { ...comment, isComment: true };
-      if (comment.person) {
-        const id = comment.person;
-        commentPopulated.person = persons[id];
-        commentPopulated.type = "person";
-      }
-      if (comment.action) {
-        const id = comment.action;
-        const action = actionsObject[id];
-        commentPopulated.action = action;
-        if (action?.person) commentPopulated.person = persons[action?.person];
-        commentPopulated.type = "action";
-      }
-      commentsFiltered.push(commentPopulated);
+  }
+  const commentsFiltered = [];
+  for (const comment of comments) {
+    if (!comment.urgent) continue;
+    if (comment.team !== currentTeam?._id) continue;
+    if (!comment.action && !comment.person) continue;
+    const commentPopulated = { ...comment, isComment: true };
+    if (comment.person) {
+      const id = comment.person;
+      commentPopulated.person = persons[id];
+      commentPopulated.type = "person";
     }
+    if (comment.action) {
+      const id = comment.action;
+      const action = actionsObject[id];
+      commentPopulated.action = action;
+      if (action?.person) commentPopulated.person = persons[action?.person];
+      commentPopulated.type = "action";
+    }
+    commentsFiltered.push(commentPopulated);
+  }
 
-    return { actionsFiltered, commentsFiltered };
-  },
+  return { actionsFiltered, commentsFiltered };
 });
 
 const Notifications = ({ navigation }) => {
-  const { actionsFiltered, commentsFiltered } = useRecoilValue(urgentItemsSelector);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const setComments = useSetRecoilState(commentsState);
+  const { actionsFiltered, commentsFiltered } = useAtomValue(urgentItemsSelector);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const setComments = useSetAtom(commentsState);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

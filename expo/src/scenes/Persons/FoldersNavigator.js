@@ -7,7 +7,7 @@ import Spacer from "../../components/Spacer";
 import colors from "../../utils/colors";
 import Documents from "./Documents";
 import MedicalFile from "./MedicalFile";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState, userState } from "../../recoil/auth";
 import Group from "./Group";
 import { customFieldsPersonsSelector } from "../../recoil/persons";
@@ -15,8 +15,8 @@ import { customFieldsPersonsSelector } from "../../recoil/persons";
 const FoldersStack = createStackNavigator();
 
 const FoldersNavigator = (props) => {
-  const user = useRecoilValue(userState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const user = useAtomValue(userState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
   return (
     <FoldersStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="FoldersSummary">
       <FoldersStack.Screen name="FoldersSummary">{(stackProps) => <FoldersSummary {...props} {...stackProps} />}</FoldersStack.Screen>
@@ -39,9 +39,9 @@ const FoldersNavigator = (props) => {
 export default FoldersNavigator;
 
 const FoldersSummary = ({ navigation, backgroundColor }) => {
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const customFieldsPersons = useRecoilValue(customFieldsPersonsSelector);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
 
   return (
     <ScrollContainer noPadding backgroundColor={backgroundColor || colors.app.color}>

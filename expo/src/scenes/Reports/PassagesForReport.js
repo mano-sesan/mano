@@ -1,11 +1,11 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback } from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyPassage, ListNoMorePassages } from "../../components/ListEmptyContainer";
-import { passagesForReport } from "./selectors";
+import { usePassagesForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { currentTeamState } from "../../recoil/auth";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
@@ -14,10 +14,10 @@ const keyExtractor = (item) => item._id;
 
 const PassagesForReport = ({ navigation, route }) => {
   const date = route?.params?.date;
-  const passages = useRecoilValue(passagesForReport({ date }));
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
+  const passages = usePassagesForReport(date);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

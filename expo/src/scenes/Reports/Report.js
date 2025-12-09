@@ -1,7 +1,7 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, InteractionManager, View } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import InputLabelled from "../../components/InputLabelled";
 import Label from "../../components/Label";
 import { MyText } from "../../components/MyText";
@@ -17,13 +17,13 @@ import { flattenedServicesSelector, prepareReportForEncryption, reportsState } f
 import API from "../../services/api";
 import colors from "../../utils/colors";
 import {
-  actionsForReport,
-  consultationsForReport,
-  commentsForReport,
+  useActionsForReport,
+  useConsultationsForReport,
+  useCommentsForReport,
   currentTeamReportsSelector,
-  observationsForReport,
-  passagesForReport,
-  rencontresForReport,
+  useObservationsForReport,
+  usePassagesForReport,
+  useRencontresForReport,
 } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { refreshTriggerState } from "../../components/Loader";
@@ -34,7 +34,7 @@ const castToReport = (report = {}) => ({
 });
 
 const ReportLoading = ({ navigation, route }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const day = route.params?.day;
   const [isLoading, setIsLoading] = useState(true);
@@ -65,24 +65,24 @@ const ReportLoading = ({ navigation, route }) => {
 };
 
 const Report = ({ navigation, route }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const setReports = useSetRecoilState(reportsState);
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const teamsReports = useRecoilValue(currentTeamReportsSelector);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const setReports = useSetAtom(reportsState);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const teamsReports = useAtomValue(currentTeamReportsSelector);
+  const user = useAtomValue(userState);
 
   const day = route.params?.day;
   const reportDB = useMemo(() => teamsReports.find((r) => r.date === day), [teamsReports, day]);
   const [report, setReport] = useState(() => castToReport(reportDB));
 
-  const { actionsCreated, actionsCompleted, actionsCanceled } = useRecoilValue(actionsForReport({ date: day }));
-  const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useRecoilValue(consultationsForReport({ date: day }));
-  const comments = useRecoilValue(commentsForReport({ date: day }));
-  const rencontres = useRecoilValue(rencontresForReport({ date: day }));
-  const passages = useRecoilValue(passagesForReport({ date: day }));
-  const observations = useRecoilValue(observationsForReport({ date: day }));
-  const organisation = useRecoilValue(organisationState);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const { actionsCreated, actionsCompleted, actionsCanceled } = useActionsForReport(day);
+  const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useConsultationsForReport(day);
+  const comments = useCommentsForReport(day);
+  const rencontres = useRencontresForReport(day);
+  const passages = usePassagesForReport(day);
+  const observations = useObservationsForReport(day);
+  const organisation = useAtomValue(organisationState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const [servicesCount, setServicesCount] = useState(0);
 
   const isFocused = useIsFocused();

@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components/native";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { Alert, TouchableOpacity } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
 import UserName from "../../components/UserName";
@@ -50,10 +50,10 @@ const computeCustomFieldDisplay = (field, value) => {
 };
 
 const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTerritoryPress, showActionSheetWithOptions }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState);
 
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const setTerritoryObservations = useSetRecoilState(territoryObservationsState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const setTerritoryObservations = useSetAtom(territoryObservationsState);
 
   const onPressRequest = async () => {
     const options = ["Supprimer", "Annuler"];

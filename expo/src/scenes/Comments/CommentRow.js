@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../../recoil/auth";
 import BubbleRow from "../../components/BubbleRow";
 import CommentModal from "./CommentModal";
@@ -16,7 +16,7 @@ const CommentRow = ({
   canToggleUrgentCheck,
   canToggleGroupCheck,
 }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const onMorePress = async () => {

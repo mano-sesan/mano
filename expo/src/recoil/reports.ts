@@ -1,36 +1,28 @@
 import { storage } from "../services/dataManagement";
-import { atom, selector } from "recoil";
+import { atom } from "jotai";
 import { organisationState } from "./auth";
 import { looseUuidRegex, dateRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { atomWithCache } from "@/store";
+import { ReportInstance } from "@/types/report";
 
-export const reportsState = atom({
-  key: "reportsState",
-  default: JSON.parse(storage.getString("report") || "[]"),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set("report", JSON.stringify(newValue)))],
+const reportsBaseAtom = atomWithCache<ReportInstance[]>("report", []);
+
+export const servicesSelector = atom((get) => {
+  const organisation = get(organisationState)!;
+  if (organisation.groupedServices) return organisation.groupedServices;
+  return [{ groupTitle: "Tous mes services", services: [] }];
 });
 
-export const servicesSelector = selector({
-  key: "servicesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (organisation.groupedServices) return organisation.groupedServices;
-    return [{ groupTitle: "Tous mes services", services: [] }];
-  },
+export const flattenedServicesSelector = atom((get) => {
+  const groupedServices = get(servicesSelector);
+  return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], [] as string[]);
 });
 
-export const flattenedServicesSelector = selector({
-  key: "flattenedServicesSelector",
-  get: ({ get }) => {
-    const groupedServices = get(servicesSelector);
-    return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
-  },
-});
+const encryptedFields: Array<keyof ReportInstance> = ["description", "team", "date", "collaborations", "updatedBy"];
 
-const encryptedFields = ["description", "team", "date", "collaborations", "updatedBy"];
-
-export const prepareReportForEncryption = (report) => {
+export const prepareReportForEncryption = (report: ReportInstance) => {
   try {
     if (!looseUuidRegex.test(report.team)) {
       throw new Error("Report is missing team");
@@ -46,7 +38,7 @@ export const prepareReportForEncryption = (report) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
     decrypted[field] = report[field];
   }

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -26,11 +26,11 @@ import { dayjsInstance } from "../../services/dateDayjs";
 import { getOccurrences } from "../../utils/recurrence";
 
 const NewActionForm = ({ route, navigation }) => {
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const groups = useRecoilValue(groupsState);
-  const user = useRecoilValue(userState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const groups = useAtomValue(groupsState);
+  const user = useAtomValue(userState);
   const [name, setName] = useState("");
   const [dueAt, setDueAt] = useState(null);
   const [withTime, setWithTime] = useState(false);

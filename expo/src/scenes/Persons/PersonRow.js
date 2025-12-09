@@ -9,7 +9,7 @@ import { MyText } from "../../components/MyText";
 import RowContainer from "../../components/RowContainer";
 import TeamsTags from "../../components/TeamsTags";
 import colors from "../../utils/colors";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState, userState } from "../../recoil/auth";
 
 export const PersonName = ({ person: { name, outOfActiveList, outOfActiveListReasons, otherNames } }) => {
@@ -42,8 +42,8 @@ export const PersonName = ({ person: { name, outOfActiveList, outOfActiveListRea
 const PersonRow = ({ onPress, person, isPersonsSearchRow = false, showActionSheetWithOptions, children }) => {
   const { outOfActiveList, formattedBirthDate, alertness } = person;
   const navigation = useNavigation();
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
 
   const onMorePress = async () => {
     const options = [

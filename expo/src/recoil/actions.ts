@@ -1,34 +1,25 @@
-import { atom, selector } from "recoil";
-import { storage } from "../services/dataManagement";
+import { atomWithCache } from "@/store";
+import { atom } from "jotai";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { ActionInstance } from "@/types/action";
 
-export const actionsState = atom({
-  key: "actionsState",
-  default: JSON.parse(storage.getString("action") || "[]"),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set("action", JSON.stringify(newValue)))],
+export const actionsState = atomWithCache<Array<ActionInstance>>("action", []);
+
+export const actionsCategoriesSelector = atom((get) => {
+  const organisation = get(organisationState)!;
+  if (organisation.actionsGroupedCategories) return organisation.actionsGroupedCategories;
+  return [{ groupTitle: "Toutes mes catégories", categories: [] }];
 });
 
-export const actionsCategoriesSelector = selector({
-  key: "actionsCategoriesSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (organisation.actionsGroupedCategories) return organisation.actionsGroupedCategories;
-    return [{ groupTitle: "Toutes mes catégories", categories: [] }];
-  },
+export const flattenedActionsCategoriesSelector = atom((get) => {
+  const actionsGroupedCategories = get(actionsCategoriesSelector);
+  return actionsGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], [] as string[]);
 });
 
-export const flattenedActionsCategoriesSelector = selector({
-  key: "flattenedActionsCategoriesSelector",
-  get: ({ get }) => {
-    const actionsGroupedCategories = get(actionsCategoriesSelector);
-    return actionsGroupedCategories.reduce((allCategories, { categories }) => [...allCategories, ...categories], []);
-  },
-});
-
-const encryptedFields = [
+const encryptedFields: Array<keyof ActionInstance> = [
   "category",
   "categories",
   "person",
@@ -58,9 +49,9 @@ export const allowedActionFieldsInHistory = [
   { name: "status", label: "Status" },
 ];
 
-export const prepareActionForEncryption = (action) => {
+export const prepareActionForEncryption = (action: ActionInstance) => {
   try {
-    if (!looseUuidRegex.test(action.person)) {
+    if (!looseUuidRegex.test(action.person || "")) {
       throw new Error("Action is missing person");
     }
     for (const team of action.teams) {
@@ -80,7 +71,7 @@ export const prepareActionForEncryption = (action) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
     decrypted[field] = action[field];
   }

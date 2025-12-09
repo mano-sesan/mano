@@ -6,16 +6,16 @@ import Spinner from "../../components/Spinner";
 import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyContainer";
 import Search from "../../components/Search";
 import { FlashListStyled } from "../../components/Lists";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { personsSearchSelector } from "../../recoil/selectors";
+import { useAtom } from "jotai";
+import { usePersonsSearchSelector } from "../../recoil/selectors";
 import { loadingState, refreshTriggerState } from "../../components/Loader";
 
 const PersonsSearch = ({ navigation, route }) => {
   const [search, setSearch] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const loading = useRecoilState(loadingState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const loading = useAtom(loadingState);
 
-  const filteredPersons = useRecoilValue(personsSearchSelector({ search }));
+  const filteredPersons = usePersonsSearchSelector(search);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

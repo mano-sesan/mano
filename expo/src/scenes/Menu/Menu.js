@@ -7,14 +7,14 @@ import Spacer from "../../components/Spacer";
 import API from "../../services/api";
 import ScrollContainer from "../../components/ScrollContainer";
 import { MANO_DOWNLOAD_URL, MANO_TEST_ORGANISATION_ID } from "../../config";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState } from "../../recoil/auth";
 import { capture } from "../../services/sentry";
 
 const Menu = ({ navigation }) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const onLogoutRequest = async (clearAll = false) => {
     setIsLoggingOut(true);

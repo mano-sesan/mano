@@ -1,10 +1,10 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { personFieldsSelector } from "../../recoil/persons";
 import SelectLabelled from "./SelectLabelled";
 
 const OutOfActiveListSelect = ({ value = "", onSelect, editable }) => {
-  const personFields = useRecoilValue(personFieldsSelector);
+  const personFields = useAtomValue(personFieldsSelector);
   const options = [
     {
       _id: "all",

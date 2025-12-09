@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import SceneContainer from "../../components/SceneContainer";
 import ActionRow from "../../components/ActionRow";
 import Spinner from "../../components/Spinner";
@@ -8,7 +8,7 @@ import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyC
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
-import { actionsForReport } from "./selectors";
+import { useActionsForReport } from "./selectors";
 import ScreenTitle from "../../components/ScreenTitle";
 import { CANCEL, DONE } from "../../recoil/actions";
 import { currentTeamState } from "../../recoil/auth";
@@ -17,12 +17,12 @@ import { getPeriodTitle } from "./utils";
 const keyExtractor = (action) => action._id;
 
 const Actions = ({ route, navigation }) => {
-  const loading = useRecoilValue(loadingState);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const loading = useAtomValue(loadingState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
   const { status, date } = route.params;
 
-  const { actionsCreated, actionsCompleted, actionsCanceled } = useRecoilValue(actionsForReport({ date }));
+  const { actionsCreated, actionsCompleted, actionsCanceled } = useActionsForReport(date);
 
   const actionsToShow = useMemo(() => {
     if (!status) return actionsCreated;

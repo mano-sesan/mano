@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import API from "../services/api";
-import { atom, useRecoilState, useSetRecoilState } from "recoil";
+import { atom, useAtom, useSetAtom } from "jotai";
 import { appCurrentCacheKey, getData } from "../services/dataManagement";
 import { useMMKVNumber } from "react-native-mmkv";
 import { organisationState, userState } from "../recoil/auth";
@@ -20,27 +20,15 @@ import { rencontresState } from "../recoil/rencontres";
 import { passagesState } from "../recoil/passages";
 import { groupsState } from "../recoil/groups";
 
-export const loadingState = atom({
-  key: "loadingState",
-  default: "",
-});
+export const loadingState = atom("");
 
-export const progressState = atom({
-  key: "progressState",
-  default: 0,
-});
+export const progressState = atom(0);
 
-export const loaderFullScreenState = atom({
-  key: "loaderFullScreenState",
-  default: false,
-});
+export const loaderFullScreenState = atom(false);
 
 export const refreshTriggerState = atom({
-  key: "refreshTriggerState",
-  default: {
-    status: false,
-    options: { showFullScreen: false, initialLoad: false },
-  },
+  status: false,
+  options: { showFullScreen: false, initialLoad: false },
 });
 
 export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, filterNewItemsFunction } = {}) {
@@ -74,28 +62,28 @@ export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, fi
 export const DataLoader = () => {
   const [lastRefresh, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
 
-  const setLoading = useSetRecoilState(loadingState);
-  const setProgress = useSetRecoilState(progressState);
-  const setFullScreen = useSetRecoilState(loaderFullScreenState);
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
-  const [user, setUser] = useRecoilState(userState);
+  const setLoading = useSetAtom(loadingState);
+  const setProgress = useSetAtom(progressState);
+  const setFullScreen = useSetAtom(loaderFullScreenState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
+  const [user, setUser] = useAtom(userState);
   const organisationId = organisation?._id;
 
-  const [persons, setPersons] = useRecoilState(personsState);
-  const [actions, setActions] = useRecoilState(actionsState);
-  const [groups, setGroups] = useRecoilState(groupsState);
-  const [consultations, setConsultations] = useRecoilState(consultationsState);
-  const [treatments, setTreatments] = useRecoilState(treatmentsState);
-  const [medicalFiles, setMedicalFiles] = useRecoilState(medicalFileState);
-  const [territories, setTerritories] = useRecoilState(territoriesState);
-  const [places, setPlaces] = useRecoilState(placesState);
-  const [relsPersonPlace, setRelsPersonPlace] = useRecoilState(relsPersonPlaceState);
-  const [territoryObservations, setTerritoryObs] = useRecoilState(territoryObservationsState);
-  const [comments, setComments] = useRecoilState(commentsState);
-  const [passages, setPassages] = useRecoilState(passagesState);
-  const [rencontres, setRencontres] = useRecoilState(rencontresState);
-  const [reports, setReports] = useRecoilState(reportsState);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
+  const [persons, setPersons] = useAtom(personsState);
+  const [actions, setActions] = useAtom(actionsState);
+  const [groups, setGroups] = useAtom(groupsState);
+  const [consultations, setConsultations] = useAtom(consultationsState);
+  const [treatments, setTreatments] = useAtom(treatmentsState);
+  const [medicalFiles, setMedicalFiles] = useAtom(medicalFileState);
+  const [territories, setTerritories] = useAtom(territoriesState);
+  const [places, setPlaces] = useAtom(placesState);
+  const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
+  const [territoryObservations, setTerritoryObs] = useAtom(territoryObservationsState);
+  const [comments, setComments] = useAtom(commentsState);
+  const [passages, setPassages] = useAtom(passagesState);
+  const [rencontres, setRencontres] = useAtom(rencontresState);
+  const [reports, setReports] = useAtom(reportsState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
   // to prevent auto-refresh to trigger on the first render
   const initialLoadDone = useRef(null);

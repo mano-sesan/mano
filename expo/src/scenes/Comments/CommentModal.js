@@ -7,15 +7,15 @@ import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 
 const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUpdate, onDelete, canToggleUrgentCheck, canToggleGroupCheck }) => {
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
 
   const [comment, setComment] = useState(commentDB?.comment?.split("\\n").join("\u000A") || "");
   const [urgent, setUrgent] = useState(commentDB?.urgent || false);

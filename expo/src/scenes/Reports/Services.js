@@ -1,4 +1,4 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -60,11 +60,11 @@ function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
 }
 
 const Services = ({ navigation, route }) => {
-  const groupedServices = useRecoilValue(servicesSelector);
+  const groupedServices = useAtomValue(servicesSelector);
   const { date } = route.params;
-  const organisation = useRecoilValue(organisationState);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
   const [services, setServices] = useState([]);
   const [activeTab, setActiveTab] = useState(groupedServices[0]?.groupTitle || null);
 

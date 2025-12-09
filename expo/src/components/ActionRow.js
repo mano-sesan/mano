@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import styled from "styled-components/native";
 import { View } from "react-native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import ButtonRight from "./ButtonRight";
 import RowContainer from "./RowContainer";
 import { MyText } from "./MyText";
@@ -15,8 +15,8 @@ import RepeatIcon from "../icons/RepeatIcon";
 import UserName from "./UserName";
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }) => {
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const organisation = useRecoilValue(organisationState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const organisation = useAtomValue(organisationState);
 
   const name = action?.name?.trim() || action?.categories?.join(", ") || "Action";
   const status = action?.status;

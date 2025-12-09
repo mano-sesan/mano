@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import React, { useMemo } from "react";
 import { View, TouchableOpacity, TouchableWithoutFeedback } from "react-native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { MyText } from "../../components/MyText";
 import UserName from "../../components/UserName";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
@@ -10,7 +10,7 @@ import { dayjsInstance } from "../../services/dateDayjs";
 const GroupRow = ({ relation, onMorePress, person }) => {
   const navigation = useNavigation();
   const { persons, description, createdAt, user } = relation;
-  const allPersons = useRecoilValue(itemsGroupedByPersonSelector);
+  const allPersons = useAtomValue(itemsGroupedByPersonSelector);
   const person1 = useMemo(() => allPersons[persons[0]], [allPersons, persons]);
   const person2 = useMemo(() => allPersons[persons[1]], [allPersons, persons]);
 

@@ -2932,6 +2932,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ungap__structured-clone@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@types/ungap__structured-clone@npm:1.2.0"
+  checksum: 52f341ded16708603e5631769b26acf0e9ed7c556ce81abb4e55962110b30442576c631c8f7e298b561b8ff77c7823f0edc9f5e313e1c5e1441825a590e5b0f3
+  languageName: node
+  linkType: hard
+
 "@types/yargs-parser@npm:*":
   version: 21.0.3
   resolution: "@types/yargs-parser@npm:21.0.3"
@@ -7244,6 +7251,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jotai@npm:^2.15.2":
+  version: 2.15.2
+  resolution: "jotai@npm:2.15.2"
+  peerDependencies:
+    "@babel/core": ">=7.0.0"
+    "@babel/template": ">=7.0.0"
+    "@types/react": ">=17.0.0"
+    react: ">=17.0.0"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@babel/template":
+      optional: true
+    "@types/react":
+      optional: true
+    react:
+      optional: true
+  checksum: b8ffd26f8429d5512aa4f5204027a9ae43da5229f28e8e16df0558f5cbde56c2c5149883354ea977cba4a1e89f566d19cc37324dd3df53741582a38c8ad31d5a
+  languageName: node
+  linkType: hard
+
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -7786,6 +7814,7 @@ __metadata:
     "@shopify/flash-list": "npm:1.7.3"
     "@types/react": "npm:~18.3.12"
     "@types/semver": "npm:^7"
+    "@types/ungap__structured-clone": "npm:^1.2.0"
     "@ungap/structured-clone": "npm:^1.2.0"
     base-64: "npm:^1.0.0"
     base64-js: "npm:^1.5.1"
@@ -7804,6 +7833,7 @@ __metadata:
     fast-text-encoding: "npm:^1.0.6"
     fetch-retry: "npm:^5.0.6"
     javascript-time-ago: "npm:^2.5.11"
+    jotai: "npm:^2.15.2"
     nativewind: "npm:^2.0.0"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"

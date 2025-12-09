@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { selector, useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
 import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
 import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../recoil/actions";
 import Label from "./Label";
@@ -14,9 +14,7 @@ import Search from "./Search";
 import styled from "styled-components/native";
 import colors from "../utils/colors";
 
-const categoriesSortedByMostUsedSelector = selector({
-  key: "categoriesSortedByMostUsedSelector",
-  get: ({ get }) => {
+const categoriesSortedByMostUsedSelector = atom((get) => {
     const actions = get(actionsState);
     const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
     if (!actions?.length) return [];
@@ -43,8 +41,8 @@ const categoriesSortedByMostUsedSelector = selector({
 
 const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMostUsed }) => {
   const [open, setOpen] = useState(false);
-  const allGroups = useRecoilValue(actionsCategoriesSelector);
-  const categoriesSortedByMostUsed = useRecoilValue(categoriesSortedByMostUsedSelector);
+  const allGroups = useAtomValue(actionsCategoriesSelector);
+  const categoriesSortedByMostUsed = useAtomValue(categoriesSortedByMostUsedSelector);
 
   const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);

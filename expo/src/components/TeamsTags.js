@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { MyText } from "./MyText";
 import colors from "../utils/colors";
 import { teamsState } from "../recoil/auth";
@@ -8,7 +8,7 @@ import { teamsState } from "../recoil/auth";
 const teamsColors = ["#255c99", "#74776bff", "#00c6a5ff", "#ff4b64ff", "#ef798aff"];
 
 const TeamsTags = ({ teams = [] }) => {
-  const allTeams = useRecoilValue(teamsState);
+  const allTeams = useAtomValue(teamsState);
 
   if (!teams?.length) return null;
 
