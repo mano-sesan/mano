@@ -10,7 +10,7 @@ import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../recoil/persons";
 import { SummaryPrint } from "./SummaryPrint";
-import PersonDocumentsAlt from "./PersonDocumentsAlt";
+import PersonDocumentsNew from "../../../components/document/PersonDocuments";
 import PersonDocuments from "./PersonDocuments";
 import { MANO_TEST_ORG_ID } from "../../../config";
 
@@ -58,7 +58,7 @@ export default function Summary({ person }) {
                 </div>
               )}
               <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
-                {useNewDocumentSystem ? <PersonDocumentsAlt person={person} /> : <PersonDocuments person={person} />}
+                {useNewDocumentSystem ? <PersonDocumentsNew person={person} /> : <PersonDocuments person={person} />}
               </div>
             </div>
           </div>
