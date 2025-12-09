@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../tailwind/Modal";
 import type { Folder, FolderWithLinkedItem } from "../../types/document";
 
@@ -15,7 +16,10 @@ export function CreateFolderModal({ open, onClose, onCreateFolder, userId }: Cre
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
-    if (!folderName.trim()) return;
+    if (!folderName.trim()) {
+      toast.error("Veuillez entrer un nom pour le dossier");
+      return;
+    }
 
     setIsCreating(true);
 
@@ -94,7 +98,10 @@ export function EditFolderModal({ folder, onClose, onUpdateFolder, onDeleteFolde
 
   const handleUpdate = async () => {
     const newName = inputRef.current?.value.trim();
-    if (!newName) return;
+    if (!newName) {
+      toast.error("Veuillez entrer un nom pour le dossier");
+      return;
+    }
 
     setIsUpdating(true);
     await onUpdateFolder(folder, newName);
