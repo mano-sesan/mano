@@ -4,10 +4,19 @@ import { storage } from "@/services/dataManagement";
 // This replaces recoil-nexus functionality
 export const store = createStore();
 
-// Creates an atom that automatically persists to IndexedDB cache on every update
-// This replaces the Recoil effect pattern: effects: [({ onSet }) => onSet(async (newValue) => setCacheItem(collectionName, newValue))]
 export function atomWithCache<T>(collectionName: string, initialValue: T): PrimitiveAtom<T> {
-  const baseAtom = atom<T>(initialValue);
+  // Try to load from storage, fallback to initialValue if not found or invalid
+  const storedValue = storage.getString(collectionName);
+  let cachedValue = initialValue;
+  if (storedValue) {
+    try {
+      cachedValue = JSON.parse(storedValue);
+    } catch (error) {
+      console.warn(`Failed to parse cached value for ${collectionName}:`, error);
+    }
+  }
+
+  const baseAtom = atom<T>(cachedValue);
 
   const derivedAtom = atom(
     (get) => get(baseAtom),
