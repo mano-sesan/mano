@@ -41,8 +41,8 @@ export function MedicalFilePrint({ person }) {
 
   const commentsMedical = useMemo(
     () =>
-      [...(person?.commentsMedical || [])].sort((a, b) =>
-        dayjsInstance(a.date || a.createdAt).isBefore(dayjsInstance(b.date || b.createdAt), "day") ? 1 : -1
+      [...(person?.commentsMedical || [])].sort(
+        (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
       ),
     [person]
   );
