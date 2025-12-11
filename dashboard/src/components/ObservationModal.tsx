@@ -109,20 +109,42 @@ function ObservationContent({
   };
 
   const onDelete = async (id: TerritoryObservationInstance["_id"]) => {
-    const confirm = window.confirm("Êtes-vous sûr ?");
-    if (confirm) {
-      setIsDeleting(true);
-      const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
-      if (error) {
-        setIsDeleting(false);
-        return;
-      }
-      await refresh();
-      toast.success("Suppression réussie");
-      // We do not set isDeleting to false here because the modal will be closed
-      // and the onAfterLeave will be called, which will set it to false
-      onClose();
+    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cette observation ?");
+    if (!confirmDelete) return;
+
+    let deleteRencontres = false;
+    if (rencontresForObs.length > 0) {
+      deleteRencontres = window.confirm(
+        `Cette observation a ${rencontresForObs.length} rencontre${rencontresForObs.length > 1 ? "s" : ""} associée${rencontresForObs.length > 1 ? "s" : ""}.\n\nVoulez-vous également ${rencontresForObs.length > 1 ? "les" : "la"} supprimer ?`
+      );
     }
+
+    setIsDeleting(true);
+
+    // Delete rencontres if user chose to
+    if (deleteRencontres) {
+      let rencontreDeleteSuccess = true;
+      for (const rencontre of rencontresForObs) {
+        const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/rencontre/${rencontre._id}` }));
+        if (error) {
+          rencontreDeleteSuccess = false;
+        }
+      }
+      if (!rencontreDeleteSuccess) {
+        toast.error("Une ou plusieurs rencontres n'ont pas pu être supprimées");
+      }
+    }
+
+    const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
+    if (error) {
+      setIsDeleting(false);
+      return;
+    }
+    await refresh();
+    toast.success(deleteRencontres && rencontresForObs.length > 0 ? "Observation et rencontres supprimées" : "Suppression réussie");
+    // We do not set isDeleting to false here because the modal will be closed
+    // and the onAfterLeave will be called, which will set it to false
+    onClose();
   };
 
   async function handleSubmit() {
