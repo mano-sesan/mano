@@ -2,13 +2,14 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
 import { currentTeamState, organisationState, usersState } from "../../../recoil/auth";
-import { dayjsInstance } from "../../../services/date";
+import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { sortActionsOrConsultations } from "../../../recoil/actions";
 import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
 import { treatmentsState } from "../../../recoil/treatments";
 import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
+import UserName from "../../../components/UserName";
 
 export function MedicalFilePrint({ person }) {
   const organisation = useAtomValue(organisationState);
@@ -37,6 +38,14 @@ export function MedicalFilePrint({ person }) {
   );
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === person._id), [allTreatments, person._id]);
+
+  const commentsMedical = useMemo(
+    () =>
+      [...(person?.commentsMedical || [])].sort((a, b) =>
+        dayjsInstance(a.date || a.createdAt).isBefore(dayjsInstance(b.date || b.createdAt), "day") ? 1 : -1
+      ),
+    [person]
+  );
 
   const medicalFile = person.medicalFile;
 
@@ -95,6 +104,34 @@ export function MedicalFilePrint({ person }) {
                 </div>
               );
             })}
+          </div>
+        </>
+      )}
+      {Boolean(commentsMedical.length > 0) && (
+        <>
+          <hr className="tw-my-8" />
+          <div className="tw-mx-0 tw-mb-5 tw-mt-16 tw-flex tw-items-center">
+            <h2 className="tw-flex tw-justify-between tw-text-xl tw-font-extrabold">Commentaires médicaux</h2>
+          </div>
+          <div className="printonly">
+            {commentsMedical.map((comment, i) => (
+              <div key={comment._id + i} className="tw-mb-4">
+                <div>
+                  <b>Date&nbsp;:</b> {formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}
+                </div>
+                <div>
+                  <b>Écrit par&nbsp;:</b> <UserName id={comment.user} />
+                </div>
+                {Boolean(comment.urgent) && <div>Commentaire prioritaire</div>}
+                <div className="tw-pl-4">
+                  {(comment.comment || "").split("\n").map((e, j) => (
+                    <p key={e + j} className="tw-mb-0">
+                      {e}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </>
       )}
