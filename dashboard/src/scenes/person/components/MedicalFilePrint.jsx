@@ -115,7 +115,7 @@ export function MedicalFilePrint({ person }) {
           </div>
           <div className="printonly">
             {commentsMedical.map((comment, i) => (
-              <div key={comment._id + i} className="tw-mb-4">
+              <div key={`${comment._id}-${i}`} className="tw-mb-4">
                 <div>
                   <b>Date&nbsp;:</b> {formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}
                 </div>
