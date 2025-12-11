@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import { useAtom } from "jotai";
 import SelectCustom from "../../components/SelectCustom";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 
 const NoOptionsMessage = () => (

@@ -2,8 +2,8 @@ import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { sortActionsOrConsultations } from "../../../recoil/actions";
-import { personsState } from "../../../recoil/persons";
+import { sortActionsOrConsultations } from "../../../atoms/actions";
+import { personsState } from "../../../atoms/persons";
 import { ModalContainer, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { NotificationActionList, NotificationCommentList } from "../../../components/Notification";
 

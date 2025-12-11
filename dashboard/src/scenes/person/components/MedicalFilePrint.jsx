@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import { currentTeamState, organisationState, usersState } from "../../../recoil/auth";
+import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
+import { currentTeamState, organisationState, usersState } from "../../../atoms/auth";
 import { dayjsInstance } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
-import { sortActionsOrConsultations } from "../../../recoil/actions";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
-import { treatmentsState } from "../../../recoil/treatments";
-import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { sortActionsOrConsultations } from "../../../atoms/actions";
+import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/selectors";
+import { treatmentsState } from "../../../atoms/treatments";
+import { customFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 
 export function MedicalFilePrint({ person }) {

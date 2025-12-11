@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
 import { EditCustomField } from "../../components/TableCustomFields";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
-import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector, personsState, usePreparePersonForEncryption } from "../../atoms/persons";
 
 const sanitizeFields = (field) => {
   const sanitizedField = {};

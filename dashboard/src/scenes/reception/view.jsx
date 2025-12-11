@@ -7,18 +7,18 @@ import {
   arrayOfitemsGroupedByConsultationSelector,
   currentTeamReportsSelector,
   personsObjectSelector,
-} from "../../recoil/selectors";
+} from "../../atoms/selectors";
 import SelectAndCreatePersonForReception from "./SelectAndCreatePersonForReception";
 import ButtonCustom from "../../components/ButtonCustom";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import SelectStatus from "../../components/SelectStatus";
-import { defaultActionForModal, TODO } from "../../recoil/actions";
-import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../recoil/auth";
-import { personsState } from "../../recoil/persons";
+import { defaultActionForModal, TODO } from "../../atoms/actions";
+import { currentTeamState, userState, organisationState, teamsState, usersState } from "../../atoms/auth";
+import { personsState } from "../../atoms/persons";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import dayjs from "dayjs";
-import { passagesState, encryptPassage, sortPassages } from "../../recoil/passages";
+import { passagesState, encryptPassage, sortPassages } from "../../atoms/passages";
 import useTitle from "../../services/useTitle";
 import plusIcon from "../../assets/icons/plus-icon.svg";
 import PersonName from "../../components/PersonName";
@@ -28,8 +28,8 @@ import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { defaultModalActionState, modalActionState } from "../../recoil/modal";
-import { flattenedServicesSelector } from "../../recoil/reports";
+import { defaultModalActionState, modalActionState } from "../../atoms/modal";
+import { flattenedServicesSelector } from "../../atoms/reports";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
 const actionsForCurrentTeamSelector = atom((get) => {

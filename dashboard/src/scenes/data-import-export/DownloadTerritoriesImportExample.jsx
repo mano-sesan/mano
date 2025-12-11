@@ -1,6 +1,6 @@
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
+import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../atoms/territory";
 import { useAtomValue } from "jotai";
 
 export default function DownloadTerritoriesImportExample() {

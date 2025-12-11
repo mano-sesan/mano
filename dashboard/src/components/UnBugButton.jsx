@@ -1,7 +1,7 @@
 import React from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../recoil/auth";
+import { organisationState } from "../atoms/auth";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 
 export default function UnBugButton({ onResetCacheAndLogout }) {

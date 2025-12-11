@@ -3,7 +3,7 @@ import DocumentsOrganizer from "../../components/DocumentsOrganizer";
 import { Folder } from "../../types/document";
 import { FolderModal } from "../../components/DocumentsGeneric";
 import { useAtomValue } from "jotai";
-import { organisationAuthentifiedState } from "../../recoil/auth";
+import { organisationAuthentifiedState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";

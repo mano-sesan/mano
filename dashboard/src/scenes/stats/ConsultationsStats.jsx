@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, userState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import { Block } from "./Blocks";
 import CustomFieldsStats from "./CustomFieldsStats";
@@ -9,7 +9,7 @@ import Filters from "../../components/Filters";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { capitalize } from "../../utils";
-import { mappedIdsToLabels } from "../../recoil/actions";
+import { mappedIdsToLabels } from "../../atoms/actions";
 import SelectCustom from "../../components/SelectCustom";
 
 export default function ConsultationsStats({

@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 
 export default function TableCustomFieldTeamSelector({ field, onUpdate }) {
   const [teams] = useAtom(teamsState);

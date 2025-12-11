@@ -1,12 +1,12 @@
 import { useAtom, useAtomValue } from "jotai";
-import { modalObservationState } from "../recoil/modal";
+import { modalObservationState } from "../atoms/modal";
 import { useMemo, useState } from "react";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
-import { currentTeamAuthentifiedState, organisationAuthentifiedState, teamsState, userAuthentifiedState } from "../recoil/auth";
-import { territoriesState } from "../recoil/territory";
-import { customFieldsObsSelector, encryptObs, groupedCustomFieldsObsSelector } from "../recoil/territoryObservations";
+import { currentTeamAuthentifiedState, organisationAuthentifiedState, teamsState, userAuthentifiedState } from "../atoms/auth";
+import { territoriesState } from "../atoms/territory";
+import { customFieldsObsSelector, encryptObs, groupedCustomFieldsObsSelector } from "../atoms/territoryObservations";
 import { RencontreInstance } from "../types/rencontre";
-import { encryptRencontre, rencontresState } from "../recoil/rencontres";
+import { encryptRencontre, rencontresState } from "../atoms/rencontres";
 import { useDataLoader } from "../services/dataLoader";
 import Table from "./table";
 import CustomFieldInput from "./CustomFieldInput";

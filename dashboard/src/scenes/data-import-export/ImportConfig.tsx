@@ -5,7 +5,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ButtonCustom from "../../components/ButtonCustom";
 import { newCustomField, typeOptions } from "../../utils";
-import { organisationState, teamsState } from "../../recoil/auth";
+import { organisationState, teamsState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { OrganisationInstance } from "../../types/organisation";
 import { TeamInstance } from "../../types/team";

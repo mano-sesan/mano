@@ -8,7 +8,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
 import Table from "../../components/table";
 import NightSessionModale from "../../components/NightSessionModale";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import OnboardingEndModal from "../../components/OnboardingEndModal";
 import { formatDateWithFullMonth } from "../../services/date";

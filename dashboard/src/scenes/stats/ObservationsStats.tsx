@@ -3,11 +3,11 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import CustomFieldsStats from "./CustomFieldsStats";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
-import { currentTeamState, teamsState, usersState, userState } from "../../recoil/auth";
+import { currentTeamState, teamsState, usersState, userState } from "../../atoms/auth";
 import TagTeam from "../../components/TagTeam";
 import Table from "../../components/table";
 import { dayjsInstance } from "../../services/date";
-import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../recoil/territoryObservations";
+import { customFieldsObsSelector, groupedCustomFieldsObsSelector } from "../../atoms/territoryObservations";
 import Filters, { filterData } from "../../components/Filters";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
@@ -21,7 +21,7 @@ import type { TeamInstance } from "../../types/team";
 import type { PersonPopulated } from "../../types/person";
 import Card from "../../components/Card";
 import { capitalize } from "../../utils";
-import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../atoms/modal";
 import { useLocation } from "react-router-dom";
 
 interface ObservationsStatsProps {

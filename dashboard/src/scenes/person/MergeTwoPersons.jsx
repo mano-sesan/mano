@@ -11,22 +11,22 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import UserName from "../../components/UserName";
 import Table from "../../components/table";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
-import { consultationsState, prepareConsultationForEncryption } from "../../recoil/consultations";
-import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
-import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
-import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
+import { actionsState, prepareActionForEncryption } from "../../atoms/actions";
+import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
+import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
+import { consultationsState, prepareConsultationForEncryption } from "../../atoms/consultations";
+import { groupsState, prepareGroupForEncryption } from "../../atoms/groups";
+import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../atoms/medicalFiles";
+import { passagesState, preparePassageForEncryption } from "../../atoms/passages";
 import {
   allowedPersonFieldsInHistorySelector,
   personFieldsIncludingCustomFieldsSelector,
   personsState,
   usePreparePersonForEncryption,
-} from "../../recoil/persons";
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
-import { prepareTreatmentForEncryption, treatmentsState } from "../../recoil/treatments";
+} from "../../atoms/persons";
+import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { prepareRencontreForEncryption, rencontresState } from "../../atoms/rencontres";
+import { prepareTreatmentForEncryption, treatmentsState } from "../../atoms/treatments";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";

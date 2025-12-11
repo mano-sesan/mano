@@ -1,5 +1,5 @@
 import { formatDateWithFullMonth } from "../../services/date";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import { HistoryEntryForOutOfTeamsInformations, OutOfTeamsInformation, PersonInstance, FieldChangeData } from "../../types/person";
 

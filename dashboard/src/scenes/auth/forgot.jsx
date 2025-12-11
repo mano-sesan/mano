@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import ButtonCustom from "../../components/ButtonCustom";
 import API, { tryFetch } from "../../services/api";
 import { useAtomValue } from "jotai";
-import { deploymentShortCommitSHAState } from "../../recoil/version";
+import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { errorMessage } from "../../utils";
 import { useLocation } from "react-router-dom";
 

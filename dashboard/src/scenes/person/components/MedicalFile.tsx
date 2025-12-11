@@ -1,14 +1,14 @@
 import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
-import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
+import { organisationAuthentifiedState, userAuthentifiedState } from "../../../atoms/auth";
 import { Consultations } from "./Consultations";
 import { InfosMain } from "./InfosMain";
 import PersonCustomFields from "./PersonCustomFields";
 import DeletePersonButton from "./DeletePersonButton";
 import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
-import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
+import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";

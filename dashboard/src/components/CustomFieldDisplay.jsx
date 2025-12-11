@@ -3,8 +3,8 @@ import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, fo
 import { TimeModalButton } from "./HelpButtonAndModal";
 import UserName from "./UserName";
 import { atom, useAtomValue } from "jotai";
-import { personFieldsIncludingCustomFieldsSelector } from "../recoil/persons";
-import { customFieldsMedicalFileSelector } from "../recoil/medicalFiles";
+import { personFieldsIncludingCustomFieldsSelector } from "../atoms/persons";
+import { customFieldsMedicalFileSelector } from "../atoms/medicalFiles";
 import { LineChart } from "../scenes/person/components/Constantes";
 
 const showBoolean = (value) => {

@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useHistory } from "react-router-dom";
-import { userState } from "../../../recoil/auth";
+import { userState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateWithFullMonth } from "../../../services/date";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
-import { treatmentsState } from "../../../recoil/treatments";
+import { treatmentsState } from "../../../atoms/treatments";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";

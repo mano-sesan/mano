@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { customFieldsPersonsSelector } from "../../../recoil/persons";
-import { currentTeamAuthentifiedState, teamsState, userState } from "../../../recoil/auth";
+import { customFieldsPersonsSelector } from "../../../atoms/persons";
+import { currentTeamAuthentifiedState, teamsState, userState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay, formatDateWithNameOfDay, formatTime } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
-import { CANCEL, DONE, getName } from "../../../recoil/actions";
+import { CANCEL, DONE, getName } from "../../../atoms/actions";
 import { PersonPopulated } from "../../../types/person";
 import UserName from "../../../components/UserName";
 

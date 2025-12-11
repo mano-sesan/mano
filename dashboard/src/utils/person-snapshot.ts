@@ -4,7 +4,7 @@ import type { PersonPopulated } from "../types/person";
 import type { CustomOrPredefinedField } from "../types/field";
 import { dayjsInstance } from "../services/date";
 import { getValueByField } from "./person-get-value-by-field";
-import { forbiddenPersonFieldsInHistory } from "../recoil/persons";
+import { forbiddenPersonFieldsInHistory } from "../atoms/persons";
 
 const fixedInTimeFields = ["birthdate", "gender", "followedSince"];
 

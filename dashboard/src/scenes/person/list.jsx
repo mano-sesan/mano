@@ -12,21 +12,21 @@ import {
   filterPersonsBaseSelector,
   flattenedCustomFieldsPersonsSelector,
   sortPersons,
-} from "../../recoil/persons";
+} from "../../atoms/persons";
 import TagTeam from "../../components/TagTeam";
 import Filters, { filterData } from "../../components/Filters";
 import { dayjsInstance, formatDateWithFullMonth } from "../../services/date";
-import { personsWithMedicalFileAndConsultationsMergedSelector } from "../../recoil/selectors";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { placesState } from "../../recoil/places";
+import { personsWithMedicalFileAndConsultationsMergedSelector } from "../../atoms/selectors";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
+import { placesState } from "../../atoms/places";
 import { filterBySearch } from "../search/utils";
 import useTitle from "../../services/useTitle";
 import useSearchParamState from "../../services/useSearchParamState";
 import { useDataLoader } from "../../services/dataLoader";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
+import { flattenedCustomFieldsConsultationsSelector } from "../../atoms/consultations";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";

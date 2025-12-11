@@ -1,7 +1,7 @@
 import { dayjsInstance } from "../services/date";
 import type { PersonInstance, AssignedTeamsPeriods, PersonHistoryEntry, FieldChangeData } from "../types/person";
 import type { TeamInstance } from "../types/team";
-import { forbiddenPersonFieldsInHistory } from "../recoil/persons";
+import { forbiddenPersonFieldsInHistory } from "../atoms/persons";
 
 export const cleanHistory = (history: Array<PersonHistoryEntry> = []): Array<PersonHistoryEntry> => {
   const alreadyExisting = {};

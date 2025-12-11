@@ -4,21 +4,21 @@ import { toast } from "react-toastify";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHistory } from "react-router-dom";
 
-import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../recoil/auth";
-import { personsState } from "../recoil/persons";
-import { groupsState } from "../recoil/groups";
-import { treatmentsState } from "../recoil/treatments";
-import { actionsState } from "../recoil/actions";
-import { medicalFileState } from "../recoil/medicalFiles";
-import { passagesState } from "../recoil/passages";
-import { rencontresState } from "../recoil/rencontres";
-import { reportsState } from "../recoil/reports";
-import { territoriesState } from "../recoil/territory";
-import { placesState } from "../recoil/places";
-import { relsPersonPlaceState } from "../recoil/relPersonPlace";
-import { territoryObservationsState } from "../recoil/territoryObservations";
-import { consultationsState } from "../recoil/consultations";
-import { commentsState } from "../recoil/comments";
+import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../atoms/auth";
+import { personsState } from "../atoms/persons";
+import { groupsState } from "../atoms/groups";
+import { treatmentsState } from "../atoms/treatments";
+import { actionsState } from "../atoms/actions";
+import { medicalFileState } from "../atoms/medicalFiles";
+import { passagesState } from "../atoms/passages";
+import { rencontresState } from "../atoms/rencontres";
+import { reportsState } from "../atoms/reports";
+import { territoriesState } from "../atoms/territory";
+import { placesState } from "../atoms/places";
+import { relsPersonPlaceState } from "../atoms/relPersonPlace";
+import { territoryObservationsState } from "../atoms/territoryObservations";
+import { consultationsState } from "../atoms/consultations";
+import { commentsState } from "../atoms/comments";
 
 import {
   encryptVerificationKey,

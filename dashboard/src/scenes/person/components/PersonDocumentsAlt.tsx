@@ -14,14 +14,14 @@ import {
   ArrowsPointingOutIcon,
 } from "@heroicons/react/24/outline";
 import { UsersIcon } from "@heroicons/react/16/solid";
-import { organisationAuthentifiedState, userState } from "../../../recoil/auth";
-import { usePreparePersonForEncryption } from "../../../recoil/persons";
+import { organisationAuthentifiedState, userState } from "../../../atoms/auth";
+import { usePreparePersonForEncryption } from "../../../atoms/persons";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import type { PersonPopulated } from "../../../types/person";
 import type { UserInstance } from "../../../types/user";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItem } from "../../../types/document";
-import { encryptAction } from "../../../recoil/actions";
+import { encryptAction } from "../../../atoms/actions";
 import { useDataLoader } from "../../../services/dataLoader";
 import isEqual from "react-fast-compare";
 import { removeOldDefaultFolders } from "../../../utils/documents";
@@ -31,7 +31,7 @@ import cn from "classnames";
 import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../../../components/DocumentsGeneric";
 import { loadFreshPersonData } from "../../../utils/loadFreshPersonData";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
-import { groupsState } from "../../../recoil/groups";
+import { groupsState } from "../../../atoms/groups";
 import UserName from "../../../components/UserName";
 import { formatDateWithFullMonth, formatTime } from "../../../services/date";
 

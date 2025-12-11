@@ -5,12 +5,12 @@ import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { teamsState, userState } from "../../recoil/auth";
+import { teamsState, userState } from "../../atoms/auth";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
+import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesFields } from "../../atoms/territory";
 import { useDataLoader } from "../../services/dataLoader";
 
 export default function ImportTerritories() {

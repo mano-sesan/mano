@@ -6,17 +6,17 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
-import { organisationState, usersState } from "../../recoil/auth";
+import { organisationState, usersState } from "../../atoms/auth";
 import TagTeam from "../../components/TagTeam";
 import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import { personsState, sortPersons } from "../../recoil/persons";
+import { personsState, sortPersons } from "../../atoms/persons";
 import PersonName from "../../components/PersonName";
 import ActionOrConsultationName from "../../components/ActionOrConsultationName";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
-import { CANCEL, DONE } from "../../recoil/actions";
+import { CANCEL, DONE } from "../../atoms/actions";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));

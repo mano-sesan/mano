@@ -8,7 +8,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import SelectRole from "../../components/SelectRole";
-import { deletedUsersState, organisationState, usersState, userState } from "../../recoil/auth";
+import { deletedUsersState, organisationState, usersState, userState } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";

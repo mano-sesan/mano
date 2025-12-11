@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
-import { currentTeamState, teamsState, userState } from "../recoil/auth";
+import { currentTeamState, teamsState, userState } from "../atoms/auth";
 import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../services/api";
 import SelectTeam from "./SelectTeam";
@@ -11,7 +11,7 @@ import DatePicker from "./DatePicker";
 import { outOfBoundariesDate } from "../services/date";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
-import { encryptRencontre } from "../recoil/rencontres";
+import { encryptRencontre } from "../atoms/rencontres";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import { useDataLoader } from "../services/dataLoader";
 

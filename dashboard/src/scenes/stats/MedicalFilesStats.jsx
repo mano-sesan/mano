@@ -5,7 +5,7 @@ import CustomFieldsStats from "./CustomFieldsStats";
 import Filters, { filterData } from "../../components/Filters";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import { capture } from "../../services/sentry";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import { capitalize } from "../../utils";
 

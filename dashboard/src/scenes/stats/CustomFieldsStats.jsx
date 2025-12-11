@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import { BlockDateWithTime, BlockTotal } from "./Blocks";
 import { getMultichoiceBarData, getPieData } from "./utils";

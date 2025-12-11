@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
-import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector, encryptMedicalFile } from "../../../atoms/medicalFiles";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { toast } from "react-toastify";

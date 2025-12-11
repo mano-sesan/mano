@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 import SelectCustom from "./SelectCustom";
 
 const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNamePrefix, isDisabled = false }) => {

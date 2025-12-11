@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useAtomValue } from "jotai";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 
 export default function ColorHeaderBand({ teamId }) {
   const teams = useAtomValue(teamsState);

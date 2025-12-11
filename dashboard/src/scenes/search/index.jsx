@@ -5,11 +5,11 @@ import dayjs from "dayjs";
 import UserName from "../../components/UserName";
 import Search from "../../components/search";
 import TagTeam from "../../components/TagTeam";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { actionsState } from "../../recoil/actions";
-import { personsState, sortPersons } from "../../recoil/persons";
-import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { sortTerritories, territoriesState } from "../../recoil/territory";
+import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
+import { actionsState } from "../../atoms/actions";
+import { personsState, sortPersons } from "../../atoms/persons";
+import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { sortTerritories, territoriesState } from "../../atoms/territory";
 import { atom, useAtomValue } from "jotai";
 import {
   arrayOfitemsGroupedByPersonSelector,
@@ -17,28 +17,28 @@ import {
   onlyFilledObservationsTerritories,
   personsObjectSelector,
   usersObjectSelector,
-} from "../../recoil/selectors";
+} from "../../atoms/selectors";
 import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth, formatDateWithNameOfDay } from "../../services/date";
 import { useDataLoader } from "../../services/dataLoader";
-import { placesState } from "../../recoil/places";
+import { placesState } from "../../atoms/places";
 import { filterBySearch } from "./utils";
-import { commentsState } from "../../recoil/comments";
-import { passagesState } from "../../recoil/passages";
-import { rencontresState } from "../../recoil/rencontres";
+import { commentsState } from "../../atoms/comments";
+import { passagesState } from "../../atoms/passages";
+import { rencontresState } from "../../atoms/rencontres";
 import useTitle from "../../services/useTitle";
 import ExclamationMarkButton from "../../components/tailwind/ExclamationMarkButton";
 import { useLocalStorage } from "../../services/useLocalStorage";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
+import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { consultationsState } from "../../recoil/consultations";
-import { medicalFileState } from "../../recoil/medicalFiles";
-import { treatmentsState } from "../../recoil/treatments";
+import { consultationsState } from "../../atoms/consultations";
+import { medicalFileState } from "../../atoms/medicalFiles";
+import { treatmentsState } from "../../atoms/treatments";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import TreatmentsSortableList from "../person/components/TreatmentsSortableList";
 import CommentsSortableList from "../../components/CommentsSortableList";
 import PersonName from "../../components/PersonName";
-import { reportsState } from "../../recoil/reports";
+import { reportsState } from "../../atoms/reports";
 
 const personsWithFormattedBirthDateSelector = atom((get) => {
   const persons = get(personsState);

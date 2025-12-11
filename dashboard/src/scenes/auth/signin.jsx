@@ -16,10 +16,10 @@ import {
   teamsState,
   usersState,
   userState,
-} from "../../recoil/auth";
+} from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { deploymentShortCommitSHAState } from "../../recoil/version";
+import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
 import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";

@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { atom, useAtomValue } from "jotai";
-import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../../recoil/actions";
+import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../../atoms/actions";
 import SortableJS from "sortablejs";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "./Modal";
 
