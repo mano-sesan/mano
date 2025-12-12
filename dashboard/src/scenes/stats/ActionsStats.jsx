@@ -1,14 +1,14 @@
 import { useMemo, useState } from "react";
 import { CustomResponsiveBar } from "./Charts";
-import { mappedIdsToLabels } from "../../recoil/actions";
+import { mappedIdsToLabels } from "../../atoms/actions";
 import SelectCustom from "../../components/SelectCustom";
 import { getMultichoiceBarData } from "./utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import Filters from "../../components/Filters";
 import { useAtomValue } from "jotai";
-import { userState } from "../../recoil/auth";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { userState } from "../../atoms/auth";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { SelectedPersonsModal } from "./PersonsStats";
 
 const ActionsStats = ({

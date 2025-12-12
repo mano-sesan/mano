@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 import type { UserInstance } from "../types/user";
 import ConfirmModal from "./ConfirmModal";
 

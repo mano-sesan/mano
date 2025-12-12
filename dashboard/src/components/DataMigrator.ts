@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useAtomValue, useSetAtom } from "jotai";
-import { organisationState, userState } from "../recoil/auth";
-import { usePreparePersonForEncryption } from "../recoil/persons";
+import { organisationState, userState } from "../atoms/auth";
+import { usePreparePersonForEncryption } from "../atoms/persons";
 import { loadingTextState } from "../services/dataLoader";
-import { encryptObs } from "../recoil/territoryObservations";
+import { encryptObs } from "../atoms/territoryObservations";
 import { OrganisationInstance } from "../types/organisation";
 import API from "../services/api";
 import { decryptItem, encryptItem } from "../services/encryption";

@@ -1,7 +1,7 @@
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
 import { useAtomValue } from "jotai";
-import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
+import { flattenedStructuresCategoriesSelector, structuresFields } from "../../atoms/structures";
 
 export default function DownloadStructuresImportExample() {
   const structuresCategories = useAtomValue(flattenedStructuresCategoriesSelector);

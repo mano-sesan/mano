@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { flattenedCustomFieldsPersonsSelector } from "../../../recoil/persons";
-import { currentTeamState, organisationState, usersState } from "../../../recoil/auth";
+import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
+import { currentTeamState, organisationState, usersState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
-import { sortActionsOrConsultations } from "../../../recoil/actions";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
-import { treatmentsState } from "../../../recoil/treatments";
-import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { sortActionsOrConsultations } from "../../../atoms/actions";
+import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/selectors";
+import { treatmentsState } from "../../../atoms/treatments";
+import { customFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import UserName from "../../../components/UserName";
 
@@ -40,10 +40,7 @@ export function MedicalFilePrint({ person }) {
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === person._id), [allTreatments, person._id]);
 
   const commentsMedical = useMemo(
-    () =>
-      [...(person?.commentsMedical || [])].sort(
-        (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
-      ),
+    () => [...(person?.commentsMedical || [])].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)),
     [person]
   );
 

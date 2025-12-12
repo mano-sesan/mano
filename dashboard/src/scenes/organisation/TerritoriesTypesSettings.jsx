@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, userState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesState, territoriesTypesSelector } from "../../recoil/territory";
+import { encryptTerritory, flattenedTerritoriesTypesSelector, territoriesState, territoriesTypesSelector } from "../../atoms/territory";
 
 const TerritoriesTypesSettings = () => {
   const [organisation, setOrganisation] = useAtom(organisationState);

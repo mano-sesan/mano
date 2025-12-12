@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { deletedUsersState, teamsState, userState, usersState } from "../../../recoil/auth";
-import { personFieldsIncludingCustomFieldsSelector } from "../../../recoil/persons";
+import { deletedUsersState, teamsState, userState, usersState } from "../../../atoms/auth";
+import { personFieldsIncludingCustomFieldsSelector } from "../../../atoms/persons";
 import { formatDateWithFullMonth, dayjsInstance } from "../../../services/date";
-import { customFieldsMedicalFileSelector } from "../../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { cleanHistory } from "../../../utils/person-history";
 import PersonTeamHistory from "./PersonTeamHistory";
 

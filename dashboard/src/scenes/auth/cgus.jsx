@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import OpenNewWindowIcon from "../../components/OpenNewWindowIcon";
 

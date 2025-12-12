@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 
 const TagTeam = ({ teamId }) => {
   const teams = useAtomValue(teamsState);

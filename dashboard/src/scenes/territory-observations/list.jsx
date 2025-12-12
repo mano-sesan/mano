@@ -1,18 +1,18 @@
 import { useMemo } from "react";
 
 import ButtonCustom from "../../components/ButtonCustom";
-import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../recoil/territoryObservations";
+import { customFieldsObsSelector, sortTerritoriesObservations, territoryObservationsState } from "../../atoms/territoryObservations";
 import { useAtomValue, useSetAtom } from "jotai";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance } from "../../services/date";
 import UserName from "../../components/UserName";
-import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from "../../recoil/auth";
+import { currentTeamAuthentifiedState, userAuthentifiedState, usersState } from "../../atoms/auth";
 import CustomFieldDisplay from "../../components/CustomFieldDisplay";
 import TagTeam from "../../components/TagTeam";
-import { rencontresState } from "../../recoil/rencontres";
+import { rencontresState } from "../../atoms/rencontres";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
-import { defaultModalObservationState, modalObservationState } from "../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../atoms/modal";
 
 const List = ({ territory = {} }) => {
   const setModalObservation = useSetAtom(modalObservationState);

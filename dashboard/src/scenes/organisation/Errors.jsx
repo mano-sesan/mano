@@ -2,7 +2,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, userState } from "../../atoms/auth";
 import { useEffect, useState } from "react";
 import Loading from "../../components/loading";
 import Table from "../../components/table";

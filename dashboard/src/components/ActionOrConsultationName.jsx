@@ -1,8 +1,8 @@
 import React from "react";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 import { useAtomValue } from "jotai";
-import { disableConsultationRow } from "../recoil/consultations";
-import { getName } from "../recoil/actions";
+import { disableConsultationRow } from "../atoms/consultations";
+import { getName } from "../atoms/actions";
 import UserName from "./UserName";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 

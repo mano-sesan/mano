@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
-import { organisationAuthentifiedState, userAuthentifiedState } from "../../../recoil/auth";
-import { prepareConsultationForEncryption, encryptConsultation } from "../../../recoil/consultations";
-import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption, encryptMedicalFile } from "../../../recoil/medicalFiles";
-import { encryptTreatment } from "../../../recoil/treatments";
+import { organisationAuthentifiedState, userAuthentifiedState } from "../../../atoms/auth";
+import { prepareConsultationForEncryption, encryptConsultation } from "../../../atoms/consultations";
+import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption, encryptMedicalFile } from "../../../atoms/medicalFiles";
+import { encryptTreatment } from "../../../atoms/treatments";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { capture } from "../../../services/sentry";
 import { DocumentsModule } from "../../../components/DocumentsGeneric";

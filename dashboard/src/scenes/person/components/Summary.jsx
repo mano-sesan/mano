@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { userState, organisationState } from "../../../recoil/auth";
+import { userState, organisationState } from "../../../atoms/auth";
 import { Actions } from "./ActionsPerson";
 import { InfosMain } from "./InfosMain";
 import PersonCustomFields from "./PersonCustomFields";
@@ -8,7 +8,7 @@ import DeletePersonButton from "./DeletePersonButton";
 import PassagesRencontres from "./PassagesRencontres";
 import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
-import { customFieldsPersonsSelector } from "../../../recoil/persons";
+import { customFieldsPersonsSelector } from "../../../atoms/persons";
 import { SummaryPrint } from "./SummaryPrint";
 import PersonDocumentsNew from "../../../components/document/PersonDocuments";
 import PersonDocuments from "./PersonDocuments";

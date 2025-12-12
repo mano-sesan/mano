@@ -1,11 +1,11 @@
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { personsState, usePreparePersonForEncryption } from "../recoil/persons";
+import { personsState, usePreparePersonForEncryption } from "../atoms/persons";
 import { atom, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../services/api";
 import { formatBirthDate } from "../services/date";
-import { currentTeamState, userState } from "../recoil/auth";
+import { currentTeamState, userState } from "../atoms/auth";
 import dayjs from "dayjs";
 import { useDataLoader } from "../services/dataLoader";
 

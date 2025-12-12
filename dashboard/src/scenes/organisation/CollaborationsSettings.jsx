@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
-import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import { prepareReportForEncryption, reportsState } from "../../atoms/reports";
 import { encryptItem } from "../../services/encryption";
 
 function CollaborationsSettings() {

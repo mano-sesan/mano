@@ -1,20 +1,20 @@
 import { useState } from "react";
 import { utils, writeFile } from "@e965/xlsx";
 
-import { flattenedCustomFieldsPersonsSelector, personsState } from "../../recoil/persons";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
-import { organisationState, teamsState, usersState, userState } from "../../recoil/auth";
-import { commentsState } from "../../recoil/comments";
-import { actionsState } from "../../recoil/actions";
-import { placesState } from "../../recoil/places";
-import { reportsState } from "../../recoil/reports";
-import { territoriesState } from "../../recoil/territory";
+import { flattenedCustomFieldsPersonsSelector, personsState } from "../../atoms/persons";
+import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
+import { organisationState, teamsState, usersState, userState } from "../../atoms/auth";
+import { commentsState } from "../../atoms/comments";
+import { actionsState } from "../../atoms/actions";
+import { placesState } from "../../atoms/places";
+import { reportsState } from "../../atoms/reports";
+import { territoriesState } from "../../atoms/territory";
 import { useAtomValue } from "jotai";
-import { passagesState } from "../../recoil/passages";
-import { rencontresState } from "../../recoil/rencontres";
-import { consultationsState } from "../../recoil/consultations";
-import { customFieldsMedicalFileSelector, medicalFileState } from "../../recoil/medicalFiles";
-import { treatmentsState } from "../../recoil/treatments";
+import { passagesState } from "../../atoms/passages";
+import { rencontresState } from "../../atoms/rencontres";
+import { consultationsState } from "../../atoms/consultations";
+import { customFieldsMedicalFileSelector, medicalFileState } from "../../atoms/medicalFiles";
+import { treatmentsState } from "../../atoms/treatments";
 import API from "../../services/api";
 import { toast } from "react-toastify";
 

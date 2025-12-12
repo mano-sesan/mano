@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { servicesSelector, flattenedServicesSelector } from "../recoil/reports";
+import { servicesSelector, flattenedServicesSelector } from "../atoms/reports";
 import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
@@ -29,8 +29,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
         }, {});
         const mergedServices = Object.fromEntries(
           // We need to initialize all services from organisation.
-          flattenedServices.map((key) => [key, (servicesFromDatabase[key] || 0)])
-
+          flattenedServices.map((key) => [key, servicesFromDatabase[key] || 0])
         );
         setServices(mergedServices);
       });

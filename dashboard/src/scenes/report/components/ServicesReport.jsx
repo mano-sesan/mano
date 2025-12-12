@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
-import { organisationState } from "../../../recoil/auth";
+import { organisationState } from "../../../atoms/auth";
 import { useAtomValue } from "jotai";
 import IncrementorSmall from "../../../components/IncrementorSmall";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
-import { servicesSelector } from "../../../recoil/reports";
+import { servicesSelector } from "../../../atoms/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";

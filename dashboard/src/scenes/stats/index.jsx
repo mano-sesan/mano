@@ -7,14 +7,14 @@ import {
   personFieldsSelector,
   flattenedCustomFieldsPersonsSelector,
   personTypesByFieldsNamesSelector,
-} from "../../recoil/persons";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
-import { currentTeamState, organisationState, teamsState, userState } from "../../recoil/auth";
-import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } from "../../recoil/actions";
-import { reportsState } from "../../recoil/reports";
-import { territoriesState } from "../../recoil/territory";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
-import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../recoil/selectors";
+} from "../../atoms/persons";
+import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
+import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
+import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } from "../../atoms/actions";
+import { reportsState } from "../../atoms/reports";
+import { territoriesState } from "../../atoms/territory";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
+import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../atoms/selectors";
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
@@ -35,7 +35,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import dayjs from "dayjs";
 import { filterItem } from "../../components/Filters";
 import TabsNav from "../../components/tailwind/TabsNav";
-import { flattenedCustomFieldsConsultationsSelector } from "../../recoil/consultations";
+import { flattenedCustomFieldsConsultationsSelector } from "../../atoms/consultations";
 import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";

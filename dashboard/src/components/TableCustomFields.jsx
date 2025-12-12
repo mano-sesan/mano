@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAtom } from "jotai";
-import { organisationState } from "../recoil/auth";
+import { organisationState } from "../atoms/auth";
 import API, { tryFetchExpectOk } from "../services/api";
 import ButtonCustom from "./ButtonCustom";
 import SelectCustom from "./SelectCustom";

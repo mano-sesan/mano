@@ -1,6 +1,6 @@
 import { useAtomValue } from "jotai";
 import { useHistory } from "react-router-dom";
-import { organisationState, userState, encryptionKeyLengthState, MINIMUM_ENCRYPTION_KEY_LENGTH } from "../recoil/auth";
+import { organisationState, userState, encryptionKeyLengthState, MINIMUM_ENCRYPTION_KEY_LENGTH } from "../atoms/auth";
 import { dayjsInstance, formatDateWithNameOfDay } from "../services/date";
 
 const encryptionChangeOfKeyEnabled = true;

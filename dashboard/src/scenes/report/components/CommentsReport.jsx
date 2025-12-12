@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import TabsNav from "../../../components/tailwind/TabsNav";
-import { userState } from "../../../recoil/auth";
+import { userState } from "../../../atoms/auth";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import CommentsSortableList from "../../../components/CommentsSortableList";

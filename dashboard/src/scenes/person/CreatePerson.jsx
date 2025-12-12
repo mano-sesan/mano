@@ -5,8 +5,8 @@ import { toast } from "react-toastify";
 import personIcon from "../../assets/icons/person-icon.svg";
 
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState, userState } from "../../recoil/auth";
-import { personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { currentTeamState, userState } from "../../atoms/auth";
+import { personsState, usePreparePersonForEncryption } from "../../atoms/persons";
 import { useAtom, useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../../services/api";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";

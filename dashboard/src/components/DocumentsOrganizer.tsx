@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import SortableJS from "sortablejs";
 import type { DocumentWithLinkedItem, DocumentOrFolderId, FolderWithLinkedItem, Folder } from "../types/document";
 import { useAtomValue } from "jotai";
-import { organisationAuthentifiedState } from "../recoil/auth";
+import { organisationAuthentifiedState } from "../atoms/auth";
 import UserName from "./UserName";
 import { formatDateTimeWithNameOfDay } from "../services/date";
 

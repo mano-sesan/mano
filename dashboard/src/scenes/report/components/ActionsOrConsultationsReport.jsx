@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CANCEL, DONE, TODO, defaultActionForModal, mappedIdsToLabels } from "../../../recoil/actions";
+import { CANCEL, DONE, TODO, defaultActionForModal, mappedIdsToLabels } from "../../../atoms/actions";
 import { useHistory } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
@@ -8,9 +8,9 @@ import ActionsSortableList from "../../../components/ActionsSortableList";
 import TabsNav from "../../../components/tailwind/TabsNav";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { useAtomValue, useSetAtom } from "jotai";
-import { organisationState, teamsState, userState } from "../../../recoil/auth";
+import { organisationState, teamsState, userState } from "../../../atoms/auth";
 import { dayjsInstance } from "../../../services/date";
-import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../../atoms/modal";
 
 export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCreated, consultationsCreated, period }) => {
   const [activeTab, setActiveTab] = useLocalStorage("reports-actions-consultation-toggle", "Actions");

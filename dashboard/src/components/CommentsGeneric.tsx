@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { Formik } from "formik";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import TagTeam from "./TagTeam";
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../services/date";
 import { outOfBoundariesDate } from "../services/date";
@@ -17,8 +17,8 @@ import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
-import { defaultModalActionState, modalActionState } from "../recoil/modal";
-import { itemsGroupedByActionSelector } from "../recoil/selectors";
+import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import CommentsSortableList from "./CommentsSortableList";
 
 /*
