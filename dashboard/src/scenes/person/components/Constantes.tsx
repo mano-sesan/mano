@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { arrayOfitemsGroupedByConsultationSelector } from "../../../recoil/selectors";
+import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/selectors";
 import { useMemo } from "react";
 import { dayjsInstance } from "../../../services/date";
 import { Datum, ResponsiveLine } from "@nivo/line";

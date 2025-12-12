@@ -2,10 +2,10 @@ import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { CommentsModule } from "../../../components/CommentsGeneric";
-import { encryptComment } from "../../../recoil/comments";
+import { encryptComment } from "../../../atoms/comments";
 import API, { tryFetchExpectOk } from "../../../services/api";
-import { organisationState } from "../../../recoil/auth";
-import { groupsState } from "../../../recoil/groups";
+import { organisationState } from "../../../atoms/auth";
+import { groupsState } from "../../../atoms/groups";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 

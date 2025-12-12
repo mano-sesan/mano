@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
 import structuredClone from "@ungap/structured-clone";
-import { encryptReport } from "../../../recoil/reports";
+import { encryptReport } from "../../../atoms/reports";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
 import SelectAndCreateCollaboration from "../SelectAndCreateCollaboration";
@@ -10,7 +10,7 @@ import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 import { useAtomValue } from "jotai";
-import { usersState } from "../../../recoil/auth";
+import { usersState } from "../../../atoms/auth";
 
 export default function Transmissions({ userId, period, selectedTeamsObject, reports }) {
   const [transmissionForModal, setTransmissionForModal] = useState(null);

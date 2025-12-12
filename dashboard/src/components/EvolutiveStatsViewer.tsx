@@ -1,14 +1,14 @@
 import { useAtomValue } from "jotai";
-import { computeEvolutiveStatsForPersons, evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
+import { computeEvolutiveStatsForPersons, evolutiveStatsIndicatorsBaseSelector } from "../atoms/evolutiveStats";
 import type { PersonPopulated } from "../types/person";
 import type { IndicatorsSelection } from "../types/evolutivesStats";
 import { useState, useMemo } from "react";
 import { capture } from "../services/sentry";
 import type { FilterableField } from "../types/field";
 import { SelectedPersonsModal } from "../scenes/stats/PersonsStats";
-import { itemsGroupedByPersonSelector } from "../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../atoms/selectors";
 import { CustomResponsivePie } from "../scenes/stats/Charts";
-import { userAuthentifiedState } from "../recoil/auth";
+import { userAuthentifiedState } from "../atoms/auth";
 
 interface EvolutiveStatsViewerProps {
   evolutiveStatsIndicators: IndicatorsSelection;

@@ -1,15 +1,15 @@
 import { Fragment, useState } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { useAtomValue } from "jotai";
-import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../recoil/persons";
+import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../atoms/persons";
 import { utils, writeFile } from "@e965/xlsx";
 import { dayjsInstance } from "../../services/date";
-import { currentTeamState, teamsState, userState } from "../../recoil/auth";
+import { currentTeamState, teamsState, userState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { customFieldsObsSelector } from "../../recoil/territoryObservations";
-import { territoriesState } from "../../recoil/territory";
-import { consultationFieldsSelector } from "../../recoil/consultations";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { customFieldsObsSelector } from "../../atoms/territoryObservations";
+import { territoriesState } from "../../atoms/territory";
+import { consultationFieldsSelector } from "../../atoms/consultations";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {

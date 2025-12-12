@@ -5,7 +5,7 @@ import Passage from "../../../components/Passage";
 import Rencontre from "../../../components/Rencontre";
 import TagTeam from "../../../components/TagTeam";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
-import { currentTeamState, userState, organisationState, usersState } from "../../../recoil/auth";
+import { currentTeamState, userState, organisationState, usersState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { capitalize } from "../../../utils";
@@ -13,9 +13,9 @@ import UserName from "../../../components/UserName";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import Table from "../../../components/table";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
-import { sortRencontres } from "../../../recoil/rencontres";
-import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
-import { territoryObservationsState } from "../../../recoil/territoryObservations";
+import { sortRencontres } from "../../../atoms/rencontres";
+import { defaultModalObservationState, modalObservationState } from "../../../atoms/modal";
+import { territoryObservationsState } from "../../../atoms/territoryObservations";
 
 export default function PassagesRencontres({ person }) {
   const organisation = useAtomValue(organisationState);

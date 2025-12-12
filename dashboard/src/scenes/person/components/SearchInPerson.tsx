@@ -5,7 +5,7 @@ import type { PersonPopulated } from "../../../types/person";
 import Search from "../../../components/search";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../../components/tailwind/Modal";
 import Table from "../../../components/table";
-import { userState } from "../../../recoil/auth";
+import { userState } from "../../../atoms/auth";
 import { formatDateWithFullMonth } from "../../../services/date";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { filterBySearch } from "../../search/utils";

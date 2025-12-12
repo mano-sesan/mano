@@ -1,6 +1,6 @@
 import { useHistory } from "react-router-dom";
 import { atom, useAtomValue } from "jotai";
-import { personsState, sortPersons } from "../recoil/persons";
+import { personsState, sortPersons } from "../atoms/persons";
 import SelectCustom from "./SelectCustom";
 import { formatDateWithFullMonth } from "../services/date";
 

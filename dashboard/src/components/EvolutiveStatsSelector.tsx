@@ -4,7 +4,7 @@ import { dayjsInstance } from "../services/date";
 import type { FilterableField } from "../types/field";
 import type { IndicatorValue, IndicatorsSelection, IndicatorsBase } from "../types/evolutivesStats";
 import { useAtomValue } from "jotai";
-import { evolutiveStatsIndicatorsBaseSelector } from "../recoil/evolutiveStats";
+import { evolutiveStatsIndicatorsBaseSelector } from "../atoms/evolutiveStats";
 
 interface EvolutiveStatsSelectorProps {
   onChange: (selection: IndicatorsSelection, saveInURLParams: boolean) => void;

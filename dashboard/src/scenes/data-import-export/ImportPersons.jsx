@@ -5,13 +5,13 @@ import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { Modal, ModalBody, ModalHeader, Alert } from "reactstrap";
 import ButtonCustom from "../../components/ButtonCustom";
-import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../recoil/persons";
-import { teamsState, userState } from "../../recoil/auth";
+import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../atoms/persons";
+import { teamsState, userState } from "../../atoms/auth";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
-import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../atoms/medicalFiles";
 import { encryptItem } from "../../services/encryption";
 import { useDataLoader } from "../../services/dataLoader";
 

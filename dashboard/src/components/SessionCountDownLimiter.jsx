@@ -4,7 +4,7 @@ import duration from "dayjs/plugin/duration";
 import utc from "dayjs/plugin/utc";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { useAtomValue } from "jotai";
-import { organisationState, sessionInitialDateTimestamp } from "../recoil/auth";
+import { organisationState, sessionInitialDateTimestamp } from "../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../services/encryption";
 import { toast } from "react-toastify";

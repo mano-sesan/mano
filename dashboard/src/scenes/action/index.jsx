@@ -4,7 +4,7 @@ import { useAtomValue } from "jotai";
 
 import List from "./list";
 import SentryRoute from "../../components/Sentryroute";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 
 const Router = () => {
   const currentTeam = useAtomValue(currentTeamState);

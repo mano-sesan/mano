@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { reportsState } from "../recoil/reports";
+import { reportsState } from "../atoms/reports";
 
 const DuplicatedReportsTestChecker = () => {
   const reports = useAtomValue(reportsState);

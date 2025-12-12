@@ -1,7 +1,7 @@
 import { ModalBody, ModalContainer, ModalHeader } from "./tailwind/Modal";
 import { Link } from "react-router-dom";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../recoil/auth";
+import { organisationState } from "../atoms/auth";
 import ButtonCustom from "./ButtonCustom";
 
 //Organisation

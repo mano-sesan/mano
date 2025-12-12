@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { dayjsInstance } from "../../services/date";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
-import { servicesSelector } from "../../recoil/reports";
+import { servicesSelector } from "../../atoms/reports";
 
 const ServicesStats = ({ period, teamIds }) => {
   const groupedServices = useAtomValue(servicesSelector);

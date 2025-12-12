@@ -1,6 +1,6 @@
 import { Block } from "./Blocks";
 import Filters from "../../components/Filters";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 
 const GeneralStats = ({

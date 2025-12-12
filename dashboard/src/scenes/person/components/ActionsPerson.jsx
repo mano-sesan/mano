@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { organisationState, teamsState, userState } from "../../../recoil/auth";
-import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels, TODO } from "../../../recoil/actions";
+import { organisationState, teamsState, userState } from "../../../atoms/auth";
+import { CANCEL, defaultActionForModal, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels, TODO } from "../../../atoms/actions";
 import { useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
@@ -12,11 +12,11 @@ import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../co
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";
-import { itemsGroupedByPersonSelector } from "../../../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../../../atoms/selectors";
 import DescriptionIcon from "../../../components/DescriptionIcon";
 import SelectTeamMultiple from "../../../components/SelectTeamMultiple";
 import ActionStatusSelect from "../../../components/ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../../../recoil/modal";
+import { defaultModalActionState, modalActionState } from "../../../atoms/modal";
 import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 import CommentIcon from "../../../components/CommentIcon";

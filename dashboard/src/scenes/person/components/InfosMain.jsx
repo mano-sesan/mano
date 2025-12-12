@@ -3,7 +3,7 @@ import { useState } from "react";
 import EditModal from "./EditModal";
 import TagTeam from "../../../components/TagTeam";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
-import { userState } from "../../../recoil/auth";
+import { userState } from "../../../atoms/auth";
 import { useAtomValue } from "jotai";
 
 export function InfosMain({ person, isMedicalFile }) {

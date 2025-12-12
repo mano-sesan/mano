@@ -6,7 +6,7 @@ import PersonIcon from "../assets/icons/PersonIcon";
 import Notification from "./Notification";
 import DotsIcon from "../assets/icons/DotsIcon";
 import { showDrawerState } from "./drawer";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 
 export default function BottomBar() {
   const user = useAtomValue(userState);

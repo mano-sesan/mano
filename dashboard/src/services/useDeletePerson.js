@@ -1,17 +1,17 @@
 import { useAtomValue } from "jotai";
-import { actionsState, encryptAction } from "../recoil/actions";
+import { actionsState, encryptAction } from "../atoms/actions";
 import API, { tryFetchExpectOk } from "../services/api";
-import { commentsState, encryptComment } from "../recoil/comments";
-import { passagesState } from "../recoil/passages";
-import { rencontresState } from "../recoil/rencontres";
-import { relsPersonPlaceState } from "../recoil/relPersonPlace";
-import { medicalFileState } from "../recoil/medicalFiles";
-import { consultationsState } from "../recoil/consultations";
-import { treatmentsState } from "../recoil/treatments";
-import { userState } from "../recoil/auth";
-import { prepareGroupForEncryption } from "../recoil/groups";
+import { commentsState, encryptComment } from "../atoms/comments";
+import { passagesState } from "../atoms/passages";
+import { rencontresState } from "../atoms/rencontres";
+import { relsPersonPlaceState } from "../atoms/relPersonPlace";
+import { medicalFileState } from "../atoms/medicalFiles";
+import { consultationsState } from "../atoms/consultations";
+import { treatmentsState } from "../atoms/treatments";
+import { userState } from "../atoms/auth";
+import { prepareGroupForEncryption } from "../atoms/groups";
 import { encryptItem } from "../services/encryption";
-import { itemsGroupedByPersonSelector } from "../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../atoms/selectors";
 
 export function useDeletePerson() {
   const persons = useAtomValue(itemsGroupedByPersonSelector);

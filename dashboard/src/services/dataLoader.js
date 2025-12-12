@@ -4,28 +4,28 @@ import { useEffect } from "react";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { toast } from "react-toastify";
 
-import { personsState } from "../recoil/persons";
-import { groupsState } from "../recoil/groups";
-import { treatmentsState } from "../recoil/treatments";
-import { actionsState } from "../recoil/actions";
-import { medicalFileState } from "../recoil/medicalFiles";
-import { passagesState } from "../recoil/passages";
-import { rencontresState } from "../recoil/rencontres";
-import { reportsState } from "../recoil/reports";
-import { territoriesState } from "../recoil/territory";
-import { placesState } from "../recoil/places";
-import { relsPersonPlaceState } from "../recoil/relPersonPlace";
-import { territoryObservationsState } from "../recoil/territoryObservations";
-import { consultationsState, formatConsultation } from "../recoil/consultations";
-import { commentsState } from "../recoil/comments";
-import { organisationState, teamsState, userState } from "../recoil/auth";
+import { personsState } from "../atoms/persons";
+import { groupsState } from "../atoms/groups";
+import { treatmentsState } from "../atoms/treatments";
+import { actionsState } from "../atoms/actions";
+import { medicalFileState } from "../atoms/medicalFiles";
+import { passagesState } from "../atoms/passages";
+import { rencontresState } from "../atoms/rencontres";
+import { reportsState } from "../atoms/reports";
+import { territoriesState } from "../atoms/territory";
+import { placesState } from "../atoms/places";
+import { relsPersonPlaceState } from "../atoms/relPersonPlace";
+import { territoryObservationsState } from "../atoms/territoryObservations";
+import { consultationsState, formatConsultation } from "../atoms/consultations";
+import { commentsState } from "../atoms/comments";
+import { organisationState, teamsState, userState } from "../atoms/auth";
 
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { errorMessage } from "../utils";
-import { recurrencesState } from "../recoil/recurrences";
+import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
 
 // Update to flush cache.

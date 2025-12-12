@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "../recoil/version";
+import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "../atoms/version";
 
 export default function VersionOutdatedAlert() {
   const showOutdateAlertBanner = useAtomValue(showOutdateAlertBannerState);

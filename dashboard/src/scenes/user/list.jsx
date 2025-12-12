@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAtom, useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
-import { teamsState, usersState, userState } from "../../recoil/auth";
+import { teamsState, usersState, userState } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";

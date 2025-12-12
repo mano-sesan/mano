@@ -1,9 +1,9 @@
 import { useAtomValue } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
 import ButtonCustom from "../../components/ButtonCustom";
-import { currentTeamState } from "../../recoil/auth";
-import { personFieldsIncludingCustomFieldsSelector } from "../../recoil/persons";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { currentTeamState } from "../../atoms/auth";
+import { personFieldsIncludingCustomFieldsSelector } from "../../atoms/persons";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 
 export default function DownloadPersonsImportExample() {
   const currentTeam = useAtomValue(currentTeamState);

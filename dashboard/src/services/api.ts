@@ -1,7 +1,7 @@
 import { store } from "../store";
 import { HOST, SCHEME } from "../config";
-import { organisationState } from "../recoil/auth";
-import { deploymentCommitState, deploymentDateState } from "../recoil/version";
+import { organisationState } from "../atoms/auth";
+import { deploymentCommitState, deploymentDateState } from "../atoms/version";
 import { capture } from "./sentry";
 import { toast } from "react-toastify";
 class AuthError extends Error {

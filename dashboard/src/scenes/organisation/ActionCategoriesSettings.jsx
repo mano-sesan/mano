@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, encryptAction } from "../../recoil/actions";
-import { organisationState, userState } from "../../recoil/auth";
+import { actionsCategoriesSelector, flattenedActionsCategoriesSelector, actionsState, encryptAction } from "../../atoms/actions";
+import { organisationState, userState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";

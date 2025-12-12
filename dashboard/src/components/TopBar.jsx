@@ -4,7 +4,7 @@ import { ButtonDropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reac
 import logo from "../assets/logo-green-creux-plus-petit.png";
 import SelectTeam from "./SelectTeam";
 
-import { currentTeamState, organisationState, teamsState, userState } from "../recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
 import API, { tryFetchExpectOk } from "../services/api";
 import { useAtom, useAtomValue } from "jotai";
 import Notification from "./Notification";

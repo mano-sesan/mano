@@ -18,7 +18,7 @@ import SuperadminOrganisationSettings from "./SuperadminOrganisationSettings";
 import SuperadminOrganisationUsers from "./SuperadminOrgationsationUsers";
 import SuperadminUsersSearch from "./SuperadminUsersSearch";
 import { useAtomValue } from "jotai";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { Redirect } from "react-router-dom";
 import TopBar from "../../components/TopBar";
 import ReactDiffViewer from "react-diff-viewer-continued";

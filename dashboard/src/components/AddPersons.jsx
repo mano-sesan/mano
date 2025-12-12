@@ -1,8 +1,8 @@
 import { useAtomValue } from "jotai";
-import { currentTeamAuthentifiedState, userAuthentifiedState } from "../recoil/auth";
+import { currentTeamAuthentifiedState, userAuthentifiedState } from "../atoms/auth";
 import API, { tryFetchExpectOk } from "../services/api";
-import { DONE, encryptAction, TODO } from "../recoil/actions";
-import { usePreparePersonForEncryption } from "../recoil/persons";
+import { DONE, encryptAction, TODO } from "../atoms/actions";
+import { usePreparePersonForEncryption } from "../atoms/persons";
 
 const numberOfPersons = 200;
 const numberOfActionsPerPerson = 10;

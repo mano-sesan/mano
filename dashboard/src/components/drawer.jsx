@@ -1,10 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { atom, useAtom, useAtomValue } from "jotai";
-import { organisationState, teamsState, userState } from "../recoil/auth";
+import { organisationState, teamsState, userState } from "../atoms/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
-import { deploymentShortCommitSHAState } from "../recoil/version";
+import { deploymentShortCommitSHAState } from "../atoms/version";
 import AddPersons from "./AddPersons";
 import { useEffect, useState } from "react";
 import API from "../services/api";

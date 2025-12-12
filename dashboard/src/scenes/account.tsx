@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { useAtom } from "jotai";
 import Loading from "../components/loading";
 import ChangePassword from "../components/ChangePassword";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
 import { ModalBody, ModalContainer, ModalHeader, ModalFooter } from "../components/tailwind/Modal";
 import DeleteButtonAndConfirmModal from "../components/DeleteButtonAndConfirmModal";

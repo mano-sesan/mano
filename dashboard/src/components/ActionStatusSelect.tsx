@@ -1,18 +1,18 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { DONE, TODO, CANCEL, encryptAction } from "../recoil/actions";
+import { DONE, TODO, CANCEL, encryptAction } from "../atoms/actions";
 import API, { tryFetchExpectOk } from "../services/api";
 import { now } from "../services/date";
 import { toast } from "react-toastify";
-import { currentTeamState, organisationState, userState } from "../recoil/auth";
-import { encryptConsultation } from "../recoil/consultations";
+import { currentTeamState, organisationState, userState } from "../atoms/auth";
+import { encryptConsultation } from "../atoms/consultations";
 import { ConsultationInstance } from "../types/consultation";
 import { ActionInstance, ActionStatus } from "../types/action";
 import { useDataLoader } from "../services/dataLoader";
 import { modalConfirmState } from "./ModalConfirm";
-import { encryptComment } from "../recoil/comments";
+import { encryptComment } from "../atoms/comments";
 import { decryptItem } from "../services/encryption";
-import { defaultModalActionState } from "../recoil/modal";
-import { modalActionState } from "../recoil/modal";
+import { defaultModalActionState } from "../atoms/modal";
+import { modalActionState } from "../atoms/modal";
 import { useHistory } from "react-router-dom";
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
   return action.isConsultation !== undefined && action.isConsultation;

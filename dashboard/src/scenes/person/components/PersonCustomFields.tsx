@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { currentTeamAuthentifiedState } from "../../../recoil/auth";
+import { currentTeamAuthentifiedState } from "../../../atoms/auth";
 import { useMemo, useState } from "react";
 import EditModal from "./EditModal";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";

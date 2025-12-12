@@ -1,7 +1,7 @@
 import React from "react";
 import { typeOptions } from "../utils";
 import { useAtomValue } from "jotai";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 
 const CustomFieldSetting = ({ customField }) => {
   const { type, label, options = [], showInStats } = customField;

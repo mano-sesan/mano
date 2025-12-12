@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { usersState } from "../recoil/auth";
+import { usersState } from "../atoms/auth";
 import SelectCustom from "./SelectCustom";
 
 const SelectUser = ({ value, onChange, ...props }) => {

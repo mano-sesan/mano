@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import { download } from "../../utils";
 import { getHashedOrgEncryptionKey } from "../../services/encryption";
 import { BlobReader } from "@zip.js/zip.js";
@@ -11,7 +11,7 @@ import API, { tryFetchBlob } from "../../services/api";
 import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import { decryptFile } from "../../services/encryption";
-import { arrayOfitemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { arrayOfitemsGroupedByPersonSelector } from "../../atoms/selectors";
 
 export default function ExportFiles() {
   const [isDownloading, setIsDownloading] = useState(false);

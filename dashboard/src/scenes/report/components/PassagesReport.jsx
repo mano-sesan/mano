@@ -4,15 +4,15 @@ import Passage from "../../../components/Passage";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
-import { currentTeamState, userState, usersState } from "../../../recoil/auth";
+import { currentTeamState, userState, usersState } from "../../../atoms/auth";
 import { useAtomValue } from "jotai";
 import UserName from "../../../components/UserName";
 import TagTeam from "../../../components/TagTeam";
 import PersonName from "../../../components/PersonName";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { sortPassages } from "../../../recoil/passages";
-import { personsObjectSelector } from "../../../recoil/selectors";
+import { sortPassages } from "../../../atoms/passages";
+import { personsObjectSelector } from "../../../atoms/selectors";
 
 export const PassagesReport = ({ passages, period, selectedTeams }) => {
   const [fullScreen, setFullScreen] = useState(false);

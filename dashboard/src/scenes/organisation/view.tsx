@@ -10,9 +10,9 @@ import {
   personFieldsIncludingCustomFieldsSelector,
   personsState,
   usePreparePersonForEncryption,
-} from "../../recoil/persons";
+} from "../../atoms/persons";
 import TableCustomFields from "../../components/TableCustomFields";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import ExportData from "../data-import-export/ExportData";
 import ImportPersons from "../data-import-export/ImportPersons";
@@ -31,16 +31,16 @@ import PersonCustomFieldsSettings from "./PersonCustomFieldsSettings";
 import StructuresCategoriesSettings from "./StructuresCategoriesSettings";
 import Poubelle from "./Poubelle";
 import CollaborationsSettings from "./CollaborationsSettings";
-import { customFieldsMedicalFileSelector } from "../../recoil/medicalFiles";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 import { encryptItem } from "../../services/encryption";
 import { errorMessage } from "../../utils";
 import ImportTerritories from "../data-import-export/ImportTerritories";
-import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../recoil/territory";
+import { flattenedTerritoriesTypesSelector, territoriesFields } from "../../atoms/territory";
 import DownloadTerritoriesImportExample from "../data-import-export/DownloadTerritoriesImportExample";
 import TerritoriesTypesSettings from "./TerritoriesTypesSettings";
 import { DefaultFoldersMedical, DefaultFoldersPersons } from "./DefaultFolders";
 import Errors from "./Errors";
-import { flattenedStructuresCategoriesSelector, structuresFields } from "../../recoil/structures";
+import { flattenedStructuresCategoriesSelector, structuresFields } from "../../atoms/structures";
 import DownloadStructuresImportExample from "../data-import-export/DownloadStructuresImportExample";
 import ImportStructures from "../data-import-export/ImportStructures";
 import ExportFiles from "../data-import-export/ExportFiles";

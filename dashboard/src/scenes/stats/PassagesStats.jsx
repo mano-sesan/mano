@@ -4,7 +4,7 @@ import { getMultichoiceBarData, getPieData } from "./utils";
 import { AgeRangeBar, SelectedPersonsModal } from "./PersonsStats";
 import Filters from "../../components/Filters";
 import { useAtomValue } from "jotai";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { groupByPeriod } from "../../utils/group-by-period";
 
 const PassagesStats = ({

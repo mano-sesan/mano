@@ -4,7 +4,7 @@ import { getPieData } from "./utils";
 import Filters from "../../components/Filters";
 import { Block } from "./Blocks";
 import { SelectedPersonsModal } from "./PersonsStats";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import SelectCustom from "../../components/SelectCustom";
 

@@ -6,13 +6,13 @@ import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import Table from "../../../components/table";
 import TagTeam from "../../../components/TagTeam";
 import DateBloc, { TimeBlock } from "../../../components/DateBloc";
-import { territoriesState } from "../../../recoil/territory";
+import { territoriesState } from "../../../atoms/territory";
 import { dayjsInstance } from "../../../services/date";
-import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersState } from "../../../recoil/auth";
-import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../recoil/territoryObservations";
+import { currentTeamAuthentifiedState, teamsState, userAuthentifiedState, usersState } from "../../../atoms/auth";
+import { customFieldsObsSelector, sortTerritoriesObservations } from "../../../atoms/territoryObservations";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { useLocalStorage } from "../../../services/useLocalStorage";
-import { defaultModalObservationState, modalObservationState } from "../../../recoil/modal";
+import { defaultModalObservationState, modalObservationState } from "../../../atoms/modal";
 import { useLocation } from "react-router-dom";
 
 export const ObservationsReport = ({ observations, period, selectedTeams }) => {

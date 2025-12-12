@@ -1,7 +1,7 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
 import { useAtomValue } from "jotai";
-import { personsObjectSelector } from "../recoil/selectors";
+import { personsObjectSelector } from "../atoms/selectors";
 import { getPersonInfo } from "../utils/get-person-infos";
 
 export default function PersonName({ item, onClick = null, redirectToTab = "Résumé" }) {

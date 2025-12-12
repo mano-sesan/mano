@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { deletedUsersState, usersState } from "../recoil/auth";
+import { deletedUsersState, usersState } from "../atoms/auth";
 import SelectUser from "./SelectUser";
 
 const UserName = ({ id, wrapper = (name) => name, canAddUser = null, handleChange = null, className = "" }) => {

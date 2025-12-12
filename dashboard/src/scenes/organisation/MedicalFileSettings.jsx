@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { useDataLoader } from "../../services/dataLoader";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
@@ -10,7 +10,7 @@ import {
   groupedCustomFieldsMedicalFileSelector,
   medicalFileState,
   prepareMedicalFileForEncryption,
-} from "../../recoil/medicalFiles";
+} from "../../atoms/medicalFiles";
 import CustomFieldSetting from "../../components/CustomFieldSetting";
 import { EditCustomField } from "../../components/TableCustomFields";
 import { encryptItem } from "../../services/encryption";
