@@ -9,6 +9,7 @@ module.exports = defineConfig([
     rules: {
       "import/no-named-as-default": "off",
       "react/no-unescaped-entities": "off",
+      "@typescript-eslint/array-type": "off",
     },
   },
 ]);

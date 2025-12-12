@@ -15,7 +15,7 @@ import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../recoil/groups";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 
-const Comment = ({ navigation, route, onCommentWrite }) => {
+const Comment = ({ navigation, route }) => {
   const [comments, setComments] = useAtom(commentsState);
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState);
@@ -165,7 +165,6 @@ const Comment = ({ navigation, route, onCommentWrite }) => {
 
   const onChangeText = (newComment) => {
     setComment(newComment);
-    onCommentWrite?.(newComment);
   };
 
   const canToggleGroupCheck = !!organisation.groupsEnabled && groups.find((group) => group.persons.includes(route.params?.person));

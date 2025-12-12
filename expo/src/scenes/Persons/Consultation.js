@@ -324,7 +324,7 @@ const Consultation = ({ navigation, route }) => {
     ]);
   };
 
-  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "Consultation" });
+  const onSearchPerson = () => navigation.push("PERSONS_SEARCH", { fromRoute: "Consultation" });
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);

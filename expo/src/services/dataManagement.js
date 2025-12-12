@@ -6,7 +6,7 @@ export const appCurrentCacheKey = "mano_last_refresh_2022_12_01";
 
 export const storage = new MMKV();
 
-export async function clearCache() {
+export async function clearCache(_message = "message to log when debug") {
   storage.clearAll();
   await AsyncStorage.clear();
   initCacheAndcheckIfExpired();
