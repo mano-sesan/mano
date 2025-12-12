@@ -12,6 +12,7 @@ import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomField
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
 import PersonDocumentsMedical from "./PersonDocumentsMedical";
+import MedicalFileDocumentsNew from "../../../components/document/MedicalFileDocuments";
 import { MedicalFilePrint } from "./MedicalFilePrint";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import CommentsMedical from "./CommentsMedical";
@@ -20,6 +21,7 @@ import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
 import { useDataLoader } from "../../../services/dataLoader";
 import { toast } from "react-toastify";
+import { MANO_TEST_ORG_ID } from "../../../config";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -84,6 +86,10 @@ export default function MedicalFile({ person }: MedicalFileProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalFile]);
+
+  const useNewDocumentSystem =
+    (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
+
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && <MedicalFilePrint person={person} />}
@@ -94,8 +100,16 @@ export default function MedicalFile({ person }: MedicalFileProps) {
         <div className="tw-col-span-5 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
           <Consultations person={person} />
         </div>
-        <div className="tw-col-span-4 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-          {["restricted-access"].includes(user.role) ? <PersonDocumentsMedical person={person} /> : <CommentsMedical person={person} />}
+        <div className="tw-col-span-4 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
+          {["restricted-access"].includes(user.role) ? (
+            useNewDocumentSystem ? (
+              <MedicalFileDocumentsNew person={person} />
+            ) : (
+              <PersonDocumentsMedical person={person} />
+            )
+          ) : (
+            <CommentsMedical person={person} />
+          )}
         </div>
       </div>
       {!["restricted-access"].includes(user.role) && (
@@ -118,8 +132,8 @@ export default function MedicalFile({ person }: MedicalFileProps) {
               <div className="tw-h-[400px] tw-max-h-[50%] tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
                 <Treatments person={person} />
               </div>
-              <div className="tw-h-[400px] tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-                <PersonDocumentsMedical person={person} />
+              <div className="tw-h-[400px] tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
+                {useNewDocumentSystem ? <MedicalFileDocumentsNew person={person} /> : <PersonDocumentsMedical person={person} />}
               </div>
             </div>
           </div>
