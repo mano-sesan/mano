@@ -10,7 +10,7 @@ import ScreenTitle from "./ScreenTitle";
 import ScrollContainer from "./ScrollContainer";
 import { SubTitle } from "./Title";
 import { MyText } from "./MyText";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState } from "../recoil/auth";
 
 const DeleteButtonAndConfirmModal = ({
@@ -22,7 +22,7 @@ const DeleteButtonAndConfirmModal = ({
   roles = ["admin"],
   roleErrorMessage = "Désolé, seul un admin peut supprimer ce type d'élément",
 }) => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [textConfirmed, setTextConfirmed] = useState("");
   const [deleting, setDeleting] = useState(false);

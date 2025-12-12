@@ -1,14 +1,9 @@
-import { atom } from "recoil";
-import { storage } from "../services/dataManagement";
+import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 
-export const relsPersonPlaceState = atom({
-  key: "relsPersonPlaceState",
-  default: JSON.parse(storage.getString("relPersonPlace") || "[]"),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set("relPersonPlace", JSON.stringify(newValue)))],
-});
+export const relsPersonPlaceState = atomWithCache("relPersonPlace", []);
 
 const encryptedFields = ["place", "person", "user"];
 

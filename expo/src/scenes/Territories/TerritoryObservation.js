@@ -8,7 +8,7 @@ import ButtonDelete from "../../components/ButtonDelete";
 import styled from "styled-components/native";
 import { MyText } from "../../components/MyText";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   customFieldsObsSelector,
   groupedCustomFieldsObsSelector,
@@ -30,18 +30,18 @@ const cleanValue = (value) => {
 };
 
 const TerritoryObservation = ({ route, navigation }) => {
-  const user = useRecoilValue(userState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const customFieldsObs = useRecoilValue(customFieldsObsSelector);
-  const groupedCustomFieldsObs = useRecoilValue(groupedCustomFieldsObsSelector);
+  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
-  const [allTerritoryOservations, setTerritoryObservations] = useRecoilState(territoryObservationsState);
+  const [allTerritoryOservations, setTerritoryObservations] = useAtom(territoryObservationsState);
   const [obsDB, setObsDB] = useState(() => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || {});
   const [rencontresInProgress, setRencontresInProgress] = useState([]);
-  const setRencontres = useSetRecoilState(rencontresState);
-  const rencontres = useRecoilValue(rencontresState);
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
+  const setRencontres = useSetAtom(rencontresState);
+  const rencontres = useAtomValue(rencontresState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
   const castToTerritoryObservation = useCallback(
     (territoryObservation = {}) => {

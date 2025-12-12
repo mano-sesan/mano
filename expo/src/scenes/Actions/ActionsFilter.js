@@ -4,10 +4,10 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import { actionsFiltersState } from "../../recoil/actions";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 
 const ActionsFilter = ({ navigation }) => {
-  const [actionsFilters, setActionsFilters] = useRecoilState(actionsFiltersState);
+  const [actionsFilters, setActionsFilters] = useAtom(actionsFiltersState);
 
   const onBackRequested = () => {
     navigation.navigate("ActionsList");

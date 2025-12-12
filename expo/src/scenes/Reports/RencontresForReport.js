@@ -1,11 +1,11 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback } from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyRencontres, ListNoMoreRencontres } from "../../components/ListEmptyContainer";
-import { rencontresForReport } from "./selectors";
+import { useRencontresForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { currentTeamState } from "../../recoil/auth";
 import RencontreRow from "../Persons/RencontreRow";
@@ -13,9 +13,9 @@ const keyExtractor = (item) => item._id;
 
 const RencontresForReport = ({ navigation, route }) => {
   const date = route?.params?.date;
-  const rencontres = useRecoilValue(rencontresForReport({ date }));
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const rencontres = useRencontresForReport(date);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

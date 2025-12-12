@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import Button from "../../components/Button";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -16,12 +16,12 @@ import { isEmptyValue } from "../../utils";
 const PersonsOutOfActiveListReason = ({ navigation, route }) => {
   const [reasons, setReasons] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const setPersons = useSetRecoilState(personsState);
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
+  const setPersons = useSetAtom(personsState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const updatePerson = async () => {
     const person = { ...route.params.person, outOfActiveListReasons: reasons, outOfActiveList: true };

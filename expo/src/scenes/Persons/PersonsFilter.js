@@ -8,14 +8,14 @@ import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
 import OutOfActiveListSelect from "../../components/Selects/OutOfActiveListSelect";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { teamsState } from "../../recoil/auth";
 
 const PersonsFilter = ({ route, navigation }) => {
   const [filterAlertness, setFilterAlertness] = useState(route.params?.filters?.filterAlertness || false);
   const [filterTeams, setFilterByTeam] = useState(route.params?.filters?.filterTeams || []);
   const [filterOutOfActiveList, setFilterOutOfActiveList] = useState(route.params?.filters?.filterOutOfActiveList || "");
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   const onBackRequested = () => {
     navigation.navigate("PersonsList", { filters: { filterAlertness, filterTeams, filterOutOfActiveList } });

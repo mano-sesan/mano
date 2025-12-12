@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef } from "react";
 import { Alert, Linking, Text } from "react-native";
 import styled from "styled-components/native";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import dayjs from "dayjs";
 import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
@@ -51,10 +51,10 @@ const PersonSummary = ({
     navigation.push("NewActionForm", { fromRoute: "Person", person: personDB });
   };
 
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const setComments = useSetRecoilState(commentsState);
-  const groups = useRecoilValue(groupsState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const setComments = useSetAtom(commentsState);
+  const groups = useAtomValue(groupsState);
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
@@ -70,7 +70,7 @@ const PersonSummary = ({
     await onUpdatePerson(false, { outOfActiveListReasons: [], outOfActiveList: false });
   };
 
-  const populatedPersons = useRecoilValue(itemsGroupedByPersonSelector);
+  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector);
   const populatedPerson = useMemo(() => populatedPersons[personDB?._id] || {}, [populatedPersons, personDB?._id]);
   const { actions, comments, rencontres, passages, relsPersonPlace } = populatedPerson;
 
@@ -89,7 +89,7 @@ const PersonSummary = ({
     [relsPersonPlace]
   );
 
-  const allPlaces = useRecoilValue(placesState);
+  const allPlaces = useAtomValue(placesState);
   const places = useMemo(() => {
     if (!relsPersonPlace) return [];
     const placesId = relsPersonPlace.map((rel) => rel.place);
@@ -97,7 +97,7 @@ const PersonSummary = ({
   }, [allPlaces, relsPersonPlace]);
   const onAddPlaceRequest = () => navigation.push("NewPersonPlaceForm", { person: personDB, fromRoute: "Person" });
 
-  const teams = useRecoilValue(teamsState);
+  const teams = useAtomValue(teamsState);
 
   const onActionPress = useCallback(
     (action) => {

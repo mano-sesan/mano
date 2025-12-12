@@ -7,7 +7,7 @@ import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import API from "../../services/api";
@@ -16,11 +16,11 @@ import { groupsState } from "../../recoil/groups";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 
 const Comment = ({ navigation, route, onCommentWrite }) => {
-  const [comments, setComments] = useRecoilState(commentsState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const groups = useRecoilValue(groupsState);
+  const [comments, setComments] = useAtom(commentsState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const groups = useAtomValue(groupsState);
   const commentDB = useMemo(() => comments.find((c) => c._id === route.params?._id), [comments, route?.params]);
   const isNewComment = useMemo(() => !commentDB, [commentDB]);
   const [comment, setComment] = useState(route?.params?.comment?.split("\\n").join("\u000A") || "");

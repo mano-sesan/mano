@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, View } from "react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -17,12 +17,12 @@ import { userState } from "../../recoil/auth";
 const Place = ({ navigation, route }) => {
   const [name, setName] = useState(false);
   const [updating, setUpdating] = useState(false);
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
-  const [places, setPlaces] = useRecoilState(placesState);
+  const [places, setPlaces] = useAtom(placesState);
   const placeDB = useMemo(() => places.find((p) => p._id === route.params._id), [places, route?.params?._id]);
 
-  const [relsPersonPlace, setRelsPersonPlace] = useRecoilState(relsPersonPlaceState);
+  const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
 
   const backRequestHandledRef = useRef(null);
   const handleBeforeRemove = (e) => {

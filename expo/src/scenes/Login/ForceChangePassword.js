@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { useRecoilState, useSetRecoilState } from "recoil";
+import { useAtom, useSetAtom } from "jotai";
 import SceneContainer from "../../components/SceneContainer";
 import colors from "../../utils/colors";
 import { ChangePasswordBody } from "./ChangePassword";
@@ -9,9 +9,9 @@ import { currentTeamState, userState } from "../../recoil/auth";
 import { refreshTriggerState } from "../../components/Loader";
 
 const ForceChangePassword = ({ navigation }) => {
-  const user = useRecoilState(userState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const user = useAtom(userState);
+  const setCurrentTeam = useSetAtom(currentTeamState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const onOk = () => {
     if (user.teams?.length === 1) {
       setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: true } });

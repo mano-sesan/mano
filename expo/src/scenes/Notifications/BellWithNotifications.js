@@ -1,19 +1,16 @@
 import React from "react";
-import { selector, useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
 import BellIcon from "../../icons/BellIcon";
 import { urgentItemsSelector } from "./Notifications";
 
-export const notificationsNumberSelector = selector({
-  key: "notificationsNumberSelector",
-  get: ({ get }) => {
-    const { actionsFiltered, commentsFiltered } = get(urgentItemsSelector);
+export const notificationsNumberSelector = atom((get) => {
+  const { actionsFiltered, commentsFiltered } = get(urgentItemsSelector);
 
-    return actionsFiltered?.length + commentsFiltered?.length;
-  },
+  return actionsFiltered?.length + commentsFiltered?.length;
 });
 
 const BellWithNotifications = ({ color, size }) => {
-  const notificationsNumber = useRecoilValue(notificationsNumberSelector);
+  const notificationsNumber = useAtomValue(notificationsNumberSelector);
   return <BellIcon color={color} size={size} notificationsNumber={notificationsNumber} />;
 };
 

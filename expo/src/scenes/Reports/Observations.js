@@ -1,11 +1,11 @@
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback } from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyObservations, ListNoMoreObservations } from "../../components/ListEmptyContainer";
-import { observationsForReport } from "./selectors";
+import { useObservationsForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { currentTeamState } from "../../recoil/auth";
 import TerritoryObservationRow from "../Territories/TerritoryObservationRow";
@@ -14,10 +14,10 @@ const keyExtractor = (item) => item._id;
 
 const Observations = ({ navigation, route }) => {
   const { date } = route.params;
-  const observations = useRecoilValue(observationsForReport({ date }));
-  const territories = useRecoilValue(territoriesState);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const observations = useObservationsForReport(date);
+  const territories = useAtomValue(territoriesState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

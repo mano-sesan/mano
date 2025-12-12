@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { View } from "react-native";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
@@ -16,8 +16,8 @@ import { useFocusEffect } from "@react-navigation/native";
 const TerritoryObservationRencontre = ({ navigation, route }) => {
   const isNewRencontre = !route.params.rencontre;
   const [rencontrePersons, setRencontrePersons] = useState(() => (route.params?.person ? [route.params?.person] : []));
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
   const [rencontre, setRencontre] = useState(
     () =>
       route.params.rencontre || {

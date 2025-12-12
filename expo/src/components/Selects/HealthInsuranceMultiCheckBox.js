@@ -1,10 +1,10 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import MultiCheckBoxes from "../MultiCheckBoxes/MultiCheckBoxes";
 
 const HealthInsuranceMultiCheckBox = ({ values, onChange, editable }) => {
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
   return (
     <MultiCheckBoxes

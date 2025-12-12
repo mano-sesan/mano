@@ -1,4 +1,4 @@
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import * as Sentry from "@sentry/react-native";
 import React, { useCallback } from "react";
 import SceneContainer from "../../components/SceneContainer";
@@ -7,7 +7,7 @@ import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import CommentRow from "../Comments/CommentRow";
 import { ListEmptyComments, ListNoMoreComments } from "../../components/ListEmptyContainer";
-import { commentsForReport } from "./selectors";
+import { useCommentsForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { currentTeamState, organisationState } from "../../recoil/auth";
 import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
@@ -18,12 +18,12 @@ const keyExtractor = (item) => item._id;
 
 const CommentsForReport = ({ navigation, route }) => {
   const date = route?.params?.date;
-  const comments = useRecoilValue(commentsForReport({ date }));
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const groups = useRecoilValue(groupsState);
-  const setComments = useSetRecoilState(commentsState);
+  const comments = useCommentsForReport(date);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const groups = useAtomValue(groupsState);
+  const setComments = useSetAtom(commentsState);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

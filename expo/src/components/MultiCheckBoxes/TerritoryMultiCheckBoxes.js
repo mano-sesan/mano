@@ -1,10 +1,10 @@
 import React from "react";
 import MultiCheckBoxes from "./MultiCheckBoxes";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { flattenedTerritoriesTypesSelector } from "../../recoil/territory";
 
 const TerritoryMultiCheckBoxes = ({ values = [], onChange, editable }) => {
-  const territoryTypes = useRecoilValue(flattenedTerritoriesTypesSelector);
+  const territoryTypes = useAtomValue(flattenedTerritoriesTypesSelector);
   return (
     <MultiCheckBoxes label="Type" source={territoryTypes} values={values} onChange={onChange} editable={editable} emptyValue="-- Choisissez --" />
   );

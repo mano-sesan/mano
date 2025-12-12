@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import SceneContainer from "../../components/SceneContainer";
 import Spinner from "../../components/Spinner";
 import { ListEmptyConsultations, ListNoMoreConsultations } from "../../components/ListEmptyContainer";
 import { FlashListStyled } from "../../components/Lists";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
-import { consultationsForReport } from "./selectors";
+import { useConsultationsForReport } from "./selectors";
 import ScreenTitle from "../../components/ScreenTitle";
 import { CANCEL, DONE } from "../../recoil/actions";
 import { currentTeamState } from "../../recoil/auth";
@@ -17,14 +17,14 @@ import FloatAddButton from "../../components/FloatAddButton";
 const keyExtractor = (consultation) => consultation._id;
 
 const Consultations = ({ route, navigation }) => {
-  const loading = useRecoilValue(loadingState);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const loading = useAtomValue(loadingState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
   const { status, date } = route.params;
 
   const onCreateConsultation = useCallback(() => navigation.navigate("Consultation", { fromRoute: "Consultations" }), [navigation]);
 
-  const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useRecoilValue(consultationsForReport({ date }));
+  const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useConsultationsForReport(date);
 
   const consultationsToShow = useMemo(() => {
     if (!status) return consultationsCreated;

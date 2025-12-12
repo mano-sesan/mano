@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert } from "react-native";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import API from "../../services/api";
 import { PersonIcon } from "../../icons";
 import SceneContainer from "../../components/SceneContainer";
@@ -16,7 +16,7 @@ const Structures = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [structures, setStructures] = useRecoilState(structuresState);
+  const [structures, setStructures] = useAtom(structuresState);
 
   const getStructures = async (refresh = true) => {
     if (refresh) setRefreshing(true);

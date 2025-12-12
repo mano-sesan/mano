@@ -1,10 +1,10 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { fieldsPersonsCustomizableOptionsSelector } from "../../recoil/persons";
 import MultiCheckBoxes from "../MultiCheckBoxes/MultiCheckBoxes";
 
 const OutOfActiveListReasonMultiCheckBox = ({ values, onChange, editable }) => {
-  const fieldsPersonsCustomizableOptions = useRecoilValue(fieldsPersonsCustomizableOptionsSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
   const outOfActiveListReasonOptions = fieldsPersonsCustomizableOptions.find((f) => f.name === "outOfActiveListReasons").options;
   return (
     <MultiCheckBoxes

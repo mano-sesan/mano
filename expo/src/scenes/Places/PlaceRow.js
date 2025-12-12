@@ -1,7 +1,7 @@
 import React from "react";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useSetRecoilState } from "recoil";
+import { useSetAtom } from "jotai";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
 import { useNavigation } from "@react-navigation/native";
@@ -9,7 +9,7 @@ import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
 
 const PlaceRow = ({ place, relPersonPlace, personDB, showActionSheetWithOptions }) => {
   const navigation = useNavigation();
-  const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
+  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
 
   const onMorePress = async () => {
     const options = ["Modifier", "Retirer", "Annuler"];

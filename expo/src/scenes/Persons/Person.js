@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Alert, KeyboardAvoidingView, Platform } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import PersonSummary from "./PersonSummary";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -40,21 +40,21 @@ const cleanValue = (value) => {
 };
 
 const Person = ({ route, navigation }) => {
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
-  const allowedFieldsInHistory = useRecoilValue(allowedPersonFieldsInHistorySelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
-  const [persons, setPersons] = useRecoilState(personsState);
-  const actions = useRecoilValue(actionsState);
-  const groups = useRecoilValue(groupsState);
-  const comments = useRecoilValue(commentsState);
-  const passages = useRecoilValue(passagesState);
-  const rencontres = useRecoilValue(rencontresState);
-  const consultations = useRecoilValue(consultationsState);
-  const treatments = useRecoilValue(treatmentsState);
-  const medicalFiles = useRecoilValue(medicalFileState);
-  const relsPersonPlace = useRecoilValue(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const [persons, setPersons] = useAtom(personsState);
+  const actions = useAtomValue(actionsState);
+  const groups = useAtomValue(groupsState);
+  const comments = useAtomValue(commentsState);
+  const passages = useAtomValue(passagesState);
+  const rencontres = useAtomValue(rencontresState);
+  const consultations = useAtomValue(consultationsState);
+  const treatments = useAtomValue(treatmentsState);
+  const medicalFiles = useAtomValue(medicalFileState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
+  const user = useAtomValue(userState);
 
   const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id), [persons, route.params?.person?._id]);
 

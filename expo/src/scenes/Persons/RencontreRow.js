@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { userState } from "../../recoil/auth";
 import API from "../../services/api";
 import { rencontresState } from "../../recoil/rencontres";
@@ -9,9 +9,9 @@ import BubbleRow from "../../components/BubbleRow";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 
 const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemName, onItemNamePress }) => {
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const user = useRecoilValue(userState);
-  const setRencontres = useSetRecoilState(rencontresState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const user = useAtomValue(userState);
+  const setRencontres = useSetAtom(rencontresState);
   const person = useMemo(() => (rencontre?.person ? personsObject[rencontre.person] : null), [personsObject, rencontre.person]);
 
   const onMorePress = async () => {

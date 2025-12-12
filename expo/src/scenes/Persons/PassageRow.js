@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { userState } from "../../recoil/auth";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
@@ -9,9 +9,9 @@ import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { passagesState } from "../../recoil/passages";
 
 const PassageRow = ({ onUpdate, passage, showActionSheetWithOptions, itemName, onItemNamePress }) => {
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const user = useRecoilValue(userState);
-  const setPassages = useSetRecoilState(passagesState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const user = useAtomValue(userState);
+  const setPassages = useSetAtom(passagesState);
   const person = useMemo(() => (passage?.person ? personsObject[passage.person] : null), [personsObject, passage.person]);
 
   const onMorePress = async () => {

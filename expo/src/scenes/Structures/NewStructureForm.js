@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { useSetRecoilState } from "recoil";
+import { useSetAtom } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -14,7 +14,7 @@ const NewStructureForm = ({ navigation, route }) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
-  const setStructures = useSetRecoilState(structuresState);
+  const setStructures = useSetAtom(structuresState);
 
   const onBack = () => {
     backRequestHandledRef.current = true;

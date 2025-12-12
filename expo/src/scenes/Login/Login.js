@@ -16,7 +16,7 @@ import InputLabelled from "../../components/InputLabelled";
 import EyeIcon from "../../icons/EyeIcon";
 import Title, { SubTitle } from "../../components/Title";
 import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config";
-import { useSetRecoilState } from "recoil";
+import { useSetAtom } from "jotai";
 import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../recoil/auth";
 import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
 import { refreshTriggerState } from "../../components/Loader";
@@ -34,16 +34,16 @@ const Login = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showEncryptionKeyInput, setShowEncryptionKeyInput] = useState(false);
   const [loading, setLoading] = useState(false);
-  const setUser = useSetRecoilState(userState);
+  const setUser = useSetAtom(userState);
   // eslint-disable-next-line no-unused-vars
   const [_, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
-  const setOrganisation = useSetRecoilState(organisationState);
-  const setTeams = useSetRecoilState(teamsState);
-  const setUsers = useSetRecoilState(usersState);
-  const setDeletedUsers = useSetRecoilState(deletedUsersState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
+  const setOrganisation = useSetAtom(organisationState);
+  const setTeams = useSetAtom(teamsState);
+  const setUsers = useSetAtom(usersState);
+  const setDeletedUsers = useSetAtom(deletedUsersState);
+  const setCurrentTeam = useSetAtom(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
 
   const isFocused = useIsFocused();

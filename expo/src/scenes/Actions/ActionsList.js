@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { connectActionSheet } from "@expo/react-native-action-sheet";
 import ActionRow from "../../components/ActionRow";
 import Spinner from "../../components/Spinner";
@@ -8,7 +8,7 @@ import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyC
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { actionsFiltersState, TODO } from "../../recoil/actions";
-import { actionsByStatusAndTimeframeSelector, totalActionsByStatusSelector } from "../../recoil/selectors";
+import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../recoil/selectors";
 import { useIsFocused, useNavigation, useRoute } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
 import Button from "../../components/Button";
@@ -23,20 +23,20 @@ const keyExtractor = (action) => action._id;
 const limitSteps = 100;
 
 const ActionsList = ({ showActionSheetWithOptions }) => {
-  const flattenedServices = useRecoilValue(flattenedServicesSelector);
-  const organisation = useRecoilValue(organisationState);
-  const filters = useRecoilValue(actionsFiltersState);
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const organisation = useAtomValue(organisationState);
+  const filters = useAtomValue(actionsFiltersState);
   const navigation = useNavigation();
-  const loading = useRecoilValue(loadingState);
-  const user = useRecoilValue(userState);
+  const loading = useAtomValue(loadingState);
+  const user = useAtomValue(userState);
   const route = useRoute();
 
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
-  const actionsByStatusAndTimeframe = useRecoilValue(actionsByStatusAndTimeframeSelector({ status, timeframe, limit, filters }));
-  const total = useRecoilValue(totalActionsByStatusSelector({ status, timeframe, filters }));
+  const actionsByStatusAndTimeframe = useActionsByStatusAndTimeframeSelector(status, limit, timeframe, filters);
+  const total = useTotalActionsByStatusSelector(status, timeframe, filters);
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
 
