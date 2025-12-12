@@ -136,6 +136,10 @@ export default function Poubelle() {
           treatments: [treatment._id],
           medicalFiles: [],
           relsPersonPlaces: [],
+          reports: [],
+          places: [],
+          territoryObservations: [],
+          territories: [],
         },
       })
     ).then(([error]) => {
