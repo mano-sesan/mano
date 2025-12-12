@@ -43,9 +43,9 @@ test("test territories", async ({ page }) => {
   await page.getByRole("cell", { name: "Nombre de personnes non" }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Observation mise à jour").click();
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("cell", { name: "Nombre de personnes non" }).click();
   await page.getByRole("dialog", { name: "Modifier l'observation" }).getByRole("button", { name: "Supprimer" }).click();
+  await page.getByLabel("Supprimer l'observation").getByRole("button", { name: "Supprimer" }).click();
   await page.getByText("Suppression réussie").click();
 
   // Custom field territory
