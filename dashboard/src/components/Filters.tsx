@@ -161,6 +161,7 @@ const Filters = ({
     if (["yes-no"].includes(current.type)) return ["Oui", "Non", "Non renseigné"];
     if (["boolean"].includes(current.type)) return ["Oui", "Non"];
     if (current?.field === "outOfActiveList") return current.options;
+    if (current?.field === "outOfTeamsDuringPeriod") return current.options;
     if (current?.options?.length) return [...(current?.options || []), "Non renseigné"];
     return ["Non renseigné"];
   }

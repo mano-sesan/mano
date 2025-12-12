@@ -107,7 +107,7 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
   return allPersons;
 };
 
-const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons }) => {
+const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams }) => {
   const relativeFilters = [
     "startFollowBySelectedTeamDuringPeriod",
     "hasAtLeastOneConsultation",
@@ -118,7 +118,9 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
     "numberOfRencontres",
   ];
 
-  const activeFilters = filterPersons.filter((f) => f.value && !relativeFilters.includes(f.field) && f.field !== "outOfActiveList");
+  const activeFilters = filterPersons.filter(
+    (f) => f.value && !relativeFilters.includes(f.field) && f.field !== "outOfActiveList" && f.field !== "outOfTeamsDuringPeriod"
+  );
   const outOfActiveListFilter = filterPersons.find((f) => f.field === "outOfActiveList")?.value;
   const filterByStartFollowBySelectedTeamDuringPeriod = filterPersons.filter((f) => f.field === "startFollowBySelectedTeamDuringPeriod");
   const filterByNumberOfActions = filterPersons.filter((f) => f.field === "numberOfActions");
@@ -127,6 +129,7 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
   const filterByNumberOfPassages = filterPersons.filter((f) => f.field === "numberOfPassages");
   const filterByNumberOfRencontres = filterPersons.filter((f) => f.field === "numberOfRencontres");
   const filterByNumberOfTreatments = filterPersons.filter((f) => f.field === "numberOfTreatments");
+  const filterByOutOfTeamsDuringPeriod = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriod");
 
   const filterItemByTeam = (item, key) => {
     if (viewAllOrganisationData) return true;
@@ -155,10 +158,41 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
     isoStartDate: period.startDate ? dayjs(period.startDate).startOf("day").toISOString() : null,
     isoEndDate: period.endDate ? dayjs(period.endDate).startOf("day").add(1, "day").toISOString() : null,
   };
+
+  // Pre-compute team IDs for outOfTeamsDuringPeriod filter (optimization: avoid recomputing inside loop)
+  const outOfTeamsDuringPeriodTeamIds = filterByOutOfTeamsDuringPeriod?.value?.length
+    ? new Set(teams.filter((t) => filterByOutOfTeamsDuringPeriod.value.includes(t.name)).map((t) => t._id))
+    : null;
+
   for (let person of allPersons) {
     // get the persons concerned by filters
     if (!filterItem(activeFilters)(person)) continue;
     if (outOfActiveListFilter === "Oui" && !person.outOfActiveList) continue;
+
+    // Filter by team exit during period
+    if (outOfTeamsDuringPeriodTeamIds) {
+      // Check if person was removed from any of the selected teams during the period
+      let wasOutOfSelectedTeam = false;
+      for (const historyEntry of person.history || []) {
+        const historyDate = historyEntry.date;
+        if (!noPeriodSelected) {
+          if (historyDate < defaultIsoDates.isoStartDate) continue;
+          if (historyDate >= defaultIsoDates.isoEndDate) continue;
+        }
+
+        const outOfTeamsInformations = historyEntry.data?.outOfTeamsInformations;
+        if (outOfTeamsInformations) {
+          for (const info of outOfTeamsInformations) {
+            if (outOfTeamsDuringPeriodTeamIds.has(info.team)) {
+              wasOutOfSelectedTeam = true;
+              break;
+            }
+          }
+        }
+        if (wasOutOfSelectedTeam) break;
+      }
+      if (!wasOutOfSelectedTeam) continue;
+    }
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
 
     if (filterByNumberOfTreatments.length) {
@@ -543,8 +577,9 @@ const Stats = () => {
       filterPersons,
       selectedTeamsObjectWithOwnPeriod,
       viewAllOrganisationData,
+      teams,
     });
-  }, [period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons]);
+  }, [period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams]);
 
   const filterableActionsCategories = useMemo(() => {
     if (!actionsCategoriesGroups.length) return ["-- Aucune --", ...allCategories];
@@ -667,15 +702,16 @@ const Stats = () => {
   // Add enabled custom fields in filters.
   const filterPersonsWithAllFields = useMemo(() => {
     const filterBase = [
-      ...filterPersonsBase.map((f) =>
-        f.field !== "outOfActiveList"
-          ? f
-          : {
-              ...f,
-              options: ["Oui", "Non", "Oui et non (c'est-à-dire tout le monde)"],
-              type: "multi-choice",
-            }
-      ),
+      ...filterPersonsBase.map((f) => {
+        if (f.field === "outOfActiveList") {
+          return {
+            ...f,
+            options: ["Oui", "Non", "Oui et non (c'est-à-dire tout le monde)"],
+            type: "multi-choice",
+          };
+        }
+        return f;
+      }),
       // On considère que les champs fieldsPersonsCustomizableOptions sont toujours activés
       // Parce qu'il s'agit uniquement du champ "Motif de sortie de file active" (outOfActiveListReasons)
       // et qu'un vieux bug qu'on pouvait les désactiver.
@@ -695,6 +731,14 @@ const Stats = () => {
           .map((a) => ({ field: a.name, ...a, category: "flattenedConsultations" }))
       );
     }
+    // Stats-only filter: Sortie d'équipe (defined here because it needs teams which aren't available in filterPersonsBaseSelector)
+    filterBase.push({
+      field: "outOfTeamsDuringPeriod",
+      name: "outOfTeamsDuringPeriod",
+      label: "Sortie d'équipe",
+      type: "multi-choice",
+      options: teams.map((t) => t.name),
+    });
     return filterBase;
   }, [
     filterPersonsBase,
@@ -704,6 +748,7 @@ const Stats = () => {
     consultationFields,
     currentTeam,
     user,
+    teams,
   ]);
 
   const availableTabs = tabs.filter((tabCaption) => {
