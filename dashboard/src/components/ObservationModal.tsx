@@ -89,6 +89,8 @@ function ObservationContent({
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
+  const [deleteRencontresChecked, setDeleteRencontresChecked] = useState(true);
 
   const rencontres = useAtomValue<Array<RencontreInstance>>(rencontresState);
   const { refresh } = useDataLoader();
@@ -108,21 +110,17 @@ function ObservationContent({
     return tryFetchExpectOk(async () => API.put({ path: `/territory-observation/${obs._id}`, body: await encryptObs(customFieldsObs)(obs) }));
   };
 
-  const onDelete = async (id: TerritoryObservationInstance["_id"]) => {
-    const confirmDelete = window.confirm("Êtes-vous sûr de vouloir supprimer cette observation ?");
-    if (!confirmDelete) return;
+  const openDeleteConfirmModal = () => {
+    setDeleteRencontresChecked(true); // Reset to checked by default when opening
+    setIsDeleteConfirmModalOpen(true);
+  };
 
-    let deleteRencontres = false;
-    if (rencontresForObs.length > 0) {
-      deleteRencontres = window.confirm(
-        `Cette observation a ${rencontresForObs.length} rencontre${rencontresForObs.length > 1 ? "s" : ""} associée${rencontresForObs.length > 1 ? "s" : ""}.\n\nVoulez-vous également ${rencontresForObs.length > 1 ? "les" : "la"} supprimer ?`
-      );
-    }
-
+  const confirmDelete = async () => {
+    setIsDeleteConfirmModalOpen(false);
     setIsDeleting(true);
 
     // Delete rencontres if user chose to
-    if (deleteRencontres) {
+    if (deleteRencontresChecked && rencontresForObs.length > 0) {
       let rencontreDeleteSuccess = true;
       for (const rencontre of rencontresForObs) {
         const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/rencontre/${rencontre._id}` }));
@@ -135,13 +133,13 @@ function ObservationContent({
       }
     }
 
-    const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${id}` }));
+    const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/territory-observation/${observation._id}` }));
     if (error) {
       setIsDeleting(false);
       return;
     }
     await refresh();
-    toast.success(deleteRencontres && rencontresForObs.length > 0 ? "Observation et rencontres supprimées" : "Suppression réussie");
+    toast.success(deleteRencontresChecked && rencontresForObs.length > 0 ? "Observation et rencontres supprimées" : "Suppression réussie");
     // We do not set isDeleting to false here because the modal will be closed
     // and the onAfterLeave will be called, which will set it to false
     onClose();
@@ -438,12 +436,7 @@ function ObservationContent({
           Annuler
         </button>
         {observation?._id ? (
-          <button
-            className="button-destructive !tw-ml-0"
-            type="button"
-            onClick={() => onDelete(observation._id)}
-            disabled={isDeleting || isSubmitting}
-          >
+          <button className="button-destructive !tw-ml-0" type="button" onClick={openDeleteConfirmModal} disabled={isDeleting || isSubmitting}>
             {isDeleting ? "Suppression..." : "Supprimer"}
           </button>
         ) : null}
@@ -483,6 +476,32 @@ function ObservationContent({
           }
         />
       )}
+
+      <ModalContainer open={isDeleteConfirmModalOpen} onClose={() => setIsDeleteConfirmModalOpen(false)} size="lg">
+        <ModalHeader title="Supprimer l'observation" />
+        <ModalBody className="tw-py-4">
+          <p className="tw-text-center tw-mb-4">Êtes-vous sûr de vouloir supprimer cette observation ?</p>
+          {rencontresForObs.length > 0 && (
+            <label className="tw-flex tw-items-center tw-justify-center tw-gap-2 tw-cursor-pointer">
+              <input
+                type="checkbox"
+                checked={deleteRencontresChecked}
+                onChange={(e) => setDeleteRencontresChecked(e.target.checked)}
+                className="tw-w-4 tw-h-4"
+              />
+              <span>Supprimer les rencontres liées ({rencontresForObs.length})</span>
+            </label>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" className="button-cancel" onClick={() => setIsDeleteConfirmModalOpen(false)} disabled={isDeleting}>
+            Annuler
+          </button>
+          <button type="button" className="button-destructive" onClick={confirmDelete} disabled={isDeleting}>
+            {isDeleting ? "Suppression..." : "Supprimer"}
+          </button>
+        </ModalFooter>
+      </ModalContainer>
     </>
   );
 }
