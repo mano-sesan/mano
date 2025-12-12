@@ -4,7 +4,7 @@ import API from "../services/api";
 import ButtonReset from "./ButtonReset";
 import { Search as SearchIcon } from "../icons";
 import { MyTextInput } from "./MyText";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../recoil/auth";
 
 const Search = ({
@@ -23,7 +23,7 @@ const Search = ({
   const searchTimeout = useRef(null);
   const keyboardDimissTimeout = useRef(null);
 
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
 
   const onSearch = async (search) => {
     if (onChange) {

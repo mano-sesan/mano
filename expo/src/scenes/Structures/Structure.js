@@ -12,7 +12,7 @@ import colors from "../../utils/colors";
 import Spacer from "../../components/Spacer";
 import PinIcon from "../../icons/PinIcon";
 import PhoneIcon from "../../icons/PhoneIcon";
-import { useRecoilState } from "recoil";
+import { useAtom } from "jotai";
 import { structuresState } from "../../recoil/structures";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import StructuresCategoriesModalSelect from "../../components/StructuresCategoriesModalSelect";
@@ -33,7 +33,7 @@ const castToStructure = (structure = {}) => ({
 });
 
 const Structure = ({ navigation, route }) => {
-  const [structures, setStructures] = useRecoilState(structuresState);
+  const [structures, setStructures] = useAtom(structuresState);
   const [structureDB, setStructureDB] = useState(
     () => structures.find((s) => s._id === route.params?.structure?._id),
     [route.params?.structure?._id, structures]

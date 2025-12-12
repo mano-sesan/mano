@@ -9,7 +9,7 @@ import colors from "../utils/colors";
 import { DONE, TODO } from "../recoil/actions";
 import UserName from "./UserName";
 import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { userState } from "../recoil/auth";
 import { StyleSheet } from "react-native";
 import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
@@ -24,9 +24,9 @@ const ConsultationRow = ({
   showPseudo,
   onPseudoPress,
 }) => {
-  const personsObject = useRecoilValue(itemsGroupedByPersonSelector);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
-  const me = useRecoilValue(userState);
+  const me = useAtomValue(userState);
 
   const name = disableConsultationRow(consultation, me) ? "" : consultation.name || `Consultation ${consultation.type}`;
   const type = disableConsultationRow(consultation, me) ? "" : consultation.type;

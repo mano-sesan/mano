@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components/native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
@@ -32,16 +32,16 @@ import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, editable, onEdit, isUpdateDisabled, backgroundColor, onChange }) => {
-  const organisation = useRecoilValue(organisationState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
 
-  const customFieldsMedicalFile = useRecoilValue(customFieldsMedicalFileSelector);
-  const flattenedCustomFieldsPersons = useRecoilValue(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
-  const allConsultations = useRecoilValue(consultationsState);
-  const allTreatments = useRecoilValue(treatmentsState);
-  const setAllMedicalFiles = useSetRecoilState(medicalFileState);
+  const allConsultations = useAtomValue(consultationsState);
+  const allTreatments = useAtomValue(treatmentsState);
+  const setAllMedicalFiles = useSetAtom(medicalFileState);
 
   const consultations = useMemo(
     () =>
@@ -53,7 +53,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === personDB?._id), [allTreatments, personDB?._id]);
 
-  const populatedPersons = useRecoilValue(itemsGroupedByPersonSelector);
+  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector);
   const populatedPerson = useMemo(() => populatedPersons[personDB?._id] || {}, [populatedPersons, personDB?._id]);
 
   const medicalFileDB = populatedPerson.medicalFile;

@@ -22,7 +22,7 @@ import Label from "../../components/Label";
 import Tags from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../recoil/actions";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
 import API from "../../services/api";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
@@ -253,14 +253,14 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
 };
 
 const Action = ({ navigation, route }) => {
-  const actions = useRecoilValue(actionsState);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const allPersonsObject = useRecoilValue(itemsGroupedByPersonSelector);
-  const groups = useRecoilValue(groupsState);
-  const [comments, setComments] = useRecoilState(commentsState);
-  const currentTeam = useRecoilValue(currentTeamState);
+  const actions = useAtomValue(actionsState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const groups = useAtomValue(groupsState);
+  const [comments, setComments] = useAtom(commentsState);
+  const currentTeam = useAtomValue(currentTeamState);
 
   const actionDB = useMemo(() => {
     let existingAction = actions.find((a) => a._id === route.params?.action?._id);

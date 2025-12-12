@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -15,13 +15,13 @@ import API from "../../services/api";
 const Passage = ({ navigation, route }) => {
   const personId = route.params.person._id;
   const isNewPassage = !route.params.passage;
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
   const [passage, setPassage] = useState(
     () => route.params.passage || { date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId }
   );
   const [submitting, setSubmitting] = useState(false);
-  const [passages, setPassages] = useRecoilState(passagesState);
+  const [passages, setPassages] = useAtom(passagesState);
 
   const createPassage = async () => {
     const response = await API.post({

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -15,13 +15,13 @@ import API from "../../services/api";
 const Rencontre = ({ navigation, route }) => {
   const personId = route.params.person._id;
   const isNewRencontre = !route.params.rencontre;
-  const currentTeam = useRecoilValue(currentTeamState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const user = useAtomValue(userState);
   const [rencontre, setRencontre] = useState(
     () => route.params.rencontre || { date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId }
   );
   const [submitting, setSubmitting] = useState(false);
-  const [rencontres, setRencontres] = useRecoilState(rencontresState);
+  const [rencontres, setRencontres] = useAtom(rencontresState);
 
   const createRencontre = async () => {
     const response = await API.post({

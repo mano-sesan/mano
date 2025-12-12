@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -24,11 +24,11 @@ import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
 
 const Treatment = ({ navigation, route }) => {
-  const setAllTreatments = useSetRecoilState(treatmentsState);
+  const setAllTreatments = useSetAtom(treatmentsState);
   const personDB = route?.params?.personDB;
   const treatmentDB = route?.params?.treatmentDB;
   const isNew = !treatmentDB?._id;
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
 
   const [name, setName] = useState(treatmentDB?.name || "");
   const [dosage, setDosage] = useState(treatmentDB?.dosage || "");

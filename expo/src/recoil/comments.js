@@ -1,14 +1,9 @@
-import { atom } from "recoil";
-import { storage } from "../services/dataManagement";
+import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 
-export const commentsState = atom({
-  key: "commentsState",
-  default: JSON.parse(storage.getString("comment") || "[]"),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set("comment", JSON.stringify(newValue)))],
-});
+export const commentsState = atomWithCache("comment", []);
 
 const encryptedFields = ["comment", "person", "group", "action", "team", "user", "date", "urgent"];
 

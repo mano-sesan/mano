@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { selector, useRecoilValue } from "recoil";
+import { atom, useAtomValue } from "jotai";
 import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
 import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../recoil/actions";
 import Label from "./Label";
@@ -14,37 +14,34 @@ import Search from "./Search";
 import styled from "styled-components/native";
 import colors from "../utils/colors";
 
-const categoriesSortedByMostUsedSelector = selector({
-  key: "categoriesSortedByMostUsedSelector",
-  get: ({ get }) => {
-    const actions = get(actionsState);
-    const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
-    if (!actions?.length) return [];
+const categoriesSortedByMostUsedSelector = atom((get) => {
+  const actions = get(actionsState);
+  const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+  if (!actions?.length) return [];
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const categories = {};
-    for (const action of actions) {
-      if (!action.categories) continue;
-      if (new Date(action.createdAt) < thirtyDaysAgo) continue;
-      for (const category of action.categories) {
-        if (!categories[category]) categories[category] = 0;
-        categories[category]++;
-      }
+  const categories = {};
+  for (const action of actions) {
+    if (!action.categories) continue;
+    if (new Date(action.createdAt) < thirtyDaysAgo) continue;
+    for (const category of action.categories) {
+      if (!categories[category]) categories[category] = 0;
+      categories[category]++;
     }
+  }
 
-    return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
-      .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
-      .map(([category]) => category)
-      .filter((category) => flattenedActionsCategories.includes(category));
-  },
+  return Object.entries(categories) // [[{category}, {count}], [{category}, {count}]]
+    .sort(([_, countCat1], [__, countCat2]) => countCat2 - countCat1)
+    .map(([category]) => category)
+    .filter((category) => flattenedActionsCategories.includes(category));
 });
 
 const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMostUsed }) => {
   const [open, setOpen] = useState(false);
-  const allGroups = useRecoilValue(actionsCategoriesSelector);
-  const categoriesSortedByMostUsed = useRecoilValue(categoriesSortedByMostUsedSelector);
+  const allGroups = useAtomValue(actionsCategoriesSelector);
+  const categoriesSortedByMostUsed = useAtomValue(categoriesSortedByMostUsedSelector);
 
   const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);

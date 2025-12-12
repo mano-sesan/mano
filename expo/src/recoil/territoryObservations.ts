@@ -1,32 +1,24 @@
+import { atom } from "jotai";
+import { atomWithCache } from "@/store";
 import { organisationState } from "./auth";
-import { atom, selector } from "recoil";
-import { storage } from "../services/dataManagement";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { CustomField } from "@/types/field";
 
-export const territoryObservationsState = atom({
-  key: "territoryObservationsState",
-  default: JSON.parse(storage.getString("territory-observation") || "[]"),
-  effects: [({ onSet }) => onSet(async (newValue) => storage.set("territory-observation", JSON.stringify(newValue)))],
+export const territoryObservationsState = atomWithCache<Array<TerritoryObservationInstance>>("territory-observation", []);
+
+export const customFieldsObsSelector = atom((get) => {
+  const organisation = get(organisationState)!;
+  if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
+  return defaultCustomFields;
 });
 
-export const customFieldsObsSelector = selector({
-  key: "customFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
-    return defaultCustomFields;
-  },
-});
-
-export const groupedCustomFieldsObsSelector = selector({
-  key: "groupedCustomFieldsObsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
-    return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
-  },
+export const groupedCustomFieldsObsSelector = atom((get) => {
+  const organisation = get(organisationState)!;
+  if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
+  return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
 });
 
 export const defaultCustomFields = [
@@ -91,9 +83,9 @@ export const defaultCustomFields = [
 
 const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
 
-export const prepareObsForEncryption = (customFields) => (obs) => {
+export const prepareObsForEncryption = (customFields: CustomField[]) => (obs: TerritoryObservationInstance) => {
   try {
-    if (!looseUuidRegex.test(obs.territory)) {
+    if (!looseUuidRegex.test(obs.territory || "")) {
       throw new Error("Observation is missing territory");
     }
     if (!looseUuidRegex.test(obs.user)) {
@@ -114,7 +106,7 @@ export const prepareObsForEncryption = (customFields) => (obs) => {
     throw error;
   }
   const encryptedFields = [...customFields.map((f) => f.name), ...compulsoryEncryptedFields];
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
     decrypted[field] = obs[field];
   }

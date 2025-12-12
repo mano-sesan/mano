@@ -7,15 +7,15 @@ import ScrollContainer from "../../components/ScrollContainer";
 import { MyText } from "../../components/MyText";
 import Title from "../../components/Title";
 import ScreenTitle from "../../components/ScreenTitle";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { refreshTriggerState } from "../../components/Loader";
 
 const TeamBody = ({ onSelect }) => {
   const [loading, setLoading] = useState(false);
-  const user = useRecoilValue(userState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const user = useAtomValue(userState);
+  const setCurrentTeam = useSetAtom(currentTeamState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const onTeamSelected = async (teamIndex) => {
     setLoading(teamIndex);

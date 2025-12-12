@@ -1,12 +1,12 @@
 import React from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import { deletedUsersState, usersState } from "../recoil/auth";
 import { MyText } from "./MyText";
 
 const UserName = ({ id, caption }) => {
-  const users = useRecoilValue(usersState);
-  const deletedUsers = useRecoilValue(deletedUsersState);
+  const users = useAtomValue(usersState);
+  const deletedUsers = useAtomValue(deletedUsersState);
 
   const user = users.find((u) => u._id === id) || deletedUsers.find((u) => u._id === id);
 

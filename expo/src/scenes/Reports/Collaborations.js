@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import API from "../../services/api";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -17,17 +17,17 @@ import { currentTeamReportsSelector } from "./selectors";
 import { refreshTriggerState } from "../../components/Loader";
 
 const Collaborations = ({ route, navigation }) => {
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [collaboration, setCollaboration] = useState("");
   const [posting, setPosting] = useState(false);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const teamsReports = useRecoilValue(currentTeamReportsSelector);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const teamsReports = useAtomValue(currentTeamReportsSelector);
 
   const day = route.params?.day;
   const reportDB = useMemo(() => teamsReports.find((r) => r.date === day), [teamsReports, day]);
 
-  const [organisation, setOrganisation] = useRecoilState(organisationState);
+  const [organisation, setOrganisation] = useAtom(organisationState);
   const collaborations = useMemo(() => organisation.collaborations, [organisation]);
   const data = useMemo(() => {
     if (!collaboration) return collaborations;

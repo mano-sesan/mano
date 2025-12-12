@@ -7,10 +7,10 @@ import { ListEmptyTerritories, ListNoMoreTerritories } from "../../components/Li
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
-import { territoriesWithObservationsSearchSelector } from "../../recoil/territory";
+import { useTerritoriesWithObservationsSearchSelector } from "../../recoil/territory";
 import RowContainer from "../../components/RowContainer";
 import { MyText } from "../../components/MyText";
 import styled from "styled-components/native";
@@ -18,12 +18,12 @@ import { dayjsInstance } from "../../services/dateDayjs";
 
 const TerritoriesList = () => {
   const [search, setSearch] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
   const navigation = useNavigation();
 
-  const loading = useRecoilValue(loadingState);
-  const territories = useRecoilValue(territoriesWithObservationsSearchSelector({ search }));
+  const loading = useAtomValue(loadingState);
+  const territories = useTerritoriesWithObservationsSearchSelector(search);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });

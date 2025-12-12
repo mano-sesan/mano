@@ -1,14 +1,24 @@
-import { atom } from "recoil";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { TreatmentInstance } from "@/types/treatment";
 
-export const treatmentsState = atom({
-  key: "treatmentsState",
-  default: [],
-});
+export const treatmentsState = atom<TreatmentInstance[]>([]);
 
-const encryptedFields = ["person", "user", "startDate", "endDate", "name", "dosage", "frequency", "indication", "documents", "comments", "history"];
+const encryptedFields: Array<keyof TreatmentInstance> = [
+  "person",
+  "user",
+  "startDate",
+  "endDate",
+  "name",
+  "dosage",
+  "frequency",
+  "indication",
+  "documents",
+  "comments",
+  "history",
+];
 
 export const allowedTreatmentFieldsInHistory = [
   { name: "person", label: "Personne suivie" },
@@ -20,7 +30,7 @@ export const allowedTreatmentFieldsInHistory = [
   { name: "indication", label: "Faite le" },
 ];
 
-export const prepareTreatmentForEncryption = (treatment) => {
+export const prepareTreatmentForEncryption = (treatment: TreatmentInstance) => {
   try {
     if (!looseUuidRegex.test(treatment.person)) {
       throw new Error("Treatment is missing person");
@@ -36,7 +46,7 @@ export const prepareTreatmentForEncryption = (treatment) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
     decrypted[field] = treatment[field];
   }

@@ -10,7 +10,7 @@ import ButtonsContainer from "../../components/ButtonsContainer";
 import TerritoryMultiCheckBoxes from "../../components/MultiCheckBoxes/TerritoryMultiCheckBoxes";
 import SubList from "../../components/SubList";
 import TerritoryObservationRow from "./TerritoryObservationRow";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useAtom, useAtomValue } from "jotai";
 import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
 import { territoryObservationsState } from "../../recoil/territoryObservations";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -26,12 +26,12 @@ const castToTerritory = (territory = {}) => ({
 });
 
 const Territory = ({ route, navigation }) => {
-  const user = useRecoilValue(userState);
-  const [territories, setTerritories] = useRecoilState(territoriesState);
+  const user = useAtomValue(userState);
+  const [territories, setTerritories] = useAtom(territoriesState);
   const [territoryDB, setTerritoryDB] = useState(() => territories.find((territory) => territory._id === route.params?.territory?._id));
 
   const [territory, setTerritory] = useState(castToTerritory(route?.params?.territory));
-  const [allTerritoryObservations, setTerritoryObservations] = useRecoilState(territoryObservationsState);
+  const [allTerritoryObservations, setTerritoryObservations] = useAtom(territoryObservationsState);
   const territoryObservations = useMemo(() => {
     return allTerritoryObservations
       .filter((obs) => obs.territory === territoryDB?._id)

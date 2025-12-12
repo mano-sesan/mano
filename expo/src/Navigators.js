@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as Sentry from "@sentry/react-native";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, InteractionManager, AppState } from "react-native";
@@ -8,7 +7,7 @@ import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { AgendaIcon, PersonIcon, TerritoryIcon } from "./icons";
-import { RecoilRoot, useRecoilValue, useResetRecoilState } from "recoil";
+import { Provider, useAtomValue, useSetAtom } from "jotai";
 import logEvents from "./services/logEvents";
 import Login from "./scenes/Login/Login";
 import Action from "./scenes/Actions/Action";
@@ -216,9 +215,9 @@ const MenuNavigator = () => {
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
-  const user = useRecoilValue(userState);
-  const organisation = useRecoilValue(organisationState);
-  const fullScreen = useRecoilValue(loaderFullScreenState);
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const fullScreen = useAtomValue(loaderFullScreenState);
 
   if (fullScreen) return null;
 
@@ -309,16 +308,16 @@ const App = () => {
   const appState = useRef(AppState.currentState);
   const appStateListener = useRef(null);
   const navigationRef = useNavigationContainerRef();
-  const loading = useRecoilValue(loadingState);
-  const progress = useRecoilValue(progressState);
-  const fullScreen = useRecoilValue(loaderFullScreenState);
+  const loading = useAtomValue(loadingState);
+  const progress = useAtomValue(progressState);
+  const fullScreen = useAtomValue(loaderFullScreenState);
 
   const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const resetOrganisation = useResetRecoilState(organisationState);
-  const resetUser = useResetRecoilState(userState);
-  const resetTeams = useResetRecoilState(teamsState);
-  const resetCurrentTeam = useResetRecoilState(currentTeamState);
+  const resetOrganisation = useSetAtom(organisationState);
+  const resetUser = useSetAtom(userState);
+  const resetTeams = useSetAtom(teamsState);
+  const resetCurrentTeam = useSetAtom(currentTeamState);
   const [_, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
   const [resetLoginStackKey, setResetLoginStackKey] = useState(0);
   const clearAllRef = useRef(false);
@@ -363,10 +362,10 @@ const App = () => {
       setLastRefresh(0);
     }
     InteractionManager.runAfterInteractions(async () => {
-      resetUser();
-      resetOrganisation();
-      resetTeams();
-      resetCurrentTeam();
+      resetUser(null);
+      resetOrganisation(null);
+      resetTeams([]);
+      resetCurrentTeam(null);
       if (clearAllRef.current) {
         Alert.alert("Déconnexion réussie", "Vous pouvez aussi supprimer Mano pour plus de sécurité");
         clearAllRef.current = false;
@@ -420,7 +419,7 @@ const App = () => {
 };
 
 export default () => (
-  <RecoilRoot>
+  <Provider>
     <App />
-  </RecoilRoot>
+  </Provider>
 );

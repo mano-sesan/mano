@@ -1,4 +1,4 @@
-import { useSetRecoilState } from "recoil";
+import { useSetAtom } from "jotai";
 import { personsState } from "./persons";
 import { territoryObservationsState } from "./territoryObservations";
 import { territoriesState } from "./territory";
@@ -12,17 +12,17 @@ import { groupsState } from "./groups";
 import { relsPersonPlaceState } from "./relPersonPlace";
 
 const useResetAllCachedDataRecoilStates = () => {
-  const setPersons = useSetRecoilState(personsState);
-  const setActions = useSetRecoilState(actionsState);
-  const setPlaces = useSetRecoilState(placesState);
-  const setComments = useSetRecoilState(commentsState);
-  const setPassages = useSetRecoilState(passagesState);
-  const setRencontres = useSetRecoilState(rencontresState);
-  const setTerritories = useSetRecoilState(territoriesState);
-  const setObservations = useSetRecoilState(territoryObservationsState);
-  const setReports = useSetRecoilState(reportsState);
-  const setGroups = useSetRecoilState(groupsState);
-  const setRelPersonPlaces = useSetRecoilState(relsPersonPlaceState);
+  const setPersons = useSetAtom(personsState);
+  const setActions = useSetAtom(actionsState);
+  const setPlaces = useSetAtom(placesState);
+  const setComments = useSetAtom(commentsState);
+  const setPassages = useSetAtom(passagesState);
+  const setRencontres = useSetAtom(rencontresState);
+  const setTerritories = useSetAtom(territoriesState);
+  const setObservations = useSetAtom(territoryObservationsState);
+  const setReports = useSetAtom(reportsState);
+  const setGroups = useSetAtom(groupsState);
+  const setRelPersonPlaces = useSetAtom(relsPersonPlaceState);
 
   const setAll = () => {
     setPersons([]);

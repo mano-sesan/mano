@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
 import Label from "./Label";
 import { MyText } from "./MyText";
@@ -16,7 +16,7 @@ import colors from "../utils/colors";
 
 const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }) => {
   const [open, setOpen] = useState(false);
-  const allGroups = useRecoilValue(structuresCategoriesSelector);
+  const allGroups = useAtomValue(structuresCategoriesSelector);
 
   const [search, setSearch] = useState("");
   const [groupSelected, setGroupSelected] = useState(allGroups[0].groupTitle);

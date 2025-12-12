@@ -3,11 +3,11 @@ import SubHeader from "../../components/SubHeader";
 import colors from "../../utils/colors";
 import DocumentsManager from "../../components/DocumentsManager";
 import ScrollContainer from "../../components/ScrollContainer";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../../recoil/auth";
 
 const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) => {
-  const organisation = useRecoilValue(organisationState);
+  const organisation = useAtomValue(organisationState);
   const defaultFolders = (organisation.defaultPersonsFolders || []).map((folder) => ({
     ...folder,
     movable: false,

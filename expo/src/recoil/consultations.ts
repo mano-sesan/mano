@@ -1,15 +1,15 @@
-import { atom, selector } from "recoil";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { organisationState } from "./auth";
+import { ConsultationInstance } from "@/types/consultation";
+import { CustomFieldsGroup } from "@/types/field";
+import { UserInstance } from "@/types/user";
 
-export const consultationsState = atom({
-  key: "consultationsState",
-  default: [],
-});
+export const consultationsState = atom<ConsultationInstance[]>([]);
 
-export const encryptedFields = [
+export const encryptedFields: Array<keyof ConsultationInstance> = [
   "name",
   "type",
   "person",
@@ -30,54 +30,45 @@ export const encryptedFields = [
   "constantes-tension-arterielle-diastolique",
 ];
 
-export const consultationFieldsSelector = selector({
-  key: "consultationFieldsSelector",
-  get: ({ get }) => {
-    const organisation = get(organisationState);
-    return organisation?.consultations || [];
-  },
+export const consultationFieldsSelector = atom((get) => {
+  const organisation = get(organisationState);
+  return organisation?.consultations || [];
 });
 
-export const flattenedCustomFieldsConsultationsSelector = selector({
-  key: "flattenedCustomFieldsConsultationsSelector",
-  get: ({ get }) => {
-    const customFieldsConsultationsSections = get(consultationFieldsSelector);
-    const customFieldsConsultations = [];
-    for (const section of customFieldsConsultationsSections) {
-      for (const field of section.fields) {
-        customFieldsConsultations.push(field);
-      }
+export const flattenedCustomFieldsConsultationsSelector = atom((get) => {
+  const customFieldsConsultationsSections = get(consultationFieldsSelector);
+  const customFieldsConsultations = [];
+  for (const section of customFieldsConsultationsSections) {
+    for (const field of section.fields) {
+      customFieldsConsultations.push(field);
     }
-    return customFieldsConsultations;
-  },
+  }
+  return customFieldsConsultations;
 });
 
-/* Other utils selector */
+/* Other utils atom */
 
-export const consultationsFieldsIncludingCustomFieldsSelector = selector({
-  key: "consultationsFieldsIncludingCustomFieldsSelector",
-  get: ({ get }) => {
-    const flattenedCustomFieldsConsultations = get(flattenedCustomFieldsConsultationsSelector);
-    return [
-      { name: "name", label: "Nom" },
-      { name: "type", label: "Type" },
-      { name: "onlyVisibleBy", label: "Seulement visible par moi" },
-      { name: "person", label: "Personne suivie" },
-      { name: "teams", label: ":Equipe(s) en charge" },
-      { name: "completedAt", label: "Faite le" },
-      { name: "dueAt", label: "À faire le" },
-      { name: "status", label: "Status" },
-      ...flattenedCustomFieldsConsultations.map((f) => {
-        return {
-          name: f.name,
-          label: f.label,
-        };
-      }),
-    ];
-  },
+export const consultationsFieldsIncludingCustomFieldsSelector = atom((get) => {
+  const flattenedCustomFieldsConsultations = get(flattenedCustomFieldsConsultationsSelector);
+  return [
+    { name: "name", label: "Nom" },
+    { name: "type", label: "Type" },
+    { name: "onlyVisibleBy", label: "Seulement visible par moi" },
+    { name: "person", label: "Personne suivie" },
+    { name: "teams", label: ":Equipe(s) en charge" },
+    { name: "completedAt", label: "Faite le" },
+    { name: "dueAt", label: "À faire le" },
+    { name: "status", label: "Status" },
+    ...flattenedCustomFieldsConsultations.map((f) => {
+      return {
+        name: f.name,
+        label: f.label,
+      };
+    }),
+  ];
 });
 
-export const prepareConsultationForEncryption = (customFieldsConsultations) => (consultation) => {
+export const prepareConsultationForEncryption = (customFieldsConsultations: CustomFieldsGroup[]) => (consultation: ConsultationInstance) => {
   try {
     if (!looseUuidRegex.test(consultation.person)) {
       throw new Error("Consultation is missing person");
@@ -100,7 +91,7 @@ export const prepareConsultationForEncryption = (customFieldsConsultations) => (
   }
   const consultationTypeCustomFields = customFieldsConsultations.find((consult) => consult.name === consultation.type)?.fields || [];
   const encryptedFieldsIncludingCustom = [...consultationTypeCustomFields.map((f) => f.name), ...encryptedFields];
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFieldsIncludingCustom) {
     decrypted[field] = consultation[field];
   }
@@ -122,18 +113,18 @@ export const prepareConsultationForEncryption = (customFieldsConsultations) => (
 
 export const defaultConsultationFields = { isConsultation: true, withTime: true };
 
-export const formatConsultation = (consultation) => {
+export const formatConsultation = (consultation: ConsultationInstance) => {
   return { ...consultation, ...defaultConsultationFields };
 };
 
-export const disableConsultationRow = (actionOrConsultation, user) => {
+export const disableConsultationRow = (actionOrConsultation: any, user: UserInstance) => {
   if (!actionOrConsultation.isConsultation) return false;
   if (!user.healthcareProfessional) return true;
   if (!actionOrConsultation.onlyVisibleBy?.length) return false;
   return !actionOrConsultation.onlyVisibleBy.includes(user._id);
 };
 
-export const consultationIsVisibleByMe = (consultation, me) => {
+export const consultationIsVisibleByMe = (consultation: ConsultationInstance, me: UserInstance) => {
   if (!me?.healthcareProfessional) return false;
   if (!consultation?.onlyVisibleBy?.length) return true;
   return consultation.onlyVisibleBy.includes(me._id);

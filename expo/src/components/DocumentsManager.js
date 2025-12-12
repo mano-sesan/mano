@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Alert, Modal, View, Text, TouchableOpacity, Linking } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import ScrollContainer from "./ScrollContainer";
 import Button from "./Button";
 import API from "../services/api";
@@ -97,7 +97,7 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 // La liste des documents en tant que telle.
 const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
   const [selectedFolder, setSelectedFolder] = useState("root");
-  const user = useRecoilValue(userState);
+  const user = useAtomValue(userState);
   const [asset, setAsset] = useState(null);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -117,26 +117,22 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
       async (buttonIndex) => {
         if (options[buttonIndex] === "Prendre une photo") {
           setLoading("camera");
-          
+
           // Use the new camera permission hook
           if (!cameraPermissionInformation?.granted) {
             const permissionResult = await requestCameraPermission();
             if (!permissionResult.granted) {
-              Alert.alert(
-                "Permission requise",
-                "L'accès à l'appareil photo est nécessaire pour prendre des photos.",
-                [
-                  { text: "Annuler", style: "cancel" },
-                  { text: "Réglages", onPress: () => Linking.openSettings() }
-                ]
-              );
+              Alert.alert("Permission requise", "L'accès à l'appareil photo est nécessaire pour prendre des photos.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Réglages", onPress: () => Linking.openSettings() },
+              ]);
               reset();
               return;
             }
           }
-          
+
           const result = await ImagePicker.launchCameraAsync({
-            mediaTypes: ['images'],
+            mediaTypes: ["images"],
             base64: true,
             quality: 1,
           });
@@ -144,26 +140,22 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
         }
         if (options[buttonIndex] === "Bibliothèque d'images") {
           setLoading("photoLibrary");
-          
+
           // Use the new media library permission hook
           if (!mediaLibraryPermissionInformation?.granted) {
             const permissionResult = await requestMediaLibraryPermission();
             if (!permissionResult.granted) {
-              Alert.alert(
-                "Permission requise",
-                "L'accès à la bibliothèque de photos est nécessaire pour sélectionner des images.",
-                [
-                  { text: "Annuler", style: "cancel" },
-                  { text: "Réglages", onPress: () => Linking.openSettings() }
-                ]
-              );
+              Alert.alert("Permission requise", "L'accès à la bibliothèque de photos est nécessaire pour sélectionner des images.", [
+                { text: "Annuler", style: "cancel" },
+                { text: "Réglages", onPress: () => Linking.openSettings() },
+              ]);
               reset();
               return;
             }
           }
-          
+
           const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
+            mediaTypes: ["images"],
             base64: true,
             quality: 1,
           });
@@ -186,7 +178,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
             //   "type": "image/jpeg",
             //   "uri": "content://com.android.providers.media.documents/document/image%3A1000000023"
             // }]
-            const base64 = await ReactNativeBlobUtil.fs.readFile(document.uri, 'base64');
+            const base64 = await ReactNativeBlobUtil.fs.readFile(document.uri, "base64");
             setAsset({
               ...document,
               type: "document",
@@ -203,7 +195,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
             reset();
           }
         }
-      },
+      }
     );
   };
 
@@ -269,7 +261,7 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
       };
     }),
     "Dossier racine",
-    defaultParent,
+    defaultParent
   );
   const folders = flattenTreeForFolderSelect(tree);
 
@@ -349,7 +341,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
         if (options[buttonIndex] === "Renommer") {
           setIsRenaming(true);
         }
-      },
+      }
     );
   };
 
@@ -381,21 +373,21 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                 if (DocumentViewer.isErrorWithCode(err)) {
                   switch (err.code) {
                     case DocumentViewer.errorCodes.IN_PROGRESS:
-                      console.warn('user attempted to present a picker, but a previous one was already presented')
-                      break
+                      console.warn("user attempted to present a picker, but a previous one was already presented");
+                      break;
                     case DocumentViewer.errorCodes.UNABLE_TO_OPEN_FILE_TYPE:
                       Alert.alert(
                         "Mano ne peut pas ouvrir seul ce type de fichier",
                         `Vous pouvez chercher une application sur le store pour ouvrir les fichiers de type .${path
                           .split(".")
-                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`,
+                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
                       );
-                      break
+                      break;
                     case DocumentViewer.errorCodes.OPERATION_CANCELED:
                       // ignore
-                      break
+                      break;
                     default:
-                      console.error(err)
+                      console.error(err);
                   }
                 }
                 setIsDownloading(false);

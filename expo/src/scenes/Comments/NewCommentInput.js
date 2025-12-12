@@ -6,7 +6,7 @@ import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust"
 import Spacer from "../../components/Spacer";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 
@@ -15,9 +15,9 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
   const [urgent, setUrgent] = useState(false);
   const [group, setGroup] = useState(false);
   const [posting, setPosting] = useState(false);
-  const currentTeam = useRecoilValue(currentTeamState);
-  const organisation = useRecoilValue(organisationState);
-  const user = useRecoilValue(userState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
 
   const onCreateComment = async () => {
     setPosting(true);

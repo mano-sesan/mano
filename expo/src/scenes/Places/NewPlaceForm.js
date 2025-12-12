@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import API from "../../services/api";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -20,9 +20,9 @@ const NewPlaceForm = ({ route, navigation }) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
-  const [places, setPlaces] = useRecoilState(placesState);
-  const setRelsPersonPlace = useSetRecoilState(relsPersonPlaceState);
-  const user = useRecoilValue(userState);
+  const [places, setPlaces] = useAtom(placesState);
+  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const user = useAtomValue(userState);
 
   const data = useMemo(() => {
     if (!name) return places;
@@ -31,7 +31,7 @@ const NewPlaceForm = ({ route, navigation }) => {
 
   const { person } = route.params;
 
-  const [refreshTrigger, setRefreshTrigger] = useRecoilState(refreshTriggerState);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const onCreatePlace = useCallback(async () => {
     setPosting(true);
     const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });

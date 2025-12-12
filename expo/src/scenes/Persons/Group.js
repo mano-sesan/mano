@@ -3,15 +3,15 @@ import { Alert } from "react-native";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
-import { useRecoilValue } from "recoil";
+import { useAtomValue } from "jotai";
 import { organisationState } from "../../recoil/auth";
 import GroupRow from "./GroupRow";
-import { groupSelector } from "../../recoil/groups";
+import { useGroupSelector } from "../../recoil/groups";
 import { capture } from "../../services/sentry";
 
 const Group = ({ personDB, navigation }) => {
-  const organisation = useRecoilValue(organisationState);
-  const personGroup = useRecoilValue(groupSelector({ personId: personDB?._id }));
+  const organisation = useAtomValue(organisationState);
+  const personGroup = useGroupSelector(personDB?._id);
 
   const onGroupFeaturePress = () => {
     Alert.alert(

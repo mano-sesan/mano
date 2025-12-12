@@ -8,15 +8,15 @@ import ScrollContainer from "../../components/ScrollContainer";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import Button from "../../components/Button";
 import Title, { SubTitle } from "../../components/Title";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { refreshTriggerState } from "../../components/Loader";
 
 const CGUsAcceptance = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
-  const user = useRecoilValue(userState);
-  const setCurrentTeam = useSetRecoilState(currentTeamState);
-  const setRefreshTrigger = useSetRecoilState(refreshTriggerState);
+  const user = useAtomValue(userState);
+  const setCurrentTeam = useSetAtom(currentTeamState);
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const onAccept = async () => {
     setLoading(true);

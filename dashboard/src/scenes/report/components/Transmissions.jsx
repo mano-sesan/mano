@@ -128,13 +128,6 @@ function TransmissionPrint({ report, team }) {
 
 function Transmission({ report, team, day, teamId, userId, reactSelectInputId, onOpenTransmissionModal }) {
   const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
-  // Désactivation temporaire du FIX des lutins d'internet https://github.com/mano-sesan/mano/pull/506/files
-  // A rediscuter avec Arnaud, il pose problème pour la modification d'une transmission par deux personnes.
-  // Aussi : au vu des tests que j'ai effectué, il semble que le problème de disparition soit lié justement
-  // au composant qui peut se recharger, et donc la fenetre disparaitre.
-  // Je pense qu'il n'y a plus besoin de ce fix (à discuter cependant)
-  //
-  // const [transmission, setTransmission] = useSessionStorage("transmission", "");
   const { refresh } = useDataLoader();
 
   const onSaveReport = async (body) => {
