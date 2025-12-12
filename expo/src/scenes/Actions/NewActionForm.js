@@ -70,7 +70,7 @@ const NewActionForm = ({ route, navigation }) => {
     }, [route?.params?.person])
   );
 
-  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "NewActionForm" });
+  const onSearchPerson = () => navigation.push("PERSONS_SEARCH", { fromRoute: "NewActionForm" });
 
   const onCreateActionRequest = () => {
     const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;

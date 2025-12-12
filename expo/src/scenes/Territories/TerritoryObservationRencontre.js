@@ -38,7 +38,7 @@ const TerritoryObservationRencontre = ({ navigation, route }) => {
     }, [route?.params?.person])
   );
 
-  const onSearchPerson = () => navigation.push("PersonsSearch", { fromRoute: "TerritoryObservationRencontre", territory: route.params.territory });
+  const onSearchPerson = () => navigation.push("PERSONS_SEARCH", { fromRoute: "TerritoryObservationRencontre", territory: route.params.territory });
 
   return (
     <SceneContainer>

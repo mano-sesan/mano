@@ -102,7 +102,7 @@ export const mappedIdsToLabels = [
   { _id: CANCEL, name: "ANNULÉE" },
 ];
 
-export const actionsFiltersState = atom({
+export const actionsFiltersState = atom<Record<string, any>>({
   key: "actionsFiltersState",
   default: {},
 });
