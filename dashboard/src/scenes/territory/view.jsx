@@ -210,7 +210,7 @@ const View = () => {
       </ModalContainer>
 
       <ConfirmModal
-        open={isConfirmModalOpen && canTransferTerritory}
+        open={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         title={`Confirmer le transfert vers ${territories.find((t) => t._id === transferSelectedTerritory)?.name}`}
         textToConfirm={territories.find((t) => t._id === transferSelectedTerritory)?.name || ""}
