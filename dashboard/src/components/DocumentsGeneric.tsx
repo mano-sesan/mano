@@ -17,7 +17,8 @@ import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import { capture } from "../services/sentry";
 // Shared implementations (used by both legacy + new document UIs).
 import { UploadProgressProvider, handleFilesUpload } from "./document/DocumentsUpload";
-import { ButtonDownloadAll, DocumentModal } from "./document/DocumentModals";
+import { ButtonDownloadAll } from "./document/ButtonDownloadAll";
+import { DocumentModal } from "./document/DocumentModal";
 
 export { UploadProgressProvider, handleFilesUpload, ButtonDownloadAll, DocumentModal };
 

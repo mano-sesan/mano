@@ -7,7 +7,7 @@ import type { UUIDV4 } from "../../types/uuid";
 import UserName from "../UserName";
 import PersonName from "../PersonName";
 import { formatDateTimeWithNameOfDay } from "../../services/date";
-import { DocumentModal } from "./DocumentModals";
+import { DocumentModal } from "./DocumentModal";
 import { handleFilesUpload } from "./DocumentsUpload";
 
 type Color = "main" | "blue-900";
