@@ -6,17 +6,19 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import Table from "../../components/table";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { dayjsInstance, formatAge, formatDateWithFullMonth } from "../../services/date";
-import { organisationState, usersState } from "../../atoms/auth";
+import { deletedUsersState, organisationState, userState, usersState } from "../../atoms/auth";
 import TagTeam from "../../components/TagTeam";
 import { useDataLoader } from "../../services/dataLoader";
 import Loading from "../../components/loading";
 import { decryptItem } from "../../services/encryption";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { personsState, sortPersons } from "../../atoms/persons";
+import { personsObjectSelector } from "../../atoms/selectors";
 import PersonName from "../../components/PersonName";
 import ActionOrConsultationName from "../../components/ActionOrConsultationName";
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import { CANCEL, DONE } from "../../atoms/actions";
+import UserName from "../../components/UserName";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));
@@ -54,13 +56,17 @@ export default function Poubelle() {
   const { refresh } = useDataLoader();
   const history = useHistory();
   const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState);
   const [persons, setPersons] = useState();
   const [data, setData] = useState(null);
   const [sortBy, setSortBy] = useLocalStorage("person-poubelle-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("person-poubelle-sortOrder", "ASC");
   const [refreshKey, setRefreshKey] = useState(0);
   const users = useAtomValue(usersState);
+  const deletedUsers = useAtomValue(deletedUsersState);
+  const personsObject = useAtomValue(personsObjectSelector);
   const mergedPersonIds = useAtomValue(mergedPersonIdsSelector);
+  const canSeeTreatments = Boolean(user?.healthcareProfessional);
 
   useEffect(() => {
     fetchPersons(organisation._id).then((data) => {
@@ -69,10 +75,117 @@ export default function Poubelle() {
     });
   }, [organisation._id, refreshKey]);
 
+  const deletedPersonsObject = useMemo(() => {
+    const map = {};
+    for (const p of data?.persons || []) map[p._id] = p;
+    return map;
+  }, [data?.persons]);
+
+  const deletedTreatments = useMemo(() => {
+    // Avoid mutating state arrays by sorting a copy.
+    return (data?.treatments || []).slice().sort((a, b) => new Date(b.deletedAt || 0) - new Date(a.deletedAt || 0));
+  }, [data?.treatments]);
+
   const sortedPersons = useMemo(() => {
     if (!persons) return [];
     return persons.sort(sortPersons(sortBy, sortOrder));
   }, [persons, sortBy, sortOrder]);
+
+  const treatmentDisplay = (treatment) => {
+    let base = treatment?.name || "";
+    if (treatment?.dosage) base += ` - ${treatment.dosage}`;
+    if (treatment?.frequency) base += ` - ${treatment.frequency}`;
+    if (treatment?.indication) base += ` - ${treatment.indication}`;
+    return base || "-";
+  };
+
+  const restoreTreatment = async (treatment) => {
+    const personExists = Boolean(personsObject?.[treatment.person]);
+    const creatorIsActiveUser = Boolean(users?.find((u) => u._id === treatment.user));
+    const creatorIsDeletedUser = Boolean(deletedUsers?.find((u) => u._id === treatment.user));
+    const canRestore = personExists && creatorIsActiveUser;
+    if (!canRestore) {
+      if (!personExists) {
+        toast.error("Impossible de restaurer le traitement : la personne suivie associée est supprimée (ou introuvable).");
+        return;
+      }
+      if (!creatorIsActiveUser) {
+        toast.error(
+          creatorIsDeletedUser
+            ? "Impossible de restaurer le traitement : l'utilisateur créateur a été supprimé."
+            : "Impossible de restaurer le traitement : l'utilisateur créateur est introuvable."
+        );
+        return;
+      }
+      return;
+    }
+
+    if (!confirm("Voulez-vous restaurer ce traitement ?")) return;
+
+    tryFetchExpectOk(() =>
+      API.post({
+        path: "/organisation/" + organisation._id + "/restore-deleted-data",
+        body: {
+          groups: [],
+          persons: [],
+          actions: [],
+          comments: [],
+          passages: [],
+          rencontres: [],
+          consultations: [],
+          treatments: [treatment._id],
+          medicalFiles: [],
+          relsPersonPlaces: [],
+          reports: [],
+          places: [],
+          territoryObservations: [],
+          territories: [],
+        },
+      })
+    ).then(([error]) => {
+      if (!error) {
+        refresh().then(() => {
+          toast.success("Le traitement a été restauré avec succès !");
+          setRefreshKey((k) => k + 1);
+        });
+      } else {
+        toast.error("Impossible de restaurer le traitement");
+      }
+    });
+  };
+
+  const permanentDeleteTreatment = async (treatment) => {
+    tryFetchExpectOk(() =>
+      API.delete({
+        path: "/organisation/" + organisation._id + "/permanent-delete-data",
+        body: {
+          groups: [],
+          persons: [],
+          actions: [],
+          comments: [],
+          passages: [],
+          rencontres: [],
+          consultations: [],
+          treatments: [treatment._id],
+          medicalFiles: [],
+          relsPersonPlaces: [],
+          reports: [],
+          places: [],
+          territoryObservations: [],
+          territories: [],
+        },
+      })
+    ).then(([error]) => {
+      if (!error) {
+        refresh().then(() => {
+          toast.success("Le traitement a été supprimé définitivement avec succès !");
+          setRefreshKey((k) => k + 1);
+        });
+      } else {
+        toast.error("Impossible de supprimer définitivement le traitement");
+      }
+    });
+  };
 
   const getAssociatedData = (id) => {
     const associatedData = {
@@ -437,6 +550,137 @@ export default function Poubelle() {
           ]}
         />
       </div>
+      {canSeeTreatments ? (
+        <div className="tw-mt-8">
+          <h2 className="tw-text-xl tw-font-bold tw-mb-4">Traitements supprimés</h2>
+          <DisclaimerTreatments />
+          <Table
+            data={deletedTreatments}
+            rowKey={"_id"}
+            noData="Aucun traitement supprimé"
+            columns={[
+              {
+                title: "Dates",
+                dataKey: "dates",
+                small: true,
+                style: { width: "190px" },
+                render: (t) => {
+                  if (t.startDate && t.endDate) {
+                    return (
+                      <div className="tw-text-sm">
+                        <div>Du {formatDateWithFullMonth(t.startDate)}</div>
+                        <div>au {formatDateWithFullMonth(t.endDate)}</div>
+                      </div>
+                    );
+                  }
+                  if (t.startDate && !t.endDate) return <div className="tw-text-sm">À partir du {formatDateWithFullMonth(t.startDate)}</div>;
+                  if (!t.startDate && t.endDate) return <div className="tw-text-sm">Jusqu'au {formatDateWithFullMonth(t.endDate)}</div>;
+                  return <div className="tw-text-sm tw-text-gray-500">Aucune date</div>;
+                },
+              },
+              {
+                title: "Traitement",
+                dataKey: "name",
+                render: (t) => (
+                  <>
+                    <div className="tw-font-semibold [overflow-wrap:anywhere]">{treatmentDisplay(t)}</div>
+                    <div className="tw-text-gray-500 tw-text-xs">
+                      Créé par <UserName id={t.user} />
+                    </div>
+                  </>
+                ),
+              },
+              {
+                title: "Personne suivie",
+                dataKey: "person",
+                render: (t) => {
+                  const activePerson = personsObject?.[t.person];
+                  const deletedPerson = deletedPersonsObject?.[t.person];
+                  if (activePerson) return <PersonName item={t} />;
+                  if (deletedPerson)
+                    return (
+                      <span className="tw-text-gray-600">
+                        {deletedPerson.name}
+                        {deletedPerson.otherNames ? <em className="tw-inline tw-text-main"> - {deletedPerson.otherNames}</em> : null}
+                        <span className="tw-ml-1 tw-text-xs tw-text-gray-400">(personne supprimée)</span>
+                      </span>
+                    );
+                  return <span className="tw-text-gray-500 tw-italic">-</span>;
+                },
+              },
+              {
+                title: "Suppression le",
+                dataKey: "deletedAt",
+                small: true,
+                style: { width: "140px" },
+                render: (t) => (
+                  <>
+                    <div
+                      className={
+                        dayjsInstance(t.deletedAt).isAfter(dayjsInstance().add(-2, "year")) ? "tw-font-bold" : "tw-font-bold tw-text-red-500"
+                      }
+                    >
+                      {formatDateWithFullMonth(t.deletedAt)}
+                    </div>
+                    <div className="tw-text-gray-500 tw-text-xs">il y a {t.deletedAt ? formatAge(t.deletedAt) : "un certain temps"}</div>
+                  </>
+                ),
+              },
+              {
+                title: "Restaurer",
+                dataKey: "action-restore",
+                small: true,
+                style: { width: "110px" },
+                render: (t) => {
+                  const personExists = Boolean(personsObject?.[t.person]);
+                  const creatorIsActiveUser = Boolean(users?.find((u) => u._id === t.user));
+                  const creatorIsDeletedUser = Boolean(deletedUsers?.find((u) => u._id === t.user));
+                  const canRestore = personExists && creatorIsActiveUser;
+                  if (!canRestore) {
+                    const reason = !personExists
+                      ? "Impossible : la personne suivie associée est supprimée (restaurez d'abord la personne)."
+                      : creatorIsDeletedUser
+                        ? "Impossible : l'utilisateur créateur a été supprimé."
+                        : "Impossible : l'utilisateur créateur est introuvable.";
+                    return (
+                      <button className="button-classic ml-0" disabled title={reason}>
+                        Restaurer
+                      </button>
+                    );
+                  }
+                  return (
+                    <button className="button-classic ml-0" onClick={() => restoreTreatment(t)}>
+                      Restaurer
+                    </button>
+                  );
+                },
+              },
+              {
+                title: "Supprimer",
+                dataKey: "action-delete",
+                small: true,
+                style: { width: "170px" },
+                render: (t) => (
+                  <DeleteButtonAndConfirmModal
+                    title="Supprimer définitivement ce traitement"
+                    buttonText="Suppr.&nbsp;définitivement"
+                    textToConfirm={treatmentDisplay(t)}
+                    onConfirm={() => permanentDeleteTreatment(t)}
+                  >
+                    <p className="tw-mb-7 tw-block tw-w-full tw-text-center">
+                      Voulez-vous supprimer DÉFINITIVEMENT ce traitement ?<br />
+                      <br />
+                      L'équipe de Mano sera
+                      <br />
+                      <strong className="tw-text-xl">INCAPABLE DE RÉCUPÉRER LES DONNÉES</strong>.<br />
+                    </p>
+                  </DeleteButtonAndConfirmModal>
+                ),
+              },
+            ]}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -456,6 +700,15 @@ function DisclaimerActions() {
     <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
       Vous retrouvez ici toutre les actions supprimées à titre d'information. Les actions sont définitivement supprimées lors de la suppression
       définitive de la personne suivie associée. Vous ne pouvez ni les restaurer, ni les supprimer définitivement depuis cette liste.
+    </div>
+  );
+}
+
+function DisclaimerTreatments() {
+  return (
+    <div className="tw-mb-8 tw-border-l-4 tw-border-orange-500 tw-bg-orange-100 tw-p-4 tw-text-orange-700" role="alert">
+      Vous retrouvez ici les traitements supprimés. Vous pouvez les restaurer si besoin. Si la personne suivie associée est aussi supprimée, vous
+      devez restaurer la personne (ce qui restaurera également les données associées).
     </div>
   );
 }
