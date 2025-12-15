@@ -45,7 +45,7 @@ export default function MedicalFileDocuments({ person }: MedicalFileDocumentsPro
 
   const defaultFolders: Array<FolderWithLinkedItem> = useMemo(
     () =>
-      organisation.defaultMedicalFolders.map((folder) => ({
+      (organisation.defaultMedicalFolders || []).map((folder) => ({
         ...folder,
         movable: false,
         linkedItem: {
