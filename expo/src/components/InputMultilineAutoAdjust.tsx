@@ -1,16 +1,21 @@
 import React from "react";
 import styled from "styled-components/native";
 import { MyTextInput } from "./MyText";
+import { TextInputProps, View } from "react-native";
 
-const InputMultilineAutoAdjust = React.forwardRef((props, ref) => {
+interface InputMultilineAutoAdjustProps extends Omit<TextInputProps, "placeholderTextColor"> {
+  viewRef?: React.RefObject<View | null>;
+}
+
+const InputMultilineAutoAdjust = ({ viewRef, ...props }: InputMultilineAutoAdjustProps) => {
   return (
-    <InputContainer ref={ref}>
+    <InputContainer ref={viewRef}>
       <Input {...props} multiline />
     </InputContainer>
   );
-});
+};
 
-const InputContainer = styled.View`
+const InputContainer = styled.View<{ ref?: React.RefObject<View | null> }>`
   flex-grow: 1;
   flex-shrink: 1;
   border: 1px solid rgba(30, 36, 55, 0.1);

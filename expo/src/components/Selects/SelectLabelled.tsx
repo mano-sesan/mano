@@ -5,13 +5,20 @@ import { Platform, TouchableOpacity, Modal, View } from "react-native";
 import InputLabelled from "../InputLabelled";
 import { MyText } from "../MyText";
 
+type SelectLabelledProps = {
+  editable?: boolean;
+  allowCreateOption?: boolean;
+  values: string[];
+  value: string;
+  onSelect: (value: string) => void;
+  mappedIdsToLabels?: { _id: string; name: string }[];
+  label?: string;
+  row?: boolean;
+  testID?: string;
+};
+
 const SelectLabelled = ({
   editable = true,
-  buttonCaption,
-  buttonValue,
-  buttonColor,
-  buttonBg,
-  onSelectAndSave,
   allowCreateOption,
   values,
   value,
@@ -20,24 +27,13 @@ const SelectLabelled = ({
   label,
   row,
   testID,
-}) => {
+}: SelectLabelledProps) => {
   const [saisieLibre, setSaisieLibre] = useState("");
 
   values = values.includes(value) ? values : [...values, value];
 
   if (!editable) {
-    return (
-      <InputLabelled
-        label={label}
-        value={mappedIdsToLabels?.find(({ _id }) => _id === value)?.name || value}
-        editable={false}
-        onButtonPress={onSelectAndSave}
-        buttonCaption={buttonCaption}
-        buttonValue={buttonValue}
-        buttonColor={buttonColor}
-        buttonBg={buttonBg}
-      />
-    );
+    return <InputLabelled label={label} value={mappedIdsToLabels?.find(({ _id }) => _id === value)?.name || value} editable={false} />;
   }
   return (
     <>
@@ -86,7 +82,8 @@ const SelectLabelled = ({
 ]
 */
 
-const SelectAndroid = ({ value, values, onSelect, label, row, mappedIdsToLabels = null, testID }) => (
+type SelectAndroidProps = Pick<SelectLabelledProps, "value" | "values" | "onSelect" | "label" | "row" | "mappedIdsToLabels" | "testID">;
+const SelectAndroid = ({ value, values, onSelect, label, row, mappedIdsToLabels, testID }: SelectAndroidProps) => (
   <InputContainer row={row} testID={testID}>
     {Boolean(label) && (
       <Label bold row={row}>
@@ -95,7 +92,7 @@ const SelectAndroid = ({ value, values, onSelect, label, row, mappedIdsToLabels 
     )}
     <PickerContainer row={row}>
       <Picker selectedValue={value} onValueChange={(newValue) => onSelect(newValue)}>
-        {mappedIdsToLabels
+        {mappedIdsToLabels?.length
           ? mappedIdsToLabels.map((value, i) => <Picker.Item key={value._id + i} label={value.name} value={value._id} testID={value.name} />)
           : values.map((value, i) => <Picker.Item key={value} label={value} value={value} testID={value} />)}
       </Picker>
@@ -109,7 +106,7 @@ const inputRow = css`
   justify-content: space-between;
   align-items: center;
 `;
-const InputContainer = styled.View`
+const InputContainer = styled.View<{ row?: boolean }>`
   margin-bottom: 30px;
   ${(props) => props.row && inputRow}
 `;
@@ -118,7 +115,7 @@ const labelRow = css`
   margin-bottom: 0px;
   margin-right: 40%;
 `;
-const Label = styled(MyText)`
+const Label = styled(MyText)<{ debug?: boolean; noMargin?: boolean; row?: boolean }>`
   margin-bottom: 10px;
   font-weight: bold;
   ${(props) => props.debug && "border: 1px solid #00f;"}
@@ -136,7 +133,7 @@ const pickerRow = css`
   flex-grow: 1;
   text-align: center;
 `;
-const PickerContainer = styled.View`
+const PickerContainer = styled.View<{ forModal?: boolean; row?: boolean }>`
   border: 1px solid rgba(30, 36, 55, 0.1);
   border-radius: 12px;
   padding-horizontal: ${Platform.select({ ios: 12, android: 0 })}px;
@@ -144,7 +141,8 @@ const PickerContainer = styled.View`
   ${(props) => props.row && pickerRow}
 `;
 
-const SelectIos = ({ label, value, values, onSelect, row, mappedIdsToLabels }) => {
+type SelectIosProps = Pick<SelectLabelledProps, "value" | "values" | "onSelect" | "label" | "row" | "mappedIdsToLabels" | "testID">;
+const SelectIos = ({ label, value, values, onSelect, row, mappedIdsToLabels }: SelectIosProps) => {
   const [visible, setVisible] = React.useState(false);
   const initValue = React.useRef(value);
 
@@ -199,7 +197,7 @@ const ButtonsContainer = styled.View`
   flex-direction: row;
 `;
 
-const Button = styled.TouchableOpacity`
+const Button = styled.TouchableOpacity<{ withBorder?: boolean }>`
   border-right-color: #ddd;
   flex-grow: 1;
   flex-shrink: 0;
@@ -215,7 +213,7 @@ const ButtonText = styled(MyText)`
   ${(props) => props.bold && "font-weight: bold;"}
 `;
 
-const Input = styled(MyText)`
+const Input = styled(MyText)<{ row?: boolean }>`
   border: 1px solid rgba(30, 36, 55, 0.1);
   border-radius: 12px;
   padding-horizontal: 12px;
