@@ -54,7 +54,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
         },
         movable: false,
         createdAt: new Date(),
-        createdBy: "we do not care",
+        createdBy: "system",
       },
     ];
     for (const treatment of treatments) {
@@ -85,7 +85,7 @@ const PersonDocumentsMedical = ({ person }: PersonDocumentsProps) => {
         },
         movable: false,
         createdAt: new Date(),
-        createdBy: "we do not care",
+        createdBy: "system",
       },
     ];
     for (const consultation of consultations) {
