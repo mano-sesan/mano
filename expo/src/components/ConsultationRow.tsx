@@ -14,7 +14,19 @@ import { userState } from "../recoil/auth";
 import { StyleSheet } from "react-native";
 import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
 import { itemsGroupedByPersonSelector } from "../recoil/selectors";
+import { ConsultationInstance } from "@/types/consultation";
+import { PersonInstance } from "@/types/person";
+import { dayjsInstance } from "@/services/dateDayjs";
 
+type ConsultationRowProps = {
+  onConsultationPress: (consultation: ConsultationInstance, person: PersonInstance) => void;
+  consultation: ConsultationInstance;
+  testID: string;
+  withBadge: boolean;
+  showStatus: boolean;
+  showPseudo: boolean;
+  onPseudoPress: (person: PersonInstance) => void;
+};
 const ConsultationRow = ({
   onConsultationPress,
   consultation,
@@ -23,29 +35,29 @@ const ConsultationRow = ({
   showStatus,
   showPseudo,
   onPseudoPress,
-}) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+}: ConsultationRowProps) => {
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
 
-  const me = useAtomValue(userState);
+  const me = useAtomValue(userState)!;
 
   const name = disableConsultationRow(consultation, me) ? "" : consultation.name || `Consultation ${consultation.type}`;
   const type = disableConsultationRow(consultation, me) ? "" : consultation.type;
   const status = consultation.status;
   const user = consultation.user;
   const person = useMemo(() => (consultation?.person ? personsObject?.[consultation.person] : null), [personsObject, consultation.person]);
-  const pseudo = useMemo(() => consultation?.personName || person?.name, [consultation, person?.name]);
+  const pseudo = person?.name;
   const visibleByMe = consultationIsVisibleByMe(consultation, me);
 
-  const dueAt = consultation?.dueAt ? new Date(consultation?.dueAt) : null;
-  const completedAt = consultation?.completedAt ? new Date(consultation?.completedAt) : null;
+  const dueAt = consultation?.dueAt ? dayjsInstance(consultation?.dueAt) : null;
+  const completedAt = consultation?.completedAt ? dayjsInstance(consultation?.completedAt) : null;
 
   const onRowPress = useCallback(() => {
     if (!visibleByMe) return;
-    onConsultationPress(consultation, person);
+    if (person) onConsultationPress(consultation, person);
   }, [consultation, onConsultationPress, visibleByMe, person]);
 
   const onPseudoContainerPress = useCallback(() => {
-    if (onPseudoPress) onPseudoPress(person);
+    if (person) onPseudoPress(person);
   }, [person, onPseudoPress]);
 
   return (
@@ -75,7 +87,15 @@ const ConsultationRow = ({
             <Pseudo>Pour {pseudo}</Pseudo>
           </PseudoContainer>
         ) : null}
-        <UserContainer>{!!user && <UserName caption="Créée par" id={user?._id || user} />}</UserContainer>
+        <UserContainer>
+          {!!user && (
+            <UserName
+              caption="Créée par"
+              // @ts-expect-error user is a string
+              id={user?._id || user}
+            />
+          )}
+        </UserContainer>
       </CaptionsContainer>
       <ButtonRight onPress={onRowPress} caption=">" disabled={!visibleByMe} />
     </RowContainer>

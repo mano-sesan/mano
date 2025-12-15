@@ -311,15 +311,18 @@ const filterByCategories = (actions, categories) => {
 
 export const useActionsByStatusAndTimeframeSelector = (status, limit, timeframe, filters) => {
   if (status === DONE) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const actions = useActionsDoneSelectorSliced(limit);
     return filterByCategories(actions, filters?.categories);
   }
   if (status === TODO) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const actions = useAtomValue(actionsTodoSelector);
     const timeFiltered = filterByTimeframe(actions, timeframe);
     return filterByCategories(timeFiltered, filters?.categories);
   }
   if (status === CANCEL) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const actions = useActionsCanceledSelectorSliced(limit);
     return filterByCategories(actions, filters?.categories);
   }

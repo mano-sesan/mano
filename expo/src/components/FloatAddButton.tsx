@@ -4,18 +4,24 @@ import styled from "styled-components/native";
 import { Plus } from "../icons";
 import colors from "../utils/colors";
 
-const FloatAddButton = ({ onPress, color = colors.app.secondary, testID }) => {
+type FloatAddButtonProps = {
+  onPress: () => void;
+  color?: string;
+  testID?: string;
+};
+
+const FloatAddButton = ({ onPress, color = colors.app.secondary, testID }: FloatAddButtonProps) => {
   return (
     <TouchableWithoutFeedback onPress={onPress} testID={testID}>
       <Button color={color}>
-        <Plus name="add" size={20} color="white" />
+        <Plus size={20} color="white" />
       </Button>
     </TouchableWithoutFeedback>
   );
 };
 
 const size = 60;
-const Button = styled.View`
+const Button = styled.View<{ color: string }>`
   position: absolute;
   bottom: 15px;
   right: 25px;

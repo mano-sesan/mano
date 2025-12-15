@@ -13,10 +13,22 @@ import { organisationState } from "../recoil/auth";
 import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import RepeatIcon from "../icons/RepeatIcon";
 import UserName from "./UserName";
+import { ActionInstance } from "@/types/action";
+import { PersonInstance } from "@/types/person";
+import { dayjsInstance } from "@/services/dateDayjs";
 
-const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
-  const organisation = useAtomValue(organisationState);
+type ActionRowProps = {
+  onActionPress: (action: ActionInstance) => void;
+  onPseudoPress: (person: PersonInstance) => void;
+  showStatus: boolean;
+  action: ActionInstance;
+  withTeamName: boolean;
+  testID: string;
+};
+
+const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }: ActionRowProps) => {
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+  const organisation = useAtomValue(organisationState)!;
 
   const name = action?.name?.trim() || action?.categories?.join(", ") || "Action";
   const status = action?.status;
@@ -24,12 +36,12 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
   const urgent = action?.urgent;
   const user = action?.user;
   const person = useMemo(() => (action?.person ? personsObject[action.person] : null), [personsObject, action.person]);
-  const pseudo = useMemo(() => action?.personName || person?.name, [action, person?.name]);
-  const dueAt = action?.dueAt ? new Date(action?.dueAt) : null;
-  const completedAt = action?.completedAt ? new Date(action?.completedAt) : null;
+  const pseudo = person?.name;
+  const dueAt = action?.dueAt ? dayjsInstance(action?.dueAt) : null;
+  const completedAt = action?.completedAt ? dayjsInstance(action?.completedAt) : null;
 
   const onPseudoContainerPress = useCallback(() => {
-    onPseudoPress(person);
+    if (person) onPseudoPress(person);
   }, [person, onPseudoPress]);
 
   const onRowPress = useCallback(() => {
@@ -48,12 +60,12 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
           )}
           {!!action.recurrence && (
             <View className="mr-2 shrink-0">
-              <RepeatIcon />
+              <RepeatIcon className="w-5 h-5" />
             </View>
           )}
           <Name bold>{name}</Name>
         </View>
-        {!!withTeamName && <TeamsTags teams={Array.isArray(action.teams) ? action.teams : [action.team]} />}
+        {!!withTeamName && <TeamsTags teams={Array.isArray(action.teams) ? action.teams! : [action.team!]} />}
         {showStatus ? (
           <StatusContainer>
             <Status color={colors.app[status === DONE ? "color" : "secondary"]}>{status}</Status>
@@ -64,7 +76,15 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
           </PseudoContainer>
         ) : null}
         {urgent ? <Urgent bold>❗ Action prioritaire</Urgent> : null}
-        <UserContainer>{!!user && <UserName caption="Créée par" id={user?._id || user} />}</UserContainer>
+        <UserContainer>
+          {!!user && (
+            <UserName
+              caption="Créée par"
+              // @ts-expect-error user is a string
+              id={user?._id || user}
+            />
+          )}
+        </UserContainer>
       </CaptionsContainer>
       <ButtonRight onPress={onRowPress} caption=">" />
     </RowContainer>

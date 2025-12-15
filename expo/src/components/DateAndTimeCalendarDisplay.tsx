@@ -4,22 +4,25 @@ import styled from "styled-components/native";
 import { MyText } from "./MyText";
 import colors from "../utils/colors";
 import { dayjsInstance } from "../services/dateDayjs";
+import { Dayjs } from "dayjs";
 
-const DateAndTimeCalendarDisplay = ({ date, withTime, topCaption }) => {
-  date = date ? dayjsInstance(date) : null;
+type DateAndTimeCalendarDisplayProps = {
+  date: Dayjs | null;
+  withTime: boolean;
+  topCaption?: string;
+};
+
+const DateAndTimeCalendarDisplay = ({ date, withTime, topCaption }: DateAndTimeCalendarDisplayProps) => {
+  if (!date) return <DateContainer />;
 
   return (
     <DateContainer>
-      {Boolean(date) && (
-        <>
-          {topCaption && <TopCaption>{topCaption}</TopCaption>}
-          <Day>{date.format("dddd")}</Day>
-          <DateNumber heavy>{date.format("D")}</DateNumber>
-          <Month>{date.format("MMMM")}</Month>
-          {date.format("YYYY") !== dayjsInstance().format("YYYY") && <Month>{date.format("YYYY")}</Month>}
-          {!!withTime && <Time>{date.format("HH:mm")}</Time>}
-        </>
-      )}
+      {topCaption && <TopCaption>{topCaption}</TopCaption>}
+      <Day>{date.format("dddd")}</Day>
+      <DateNumber heavy>{date.format("D")}</DateNumber>
+      <Month>{date.format("MMMM")}</Month>
+      {date.format("YYYY") !== dayjsInstance().format("YYYY") && <Month>{date.format("YYYY")}</Month>}
+      {!!withTime && <Time>{date.format("HH:mm")}</Time>}
     </DateContainer>
   );
 };

@@ -21,8 +21,9 @@ import { ActionsScreenSubTabParams, ActionsScreenTopTabParams } from "@/types/na
 import { MaterialTopTabScreenProps } from "@react-navigation/material-top-tabs";
 import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
+import { ConsultationInstance } from "@/types/consultation";
 
-const keyExtractor = (action: ActionInstance) => action._id;
+const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
 
 const limitSteps = 100;
 
@@ -42,7 +43,9 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const [limit, setLimit] = useState(limitSteps);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
-  const actionsByStatusAndTimeframe = useActionsByStatusAndTimeframeSelector(status, limit, timeframe, filters);
+  const actionsByStatusAndTimeframe = useActionsByStatusAndTimeframeSelector(status, limit, timeframe, filters) as Array<
+    ActionInstance | ConsultationInstance
+  >;
   const total = useTotalActionsByStatusSelector(status, timeframe, filters);
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
@@ -61,7 +64,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     const isConsultationButtonEnabled = user.healthcareProfessional;
     const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
     if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
-      navigation.navigate("NewActionForm", { fromRoute: "ActionsList" });
+      navigation.getParent()?.navigate("ACTION_NEW", { fromRoute: "ActionsList" });
       return;
     }
 
@@ -104,9 +107,9 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   );
 
   const onActionPress = useCallback(
-    (action) => {
+    (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.push("Action", {
+      navigation.getParent()?.navigate("ACTION", {
         action,
         fromRoute: "ActionsList",
       });
@@ -115,22 +118,37 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   );
 
   const onConsultationPress = useCallback(
-    (consultationDB, personDB) => {
-      navigation.navigate("Consultation", { personDB, consultationDB, fromRoute: "ActionsList" });
+    (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
+      navigation.getParent()?.navigate("CONSULTATION", { personDB, consultationDB, fromRoute: "ActionsList" });
     },
     [navigation]
   );
 
-  const renderItem = ({ item }) => {
-    // if (item.type === 'title') return <SectionHeaderStyled heavy>{item.title}</SectionHeaderStyled>;
-    if (item.type === "title") return null;
+  const renderItem = ({ item }: { item: ActionInstance | ConsultationInstance }) => {
     if (item.isConsultation) {
-      return <ConsultationRow consultation={item} onConsultationPress={onConsultationPress} onPseudoPress={onPseudoPress} withBadge showPseudo />;
+      return (
+        <ConsultationRow
+          consultation={item as ConsultationInstance}
+          onConsultationPress={onConsultationPress}
+          onPseudoPress={onPseudoPress}
+          withBadge
+          showPseudo
+          showStatus
+          testID="consultation"
+        />
+      );
     }
-    return <ActionRow action={item} onPseudoPress={onPseudoPress} onActionPress={onActionPress} />;
+    return (
+      <ActionRow
+        action={item as ActionInstance}
+        onPseudoPress={onPseudoPress}
+        onActionPress={onActionPress}
+        showStatus
+        withTeamName
+        testID="action"
+      />
+    );
   };
-
-  const getItemType = (item) => item.type || "action";
 
   return (
     <View
@@ -143,9 +161,6 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
         data={actionsByStatusAndTimeframe}
-        estimatedItemSize={126}
-        getItemType={getItemType}
-        initialNumToRender={5}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}
