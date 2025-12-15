@@ -148,7 +148,7 @@ const View = () => {
       <Observations territory={territory || { _id: id }} />
 
       <ModalContainer
-        open={isTransferModalOpen && canTransferTerritory}
+        open={isTransferModalOpen}
         size="lg"
         onAfterLeave={() => {
           setTransferSelectedTerritory(undefined);
