@@ -230,17 +230,15 @@ export default function MedicalFileDocuments({ person }: MedicalFileDocumentsPro
 
         // Encrypt consultations to update
         const consultationsToUpdate = await Promise.all(
-          Object.keys(groupedById.consultation)
-            .map((consultationId) => {
-              const consultation = consultations.find((c) => c._id === consultationId);
-              if (!consultation) throw new Error("Consultation not found");
-              const nextConsultation = prepareConsultationForEncryption(organisation.consultations)({
-                ...consultation,
-                documents: groupedById.consultation[consultationId],
-              });
-              return nextConsultation;
-            })
-            .map(encryptItem)
+          Object.keys(groupedById.consultation).map(async (consultationId) => {
+            const consultation = consultations.find((c) => c._id === consultationId);
+            if (!consultation) throw new Error("Consultation not found");
+            const nextConsultation = prepareConsultationForEncryption(organisation.consultations)({
+              ...consultation,
+              documents: groupedById.consultation[consultationId],
+            });
+            return encryptItem(nextConsultation);
+          })
         );
 
         // Encrypt medical file
