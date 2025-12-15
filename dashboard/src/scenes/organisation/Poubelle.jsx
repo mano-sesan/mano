@@ -218,10 +218,10 @@ export default function Poubelle() {
       associatedData.passages.length + " passages",
       associatedData.rencontres.length + " rencontres",
       associatedData.consultations.length + " consultations",
+      associatedData.treatments.length + " traitements",
       associatedData.medicalFiles.length + " dossiers médicaux",
       associatedData.groups.length + " groupes",
     ];
-    if (canSeeTreatments) associatedDataAsText.splice(6, 0, associatedData.treatments.length + " traitements");
     return associatedDataAsText;
   };
 
@@ -291,7 +291,7 @@ export default function Poubelle() {
               data.passages.length +
               data.rencontres.length +
               data.consultations.length +
-              (canSeeTreatments ? data.treatments.length : 0) +
+              data.treatments.length +
               data.medicalFiles.length +
               data.groups.length
           )}
@@ -318,7 +318,7 @@ export default function Poubelle() {
               <li>{data.passages.length} passages</li>
               <li>{data.rencontres.length} rencontres</li>
               <li>{data.consultations.length} consultations</li>
-              {canSeeTreatments ? <li>{data.treatments.length} traitements</li> : null}
+              <li>{data.treatments.length} traitements</li>
               <li>{data.medicalFiles.length} dossiers médicaux</li>
               <li>{data.groups.length} groupes</li>
             </ul>
