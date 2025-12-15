@@ -25,6 +25,7 @@ const View = () => {
   const [, setActiveTab] = useLocalStorage("stats-tabCaption");
   const [, setSelectedTerritories] = useLocalStorage("stats-territories");
   const user = useAtomValue(userState);
+  const canTransferTerritory = user?.role === "admin";
   const [territories] = useAtom(territoriesState);
   const [modalOpen, setModalOpen] = useState(false);
   const territory = territories.find((t) => t._id === id);
@@ -94,14 +95,16 @@ const View = () => {
               >
                 Statistiques du territoire
               </button>
-              <button
-                className="button-classic"
-                onClick={() => {
-                  setIsTransferModalOpen(true);
-                }}
-              >
-                Transférer les données vers un autre territoire
-              </button>
+              {canTransferTerritory && (
+                <button
+                  className="button-classic"
+                  onClick={() => {
+                    setIsTransferModalOpen(true);
+                  }}
+                >
+                  Transférer les données vers un autre territoire
+                </button>
+              )}
               <DeleteButtonAndConfirmModal
                 // eslint-disable-next-line no-irregular-whitespace
                 title={`Voulez-vous vraiment supprimer le territoire ${territory.name} ?`}
@@ -145,7 +148,7 @@ const View = () => {
       <Observations territory={territory || { _id: id }} />
 
       <ModalContainer
-        open={isTransferModalOpen}
+        open={isTransferModalOpen && canTransferTerritory}
         size="lg"
         onAfterLeave={() => {
           setTransferSelectedTerritory(undefined);
@@ -207,12 +210,16 @@ const View = () => {
       </ModalContainer>
 
       <ConfirmModal
-        open={isConfirmModalOpen}
+        open={isConfirmModalOpen && canTransferTerritory}
         onClose={() => setIsConfirmModalOpen(false)}
         title={`Confirmer le transfert vers ${territories.find((t) => t._id === transferSelectedTerritory)?.name}`}
         textToConfirm={territories.find((t) => t._id === transferSelectedTerritory)?.name || ""}
         buttonText="Transférer"
         onConfirm={async () => {
+          if (!canTransferTerritory) {
+            toast.error("Désolé, seul un admin peut transférer un territoire");
+            return;
+          }
           const observationsInTerritory = observations;
 
           const observationsToUpdate = observationsInTerritory.map((o) => ({ ...o, territory: transferSelectedTerritory }));
