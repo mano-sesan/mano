@@ -216,10 +216,6 @@ const View = () => {
         textToConfirm={territories.find((t) => t._id === transferSelectedTerritory)?.name || ""}
         buttonText="Transférer"
         onConfirm={async () => {
-          if (!canTransferTerritory) {
-            toast.error("Désolé, seul un admin peut transférer un territoire");
-            return;
-          }
           const observationsInTerritory = observations;
 
           const observationsToUpdate = observationsInTerritory.map((o) => ({ ...o, territory: transferSelectedTerritory }));
