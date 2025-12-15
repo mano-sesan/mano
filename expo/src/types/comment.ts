@@ -1,3 +1,4 @@
+import { Dayjs } from "dayjs";
 import { UUIDV4 } from "./uuid";
 
 export interface CommentInstance {
@@ -5,7 +6,7 @@ export interface CommentInstance {
   comment: string;
   urgent: boolean;
   group: boolean;
-  date: Date;
+  date: Dayjs;
   person: UUIDV4;
   action: UUIDV4;
   team: UUIDV4;

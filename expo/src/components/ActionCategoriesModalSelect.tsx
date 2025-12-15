@@ -22,10 +22,10 @@ const categoriesSortedByMostUsedSelector = atom((get) => {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const categories = {};
+  const categories: Record<string, number> = {};
   for (const action of actions) {
     if (!action.categories) continue;
-    if (new Date(action.createdAt) < thirtyDaysAgo) continue;
+    if (new Date(action.createdAt!) < thirtyDaysAgo) continue;
     for (const category of action.categories) {
       if (!categories[category]) categories[category] = 0;
       categories[category]++;
@@ -38,7 +38,14 @@ const categoriesSortedByMostUsedSelector = atom((get) => {
     .filter((category) => flattenedActionsCategories.includes(category));
 });
 
-const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMostUsed }) => {
+type ActionCategoriesModalSelectProps = {
+  values: string[];
+  onChange: (categories: string[]) => void;
+  editable?: boolean;
+  withMostUsed?: boolean;
+};
+
+const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMostUsed }: ActionCategoriesModalSelectProps) => {
   const [open, setOpen] = useState(false);
   const allGroups = useAtomValue(actionsCategoriesSelector);
   const categoriesSortedByMostUsed = useAtomValue(categoriesSortedByMostUsedSelector);
@@ -74,7 +81,7 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
     return group?.categories || [];
   }, [groupSelected, groups, search, values]);
 
-  const selectedCategoriesRef = useRef(null);
+  const selectedCategoriesRef = useRef<ScrollView>(null);
 
   return (
     <>
@@ -136,13 +143,12 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
                 renderItem={({ item: category }) => (
                   <Row
                     onPress={() => {
-                      selectedCategoriesRef.current.scrollToEnd();
+                      selectedCategoriesRef.current?.scrollToEnd();
                       onChange([...values, category]);
                     }}
                     caption={category}
                   />
                 )}
-                estimatedItemSize={70}
               />
             </View>
           </ScrollContainer>

@@ -1,22 +1,25 @@
 import React, { useState } from "react";
-import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
 import { useAtomValue } from "jotai";
 import { organisationState } from "../../recoil/auth";
 import BubbleRow from "../../components/BubbleRow";
 import CommentModal from "./CommentModal";
+import { CommentInstance } from "@/types/comment";
 
-const CommentRow = ({
-  onUpdate,
-  onDelete,
-  comment,
-  showActionSheetWithOptions,
-  itemName,
-  onItemNamePress,
-  canToggleUrgentCheck,
-  canToggleGroupCheck,
-}) => {
-  const organisation = useAtomValue(organisationState);
+type CommentRowProps = {
+  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean | undefined>;
+  onDelete?: () => Promise<boolean>;
+  comment: CommentInstance;
+  itemName?: string;
+  onItemNamePress?: () => void;
+  canToggleUrgentCheck?: boolean;
+  canToggleGroupCheck?: boolean;
+};
+
+const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, canToggleUrgentCheck, canToggleGroupCheck }: CommentRowProps) => {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const organisation = useAtomValue(organisationState)!;
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
 
   const onMorePress = async () => {
@@ -30,8 +33,8 @@ const CommentRow = ({
         destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === "Modifier") setUpdateModalVisible(true);
-        if (options[buttonIndex] === "Supprimer") onCommentDeleteRequest();
+        if (options[buttonIndex!] === "Modifier") setUpdateModalVisible(true);
+        if (options[buttonIndex!] === "Supprimer") onCommentDeleteRequest();
       }
     );
   };
@@ -77,4 +80,4 @@ const CommentRow = ({
   );
 };
 
-export default connectActionSheet(CommentRow);
+export default CommentRow;

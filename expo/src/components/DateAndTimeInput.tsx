@@ -6,12 +6,28 @@ import ButtonReset from "./ButtonReset";
 import InputLabelled from "./InputLabelled";
 import { MyText } from "./MyText";
 import { dayjsInstance } from "../services/dateDayjs";
+import { Dayjs } from "dayjs";
+
+export type PossibleDate = string | Date | Dayjs | null;
+type DateAndTimeInputProps = {
+  required?: boolean;
+  withTime?: boolean;
+  setWithTime?: (withTime: boolean) => void;
+  label?: string;
+  date?: PossibleDate;
+  editable?: boolean;
+  setDate?: (date: PossibleDate) => void;
+  showTime?: boolean;
+  showDay?: boolean;
+  showYear?: boolean;
+  testID?: string;
+};
 
 // we want to show DD-MM-YYYY
 // but we want to save as YYYY-MM-DD
 
 // convert from DD-MM-YYYY to YYYY-MM-DD or the opposite is the same formula
-export const convertDate = (date, showDay) => {
+export const convertDate = (date: PossibleDate, showDay?: boolean) => {
   try {
     if (!date) return "";
     return dayjsInstance(date).format("DD-MM-YYYY");
@@ -21,7 +37,7 @@ export const convertDate = (date, showDay) => {
   }
 };
 
-const convertTime = (date) => {
+const convertTime = (date?: PossibleDate) => {
   try {
     if (!date) return "";
     return dayjsInstance(date).format("HH:mm");
@@ -31,7 +47,7 @@ const convertTime = (date) => {
   }
 };
 
-const formatDate = (date, withTime) => {
+const formatDate = (date: Date, withTime: boolean) => {
   if (withTime) return date.toISOString();
   const newDate = new Date(date);
   newDate.setUTCHours(0);
@@ -53,7 +69,7 @@ const DateAndTimeInput = ({
   showDay,
   showYear = false,
   testID = "",
-}) => {
+}: DateAndTimeInputProps) => {
   const [mode, setMode] = React.useState("date");
   const [visible, setVisible] = React.useState(false);
 
@@ -67,14 +83,14 @@ const DateAndTimeInput = ({
     setVisible(true);
   };
 
-  const setDateRequest = (newDate) => {
+  const setDateRequest = (newDate: Date) => {
     setVisible(false);
-    setDate(formatDate(newDate, withTime));
+    setDate?.(formatDate(newDate, withTime || false));
   };
 
   const onClearDate = () => {
     if (showTime) setWithTime(false);
-    setDate("");
+    setDate?.("");
   };
 
   const onClose = () => setVisible(false);
@@ -86,10 +102,12 @@ const DateAndTimeInput = ({
 
   const unsetWithTimeRequest = () => {
     setWithTime(false);
-    setDate(formatDate(date, false));
+    // @ts-expect-error Argument of type 'Dayjs | null | undefined' is not assignable to parameter of type 'Date'.
+    setDate?.(formatDate(date, false));
   };
 
   const renderTime = () => {
+    // @ts-expect-error Property 'length' does not exist on type 'Dayjs'
     if (!date?.length) return null;
     if (!showTime) return null;
     if (!withTime) {
@@ -119,6 +137,7 @@ const DateAndTimeInput = ({
 
   const renderDate = () => {
     if (!date) return "JJ-MM-AAAA";
+    // @ts-expect-error This comparison appears to be unintentional because the types 'Date' and 'string' have no overlap
     // eslint-disable-next-line eqeqeq
     if (new Date(date) == "Invalid Date") return "JJ-MM-AAAA";
     if (showYear) return dayjsInstance(date).format("DD MMMM YYYY");
@@ -128,15 +147,17 @@ const DateAndTimeInput = ({
   return (
     <>
       <InputContainer>
-        {label && <Label bold label={label} />}
+        {label && <Label label={label} />}
         <Inputs>
           <InputSubContainer onPress={onDateChooseRequest} testID={testID}>
-            <Input asPlaceholder={!date?.length}>{renderDate()}</Input>
+            <Input>{renderDate()}</Input>
+            {/* @ts-expect-error Property 'length' does not exist on type 'Date'. */}
             {!required && Boolean(date?.length) && <ButtonReset onPress={onClearDate} />}
           </InputSubContainer>
           {renderTime()}
         </Inputs>
       </InputContainer>
+      {/* @ts-expect-error Property 'length' does not exist on type 'Date'. */}
       <DatePicker mode={mode} visible={visible} initDate={date?.length ? new Date(date) : new Date()} onClose={onClose} selectDate={setDateRequest} />
     </>
   );
@@ -150,7 +171,19 @@ const DateAndTimeInput = ({
 
 // https://github.com/react-native-community/react-native-datetimepicker/issues/114
 
-const DatePicker = ({ selectDate, mode, visible, initDate, onClose }) => {
+const DatePicker = ({
+  selectDate,
+  mode,
+  visible,
+  initDate,
+  onClose,
+}: {
+  selectDate: (date: Date) => void;
+  mode: "date" | "time";
+  visible: boolean;
+  initDate: Date;
+  onClose: () => void;
+}) => {
   if (!visible) {
     return null;
   }

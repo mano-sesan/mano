@@ -5,7 +5,16 @@ import ButtonRight from "./ButtonRight";
 import InputLabelled from "./InputLabelled";
 import { MyText } from "./MyText";
 
-const InputFromSearchList = ({ error, label, onSearchRequest, value, disabled, editable = true }) => {
+type InputFromSearchListProps = {
+  error?: string;
+  label?: string;
+  onSearchRequest: () => void;
+  value: string;
+  disabled?: boolean;
+  editable?: boolean;
+};
+
+const InputFromSearchList = ({ error, label, onSearchRequest, value, disabled, editable = true }: InputFromSearchListProps) => {
   if (!editable) {
     return <InputLabelled label="Personne concernée" value={value} editable={false} />;
   }

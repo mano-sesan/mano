@@ -4,6 +4,15 @@ import { CANCEL, CHOOSE, DONE, mappedIdsToLabels, TODO } from "../../recoil/acti
 import colors from "../../utils/colors";
 import Button from "../Button";
 import SelectLabelled from "./SelectLabelled";
+import { ActionStatus } from "@/types/action";
+
+type ActionStatusSelectProps = {
+  value?: string;
+  onSelect: (value: ActionStatus) => void;
+  onSelectAndSave: (value: ActionStatus) => void;
+  editable?: boolean;
+  testID?: string;
+};
 
 // prettier-ignore
 const statuses = [
@@ -12,7 +21,7 @@ const statuses = [
   CANCEL,
 ];
 
-const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editable, testID = "action-status" }) => {
+const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editable, testID = "action-status" }: ActionStatusSelectProps) => {
   if (!editable) {
     return (
       <Container>
@@ -21,8 +30,8 @@ const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editabl
           values={statuses}
           mappedIdsToLabels={mappedIdsToLabels}
           value={value}
+          // @ts-expect-error '(value: ActionStatus) => void' is not assignable to type '(value: string) => void'.
           onSelect={onSelect}
-          onSelectAndSave={onSelectAndSave}
           editable={editable}
           testID={testID}
         />
@@ -41,11 +50,11 @@ const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editabl
             </>
           )}
           <Button
-            borderColor={value === TODO ? colors.app.color : null}
+            borderColor={value === TODO ? colors.app.color : undefined}
             color={value === TODO ? "#fff" : colors.app.color}
             buttonSize={20}
-            backgroundColor={value === TODO ? colors.app.color : null}
-            onPress={() => onSelectAndSave(value === TODO ? DONE : null)}
+            backgroundColor={value === TODO ? colors.app.color : undefined}
+            onPress={() => onSelectAndSave(value === TODO ? DONE : TODO)}
             caption={value === TODO ? DONE : TODO}
           />
         </ButtonsContainer>
@@ -58,8 +67,8 @@ const ActionStatusSelect = ({ value = CHOOSE, onSelect, onSelectAndSave, editabl
       values={statuses}
       mappedIdsToLabels={mappedIdsToLabels}
       value={value}
+      // @ts-expect-error '(value: ActionStatus) => void' is not assignable to type '(value: string) => void'.
       onSelect={onSelect}
-      onSelectAndSave={onSelectAndSave}
       editable={editable}
       testID={testID}
     />

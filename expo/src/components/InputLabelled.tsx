@@ -7,7 +7,7 @@ import { MyText, MyTextInput } from "./MyText";
 import colors from "../utils/colors";
 import Spacer from "./Spacer";
 
-interface InputLabelledProps extends TextInputProps {
+interface InputLabelledProps extends Omit<TextInputProps, "placeholderTextColor"> {
   error?: string;
   label?: string;
   multiline?: boolean;
@@ -50,11 +50,7 @@ const InputLabelled = ({
   return (
     <InputContainer>
       {label && <Label label={label} />}
-      {multiline ? (
-        <InputMultilineAutoAdjust ref={ref} {...props} />
-      ) : (
-        <Input autoComplete="off" ref={ref} {...props} value={String(props.value || "")} />
-      )}
+      {multiline ? <InputMultilineAutoAdjust {...props} /> : <Input autoComplete="off" ref={ref} {...props} value={String(props.value || "")} />}
       {Boolean(EndIcon) && Boolean(props?.value?.length) && (
         <TouchableWithoutFeedback onPress={onEndIconPress}>
           <IconWrapper>
@@ -98,7 +94,7 @@ const Content = styled(MyText)`
 `;
 
 const Input = styled(MyTextInput)`
-  border: 1px solid rgba(30, 36, 55, 0.1);
+  border: 1px solid rgba(7, 7, 8, 0.1);
   border-radius: 12px;
   padding-horizontal: 12px;
   padding-vertical: 15px;

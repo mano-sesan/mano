@@ -70,8 +70,8 @@ export type LoginStackParamsList = {
 };
 
 interface ActionScreenParams {
-  action: ActionInstance;
-  actions: ActionInstance[];
+  action?: ActionInstance;
+  actions?: ActionInstance[];
   person?: PersonInstance;
   persons?: PersonInstance[];
   editable: boolean;

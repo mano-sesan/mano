@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Keyboard } from "react-native";
+import { Alert, Keyboard, View } from "react-native";
 import dayjs from "dayjs";
 import Button from "../../components/Button";
 import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust";
@@ -9,20 +9,30 @@ import ButtonDelete from "../../components/ButtonDelete";
 import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
+import { CommentInstance } from "@/types/comment";
 
-const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canToggleUrgentCheck, canToggleGroupCheck }) => {
+type NewCommentInputProps = {
+  forwardRef: React.RefObject<View | null>;
+  onFocus?: () => void;
+  onCommentWrite: (comment: string) => void;
+  onCreate: (comment: Partial<CommentInstance>) => Promise<void>;
+  canToggleUrgentCheck?: boolean;
+  canToggleGroupCheck?: boolean;
+};
+
+const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canToggleUrgentCheck, canToggleGroupCheck }: NewCommentInputProps) => {
   const [comment, setComment] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [group, setGroup] = useState(false);
   const [posting, setPosting] = useState(false);
-  const currentTeam = useAtomValue(currentTeamState);
-  const organisation = useAtomValue(organisationState);
-  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const organisation = useAtomValue(organisationState)!;
+  const user = useAtomValue(userState)!;
 
   const onCreateComment = async () => {
     setPosting(true);
 
-    const body = {
+    const body: Partial<CommentInstance> = {
       comment,
       date: dayjs(),
       urgent,
@@ -39,7 +49,7 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
   };
 
   const onCancelRequest = () => {
-    Alert.alert("Voulez-vous abandonner la création de ce commentaire ?", null, [
+    Alert.alert("Voulez-vous abandonner la création de ce commentaire ?", undefined, [
       {
         text: "Continuer la création",
       },
@@ -54,19 +64,26 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
     ]);
   };
 
-  const onChangeText = (newComment) => {
+  const onChangeText = (newComment: string) => {
     setComment(newComment);
     onCommentWrite?.(newComment);
   };
 
   return (
     <>
-      <InputMultilineAutoAdjust onChangeText={onChangeText} value={comment} placeholder="Ajouter un commentaire" ref={forwardRef} onFocus={onFocus} />
+      <InputMultilineAutoAdjust
+        onChangeText={onChangeText}
+        value={comment}
+        placeholder="Ajouter un commentaire"
+        viewRef={forwardRef}
+        onFocus={onFocus}
+      />
       {!!comment.length && (
         <>
           <Spacer />
           {!!canToggleUrgentCheck && (
             <CheckboxLabelled
+              _id="urgent"
               label="Commentaire prioritaire (ce commentaire sera mis en avant par rapport aux autres)"
               alone
               onPress={() => setUrgent((u) => !u)}
@@ -75,14 +92,15 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
           )}
           {!!canToggleGroupCheck && (
             <CheckboxLabelled
+              _id="group"
               label="Commentaire familial (ce commentaire sera visible pour toute la famille)"
               alone
               onPress={() => setGroup((g) => !g)}
-              value={group}
+              value={group ? true : false}
             />
           )}
           <ButtonsContainer>
-            <ButtonDelete onPress={onCancelRequest} caption="Annuler" />
+            <ButtonDelete onPress={onCancelRequest} caption="Annuler" deleting={false} />
             <Button caption="Créer" onPress={onCreateComment} loading={posting} />
           </ButtonsContainer>
         </>

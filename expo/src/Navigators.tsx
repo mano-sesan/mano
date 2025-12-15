@@ -13,8 +13,8 @@ import Login from "./scenes/Login/Login";
 import Action from "./scenes/Actions/Action";
 import NewActionForm from "./scenes/Actions/NewActionForm";
 import PersonsList from "./scenes/Persons/PersonsList";
-import PersonsSearch from "./scenes/Persons/PersonsSearch";
-import NewPersonForm from "./scenes/Persons/NewPersonForm";
+// import PersonsSearch from "./scenes/Persons/PersonsSearch";
+// import NewPersonForm from "./scenes/Persons/NewPersonForm";
 import Person from "./scenes/Persons/Person";
 import PersonsOutOfActiveListReason from "./scenes/Persons/PersonsOutOfActiveListReason";
 import Rencontre from "./scenes/Persons/Rencontre";
@@ -278,7 +278,7 @@ const App = () => {
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />
               {/* Persons */}
               <AppStack.Screen name="PERSON" component={Person} />
-              <AppStack.Screen name="PERSON_NEW" component={NewPersonForm} />
+              {/* <AppStack.Screen name="PERSON_NEW" component={NewPersonForm} /> */}
               <AppStack.Screen name="PERSON_OUT_OF_ACTIVE_LIST_REASON" component={PersonsOutOfActiveListReason} />
               {/* <AppStack.Screen name="PERSONS_SEARCH" component={PersonsSearch} /> */}
               <AppStack.Screen name="PERSONS_FILTER" component={PersonsFilter} />

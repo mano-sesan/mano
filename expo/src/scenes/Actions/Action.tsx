@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Animated, Keyboard, KeyboardAvoidingView, TouchableOpacity, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import isEqual from "react-fast-compare";
@@ -41,7 +41,11 @@ import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import PersonsSearch from "../Persons/PersonsSearch";
 import NewPersonForm from "../Persons/NewPersonForm";
+import { type Document, type Folder } from "@/types/document";
+import { CommentInstance } from "@/types/comment";
+type DocumentOrFolder = Document | Folder;
 
+type ActionInstanceWithoutId = Omit<ActionInstance, "_id">;
 type ActionProps = NativeStackScreenProps<RootStackParamList, "ACTION">;
 
 type ActionStackParams = {
@@ -65,14 +69,14 @@ const ActionScreen = (props: ActionProps) => {
   const actionDB = useMemo(() => {
     let existingAction = actions.find((a) => a._id === props.route.params?.action?._id);
     if (!existingAction) existingAction = props.route.params?.action;
-    return Object.assign({}, castToAction(existingAction), { _id: existingAction._id });
+    return Object.assign({}, castToAction(existingAction!), { _id: existingAction!._id });
   }, [actions, props.route.params?.action]);
 
   const [action, setAction] = useState(() => castToAction(actionDB));
 
   const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
   const multipleActions = props.route.params?.actions;
-  const isMultipleActions = multipleActions?.length > 1;
+  const isMultipleActions = multipleActions ? multipleActions.length > 1 : false;
   const persons = useMemo(() => {
     if (isMultipleActions) {
       return multipleActions?.map((a) => allPersonsObject[a.person!]);
@@ -140,24 +144,24 @@ const ActionScreen = (props: ActionProps) => {
 };
 
 type ActionMainProps = ActionProps & {
-  actionDB: ReturnType<typeof castToAction> & { _id: string };
-  action: ReturnType<typeof castToAction>;
+  actionDB: ActionInstance;
+  action: ActionInstanceWithoutId;
   actions: ActionInstance[];
-  setAction: (action: ActionInstance) => void;
-  persons: PersonInstance[];
+  setAction: React.Dispatch<React.SetStateAction<ActionInstanceWithoutId>>;
+  persons: PersonInstance[] | undefined;
   onSearchPerson: () => void;
 };
 
 const Action = ({ navigation, route, actionDB, action, actions, setAction, persons, onSearchPerson }: ActionMainProps) => {
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const user = useAtomValue(userState)!;
-  const organisation = useAtomValue(organisationState);
+  const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState);
   const [comments, setComments] = useAtom(commentsState);
   const currentTeam = useAtomValue(currentTeamState)!;
 
   const multipleActions = route?.params?.actions;
-  const isMultipleActions = multipleActions?.length > 1;
+  const isMultipleActions = multipleActions ? multipleActions.length > 1 : false;
   const canComment = !isMultipleActions && ["admin", "normal"].includes(user.role);
 
   const [updating, setUpdating] = useState(false);
@@ -230,7 +234,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   };
 
-  const updateAction = async (action: ActionMainProps["actionDB"]) => {
+  const updateAction = async (action: ActionInstance) => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
       setUpdating(false);
@@ -266,7 +270,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       for (const key in action) {
         if (!allowedActionFieldsInHistory.map((field) => field.name).includes(key)) continue;
         const oldValue = oldAction[key as keyof ActionInstance];
-        const newValue = action[key as keyof ActionMainProps["actionDB"]];
+        const newValue = action[key as keyof ActionMainProps["action"]];
         if (!isEqual(newValue, oldValue)) {
           if (isEmptyValue(newValue) && isEmptyValue(oldValue)) continue;
           // @ts-expect-error No index signature with a parameter of type 'string' was found on type '{}'
@@ -291,7 +295,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   const onUpdateRequest = async () => {
     setUpdating(true);
     if (isMultipleActions) {
-      for (const a of multipleActions) {
+      for (const a of multipleActions!) {
         const response = await updateAction(
           Object.assign({}, castToAction(action), {
             _id: a._id,
@@ -381,7 +385,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     backRequestHandledRef.current = true;
     navigation.replace("ACTION", {
       action: response.decryptedData,
-      person
+      person: response.decryptedData.person,
       editable: true,
       duplicate: true,
     });
@@ -401,7 +405,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     ]);
   };
 
-  const deleteAction = async (id) => {
+  const deleteAction = async (id: string) => {
     const res = await API.delete({
       path: `/action/${id}`,
       body: {
@@ -415,7 +419,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   const onDelete = async () => {
     let response;
     if (isMultipleActions) {
-      for (const a of multipleActions) {
+      for (const a of multipleActions!) {
         response = await deleteAction(a._id);
       }
     } else {
@@ -428,11 +432,11 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
   };
 
-  const newCommentRef = useRef(null);
+  const newCommentRef = useRef<View>(null);
 
-  const isOnePerson = persons.length === 1;
+  const isOnePerson = persons ? persons.length === 1 : false;
   const person = !isOnePerson ? null : persons?.[0];
-  const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && groups.find((group) => group.persons.includes(person._id));
+  const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && !!groups.find((group) => group.persons.includes(person._id));
 
   const { name, categories, group } = action;
 
@@ -453,8 +457,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             : displayActionName
         }
         onBack={onGoBackRequested}
-        onEdit={!editable ? () => setEditable(true) : null}
-        onSave={!editable || isUpdateDisabled ? null : onUpdateRequest}
+        onEdit={!editable ? () => setEditable(true) : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onUpdateRequest}
         saving={updating}
         testID="action"
       />
@@ -525,7 +529,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             <ActionTab.Screen
               name="ACTION_DOCUMENTS"
               options={{
-                tabBarLabel: `Documents${action.documents.length ? ` (${action.documents.length})` : ""}`,
+                tabBarLabel: `Documents${action.documents?.length ? ` (${action.documents.length})` : ""}`,
               }}
             >
               {() => (
@@ -533,20 +537,24 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
                   <DocumentsManager
                     defaultParent="root"
                     personDB={person}
-                    onAddDocument={(doc) => {
+                    onAddDocument={(doc: DocumentOrFolder) => {
                       const newActionDb = { ...actionDB, documents: [...(actionDB.documents || []), doc] };
+
                       setAction(castToAction(newActionDb));
                       updateAction(newActionDb);
                     }}
-                    onDelete={(doc) => {
-                      const newActionDb = { ...actionDB, documents: actionDB.documents.filter((d) => d.file.filename !== doc.file.filename) };
-                      setAction(castToAction(newActionDb));
-                      updateAction(newActionDb);
-                    }}
-                    onUpdateDocument={(doc) => {
+                    onDelete={(doc: Document) => {
                       const newActionDb = {
                         ...actionDB,
-                        documents: actionDB.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)),
+                        documents: actionDB.documents?.filter((d) => d.type === "folder" || d.file?.filename !== doc.file?.filename),
+                      };
+                      setAction(castToAction(newActionDb));
+                      updateAction(newActionDb);
+                    }}
+                    onUpdateDocument={(doc: Document) => {
+                      const newActionDb = {
+                        ...actionDB,
+                        documents: actionDB.documents?.map((d) => (d.type === "document" && d.file?.filename === doc.file?.filename ? doc : d)),
                       };
                       setAction(castToAction(newActionDb));
                       updateAction(newActionDb);
@@ -619,25 +627,23 @@ function MyTabBar({ state, descriptors, navigation, position }: MaterialTopTabBa
             accessibilityRole="button"
             accessibilityState={isFocused ? { selected: true } : {}}
             accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
+            testID={options.tabBarButtonTestID}
             onPress={onPress}
             onLongPress={onLongPress}
             className="flex-1 justify-center items-center py-2"
-            // eslint-disable-next-line react-native/no-inline-styles
             style={{
               // textDecoration: isFocused ? 'underline' : 'none',
               borderBottomWidth: isFocused ? 2 : 0,
             }}
           >
             <Animated.Text
-              // eslint-disable-next-line react-native/no-inline-styles
               style={{
                 color: isFocused ? "#000" : "#000",
                 fontWeight: isFocused ? "bold" : "normal",
                 opacity,
               }}
             >
-              {label}
+              {label as string}
             </Animated.Text>
           </TouchableOpacity>
         );
@@ -647,11 +653,11 @@ function MyTabBar({ state, descriptors, navigation, position }: MaterialTopTabBa
 }
 
 type ActionInformationProps = {
-  action: ActionInstance;
-  persons: PersonInstance[];
+  action: ActionInstanceWithoutId;
+  persons: PersonInstance[] | undefined;
   editable: boolean;
   setEditable: (editable: boolean) => void;
-  setAction: (action: ActionInstance) => void;
+  setAction: React.Dispatch<React.SetStateAction<ActionInstanceWithoutId>>;
   onSearchPerson: () => void;
   updating: boolean;
   isUpdateDisabled: boolean;
@@ -691,7 +697,7 @@ const ActionInformation = ({
         editable={editable}
         testID="action-name"
       />
-      {persons.length < 2 ? (
+      {persons && persons.length < 2 ? (
         <InputFromSearchList
           label="Personne concernée"
           value={persons[0]?.name || "-- Aucune --"}
@@ -702,7 +708,7 @@ const ActionInformation = ({
         <>
           <Label label="Personne(s) concerné(es)" />
           <Tags
-            data={persons}
+            data={persons || []}
             onChange={(persons) => setAction((a) => ({ ...a, persons }))}
             onAddRequest={onSearchPerson}
             renderTag={(person) => <MyText>{person?.name}</MyText>}
@@ -730,7 +736,7 @@ const ActionInformation = ({
       {status !== TODO ? (
         <DateAndTimeInput
           label={status === DONE ? "Faite le" : "Annulée le"}
-          setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt }))}
+          setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt || undefined }))}
           date={completedAt || new Date().toISOString()}
           showTime
           showDay
@@ -750,6 +756,7 @@ const ActionInformation = ({
       <ActionCategoriesModalSelect onChange={(categories) => setAction((a) => ({ ...a, categories }))} values={categories} editable={editable} />
       {editable && canSetUrgent ? (
         <CheckboxLabelled
+          _id="urgent"
           label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
           alone
           onPress={() => setAction((a) => ({ ...a, urgent: !a.urgent }))}
@@ -758,16 +765,17 @@ const ActionInformation = ({
       ) : null}
       {editable && !!canToggleGroupCheck ? (
         <CheckboxLabelled
+          _id="group"
           label="Action familiale (cette action sera à effectuer pour toute la famille)"
           alone
           onPress={() => setAction((a) => ({ ...a, group: !a.group }))}
-          value={group}
+          value={group ? true : false}
         />
       ) : null}
 
       {!editable && <Spacer />}
       <ButtonsContainer>
-        {canDelete && <ButtonDelete onPress={onDeleteRequest} />}
+        {canDelete && <ButtonDelete onPress={onDeleteRequest} deleting={updating} />}
         <Button
           caption={editable ? "Mettre à jour" : "Modifier"}
           onPress={editable ? onUpdateRequest : () => setEditable(true)}
@@ -779,7 +787,17 @@ const ActionInformation = ({
   );
 };
 
-const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, setWritingComment }) => {
+type ActionCommentsProps = {
+  actionDB: ActionInstance;
+  actionComments: CommentInstance[];
+  comments: CommentInstance[];
+  setComments: React.Dispatch<React.SetStateAction<CommentInstance[]>>;
+  canComment: boolean;
+  newCommentRef: React.RefObject<View | null>;
+  setWritingComment: (writingComment: string) => void;
+};
+
+const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, setWritingComment }: ActionCommentsProps) => {
   return (
     <ScrollContainer noRadius>
       {!!canComment && (
@@ -841,7 +859,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                       return true;
                     }
                   }
-                : null
+                : undefined
             }
           />
         ))
@@ -854,7 +872,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
   );
 };
 
-const castToAction = (action: Partial<ActionInstance>): Omit<ActionInstance, "_id" | "deletedAt" | "organisation"> => {
+const castToAction = (action: Partial<ActionInstance>): ActionInstanceWithoutId => {
   if (!action) action = {} as Partial<ActionInstance>;
   return {
     name: action.name?.trim() || "",
@@ -873,6 +891,8 @@ const castToAction = (action: Partial<ActionInstance>): Omit<ActionInstance, "_i
     history: action.history || [],
     documents: action.documents || [],
     updatedAt: action.updatedAt,
+    deletedAt: action.deletedAt,
+    organisation: action.organisation!,
   };
 };
 

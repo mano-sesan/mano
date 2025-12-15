@@ -6,8 +6,19 @@ import { MyText } from "./MyText";
 import { ActivityIndicator, View } from "react-native";
 import colors from "../utils/colors";
 
-const Row = ({ loading, onPress, caption, withNextButton, center, onBack, testID, color = "#000" }) => (
-  <RowContainer onPress={onPress} center={center || loading} disabled={loading} onBack={onBack} testID={testID}>
+type RowProps = {
+  loading?: boolean;
+  onPress: () => void;
+  caption?: string;
+  withNextButton?: boolean;
+  center?: boolean;
+  onBack?: () => void;
+  testID?: string;
+  color?: string;
+};
+
+const Row = ({ loading, onPress, caption, withNextButton, center, onBack, testID, color = "#000" }: RowProps) => (
+  <RowContainer onPress={onPress} center={center || loading} disabled={loading} testID={testID}>
     {Boolean(onBack) && <ButtonRight onPress={onPress} caption="<" />}
     <Caption loading={loading} as={loading ? View : MyText} color={color}>
       {loading ? <ActivityIndicator size="small" color={colors.app.secondary} /> : caption}
@@ -23,7 +34,7 @@ const loaderCss = css`
   text-align: center;
 `;
 
-const Caption = styled(MyText)`
+const Caption = styled(MyText)<{ loading?: boolean }>`
   margin-left: 15px;
   font-size: 20px;
   font-weight: bold;

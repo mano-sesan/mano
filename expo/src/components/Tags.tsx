@@ -4,9 +4,22 @@ import ResetIcon from "../icons/ResetIcon";
 import PlusIcon from "../icons/PlusIcon";
 import { MyText, MyTextInput } from "./MyText";
 import Button from "./Button";
+import { ViewStyle } from "react-native";
 
-const Tags = ({ data = [], onAddRequest, disableAdd, renderTag, onChange, editable, listEmptyText = "", style }) => {
-  const addItem = (item) => [...data, item];
+type TagsProps = {
+  data: any[];
+  onAddRequest?: () => void;
+  disableAdd?: boolean;
+  renderTag: (item: any) => React.ReactNode;
+  onChange: (items: any[]) => void;
+  editable?: boolean;
+  listEmptyText?: string;
+  style?: ViewStyle;
+  className?: string;
+};
+
+const Tags = ({ data = [], onAddRequest, disableAdd, renderTag, onChange, editable, listEmptyText = "", style, className }: TagsProps) => {
+  const addItem = (item: string) => [...data, item];
   const [text, setText] = useState("");
   const inputRef = useRef(null);
 
@@ -40,7 +53,7 @@ const Tags = ({ data = [], onAddRequest, disableAdd, renderTag, onChange, editab
   };
 
   return (
-    <TagWrapper style={style}>
+    <TagWrapper style={style} className={className}>
       {data.map((tag, i) => (
         <TagItem key={`${tag}${i}`}>
           {renderTag(tag)}
