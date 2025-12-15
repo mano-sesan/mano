@@ -174,7 +174,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                     <b>
                       <PersonName item={{ person: document.linkedItem._id }} />
                     </b>
-                    , vous dever allez sur sa fiche pour le modifier.
+                    , vous devez aller sur sa fiche pour le modifier.
                   </div>
                 </div>
               )}
