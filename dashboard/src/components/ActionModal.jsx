@@ -30,7 +30,6 @@ import { encryptComment } from "../atoms/comments";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
-import { DISABLED_FEATURES } from "../config";
 import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
 import { Menu, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
