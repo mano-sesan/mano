@@ -7,7 +7,7 @@ import { useTree } from "@headless-tree/react";
 import cn from "classnames";
 import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder, LinkedItemType } from "../../types/document";
 import type { UserInstance } from "../../types/user";
-import { handleFilesUpload } from "../../components/DocumentsGeneric";
+import { handleFilesUpload, type FolderOption } from "./DocumentsUpload";
 import UserName from "../../components/UserName";
 import { formatDateWithFullMonth, formatTime } from "../../services/date";
 
@@ -238,7 +238,7 @@ interface DocumentsDropzoneProps {
   onAddDocuments: (docs: Array<Document | Folder>) => Promise<void>;
   personId: string;
   user: UserInstance | null;
-  folderOptions: Array<{ _id: string; name: string; level: number }>;
+  folderOptions: Array<FolderOption & { level: number }>;
 }
 
 export function DocumentsDropzone({ setIsInDropzone, onAddDocuments, personId, user, folderOptions }: DocumentsDropzoneProps) {

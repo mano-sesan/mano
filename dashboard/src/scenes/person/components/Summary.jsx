@@ -12,15 +12,14 @@ import { customFieldsPersonsSelector } from "../../../atoms/persons";
 import { SummaryPrint } from "./SummaryPrint";
 import PersonDocumentsNew from "../../../components/document/PersonDocuments";
 import PersonDocuments from "./PersonDocuments";
-import { MANO_TEST_ORG_ID } from "../../../config";
+import { shouldUseNewDocumentsSystem } from "../../../config";
 
 export default function Summary({ person }) {
   const user = useAtomValue(userState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
   const organisation = useAtomValue(organisationState);
 
-  const useNewDocumentSystem =
-    (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
+  const useNewDocumentSystem = shouldUseNewDocumentsSystem(organisation?._id);
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
