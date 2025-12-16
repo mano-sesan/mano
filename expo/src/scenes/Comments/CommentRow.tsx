@@ -56,9 +56,9 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
   return (
     <>
       <BubbleRow
-        onMorePress={onDelete || onUpdate ? onMorePress : null}
-        caption={comment.comment}
-        date={comment.date || comment.createdAt}
+        onMorePress={onDelete || onUpdate ? onMorePress : undefined}
+        caption={comment.comment!}
+        date={comment.date || comment.createdAt!}
         user={comment.user}
         urgent={comment.urgent}
         group={!!organisation.groupsEnabled && comment.group}

@@ -2,20 +2,21 @@ import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { RelPersonPlaceInstance } from "@/types/place";
 
-export const relsPersonPlaceState = atomWithCache("relPersonPlace", []);
+export const relsPersonPlaceState = atomWithCache<RelPersonPlaceInstance[]>("relPersonPlace", []);
 
 const encryptedFields = ["place", "person", "user"];
 
-export const prepareRelPersonPlaceForEncryption = (relPersonPlace) => {
+export const prepareRelPersonPlaceForEncryption = (relPersonPlace: Partial<RelPersonPlaceInstance>) => {
   try {
-    if (!looseUuidRegex.test(relPersonPlace.person)) {
+    if (!looseUuidRegex.test(relPersonPlace.person!)) {
       throw new Error("RelPersonPlace is missing person");
     }
-    if (!looseUuidRegex.test(relPersonPlace.place)) {
+    if (!looseUuidRegex.test(relPersonPlace.place!)) {
       throw new Error("RelPersonPlace is missing place");
     }
-    if (!looseUuidRegex.test(relPersonPlace.user)) {
+    if (!looseUuidRegex.test(relPersonPlace.user!)) {
       throw new Error("RelPersonPlace is missing user");
     }
   } catch (error) {
@@ -26,9 +27,9 @@ export const prepareRelPersonPlaceForEncryption = (relPersonPlace) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
-    decrypted[field] = relPersonPlace[field];
+    decrypted[field] = relPersonPlace[field as keyof RelPersonPlaceInstance];
   }
   return {
     _id: relPersonPlace._id,

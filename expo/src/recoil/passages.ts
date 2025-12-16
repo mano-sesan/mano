@@ -2,18 +2,19 @@ import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { PassageInstance } from "@/types/passage";
 
-export const passagesState = atomWithCache("passage", []);
+export const passagesState = atomWithCache<PassageInstance[]>("passage", []);
 
 const encryptedFields = ["person", "team", "user", "date", "comment"];
 
-export const preparePassageForEncryption = (passage) => {
+export const preparePassageForEncryption = (passage: Partial<PassageInstance>) => {
   try {
     // we don't check the presence of a person because passage can be anonymous
-    if (!looseUuidRegex.test(passage.team)) {
+    if (!looseUuidRegex.test(passage.team!)) {
       throw new Error("Passage is missing team");
     }
-    if (!looseUuidRegex.test(passage.user)) {
+    if (!looseUuidRegex.test(passage.user!)) {
       throw new Error("Passage is missing user");
     }
     if (!passage.date) {
@@ -27,9 +28,9 @@ export const preparePassageForEncryption = (passage) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
-    decrypted[field] = passage[field];
+    decrypted[field] = passage[field as keyof PassageInstance];
   }
   return {
     _id: passage._id,

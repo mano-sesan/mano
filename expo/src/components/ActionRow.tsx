@@ -14,12 +14,12 @@ import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import RepeatIcon from "../icons/RepeatIcon";
 import UserName from "./UserName";
 import { ActionInstance } from "@/types/action";
-import { PersonInstance, PersonPopulated } from "@/types/person";
+import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
 
 type ActionRowProps = {
   onActionPress: (action: ActionInstance) => void;
-  onPseudoPress: (person: PersonInstance) => void;
+  onPseudoPress?: (person: PersonInstance) => void;
   showStatus?: boolean;
   action: ActionInstance;
   withTeamName?: boolean;
@@ -27,7 +27,7 @@ type ActionRowProps = {
 };
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }: ActionRowProps) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const organisation = useAtomValue(organisationState)!;
 
   const name = action?.name?.trim() || action?.categories?.join(", ") || "Action";
@@ -41,7 +41,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
   const completedAt = action?.completedAt ? dayjsInstance(action?.completedAt) : null;
 
   const onPseudoContainerPress = useCallback(() => {
-    if (person) onPseudoPress(person);
+    if (person && onPseudoPress) onPseudoPress(person);
   }, [person, onPseudoPress]);
 
   const onRowPress = useCallback(() => {

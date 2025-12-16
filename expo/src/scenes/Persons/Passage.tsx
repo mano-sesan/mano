@@ -13,16 +13,17 @@ import { passagesState, preparePassageForEncryption } from "../../recoil/passage
 import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
+import { dayjsInstance } from "@/services/dateDayjs";
 
 type PassageProps = NativeStackScreenProps<RootStackParamList, "PASSAGE">;
 
 const Passage = ({ navigation, route }: PassageProps) => {
-  const personId = route.params.person._id;
-  const isNewPassage = !route.params.passage;
-  const currentTeam = useAtomValue(currentTeamState);
-  const user = useAtomValue(userState);
+  const personId = route.params?.person?._id;
+  const isNewPassage = !route.params?.passage?._id;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
   const [passage, setPassage] = useState(
-    () => route.params.passage || { date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId }
+    () => route.params?.passage || { date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId }
   );
   const [submitting, setSubmitting] = useState(false);
   const [passages, setPassages] = useAtom(passagesState);
@@ -62,6 +63,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
         <View>
           <DateAndTimeInput
             label="Date"
+            // @ts-expect-error Type 'PossibleDate' is not assignable to type 'string | Date | undefined'.
             setDate={(date) => setPassage((a) => ({ ...a, date }))}
             date={passage.date}
             showDay
@@ -84,8 +86,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
                 if (isNewPassage) await createPassage();
                 else await updatePassage();
                 setSubmitting(false);
-
-                navigation.navigate(route.params.fromRoute, { person: route.params.person }, { merge: true });
+                navigation.goBack();
               }}
             />
           </ButtonContainer>

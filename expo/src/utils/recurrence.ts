@@ -1,15 +1,19 @@
 import structuredClone from "@ungap/structured-clone";
 import { dayjsInstance } from "../services/dateDayjs";
+import { Recurrence } from "@/types/recurrence";
+import { ActionInstance } from "@/types/action";
+import { UUIDV4 } from "@/types/uuid";
+import { Dayjs } from "dayjs";
 
 const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-const ucFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const ucFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-function toDayIndex(day) {
+function toDayIndex(day: string) {
   return days.indexOf(ucFirst(day));
 }
 
-export function getOccurrences(recurrence) {
+export function getOccurrences(recurrence: Recurrence) {
   const { startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear } = recurrence;
   const occurrences = [];
   let nextDate = dayjsInstance(startDate).startOf("day");
@@ -21,7 +25,7 @@ export function getOccurrences(recurrence) {
   } else if (timeUnit === "week") {
     while (nextDate.isBefore(dayjsInstance(endDate).endOf("day"))) {
       for (const day of days) {
-        if (selectedDays.includes(day)) {
+        if (selectedDays?.includes(day)) {
           const dayOfWeekIndex = toDayIndex(day);
           const occurrence = nextDate.startOf("week").add(dayOfWeekIndex, "day");
           if (occurrence.isBefore(dayjsInstance(endDate).endOf("day")) && !dayjsInstance(startDate).startOf("day").isAfter(occurrence)) {
@@ -110,10 +114,10 @@ export function getOccurrences(recurrence) {
 
 // On donne une liste d'action et on retire les actions récurrentes qui sont après la prochaine occurrence.
 // Utile pour ne pas afficher toutes les actions du futur dans les notifications
-export function actionsWithoutFutureRecurrences(actionsToSet) {
+export function actionsWithoutFutureRecurrences(actionsToSet: ActionInstance[]) {
   const now = dayjsInstance().startOf("day");
 
-  const getActionDate = (action) => {
+  const getActionDate = (action: ActionInstance) => {
     return action.completedAt ? dayjsInstance(action.completedAt) : dayjsInstance(action.dueAt);
   };
 
@@ -127,7 +131,7 @@ export function actionsWithoutFutureRecurrences(actionsToSet) {
         acc[action.recurrence].push(action);
       }
       return acc;
-    }, {})
+    }, {} as Record<UUIDV4, ActionInstance[]>)
   );
 
   const actionsWithRecurrence = Object.values(actionsGroupedByRecurrence).flatMap((group) => {
@@ -141,7 +145,7 @@ export function actionsWithoutFutureRecurrences(actionsToSet) {
     }
 
     // On garde les actions jusqu'à la première action à venir (inclus)
-    const actionsToDisplay = sortedGroup.slice(0, firstUpcomingIndex + 1);
+    const actionsToDisplay: Array<ActionInstance & { nextOccurrence?: Dayjs }> = sortedGroup.slice(0, firstUpcomingIndex + 1);
     // Enrichir la dernière action (la première à venir) avec la date de la suivante, si elle existe
     if (firstUpcomingIndex + 1 < sortedGroup.length) {
       const nextAction = sortedGroup[firstUpcomingIndex + 1];
@@ -155,7 +159,7 @@ export function actionsWithoutFutureRecurrences(actionsToSet) {
   return finalActions;
 }
 
-export function getNthWeekdayInMonth(date) {
+export function getNthWeekdayInMonth(date: Date | string | Dayjs): { nth: number; isLast: boolean } {
   const currentDay = dayjsInstance(date);
   const weekday = currentDay.day();
   const firstDayOfMonth = currentDay.startOf("month");
@@ -177,7 +181,7 @@ export function getNthWeekdayInMonth(date) {
   };
 }
 
-export function numberAsOrdinal(n, isLastWeek) {
+export function numberAsOrdinal(n: number, isLastWeek: boolean) {
   if (isLastWeek) return "dernier";
   if (n === 1) return "premier";
   if (n === 2) return "deuxième";
@@ -186,7 +190,7 @@ export function numberAsOrdinal(n, isLastWeek) {
   if (n === 5) return "cinquième";
 }
 
-function joinDays(days) {
+function joinDays(days: string[]) {
   if (days.length === 0) {
     return "";
   }
@@ -199,7 +203,14 @@ function joinDays(days) {
   return `${days.slice(0, -1).join(", ")}, et ${days[days.length - 1]}`;
 }
 
-export function recurrenceAsText({ startDate, timeInterval, timeUnit, selectedDays, nthWeekdayInMonth, recurrenceTypeForMonthAndYear }) {
+export function recurrenceAsText({
+  startDate,
+  timeInterval,
+  timeUnit,
+  selectedDays,
+  nthWeekdayInMonth,
+  recurrenceTypeForMonthAndYear,
+}: Recurrence & { nthWeekdayInMonth: { nth: number; isLast: boolean } }) {
   if (timeUnit === "day") {
     if (timeInterval === 1) {
       return "A lieu chaque jour";
@@ -211,11 +222,11 @@ export function recurrenceAsText({ startDate, timeInterval, timeUnit, selectedDa
   }
   if (timeUnit === "week") {
     if (timeInterval === 1) {
-      return `A lieu chaque ${joinDays(selectedDays).toLowerCase()}`;
+      return `A lieu chaque ${joinDays(selectedDays || []).toLowerCase()}`;
     } else if (timeInterval === 2) {
-      return `A lieu un ${joinDays(selectedDays).toLowerCase()} sur deux`;
+      return `A lieu un ${joinDays(selectedDays || []).toLowerCase()} sur deux`;
     } else {
-      return `A lieu toutes les ${timeInterval} semaines, le ${joinDays(selectedDays).toLowerCase()}`;
+      return `A lieu toutes les ${timeInterval} semaines, le ${joinDays(selectedDays || []).toLowerCase()}`;
     }
   }
   if (timeUnit === "month") {

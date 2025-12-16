@@ -30,7 +30,7 @@ import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
 import { RootStackParamList } from "@/types/navigation";
-import { PersonInstance, PersonPopulated } from "@/types/person";
+import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
 import { Document, DocumentWithLinkedItem, Folder, FolderWithLinkedItem } from "@/types/document";
 import { MedicalFileInstance } from "@/types/medicalFile";
@@ -83,7 +83,7 @@ const MedicalFile = ({
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === personDB?._id), [allTreatments, personDB?._id]);
 
-  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
+  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector);
   const populatedPerson = useMemo(() => populatedPersons[personDB?._id] || {}, [populatedPersons, personDB?._id]);
 
   const medicalFileDB = populatedPerson.medicalFile;

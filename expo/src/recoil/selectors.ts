@@ -12,35 +12,43 @@ import { rencontresState } from "./rencontres";
 import { treatmentsState } from "./treatments";
 import { medicalFileState } from "./medicalFiles";
 import { groupsState } from "./groups";
-import { formatAge, formatBirthDate } from "../services/dateDayjs";
+import { dayjsInstance, formatAge, formatBirthDate } from "../services/dateDayjs";
 import { passagesState } from "./passages";
+import { PersonInstance, PersonPopulated } from "@/types/person";
+import { Document, Folder } from "@/types/document";
+import { CommentInstance } from "@/types/comment";
+import { ActionInstance, ActionStatus } from "@/types/action";
+import { PlaceInstance } from "@/types/place";
+import { ConsultationInstance } from "@/types/consultation";
 
-export const actionsObjectSelector = atom((get) => {
+export const actionsObjectSelector = atom<Record<ActionInstance["_id"], ActionInstance>>((get) => {
   const actions = get(actionsState);
-  const actionsObject = {};
+  const actionsObject: Record<ActionInstance["_id"], ActionInstance> = {};
   for (const action of actions) {
     actionsObject[action._id] = { ...action };
   }
   return actionsObject;
 });
 
-export const actionsWithCommentsSelector = atom((get) => {
+type ActionWithComments = ActionInstance & { comments: CommentInstance[] };
+export const actionsWithCommentsSelector = atom<Record<ActionInstance["_id"], ActionWithComments>>((get) => {
   const actions = get(actionsState);
   const comments = get(commentsState);
-  const actionsObject = {};
+  const actionsObject: Record<ActionInstance["_id"], ActionWithComments> = {};
   for (const action of actions) {
     actionsObject[action._id] = { ...action, comments: [] };
   }
   for (const comment of comments) {
+    if (!comment.action) continue;
     if (!actionsObject[comment.action]) continue;
     actionsObject[comment.action].comments.push(comment);
   }
   return actionsObject;
 });
 
-const placesObjectSelector = atom((get) => {
+const placesObjectSelector = atom<Record<PlaceInstance["_id"], PlaceInstance>>((get) => {
   const places = get(placesState);
-  const placesObject = {};
+  const placesObject: Record<PlaceInstance["_id"], PlaceInstance> = {};
   for (const place of places) {
     if (!place?.name) continue;
     placesObject[place._id] = place;
@@ -48,9 +56,9 @@ const placesObjectSelector = atom((get) => {
   return placesObject;
 });
 
-export const itemsGroupedByPersonSelector = atom((get) => {
+export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], PersonPopulated>>((get) => {
   const persons = get(personsState);
-  const personsObject = {};
+  const personsObject: Record<PersonInstance["_id"], PersonPopulated> = {};
   for (const person of persons) {
     const age = person.birthdate ? formatAge(person.birthdate) : 0;
     const nameLowercased = person.name.toLocaleLowerCase();
@@ -59,8 +67,8 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     personsObject[person._id] = {
       ...person,
       nameNormalized,
-      formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : null,
-      age,
+      formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : undefined,
+      age: age ? Number(age) : undefined,
       // remove anything that is not a number
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
     };
@@ -69,7 +77,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
   const comments = get(commentsState);
   const consultations = get(consultationsState);
   const treatments = get(treatmentsState);
-  const medicalFiles = [...get(medicalFileState)].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const medicalFiles = [...get(medicalFileState)].sort((a, b) => dayjsInstance(b.createdAt).diff(dayjsInstance(a.createdAt)));
   const relsPersonPlace = get(relsPersonPlaceState);
   const places = get(placesObjectSelector);
   const rencontres = get(rencontresState);
@@ -88,22 +96,31 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     if (!person.documents?.length) continue;
     if (!personsObject[person._id].group) continue;
     for (const document of person.documents) {
-      if (!document.group) continue;
-      for (const personIdInGroup of personsObject[person._id].group.persons) {
+      if (!(document as Document).group) continue;
+      for (const personIdInGroup of personsObject[person._id].group!.persons) {
         if (personIdInGroup === person._id) continue;
         if (!personsObject[personIdInGroup]) continue;
         if (!personsObject[personIdInGroup].groupDocuments) {
           personsObject[personIdInGroup].groupDocuments = [];
         }
-        personsObject[personIdInGroup].groupDocuments.push({ ...document, person: person._id, personPopulated: person });
+        personsObject[personIdInGroup].groupDocuments.push({
+          ...(document as Document),
+          person: person._id,
+          personPopulated: person,
+          linkedItem: {
+            _id: person._id,
+            type: "person",
+          },
+        });
       }
     }
   }
 
   for (const action of actions) {
+    if (!action.person) continue;
     if (!personsObject[action.person]) continue;
     personsObject[action.person].actions = personsObject[action.person].actions || [];
-    personsObject[action.person].actions.push(action);
+    personsObject[action.person].actions!.push(action);
     if (!!action.group) {
       const group = personsObject[action.person].group;
       if (!group) continue;
@@ -116,9 +133,10 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
   for (const [index, comment] of Object.entries(comments)) {
+    if (!comment.person) continue;
     if (!personsObject[comment.person]) continue;
     personsObject[comment.person].comments = personsObject[comment.person].comments || [];
-    personsObject[comment.person].comments.push(comment);
+    personsObject[comment.person].comments!.push(comment);
     if (!!comment.group) {
       const group = personsObject[comment.person].group;
       if (!group) continue;
@@ -135,26 +153,26 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     const place = places[relPersonPlace.place];
     if (!place) continue;
     personsObject[relPersonPlace.person].places = personsObject[relPersonPlace.person].places || [];
-    personsObject[relPersonPlace.person].places.push(place.name);
+    personsObject[relPersonPlace.person].places!.push(place.name);
     personsObject[relPersonPlace.person].relsPersonPlace = personsObject[relPersonPlace.person].relsPersonPlace || [];
-    personsObject[relPersonPlace.person].relsPersonPlace.push(relPersonPlace);
+    personsObject[relPersonPlace.person].relsPersonPlace!.push(relPersonPlace);
   }
   for (const consultation of consultations) {
     if (!personsObject[consultation.person]) continue;
     personsObject[consultation.person].consultations = personsObject[consultation.person].consultations || [];
-    personsObject[consultation.person].consultations.push(consultation);
+    personsObject[consultation.person].consultations!.push(consultation);
   }
   for (const treatment of treatments) {
     if (!personsObject[treatment.person]) continue;
     personsObject[treatment.person].treatments = personsObject[treatment.person].treatments || [];
-    personsObject[treatment.person].treatments.push(treatment);
+    personsObject[treatment.person].treatments!.push(treatment);
   }
   for (const medicalFile of medicalFiles) {
     if (!personsObject[medicalFile.person]) continue;
     if (personsObject[medicalFile.person].medicalFile) {
-      const nextDocuments = {};
-      const nextComments = {};
-      const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
+      const nextDocuments: Record<string, Document | Folder> = {};
+      const nextComments: Record<CommentInstance["_id"], CommentInstance> = {};
+      const existingMedicalFile = personsObject[medicalFile.person].medicalFile!;
       for (const document of medicalFile.documents || []) {
         nextDocuments[document._id] = document;
       }
@@ -179,14 +197,16 @@ export const itemsGroupedByPersonSelector = atom((get) => {
   }
 
   for (const passage of passages) {
+    if (!passage.person) continue;
     if (!personsObject[passage.person]) continue;
     personsObject[passage.person].passages = personsObject[passage.person].passages || [];
-    personsObject[passage.person].passages.push(passage);
+    personsObject[passage.person].passages!.push(passage);
   }
   for (const rencontre of rencontres) {
+    if (!rencontre.person) continue;
     if (!personsObject[rencontre.person]) continue;
     personsObject[rencontre.person].rencontres = personsObject[rencontre.person].rencontres || [];
-    personsObject[rencontre.person].rencontres.push(rencontre);
+    personsObject[rencontre.person].rencontres!.push(rencontre);
   }
   return personsObject;
 });
@@ -196,7 +216,7 @@ export const arrayOfitemsGroupedByPersonSelector = atom((get) => {
   return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized > b.nameNormalized ? 1 : -1));
 });
 
-export const usePersonsSearchSelector = (search) => {
+export const usePersonsSearchSelector = (search: string) => {
   const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
   if (!search?.length) return persons;
   const filteredPersons = filterBySearch(search, persons);
@@ -205,7 +225,7 @@ export const usePersonsSearchSelector = (search) => {
 
 export const actionsForCurrentTeamSelector = atom((get) => {
   const actions = get(actionsState);
-  const currentTeam = get(currentTeamState);
+  const currentTeam = get(currentTeamState)!;
   const filteredActions = actions.filter((a) => (Array.isArray(a.teams) ? a.teams.includes(currentTeam?._id) : a.team === currentTeam?._id));
   return filteredActions;
 });
@@ -220,14 +240,15 @@ Actions and consultations
 
 */
 
-const sortDoneOrCancel = (a, b) => {
+type CommonActionOrConsultation = Pick<ActionInstance, "status" | "completedAt" | "dueAt">;
+const sortDoneOrCancel = (a: CommonActionOrConsultation, b: CommonActionOrConsultation) => {
   if (!a.completedAt) return -1;
   if (!b.completedAt) return 1;
   if (a.completedAt > b.completedAt) return -1;
   return 1;
 };
 
-const sortTodo = (a, b) => {
+const sortTodo = (a: CommonActionOrConsultation, b: CommonActionOrConsultation) => {
   if (!a.dueAt) return 1;
   if (!b.dueAt) return -1;
   if (a.dueAt > b.dueAt) return 1;
@@ -239,12 +260,12 @@ Actions and Consultations
 
 */
 
-export const consultationsForCurrentTeamSelector = atom((get) => {
+export const consultationsForCurrentTeamSelector = atom<Array<ConsultationInstance & { isConsultation: boolean }>>((get) => {
   const consultations = get(consultationsState);
-  const currentTeam = get(currentTeamState);
+  const currentTeam = get(currentTeamState)!;
   const filteredConsultations = [];
   for (const consultation of consultations) {
-    if (!consultation.teams?.length || consultation.teams.includes(currentTeam._id)) {
+    if (!consultation.teams?.length || consultation.teams.includes(currentTeam?._id)) {
       filteredConsultations.push({
         ...consultation,
         isConsultation: true,
@@ -267,7 +288,7 @@ const actionsDoneSelector = atom((get) => {
   return filteredActions;
 });
 
-const useActionsDoneSelectorSliced = (limit) => {
+const useActionsDoneSelectorSliced = (limit?: number) => {
   const actionsDone = useAtomValue(actionsDoneSelector);
   if (!limit) return actionsDone;
   return actionsDone.filter((_, index) => index < limit);
@@ -285,13 +306,13 @@ const actionsCanceledSelector = atom((get) => {
   return filteredActions;
 });
 
-const useActionsCanceledSelectorSliced = (limit) => {
+const useActionsCanceledSelectorSliced = (limit?: number) => {
   const actionsCanceled = useAtomValue(actionsCanceledSelector);
   if (!limit) return actionsCanceled;
   return actionsCanceled.filter((_, index) => index < limit);
 };
 
-const filterByTimeframe = (actions, timeframe) => {
+const filterByTimeframe = (actions: CommonActionOrConsultation[], timeframe?: string) => {
   switch (timeframe) {
     case PASSED:
       return actions.filter((action) => isPassed(action.dueAt));
@@ -304,12 +325,17 @@ const filterByTimeframe = (actions, timeframe) => {
   }
 };
 
-const filterByCategories = (actions, categories) => {
+const filterByCategories = (actions: CommonActionOrConsultation[], categories?: string[]) => {
   if (!categories?.length) return actions;
-  return actions.filter((action) => action.categories?.some((category) => categories.includes(category)));
+  return actions.filter((action) => (action as ActionInstance).categories?.some((category) => categories.includes(category)));
 };
 
-export const useActionsByStatusAndTimeframeSelector = (status, limit, timeframe, filters) => {
+export const useActionsByStatusAndTimeframeSelector = (
+  status: ActionStatus,
+  limit?: number,
+  timeframe?: string,
+  filters?: { categories?: string[] }
+) => {
   if (status === DONE) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const actions = useActionsDoneSelectorSliced(limit);
@@ -329,7 +355,7 @@ export const useActionsByStatusAndTimeframeSelector = (status, limit, timeframe,
   return [];
 };
 
-export const useTotalActionsByStatusSelector = (status, timeframe, filters) => {
-  const actions = useActionsByStatusAndTimeframeSelector(status, null, timeframe, filters);
+export const useTotalActionsByStatusSelector = (status: ActionStatus, timeframe?: string, filters?: { categories?: string[] }) => {
+  const actions = useActionsByStatusAndTimeframeSelector(status, undefined, timeframe, filters);
   return actions.length;
 };

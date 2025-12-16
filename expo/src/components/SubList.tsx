@@ -6,18 +6,28 @@ import Button from "./Button";
 
 const initNumberToShow = 10;
 
-type SubListProps = {
+interface SubListProps<T> {
   label: string;
   onAdd?: () => void;
-  data?: any[];
-  renderItem?: (item: any) => React.ReactNode;
+  data?: T[];
+  renderItem?: (item: T, index: number) => React.ReactNode;
   ifEmpty?: string;
   children?: React.ReactNode;
   testID?: string;
   disableVoirPlus?: boolean;
   customCount?: number;
-};
-const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = "list", disableVoirPlus = false, customCount }: SubListProps) => {
+}
+const SubList = <T,>({
+  label,
+  onAdd,
+  data,
+  renderItem,
+  ifEmpty,
+  children,
+  testID = "list",
+  disableVoirPlus = false,
+  customCount,
+}: SubListProps<T>) => {
   const [expanded, setExpanded] = useState(false);
   const [numberToShow, setNumberToShow] = useState(initNumberToShow);
 

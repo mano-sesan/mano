@@ -34,6 +34,11 @@ import { actionsWithoutFutureRecurrences } from "../../utils/recurrence";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { PersonInstance } from "@/types/person";
+import { PassageInstance } from "@/types/passage";
+import { RencontreInstance } from "@/types/rencontre";
+import { UUIDV4 } from "@/types/uuid";
+import { PlaceInstance } from "@/types/place";
+import { ActionInstance } from "@/types/action";
 
 type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
   person: Omit<PersonInstance, "_id">;
@@ -45,7 +50,7 @@ type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON"> &
   isUpdateDisabled: boolean;
   backgroundColor: string;
   onCommentWrite: (comment: string) => void;
-  onChange: (newPersonState: Partial<PersonInstance>) => void;
+  onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
   onDelete: () => void;
   onBack: () => void;
   onRemoveFromActiveList: () => void;
@@ -69,19 +74,19 @@ const PersonSummary = ({
   onRemoveFromActiveList,
   onAddActionRequest,
 }: PersonSummaryProps) => {
-  const user = useAtomValue(userState);
-  const organisation = useAtomValue(organisationState);
+  const user = useAtomValue(userState)!;
+  const organisation = useAtomValue(organisationState)!;
   const setComments = useSetAtom(commentsState);
-  const groups = useAtomValue(groupsState);
+  const groups = useAtomValue(groupsState)!;
 
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
 
-  const onAddRencontre = async () => navigation.push("Rencontre", { person: personDB, fromRoute: "Person" });
-  const onUpdateRencontre = async (rencontre) => navigation.push("Rencontre", { person: personDB, fromRoute: "Person", rencontre: rencontre });
+  const onAddRencontre = async () => navigation.push("RENCONTRE", { person: personDB });
+  const onUpdateRencontre = async (rencontre: RencontreInstance) => navigation.push("RENCONTRE", { person: personDB, rencontre });
 
-  const onAddPassage = async () => navigation.push("Passage", { person: personDB, fromRoute: "Person" });
-  const onUpdatePassage = async (passage) => navigation.push("Passage", { person: personDB, fromRoute: "Person", passage: passage });
+  const onAddPassage = async () => navigation.push("PASSAGE", { person: personDB });
+  const onUpdatePassage = async (passage: PassageInstance) => navigation.push("PASSAGE", { person: personDB, passage });
 
   const onGetBackToActiveList = async () => {
     await onUpdatePerson(false, { outOfActiveListReasons: [], outOfActiveList: false });
@@ -92,7 +97,7 @@ const PersonSummary = ({
   const { actions, comments, rencontres, passages, relsPersonPlace } = populatedPerson;
 
   const sortedActions = useMemo(
-    () => [...(actionsWithoutFutureRecurrences(actions || []) || [])].sort((p1, p2) => (p1.dueAt > p2.dueAt ? -1 : 1)),
+    () => [...(actionsWithoutFutureRecurrences(actions || []) || [])].sort((p1, p2) => (p1.dueAt! > p2.dueAt! ? -1 : 1)),
     [actions]
   );
   const sortedComments = useMemo(
@@ -106,20 +111,20 @@ const PersonSummary = ({
     [relsPersonPlace]
   );
 
-  const allPlaces = useAtomValue(placesState);
+  const allPlaces = useAtomValue(placesState) as PlaceInstance[];
   const places = useMemo(() => {
     if (!relsPersonPlace) return [];
-    const placesId = relsPersonPlace.map((rel) => rel.place);
-    return allPlaces.filter((pl) => placesId.includes(pl._id));
+    const placesId: UUIDV4[] = relsPersonPlace.map((rel) => rel.place);
+    return allPlaces.filter((pl) => placesId.includes(pl._id!));
   }, [allPlaces, relsPersonPlace]);
-  const onAddPlaceRequest = () => navigation.push("NewPersonPlaceForm", { person: personDB, fromRoute: "Person" });
+  const onAddPlaceRequest = () => navigation.push("PLACE_NEW", { person: personDB });
 
   const teams = useAtomValue(teamsState);
 
   const onActionPress = useCallback(
-    (action) => {
+    (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.push("Action", { action, fromRoute: "Person" });
+      navigation.push("ACTION", { action });
     },
     [navigation]
   );
@@ -153,6 +158,7 @@ const PersonSummary = ({
       {editable ? (
         <DateAndTimeInput
           label="Date de naissance"
+          // @ts-expect-error Type 'PossibleDate' is not assignable to type 'Date | undefined'.
           setDate={(birthdate) => onChange({ birthdate })}
           date={person.birthdate}
           editable={editable}
@@ -164,6 +170,7 @@ const PersonSummary = ({
       {editable ? (
         <DateAndTimeInput
           label="Suivi(e) depuis / Créé(e) le"
+          // @ts-expect-error Type 'PossibleDate' is not assignable to type 'Date | undefined'.
           setDate={(followedSince) => onChange({ followedSince })}
           date={person.followedSince}
           editable={editable}
@@ -180,6 +187,7 @@ const PersonSummary = ({
       {editable ? (
         <DateAndTimeInput
           label="En rue depuis le"
+          // @ts-expect-error Type 'PossibleDate' is not assignable to type 'Date | undefined'.
           setDate={(wanderingAt) => onChange({ wanderingAt })}
           date={person.wanderingAt}
           editable={editable}
@@ -189,7 +197,9 @@ const PersonSummary = ({
         <InputLabelled
           label="En rue depuis"
           value={
-            person.wanderingAt ? `${getRelativeTimeFrench(dayjs(), person.wanderingAt)} (${dayjs(person.wanderingAt).format("DD/MM/YYYY")})` : null
+            person.wanderingAt
+              ? `${getRelativeTimeFrench(dayjs(), person.wanderingAt)} (${dayjs(person.wanderingAt).format("DD/MM/YYYY")})`
+              : undefined
           }
           placeholder="JJ-MM-AAAA"
           editable={false}
@@ -227,6 +237,7 @@ const PersonSummary = ({
         editable={editable}
       />
       <CheckboxLabelled
+        _id={personDB?._id}
         label="Personne vulnérable, ou ayant besoin d'une attention particulière"
         alone
         onPress={() => onChange({ alertness: !person.alertness }, true)}
@@ -236,7 +247,7 @@ const PersonSummary = ({
         values={teams.filter((t) => (person.assignedTeams || []).includes(t._id)).map((t) => t.name)}
         onChange={(newAssignedTeams) =>
           onChange({
-            assignedTeams: newAssignedTeams.map((teamName) => teams.find((t) => t.name === teamName)?._id),
+            assignedTeams: newAssignedTeams.map((teamName) => teams.find((t) => t.name === teamName)?._id!),
           })
         }
         editable={editable}
@@ -274,7 +285,7 @@ const PersonSummary = ({
         onAdd={onAddActionRequest}
         testID="person-actions-list"
         data={sortedActions}
-        renderItem={(action, index) => (
+        renderItem={(action, index: number) => (
           <ActionRow key={index} action={action} showStatus withTeamName testID="person-action" onActionPress={onActionPress} />
         )}
         ifEmpty="Pas encore d'action"
@@ -287,7 +298,7 @@ const PersonSummary = ({
             <CommentRow
               key={comment._id}
               comment={comment}
-              canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
+              canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
               canToggleUrgentCheck
               onDelete={async () => {
                 const response = await API.delete({ path: `/comment/${comment._id}` });
@@ -319,8 +330,9 @@ const PersonSummary = ({
                         );
                         return true;
                       }
+                      return false;
                     }
-                  : null
+                  : undefined
               }
             />
           )}
@@ -328,8 +340,7 @@ const PersonSummary = ({
         >
           <NewCommentInput
             forwardRef={newCommentRef}
-            person={personDB?._id}
-            canToggleGroupCheck={!!organisation.groupsEnabled && groups.find((group) => group.persons.includes(personDB?._id))}
+            canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
             canToggleUrgentCheck
             onCommentWrite={onCommentWrite}
             onCreate={async (newComment) => {
@@ -340,9 +351,10 @@ const PersonSummary = ({
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
                 Alert.alert(response.error || response.code);
-                return;
+                return false;
               }
               setComments((comments) => [response.decryptedData, ...comments]);
+              return true;
             }}
           />
         </SubList>
@@ -371,8 +383,8 @@ const PersonSummary = ({
           onAdd={onAddPlaceRequest}
           data={sortedRelPersonPlace}
           renderItem={(relPersonPlace, index) => {
-            const place = places.find((pl) => pl._id === relPersonPlace.place);
-            return <PlaceRow key={index} place={place} relPersonPlace={relPersonPlace} personDB={personDB} />;
+            const place = places.find((pl) => pl._id === relPersonPlace.place)!;
+            return <PlaceRow key={index} place={place} relPersonPlace={relPersonPlace} personDB={personDB} navigation={navigation} />;
           }}
           ifEmpty="Pas encore de lieu"
         />

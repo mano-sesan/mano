@@ -5,6 +5,6 @@
 - dossier médical et consultations
 - 
 - FIX:
-- PossibleDate ? pour consultation/traitement/etc
+- PossibleDate ? pour consultation/traitement/etc ? "fixer avec dayjsInstance().toISOString()" ?
 - commentaire: type ? parfois ? pas tout le temps ? même commentaire pour action/personne/traitement/etc. ?
 - 
