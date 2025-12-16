@@ -1,6 +1,5 @@
 import type { UUIDV4 } from "./uuid";
 import type { Document, DocumentWithLinkedItem, Folder } from "./document";
-import type { UserInstance } from "./user";
 import type { GroupInstance } from "./group";
 import type { TreatmentInstance } from "./treatment";
 import type { TeamInstance } from "./team";

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { v4 as UUID } from "uuid";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import Button from "../../components/Button";
@@ -19,40 +20,153 @@ import { currentTeamState, organisationState, userState } from "../../recoil/aut
 import API from "../../services/api";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
-import { useFocusEffect } from "@react-navigation/native";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { PersonName } from "../Persons/PersonRow";
 import { dayjsInstance } from "../../services/dateDayjs";
+import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { UUIDV4 } from "@/types/uuid";
+import { RencontreInstance } from "@/types/rencontre";
+import TerritoryObservationRencontre from "./TerritoryObservationRencontre";
+import PersonsSearch from "../Persons/PersonsSearch";
+import PersonNew from "../Persons/PersonNew";
+import { PersonInstance } from "@/types/person";
 
-const cleanValue = (value) => {
-  if (typeof value === "string") return (value || "").trim();
-  return value;
+type ObsStackParams = {
+  TERRITORY_OBSERVATION: undefined;
+  TERRITORY_OBSERVATION_RENCONTRE: undefined;
+  PERSONS_SEARCH: undefined;
+  PERSON_NEW: undefined;
 };
+const ObsStack = createNativeStackNavigator<ObsStackParams>();
 
-const TerritoryObservation = ({ route, navigation }) => {
-  const user = useAtomValue(userState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const organisation = useAtomValue(organisationState);
+type TerritoryObservationProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_OBSERVATION">;
+
+export default function TerritoryObservationStackNavigator(props: TerritoryObservationProps) {
+  const rencontres = useAtomValue(rencontresState);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const [rencontresForObs, setRencontresForObs] = useState<Array<RencontreInstance>>(() => {
+    const obsId = props.route.params?.obs?._id;
+    if (!obsId) return [];
+    return rencontres?.filter((r) => r.observation === obsId) || [];
+  });
+  const user = useAtomValue(userState)!;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const [rencontre, setRencontre] = useState(() => {
+    return (
+      rencontresForObs.find((r) => r.person === rencontrePersons[0]._id) ||
+      ({
+        _id: UUID(),
+        date: new Date().toISOString(),
+        user: user._id,
+        comment: "",
+        team: currentTeam._id,
+        person: undefined,
+      } as RencontreInstance)
+    );
+  });
+
+  const [rencontrePersons, setRencontrePersons] = useState<Array<PersonInstance>>(() => {
+    if (!rencontresForObs.length) return [];
+    return rencontresForObs.filter((r) => r.person).map((r) => personsObject[r.person!]);
+  });
+
+  return (
+    <ObsStack.Navigator>
+      <ObsStack.Screen name="TERRITORY_OBSERVATION">
+        {(stackProps) => (
+          <TerritoryObservation
+            rencontre={rencontre}
+            rencontrePersons={rencontrePersons}
+            setRencontrePersons={setRencontrePersons}
+            rencontresForObs={rencontresForObs}
+            setRencontresForObs={setRencontresForObs}
+            onAddRencontre={() => stackProps.navigation.push("TERRITORY_OBSERVATION_RENCONTRE")}
+            {...props}
+          />
+        )}
+      </ObsStack.Screen>
+      <ObsStack.Screen name="TERRITORY_OBSERVATION_RENCONTRE">
+        {(stackProps) => (
+          <TerritoryObservationRencontre
+            onBack={() => stackProps.navigation.goBack()}
+            onSearchPerson={() => stackProps.navigation.push("PERSONS_SEARCH")}
+            rencontrePersons={rencontrePersons}
+            setRencontrePersons={setRencontrePersons}
+            rencontre={rencontre}
+            setRencontre={setRencontre}
+          />
+        )}
+      </ObsStack.Screen>
+      <ObsStack.Screen name="PERSONS_SEARCH" options={{ title: "Rechercher une personne" }}>
+        {(stackProps) => (
+          <PersonsSearch
+            onBack={() => stackProps.navigation.goBack()}
+            onCreatePersonRequest={() => stackProps.navigation.navigate("PERSON_NEW")}
+            onPersonSelected={(person) => {
+              stackProps.navigation.goBack();
+              setRencontrePersons((rencontrePersons) => [...rencontrePersons, person]);
+            }}
+          />
+        )}
+      </ObsStack.Screen>
+      <ObsStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
+        {(stackProps) => (
+          <PersonNew
+            onBack={() => stackProps.navigation.goBack()}
+            onPersonCreated={(person) => {
+              stackProps.navigation.goBack();
+              setRencontrePersons((rencontrePersons) => [...rencontrePersons, person]);
+            }}
+          />
+        )}
+      </ObsStack.Screen>
+    </ObsStack.Navigator>
+  );
+}
+
+const TerritoryObservation = ({
+  route,
+  navigation,
+  rencontre,
+  setRencontresForObs,
+  setRencontrePersons,
+  rencontrePersons,
+  rencontresForObs,
+  onAddRencontre,
+}: TerritoryObservationProps & {
+  rencontre: RencontreInstance;
+  setRencontrePersons: React.Dispatch<React.SetStateAction<Array<PersonInstance>>>;
+  onAddRencontre: () => void;
+  rencontresForObs: Array<RencontreInstance>;
+  setRencontresForObs: React.Dispatch<React.SetStateAction<Array<RencontreInstance>>>;
+  rencontrePersons: Array<PersonInstance>;
+}) => {
+  const user = useAtomValue(userState)!;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const organisation = useAtomValue(organisationState)!;
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
   const [allTerritoryOservations, setTerritoryObservations] = useAtom(territoryObservationsState);
-  const [obsDB, setObsDB] = useState(() => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || {});
-  const [rencontresInProgress, setRencontresInProgress] = useState([]);
+  const [obsDB, setObsDB] = useState(
+    () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance)
+  );
+
   const setRencontres = useSetAtom(rencontresState);
-  const rencontres = useAtomValue(rencontresState);
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
   const castToTerritoryObservation = useCallback(
-    (territoryObservation = {}) => {
-      const toReturn = {};
+    (territoryObservation: Partial<TerritoryObservationInstance> = {}) => {
+      const toReturn: Omit<TerritoryObservationInstance, "_id"> = {};
       for (const field of customFieldsObs) {
         toReturn[field.name] = cleanValue(territoryObservation[field.name]);
       }
       return {
         ...toReturn,
-        observedAt: territoryObservation.observedAt || territoryObservation.createdAt || null,
-        user: territoryObservation.user || {},
+        observedAt: territoryObservation.observedAt || (territoryObservation.createdAt! as Date),
+        createdAt: territoryObservation.createdAt,
+        user: territoryObservation.user || "",
         entityKey: territoryObservation.entityKey || "",
       };
     },
@@ -63,17 +177,8 @@ const TerritoryObservation = ({ route, navigation }) => {
   const [updating, setUpdating] = useState(false);
   const [editable, setEditable] = useState(route?.params?.editable || false);
   const [obs, setObs] = useState(castToTerritoryObservation(route.params.obs));
-  const [date, setDate] = useState(
-    castToTerritoryObservation(route.params.obs).observedAt || castToTerritoryObservation(route.params.obs).createdAt || Date.now()
-  );
-  const onChange = (newProps) => setObs((o) => ({ ...o, ...newProps }));
-
-  const rencontresForObs = useMemo(() => {
-    if (!obsDB?._id || !rencontres) return [];
-    return rencontres?.filter((r) => obsDB?._id && r.observation === obsDB?._id) || [];
-  }, [rencontres, obsDB?._id]);
-
-  const currentRencontres = [...rencontresInProgress, ...rencontresForObs];
+  const [date, setDate] = useState(obs.observedAt || obs.createdAt || new Date());
+  const onChange = (newProps: Partial<TerritoryObservationInstance>) => setObs((o) => ({ ...o, ...newProps }));
 
   const onBack = () => {
     backRequestHandledRef.current = true;
@@ -81,7 +186,7 @@ const TerritoryObservation = ({ route, navigation }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -103,13 +208,14 @@ const TerritoryObservation = ({ route, navigation }) => {
     return onCreateTerritoryObservation();
   };
 
-  const saveRencontres = async (obsId) => {
-    if (obsId && rencontresInProgress.length > 0) {
-      const newRencontres = [];
-      for (const rencontre of rencontresInProgress) {
+  const saveRencontres = async (obsId: UUIDV4) => {
+    if (obsId) {
+      const newRencontres: Array<RencontreInstance> = [];
+      for (const person of rencontrePersons) {
+        if (rencontresForObs.find((r) => r.observation === obsId && r.person === person._id)) continue;
         const response = await API.post({
           path: "/rencontre",
-          body: prepareRencontreForEncryption({ ...rencontre, observation: obsId }),
+          body: prepareRencontreForEncryption({ ...rencontre, person: person._id, observation: obsId }),
         });
         if (response.error) {
           Alert.alert(response.error);
@@ -118,7 +224,7 @@ const TerritoryObservation = ({ route, navigation }) => {
         newRencontres.push(response.decryptedData);
       }
       setRencontres((rencontres) => [...rencontres, ...newRencontres]);
-      setRencontresInProgress([]);
+      setRencontresForObs((rencontresForObs) => [...rencontresForObs, ...newRencontres]);
     }
   };
 
@@ -200,8 +306,11 @@ const TerritoryObservation = ({ route, navigation }) => {
     ]);
   };
 
+  const [deleting, setDeleting] = useState(false);
   const onDelete = async () => {
+    setDeleting(true);
     const response = await API.delete({ path: `/territory-observation/${obsDB._id}` });
+    setDeleting(false);
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
       setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== obsDB._id));
@@ -216,12 +325,12 @@ const TerritoryObservation = ({ route, navigation }) => {
       ...castToTerritoryObservation(obs),
       observedAt: date,
     };
-    if (rencontresInProgress.length > 0) return false;
+    if (rencontrePersons.length !== rencontresForObs.length) return false;
     if (JSON.stringify(castToTerritoryObservation(obsDB)) !== JSON.stringify(castToTerritoryObservation(newTerritoryObservation))) {
       return false;
     }
     return true;
-  }, [castToTerritoryObservation, obs, obsDB, date, rencontresInProgress.length]);
+  }, [obsDB, castToTerritoryObservation, obs, date, rencontrePersons.length, rencontresForObs.length]);
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
@@ -246,24 +355,15 @@ const TerritoryObservation = ({ route, navigation }) => {
   };
   const scrollViewRef = useRef(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      const newRencontresInProgress = route?.params?.rencontresInProgress;
-      if (newRencontresInProgress) {
-        setRencontresInProgress((rencontresInProgress) => [...rencontresInProgress, ...newRencontresInProgress]);
-      }
-    }, [route?.params?.rencontresInProgress])
-  );
-
-  const currentGroup = groupedCustomFieldsObs.find((group) => group.name === activeTab);
+  const currentGroup = groupedCustomFieldsObs.find((group) => group.name === activeTab)!;
 
   return (
     <SceneContainer>
       <ScreenTitle
         title={`${route?.params?.territory?.name} - Observation`}
         onBack={onGoBackRequested}
-        onEdit={!editable ? onEdit : null}
-        onSave={!editable || isUpdateDisabled ? null : onSaveObservation}
+        onEdit={!editable ? onEdit : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onSaveObservation}
         saving={updating}
         testID="observation"
       />
@@ -294,13 +394,21 @@ const TerritoryObservation = ({ route, navigation }) => {
         >
           <View className="mt-3">
             {editable && obsDB?._id ? (
-              <DateAndTimeInput label="Observation faite le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
+              <DateAndTimeInput
+                label="Observation faite le"
+                // @ts-expect-error Argument of type 'PossibleDate' is not assignable to parameter of type 'SetStateAction<Date>'
+                setDate={(a) => setDate(a)}
+                date={date}
+                showTime
+                showDay
+                withTime
+              />
             ) : (
               <CreatedAt>{dayjsInstance(date).format("dddd DD MMM HH:mm")}</CreatedAt>
             )}
             {activeTab === "rencontres" ? (
               <View key="rencontres" className="mb-4">
-                {!currentRencontres.length ? (
+                {!rencontrePersons.length ? (
                   <View className="pb-6">
                     <Text className="font-semibold">Aucune rencontre enregistrée pour le moment.</Text>
                     <Text className="mt-1 text-gray-700">
@@ -310,33 +418,22 @@ const TerritoryObservation = ({ route, navigation }) => {
                   </View>
                 ) : null}
                 <View className="mb-2">
-                  <Button
-                    caption={"Ajouter une rencontre"}
-                    onPress={() => {
-                      navigation.push("TerritoryObservationRencontre", {
-                        obs: obsDB,
-                        territory: route.params.territory,
-                        fromRoute: "TerritoryObservation",
-                      });
-                    }}
-                    disabled={false}
-                    loading={false}
-                  />
+                  <Button caption={"Ajouter une rencontre"} onPress={onAddRencontre} disabled={false} loading={false} />
                 </View>
-                {currentRencontres.length ? <Text className="text-lg font-bold">Personnes rencontrées</Text> : null}
-                {currentRencontres.map((rencontre) => {
-                  const person = personsObject[rencontre.person];
+                {rencontrePersons.length ? <Text className="text-lg font-bold">Personnes rencontrées</Text> : null}
+                {rencontrePersons.map((person) => {
+                  const personRencontre = rencontresForObs.find((r) => r.person === person._id);
                   return (
-                    <View key={rencontre._id + rencontre.person} className="bg-gray-100 rounded p-4 my-2 flex flex-row">
+                    <View key={person._id} className="bg-gray-100 rounded p-4 my-2 flex flex-row">
                       <View className="grow shrink">
                         <PersonName person={person} />
                       </View>
-                      {!rencontre._id ? (
+                      {!personRencontre?._id ? (
                         <View className="shrink-0 !w-16 items-center flex">
                           <TouchableOpacity
                             className="bg-red-700 px-2 py-1 rounded"
                             onPress={() => {
-                              setRencontresInProgress((rencontresInProgress) => rencontresInProgress.filter((r) => r.person !== rencontre.person));
+                              setRencontrePersons((rencontrePersons) => rencontrePersons.filter((p) => p._id !== person._id));
                             }}
                           >
                             <Text className="text-white font-bold">Retirer</Text>
@@ -353,12 +450,13 @@ const TerritoryObservation = ({ route, navigation }) => {
                   .filter((f) => f)
                   .filter((f) => f.enabled || (f.enabledTeams || []).includes(currentTeam._id))
                   .map((field) => {
-                    const { label, name, type } = field;
+                    const { label, name } = field;
                     return (
                       <CustomFieldInput
                         key={label}
                         label={label}
                         field={field}
+                        // @ts-expect-error No index signature with a parameter of type 'string' was found on type '{ observedAt: Date; createdAt: string | Date | undefined; user: string; entityKey: string; }'
                         value={obs[name]}
                         handleChange={(newValue) => onChange({ [name]: newValue })}
                         editable={editable}
@@ -370,7 +468,7 @@ const TerritoryObservation = ({ route, navigation }) => {
             <ButtonsContainer>
               {obsDB?._id ? (
                 <>
-                  <ButtonDelete onPress={onDeleteRequest} />
+                  <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />
                   <Button
                     caption={editable ? "Mettre à jour" : "Modifier"}
                     onPress={editable ? onSaveObservation : onEdit}
@@ -396,4 +494,7 @@ const CreatedAt = styled(MyText)`
   margin-left: auto;
 `;
 
-export default TerritoryObservation;
+const cleanValue = (value: any) => {
+  if (typeof value === "string") return (value || "").trim();
+  return value;
+};

@@ -32,7 +32,7 @@ import ChangePassword from "./scenes/Login/ChangePassword";
 import ForgetPassword from "./scenes/Login/ForgetPassword";
 import ForceChangePassword from "./scenes/Login/ForceChangePassword";
 import TerritoriesList from "./scenes/Territories/TerritoriesList";
-import NewTerritoryForm from "./scenes/Territories/NewTerritoryForm";
+import NewTerritoryForm from "./scenes/Territories/TerritoryNew";
 import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
@@ -287,7 +287,6 @@ const App = () => {
               <AppStack.Screen name="TERRITORY_NEW" component={NewTerritoryForm} />
               <AppStack.Screen name="TERRITORY_OBSERVATION" component={TerritoryObservation} />
               <AppStack.Screen name="TERRITORY_OBSERVATIONS" component={Observations} />
-              <AppStack.Screen name="TERRITORY_OBSERVATION_RENCONTRE" component={TerritoryObservationRencontre} />
               {/* Rencontres */}
               <AppStack.Screen name="RENCONTRE" component={Rencontre} />
               <AppStack.Screen name="RENCONTRES" component={RencontresForReport} />
