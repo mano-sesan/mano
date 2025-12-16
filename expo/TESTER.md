@@ -7,4 +7,4 @@
 - FIX:
 - PossibleDate ? pour consultation/traitement/etc ? "fixer avec dayjsInstance().toISOString()" ?
 - commentaire: type ? parfois ? pas tout le temps ? même commentaire pour action/personne/traitement/etc. ?
-- 
+- _id optionnel ou pas : bizarre

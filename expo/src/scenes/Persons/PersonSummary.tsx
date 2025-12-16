@@ -51,7 +51,7 @@ type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON"> &
   backgroundColor: string;
   onCommentWrite: (comment: string) => void;
   onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
-  onDelete: () => void;
+  onDelete: () => Promise<boolean>;
   onBack: () => void;
   onRemoveFromActiveList: () => void;
   onAddActionRequest: () => void;

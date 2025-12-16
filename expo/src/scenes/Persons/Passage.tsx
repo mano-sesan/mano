@@ -14,6 +14,7 @@ import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
+import { PassageInstance } from "@/types/passage";
 
 type PassageProps = NativeStackScreenProps<RootStackParamList, "PASSAGE">;
 
@@ -23,7 +24,8 @@ const Passage = ({ navigation, route }: PassageProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [passage, setPassage] = useState(
-    () => route.params?.passage || { date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId }
+    () =>
+      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance)
   );
   const [submitting, setSubmitting] = useState(false);
   const [passages, setPassages] = useAtom(passagesState);
@@ -73,7 +75,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
           />
           <InputMultilineAutoAdjust
             onChangeText={(x) => setPassage((a) => ({ ...a, comment: x }))}
-            value={passage.comment}
+            value={passage.comment || ""}
             placeholder="Ajouter un commentaire"
           />
           <ButtonContainer>

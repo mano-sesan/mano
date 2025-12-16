@@ -9,17 +9,16 @@ export interface PassageInstance {
   updatedAt?: string | Date;
 
   date?: string | Date;
+  comment?: string;
 
   person?: UUIDV4;
   persons?: Array<UUIDV4>;
   user: UUIDV4;
   team: UUIDV4;
-
-  comment?: string;
 }
 
 export interface ReadyToEncryptPassageInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;

@@ -5,8 +5,16 @@ import ButtonRight from "./ButtonRight";
 import RowContainer from "./RowContainer";
 import { MyText } from "./MyText";
 import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
+import { TreatmentInstance } from "@/types/treatment";
+import { Dayjs } from "dayjs";
 
-const TreatmentRow = ({ onTreatmentPress, treatment, testID = "treatment" }) => {
+type TreatmentRowProps = {
+  onTreatmentPress: (treatment: TreatmentInstance) => void;
+  treatment: TreatmentInstance;
+  testID?: string;
+};
+
+const TreatmentRow = ({ onTreatmentPress, treatment, testID = "treatment" }: TreatmentRowProps) => {
   const name = treatment?.name;
   const dosage = treatment?.dosage;
   const frequency = treatment?.frequency;
@@ -17,8 +25,8 @@ const TreatmentRow = ({ onTreatmentPress, treatment, testID = "treatment" }) => 
 
   return (
     <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(" ").join("-").toLowerCase()}-button`}>
-      <DateAndTimeCalendarDisplay date={treatment.startDate} topCaption={treatment.endDate ? "Du" : "À partir du"} />
-      <DateAndTimeCalendarDisplay date={treatment.endDate} topCaption="au" />
+      <DateAndTimeCalendarDisplay date={treatment.startDate as unknown as Dayjs} topCaption={treatment.endDate ? "Du" : "À partir du"} />
+      <DateAndTimeCalendarDisplay date={treatment.endDate as unknown as Dayjs} topCaption="au" />
       <CaptionsContainer>
         <Name bold>{name}</Name>
         <DosageContainer>

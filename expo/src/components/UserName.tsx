@@ -3,8 +3,14 @@ import { useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import { deletedUsersState, usersState } from "../recoil/auth";
 import { MyText } from "./MyText";
+import { UUIDV4 } from "@/types/uuid";
 
-const UserName = ({ id, caption }) => {
+type UserNameProps = {
+  id: UUIDV4;
+  caption: string;
+};
+
+const UserName = ({ id, caption }: UserNameProps) => {
   const users = useAtomValue(usersState);
   const deletedUsers = useAtomValue(deletedUsersState);
 

@@ -14,7 +14,7 @@ import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { RencontreInstance } from "@/types/rencontre";
-import { refreshTriggerState } from "@/components/Loader";
+import { refreshTriggerState } from "../../components/Loader";
 
 type RencontreProps = NativeStackScreenProps<RootStackParamList, "RENCONTRE">;
 const Rencontre = ({ navigation, route }: RencontreProps) => {
@@ -24,7 +24,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [rencontre, setRencontre] = useState<RencontreInstance>(
-    () => route.params.rencontre || { date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId }
+    () => route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance)
   );
   const [submitting, setSubmitting] = useState(false);
   const [rencontres, setRencontres] = useAtom(rencontresState);

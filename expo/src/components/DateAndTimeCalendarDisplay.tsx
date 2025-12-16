@@ -8,7 +8,7 @@ import { Dayjs } from "dayjs";
 
 type DateAndTimeCalendarDisplayProps = {
   date: Dayjs | null;
-  withTime: boolean;
+  withTime?: boolean;
   topCaption?: string;
 };
 

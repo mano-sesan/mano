@@ -1,7 +1,7 @@
 import { UUIDV4 } from "./uuid";
 
 export interface PlaceInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;
@@ -14,7 +14,7 @@ export interface PlaceInstance {
 }
 
 export interface ReadyToEncryptPlaceInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;
@@ -30,7 +30,7 @@ export interface ReadyToEncryptPlaceInstance {
 }
 
 export interface RelPersonPlaceInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;
