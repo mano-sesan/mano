@@ -32,7 +32,7 @@ export type RootStackParamList = {
   TERRITORY_OBSERVATION: undefined;
   TERRITORY_OBSERVATIONS: undefined;
   TERRITORY_OBSERVATION_RENCONTRE: undefined;
-  RENCONTRE: { rencontre?: RencontreInstance; person?: PersonInstance };
+  RENCONTRE: { rencontre?: RencontreInstance; person: PersonInstance };
   RENCONTRES: undefined;
   PASSAGE?: { passage?: PassageInstance; person?: PersonInstance };
   PASSAGES: undefined;
