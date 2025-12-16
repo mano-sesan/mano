@@ -15,12 +15,12 @@ import { currentTeamState, teamsState, userState } from "../../recoil/auth";
 import { PersonInstance } from "@/types/person";
 import { useNavigation } from "@react-navigation/native";
 
-type NewPersonFormProps = {
+type PersonNewProps = {
   onPersonCreated: (person: PersonInstance) => void;
   onBack: () => void;
 };
 
-const NewPersonForm = ({ onPersonCreated, onBack: onBackProp }: NewPersonFormProps) => {
+const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
   const [persons, setPersons] = useAtom(personsState);
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState)!;
@@ -149,4 +149,4 @@ const NewPersonForm = ({ onPersonCreated, onBack: onBackProp }: NewPersonFormPro
   );
 };
 
-export default NewPersonForm;
+export default PersonNew;

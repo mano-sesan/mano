@@ -15,47 +15,69 @@ import { MyText } from "../../components/MyText";
 import { ListEmptyUrgent, ListEmptyUrgentAction, ListEmptyUrgentComment } from "../../components/ListEmptyContainer";
 import { actionsObjectSelector, itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import API from "../../services/api";
-import { Alert } from "react-native";
+import { Alert, DefaultSectionT, SectionListData } from "react-native";
+import { RootStackParamList, TabsParamsList } from "@/types/navigation";
+import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { PersonInstance, PersonPopulated } from "@/types/person";
+import { ActionInstance } from "@/types/action";
+import { CommentInstance } from "@/types/comment";
 
-export const urgentItemsSelector = atom((get) => {
+type UrgentAction = ActionInstance & { isAction: true; isComment: false };
+interface UrgentComment extends Omit<CommentInstance, "person" | "action"> {
+  isComment: true;
+  isAction: false;
+  actionPopulated?: ActionInstance;
+  personPopulated?: PersonPopulated;
+}
+
+export const urgentItemsSelector = atom<{ actionsFiltered: UrgentAction[]; commentsFiltered: UrgentComment[] }>((get) => {
   const currentTeam = get(currentTeamState);
-  const persons = get(itemsGroupedByPersonSelector);
+  const persons = get(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
   const actions = get(actionsState);
-  const actionsObject = get(actionsObjectSelector);
+  const actionsObject = get(actionsObjectSelector) as Record<string, ActionInstance>;
   const comments = get(commentsState);
-  const actionsFiltered = [];
+  const actionsFiltered: UrgentAction[] = [];
   for (const action of actions) {
-    if (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id) : action.team === currentTeam?._id) {
+    if (Array.isArray(action.teams) ? action.teams.includes(currentTeam?._id!) : action.team === currentTeam?._id!) {
       if (action.status === TODO && action.urgent) {
-        actionsFiltered.push({ ...action, isAction: true });
+        actionsFiltered.push({ ...action, isAction: true, isComment: false });
       }
     }
   }
-  const commentsFiltered = [];
+  const commentsFiltered: UrgentComment[] = [];
   for (const comment of comments) {
     if (!comment.urgent) continue;
     if (comment.team !== currentTeam?._id) continue;
     if (!comment.action && !comment.person) continue;
-    const commentPopulated = { ...comment, isComment: true };
     if (comment.person) {
-      const id = comment.person;
-      commentPopulated.person = persons[id];
-      commentPopulated.type = "person";
+      commentsFiltered.push({
+        ...comment,
+        isComment: true,
+        isAction: false,
+        type: "person",
+        personPopulated: persons[comment.person]!,
+        actionPopulated: undefined,
+      });
     }
     if (comment.action) {
       const id = comment.action;
       const action = actionsObject[id];
-      commentPopulated.action = action;
-      if (action?.person) commentPopulated.person = persons[action?.person];
-      commentPopulated.type = "action";
+      commentsFiltered.push({
+        ...comment,
+        isComment: true,
+        isAction: false,
+        type: "action",
+        actionPopulated: action!,
+        personPopulated: persons[action?.person!]!,
+      });
     }
-    commentsFiltered.push(commentPopulated);
   }
 
   return { actionsFiltered, commentsFiltered };
 });
 
-const Notifications = ({ navigation }) => {
+type NotificationsProps = NativeStackScreenProps<TabsParamsList, "PRIORITÉS">;
+const Notifications = ({ navigation }: NotificationsProps) => {
   const { actionsFiltered, commentsFiltered } = useAtomValue(urgentItemsSelector);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const setComments = useSetAtom(commentsState);
@@ -79,41 +101,37 @@ const Notifications = ({ navigation }) => {
   );
 
   const onPseudoPress = useCallback(
-    (person) => {
+    (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.navigate("Persons", { screen: "Person", params: { person, fromRoute: "Notifications" } });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON", { person });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
-    (action) => {
+    (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.navigate("Agenda", {
-        screen: "Action",
-        params: {
-          action,
-          fromRoute: "ActionsList",
-        },
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION", {
+        action,
       });
     },
     [navigation]
   );
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item }: { item: UrgentAction | UrgentComment }) => {
     if (item.isAction) {
-      const action = item;
+      const action = item as UrgentAction;
       return <ActionRow action={{ ...action, urgent: false }} onPseudoPress={onPseudoPress} onActionPress={onActionPress} />;
     }
     if (item.isComment) {
-      const comment = item;
-      const commentedItem = comment.type === "action" ? comment.action : comment.person;
+      const comment = item as UrgentComment;
+      const commentedItem = comment.type === "action" ? comment.actionPopulated : comment.personPopulated;
       return (
         <CommentRow
           key={comment._id}
           comment={comment}
           itemName={`${comment.type === "action" ? "Action" : "Personne suivie"} : ${commentedItem?.name}`}
-          onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.action) : onPseudoPress(comment.person))}
+          onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.actionPopulated!) : onPseudoPress(comment.personPopulated!))}
           canToggleUrgentCheck
           onDelete={async () => {
             const response = await API.delete({ path: `/comment/${comment._id}` });
@@ -127,8 +145,8 @@ const Notifications = ({ navigation }) => {
           onUpdate={
             comment.team
               ? async (commentUpdated) => {
-                  if (comment.type === "action") commentUpdated.action = comment.action._id;
-                  if (comment.type === "person") commentUpdated.person = comment.person._id;
+                  if (comment.type === "action") commentUpdated.action = comment.actionPopulated?._id;
+                  if (comment.type === "person") commentUpdated.person = comment.personPopulated?._id;
                   const response = await API.put({
                     path: `/comment/${comment._id}`,
                     body: prepareCommentForEncryption(commentUpdated),
@@ -146,8 +164,9 @@ const Notifications = ({ navigation }) => {
                     );
                     return true;
                   }
+                  return false;
                 }
-              : null
+              : undefined
           }
         />
       );
@@ -155,7 +174,11 @@ const Notifications = ({ navigation }) => {
     return null;
   };
 
-  const renderEmptySection = ({ section }) => {
+  const renderEmptySection = ({
+    section,
+  }: {
+    section: SectionListData<UrgentAction, DefaultSectionT> | SectionListData<UrgentComment, DefaultSectionT>;
+  }) => {
     if (!section.data.length) {
       if (section.title === "Actions urgentes") return <ListEmptyUrgentAction />;
       return <ListEmptyUrgentComment />;
@@ -169,6 +192,7 @@ const Notifications = ({ navigation }) => {
       <SectionListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
+        // @ts-expect-error Type 'UrgentComment' is not assignable to type 'UrgentAction'.
         sections={sections}
         initialNumToRender={5}
         renderItem={renderItem}
@@ -181,8 +205,10 @@ const Notifications = ({ navigation }) => {
   );
 };
 
-const keyExtractor = (item) => item._id;
-const SectionHeader = ({ section: { title } }) => <SectionHeaderStyled heavy>{title}</SectionHeaderStyled>;
+const keyExtractor = (item: UrgentAction | UrgentComment) => item._id;
+const SectionHeader = ({ section: { title } }: { section: SectionListData<UrgentAction, DefaultSectionT> }) => (
+  <SectionHeaderStyled heavy>{title}</SectionHeaderStyled>
+);
 const SectionHeaderStyled = styled(MyText)`
   height: 40px;
   line-height: 40px;

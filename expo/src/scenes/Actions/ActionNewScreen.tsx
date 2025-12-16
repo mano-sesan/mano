@@ -30,7 +30,7 @@ import { ActionInstance, ActionStatus, PossibleDate } from "@/types/action";
 import { ActionNewStackParams, RootStackParamList } from "@/types/navigation";
 import PersonsSearch from "../Persons/PersonsSearch";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
-import NewPersonForm from "../Persons/NewPersonForm";
+import PersonNew from "../Persons/PersonNew";
 
 const ActionNewStack = createNativeStackNavigator<ActionNewStackParams>();
 type NewActionScreenProps = NativeStackScreenProps<RootStackParamList, "ACTION_NEW_STACK">;
@@ -79,7 +79,7 @@ export default function ActionNewScreen({ route, navigation }: NewActionScreenPr
       </ActionNewStack.Screen>
       <ActionNewStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
         {(stackProps) => (
-          <NewPersonForm
+          <PersonNew
             onBack={() => stackProps.navigation.goBack()}
             onPersonCreated={(person) => {
               stackProps.navigation.goBack();

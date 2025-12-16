@@ -11,8 +11,12 @@ import ScrollContainer from "../../components/ScrollContainer";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
 import API from "../../services/api";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const Passage = ({ navigation, route }) => {
+type PassageProps = NativeStackScreenProps<RootStackParamList, "PASSAGE">;
+
+const Passage = ({ navigation, route }: PassageProps) => {
   const personId = route.params.person._id;
   const isNewPassage = !route.params.passage;
   const currentTeam = useAtomValue(currentTeamState);

@@ -40,7 +40,7 @@ import { ActionStackParams, RootStackParamList } from "@/types/navigation";
 import { ActionInstance } from "@/types/action";
 import { PersonInstance, PersonPopulated } from "@/types/person";
 import PersonsSearch from "../Persons/PersonsSearch";
-import NewPersonForm from "../Persons/NewPersonForm";
+import PersonNew from "../Persons/PersonNew";
 import { type Document, type Folder } from "@/types/document";
 import { CommentInstance } from "@/types/comment";
 
@@ -125,7 +125,7 @@ const ActionScreen = (props: ActionProps) => {
       </ActionStack.Screen>
       <ActionStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
         {(stackProps) => (
-          <NewPersonForm
+          <PersonNew
             onBack={() => stackProps.navigation.goBack()}
             onPersonCreated={(person) => {
               stackProps.navigation.goBack();

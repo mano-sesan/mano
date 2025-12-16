@@ -8,7 +8,7 @@ import { userState } from "@/recoil/auth";
 import { arrayOfitemsGroupedByPersonSelector } from "@/recoil/selectors";
 import { filterBySearch } from "@/utils/search";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import NewPersonForm from "./NewPersonForm";
+import PersonNew from "./PersonNew";
 
 type PersonsListStackParams = {
   PERSONS_LIST: undefined;
@@ -63,7 +63,7 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
         )}
       </PersonsListStack.Screen>
       <PersonsListStack.Screen name="PERSON_NEW">
-        {({ navigation }) => <NewPersonForm onBack={() => navigation.goBack()} onPersonCreated={(person) => navigation.goBack()} />}
+        {({ navigation }) => <PersonNew onBack={() => navigation.goBack()} onPersonCreated={(person) => navigation.goBack()} />}
       </PersonsListStack.Screen>
     </PersonsListStack.Navigator>
   );
