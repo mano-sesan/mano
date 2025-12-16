@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Alert, KeyboardAvoidingView, Text, View } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, KeyboardAvoidingView, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { useAtomValue, useSetAtom } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
@@ -19,37 +19,118 @@ import API from "../../services/api";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../recoil/groups";
-import { useFocusEffect } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { refreshTriggerState } from "../../components/Loader";
-import Recurrence from "../../components/Recurrence";
+import RecurrenceComponent from "../../components/Recurrence";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { getOccurrences } from "../../utils/recurrence";
+import { PersonInstance } from "@/types/person";
+import { type Recurrence } from "@/types/recurrence";
+import { ActionInstance, ActionStatus, PossibleDate } from "@/types/action";
+import { ActionNewStackParams, RootStackParamList } from "@/types/navigation";
+import PersonsSearch from "../Persons/PersonsSearch";
+import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
+import NewPersonForm from "../Persons/NewPersonForm";
 
-const NewActionForm = ({ route, navigation }) => {
+const ActionNewStack = createNativeStackNavigator<ActionNewStackParams>();
+type NewActionScreenProps = NativeStackScreenProps<RootStackParamList, "ACTION_NEW_STACK">;
+
+export default function ActionNewScreen({ route, navigation }: NewActionScreenProps) {
+  const person = route.params?.person;
+  const [actionPersons, setActionPersons] = useState(() => (person ? [person] : []));
+
+  const canChangePerson = !person;
+
+  return (
+    <ActionNewStack.Navigator>
+      <ActionNewStack.Screen name="ACTION_NEW">
+        {(stackProps) => (
+          <NewActionForm
+            onBack={() => navigation.goBack()}
+            onActionCreated={(action) => {
+              if (action) {
+                navigation.replace("ACTION", { action });
+              } else {
+                navigation.goBack();
+              }
+            }}
+            actionPersons={actionPersons}
+            setActionPersons={setActionPersons}
+            canChangePerson={canChangePerson}
+            onSearchPerson={() => {
+              if (canChangePerson) {
+                stackProps.navigation.navigate("PERSONS_SEARCH");
+              }
+            }}
+          />
+        )}
+      </ActionNewStack.Screen>
+      <ActionNewStack.Screen name="PERSONS_SEARCH" options={{ title: "Rechercher une personne" }}>
+        {(stackProps) => (
+          <PersonsSearch
+            onBack={() => stackProps.navigation.goBack()}
+            onCreatePersonRequest={() => stackProps.navigation.navigate("PERSON_NEW")}
+            onPersonSelected={(person) => {
+              setActionPersons((actionPersons) => [...actionPersons.filter((p) => p._id !== person._id), person]);
+              stackProps.navigation.goBack();
+            }}
+          />
+        )}
+      </ActionNewStack.Screen>
+      <ActionNewStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
+        {(stackProps) => (
+          <NewPersonForm
+            onBack={() => stackProps.navigation.goBack()}
+            onPersonCreated={(person) => {
+              stackProps.navigation.goBack();
+              setActionPersons((actionPersons) => [...actionPersons.filter((p) => p._id !== person._id), person]);
+            }}
+          />
+        )}
+      </ActionNewStack.Screen>
+    </ActionNewStack.Navigator>
+  );
+}
+
+type NewActionFormProps = {
+  onBack: () => void;
+  onActionCreated: (action: ActionInstance) => void;
+  actionPersons: PersonInstance[];
+  setActionPersons: (actionPersons: PersonInstance[]) => void;
+  onSearchPerson?: () => void;
+  canChangePerson: boolean;
+};
+
+const NewActionForm = ({
+  onSearchPerson,
+  onBack: onBackProp,
+  onActionCreated,
+  actionPersons,
+  setActionPersons,
+  canChangePerson,
+}: NewActionFormProps) => {
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const organisation = useAtomValue(organisationState);
-  const groups = useAtomValue(groupsState);
-  const user = useAtomValue(userState);
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const organisation = useAtomValue(organisationState)!;
+  const groups = useAtomValue(groupsState)!;
+  const user = useAtomValue(userState)!;
+  const navigation = useNavigation();
   const [name, setName] = useState("");
-  const [dueAt, setDueAt] = useState(null);
+  const [dueAt, setDueAt] = useState<PossibleDate | null>(null);
   const [withTime, setWithTime] = useState(false);
-  const [completedAt, setCompletedAt] = useState(null);
+  const [completedAt, setCompletedAt] = useState<PossibleDate | null>(null);
   const [description, setDescription] = useState("");
   const [urgent, setUrgent] = useState(false);
   const [isRecurrent, setIsRecurrent] = useState(false);
-  const [recurrenceData, setRecurrenceData] = useState({});
+  const [recurrenceData, setRecurrenceData] = useState<Recurrence>({} as Recurrence);
   const [group, setGroup] = useState(false);
-
-  const [actionPersons, setActionPersons] = useState(() => (route.params?.person ? [route.params?.person] : []));
-  const [categories, setCategories] = useState([]);
-  const forCurrentPerson = useRef(!!route.params?.person).current;
+  const [categories, setCategories] = useState<string[]>([]);
   const [posting, setPosting] = useState(false);
-  const [status, setStatus] = useState(TODO);
+  const [status, setStatus] = useState<ActionStatus>(TODO);
 
-  const backRequestHandledRef = useRef(null);
+  const backRequestHandledRef = useRef(false);
   useEffect(() => {
-    const handleBeforeRemove = (e) => {
+    const handleBeforeRemove = (e: any) => {
       if (backRequestHandledRef.current) return;
       e.preventDefault();
       onGoBackRequested();
@@ -60,17 +141,6 @@ const NewActionForm = ({ route, navigation }) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const newPerson = route?.params?.person;
-      if (newPerson) {
-        setActionPersons((actionPersons) => [...actionPersons.filter((p) => p._id !== newPerson._id), newPerson]);
-      }
-    }, [route?.params?.person])
-  );
-
-  const onSearchPerson = () => navigation.push("PERSONS_SEARCH", { fromRoute: "NewActionForm" });
 
   const onCreateActionRequest = () => {
     const hasRecurrence = isRecurrent && recurrenceData?.timeUnit;
@@ -112,10 +182,10 @@ const NewActionForm = ({ route, navigation }) => {
 
     // Creation de la récurrence si nécessaire. Attention on doit créer une récurrence par personnes,
     // pour pouvoir modifier une action pour une personne sans impacter les autres.
-    const recurrencesIds = [];
+    const recurrencesIds: string[] = [];
     if (hasRecurrence) {
-      // eslint-disable-next-line no-unused-vars
-      for (const _personId of Array.isArray(actionPersons) ? actionPersons : [actionPersons]) {
+      const numberOfPersons = Array.isArray(actionPersons) ? actionPersons.length : 1;
+      for (let index = 0; index < numberOfPersons; index++) {
         const recurrenceResponse = await API.post({
           path: "/recurrence",
           body: recurrenceDataWithDates,
@@ -129,12 +199,12 @@ const NewActionForm = ({ route, navigation }) => {
       }
     }
 
-    const actions = (Array.isArray(actionPersons) ? actionPersons : [actionPersons]).flatMap((person, index) => {
+    const actions = (Array.isArray(actionPersons) ? actionPersons : [actionPersons]).flatMap((_person, index) => {
       if (hasRecurrence) {
         return occurrences.map((occurrence) =>
           prepareActionForEncryption({
             name,
-            person: person._id,
+            person: _person._id,
             teams: [currentTeam._id],
             description,
             withTime,
@@ -153,7 +223,7 @@ const NewActionForm = ({ route, navigation }) => {
       } else {
         return prepareActionForEncryption({
           name,
-          person: person._id,
+          person: _person._id,
           teams: [currentTeam._id],
           description,
           dueAt,
@@ -180,43 +250,22 @@ const NewActionForm = ({ route, navigation }) => {
       return;
     }
 
-    // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
     backRequestHandledRef.current = true;
 
-    // Quand il y a récurrence, on redirige juste vers la liste des actions
-    if (hasRecurrence) {
-      // Check if this action was created from a Person view or PersonsList
-      if ((route.params?.fromRoute === "Person" || route.params?.fromRoute === "PersonsList") && route.params?.person) {
-        if (route.params?.fromRoute === "Person") {
-          navigation.replace("Person", { person: route.params.person });
-        } else {
-          navigation.replace("PersonsList");
-        }
-      } else {
-        navigation.replace("ActionsList");
-      }
-      return;
+    if (!hasRecurrence) {
+      onBack();
+    } else {
+      const actionToRedirect = response.decryptedData[0];
+      Sentry.setContext("action", { _id: actionToRedirect._id });
+      onActionCreated(response.decryptedData[0]);
+      setTimeout(() => setPosting(false), 250);
     }
-
-    const actionToRedirect = response.decryptedData[0];
-    Sentry.setContext("action", { _id: actionToRedirect._id });
-    navigation.replace("Action", {
-      actions: response.decryptedData,
-      action: actionToRedirect,
-      editable: false,
-    });
-    setTimeout(() => setPosting(false), 250);
   };
 
   const onBack = () => {
     backRequestHandledRef.current = true;
-    navigation.goBack();
+    onBackProp();
   };
-
-  const canGoBack = useMemo(() => {
-    if (!name.length && (forCurrentPerson || !actionPersons.length) && !dueAt) return true;
-    return false;
-  }, [name, forCurrentPerson, actionPersons, dueAt]);
 
   const isReadyToSave = useMemo(() => {
     if (!name?.trim()?.length && !categories?.length) return false;
@@ -226,9 +275,12 @@ const NewActionForm = ({ route, navigation }) => {
   }, [name, categories, dueAt, actionPersons]);
 
   const onGoBackRequested = () => {
-    if (canGoBack) return onBack();
+    if (!name.length && !dueAt) {
+      if (!actionPersons.length) return onBack(); // pas encore de personne choisie, on peut revenir en arrière
+      if (!canChangePerson) return onBack(); // une personne est déjà choisie, mais c'était celle par défaut, on peut quand même revenir en arrière
+    }
     if (isReadyToSave) {
-      Alert.alert("Voulez-vous enregistrer cette action ?", null, [
+      Alert.alert("Voulez-vous enregistrer cette action ?", undefined, [
         {
           text: "Enregistrer",
           onPress: onCreateActionRequest,
@@ -245,7 +297,7 @@ const NewActionForm = ({ route, navigation }) => {
       ]);
       return;
     }
-    Alert.alert("Voulez-vous abandonner la création de cette action ?", null, [
+    Alert.alert("Voulez-vous abandonner la création de cette action ?", undefined, [
       {
         text: "Continuer la création",
       },
@@ -268,11 +320,11 @@ const NewActionForm = ({ route, navigation }) => {
         <ScrollContainer keyboardShouldPersistTaps="handled" testID="new-action-form">
           <View>
             <InputLabelled label="Nom de l'action" onChangeText={setName} value={name} placeholder="Rdv chez le dentiste" testID="new-action-name" />
-            {forCurrentPerson ? (
+            {!canChangePerson ? (
               <InputFromSearchList
                 label="Personne concernée"
                 value={actionPersons[0]?.name || "-- Aucune --"}
-                onSearchRequest={onSearchPerson}
+                onSearchRequest={onSearchPerson!}
                 disabled
               />
             ) : (
@@ -287,7 +339,7 @@ const NewActionForm = ({ route, navigation }) => {
                 />
               </>
             )}
-            <ActionStatusSelect onSelect={setStatus} value={status} editable testID="new-action-status" />
+            <ActionStatusSelect onSelectAndSave={setStatus} onSelect={setStatus} value={status} editable testID="new-action-status" />
             <DateAndTimeInput
               label="À faire le"
               setDate={setDueAt}
@@ -313,12 +365,14 @@ const NewActionForm = ({ route, navigation }) => {
             <InputLabelled label="Description" onChangeText={setDescription} value={description} placeholder="Description" multiline editable />
             <ActionCategoriesModalSelect withMostUsed onChange={setCategories} values={categories} editable />
             <CheckboxLabelled
+              _id="urgent"
               label="Action prioritaire (cette action sera mise en avant par rapport aux autres)"
               alone
               onPress={() => setUrgent(!urgent)}
               value={urgent}
             />
             <CheckboxLabelled
+              _id="isRecurrent"
               label="Répéter cette action"
               alone
               onPress={() => {
@@ -332,14 +386,19 @@ const NewActionForm = ({ route, navigation }) => {
             />
 
             {Boolean(isRecurrent) && (
-              <Recurrence startDate={dueAt} initialValues={recurrenceData} onChange={(recurrenceData) => setRecurrenceData(recurrenceData)} />
+              <RecurrenceComponent
+                startDate={dayjsInstance(dueAt!).toDate()}
+                initialValues={recurrenceData}
+                onChange={(recurrenceData) => setRecurrenceData(recurrenceData)}
+              />
             )}
             {!!canToggleGroupCheck && (
               <CheckboxLabelled
+                _id="group"
                 label="Action familiale (cette action sera à effectuer pour toute la famille)"
                 alone
                 onPress={() => setGroup(!group)}
-                value={group}
+                value={group ? true : false}
               />
             )}
             <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateActionRequest} loading={posting} testID="new-action-create" />
@@ -349,5 +408,3 @@ const NewActionForm = ({ route, navigation }) => {
     </SceneContainer>
   );
 };
-
-export default NewActionForm;

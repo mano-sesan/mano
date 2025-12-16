@@ -36,23 +36,18 @@ import DocumentsManager from "../../components/DocumentsManager";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "@/types/navigation";
+import { ActionStackParams, RootStackParamList } from "@/types/navigation";
 import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import PersonsSearch from "../Persons/PersonsSearch";
 import NewPersonForm from "../Persons/NewPersonForm";
 import { type Document, type Folder } from "@/types/document";
 import { CommentInstance } from "@/types/comment";
+import NewActionForm from "./ActionNewScreen";
 type DocumentOrFolder = Document | Folder;
 
 type ActionInstanceWithoutId = Omit<ActionInstance, "_id">;
 type ActionProps = NativeStackScreenProps<RootStackParamList, "ACTION">;
-
-type ActionStackParams = {
-  ACTION: ActionProps;
-  PERSONS_SEARCH: undefined;
-  NEW_PERSON_FORM: undefined;
-};
 
 type ActionTopTabNavigatorParams = {
   ACTION_INFORMATIONS: undefined;
@@ -112,7 +107,7 @@ const ActionScreen = (props: ActionProps) => {
             setAction={setAction}
             actions={actions}
             persons={persons}
-            onSearchPerson={() => stackProps.navigation.push("PERSONS_SEARCH", { ...props.route.params, fromRoute: "ACTION" })}
+            onSearchPerson={() => stackProps.navigation.push("PERSONS_SEARCH")}
           />
         )}
       </ActionStack.Screen>
@@ -120,7 +115,7 @@ const ActionScreen = (props: ActionProps) => {
         {(stackProps) => (
           <PersonsSearch
             onBack={() => stackProps.navigation.goBack()}
-            onCreatePersonRequest={() => stackProps.navigation.navigate("NEW_PERSON_FORM")}
+            onCreatePersonRequest={() => stackProps.navigation.navigate("PERSON_NEW")}
             onPersonSelected={(person) => {
               stackProps.navigation.goBack();
               setAction((a) => ({ ...a, person: person._id }));
@@ -128,7 +123,7 @@ const ActionScreen = (props: ActionProps) => {
           />
         )}
       </ActionStack.Screen>
-      <ActionStack.Screen name="NEW_PERSON_FORM" options={{ title: "Nouvelle personne" }}>
+      <ActionStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
         {(stackProps) => (
           <NewPersonForm
             onBack={() => stackProps.navigation.goBack()}

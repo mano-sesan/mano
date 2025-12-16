@@ -10,15 +10,10 @@ import { AgendaIcon, PersonIcon, TerritoryIcon } from "./icons";
 import { Provider, useAtomValue, useSetAtom } from "jotai";
 import logEvents from "./services/logEvents";
 import Login from "./scenes/Login/Login";
-import Action from "./scenes/Actions/Action";
-import NewActionForm from "./scenes/Actions/NewActionForm";
-import PersonsList from "./scenes/Persons/PersonsList";
-// import PersonsSearch from "./scenes/Persons/PersonsSearch";
-// import NewPersonForm from "./scenes/Persons/NewPersonForm";
+import ActionScreen from "./scenes/Actions/Action";
+import PersonsListNavigator from "./scenes/Persons/PersonsListNavigator";
 import Person from "./scenes/Persons/Person";
-import PersonsOutOfActiveListReason from "./scenes/Persons/PersonsOutOfActiveListReason";
 import Rencontre from "./scenes/Persons/Rencontre";
-import PersonsFilter from "./scenes/Persons/PersonsFilter";
 import StructuresList from "./scenes/Structures/StructuresList";
 import NewStructureForm from "./scenes/Structures/NewStructureForm";
 import Structure from "./scenes/Structures/Structure";
@@ -72,6 +67,7 @@ import APKUpdater from "./components/APKUpdater";
 import ActionsFilter from "./scenes/Actions/ActionsFilter";
 import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
+import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -115,7 +111,7 @@ const TabNavigator = () => {
       )}
       <Tab.Screen
         name="PERSONNES"
-        component={PersonsList}
+        component={PersonsListNavigator}
         options={{
           tabBarIcon: PersonIcon,
           tabBarLabel: "PERSONNES",
@@ -272,16 +268,12 @@ const App = () => {
             <>
               <AppStack.Screen name="TABS_STACK" component={TabNavigator} />
               {/* Actions */}
-              <AppStack.Screen name="ACTION" component={Action} />
-              <AppStack.Screen name="ACTION_NEW" component={NewActionForm} />
+              <AppStack.Screen name="ACTION" component={ActionScreen} />
+              <AppStack.Screen name="ACTION_NEW_STACK" component={ActionNewScreen} />
               <AppStack.Screen name="ACTIONS" component={Actions} />
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />
               {/* Persons */}
               <AppStack.Screen name="PERSON" component={Person} />
-              {/* <AppStack.Screen name="PERSON_NEW" component={NewPersonForm} /> */}
-              <AppStack.Screen name="PERSON_OUT_OF_ACTIVE_LIST_REASON" component={PersonsOutOfActiveListReason} />
-              {/* <AppStack.Screen name="PERSONS_SEARCH" component={PersonsSearch} /> */}
-              <AppStack.Screen name="PERSONS_FILTER" component={PersonsFilter} />
               {/* Comments */}
               <AppStack.Screen name="COMMENT" component={Comment} />
               <AppStack.Screen name="COMMENTS" component={CommentsForReport} />

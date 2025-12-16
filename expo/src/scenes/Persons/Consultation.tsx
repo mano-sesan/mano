@@ -35,19 +35,25 @@ import { refreshTriggerState } from "../../components/Loader";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { ConsultationInstance } from "@/types/consultation";
 
-const cleanValue = (value) => {
+const cleanValue = (value: any) => {
   if (typeof value === "string") return (value || "").trim();
   return value;
 };
 
-const Consultation = ({ navigation, route }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
+type ConsultationWithoutId = Omit<ConsultationInstance, "_id">;
+
+const Consultation = ({ navigation, route }: Props) => {
   const [allConsultations, setAllConsultations] = useAtom(consultationsState);
-  const organisation = useAtomValue(organisationState);
-  const user = useAtomValue(userState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const person = route?.params?.personDB || route?.params?.person;
-  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const organisation = useAtomValue(organisationState)!;
+  const user = useAtomValue(userState)!;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector)!;
+  const person = route?.params?.personDB;
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const consultationDB = useMemo(() => {
@@ -56,7 +62,7 @@ const Consultation = ({ navigation, route }) => {
     } else {
       return {
         user: user._id,
-      };
+      } as ConsultationInstance;
     }
   }, [allConsultations, route?.params?.consultationDB?._id, user._id]);
 
@@ -64,8 +70,8 @@ const Consultation = ({ navigation, route }) => {
   const [writingComment, setWritingComment] = useState("");
 
   const castToConsultation = useCallback(
-    (consult = {}) => {
-      const toReturn = {};
+    (consult: Partial<ConsultationInstance> = {}) => {
+      const toReturn: ConsultationWithoutId = {};
       const consultationTypeCustomFields = consult?.type
         ? organisation.consultations.find((c) => c?.name === consult?.type)?.fields
         : organisation.consultations[0].fields;
@@ -99,13 +105,14 @@ const Consultation = ({ navigation, route }) => {
 
   useEffect(() => {
     setConsultation(castToConsultation(consultationDB));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [consultationDB?.updatedAt]);
 
-  const onChange = (keyValue) => setConsultation((c) => ({ ...c, ...keyValue }));
+  const onChange = (keyValue: Partial<ConsultationInstance>) => setConsultation((c) => ({ ...c, ...keyValue }));
 
-  const backRequestHandledRef = useRef(null);
+  const backRequestHandledRef = useRef(false);
   useEffect(() => {
-    const handleBeforeRemove = (e) => {
+    const handleBeforeRemove = (e: any) => {
       if (backRequestHandledRef.current) return;
       e.preventDefault();
       onGoBackRequested();
@@ -115,6 +122,7 @@ const Consultation = ({ navigation, route }) => {
     return () => {
       beforeRemoveListenerUnsbscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation]);
 
   useFocusEffect(
@@ -125,6 +133,7 @@ const Consultation = ({ navigation, route }) => {
       }
     }, [route?.params?.person])
   );
+
   useEffect(() => {
     if (!editable) {
       if (consultation.status !== consultationDB.status) onSaveConsultationRequest();

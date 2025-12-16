@@ -1,6 +1,8 @@
 import { type NavigatorScreenParams } from "@react-navigation/native";
 import { ActionInstance, ActionStatus } from "./action";
 import { PersonInstance } from "./person";
+import { ConsultationInstance } from "./consultation";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -11,14 +13,11 @@ export type RootStackParamList = {
   LOGIN_STACK: NavigatorScreenParams<LoginStackParamsList>;
   TABS_STACK: NavigatorScreenParams<TabsParamsList>;
   ACTION: ActionScreenParams;
-  ACTION_NEW: { person: PersonInstance };
+  ACTION_NEW_STACK?: { person: PersonInstance };
   ACTIONS: undefined;
-  ACTIONS_FILTER: ActionListParams;
-  PERSON: undefined;
+  ACTIONS_FILTER: undefined;
+  PERSON: { person: PersonInstance; editable?: boolean };
   PERSON_NEW: undefined;
-  PERSON_OUT_OF_ACTIVE_LIST_REASON: undefined;
-  PERSONS_SEARCH: ActionScreenParams & { fromRoute: "ACTION" };
-  PERSONS_FILTER: undefined;
   COMMENT: { person: PersonInstance; commentTitle: string };
   COMMENTS: undefined;
   PLACE: undefined;
@@ -37,8 +36,8 @@ export type RootStackParamList = {
   COMPTE_RENDU: undefined;
   COLLABORATIONS: undefined;
   CONSULTATIONS: undefined;
-  CONSULTATION: { personDB: PersonInstance };
-  SERVICES: undefined;
+  CONSULTATION?: { personDB: PersonInstance; consultationDB?: ConsultationInstance };
+  SERVICES?: { date: string };
   STRUCTURES: undefined;
   STRUCTURE_NEW: undefined;
   STRUCTURE: undefined;
@@ -74,8 +73,8 @@ interface ActionScreenParams {
   actions?: ActionInstance[];
   person?: PersonInstance;
   persons?: PersonInstance[];
-  editable: boolean;
-  duplicate: boolean;
+  editable?: boolean;
+  duplicate?: boolean;
 }
 
 export type ActionsScreenTopTabParams = {
@@ -93,4 +92,21 @@ export type ActionsScreenSubTabParams = {
 export type ActionListParams = {
   status: ActionStatus;
   timeframe: "TODAY" | "PASSED" | "INCOMINGDAYS";
+};
+
+export type ActionStackParams = {
+  ACTION: NativeStackScreenProps<RootStackParamList, "ACTION">;
+  PERSONS_SEARCH: undefined;
+  PERSON_NEW: undefined;
+};
+
+export type ActionNewStackParams = {
+  PERSONS_SEARCH: undefined;
+  PERSON_NEW: undefined;
+  ACTION_NEW?: { person: PersonInstance };
+};
+
+export type PersonStackParams = {
+  PERSON: { person: PersonInstance };
+  PERSON_OUT_OF_ACTIVE_LIST_REASON: { person: PersonInstance };
 };

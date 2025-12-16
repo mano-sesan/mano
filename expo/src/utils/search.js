@@ -13,13 +13,13 @@ const excludeFields = new Set([
 ]);
 const isObject = (variable) => typeof variable === "object" && variable !== null && !Array.isArray(variable);
 
-const prepareItemForSearch = (item, restrictedFields = null) => {
+const prepareItemForSearch = (item, restrictedFields = []) => {
   if (typeof item === "string") return item;
   if (!item) return "";
   const itemClean = {};
   for (let key of Object.keys(item)) {
     if (excludeFields.has(key)) continue;
-    if (restrictedFields && !restrictedFields.includes(key)) continue;
+    if (restrictedFields.length && !restrictedFields.includes(key)) continue;
     if (isObject(item[key])) {
       itemClean[key] = prepareItemForSearch(item[key], restrictedFields);
     } else if (Array.isArray(item[key])) {
@@ -31,7 +31,7 @@ const prepareItemForSearch = (item, restrictedFields = null) => {
   return itemClean;
 };
 
-export const filterBySearch = (search, items = [], restrictedFields = null) => {
+export const filterBySearch = (search, items = [], restrictedFields = []) => {
   const searchLowercased = search.toLocaleLowerCase();
   // replace all accents with normal letters
   const searchNormalized = searchLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
