@@ -46,12 +46,12 @@ export const actionsWithCommentsSelector = atom<Record<ActionInstance["_id"], Ac
   return actionsObject;
 });
 
-const placesObjectSelector = atom<Record<PlaceInstance["_id"], PlaceInstance>>((get) => {
+const placesObjectSelector = atom<Record<string, PlaceInstance>>((get) => {
   const places = get(placesState);
-  const placesObject: Record<PlaceInstance["_id"], PlaceInstance> = {};
+  const placesObject: Record<string, PlaceInstance> = {};
   for (const place of places) {
     if (!place?.name) continue;
-    placesObject[place._id] = place;
+    placesObject[place._id!] = place;
   }
   return placesObject;
 });
