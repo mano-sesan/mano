@@ -1,7 +1,7 @@
 import { UUIDV4 } from "./uuid";
 
 export interface PlaceInstance {
-  _id: UUIDV4;
+  _id?: string;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;

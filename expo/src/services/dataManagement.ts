@@ -1,4 +1,4 @@
-import API from "../services/api";
+import API from "./api";
 import { MMKV } from "react-native-mmkv";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -22,7 +22,15 @@ export const initCacheAndcheckIfExpired = () => {
 initCacheAndcheckIfExpired();
 
 // Get data from cache or fetch from server.
-export async function getData({ collectionName, setProgress = () => {}, lastRefresh = 0 }) {
+export async function getData({
+  collectionName,
+  setProgress = () => {},
+  lastRefresh = 0,
+}: {
+  collectionName: string;
+  setProgress?: (batch: number) => void;
+  lastRefresh?: number;
+}) {
   const response = await API.get({
     path: `/${collectionName}`,
     batch: 5000,

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import API from "../services/api";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { appCurrentCacheKey, getData } from "../services/dataManagement";
 import { useMMKVNumber } from "react-native-mmkv";
 import { organisationState, userState } from "../recoil/auth";
@@ -19,6 +19,12 @@ import { treatmentsState } from "../recoil/treatments";
 import { rencontresState } from "../recoil/rencontres";
 import { passagesState } from "../recoil/passages";
 import { groupsState } from "../recoil/groups";
+import { PersonInstance } from "@/types/person";
+import { GroupInstance } from "@/types/group";
+import { ConsultationInstance } from "@/types/consultation";
+import { RelPersonPlaceInstance } from "@/types/place";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { PassageInstance } from "@/types/passage";
 
 export const loadingState = atom("");
 
@@ -31,12 +37,16 @@ export const refreshTriggerState = atom({
   options: { showFullScreen: false, initialLoad: false },
 });
 
-export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, filterNewItemsFunction } = {}) {
-  const newItemsCleanedAndFormatted = [];
-  const newItemIds = {};
+export function mergeItems<T extends { _id?: string; deletedAt?: any }>(
+  oldItems: T[],
+  newItems: T[] = [],
+  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}
+): T[] {
+  const newItemsCleanedAndFormatted: T[] = [];
+  const newItemIds: Record<string, boolean> = {};
 
   for (const newItem of newItems) {
-    newItemIds[newItem._id] = true;
+    newItemIds[newItem._id!] = true;
     if (newItem.deletedAt) continue;
     if (filterNewItemsFunction) {
       if (!filterNewItemsFunction(newItem)) continue;
@@ -48,10 +58,10 @@ export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, fi
     }
   }
 
-  const oldItemsPurged = [];
+  const oldItemsPurged: T[] = [];
   for (const oldItem of oldItems) {
     if (oldItem.deletedAt) continue;
-    if (!newItemIds[oldItem._id]) {
+    if (!newItemIds[oldItem._id!]) {
       oldItemsPurged.push(oldItem);
     }
   }
@@ -66,27 +76,28 @@ export const DataLoader = () => {
   const setProgress = useSetAtom(progressState);
   const setFullScreen = useSetAtom(loaderFullScreenState);
   const [organisation, setOrganisation] = useAtom(organisationState);
-  const [user, setUser] = useAtom(userState);
+  const user = useAtomValue(userState)!;
+  const setUser = useSetAtom(userState);
   const organisationId = organisation?._id;
 
-  const [persons, setPersons] = useAtom(personsState);
-  const [actions, setActions] = useAtom(actionsState);
-  const [groups, setGroups] = useAtom(groupsState);
-  const [consultations, setConsultations] = useAtom(consultationsState);
-  const [treatments, setTreatments] = useAtom(treatmentsState);
-  const [medicalFiles, setMedicalFiles] = useAtom(medicalFileState);
-  const [territories, setTerritories] = useAtom(territoriesState);
-  const [places, setPlaces] = useAtom(placesState);
-  const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
-  const [territoryObservations, setTerritoryObs] = useAtom(territoryObservationsState);
-  const [comments, setComments] = useAtom(commentsState);
-  const [passages, setPassages] = useAtom(passagesState);
-  const [rencontres, setRencontres] = useAtom(rencontresState);
-  const [reports, setReports] = useAtom(reportsState);
+  const setPersons = useSetAtom(personsState);
+  const setActions = useSetAtom(actionsState);
+  const setGroups = useSetAtom(groupsState);
+  const setConsultations = useSetAtom(consultationsState);
+  const setTreatments = useSetAtom(treatmentsState);
+  const setMedicalFiles = useSetAtom(medicalFileState);
+  const setTerritories = useSetAtom(territoriesState);
+  const setPlaces = useSetAtom(placesState);
+  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const setTerritoryObs = useSetAtom(territoryObservationsState);
+  const setComments = useSetAtom(commentsState);
+  const setPassages = useSetAtom(passagesState);
+  const setRencontres = useSetAtom(rencontresState);
+  const setReports = useSetAtom(reportsState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
   // to prevent auto-refresh to trigger on the first render
-  const initialLoadDone = useRef(null);
+  const initialLoadDone = useRef(false);
 
   const refresh = async () => {
     const { showFullScreen, initialLoad } = refreshTrigger.options;
@@ -167,9 +178,8 @@ export const DataLoader = () => {
     */
     if (response.data.persons) {
       setLoading("Chargement des personnes");
-      const refreshedPersons = await getData({
+      const refreshedPersons: PersonInstance[] = await getData({
         collectionName: "person",
-        data: persons,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -183,9 +193,8 @@ export const DataLoader = () => {
     */
     if (response.data.groups) {
       setLoading("Chargement des familles");
-      const refreshedGroups = await getData({
+      const refreshedGroups: GroupInstance[] = await getData({
         collectionName: "group",
-        data: groups,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -198,9 +207,8 @@ export const DataLoader = () => {
     */
     if (response.data.consultations || initialLoad) {
       setLoading("Chargement des consultations");
-      const refreshedConsultations = await getData({
+      const refreshedConsultations: ConsultationInstance[] = await getData({
         collectionName: "consultation",
-        data: consultations,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
       });
@@ -216,7 +224,6 @@ export const DataLoader = () => {
         setLoading("Chargement des traitements");
         const refreshedTreatments = await getData({
           collectionName: "treatment",
-          data: treatments,
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
           lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
         });
@@ -231,7 +238,6 @@ export const DataLoader = () => {
         setLoading("Chargement des dossiers médicaux");
         const refreshedMedicalFiles = await getData({
           collectionName: "medical-file",
-          data: medicalFiles,
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
           lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
         });
@@ -247,7 +253,6 @@ export const DataLoader = () => {
       setLoading("Chargement des actions");
       const refreshedActions = await getData({
         collectionName: "action",
-        data: actions,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -263,7 +268,6 @@ export const DataLoader = () => {
       setLoading("Chargement des territoires");
       const refreshedTerritories = await getData({
         collectionName: "territory",
-        data: territories,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -278,18 +282,16 @@ export const DataLoader = () => {
       setLoading("Chargement des lieux");
       const refreshedPlaces = await getData({
         collectionName: "place",
-        data: places,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
       if (refreshedPlaces) {
-        setPlaces((oldPlaces) => mergeItems(oldPlaces, refreshedPlaces).sort((p1, p2) => p1.name.localeCompare(p2.name)));
+        setPlaces((oldPlaces) => mergeItems(oldPlaces, refreshedPlaces).sort((p1, p2) => p1.name!.localeCompare(p2.name!)));
       }
     }
     if (response.data.relsPersonPlace) {
-      const refreshedRelPersonPlaces = await getData({
+      const refreshedRelPersonPlaces: RelPersonPlaceInstance[] = await getData({
         collectionName: "relPersonPlace",
-        data: relsPersonPlace,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -302,9 +304,8 @@ export const DataLoader = () => {
     */
     if (response.data.territoryObservations) {
       setLoading("Chargement des observations");
-      const refreshedObs = await getData({
+      const refreshedObs: TerritoryObservationInstance[] = await getData({
         collectionName: "territory-observation",
-        data: territoryObservations,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -319,7 +320,6 @@ export const DataLoader = () => {
       setLoading("Chargement des commentaires");
       const refreshedComments = await getData({
         collectionName: "comment",
-        data: comments,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -333,9 +333,8 @@ export const DataLoader = () => {
     */
     if (response.data.passages) {
       setLoading("Chargement des passages");
-      const refreshedPassages = await getData({
+      const refreshedPassages: PassageInstance[] = await getData({
         collectionName: "passage",
-        data: passages,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -350,7 +349,6 @@ export const DataLoader = () => {
       setLoading("Chargement des rencontres");
       const refreshedRencontres = await getData({
         collectionName: "rencontre",
-        data: rencontres,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });
@@ -376,7 +374,6 @@ export const DataLoader = () => {
       setLoading("Chargement des comptes-rendus");
       const refreshedReports = await getData({
         collectionName: "report",
-        data: reports,
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
         lastRefresh,
       });

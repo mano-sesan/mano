@@ -10,7 +10,14 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonExpand = ({ onPress, color = "#888", expanded, testID = "" }) => {
+type ButtonExpandProps = {
+  onPress: () => void;
+  color?: string;
+  expanded: boolean;
+  testID?: string;
+};
+
+const ButtonExpand = ({ onPress, color = "#888", expanded, testID = "" }: ButtonExpandProps) => {
   return (
     <ButtonContainer>
       <TouchableWithoutFeedback onPress={onPress} hitSlop={hitSlop} testID={testID}>
@@ -28,7 +35,7 @@ const ButtonContainer = styled.View`
 `;
 
 const iconSize = 30;
-const Icon = styled.View`
+const Icon = styled.View<{ expanded: boolean }>`
   height: ${iconSize}px;
   width: ${iconSize}px;
   transform: rotate(${(props) => (props.expanded ? 90 : 0)}deg);

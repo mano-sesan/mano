@@ -13,6 +13,16 @@ import { MyText } from "./MyText";
 import { useAtomValue } from "jotai";
 import { userState } from "../recoil/auth";
 
+type DeleteButtonAndConfirmModalProps = {
+  children: React.ReactNode;
+  title: string;
+  onDelete: () => Promise<boolean>;
+  onBack: () => void;
+  textToConfirm: string;
+  roles: string[];
+  roleErrorMessage: string;
+};
+
 const DeleteButtonAndConfirmModal = ({
   children,
   title,
@@ -21,8 +31,8 @@ const DeleteButtonAndConfirmModal = ({
   textToConfirm,
   roles = ["admin"],
   roleErrorMessage = "Désolé, seul un admin peut supprimer ce type d'élément",
-}) => {
-  const user = useAtomValue(userState);
+}: DeleteButtonAndConfirmModalProps) => {
+  const user = useAtomValue(userState)!;
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [textConfirmed, setTextConfirmed] = useState("");
   const [deleting, setDeleting] = useState(false);
