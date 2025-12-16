@@ -43,7 +43,7 @@ import PersonsSearch from "../Persons/PersonsSearch";
 import NewPersonForm from "../Persons/NewPersonForm";
 import { type Document, type Folder } from "@/types/document";
 import { CommentInstance } from "@/types/comment";
-import NewActionForm from "./ActionNewScreen";
+
 type DocumentOrFolder = Document | Folder;
 
 type ActionInstanceWithoutId = Omit<ActionInstance, "_id">;

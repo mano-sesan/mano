@@ -36,7 +36,7 @@ export type RootStackParamList = {
   COMPTE_RENDU: undefined;
   COLLABORATIONS: undefined;
   CONSULTATIONS: undefined;
-  CONSULTATION?: { personDB: PersonInstance; consultationDB?: ConsultationInstance };
+  CONSULTATION?: { personDB?: PersonInstance; consultationDB?: ConsultationInstance; duplicate?: boolean; editable?: boolean };
   SERVICES?: { date: string };
   STRUCTURES: undefined;
   STRUCTURE_NEW: undefined;
@@ -109,4 +109,10 @@ export type ActionNewStackParams = {
 export type PersonStackParams = {
   PERSON: { person: PersonInstance };
   PERSON_OUT_OF_ACTIVE_LIST_REASON: { person: PersonInstance };
+};
+
+export type ConsultationStackParams = {
+  CONSULTATION: NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
+  PERSONS_SEARCH: undefined;
+  PERSON_NEW: undefined;
 };

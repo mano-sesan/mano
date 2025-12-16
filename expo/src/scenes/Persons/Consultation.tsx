@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
-import { useAtomValue, useAtom, useSetAtom } from "jotai";
-import { useFocusEffect } from "@react-navigation/native";
+import { Alert, Keyboard, KeyboardAvoidingView, ScrollView, View } from "react-native";
+import { useAtomValue, useSetAtom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -35,78 +34,165 @@ import { refreshTriggerState } from "../../components/Loader";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "@/types/navigation";
+import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { ConsultationStackParams, RootStackParamList } from "@/types/navigation";
 import { ConsultationInstance } from "@/types/consultation";
+import PersonsSearch from "./PersonsSearch";
+import NewPersonForm from "./NewPersonForm";
+import { PersonInstance } from "@/types/person";
+import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { CommentInstance } from "@/types/comment";
+import { Document, Folder } from "@/types/document";
+import { TeamInstance } from "@/types/team";
 
 const cleanValue = (value: any) => {
   if (typeof value === "string") return (value || "").trim();
   return value;
 };
-
+type DocumentOrFolder = Document | Folder;
 type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
 type ConsultationWithoutId = Omit<ConsultationInstance, "_id">;
 
-const Consultation = ({ navigation, route }: Props) => {
-  const [allConsultations, setAllConsultations] = useAtom(consultationsState);
+const ConsultationStack = createNativeStackNavigator<ConsultationStackParams>();
+
+const castToConsultation = (
+  consult: Partial<ConsultationInstance> = {},
+  organisation: { consultations: any[]; _id: string },
+  personId: string | undefined,
+  userId: string
+): ConsultationWithoutId => {
+  const toReturn: ConsultationWithoutId = {};
+  const consultationTypeCustomFields = consult?.type
+    ? organisation.consultations.find((c) => c?.name === consult?.type)?.fields
+    : organisation.consultations[0]?.fields;
+  const encryptedFieldsIncludingCustom = [...(consultationTypeCustomFields?.map((f: any) => f.name) || []), ...encryptedFields];
+  for (const field of encryptedFieldsIncludingCustom) {
+    toReturn[field] = cleanValue(consult[field]);
+  }
+  return {
+    ...toReturn,
+    name: consult.name || "",
+    type: consult.type || "",
+    status: consult.status || TODO,
+    dueAt: consult.dueAt || null,
+    person: consult.person || personId,
+    completedAt: consult.completedAt || null,
+    onlyVisibleBy: consult.onlyVisibleBy || [],
+    user: consult.user || userId,
+    teams: consult.teams || ([] as ConsultationInstance["teams"]),
+    history: consult.history || ([] as ConsultationInstance["history"]),
+    documents: consult.documents || ([] as ConsultationInstance["documents"]),
+    organisation: consult.organisation || organisation._id,
+  };
+};
+
+const ConsultationScreen = (props: Props) => {
+  const allConsultations = useAtomValue(consultationsState);
+  const organisation = useAtomValue(organisationState)!;
+  const user = useAtomValue(userState)!;
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+
+  const consultationDB = useMemo(() => {
+    if (props.route?.params?.consultationDB?._id) {
+      return allConsultations.find((c) => c._id === props.route?.params?.consultationDB?._id);
+    } else {
+      return {
+        user: user._id,
+        person: props.route?.params?.personDB?._id,
+      } as ConsultationInstance;
+    }
+  }, [allConsultations, props.route?.params?.consultationDB?._id, user._id, props.route?.params?.personDB?._id]);
+
+  const [consultation, setConsultation] = useState(() =>
+    castToConsultation(consultationDB, organisation, props.route?.params?.personDB?._id, user._id)
+  );
+
+  // Get person from consultation.person ID (can be different from route.params.personDB after person search)
+  const person = useMemo(() => {
+    if (consultation.person) {
+      return allPersonsObject[consultation.person];
+    }
+    return props.route?.params?.personDB;
+  }, [consultation.person, allPersonsObject, props.route?.params?.personDB]);
+
+  useEffect(() => {
+    setConsultation(castToConsultation(consultationDB, organisation, props.route?.params?.personDB?._id, user._id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consultationDB?.updatedAt]);
+
+  useEffect(() => {
+    if (props.route?.params?.duplicate) {
+      Alert.alert(
+        "La consultation est dupliquée, vous pouvez la modifier !",
+        "Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée."
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <ConsultationStack.Navigator>
+      <ConsultationStack.Screen name="CONSULTATION">
+        {(stackProps) => (
+          <ConsultationForm
+            {...props}
+            consultationDB={consultationDB!}
+            consultation={consultation}
+            setConsultation={setConsultation}
+            person={person}
+            onSearchPerson={() => stackProps.navigation.push("PERSONS_SEARCH")}
+          />
+        )}
+      </ConsultationStack.Screen>
+      <ConsultationStack.Screen name="PERSONS_SEARCH" options={{ title: "Rechercher une personne" }}>
+        {(stackProps) => (
+          <PersonsSearch
+            onBack={() => stackProps.navigation.goBack()}
+            onCreatePersonRequest={() => stackProps.navigation.navigate("PERSON_NEW")}
+            onPersonSelected={(selectedPerson) => {
+              stackProps.navigation.goBack();
+              setConsultation((c) => ({ ...c, person: selectedPerson._id }));
+            }}
+          />
+        )}
+      </ConsultationStack.Screen>
+      <ConsultationStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
+        {(stackProps) => (
+          <NewPersonForm
+            onBack={() => stackProps.navigation.goBack()}
+            onPersonCreated={(createdPerson) => {
+              stackProps.navigation.goBack();
+              setConsultation((c) => ({ ...c, person: createdPerson._id }));
+            }}
+          />
+        )}
+      </ConsultationStack.Screen>
+    </ConsultationStack.Navigator>
+  );
+};
+
+type ConsultationFormProps = Props & {
+  consultationDB: ConsultationInstance;
+  consultation: ConsultationWithoutId;
+  setConsultation: React.Dispatch<React.SetStateAction<ConsultationWithoutId>>;
+  person: PersonInstance | undefined;
+  onSearchPerson: () => void;
+};
+
+const ConsultationForm = ({ navigation, route, consultationDB, consultation, setConsultation, person, onSearchPerson }: ConsultationFormProps) => {
+  const setAllConsultations = useSetAtom(consultationsState);
   const organisation = useAtomValue(organisationState)!;
   const user = useAtomValue(userState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector)!;
-  const person = route?.params?.personDB;
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
-
-  const consultationDB = useMemo(() => {
-    if (route?.params?.consultationDB?._id) {
-      return allConsultations.find((c) => c._id === route?.params?.consultationDB?._id);
-    } else {
-      return {
-        user: user._id,
-      } as ConsultationInstance;
-    }
-  }, [allConsultations, route?.params?.consultationDB?._id, user._id]);
 
   const isNew = !consultationDB?._id;
   const [writingComment, setWritingComment] = useState("");
 
-  const castToConsultation = useCallback(
-    (consult: Partial<ConsultationInstance> = {}) => {
-      const toReturn: ConsultationWithoutId = {};
-      const consultationTypeCustomFields = consult?.type
-        ? organisation.consultations.find((c) => c?.name === consult?.type)?.fields
-        : organisation.consultations[0].fields;
-      const encryptedFieldsIncludingCustom = [...(consultationTypeCustomFields?.map((f) => f.name) || []), ...encryptedFields];
-      for (const field of encryptedFieldsIncludingCustom) {
-        toReturn[field] = cleanValue(consult[field]);
-      }
-      return {
-        ...toReturn,
-        name: consult.name || "",
-        type: consult.type || "",
-        status: consult.status || TODO,
-        dueAt: consult.dueAt || null,
-        person: consult.person || person?._id,
-        completedAt: consult.completedAt || null,
-        onlyVisibleBy: consult.onlyVisibleBy || [],
-        user: consult.user || user._id,
-        teams: consult.teams || [],
-        history: consult.history || [],
-        organisation: consult.organisation || organisation._id,
-      };
-    },
-    [organisation?._id, organisation.consultations, person?._id, user?._id]
-  );
-
   const [posting, setPosting] = useState(false);
   const [editable, setEditable] = useState(!!isNew);
   const [deleting, setDeleting] = useState(false);
-
-  const [consultation, setConsultation] = useState(() => castToConsultation(consultationDB));
-
-  useEffect(() => {
-    setConsultation(castToConsultation(consultationDB));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [consultationDB?.updatedAt]);
 
   const onChange = (keyValue: Partial<ConsultationInstance>) => setConsultation((c) => ({ ...c, ...keyValue }));
 
@@ -125,15 +211,6 @@ const Consultation = ({ navigation, route }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigation]);
 
-  useFocusEffect(
-    useCallback(() => {
-      const newPerson = route?.params?.person;
-      if (newPerson) {
-        setConsultation((c) => ({ ...c, person: newPerson?._id }));
-      }
-    }, [route?.params?.person])
-  );
-
   useEffect(() => {
     if (!editable) {
       if (consultation.status !== consultationDB.status) onSaveConsultationRequest();
@@ -144,16 +221,6 @@ const Consultation = ({ navigation, route }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable, consultation.status, consultation.onlyVisibleBy]);
 
-  useEffect(() => {
-    if (route?.params?.duplicate) {
-      Alert.alert(
-        "La consultation est dupliquée, vous pouvez la modifier !",
-        "Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée."
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const onDuplicate = async () => {
     const response = await API.post({
       path: "/consultation",
@@ -163,8 +230,8 @@ const Consultation = ({ navigation, route }: Props) => {
         status: TODO,
         user: user._id,
         teams: [currentTeam._id],
-        comments: (consultation.comments || []).map((c) => ({ ...c, _id: uuidv4() })),
-        documents: (consultation.documents || []).map((d) => ({ ...d, _id: d._id + "__" + uuidv4() })),
+        comments: (consultation.comments || []).map((c: CommentInstance) => ({ ...c, _id: uuidv4() })),
+        documents: (consultation.documents || []).map((d: DocumentOrFolder) => ({ ...d, _id: d._id + "__" + uuidv4() })),
         completedAt: null,
         history: [],
       }),
@@ -175,23 +242,36 @@ const Consultation = ({ navigation, route }: Props) => {
     }
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     backRequestHandledRef.current = true;
-    //  navigation.push('PersonsSearch', { fromRoute: 'Consultation' })
-    navigation.replace("Consultation", {
+    navigation.replace("CONSULTATION", {
       personDB: person,
       consultationDB: response.decryptedData,
-      fromRoute: "MedicalFile",
       editable: true,
       duplicate: true,
     });
   };
 
   const onSaveConsultationRequest = useCallback(
-    async ({ goBackOnSave = true, consultationToSave = null } = {}) => {
+    async ({
+      goBackOnSave = true,
+      consultationToSave,
+    }: { goBackOnSave?: boolean; consultationToSave?: Partial<ConsultationInstance> } = {}): Promise<boolean> => {
       if (!consultationToSave) consultationToSave = consultation;
-      if (!consultationToSave.status) return Alert.alert("Veuillez indiquer un statut");
-      if (!consultationToSave.dueAt) return Alert.alert("Veuillez indiquer une date");
-      if (!consultationToSave.type) return Alert.alert("Veuillez indiquer un type");
-      if (!consultationToSave.person) return Alert.alert("Veuillez ajouter une personne");
+      if (!consultationToSave.status) {
+        Alert.alert("Veuillez indiquer un statut");
+        return false;
+      }
+      if (!consultationToSave.dueAt) {
+        Alert.alert("Veuillez indiquer une date");
+        return false;
+      }
+      if (!consultationToSave.type) {
+        Alert.alert("Veuillez indiquer un type");
+        return false;
+      }
+      if (!consultationToSave.person) {
+        Alert.alert("Veuillez ajouter une personne");
+        return false;
+      }
       Keyboard.dismiss();
       setPosting(true);
       if ([DONE, CANCEL].includes(consultationToSave.status)) {
@@ -204,7 +284,7 @@ const Consultation = ({ navigation, route }: Props) => {
         const historyEntry = {
           date: new Date(),
           user: user._id,
-          data: {},
+          data: {} as Record<string, { oldValue: any; newValue: any }>,
         };
         for (const key in consultationToSave) {
           if (!consultationsFieldsIncludingCustomFields.map((field) => field.name).includes(key)) continue;
@@ -226,18 +306,9 @@ const Consultation = ({ navigation, route }: Props) => {
         ? await API.post({ path: "/consultation", body })
         : await API.put({ path: `/consultation/${consultationDB._id}`, body });
       if (!consultationResponse.ok) return false;
-      if (isNew) {
-        setAllConsultations((all) => [...all, consultationResponse.decryptedData].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
-      } else {
-        setAllConsultations((all) =>
-          all
-            .map((c) => {
-              if (c._id === consultationDB._id) return consultationResponse.decryptedData;
-              return c;
-            })
-            .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-        );
-      }
+
+      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+
       const consultationCancelled = consultationToSave.status === CANCEL && consultationDB.status !== CANCEL;
       if (!isNew && consultationCancelled) {
         Alert.alert("Cette consultation est annulée, voulez-vous la dupliquer ?", "Avec une date ultérieure par exemple", [
@@ -249,24 +320,25 @@ const Consultation = ({ navigation, route }: Props) => {
                 onBack();
               } else {
                 setPosting(false);
-                setConsultation(castToConsultation(consultationResponse.decryptedData));
+                setConsultation(castToConsultation(consultationResponse.decryptedData, organisation, person?._id, user._id));
                 return true;
               }
             },
             style: "cancel",
           },
         ]);
-        return;
+        return true;
       }
 
       if (goBackOnSave) {
         onBack();
       } else {
         setPosting(false);
-        setConsultation(castToConsultation(consultationResponse.decryptedData));
-        return true;
+        setConsultation(castToConsultation(consultationResponse.decryptedData, organisation, person?._id, user._id));
       }
+      return true;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [consultation]
   );
 
@@ -297,9 +369,11 @@ const Consultation = ({ navigation, route }: Props) => {
   };
 
   const isDisabled = useMemo(() => {
-    if (JSON.stringify(castToConsultation(consultationDB)) === JSON.stringify(castToConsultation(consultation))) return true;
+    const consultationDBCast = castToConsultation(consultationDB, organisation, person?._id, user._id);
+    const consultationCast = castToConsultation(consultation, organisation, person?._id, user._id);
+    if (JSON.stringify(consultationDBCast) === JSON.stringify(consultationCast)) return true;
     return false;
-  }, [castToConsultation, consultationDB, consultation]);
+  }, [consultationDB, consultation, organisation, person?._id, user._id]);
 
   const onBack = () => {
     backRequestHandledRef.current = true;
@@ -314,7 +388,7 @@ const Consultation = ({ navigation, route }: Props) => {
       if (!goToNextStep) return;
     }
     if (isDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer cette consultation ?", null, [
+    Alert.alert("Voulez-vous enregistrer cette consultation ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {
@@ -333,10 +407,8 @@ const Consultation = ({ navigation, route }: Props) => {
     ]);
   };
 
-  const onSearchPerson = () => navigation.push("PERSONS_SEARCH", { fromRoute: "Consultation" });
-
-  const scrollViewRef = useRef(null);
-  const newCommentRef = useRef(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const newCommentRef = useRef<View>(null);
 
   const canEditAllFields = useMemo(() => {
     return ["normal", "admin"].includes(user.role);
@@ -351,8 +423,8 @@ const Consultation = ({ navigation, route }: Props) => {
           person?.name || ""
         }`}
         onBack={onGoBackRequested}
-        onEdit={!editable ? () => setEditable(true) : null}
-        onSave={!editable || isDisabled ? null : () => onSaveConsultationRequest()}
+        onEdit={!editable ? () => setEditable(true) : undefined}
+        onSave={!editable || isDisabled ? undefined : () => onSaveConsultationRequest()}
         saving={posting}
         testID="consultation"
       />
@@ -395,12 +467,20 @@ const Consultation = ({ navigation, route }: Props) => {
                 <DocumentsManager
                   defaultParent="consultation"
                   personDB={person}
-                  onAddDocument={(doc) => onChange({ documents: [...(consultation.documents || []), doc] })}
-                  onDelete={(doc) => onChange({ documents: consultation.documents.filter((d) => d.file.filename !== doc.file.filename) })}
-                  onUpdateDocument={(doc) =>
-                    onChange({ documents: consultation.documents.map((d) => (d.file.filename === doc.file.filename ? doc : d)) })
+                  onAddDocument={(doc: DocumentOrFolder) => onChange({ documents: [...(consultation.documents || []), doc] })}
+                  onDelete={(doc: Document) =>
+                    onChange({
+                      documents: consultation.documents.filter((d: DocumentOrFolder) => d.type === "folder" || d.file.filename !== doc.file.filename),
+                    })
                   }
-                  documents={consultation.documents}
+                  onUpdateDocument={(doc: Document) =>
+                    onChange({
+                      documents: consultation.documents.map((d: DocumentOrFolder) =>
+                        d.type === "document" && d.file?.filename === doc.file?.filename ? doc : d
+                      ),
+                    })
+                  }
+                  documents={consultationDB.documents}
                 />
               </>
             )}
@@ -437,6 +517,7 @@ const Consultation = ({ navigation, route }: Props) => {
             ) : null}
             {canEditAllFields && consultationDB?.user === user._id ? (
               <CheckboxLabelled
+                _id="only-visible-by-me"
                 label="Seulement visible par moi"
                 alone
                 onPress={() => {
@@ -496,7 +577,7 @@ const Consultation = ({ navigation, route }: Props) => {
                       onDelete={async () => {
                         const consultationToSave = {
                           ...consultation,
-                          comments: consultation.comments.filter((c) => c._id !== comment._id),
+                          comments: consultation.comments.filter((c: CommentInstance) => c._id !== comment._id),
                         };
                         setConsultation(consultationToSave); // optimistic UI
                         if (!isNew) {
@@ -504,11 +585,12 @@ const Consultation = ({ navigation, route }: Props) => {
                           // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
                           return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
                         }
+                        return true;
                       }}
                       onUpdate={async (commentUpdated) => {
                         const consultationToSave = {
                           ...consultation,
-                          comments: consultation.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                          comments: consultation.comments.map((c: CommentInstance) => (c._id === comment._id ? commentUpdated : c)),
                         };
                         setConsultation(consultationToSave); // optimistic UI
                         if (!isNew) {
@@ -516,6 +598,7 @@ const Consultation = ({ navigation, route }: Props) => {
                           // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
                           return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
                         }
+                        return true;
                       }}
                     />
                   )}
@@ -524,7 +607,7 @@ const Consultation = ({ navigation, route }: Props) => {
                   <NewCommentInput
                     forwardRef={newCommentRef}
                     onCommentWrite={setWritingComment}
-                    onCreate={(newComment) => {
+                    onCreate={async (newComment) => {
                       const consultationToSave = {
                         ...consultation,
                         comments: [{ ...newComment, type: "consultation", _id: uuidv4() }, ...(consultation.comments || [])],
@@ -533,7 +616,7 @@ const Consultation = ({ navigation, route }: Props) => {
                       if (!isNew) {
                         // need to pass `consultationToSave` if we want last comment to be taken into account
                         // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                        return onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                        await onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
                       }
                     }}
                   />
@@ -547,4 +630,4 @@ const Consultation = ({ navigation, route }: Props) => {
   );
 };
 
-export default Consultation;
+export default ConsultationScreen;

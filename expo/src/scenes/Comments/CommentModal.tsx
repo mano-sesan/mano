@@ -11,17 +11,40 @@ import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
+import { CommentInstance } from "@/types/comment";
+import dayjs, { Dayjs } from "dayjs";
 
-const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUpdate, onDelete, canToggleUrgentCheck, canToggleGroupCheck }) => {
-  const currentTeam = useAtomValue(currentTeamState);
-  const user = useAtomValue(userState);
-  const organisation = useAtomValue(organisationState);
+type CommentModalProps = {
+  title?: string;
+  visible: boolean;
+  commentDB: CommentInstance;
+  onClose: () => void;
+  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean>;
+  onDelete?: (comment: CommentInstance) => Promise<boolean>;
+  canToggleUrgentCheck?: boolean;
+  canToggleGroupCheck?: boolean;
+};
+
+const CommentModal = ({
+  title = "Commentaire",
+  visible,
+  commentDB,
+  onClose,
+  onUpdate,
+  onDelete,
+  canToggleUrgentCheck,
+  canToggleGroupCheck,
+}: CommentModalProps) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
+  const organisation = useAtomValue(organisationState)!;
 
   const [comment, setComment] = useState(commentDB?.comment?.split("\\n").join("\u000A") || "");
   const [urgent, setUrgent] = useState(commentDB?.urgent || false);
-  const [date, setDate] = useState((commentDB?.date || commentDB?.createdAt) ?? new Date());
+  const [date, setDate] = useState((commentDB?.date || commentDB?.createdAt) ?? dayjs());
   const [group, setGroup] = useState(commentDB?.group || false);
   const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const isUpdateDisabled = useMemo(() => {
     if ((commentDB?.comment || "") !== comment) return false;
@@ -32,8 +55,9 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
   }, [comment, commentDB, urgent, group, date]);
 
   const onUpdateComment = async () => {
+    if (!onUpdate) return;
     setUpdating(true);
-    const body = {
+    const body: Partial<CommentInstance> = {
       _id: commentDB._id,
       team: commentDB.team || currentTeam?._id,
       user: commentDB.user || user?._id,
@@ -42,6 +66,7 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
       urgent,
       group,
     };
+    // @ts-ignore
     if (commentDB.type) body.type = commentDB.type;
     if (!body.user) body.user = user._id;
     if (!body.team) body.team = currentTeam._id;
@@ -49,11 +74,14 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
     const success = await onUpdate(body);
     Keyboard.dismiss();
     setUpdating(false);
-    if (success) Alert.alert("Commentaire mis à jour !", null, [{ text: "OK", onPress: onClose }]);
+    if (success) Alert.alert("Commentaire mis à jour !", undefined, [{ text: "OK", onPress: onClose }]);
   };
 
   const onDeleteConfirm = async () => {
+    if (!onDelete) return;
+    setDeleting(true);
     const success = await onDelete(commentDB);
+    setDeleting(false);
     if (!success) return;
     Alert.alert("Commentaire supprimé !");
     onClose();
@@ -78,7 +106,7 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
       onClose();
       return;
     }
-    Alert.alert("Voulez-vous enregistrer ce commentaire ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce commentaire ?", undefined, [
       {
         text: "Enregistrer",
         onPress: onUpdateComment,
@@ -104,15 +132,17 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
             <InputLabelled label="Commentaire" onChangeText={setComment} value={comment} placeholder="Description" multiline />
             {!!canToggleUrgentCheck && (
               <CheckboxLabelled
+                _id="urgent"
                 label="Commentaire prioritaire (ce commentaire sera mis en avant par rapport aux autres)"
                 alone
                 onPress={() => setUrgent((u) => !u)}
                 value={urgent}
               />
             )}
-            <DateAndTimeInput label="Créé le / Concerne le" setDate={(a) => setDate(a)} date={date} showTime showDay withTime />
+            <DateAndTimeInput label="Créé le / Concerne le" setDate={(a) => setDate(a as Dayjs)} date={date} showTime showDay withTime />
             {!!canToggleGroupCheck && (
               <CheckboxLabelled
+                _id="group"
                 label="Commentaire familial (ce commentaire sera visible pour toute la famille)"
                 alone
                 onPress={() => setGroup((g) => !g)}
@@ -120,8 +150,8 @@ const CommentModal = ({ title = "Commentaire", visible, commentDB, onClose, onUp
               />
             )}
             <ButtonsContainer>
-              <ButtonDelete onPress={onDeleteRequest} />
-              <Button caption="Mettre à jour" onPress={onUpdateComment} disabled={isUpdateDisabled} loading={updating} />
+              {Boolean(onDelete) && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
+              {Boolean(onUpdate) && <Button caption="Mettre à jour" onPress={onUpdateComment} disabled={isUpdateDisabled} loading={updating} />}
             </ButtonsContainer>
           </View>
         </ScrollContainer>

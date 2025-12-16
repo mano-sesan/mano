@@ -68,7 +68,7 @@ export const consultationsFieldsIncludingCustomFieldsSelector = atom((get) => {
   ];
 });
 
-export const prepareConsultationForEncryption = (customFieldsConsultations: CustomFieldsGroup[]) => (consultation: ConsultationInstance) => {
+export const prepareConsultationForEncryption = (customFieldsConsultations: CustomFieldsGroup[]) => (consultation: Partial<ConsultationInstance>) => {
   try {
     if (!looseUuidRegex.test(consultation.person)) {
       throw new Error("Consultation is missing person");
