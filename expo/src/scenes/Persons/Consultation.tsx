@@ -568,7 +568,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                 <SubList
                   label="Commentaires"
                   key={consultationDB?._id}
-                  data={consultation.comments}
+                  data={consultation.comments as CommentInstance[]}
                   renderItem={(comment) => (
                     <CommentRow
                       key={comment._id}

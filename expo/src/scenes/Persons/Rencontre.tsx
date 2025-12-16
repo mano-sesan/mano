@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -11,13 +11,19 @@ import ScrollContainer from "../../components/ScrollContainer";
 import { currentTeamState, userState } from "../../recoil/auth";
 import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
 import API from "../../services/api";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { RencontreInstance } from "@/types/rencontre";
+import { refreshTriggerState } from "@/components/Loader";
 
-const Rencontre = ({ navigation, route }) => {
+type RencontreProps = NativeStackScreenProps<RootStackParamList, "RENCONTRE">;
+const Rencontre = ({ navigation, route }: RencontreProps) => {
   const personId = route.params.person._id;
   const isNewRencontre = !route.params.rencontre;
-  const currentTeam = useAtomValue(currentTeamState);
-  const user = useAtomValue(userState);
-  const [rencontre, setRencontre] = useState(
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
+  const [rencontre, setRencontre] = useState<RencontreInstance>(
     () => route.params.rencontre || { date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId }
   );
   const [submitting, setSubmitting] = useState(false);
@@ -58,6 +64,7 @@ const Rencontre = ({ navigation, route }) => {
         <View>
           <DateAndTimeInput
             label="Date"
+            // @ts-expect-error Type 'PossibleDate' is not assignable to parameter of type 'SetStateAction<Date>'.
             setDate={(date) => setRencontre((a) => ({ ...a, date }))}
             date={rencontre.date}
             showDay
@@ -80,8 +87,8 @@ const Rencontre = ({ navigation, route }) => {
                 if (isNewRencontre) await createRencontre();
                 else await updateRencontre();
                 setSubmitting(false);
-
-                navigation.navigate(route.params.fromRoute, { person: route.params.person }, { merge: true });
+                setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+                navigation.goBack();
               }}
             />
           </ButtonContainer>
