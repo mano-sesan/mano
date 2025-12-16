@@ -39,7 +39,7 @@ import { ConsultationStackParams, RootStackParamList } from "@/types/navigation"
 import { ConsultationInstance } from "@/types/consultation";
 import PersonsSearch from "./PersonsSearch";
 import NewPersonForm from "./NewPersonForm";
-import { PersonInstance } from "@/types/person";
+import { PersonInstance, PersonPopulated } from "@/types/person";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { CommentInstance } from "@/types/comment";
 import { Document, Folder } from "@/types/document";
@@ -90,7 +90,7 @@ const ConsultationScreen = (props: Props) => {
   const allConsultations = useAtomValue(consultationsState);
   const organisation = useAtomValue(organisationState)!;
   const user = useAtomValue(userState)!;
-  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
 
   const consultationDB = useMemo(() => {
     if (props.route?.params?.consultationDB?._id) {

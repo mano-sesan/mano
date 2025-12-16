@@ -14,7 +14,7 @@ import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import RepeatIcon from "../icons/RepeatIcon";
 import UserName from "./UserName";
 import { ActionInstance } from "@/types/action";
-import { PersonInstance } from "@/types/person";
+import { PersonInstance, PersonPopulated } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
 
 type ActionRowProps = {
@@ -27,7 +27,7 @@ type ActionRowProps = {
 };
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }: ActionRowProps) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
   const organisation = useAtomValue(organisationState)!;
 
   const name = action?.name?.trim() || action?.categories?.join(", ") || "Action";

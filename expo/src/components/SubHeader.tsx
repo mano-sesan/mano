@@ -5,7 +5,13 @@ import { MyText } from "./MyText";
 import colors from "../utils/colors";
 import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 
-const SubHeader = ({ caption, onBack, backgroundColor }) => (
+type SubHeaderProps = {
+  caption: string;
+  onBack: () => void;
+  backgroundColor: string;
+};
+
+const SubHeader = ({ caption, onBack, backgroundColor }: SubHeaderProps) => (
   <Container backgroundColor={backgroundColor || colors.app.color}>
     <Button onPress={onBack}>
       <ArrowLeftExtended color="#fff" size={20} />
@@ -19,7 +25,7 @@ const Button = styled.TouchableOpacity`
   width: 30px;
 `;
 
-const Container = styled.View`
+const Container = styled.View<{ backgroundColor: string }>`
   height: 50px;
   background-color: ${(props) => props.backgroundColor};
   flex-direction: row;

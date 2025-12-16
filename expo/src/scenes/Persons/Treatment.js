@@ -143,7 +143,7 @@ const Treatment = ({ navigation, route }) => {
       if (!goToNextStep) return;
     }
     if (isDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce traitement ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce traitement ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {

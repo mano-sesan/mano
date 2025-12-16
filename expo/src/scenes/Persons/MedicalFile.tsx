@@ -7,7 +7,7 @@ import Button from "../../components/Button";
 import InputLabelled from "../../components/InputLabelled";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import SubList from "../../components/SubList";
-import DateAndTimeInput from "../../components/DateAndTimeInput";
+import DateAndTimeInput, { PossibleDate } from "../../components/DateAndTimeInput";
 import GenderSelect from "../../components/Selects/GenderSelect";
 import colors from "../../utils/colors";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
@@ -25,18 +25,48 @@ import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import CommentRow from "../Comments/CommentRow";
 import NewCommentInput from "../Comments/NewCommentInput";
 import { Alert } from "react-native";
-import { formatBirthDateAndAge } from "../../services/dateDayjs";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
+import { RootStackParamList } from "@/types/navigation";
+import { PersonInstance, PersonPopulated } from "@/types/person";
+import { dayjsInstance } from "@/services/dateDayjs";
+import { Document, DocumentWithLinkedItem, Folder, FolderWithLinkedItem } from "@/types/document";
+import { MedicalFileInstance } from "@/types/medicalFile";
+import { ConsultationInstance } from "@/types/consultation";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { TreatmentInstance } from "@/types/treatment";
 
-const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, editable, onEdit, isUpdateDisabled, backgroundColor, onChange }) => {
-  const organisation = useAtomValue(organisationState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const user = useAtomValue(userState);
+type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+  backgroundColor: string;
+  onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
+  onUpdatePerson: () => Promise<boolean>;
+  onEdit: () => void;
+  person: Omit<PersonInstance, "_id">;
+  personDB: PersonInstance;
+  isUpdateDisabled: boolean;
+  editable: boolean;
+  updating: boolean;
+};
 
-  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+const MedicalFile = ({
+  navigation,
+  person,
+  personDB,
+  onUpdatePerson,
+  updating,
+  editable,
+  onEdit,
+  isUpdateDisabled,
+  backgroundColor,
+  onChange,
+}: MedicalFileProps) => {
+  const organisation = useAtomValue(organisationState)!;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
+
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector)!;
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
   const allConsultations = useAtomValue(consultationsState);
@@ -53,7 +83,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === personDB?._id), [allTreatments, personDB?._id]);
 
-  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector);
+  const populatedPersons = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
   const populatedPerson = useMemo(() => populatedPersons[personDB?._id] || {}, [populatedPersons, personDB?._id]);
 
   const medicalFileDB = populatedPerson.medicalFile;
@@ -75,8 +105,8 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalFileDB]);
 
-  const backRequestHandledRef = useRef(null);
-  const handleBeforeRemove = (e) => {
+  const backRequestHandledRef = useRef(false);
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -109,12 +139,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         .filter(Boolean)
         .flat() || [];
     const otherComments = medicalFile?.comments || [];
-    return [...treatmentsComments, ...consultationsComments, ...otherComments].sort(
-      (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
+    return [...treatmentsComments, ...consultationsComments, ...otherComments].sort((a, b) =>
+      dayjsInstance(b.date || b.createdAt).diff(dayjsInstance(a.date || a.createdAt))
     );
   }, [consultations, medicalFile, treatments, user]);
 
-  const defaultDocuments = organisation.defaultMedicalFolders.map((folder) => ({
+  const defaultDocuments = organisation.defaultMedicalFolders!.map((folder) => ({
     ...folder,
     movable: false,
     linkedItem: {
@@ -126,7 +156,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
 
   const allMedicalDocuments = useMemo(() => {
     if (!medicalFile) return [];
-    const treatmentsDocs = [
+    const treatmentsDocs: Array<DocumentWithLinkedItem | FolderWithLinkedItem> = [
       {
         _id: "treatment",
         name: "Traitements",
@@ -143,8 +173,8 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       },
     ];
     for (const treatment of treatments) {
-      for (const document of treatment.documents || []) {
-        const docWithLinkedItem = {
+      for (const document of (treatment.documents || []) as Array<Document>) {
+        const docWithLinkedItem: DocumentWithLinkedItem = {
           ...document,
           type: document.type ?? "document", // it will always be a document in treatments - folders are only saved in medicalFile
           linkedItem: {
@@ -157,7 +187,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       }
     }
 
-    const consultationsDocs = [
+    const consultationsDocs: Array<DocumentWithLinkedItem | FolderWithLinkedItem> = [
       {
         _id: "consultation",
         name: "Consultations",
@@ -177,10 +207,10 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       if (consultation?.onlyVisibleBy?.length) {
         if (!consultation.onlyVisibleBy.includes(user._id)) continue;
       }
-      for (const document of consultation.documents || []) {
-        const docWithLinkedItem = {
+      for (const document of (consultation.documents || []) as Array<Document>) {
+        const docWithLinkedItem: DocumentWithLinkedItem = {
           ...document,
-          type: document.type ?? "document", // it will always be a document in treatments - folders are only saved in medicalFile
+          type: document.type ?? "document", // it will always be a document in consultations - folders are only saved in medicalFile
           linkedItem: {
             _id: consultation._id,
             type: "consultation",
@@ -227,12 +257,12 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       if (!goToNextStep) return;
     }
     if (isMedicalFileUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ?", null, [
+    Alert.alert("Voulez-vous enregistrer ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {
-          const response = await onGoBackRequested();
-          if (response.ok) onBack();
+          const success = await onUpdateRequest();
+          if (success) onBack();
         },
       },
       {
@@ -247,54 +277,54 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     ]);
   };
 
-  const onUpdateRequest = async (latestMedicalFile) => {
+  const onUpdateRequest = async (latestMedicalFile?: Partial<MedicalFileInstance>): Promise<boolean> => {
     if (!latestMedicalFile) latestMedicalFile = medicalFile;
 
     const historyEntry = {
       date: new Date(),
       user: user._id,
-      data: {},
+      data: {} as Record<string, { oldValue: any; newValue: any }>,
     };
     for (const key in latestMedicalFile) {
       if (!customFieldsMedicalFile.map((field) => field.name).includes(key)) continue;
-      if (!isEqual(latestMedicalFile[key], medicalFileDB[key])) {
-        if (isEmptyValue(latestMedicalFile[key]) && isEmptyValue(medicalFileDB[key])) continue;
-        historyEntry.data[key] = { oldValue: medicalFileDB[key], newValue: latestMedicalFile[key] };
+      if (!isEqual(latestMedicalFile[key], medicalFileDB![key])) {
+        if (isEmptyValue(latestMedicalFile[key]) && isEmptyValue(medicalFileDB![key])) continue;
+        historyEntry.data[key] = { oldValue: medicalFileDB![key], newValue: latestMedicalFile[key] };
       }
     }
-    if (!!Object.keys(historyEntry.data).length) latestMedicalFile.history = [...(medicalFileDB.history || []), historyEntry];
+    if (!!Object.keys(historyEntry.data).length) latestMedicalFile!.history = [...(medicalFileDB!.history || []), historyEntry];
 
     const response = await API.put({
-      path: `/medical-file/${medicalFileDB._id}`,
+      path: `/medical-file/${medicalFileDB!._id}`,
       body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ ...medicalFileDB, ...latestMedicalFile }),
     });
-    if (!response.ok) return;
+    if (!response.ok) return false;
     setAllMedicalFiles((medicalFiles) =>
       medicalFiles.map((m) => {
-        if (m._id === medicalFileDB._id) return response.decryptedData;
+        if (m._id === medicalFileDB!._id) return response.decryptedData;
         return m;
       })
     );
     setMedicalFile(response.decryptedData);
     const personResponse = await onUpdatePerson();
-    if (!personResponse.ok) return false;
+    if (!personResponse) return false;
     return true;
   };
 
-  const onGoToConsultation = (consultationDB) => navigation.navigate("Consultation", { personDB, consultationDB });
-  const onGoToTreatment = (treatmentDB) => navigation.navigate("Treatment", { personDB, treatmentDB });
+  const onGoToConsultation = (consultationDB?: ConsultationInstance) => navigation.push("CONSULTATION", { personDB, consultationDB });
+  const onGoToTreatment = (treatmentDB?: TreatmentInstance) => navigation.navigate("TREATMENT", { personDB, treatmentDB });
 
-  const onAddDocument = async (doc) => {
+  const onAddDocument = async (doc: Document) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
       ...medicalFile,
-      documents: [...(medicalFile.documents || []), doc],
+      documents: [...(medicalFile!.documents || []), doc],
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile._id}`, body });
+    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
       setAllMedicalFiles((medicalFiles) =>
         medicalFiles.map((m) => {
-          if (m._id === medicalFileDB._id) return medicalFileResponse.decryptedData;
+          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
         })
       );
@@ -302,17 +332,17 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     }
   };
 
-  const onUpdateDocument = async (doc) => {
+  const onUpdateDocument = async (doc: Document) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
       ...medicalFile,
-      documents: medicalFile.documents.map((d) => (d?.file?.filename === doc.file.filename ? doc : d)),
+      documents: medicalFile!.documents.map((d) => (d.type === "document" && d?.file?.filename === doc.file.filename ? doc : d)),
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile._id}`, body });
+    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
       setAllMedicalFiles((medicalFiles) =>
         medicalFiles.map((m) => {
-          if (m._id === medicalFileDB._id) return medicalFileResponse.decryptedData;
+          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
         })
       );
@@ -320,17 +350,17 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
     }
   };
 
-  const onDelete = async (doc) => {
+  const onDelete = async (doc: Document | Folder) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
       ...medicalFile,
-      documents: medicalFile.documents.filter((d) => d?.file?.filename !== doc.file.filename),
+      documents: medicalFile!.documents.filter((d) => d.type === "document" && d?.file?.filename !== (doc as Document).file.filename),
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile._id}`, body });
+    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
       setAllMedicalFiles((medicalFiles) =>
         medicalFiles.map((m) => {
-          if (m._id === medicalFileDB._id) return medicalFileResponse.decryptedData;
+          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
         })
       );
@@ -354,7 +384,8 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       {editable ? (
         <DateAndTimeInput
           label="Date de naissance"
-          setDate={(birthdate) => onChange({ birthdate })}
+          // @ts-expect-error This comparison appears to be unintentional because the types 'Date' and 'string' have no overlap
+          setDate={(birthdate: PossibleDate) => onChange({ birthdate })}
           date={person.birthdate}
           editable={editable}
           showYear
@@ -390,7 +421,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
               label={label}
               field={field}
               value={medicalFile?.[name]}
-              handleChange={(newValue) => setMedicalFile((file) => ({ ...file, [name]: newValue }))}
+              handleChange={(newValue) => setMedicalFile((file) => ({ ...file!, [name]: newValue }))}
               editable={editable}
             />
           );
@@ -406,26 +437,26 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
       </ButtonsContainer>
       <SubList
         label="Commentaires"
-        key={medicalFileDB?._id + allMedicalComments.length}
+        key={medicalFileDB?._id ?? "" + allMedicalComments.length}
         data={allMedicalComments}
         renderItem={(comment) => (
           <CommentRow
             key={comment._id}
             comment={comment}
             itemName={
-              ["consultation", "treatment"].includes(comment.type) ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}` : null
+              ["consultation", "treatment"].includes(comment.type) ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}` : undefined
             }
             onItemNamePress={
               ["consultation", "treatment"].includes(comment.type)
                 ? () => (comment.type === "consultation" ? onGoToConsultation(comment.consultation) : onGoToTreatment(comment.treatment))
-                : null
+                : undefined
             }
             onDelete={
               comment.type === "medical-file"
                 ? async () => {
-                    const medicalFileToSave = {
-                      ...medicalFile,
-                      comments: medicalFile.comments.filter((c) => c._id !== comment._id),
+                    const medicalFileToSave: MedicalFileInstance = {
+                      ...medicalFile!,
+                      comments: medicalFile!.comments.filter((c) => c._id !== comment._id),
                     };
                     setMedicalFile(medicalFileToSave); // optimistic UI
                     // need to pass `medicalFileToSave` if we want last comment to be taken into account
@@ -433,14 +464,14 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
                     const success = await onUpdateRequest(medicalFileToSave);
                     return success;
                   }
-                : null
+                : undefined
             }
             onUpdate={
               comment.type === "medical-file"
                 ? async (commentUpdated) => {
                     const medicalFileToSave = {
-                      ...medicalFile,
-                      comments: medicalFile.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                      ...medicalFile!,
+                      comments: medicalFile!.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
                     };
                     setMedicalFile(medicalFileToSave); // optimistic UI
                     // need to pass `medicalFileToSave` if we want last comment to be taken into account
@@ -448,7 +479,7 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
                     const success = await onUpdateRequest(medicalFileToSave);
                     return success;
                   }
-                : null
+                : undefined
             }
           />
         )}
@@ -457,13 +488,13 @@ const MedicalFile = ({ navigation, person, personDB, onUpdatePerson, updating, e
         <NewCommentInput
           forwardRef={newCommentRef}
           onCommentWrite={setWritingComment}
-          onCreate={(newComment) => {
-            const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile.comments || [])];
-            const medicalFileToSave = { ...medicalFile, comments: newComments };
+          onCreate={async (newComment) => {
+            const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile!.comments || [])];
+            const medicalFileToSave = { ...medicalFile!, comments: newComments };
             setMedicalFile(medicalFileToSave); // optimistic UI
             // need to pass comments as parameters if we want last comment to be taken into account
             // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-            onUpdateRequest(medicalFileToSave);
+            await onUpdateRequest(medicalFileToSave);
           }}
         />
       </SubList>

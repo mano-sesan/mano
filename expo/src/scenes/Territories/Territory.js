@@ -121,7 +121,7 @@ const Territory = ({ route, navigation }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce territoire ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce territoire ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {

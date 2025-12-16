@@ -15,17 +15,17 @@ import { StyleSheet } from "react-native";
 import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
 import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { ConsultationInstance } from "@/types/consultation";
-import { PersonInstance } from "@/types/person";
+import { PersonInstance, PersonPopulated } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
 
 type ConsultationRowProps = {
   onConsultationPress: (consultation: ConsultationInstance, person: PersonInstance) => void;
   consultation: ConsultationInstance;
-  testID: string;
-  withBadge: boolean;
-  showStatus: boolean;
-  showPseudo: boolean;
-  onPseudoPress: (person: PersonInstance) => void;
+  testID?: string;
+  withBadge?: boolean;
+  showStatus?: boolean;
+  showPseudo?: boolean;
+  onPseudoPress?: (person: PersonInstance) => void;
 };
 const ConsultationRow = ({
   onConsultationPress,
@@ -36,7 +36,7 @@ const ConsultationRow = ({
   showPseudo,
   onPseudoPress,
 }: ConsultationRowProps) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
 
   const me = useAtomValue(userState)!;
 
@@ -57,7 +57,7 @@ const ConsultationRow = ({
   }, [consultation, onConsultationPress, visibleByMe, person]);
 
   const onPseudoContainerPress = useCallback(() => {
-    if (person) onPseudoPress(person);
+    if (person && onPseudoPress) onPseudoPress(person);
   }, [person, onPseudoPress]);
 
   return (

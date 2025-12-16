@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 import { useAtomValue } from "jotai";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import ScrollContainer from "../../components/ScrollContainer";
 import SubHeader from "../../components/SubHeader";
 import Spacer from "../../components/Spacer";
@@ -8,10 +8,27 @@ import ButtonsContainer from "../../components/ButtonsContainer";
 import Button from "../../components/Button";
 import colors from "../../utils/colors";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { currentTeamState, userState } from "../../recoil/auth";
+import { currentTeamState } from "../../recoil/auth";
+import { PersonInstance } from "@/types/person";
+import { CustomField } from "@/types/field";
+
+type PersonSectionProps = {
+  onBack: () => void;
+  backgroundColor: string;
+  onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
+  onUpdatePerson: () => Promise<boolean>;
+  onEdit: () => void;
+  person: Omit<PersonInstance, "_id">;
+  personDB: PersonInstance;
+  isUpdateDisabled: boolean;
+  editable: boolean;
+  updating: boolean;
+  fields: CustomField[];
+  name: string;
+};
 
 const PersonSection = ({
-  navigation,
+  onBack,
   editable,
   onChange,
   onUpdatePerson,
@@ -22,21 +39,19 @@ const PersonSection = ({
   person,
   fields,
   name: sectionName,
-}) => {
-  const user = useAtomValue(userState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const scrollViewRef = useRef(null);
+}: PersonSectionProps) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const scrollViewRef = useRef<ScrollView>(null);
 
   return (
     <>
-      <SubHeader center backgroundColor={backgroundColor || colors.app.color} onBack={navigation.goBack} caption={sectionName} />
+      <SubHeader backgroundColor={backgroundColor || colors.app.color} onBack={onBack} caption={sectionName} />
       <ScrollContainer noRadius ref={scrollViewRef} backgroundColor={backgroundColor || colors.app.color}>
         <View>
           {!editable && <Spacer />}
           {(fields || [])
             .filter((f) => f)
             .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-            .filter((f) => !f.onlyHealthcareProfessional || user?.healthcareProfessional)
             .map((field) => {
               const { label, name } = field;
               return (

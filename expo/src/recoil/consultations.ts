@@ -70,10 +70,10 @@ export const consultationsFieldsIncludingCustomFieldsSelector = atom((get) => {
 
 export const prepareConsultationForEncryption = (customFieldsConsultations: CustomFieldsGroup[]) => (consultation: Partial<ConsultationInstance>) => {
   try {
-    if (!looseUuidRegex.test(consultation.person)) {
+    if (!looseUuidRegex.test(consultation.person || "")) {
       throw new Error("Consultation is missing person");
     }
-    if (!looseUuidRegex.test(consultation.user)) {
+    if (!looseUuidRegex.test(consultation.user || "")) {
       throw new Error("Consultation is missing user");
     }
     // we don't force the team (yet) because it's blocking with automatic updates of consultation

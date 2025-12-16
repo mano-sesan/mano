@@ -38,7 +38,7 @@ const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = "
     const dataToShow = data.filter((_, i) => i < numberToShow);
     return (
       <>
-        {dataToShow.map(renderItem)}
+        {dataToShow.map(renderItem!)}
         {!disableVoirPlus && dataToShow.length < data.length && (
           <Button caption="Voir plus" onPress={() => setNumberToShow((num) => num + initNumberToShow)} noBorder />
         )}

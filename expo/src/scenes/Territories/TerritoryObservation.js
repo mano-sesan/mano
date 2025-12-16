@@ -225,7 +225,7 @@ const TerritoryObservation = ({ route, navigation }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer cette observation ?", null, [
+    Alert.alert("Voulez-vous enregistrer cette observation ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {

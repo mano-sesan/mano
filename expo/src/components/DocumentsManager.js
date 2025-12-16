@@ -319,7 +319,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
       },
       async (buttonIndex) => {
         if (options[buttonIndex] === "Supprimer") {
-          Alert.alert("Voulez-vous vraiment supprimer ce document ?", null, [
+          Alert.alert("Voulez-vous vraiment supprimer ce document ?", undefined, [
             {
               text: "Annuler",
               style: "cancel",
