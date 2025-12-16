@@ -1,7 +1,7 @@
 import { MouseEventHandler } from "react";
 import styled from "styled-components";
 import { theme } from "../config";
-import { Spinner } from "reactstrap";
+import Spinner from "./tailwind/Spinner";
 
 const ButtonCustom = ({
   color = "primary",
@@ -43,7 +43,7 @@ const ButtonCustom = ({
       {...rest}
     >
       <SpinnerContainer visibility={!loading ? "hidden" : "visible"}>
-        <Spinner color={"white"} size={"sm"} style={{ borderWidth: "0.1em" }} />
+        <Spinner color="white" size="sm" />
       </SpinnerContainer>
       <Content padding={padding}>
         {!!icon && <Icon color={color} icon={icon} />}

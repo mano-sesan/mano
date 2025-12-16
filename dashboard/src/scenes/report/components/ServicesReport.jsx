@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Spinner } from "reactstrap";
+import Spinner from "../../../components/tailwind/Spinner";
 import { toast } from "react-toastify";
 import { organisationState } from "../../../atoms/auth";
 import { useAtomValue } from "jotai";
