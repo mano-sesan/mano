@@ -11,11 +11,12 @@ import { currentTeamState, organisationState, userState } from "../../recoil/aut
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { CommentInstance } from "@/types/comment";
 
+type NewCommentInputBody = Pick<CommentInstance, "comment" | "urgent" | "group" | "type" | "date" | "team" | "user" | "organisation">;
 type NewCommentInputProps = {
   forwardRef: React.RefObject<View | null>;
   onFocus?: () => void;
   onCommentWrite: (comment: string) => void;
-  onCreate: (comment: Partial<CommentInstance>) => Promise<void>;
+  onCreate: (comment: NewCommentInputBody) => Promise<boolean>;
   canToggleUrgentCheck?: boolean;
   canToggleGroupCheck?: boolean;
 };
@@ -32,15 +33,15 @@ const NewCommentInput = ({ forwardRef, onFocus, onCommentWrite, onCreate, canTog
   const onCreateComment = async () => {
     setPosting(true);
 
-    const body: Partial<CommentInstance> = {
+    const body: NewCommentInputBody = {
       comment,
       date: dayjs(),
       urgent,
       group,
+      user: user._id,
+      team: currentTeam._id,
+      organisation: organisation._id,
     };
-    if (!body.user) body.user = user._id;
-    if (!body.team) body.team = currentTeam._id;
-    if (!body.organisation) body.organisation = organisation._id;
     await onCreate(body);
     Keyboard.dismiss();
     setPosting(false);

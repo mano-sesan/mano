@@ -23,7 +23,7 @@ export type RootStackParamList = {
   COMMENTS: undefined;
   PLACE: undefined;
   PLACE_NEW: { person: PersonInstance };
-  TREATMENT?: { personDB?: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
+  TREATMENT: { personDB: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
   TERRITORY: undefined;
   TERRITORY_NEW: undefined;
   TERRITORY_OBSERVATION: undefined;

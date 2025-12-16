@@ -19,7 +19,7 @@ type CommentModalProps = {
   visible: boolean;
   commentDB: CommentInstance;
   onClose: () => void;
-  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean>;
+  onUpdate?: (comment: CommentInstance) => Promise<boolean>;
   onDelete?: (comment: CommentInstance) => Promise<boolean>;
   canToggleUrgentCheck?: boolean;
   canToggleGroupCheck?: boolean;
@@ -57,20 +57,19 @@ const CommentModal = ({
   const onUpdateComment = async () => {
     if (!onUpdate) return;
     setUpdating(true);
-    const body: Partial<CommentInstance> = {
+    const body: CommentInstance = {
       _id: commentDB._id,
       team: commentDB.team || currentTeam?._id,
       user: commentDB.user || user?._id,
       comment: comment.trim(),
-      date,
+      date: date as Dayjs,
       urgent,
       group,
+      organisation: organisation._id,
+      type: commentDB.type || undefined,
+      person: commentDB.person,
+      action: commentDB.action,
     };
-    // @ts-ignore
-    if (commentDB.type) body.type = commentDB.type;
-    if (!body.user) body.user = user._id;
-    if (!body.team) body.team = currentTeam._id;
-    if (!body.organisation) body.organisation = organisation._id;
     const success = await onUpdate(body);
     Keyboard.dismiss();
     setUpdating(false);

@@ -34,7 +34,7 @@ const Collaborations = ({ route, navigation }) => {
     return collaborations.filter((c) => c.toLocaleLowerCase().includes(collaboration.toLocaleLowerCase()));
   }, [collaboration, collaborations]);
 
-  const backRequestHandledRef = useRef(null);
+  const backRequestHandledRef = useRef(false);
   const handleBeforeRemove = (e) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();

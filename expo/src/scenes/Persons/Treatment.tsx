@@ -22,13 +22,22 @@ import NewCommentInput from "../Comments/NewCommentInput";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
+import { RootStackParamList } from "@/types/navigation";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { CommentInstance } from "@/types/comment";
+import { TreatmentInstance } from "@/types/treatment";
+import { refreshTriggerState } from "@/components/Loader";
+import { Document } from "@/types/document";
 
-const Treatment = ({ navigation, route }) => {
+type TreatmentProps = NativeStackScreenProps<RootStackParamList, "TREATMENT">;
+
+const Treatment = ({ navigation, route }: TreatmentProps) => {
   const setAllTreatments = useSetAtom(treatmentsState);
   const personDB = route?.params?.personDB;
   const treatmentDB = route?.params?.treatmentDB;
   const isNew = !treatmentDB?._id;
-  const user = useAtomValue(userState);
+  const user = useAtomValue(userState)!;
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const [name, setName] = useState(treatmentDB?.name || "");
   const [dosage, setDosage] = useState(treatmentDB?.dosage || "");
@@ -36,14 +45,14 @@ const Treatment = ({ navigation, route }) => {
   const [indication, setIndication] = useState(treatmentDB?.indication || "");
   const [startDate, setStartDate] = useState(treatmentDB?.startDate || null);
   const [endDate, setEndDate] = useState(treatmentDB?.endDate || null);
-  const [documents, setDocuments] = useState(treatmentDB?.documents || []);
-  const [comments, setComments] = useState(treatmentDB?.comments || []);
+  const [documents, setDocuments] = useState((treatmentDB?.documents || []) as Document[]);
+  const [comments, setComments] = useState((treatmentDB?.comments || []) as CommentInstance[]);
   const [posting, setPosting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [writingComment, setWritingComment] = useState("");
 
-  const backRequestHandledRef = useRef(null);
-  const handleBeforeRemove = (e) => {
+  const backRequestHandledRef = useRef(false);
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -57,22 +66,28 @@ const Treatment = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onSaveTreatment = async ({ goBackOnSave = true, comments = null } = {}) => {
+  const onSaveTreatment = async ({
+    goBackOnSave = true,
+    comments = undefined,
+  }: { goBackOnSave?: boolean; comments?: CommentInstance[] } = {}): Promise<boolean> => {
     if (!comments) comments = treatmentDB?.comments || [];
-    if (!name) return Alert.alert("Veuillez indiquer un nom");
-    // if (!dosage) return Alert.alert('Veuillez indiquer un dosage');
-    // if (!frequency) return Alert.alert('Veuillez indiquer une fréquence');
-    // if (!indication) return Alert.alert('Veuillez indiquer une indication');
-    if (!startDate) return Alert.alert("Veuillez indiquer une date de début");
+    if (!name) {
+      Alert.alert("Veuillez indiquer un nom");
+      return false;
+    }
+    if (!startDate) {
+      Alert.alert("Veuillez indiquer une date de début");
+      return false;
+    }
     Keyboard.dismiss();
     setPosting(true);
-    const body = {
+    const body: Partial<TreatmentInstance> = {
       name,
       dosage,
       frequency,
       indication,
       startDate,
-      endDate,
+      endDate: endDate || undefined,
       person: personDB._id,
       documents,
       comments,
@@ -83,9 +98,9 @@ const Treatment = ({ navigation, route }) => {
       const historyEntry = {
         date: new Date(),
         user: user._id,
-        data: {},
+        data: {} as Record<string, { oldValue: any; newValue: any }>,
       };
-      for (const key in body) {
+      for (const key of Object.keys(body) as (keyof TreatmentInstance)[]) {
         if (!allowedTreatmentFieldsInHistory.map((field) => field.name).includes(key)) continue;
         if (!isEqual(body[key], treatmentDB[key])) {
           if (isEmptyValue(body[key]) && isEmptyValue(treatmentDB[key])) continue;
@@ -102,18 +117,7 @@ const Treatment = ({ navigation, route }) => {
       ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body) })
       : await API.put({ path: `/treatment/${treatmentDB._id}`, body: prepareTreatmentForEncryption(body) });
     if (!treatmentResponse.ok) return false;
-    if (isNew) {
-      setAllTreatments((all) => [...all, treatmentResponse.decryptedData].sort((a, b) => new Date(b.startDate) - new Date(a.startDate)));
-    } else {
-      setAllTreatments((all) =>
-        all
-          .map((c) => {
-            if (c._id === treatmentDB._id) return treatmentResponse.decryptedData;
-            return c;
-          })
-          .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
-      );
-    }
+    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     setPosting(false);
     if (goBackOnSave) onBack();
     return true;
@@ -147,8 +151,8 @@ const Treatment = ({ navigation, route }) => {
       {
         text: "Enregistrer",
         onPress: async () => {
-          const response = await onSaveTreatment();
-          if (response.ok) onBack();
+          const success = await onSaveTreatment();
+          if (success) onBack();
         },
       },
       {
@@ -179,12 +183,12 @@ const Treatment = ({ navigation, route }) => {
 
   const onDelete = async () => {
     setDeleting(true);
-    const response = await API.delete({ path: `/treatment/${treatmentDB._id}` });
+    const response = await API.delete({ path: `/treatment/${treatmentDB!._id}` });
     if (!response.ok) {
       Alert.alert(response.error);
       return;
     }
-    setAllTreatments((all) => all.filter((t) => t._id !== treatmentDB._id));
+    setAllTreatments((all) => all.filter((t) => t._id !== treatmentDB!._id));
     Alert.alert("Traitement supprimé !");
     onBack();
   };
@@ -220,18 +224,32 @@ const Treatment = ({ navigation, route }) => {
             <DocumentsManager
               defaultParent="treatment"
               personDB={personDB}
-              onAddDocument={(doc) => {
+              onAddDocument={(doc: Document) => {
                 setDocuments((docs) => [...docs, doc]);
               }}
-              onDelete={(doc) => setDocuments((docs) => docs.filter((d) => d.file.filename !== doc.file.filename))}
-              onUpdateDocument={(doc) => {
+              onDelete={(doc: Document) => setDocuments((docs) => docs.filter((d) => d.file.filename !== doc.file.filename))}
+              onUpdateDocument={(doc: Document) => {
                 setDocuments((docs) => docs.map((d) => (d.file.filename === doc.file.filename ? doc : d)));
               }}
               documents={documents}
             />
             <Spacer />
-            <DateAndTimeInput label="Date de début" date={startDate} setDate={setStartDate} editable showYear />
-            <DateAndTimeInput label="Date de fin" date={endDate} setDate={setEndDate} editable showYear />
+            <DateAndTimeInput
+              label="Date de début"
+              date={startDate}
+              // @ts-expect-error Type 'string' is not assignable to type 'SetStateAction<Date | null>'.
+              setDate={setStartDate}
+              editable
+              showYear
+            />
+            <DateAndTimeInput
+              label="Date de fin"
+              date={endDate}
+              // @ts-expect-error Type 'string' is not assignable to type 'SetStateAction<Date | null>'.
+              setDate={setEndDate}
+              editable
+              showYear
+            />
             <ButtonsContainer>
               {!isNew && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
               <Button
@@ -276,7 +294,7 @@ const Treatment = ({ navigation, route }) => {
               forwardRef={newCommentRef}
               onCommentWrite={setWritingComment}
               onCreate={(newComment) => {
-                const newComments = [{ ...newComment, type: "treatment", _id: uuidv4() }, comments];
+                const newComments: CommentInstance[] = [{ ...newComment, type: "treatment", _id: uuidv4() }, ...comments];
                 setComments(newComments); // optimistic UI
                 // need to pass comments as parameters if we want last comment to be taken into account
                 // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
