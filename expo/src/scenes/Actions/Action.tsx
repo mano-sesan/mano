@@ -809,10 +809,11 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
                 Alert.alert(response.error || response.code);
-                return;
+                return false;
               }
               Keyboard.dismiss();
               setComments((comments) => [response.decryptedData, ...comments]);
+              return true;
             }}
           />
         </View>

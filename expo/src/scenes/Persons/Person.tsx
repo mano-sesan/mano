@@ -309,7 +309,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const commentIdsToDelete = comments
       .filter((c) => {
         if (c.group) return false;
-        if (actionIdsToDelete.includes(c.action)) return true;
+        if (actionIdsToDelete.includes(c.action!)) return true;
         if (c.person === personDB._id) return true;
         return false;
       })

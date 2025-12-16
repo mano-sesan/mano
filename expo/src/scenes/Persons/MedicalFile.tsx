@@ -494,7 +494,7 @@ const MedicalFile = ({
             setMedicalFile(medicalFileToSave); // optimistic UI
             // need to pass comments as parameters if we want last comment to be taken into account
             // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-            await onUpdateRequest(medicalFileToSave);
+            return await onUpdateRequest(medicalFileToSave);
           }}
         />
       </SubList>
