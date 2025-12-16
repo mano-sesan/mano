@@ -1,12 +1,22 @@
-import React, { forwardRef } from "react";
+import React from "react";
 import CheckboxLabelled from "./CheckboxLabelled";
 import DateAndTimeInput from "./DateAndTimeInput";
 import InputLabelled from "./InputLabelled";
 import MultiCheckBoxes from "./MultiCheckBoxes/MultiCheckBoxes";
 import SelectLabelled from "./Selects/SelectLabelled";
 import YesNoSelect from "./Selects/YesNoSelect";
+import { TextInput } from "react-native";
+import { CustomField } from "@/types/field";
 
-const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...props }, ref) => {
+type CustomFieldInputProps = {
+  forwardRef?: React.RefObject<TextInput | null>;
+  label: string;
+  field: CustomField;
+  value: any;
+  handleChange: (value: any) => void;
+  editable: boolean;
+};
+const CustomFieldInput = ({ forwardRef, label, field, value, handleChange, ...props }: CustomFieldInputProps) => {
   // prettier-ignore
   const choices = [
     '-- Choisissez --',
@@ -23,8 +33,7 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
           placeholder={label}
           keyboardType={field.type === "number" ? "number-pad" : "default"}
           multiline={field.type === "textarea"}
-          required={field.required}
-          ref={ref}
+          ref={forwardRef}
           {...props}
         />
       )}
@@ -39,7 +48,9 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
           required={field.required}
         />
       )}
-      {!!["boolean"].includes(field.type) && <CheckboxLabelled label={label} alone onPress={() => handleChange(!value)} value={value} />}
+      {!!["boolean"].includes(field.type) && (
+        <CheckboxLabelled _id={field.label} label={label} alone onPress={() => handleChange(!value)} value={value} />
+      )}
       {!!["yes-no"].includes(field.type) && <YesNoSelect label={label} value={value} onSelect={handleChange} {...props} />}
       {!!["enum"].includes(field.type) && (
         <SelectLabelled
@@ -55,7 +66,7 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
         <MultiCheckBoxes
           allowCreateOption={field.allowCreateOption}
           label={label}
-          source={field.options}
+          source={field.options!}
           values={value || []}
           onChange={handleChange}
           {...props}
@@ -64,6 +75,6 @@ const CustomFieldInput = forwardRef(({ label, field, value, handleChange, ...pro
       )}
     </>
   );
-});
+};
 
 export default CustomFieldInput;

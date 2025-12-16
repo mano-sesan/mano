@@ -8,8 +8,8 @@ import CommentModal from "./CommentModal";
 import { CommentInstance } from "@/types/comment";
 
 type CommentRowProps = {
-  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean | undefined>;
-  onDelete?: () => Promise<boolean>;
+  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean>;
+  onDelete?: (comment: CommentInstance) => Promise<boolean>;
   comment: CommentInstance;
   itemName?: string;
   onItemNamePress?: () => void;
@@ -44,7 +44,7 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
       {
         text: "Supprimer",
         style: "destructive",
-        onPress: onDelete,
+        onPress: () => onDelete!(comment),
       },
       {
         text: "Annuler",

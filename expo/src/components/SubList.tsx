@@ -6,7 +6,18 @@ import Button from "./Button";
 
 const initNumberToShow = 10;
 
-const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = "list", disableVoirPlus = false, customCount = null }) => {
+type SubListProps = {
+  label: string;
+  onAdd?: () => void;
+  data?: any[];
+  renderItem?: (item: any) => React.ReactNode;
+  ifEmpty?: string;
+  children?: React.ReactNode;
+  testID?: string;
+  disableVoirPlus?: boolean;
+  customCount?: number;
+};
+const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = "list", disableVoirPlus = false, customCount }: SubListProps) => {
   const [expanded, setExpanded] = useState(false);
   const [numberToShow, setNumberToShow] = useState(initNumberToShow);
 
@@ -39,8 +50,8 @@ const SubList = ({ label, onAdd, data, renderItem, ifEmpty, children, testID = "
     <>
       <ListLabel testID={`${testID}-label`}>
         <ButtonExpand onPress={() => setExpanded(!expanded)} expanded={expanded} testID={`${testID}-expand`} />
-        <LabelStyled>{`${label}${data != null ? ` (${customCount !== null ? customCount : data.length})` : ""}`}</LabelStyled>
-        {Boolean(onAdd) && <Button caption="Ajouter" onPress={onAdd} noBorder testID={`${testID}-add`} />}
+        <LabelStyled>{`${label}${data != null ? ` (${customCount !== undefined ? customCount : data.length})` : ""}`}</LabelStyled>
+        {Boolean(onAdd) && <Button caption="Ajouter" onPress={onAdd!} noBorder testID={`${testID}-add`} />}
       </ListLabel>
       {!!children && expanded && <ChildrenContainer>{children}</ChildrenContainer>}
       <List expanded={expanded}>{renderList()}</List>
@@ -79,7 +90,7 @@ const Empty = styled(MyText)`
   font-style: italic;
 `;
 
-const List = styled.View`
+const List = styled.View<{ expanded: boolean }>`
   flex-shrink: 0;
   margin-horizontal: -30px;
   margin-bottom: ${(props) => (props.expanded ? 30 : 0)}px;
