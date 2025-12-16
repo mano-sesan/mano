@@ -5,4 +5,4 @@
 - dossier médical et consultations
 - 
 - FIX:
-- PossibleDate ?
+- PossibleDate ? pour consultation/traitement/etc

@@ -8,7 +8,7 @@ import CommentModal from "./CommentModal";
 import { CommentInstance } from "@/types/comment";
 
 type CommentRowProps = {
-  onUpdate?: (comment: Partial<CommentInstance>) => Promise<boolean>;
+  onUpdate?: (comment: CommentInstance) => Promise<boolean>;
   onDelete?: (comment: CommentInstance) => Promise<boolean>;
   comment: CommentInstance;
   itemName?: string;

@@ -21,7 +21,7 @@ const NewStructureForm = ({ navigation, route }) => {
     navigation.goBack();
   };
 
-  const backRequestHandledRef = useRef(null);
+  const backRequestHandledRef = useRef(false);
   const handleBeforeRemove = (e) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();

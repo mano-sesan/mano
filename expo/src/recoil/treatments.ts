@@ -30,12 +30,12 @@ export const allowedTreatmentFieldsInHistory = [
   { name: "indication", label: "Faite le" },
 ];
 
-export const prepareTreatmentForEncryption = (treatment: TreatmentInstance) => {
+export const prepareTreatmentForEncryption = (treatment: Partial<TreatmentInstance>) => {
   try {
-    if (!looseUuidRegex.test(treatment.person)) {
+    if (!looseUuidRegex.test(treatment.person!)) {
       throw new Error("Treatment is missing person");
     }
-    if (!looseUuidRegex.test(treatment.user)) {
+    if (!looseUuidRegex.test(treatment.user!)) {
       throw new Error("Treatment is missing user");
     }
   } catch (error) {
