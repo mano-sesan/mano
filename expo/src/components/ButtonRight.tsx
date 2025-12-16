@@ -10,8 +10,16 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonRight = ({ onPress, caption, color = "#888", left = false, disabled = false }) => (
-  <ButtonContainer leftCss={left} disabled={disabled}>
+type ButtonRightProps = {
+  onPress: () => void;
+  caption: string;
+  color?: string;
+  left?: boolean;
+  disabled?: boolean;
+};
+
+const ButtonRight = ({ onPress, caption, color = "#888", left = false, disabled = false }: ButtonRightProps) => (
+  <ButtonContainer withLeftCss={left} disabled={disabled}>
     <TouchableOpacity onPress={onPress} hitSlop={hitSlop}>
       <Icon>
         <Next color={color}>{caption}</Next>
@@ -28,11 +36,11 @@ const rightCss = css`
   margin-left: auto;
 `;
 
-const ButtonContainer = styled.View`
+const ButtonContainer = styled.View<{ withLeftCss: boolean; disabled: boolean }>`
   margin-left: auto;
   flex-grow: 0;
   flex-shrink: 0;
-  ${(props) => (props.leftCss ? leftCss : rightCss)}
+  ${(props) => (props.withLeftCss ? leftCss : rightCss)}
 `;
 
 const iconSize = 30;

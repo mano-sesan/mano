@@ -2,7 +2,11 @@ import React from "react";
 import styled from "styled-components/native";
 import { MyText } from "./MyText";
 
-const ListEmptyContainer = ({ text, opaque }) => (
+type ListEmptyContainerProps = {
+  text: string;
+  opaque?: boolean;
+};
+const ListEmptyContainer = ({ text, opaque }: ListEmptyContainerProps) => (
   <Container>
     <Caption opaque={opaque}>{text}</Caption>
   </Container>
@@ -15,11 +19,15 @@ export const ListEmptyStructures = () => <ListEmptyContainer text="Il n'y a pas 
 export const ListEmptyTerritories = () => <ListEmptyContainer text="Il n'y a pas de territoire à afficher" />;
 export const ListEmptyObservations = () => <ListEmptyContainer text="Il n'y a pas d'observation à afficher" />;
 export const ListEmptyServices = () => <ListEmptyContainer text="Il n'y a pas de service à afficher" />;
-export const ListEmptyStructureWithName = (name) => () => <ListEmptyContainer text={`Il n'y a pas de contact incluant ${name}`} />;
-export const ListEmptyPlaceWithName = (name) => () => <ListEmptyContainer text={`Il n'y a pas de lieu incluant ${name}`} />;
+// eslint-disable-next-line react/display-name
+export const ListEmptyStructureWithName = (name: string) => () => <ListEmptyContainer text={`Il n'y a pas de contact incluant ${name}`} />;
+// eslint-disable-next-line react/display-name
+export const ListEmptyPlaceWithName = (name: string) => () => <ListEmptyContainer text={`Il n'y a pas de lieu incluant ${name}`} />;
 export const ListEmptyComments = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire à afficher" />;
 export const ListEmptyRencontres = () => <ListEmptyContainer opaque text="Il n'y a pas de rencontre à afficher" />;
-export const ListEmptyCollaboration = (collaboration) => () => <ListEmptyContainer text={`Vous n'avez pas encore collaboré avec ${collaboration}`} />;
+// eslint-disable-next-line react/display-name
+export const ListEmptyCollaboration = (collaboration: string) => () =>
+  <ListEmptyContainer text={`Vous n'avez pas encore collaboré avec ${collaboration}`} />;
 export const ListEmptyUrgent = () => <ListEmptyContainer opaque text="Il n'y a pas d'élément prioritaire à afficher" />;
 export const ListEmptyUrgentAction = () => <ListEmptyContainer opaque text="Il n'y a pas d'action urgente à afficher" />;
 export const ListEmptyUrgentComment = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire urgent à afficher" />;
@@ -40,7 +48,7 @@ const Container = styled.View`
   justify-content: center;
 `;
 
-const Caption = styled(MyText)`
+const Caption = styled(MyText)<{ opaque?: boolean }>`
   font-weight: bold;
   text-align: center;
   margin-vertical: 20px;

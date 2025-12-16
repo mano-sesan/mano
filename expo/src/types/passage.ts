@@ -1,7 +1,7 @@
 import { UUIDV4 } from "./uuid";
 
 export interface PassageInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;

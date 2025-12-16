@@ -7,7 +7,7 @@ const EnvironmentIndicator = () => {
 
   return (
     <View style={styles.container}>
-      <Text allowFontScaling={false} allow style={styles.text}>
+      <Text allowFontScaling={false} style={styles.text}>
         {APP_ENV}
       </Text>
     </View>

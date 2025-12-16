@@ -10,7 +10,10 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonReset = ({ onPress }) => (
+type ButtonResetProps = {
+  onPress: () => void;
+};
+const ButtonReset = ({ onPress }: ButtonResetProps) => (
   <ButtonContainer>
     <TouchableOpacity onPress={onPress} hitSlop={hitSlop}>
       <Icon>

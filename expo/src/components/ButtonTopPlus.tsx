@@ -10,14 +10,19 @@ const hitSlop = {
   bottom: 20,
 };
 
-const ButtonTopPlus = ({ onPress, color = "#fff", left = false, disabled = false }) => (
+type ButtonTopPlusProps = {
+  onPress: () => void;
+  color?: string;
+  disabled: boolean;
+};
+const ButtonTopPlus = ({ onPress, color = "#fff", disabled = false }: ButtonTopPlusProps) => (
   <ButtonContainer disabled={disabled} onPress={onPress} hitSlop={hitSlop}>
     <Plus color={color}>+</Plus>
   </ButtonContainer>
 );
 
 const iconSize = 30;
-const ButtonContainer = styled.TouchableOpacity`
+const ButtonContainer = styled.TouchableOpacity<{ disabled: boolean }>`
   height: ${iconSize}px;
   width: ${iconSize}px;
   /* border: 1px solid ${colors.app.color}; */
