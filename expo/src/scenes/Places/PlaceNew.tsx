@@ -15,14 +15,19 @@ import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../
 import { userState } from "../../recoil/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { sortByName } from "../../utils/sortByName";
+import { RootStackParamList } from "@/types/navigation";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { PlaceInstance } from "@/types/place";
 
-const NewPlaceForm = ({ route, navigation }) => {
+type PlaceNewProps = NativeStackScreenProps<RootStackParamList, "PLACE_NEW">;
+
+const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
   const [places, setPlaces] = useAtom(placesState);
   const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
-  const user = useAtomValue(userState);
+  const user = useAtomValue(userState)!;
 
   const data = useMemo(() => {
     if (!name) return places;
@@ -32,22 +37,9 @@ const NewPlaceForm = ({ route, navigation }) => {
   const { person } = route.params;
 
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const onCreatePlace = useCallback(async () => {
-    setPosting(true);
-    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });
-    if (response.error) {
-      setPosting(false);
-      Alert.alert(response.error);
-      return;
-    }
-    if (response.ok) {
-      setPlaces((places) => [response.decryptedData, ...places].sort(sortByName));
-      onSubmit(response.decryptedData);
-    }
-  }, [name, setPlaces, user._id, onSubmit]);
 
   const onSubmit = useCallback(
-    async (place) => {
+    async (place: PlaceInstance) => {
       if (posting) return;
       if (person.relsPersonPlace?.find((rpp) => rpp.place === place._id)) {
         Alert.alert("Ce lieu est déjà enregistré pour cette personne");
@@ -74,9 +66,23 @@ const NewPlaceForm = ({ route, navigation }) => {
     [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
   );
 
+  const onCreatePlace = useCallback(async () => {
+    setPosting(true);
+    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });
+    if (response.error) {
+      setPosting(false);
+      Alert.alert(response.error);
+      return;
+    }
+    if (response.ok) {
+      setPlaces((places) => [response.decryptedData, ...places].sort(sortByName));
+      onSubmit(response.decryptedData);
+    }
+  }, [name, setPlaces, user._id, onSubmit]);
+
   const isReadyToSave = !!name?.trim()?.length;
-  const keyExtractor = (place) => place._id;
-  const renderRow = ({ item: place }) => <Row onPress={() => onSubmit(place)} caption={place.name} />;
+  const keyExtractor = (place: PlaceInstance) => place._id;
+  const renderRow = ({ item: place }: { item: PlaceInstance }) => <Row onPress={() => onSubmit(place)} caption={place.name} />;
   const ListHeaderComponent = useMemo(
     () => (
       <>
@@ -90,12 +96,11 @@ const NewPlaceForm = ({ route, navigation }) => {
   return (
     <SceneContainer>
       <ScreenTitle title={`Nouveau lieu - ${person.name}`} onBack={() => navigation.goBack()} />
-      <Search results={data} placeholder="Rechercher un lieu..." onChange={setName} />
+      <Search placeholder="Rechercher un lieu..." onChange={setName} />
       <FlashListStyled
         data={data}
         key={JSON.stringify(data) + posting}
         refreshing={refreshTrigger.status}
-        estimatedItemSize={77}
         ListHeaderComponent={ListHeaderComponent}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
@@ -105,4 +110,4 @@ const NewPlaceForm = ({ route, navigation }) => {
   );
 };
 
-export default NewPlaceForm;
+export default PlaceNew;

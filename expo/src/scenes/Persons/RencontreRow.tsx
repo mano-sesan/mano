@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
 import { useAtomValue, useSetAtom } from "jotai";
 import { userState } from "../../recoil/auth";
@@ -7,12 +7,22 @@ import API from "../../services/api";
 import { rencontresState } from "../../recoil/rencontres";
 import BubbleRow from "../../components/BubbleRow";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { PersonPopulated } from "@/types/person";
+import { RencontreInstance } from "@/types/rencontre";
 
-const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemName, onItemNamePress }) => {
+type RencontreRowProps = {
+  onUpdate?: (person: PersonPopulated) => void;
+  rencontre: RencontreInstance;
+  itemName?: string;
+  onItemNamePress?: () => void;
+};
+
+const RencontreRow = ({ onUpdate, rencontre, itemName, onItemNamePress }: RencontreRowProps) => {
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
-  const user = useAtomValue(userState);
+  const user = useAtomValue(userState)!;
   const setRencontres = useSetAtom(rencontresState);
-  const person = useMemo(() => (rencontre?.person ? personsObject[rencontre.person] : null), [personsObject, rencontre.person]);
+  const person = useMemo(() => (rencontre?.person ? personsObject[rencontre.person] : undefined), [personsObject, rencontre.person]);
+  const { showActionSheetWithOptions } = useActionSheet();
 
   const onMorePress = async () => {
     const options = ["Supprimer", "Annuler"];
@@ -24,8 +34,8 @@ const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemNam
         destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === "Modifier") onUpdate(person);
-        if (options[buttonIndex] === "Supprimer") onRencontreDeleteRequest();
+        if (options[buttonIndex!] === "Modifier") onUpdate!(person!);
+        if (options[buttonIndex!] === "Supprimer") onRencontreDeleteRequest();
       }
     );
   };
@@ -53,10 +63,10 @@ const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemNam
   return (
     <BubbleRow
       onMorePress={onMorePress}
-      caption={rencontre.comment}
-      date={rencontre.date || rencontre.createdAt}
+      caption={rencontre.comment || ""}
+      date={rencontre.date || rencontre.createdAt!}
       user={rencontre.user}
-      urgent={rencontre.urgent}
+      urgent={false}
       itemName={itemName || person?.name || person?.personName}
       onItemNamePress={onItemNamePress}
       metaCaption="Rencontre faite par"
@@ -64,4 +74,4 @@ const RencontreRow = ({ onUpdate, rencontre, showActionSheetWithOptions, itemNam
   );
 };
 
-export default connectActionSheet(RencontreRow);
+export default RencontreRow;

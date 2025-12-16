@@ -20,7 +20,7 @@ import Structure from "./scenes/Structures/Structure";
 import Soliguide from "./scenes/Soliguide/Soliguide";
 import Comment from "./scenes/Comments/Comment";
 import Place from "./scenes/Places/Place";
-import NewPlaceForm from "./scenes/Places/NewPlaceForm";
+import PlaceNew from "./scenes/Places/PlaceNew";
 import Menu from "./scenes/Menu/Menu";
 import Legal from "./scenes/Menu/Legal";
 import Privacy from "./scenes/Menu/Privacy";
@@ -279,7 +279,7 @@ const App = () => {
               <AppStack.Screen name="COMMENTS" component={CommentsForReport} />
               {/* Place */}
               <AppStack.Screen name="PLACE" component={Place} />
-              <AppStack.Screen name="PLACE_NEW" component={NewPlaceForm} />
+              <AppStack.Screen name="PLACE_NEW" component={PlaceNew} />
               {/* Treatments */}
               <AppStack.Screen name="TREATMENT" component={Treatment} />
               {/* Territories */}

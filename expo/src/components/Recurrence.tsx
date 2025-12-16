@@ -1,4 +1,4 @@
-import { useEffect, useState, React } from "react";
+import React, { useEffect, useState } from "react";
 import { dayjsInstance } from "../services/dateDayjs";
 import { getNthWeekdayInMonth, numberAsOrdinal, recurrenceAsText } from "../utils/recurrence";
 import { View, Text, TouchableOpacity } from "react-native";
@@ -6,18 +6,19 @@ import DateAndTimeInput from "./DateAndTimeInput";
 import { Picker } from "@react-native-picker/picker";
 import CheckboxLabelled from "./CheckboxLabelled";
 import { Recurrence } from "@/types/recurrence";
+import { Dayjs } from "dayjs";
 
 const numbers = Array.from({ length: 99 }, (_, i) => i + 1);
-const timeUnits = ["day", "week", "month", "year"];
+type TimeUnit = "day" | "week" | "month" | "year";
 
-const timeUnitsOptionsSingular = [
+const timeUnitsOptionsSingular: { value: TimeUnit; label: string }[] = [
   { value: "day", label: "jour" },
   { value: "week", label: "semaine" },
   { value: "month", label: "mois" },
   { value: "year", label: "année" },
 ];
 
-const timeUnitsOptionsPlural = [
+const timeUnitsOptionsPlural: { value: TimeUnit; label: string }[] = [
   { value: "day", label: "jours" },
   { value: "week", label: "semaines" },
   { value: "month", label: "mois" },
@@ -31,27 +32,34 @@ const numbersOptions = numbers.map((number) => ({
 
 const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
-const ucFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const ucFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-const SelectCustom = ({ value, onChange, options }) => {
+function SelectCustom<T extends { value: number | string; label: string | number }>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (option: T) => void;
+  options: T[];
+}) {
   return (
     <View className="border border-gray-300 rounded-md">
       <Picker
-        selectedValue={value?.value}
+        selectedValue={value.value}
         onValueChange={(itemValue) => {
-          const option = options.find((o) => o.value === itemValue);
+          const option = options.find((o) => o.value === itemValue)!;
           onChange(option);
         }}
       >
         {options.map((option) => (
-          <Picker.Item key={option.value} label={option.label} value={option.value} />
+          <Picker.Item key={option.value} label={String(option.label)} value={String(option.value)} />
         ))}
       </Picker>
     </View>
   );
-};
-
-function Day({ label, onPress, selected }) {
+}
+function Day({ label, onPress, selected }: { label: string; onPress: () => void; selected: boolean }) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -80,7 +88,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
   const shouldShowDayRadio = timeUnit === "month" || timeUnit === "year"; //
   const nthWeekdayInMonth = getNthWeekdayInMonth(startDate);
 
-  const handleChangeTimeUnitAndInterval = (unit, interval) => {
+  const handleChangeTimeUnitAndInterval = (unit: "day" | "week" | "month" | "year", interval: number) => {
     if (unit === "week" && interval === 1) {
       setSelectedDays([initialDayLabel]);
     }
@@ -92,7 +100,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
     }
   };
 
-  const handleChangeDays = (unit, interval, updatedDays) => {
+  const handleChangeDays = (unit: "day" | "week" | "month" | "year", interval: number, updatedDays: string[]) => {
     if (unit === "week" && interval === 1 && updatedDays.length === 7) {
       setTimeUnit("day");
     }
@@ -101,7 +109,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
     }
   };
 
-  const handleChangeStartDate = (date, updatedDays) => {
+  const handleChangeStartDate = (date: Date | string | Dayjs, updatedDays: string[]) => {
     if (updatedDays.length === 1) {
       const initialDayLabel = ucFirst(dayjsInstance(date).format("dddd"));
       setSelectedDays([initialDayLabel]);
@@ -115,10 +123,10 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
 
   useEffect(() => {
     if (onChange) {
-      onChange({ endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear });
+      onChange({ startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear]);
+  }, [startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear]);
 
   return (
     <View className="flex flex-col gap-4">
@@ -127,11 +135,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
         {timeUnit !== "year" ? (
           <View className="w-32">
             <SelectCustom
-              name="time-interval"
-              id="time-interval"
-              inputId="time-interval"
-              classNamePrefix="time-interval"
-              value={numbersOptions.find((o) => o.value === timeInterval)}
+              value={numbersOptions.find((o) => o.value === timeInterval)!}
               onChange={(o) => {
                 handleChangeTimeUnitAndInterval(timeUnit, o.value);
                 setTimeInterval(o.value);
@@ -142,11 +146,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
         ) : null}
         <View className="grow">
           <SelectCustom
-            name="time-unit"
-            id="time-unit"
-            inputId="time-unit"
-            classNamePrefix="time-unit"
-            value={(timeInterval === 1 ? timeUnitsOptionsSingular : timeUnitsOptionsPlural).find((o) => o.value === timeUnit)}
+            value={(timeInterval === 1 ? timeUnitsOptionsSingular : timeUnitsOptionsPlural).find((o) => o.value === timeUnit)!}
             onChange={(o) => {
               handleChangeTimeUnitAndInterval(o.value, timeInterval);
               setTimeUnit(o.value);
@@ -177,6 +177,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
       {shouldShowDayRadio ? (
         <View className="flex flex-col">
           <CheckboxLabelled
+            _id="recurrence-type-absolute"
             label={`Le ${dayjsInstance(startDate).format("D")} ${timeUnit === "month" ? "" : dayjsInstance(startDate).format("MMMM")}`}
             alone
             onPress={() => setRecurrenceTypeForMonthAndYear("absolute")}
@@ -184,6 +185,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
           />
 
           <CheckboxLabelled
+            _id="recurrence-type-relative"
             label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, false)} ${dayjsInstance(startDate).format("dddd")}${
               timeUnit === "month" ? "" : ` de ${dayjsInstance(startDate).format("MMMM")}`
             }`}
@@ -194,6 +196,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
 
           {nthWeekdayInMonth.isLast ? (
             <CheckboxLabelled
+              _id="recurrence-type-relative-last"
               label={`Le ${numberAsOrdinal(nthWeekdayInMonth.nth, true)} ${dayjsInstance(startDate).format("dddd")}${
                 timeUnit === "month" ? "" : ` de ${dayjsInstance(startDate).format("MMMM")}`
               }`}
@@ -207,6 +210,7 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
       <Text className="text-stone-600 text-sm">
         {recurrenceAsText({
           startDate,
+          endDate,
           timeInterval,
           timeUnit,
           selectedDays,
@@ -217,7 +221,14 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
       <View className="flex flex-col justify-start gap-y-2">
         <Text>Jusqu'au</Text>
         <View className="grow">
-          <DateAndTimeInput date={endDate} setDate={(value) => setEndDate(value)} showDay={true} editable={true} required={true} />
+          <DateAndTimeInput
+            date={endDate}
+            // @ts-expect-error Type 'PossibleDate' is not assignable to parameter of type 'SetStateAction<Date>'.
+            setDate={(value) => setEndDate(value)}
+            showDay={true}
+            editable={true}
+            required={true}
+          />
         </View>
       </View>
     </View>

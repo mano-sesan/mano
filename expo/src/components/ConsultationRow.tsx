@@ -15,7 +15,7 @@ import { StyleSheet } from "react-native";
 import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
 import { itemsGroupedByPersonSelector } from "../recoil/selectors";
 import { ConsultationInstance } from "@/types/consultation";
-import { PersonInstance, PersonPopulated } from "@/types/person";
+import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
 
 type ConsultationRowProps = {
@@ -36,7 +36,7 @@ const ConsultationRow = ({
   showPseudo,
   onPseudoPress,
 }: ConsultationRowProps) => {
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
   const me = useAtomValue(userState)!;
 

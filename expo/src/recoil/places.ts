@@ -2,17 +2,18 @@ import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { PlaceInstance } from "@/types/place";
 
-export const placesState = atomWithCache("place", []);
+export const placesState = atomWithCache<PlaceInstance[]>("place", []);
 
 const encryptedFields = ["user", "name"];
 
-export const preparePlaceForEncryption = (place) => {
+export const preparePlaceForEncryption = (place: Partial<PlaceInstance>) => {
   try {
-    if (!place.name) {
+    if (!place.name!) {
       throw new Error("Place is missing name");
     }
-    if (!looseUuidRegex.test(place.user)) {
+    if (!looseUuidRegex.test(place.user!)) {
       throw new Error("Place is missing user");
     }
   } catch (error) {
@@ -23,9 +24,9 @@ export const preparePlaceForEncryption = (place) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
-    decrypted[field] = place[field];
+    decrypted[field] = place[field as keyof PlaceInstance];
   }
   return {
     _id: place._id,

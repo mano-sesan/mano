@@ -12,7 +12,7 @@ import API from "../../services/api";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
-import { PersonInstance, PersonPopulated } from "@/types/person";
+import { PersonInstance } from "@/types/person";
 
 type PersonsOutOfActiveListReasonProps = {
   onBack: () => void;
@@ -23,7 +23,7 @@ const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveList
   const [reasons, setReasons] = useState<PersonInstance["outOfActiveListReasons"]>([]);
   const [submitting, setSubmitting] = useState(false);
   const setPersons = useSetAtom(personsState);
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 

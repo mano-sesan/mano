@@ -78,15 +78,15 @@ export interface PersonInstance extends PersonInstanceBase {
 }
 
 export interface PersonPopulated extends PersonInstance {
-  userPopulated: UserInstance;
-  formattedBirthDate: string;
-  age: number;
-  followSinceMonths: number;
-  formattedPhoneNumber: string;
-  interactions: Date[];
-  lastUpdateCheckForGDPR: Date;
+  // userPopulated: UserInstance; // dashboard only
+  formattedBirthDate?: string;
+  age?: number;
+  followSinceMonths?: number;
+  formattedPhoneNumber?: string;
+  // interactions: Date[]; // dashboard only
+  // lastUpdateCheckForGDPR: Date; // dashboard only
   group?: GroupInstance;
-  assignedTeamsPeriods: AssignedTeamsPeriods;
+  // assignedTeamsPeriods: AssignedTeamsPeriods; // dashboard only
   documentsForModule?: DocumentWithLinkedItem[];
   groupDocuments?: DocumentWithLinkedItem[];
   actions?: any[];

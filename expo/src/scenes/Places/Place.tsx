@@ -13,19 +13,24 @@ import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
 import API from "../../services/api";
 import { sortByName } from "../../utils/sortByName";
 import { userState } from "../../recoil/auth";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const Place = ({ navigation, route }) => {
-  const [name, setName] = useState(false);
+type PlaceProps = NativeStackScreenProps<RootStackParamList, "PLACE">;
+
+const Place = ({ navigation, route }: PlaceProps) => {
+  const [name, setName] = useState("");
   const [updating, setUpdating] = useState(false);
-  const user = useAtomValue(userState);
+  const [deleting, setDeleting] = useState(false);
+  const user = useAtomValue(userState)!;
 
   const [places, setPlaces] = useAtom(placesState);
-  const placeDB = useMemo(() => places.find((p) => p._id === route.params._id), [places, route?.params?._id]);
+  const placeDB = useMemo(() => places.find((p) => p._id === route.params.place._id)!, [places, route.params.place._id]);
 
   const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -84,22 +89,21 @@ const Place = ({ navigation, route }) => {
   };
 
   const onDelete = async () => {
-    setUpdating(true);
+    setDeleting(true);
     const response = await API.delete({
       path: `/place/${placeDB._id}`,
       body: {
         relsPersonPlaceIds: relsPersonPlace.filter((rel) => rel.place === placeDB._id).map((rel) => rel._id),
       },
     });
+    setDeleting(false);
     if (response.error) {
-      setUpdating(false);
       Alert.alert(response.error);
       return;
     }
     if (response.ok) {
       setPlaces((places) => places.filter((p) => p._id !== placeDB._id));
       setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel.place !== placeDB._id));
-      setUpdating(false);
       Alert.alert("Lieu supprimé !");
       onBack();
     }
@@ -109,7 +113,7 @@ const Place = ({ navigation, route }) => {
 
   const onBack = () => {
     backRequestHandledRef.current = true;
-    navigation.navigate(route.params.fromRoute);
+    navigation.goBack();
   };
 
   const onGoBackRequested = () => {
@@ -138,7 +142,7 @@ const Place = ({ navigation, route }) => {
         <View>
           <InputLabelled label="Nom du lieu" onChangeText={setName} value={name} placeholder="Description" multiline />
           <ButtonsContainer>
-            <ButtonDelete onPress={onDeleteRequest} />
+            <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />
             <Button caption="Mettre à jour" onPress={onUpdatePlace} disabled={isUpdateDisabled} loading={updating} />
           </ButtonsContainer>
         </View>

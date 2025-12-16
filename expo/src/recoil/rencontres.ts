@@ -2,20 +2,21 @@ import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
+import { RencontreInstance } from "@/types/rencontre";
 
-export const rencontresState = atomWithCache("rencontre", []);
+export const rencontresState = atomWithCache<RencontreInstance[]>("rencontre", []);
 
 const encryptedFields = ["person", "team", "user", "date", "observation", "comment"];
 
-export const prepareRencontreForEncryption = (rencontre) => {
+export const prepareRencontreForEncryption = (rencontre: Partial<RencontreInstance>) => {
   try {
-    if (!looseUuidRegex.test(rencontre.person)) {
+    if (!looseUuidRegex.test(rencontre.person!)) {
       throw new Error("Rencontre is missing person");
     }
-    if (!looseUuidRegex.test(rencontre.team)) {
+    if (!looseUuidRegex.test(rencontre.team!)) {
       throw new Error("Rencontre is missing team");
     }
-    if (!looseUuidRegex.test(rencontre.user)) {
+    if (!looseUuidRegex.test(rencontre.user!)) {
       throw new Error("Rencontre is missing user");
     }
     if (!rencontre.date) {
@@ -29,9 +30,9 @@ export const prepareRencontreForEncryption = (rencontre) => {
     capture(error);
     throw error;
   }
-  const decrypted = {};
+  const decrypted: Record<string, any> = {};
   for (let field of encryptedFields) {
-    decrypted[field] = rencontre[field];
+    decrypted[field] = rencontre[field as keyof RencontreInstance];
   }
   return {
     _id: rencontre._id,

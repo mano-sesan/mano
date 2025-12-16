@@ -4,7 +4,8 @@ import { TouchableOpacity } from "react-native";
 import colors from "../utils/colors";
 import { MyText } from "./MyText";
 import UserName from "./UserName";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
+import { UUIDV4 } from "@/types/uuid";
 const hitSlop = {
   top: 20,
   left: 20,
@@ -12,7 +13,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-function formatDateConditionally(date) {
+function formatDateConditionally(date: Date | string | Dayjs) {
   const formatString =
     dayjs(date).year() === dayjs().year()
       ? "dddd D MMMM à HH:mm" // Omit year if current year
@@ -20,7 +21,20 @@ function formatDateConditionally(date) {
 
   return dayjs(date).format(formatString);
 }
-const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, group, itemName, onItemNamePress }) => (
+
+type BubbleRowProps = {
+  onMorePress?: () => void;
+  caption: string;
+  date: Date | string | Dayjs;
+  user: UUIDV4;
+  metaCaption: string;
+  urgent?: boolean;
+  group?: boolean;
+  itemName?: string;
+  onItemNamePress?: () => void;
+};
+
+const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, group, itemName, onItemNamePress }: BubbleRowProps) => (
   <Container urgent={urgent}>
     <CaptionsContainer>
       {itemName ? (
@@ -32,7 +46,7 @@ const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, grou
       {group ? <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5">👪</MyText> : null}
       <CommentStyled>{caption?.split("\\n")?.join("\u000A")}</CommentStyled>
       <CreationDate>
-        {!!user && <UserName caption={metaCaption} id={user?._id || user} />}
+        {!!user && <UserName caption={metaCaption} id={user} />}
         {"\u000A"}
 
         {/* show year if different than current year */}
@@ -49,7 +63,7 @@ const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, grou
   </Container>
 );
 
-const Container = styled.View`
+const Container = styled.View<{ urgent?: boolean }>`
   background-color: ${(props) => (props.urgent ? "#fecaca99" : "#f4f5f8")};
   border-radius: 16px;
   flex-direction: row;

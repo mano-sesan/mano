@@ -1,9 +1,12 @@
 import { type NavigatorScreenParams } from "@react-navigation/native";
 import { ActionInstance, ActionStatus } from "./action";
-import { PersonInstance } from "./person";
+import { PersonInstance, PersonPopulated } from "./person";
 import { ConsultationInstance } from "./consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "./treatment";
+import { PassageInstance } from "./passage";
+import { RencontreInstance } from "./rencontre";
+import { PlaceInstance } from "./place";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -21,17 +24,17 @@ export type RootStackParamList = {
   PERSON_NEW: undefined;
   COMMENT: { person: PersonInstance; commentTitle: string };
   COMMENTS: undefined;
-  PLACE: undefined;
-  PLACE_NEW: { person: PersonInstance };
+  PLACE: { place: PlaceInstance; personName: string };
+  PLACE_NEW: { person: PersonPopulated };
   TREATMENT: { personDB: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
   TERRITORY: undefined;
   TERRITORY_NEW: undefined;
   TERRITORY_OBSERVATION: undefined;
   TERRITORY_OBSERVATIONS: undefined;
   TERRITORY_OBSERVATION_RENCONTRE: undefined;
-  RENCONTRE: { person: PersonInstance };
+  RENCONTRE: { rencontre?: RencontreInstance; person?: PersonInstance };
   RENCONTRES: undefined;
-  PASSAGE: { person: PersonInstance };
+  PASSAGE?: { passage?: PassageInstance; person?: PersonInstance };
   PASSAGES: undefined;
   COMPTES_RENDUS: undefined;
   COMPTE_RENDU: undefined;
