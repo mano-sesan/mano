@@ -38,12 +38,11 @@ import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navig
 import { ConsultationStackParams, RootStackParamList } from "@/types/navigation";
 import { ConsultationInstance } from "@/types/consultation";
 import PersonsSearch from "./PersonsSearch";
-import NewPersonForm from "./NewPersonForm";
+import PersonNew from "./PersonNew";
 import { PersonInstance, PersonPopulated } from "@/types/person";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import { CommentInstance } from "@/types/comment";
 import { Document, Folder } from "@/types/document";
-import { TeamInstance } from "@/types/team";
 
 const cleanValue = (value: any) => {
   if (typeof value === "string") return (value || "").trim();
@@ -158,7 +157,7 @@ const ConsultationScreen = (props: Props) => {
       </ConsultationStack.Screen>
       <ConsultationStack.Screen name="PERSON_NEW" options={{ title: "Nouvelle personne" }}>
         {(stackProps) => (
-          <NewPersonForm
+          <PersonNew
             onBack={() => stackProps.navigation.goBack()}
             onPersonCreated={(createdPerson) => {
               stackProps.navigation.goBack();

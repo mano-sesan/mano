@@ -9,7 +9,7 @@ export const notificationsNumberSelector = atom((get) => {
   return actionsFiltered?.length + commentsFiltered?.length;
 });
 
-const BellWithNotifications = ({ color, size }) => {
+const BellWithNotifications = ({ color, size }: { color: string; size: number }) => {
   const notificationsNumber = useAtomValue(notificationsNumberSelector);
   return <BellIcon color={color} size={size} notificationsNumber={notificationsNumber} />;
 };

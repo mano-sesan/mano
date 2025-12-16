@@ -6,3 +6,5 @@
 - 
 - FIX:
 - PossibleDate ? pour consultation/traitement/etc
+- commentaire: type ? parfois ? pas tout le temps ? même commentaire pour action/personne/traitement/etc. ?
+- 

@@ -20,10 +20,10 @@ import { dayjsInstance } from "@/services/dateDayjs";
 type ActionRowProps = {
   onActionPress: (action: ActionInstance) => void;
   onPseudoPress: (person: PersonInstance) => void;
-  showStatus: boolean;
+  showStatus?: boolean;
   action: ActionInstance;
-  withTeamName: boolean;
-  testID: string;
+  withTeamName?: boolean;
+  testID?: string;
 };
 
 const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamName, testID = "action" }: ActionRowProps) => {
