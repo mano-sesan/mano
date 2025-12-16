@@ -65,7 +65,7 @@ const NewStructureForm = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (!isReadyToSave) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce contact ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce contact ?", undefined, [
       {
         text: "Enregistrer",
         onPress: onCreateStructure,

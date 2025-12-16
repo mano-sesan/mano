@@ -154,7 +154,7 @@ const Report = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce compte-rendu ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce compte-rendu ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {

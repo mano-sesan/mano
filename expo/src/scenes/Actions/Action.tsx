@@ -38,7 +38,7 @@ import { alertCreateComment } from "../../utils/alert-create-comment";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ActionStackParams, RootStackParamList } from "@/types/navigation";
 import { ActionInstance } from "@/types/action";
-import { PersonInstance } from "@/types/person";
+import { PersonInstance, PersonPopulated } from "@/types/person";
 import PersonsSearch from "../Persons/PersonsSearch";
 import NewPersonForm from "../Persons/NewPersonForm";
 import { type Document, type Folder } from "@/types/document";
@@ -69,7 +69,7 @@ const ActionScreen = (props: ActionProps) => {
 
   const [action, setAction] = useState(() => castToAction(actionDB));
 
-  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonPopulated>;
   const multipleActions = props.route.params?.actions;
   const isMultipleActions = multipleActions ? multipleActions.length > 1 : false;
   const persons = useMemo(() => {
@@ -853,6 +853,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                       );
                       return true;
                     }
+                    return false;
                   }
                 : undefined
             }

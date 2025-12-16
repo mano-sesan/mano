@@ -63,7 +63,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (!isReadyToSave) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce territoire ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce territoire ?", undefined, [
       {
         text: "Enregistrer",
         onPress: onCreateTerritory,

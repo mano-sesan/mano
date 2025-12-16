@@ -3,6 +3,7 @@ import { ActionInstance, ActionStatus } from "./action";
 import { PersonInstance } from "./person";
 import { ConsultationInstance } from "./consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { TreatmentInstance } from "./treatment";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -22,7 +23,7 @@ export type RootStackParamList = {
   COMMENTS: undefined;
   PLACE: undefined;
   PLACE_NEW: { person: PersonInstance };
-  TREATMENT: undefined;
+  TREATMENT?: { personDB?: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
   TERRITORY: undefined;
   TERRITORY_NEW: undefined;
   TERRITORY_OBSERVATION: undefined;
@@ -115,4 +116,12 @@ export type ConsultationStackParams = {
   CONSULTATION: NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
   PERSONS_SEARCH: undefined;
   PERSON_NEW: undefined;
+};
+
+export type FoldersStackParams = {
+  FOLDERS_SUMMARY: undefined;
+  DOCUMENTS_MANO: undefined;
+  GROUP: undefined;
+  MEDICAL_FILE: undefined;
+  [key: string]: undefined;
 };

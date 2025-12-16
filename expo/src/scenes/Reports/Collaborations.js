@@ -99,7 +99,7 @@ const Collaborations = ({ route, navigation }) => {
     if (!isReadyToSave) return onBack();
 
     if (isReadyToSave) {
-      Alert.alert("Voulez-vous enregistrer cette co-intervention ?", null, [
+      Alert.alert("Voulez-vous enregistrer cette co-intervention ?", undefined, [
         {
           text: "Enregistrer",
           onPress: onCreateCollaboration,
@@ -116,7 +116,7 @@ const Collaborations = ({ route, navigation }) => {
       ]);
       return;
     }
-    Alert.alert("Voulez-vous abandonner la création de cette co-intervention ?", null, [
+    Alert.alert("Voulez-vous abandonner la création de cette co-intervention ?", undefined, [
       {
         text: "Continuer la création",
       },

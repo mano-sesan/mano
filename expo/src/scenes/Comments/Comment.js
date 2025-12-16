@@ -65,7 +65,7 @@ const Comment = ({ navigation, route }) => {
         })
       );
       setUpdating(false);
-      Alert.alert("Commentaire mis à jour !", null, [{ text: "OK", onPress: onBack }]);
+      Alert.alert("Commentaire mis à jour !", undefined, [{ text: "OK", onPress: onBack }]);
     }
     return response;
   };
@@ -92,7 +92,7 @@ const Comment = ({ navigation, route }) => {
     if (response.ok) {
       setComments((comments) => [response.decryptedData, ...comments]);
       setUpdating(false);
-      Alert.alert("Commentaire ajouté", null, [{ text: "OK", onPress: onBack }]);
+      Alert.alert("Commentaire ajouté", undefined, [{ text: "OK", onPress: onBack }]);
     }
     return response;
   };
@@ -131,7 +131,7 @@ const Comment = ({ navigation, route }) => {
       onBack();
       return;
     }
-    Alert.alert("Voulez-vous enregistrer ce commentaire ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce commentaire ?", undefined, [
       {
         text: "Enregistrer",
         onPress: isNewComment ? onCreateComment : onUpdateComment,

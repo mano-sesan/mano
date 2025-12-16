@@ -2,6 +2,7 @@
 - création d'action depuis le bouton +
 - création d'action depuis une personne
 - actions filter
+- dossier médical et consultations
 - 
 - FIX:
 - PossibleDate ?

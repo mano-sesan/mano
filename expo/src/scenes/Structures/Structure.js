@@ -153,7 +153,7 @@ const Structure = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce contact ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce contact ?", undefined, [
       {
         text: "Enregistrer",
         onPress: async () => {

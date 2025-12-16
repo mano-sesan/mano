@@ -101,8 +101,8 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   }, [isFocused]);
 
   const castToPerson = useCallback(
-    (person: Omit<PersonInstance, "_id">) => {
-      const toReturn: Partial<PersonInstance> = {};
+    (person: Partial<PersonInstance>) => {
+      const toReturn: Omit<PersonInstance, "_id"> = {};
       for (const field of flattenedCustomFieldsPersons || []) {
         toReturn[field.name as keyof PersonInstance] = cleanValue(person[field.name]);
       }
@@ -377,7 +377,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     <>
       <SceneContainer backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey} testID="person">
         <ScreenTitle
-          title={person.name}
+          title={person.name!}
           onBack={onGoBackRequested}
           onEdit={!editable ? onEdit : undefined}
           onSave={!editable || isUpdateDisabled ? undefined : onUpdatePerson}

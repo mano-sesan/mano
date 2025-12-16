@@ -65,7 +65,7 @@ const Place = ({ navigation, route }) => {
           .sort(sortByName)
       );
       setUpdating(false);
-      Alert.alert("Lieu mis à jour !", null, [{ text: "OK", onPress: onBack }]);
+      Alert.alert("Lieu mis à jour !", undefined, [{ text: "OK", onPress: onBack }]);
     }
   };
 
@@ -114,7 +114,7 @@ const Place = ({ navigation, route }) => {
 
   const onGoBackRequested = () => {
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer ce lieu ?", null, [
+    Alert.alert("Voulez-vous enregistrer ce lieu ?", undefined, [
       {
         text: "Enregistrer",
         onPress: onUpdatePlace,
