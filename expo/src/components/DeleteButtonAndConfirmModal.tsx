@@ -19,8 +19,8 @@ type DeleteButtonAndConfirmModalProps = {
   onDelete: () => Promise<boolean>;
   onBack: () => void;
   textToConfirm: string;
-  roles: string[];
-  roleErrorMessage: string;
+  roles?: string[];
+  roleErrorMessage?: string;
 };
 
 const DeleteButtonAndConfirmModal = ({

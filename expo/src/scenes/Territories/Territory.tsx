@@ -15,8 +15,15 @@ import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/te
 import { territoryObservationsState } from "../../recoil/territoryObservations";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { userState } from "../../recoil/auth";
+import { TerritoryInstance } from "@/types/territory";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { dayjsInstance } from "@/services/dateDayjs";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
 
-const castToTerritory = (territory = {}) => ({
+const castToTerritory = (
+  territory: Partial<TerritoryInstance> = {}
+): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
   name: territory.name?.trim() || "",
   user: territory.user || "",
   types: territory.types || [],
@@ -25,17 +32,19 @@ const castToTerritory = (territory = {}) => ({
   entityKey: territory.entityKey || "",
 });
 
-const Territory = ({ route, navigation }) => {
-  const user = useAtomValue(userState);
+type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;
+
+const Territory = ({ route, navigation }: TerritoryProps) => {
+  const user = useAtomValue(userState)!;
   const [territories, setTerritories] = useAtom(territoriesState);
-  const [territoryDB, setTerritoryDB] = useState(() => territories.find((territory) => territory._id === route.params?.territory?._id));
+  const [territoryDB, setTerritoryDB] = useState(() => territories.find((territory) => territory._id === route.params?.territory?._id)!);
 
   const [territory, setTerritory] = useState(castToTerritory(route?.params?.territory));
   const [allTerritoryObservations, setTerritoryObservations] = useAtom(territoryObservationsState);
   const territoryObservations = useMemo(() => {
     return allTerritoryObservations
       .filter((obs) => obs.territory === territoryDB?._id)
-      .sort((a, b) => new Date(b.observedAt || b.createdAt) - new Date(a.observedAt || a.createdAt));
+      .sort((a, b) => dayjsInstance(b.observedAt || b.createdAt).diff(dayjsInstance(a.observedAt || a.createdAt)));
   }, [territoryDB, allTerritoryObservations]);
 
   const [updating, setUpdating] = useState(false);
@@ -47,7 +56,7 @@ const Territory = ({ route, navigation }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -113,10 +122,10 @@ const Territory = ({ route, navigation }) => {
     return true;
   }, [territoryDB, territory]);
 
-  const onNewObservation = () => navigation.navigate("TerritoryObservation", { territory: territoryDB, editable: true });
+  const onNewObservation = () => navigation.push("TERRITORY_OBSERVATION", { territory: territoryDB, editable: true });
 
-  const onUpdateObservation = (obs) => {
-    navigation.navigate("TerritoryObservation", { obs, territory: territoryDB, editable: true });
+  const onUpdateObservation = (obs: TerritoryObservationInstance) => {
+    navigation.push("TERRITORY_OBSERVATION", { obs, territory: territoryDB, editable: true });
   };
 
   const onGoBackRequested = () => {
@@ -148,8 +157,8 @@ const Territory = ({ route, navigation }) => {
       <ScreenTitle
         title={name}
         onBack={onGoBackRequested}
-        onEdit={!editable ? onEdit : null}
-        onSave={!editable || isUpdateDisabled ? null : onUpdateTerritory}
+        onEdit={!editable ? onEdit : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onUpdateTerritory}
         saving={updating}
         testID="territory"
       />

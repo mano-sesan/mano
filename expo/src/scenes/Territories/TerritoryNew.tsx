@@ -9,8 +9,12 @@ import Button from "../../components/Button";
 import API from "../../services/api";
 import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
 import { userState } from "../../recoil/auth";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const NewTerritoryForm = ({ navigation, route }) => {
+type TerritoryNewProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_NEW">;
+
+const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
   const user = useAtomValue(userState);
@@ -23,7 +27,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -48,7 +52,7 @@ const NewTerritoryForm = ({ navigation, route }) => {
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
       setTerritories((territories) => [response.decryptedData, ...territories]);
-      navigation.replace("Territory", {
+      navigation.replace("TERRITORY", {
         territory: response.decryptedData,
         editable: true,
       });

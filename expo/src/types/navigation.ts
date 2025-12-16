@@ -7,6 +7,8 @@ import { TreatmentInstance } from "./treatment";
 import { PassageInstance } from "./passage";
 import { RencontreInstance } from "./rencontre";
 import { PlaceInstance } from "./place";
+import { TerritoryInstance } from "./territory";
+import { TerritoryObservationInstance } from "./territoryObs";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -27,11 +29,15 @@ export type RootStackParamList = {
   PLACE: { place: PlaceInstance; personName: string };
   PLACE_NEW: { person: PersonPopulated };
   TREATMENT: { personDB: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
-  TERRITORY: undefined;
+  TERRITORY: { territory: TerritoryInstance; editable?: boolean };
   TERRITORY_NEW: undefined;
-  TERRITORY_OBSERVATION: undefined;
+  TERRITORY_OBSERVATION: {
+    territory: TerritoryInstance;
+    obs?: TerritoryObservationInstance;
+    editable?: boolean;
+    rencontresInProgress?: Array<RencontreInstance>;
+  };
   TERRITORY_OBSERVATIONS: undefined;
-  TERRITORY_OBSERVATION_RENCONTRE: undefined;
   RENCONTRE: { rencontre?: RencontreInstance; person: PersonInstance };
   RENCONTRES: undefined;
   PASSAGE?: { passage?: PassageInstance; person?: PersonInstance };

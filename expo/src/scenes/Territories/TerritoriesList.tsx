@@ -8,19 +8,23 @@ import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
 import { useAtom, useAtomValue } from "jotai";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
 import { useTerritoriesWithObservationsSearchSelector } from "../../recoil/territory";
 import RowContainer from "../../components/RowContainer";
 import { MyText } from "../../components/MyText";
 import styled from "styled-components/native";
-import { dayjsInstance } from "../../services/dateDayjs";
+import { RootStackParamList, TabsParamsList } from "@/types/navigation";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { TerritoryInstance } from "@/types/territory";
+import { FlashListRef } from "@shopify/flash-list";
 
-const TerritoriesList = () => {
+type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
+
+const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-
-  const navigation = useNavigation();
 
   const loading = useAtomValue(loadingState);
   const territories = useTerritoriesWithObservationsSearchSelector(search);
@@ -34,29 +38,27 @@ const TerritoriesList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 
-  const onCreateTerritoryRequest = () => navigation.navigate("NewTerritoryForm");
+  const onCreateTerritoryRequest = () => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("TERRITORY_NEW");
 
-  const keyExtractor = (territory) => territory._id;
+  const keyExtractor = (territory: TerritoryInstance) => territory._id;
   const ListFooterComponent = useMemo(() => {
     if (!territories.length) return null;
     return <ListNoMoreTerritories />;
   }, [territories.length]);
-  const renderRow = ({ item: territory }) => {
+  const renderRow = ({ item: territory }: { item: TerritoryInstance }) => {
     const { name } = territory;
-    const lastObservationDate = territory.lastObservationDate ? dayjsInstance(territory.lastObservationDate).format("DD/MM/YYYY") : null;
     return (
-      <RowContainer onPress={() => navigation.push("Territory", { territory })}>
+      <RowContainer onPress={() => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("TERRITORY", { territory })}>
         <View>
           <View>
             <Name>{name}</Name>
           </View>
-          {!!lastObservationDate && <MyText color="#777">Dernière observation le {lastObservationDate}</MyText>}
         </View>
       </RowContainer>
     );
   };
 
-  const listRef = useRef(null);
+  const listRef = useRef<FlashListRef<TerritoryInstance> | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const onScroll = Animated.event(
     [
@@ -77,10 +79,11 @@ const TerritoriesList = () => {
       <Search
         placeholder="Rechercher un territoire..."
         onChange={setSearch}
-        onFocus={() => listRef.current.scrollToOffset({ offset: 100 })}
+        onFocus={() => listRef.current?.scrollToOffset({ offset: 100 })}
         parentScroll={scrollY}
       />
       <FlashListStyled
+        // @ts-ignore FIXME
         ref={listRef}
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}

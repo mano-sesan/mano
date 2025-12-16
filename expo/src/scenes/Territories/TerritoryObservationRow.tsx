@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { connectActionSheet } from "@expo/react-native-action-sheet";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert, TouchableOpacity } from "react-native";
 import { useAtomValue, useSetAtom } from "jotai";
 import { MyText } from "../../components/MyText";
@@ -10,6 +10,9 @@ import API from "../../services/api";
 import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
 import { currentTeamState } from "../../recoil/auth";
 import { dayjsInstance } from "../../services/dateDayjs";
+import { CustomField } from "@/types/field";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { TerritoryInstance } from "@/types/territory";
 
 const hitSlop = {
   top: 20,
@@ -18,7 +21,7 @@ const hitSlop = {
   bottom: 20,
 };
 
-const fieldIsEmpty = (value) => {
+const fieldIsEmpty = (value: any) => {
   if (value === null) return true;
   if (value === undefined) return true;
   if (typeof value === "string" && !value.length) return true;
@@ -26,14 +29,14 @@ const fieldIsEmpty = (value) => {
   return false;
 };
 
-const showBoolean = (value) => {
+const showBoolean = (value: any) => {
   if (value === null) return "";
   if (value === undefined) return "";
   if (!value) return "Non";
   return "Oui";
 };
 
-const computeCustomFieldDisplay = (field, value) => {
+const computeCustomFieldDisplay = (field: CustomField, value: any) => {
   if (["text", "number"].includes(field.type)) return value;
   if (["textarea"].includes(field.type)) return value?.split("\\n")?.join("\u000A");
   if (!!["date-with-time"].includes(field.type) && !!value) {
@@ -49,9 +52,16 @@ const computeCustomFieldDisplay = (field, value) => {
   return JSON.stringify(value);
 };
 
-const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTerritoryPress, showActionSheetWithOptions }) => {
-  const currentTeam = useAtomValue(currentTeamState);
+type TerritoryObservationRowProps = {
+  onUpdate?: (observation: TerritoryObservationInstance) => void;
+  observation: TerritoryObservationInstance;
+  territoryToShow?: TerritoryInstance;
+  onTerritoryPress?: (territory: TerritoryInstance) => void;
+};
 
+const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTerritoryPress }: TerritoryObservationRowProps) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const { showActionSheetWithOptions } = useActionSheet();
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const setTerritoryObservations = useSetAtom(territoryObservationsState);
 
@@ -65,13 +75,11 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
         destructiveButtonIndex: options.findIndex((o) => o === "Supprimer"),
       },
       async (buttonIndex) => {
-        if (options[buttonIndex] === "Modifier") onUpdate(observation);
-        if (options[buttonIndex] === "Supprimer") onObservationDeleteRequest();
+        if (options[buttonIndex!] === "Modifier") onUpdate!(observation);
+        if (options[buttonIndex!] === "Supprimer") onObservationDeleteRequest();
       }
     );
   };
-
-  const onTerritoryPressRequest = () => onTerritoryPress(territoryToShow);
 
   const onObservationDeleteRequest = () => {
     Alert.alert("Voulez-vous supprimer cette observation ?", "Cette opération est irréversible.", [
@@ -102,8 +110,8 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
   return (
     <Container>
       <CaptionsContainer>
-        {territoryToShow ? (
-          <TouchableOpacity onPress={onTerritoryPressRequest}>
+        {territoryToShow && onTerritoryPress ? (
+          <TouchableOpacity onPress={() => onTerritoryPress(territoryToShow)}>
             <ItemNameStyled>{territoryToShow.name}</ItemNameStyled>
           </TouchableOpacity>
         ) : null}
@@ -119,7 +127,7 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
             );
           })}
         <CreationDate>
-          {!!observation?.user && <UserName caption="Observation faite par" id={observation.user?._id || observation.user} />}
+          {!!observation?.user && <UserName caption="Observation faite par" id={observation.user} />}
           {"\u000A"}
           {/* Mardi 12 novembre 2024 à 10:00 */}
           {date.format(date.format("YYYY") !== dayjsInstance().format("YYYY") ? "dddd DD MMMM YYYY à HH:mm" : "dddd DD MMMM à HH:mm")}
@@ -151,7 +159,7 @@ const CaptionsContainer = styled.View`
   align-items: flex-start;
 `;
 
-const CommentStyled = styled(MyText)`
+const CommentStyled = styled(MyText)<{ fieldIsEmpty: boolean }>`
   font-size: 17px;
   margin-bottom: 10px;
   color: rgba(30, 36, 55, 0.75);
@@ -192,4 +200,4 @@ const ItemNameStyled = styled(MyText)`
   padding: 2px 5px;
 `;
 
-export default connectActionSheet(TerritoryObservationRow);
+export default TerritoryObservationRow;
