@@ -31,6 +31,26 @@ import { groupsState } from "../../recoil/groups";
 import API from "../../services/api";
 import PassageRow from "./PassageRow";
 import { actionsWithoutFutureRecurrences } from "../../utils/recurrence";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { PersonInstance } from "@/types/person";
+
+type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+  person: Omit<PersonInstance, "_id">;
+  personDB: PersonInstance;
+  onUpdatePerson: (alert?: boolean, stateToMerge?: Partial<PersonInstance>) => Promise<boolean>;
+  updating: boolean;
+  editable: boolean;
+  onEdit: () => void;
+  isUpdateDisabled: boolean;
+  backgroundColor: string;
+  onCommentWrite: (comment: string) => void;
+  onChange: (newPersonState: Partial<PersonInstance>) => void;
+  onDelete: () => void;
+  onBack: () => void;
+  onRemoveFromActiveList: () => void;
+  onAddActionRequest: () => void;
+};
 
 const PersonSummary = ({
   navigation,
@@ -46,11 +66,9 @@ const PersonSummary = ({
   onChange,
   onDelete,
   onBack,
-}) => {
-  const onAddActionRequest = () => {
-    navigation.push("NewActionForm", { fromRoute: "Person", person: personDB });
-  };
-
+  onRemoveFromActiveList,
+  onAddActionRequest,
+}: PersonSummaryProps) => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const setComments = useSetAtom(commentsState);
@@ -59,7 +77,6 @@ const PersonSummary = ({
   const scrollViewRef = useRef(null);
   const newCommentRef = useRef(null);
 
-  const onRemoveFromActiveList = async () => navigation.push("PersonsOutOfActiveListReason", { person: personDB, fromRoute: "Person" });
   const onAddRencontre = async () => navigation.push("Rencontre", { person: personDB, fromRoute: "Person" });
   const onUpdateRencontre = async (rencontre) => navigation.push("Rencontre", { person: personDB, fromRoute: "Person", rencontre: rencontre });
 

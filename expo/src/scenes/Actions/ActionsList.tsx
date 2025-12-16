@@ -17,11 +17,12 @@ import { organisationState, userState } from "../../recoil/auth";
 import { Dimensions, View } from "react-native";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { flattenedServicesSelector } from "../../recoil/reports";
-import { ActionsScreenSubTabParams, ActionsScreenTopTabParams } from "@/types/navigation";
+import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList } from "@/types/navigation";
 import { MaterialTopTabScreenProps } from "@react-navigation/material-top-tabs";
 import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import { ConsultationInstance } from "@/types/consultation";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
 
@@ -64,7 +65,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     const isConsultationButtonEnabled = user.healthcareProfessional;
     const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
     if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
-      navigation.getParent()?.navigate("ACTION_NEW", { fromRoute: "ActionsList" });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
       return;
     }
 
@@ -79,13 +80,13 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
       },
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Ajouter une action") {
-          navigation.getParent()?.navigate("ACTION_NEW");
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
         }
         if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
-          navigation.getParent()?.navigate("CONSULTATION", { fromRoute: "ActionsList" });
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION");
         }
         if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
-          navigation.getParent()?.navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
         }
       }
     );
@@ -101,7 +102,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.getParent()?.navigate("PERSON", { person });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON", { person });
     },
     [navigation]
   );
@@ -109,17 +110,14 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const onActionPress = useCallback(
     (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.getParent()?.navigate("ACTION", {
-        action,
-        fromRoute: "ActionsList",
-      });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION", { action });
     },
     [navigation]
   );
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
-      navigation.getParent()?.navigate("CONSULTATION", { personDB, consultationDB, fromRoute: "ActionsList" });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION", { personDB, consultationDB });
     },
     [navigation]
   );

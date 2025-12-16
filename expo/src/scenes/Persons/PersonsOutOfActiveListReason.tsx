@@ -12,38 +12,45 @@ import API from "../../services/api";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
+import { PersonInstance } from "@/types/person";
 
-const PersonsOutOfActiveListReason = ({ navigation, route }) => {
-  const [reasons, setReasons] = useState([]);
+type PersonsOutOfActiveListReasonProps = {
+  onBack: () => void;
+  person: PersonInstance;
+};
+
+const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveListReasonProps) => {
+  const [reasons, setReasons] = useState<PersonInstance["outOfActiveListReasons"]>([]);
   const [submitting, setSubmitting] = useState(false);
   const setPersons = useSetAtom(personsState);
-  const personsObject = useAtomValue(itemsGroupedByPersonSelector);
+  const personsObject = useAtomValue(itemsGroupedByPersonSelector) as Record<string, PersonInstance>;
   const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
 
-  const user = useAtomValue(userState);
+  const user = useAtomValue(userState)!;
 
   const updatePerson = async () => {
-    const person = { ...route.params.person, outOfActiveListReasons: reasons, outOfActiveList: true };
-    const oldPerson = personsObject[person._id];
+    const newPerson = { ...person, outOfActiveListReasons: reasons, outOfActiveList: true } as PersonInstance;
+    const oldPerson = personsObject[person._id!];
 
     const historyEntry = {
       date: new Date(),
       user: user._id,
       data: {},
     };
-    for (const key in person) {
+    for (const key in newPerson) {
       if (!allowedFieldsInHistory.includes(key)) continue;
-      if (!isEqual(person[key], oldPerson[key])) {
-        if (isEmptyValue(person[key]) && isEmptyValue(oldPerson[key])) continue;
-        historyEntry.data[key] = { oldValue: oldPerson[key], newValue: person[key] };
+      if (!isEqual(newPerson[key], oldPerson[key])) {
+        if (isEmptyValue(newPerson[key]) && isEmptyValue(oldPerson[key])) continue;
+        // @ts-expect-error Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+        historyEntry.data[key] = { oldValue: oldPerson[key], newValue: newPerson[key] };
       }
     }
-    if (!!Object.keys(historyEntry.data).length) person.history = [...(oldPerson.history || []), historyEntry];
+    if (!!Object.keys(historyEntry.data).length) newPerson.history = [...(oldPerson.history || []), historyEntry];
 
     const response = await API.put({
       path: `/person/${person._id}`,
-      body: preparePersonForEncryption(person),
+      body: preparePersonForEncryption(newPerson),
     });
     if (response.ok) {
       const newPerson = response.decryptedData;
@@ -59,7 +66,7 @@ const PersonsOutOfActiveListReason = ({ navigation, route }) => {
 
   return (
     <SceneContainer>
-      <ScreenTitle title="Sortie de file active" onBack={() => navigation.goBack()} />
+      <ScreenTitle title="Sortie de file active" onBack={onBack} />
       <ScrollContainer keyboardShouldPersistTaps="handled">
         <View>
           <OutOfActiveListReasonMultiCheckBox values={reasons} onChange={setReasons} editable={true} />
@@ -71,7 +78,7 @@ const PersonsOutOfActiveListReason = ({ navigation, route }) => {
               setSubmitting(true);
               await updatePerson();
               setSubmitting(false);
-              navigation.navigate("PersonsList");
+              onBack();
             }}
           />
         </View>

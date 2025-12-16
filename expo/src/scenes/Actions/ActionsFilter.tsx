@@ -5,17 +5,17 @@ import ScreenTitle from "../../components/ScreenTitle";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import { actionsFiltersState } from "../../recoil/actions";
 import { useAtom } from "jotai";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const ActionsFilter = ({ navigation }) => {
+type ActionsFilterProps = NativeStackScreenProps<RootStackParamList, "ACTIONS_FILTER">;
+
+const ActionsFilter = ({ navigation }: ActionsFilterProps) => {
   const [actionsFilters, setActionsFilters] = useAtom(actionsFiltersState);
-
-  const onBackRequested = () => {
-    navigation.navigate("ActionsList");
-  };
 
   return (
     <SceneContainer>
-      <ScreenTitle title="Filtres" onBack={onBackRequested} />
+      <ScreenTitle title="Filtres" onBack={navigation.goBack} />
       <ScrollContainer>
         <ActionCategoriesModalSelect
           values={actionsFilters.categories}

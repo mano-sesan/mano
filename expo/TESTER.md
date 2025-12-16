@@ -1,0 +1,7 @@
+- duplication d'action
+- création d'action depuis le bouton +
+- création d'action depuis une personne
+- actions filter
+- 
+- FIX:
+- PossibleDate ?

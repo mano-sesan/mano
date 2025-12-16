@@ -3,14 +3,20 @@ import { useAtomValue } from "jotai";
 import { personFieldsSelector } from "../../recoil/persons";
 import SelectLabelled from "./SelectLabelled";
 
-const OutOfActiveListSelect = ({ value = "", onSelect, editable }) => {
-  const personFields = useAtomValue(personFieldsSelector);
+type OutOfActiveListSelectProps = {
+  value: string;
+  onSelect: (value: string) => void;
+  editable: boolean;
+};
+
+const OutOfActiveListSelect = ({ value = "", onSelect, editable }: OutOfActiveListSelectProps) => {
+  const personFields = useAtomValue(personFieldsSelector)!;
   const options = [
     {
       _id: "all",
       name: "Tout le monde (oui et non)",
     },
-    ...personFields.find((f) => f.name === "outOfActiveList").options.map((o) => ({ _id: o, name: o })),
+    ...(personFields?.find((f) => f.name === "outOfActiveList")?.options?.map((o) => ({ _id: o, name: o })) || []),
   ];
   return (
     <SelectLabelled

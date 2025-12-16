@@ -11,14 +11,24 @@ import OutOfActiveListSelect from "../../components/Selects/OutOfActiveListSelec
 import { useAtomValue } from "jotai";
 import { teamsState } from "../../recoil/auth";
 
-const PersonsFilter = ({ route, navigation }) => {
-  const [filterAlertness, setFilterAlertness] = useState(route.params?.filters?.filterAlertness || false);
-  const [filterTeams, setFilterByTeam] = useState(route.params?.filters?.filterTeams || []);
-  const [filterOutOfActiveList, setFilterOutOfActiveList] = useState(route.params?.filters?.filterOutOfActiveList || "");
+type Filters = {
+  filterTeams: string[];
+  filterAlertness: boolean;
+  filterOutOfActiveList: string;
+};
+type PersonsFilterProps = {
+  onBack: (filters: Filters) => void;
+  personFilters: Filters;
+};
+
+const PersonsFilter = ({ onBack, personFilters }: PersonsFilterProps) => {
+  const [filterAlertness, setFilterAlertness] = useState(personFilters.filterAlertness);
+  const [filterTeams, setFilterByTeam] = useState(personFilters.filterTeams);
+  const [filterOutOfActiveList, setFilterOutOfActiveList] = useState(personFilters.filterOutOfActiveList);
   const teams = useAtomValue(teamsState);
 
   const onBackRequested = () => {
-    navigation.navigate("PersonsList", { filters: { filterAlertness, filterTeams, filterOutOfActiveList } });
+    onBack({ filterAlertness, filterTeams, filterOutOfActiveList });
   };
 
   return (
@@ -26,6 +36,7 @@ const PersonsFilter = ({ route, navigation }) => {
       <ScreenTitle title="Filtres" onBack={onBackRequested} />
       <ScrollContainer>
         <CheckboxLabelled
+          _id="filterAlertness"
           label="N'afficher que les personnes identifiées comme vulnérables ou ayant besoin d'une attention particulière"
           value={filterAlertness}
           onPress={() => setFilterAlertness(!filterAlertness)}
@@ -35,6 +46,7 @@ const PersonsFilter = ({ route, navigation }) => {
           const isSelected = filterTeams.includes(_id);
           return (
             <CheckboxLabelled
+              _id={_id}
               key={_id}
               label={name}
               value={isSelected}

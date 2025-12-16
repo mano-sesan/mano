@@ -20,7 +20,7 @@ type FlashListStyledProps<ItemT> = Omit<FlashListProps<ItemT>, "style"> & {
 };
 
 export const FlashListStyled = <ItemT,>({ withHeaderSearch = false, ...props }: FlashListStyledProps<ItemT>) => (
-  <AnimatedFlashList contentContainerStyle={styles.flashListContentContainerStyle(withHeaderSearch)} {...(props as any)} />
+  <AnimatedFlashList contentContainerStyle={styles.flashListContentContainerStyle(withHeaderSearch)} {...props} />
 );
 
 type Styles = {

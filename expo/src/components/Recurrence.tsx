@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import DateAndTimeInput from "./DateAndTimeInput";
 import { Picker } from "@react-native-picker/picker";
 import CheckboxLabelled from "./CheckboxLabelled";
+import { Recurrence } from "@/types/recurrence";
 
 const numbers = Array.from({ length: 99 }, (_, i) => i + 1);
 const timeUnits = ["day", "week", "month", "year"];
@@ -61,7 +62,13 @@ function Day({ label, onPress, selected }) {
   );
 }
 
-export default function Recurrence({ startDate, onChange, initialValues }) {
+type RecurrenceProps = {
+  startDate: Date;
+  onChange: (values: Recurrence) => void;
+  initialValues: Recurrence;
+};
+
+export default function RecurrenceComponent({ startDate, onChange, initialValues }: RecurrenceProps) {
   const [endDate, setEndDate] = useState(initialValues.endDate || dayjsInstance(startDate).add(6, "month").toDate());
   const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
   const [timeInterval, setTimeInterval] = useState(initialValues.timeInterval || 1);

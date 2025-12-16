@@ -31,15 +31,49 @@ import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
+import { createNativeStackNavigator, NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { PersonInstance } from "@/types/person";
+import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
+import { PersonStackParams, RootStackParamList } from "@/types/navigation";
+
+const PersonStack = createNativeStackNavigator<PersonStackParams>();
+
+type PersonScreenParams = NativeStackScreenProps<RootStackParamList, "PERSON">;
+
+export default function PersonStackNavigator({ navigation, route }: PersonScreenParams) {
+  const person = route.params.person;
+  return (
+    <PersonStack.Navigator>
+      <PersonStack.Screen name="PERSON">
+        {(props) => (
+          <Person
+            navigation={navigation}
+            route={route}
+            onRemoveFromActiveList={() => props.navigation.push("PERSON_OUT_OF_ACTIVE_LIST_REASON")}
+            onAddActionRequest={() => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK", { person })}
+          />
+        )}
+      </PersonStack.Screen>
+      <PersonStack.Screen name="PERSON_OUT_OF_ACTIVE_LIST_REASON">
+        {(props) => <PersonsOutOfActiveListReason onBack={() => props.navigation.goBack()} person={person} />}
+      </PersonStack.Screen>
+    </PersonStack.Navigator>
+  );
+}
 
 const TabNavigator = createMaterialTopTabNavigator();
 
-const cleanValue = (value) => {
+const cleanValue = (value: string | number | boolean | null | undefined) => {
   if (typeof value === "string") return (value || "").trim();
   return value;
 };
 
-const Person = ({ route, navigation }) => {
+type PersonProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+  onRemoveFromActiveList: () => void;
+  onAddActionRequest: () => void;
+};
+
+const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest }: PersonProps) => {
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
@@ -48,15 +82,15 @@ const Person = ({ route, navigation }) => {
   const actions = useAtomValue(actionsState);
   const groups = useAtomValue(groupsState);
   const comments = useAtomValue(commentsState);
-  const passages = useAtomValue(passagesState);
-  const rencontres = useAtomValue(rencontresState);
+  const passages = useAtomValue(passagesState) as Array<{ _id: string; person: string; createdAt: Date }>;
+  const rencontres = useAtomValue(rencontresState) as Array<{ _id: string; person: string; createdAt: Date }>;
   const consultations = useAtomValue(consultationsState);
   const treatments = useAtomValue(treatmentsState);
   const medicalFiles = useAtomValue(medicalFileState);
-  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
-  const user = useAtomValue(userState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState) as Array<{ _id: string; person: string; place: string; createdAt: Date }>;
+  const user = useAtomValue(userState)!;
 
-  const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id), [persons, route.params?.person?._id]);
+  const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id)!, [persons, route.params?.person?._id]);
 
   const isFocused = useIsFocused();
   useEffect(() => {
@@ -67,10 +101,10 @@ const Person = ({ route, navigation }) => {
   }, [isFocused]);
 
   const castToPerson = useCallback(
-    (person = {}) => {
-      const toReturn = {};
+    (person: Omit<PersonInstance, "_id">) => {
+      const toReturn: Partial<PersonInstance> = {};
       for (const field of flattenedCustomFieldsPersons || []) {
-        toReturn[field.name] = cleanValue(person[field.name]);
+        toReturn[field.name as keyof PersonInstance] = cleanValue(person[field.name]);
       }
       return {
         ...toReturn,
@@ -103,9 +137,9 @@ const Person = ({ route, navigation }) => {
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const backRequestHandledRef = useRef(null);
+  const backRequestHandledRef = useRef(false);
   useEffect(() => {
-    const handleBeforeRemove = (e) => {
+    const handleBeforeRemove = (e: any) => {
       if (backRequestHandledRef.current) return;
       e.preventDefault();
       onGoBackRequested();
@@ -126,25 +160,28 @@ const Person = ({ route, navigation }) => {
 
   const onEdit = () => setEditable((e) => !e);
 
-  const onChange = (newPersonState, forceUpdate = false) => {
+  const onChange = (newPersonState: Partial<PersonInstance>, forceUpdate = false) => {
     setPerson((p) => ({ ...p, ...newPersonState }));
     if (forceUpdate) onUpdatePerson(false, newPersonState);
   };
 
-  const onUpdatePerson = async (alert = true, stateToMerge = {}) => {
+  const onUpdatePerson = async (alert = true, stateToMerge: Partial<PersonInstance> = {}): Promise<boolean> => {
     const personToUpdate = Object.assign({}, castToPerson(person), stateToMerge, {
       _id: personDB._id,
     });
-    const oldPerson = persons.find((a) => a._id === personDB._id);
+    const oldPerson = persons.find((a) => a._id === personDB._id)!;
     const existingPerson = persons.find((p) => personDB._id !== p._id && p.name === personToUpdate.name);
-    if (existingPerson) return Alert.alert("Une personne existe déjà à ce nom");
+    if (existingPerson) {
+      Alert.alert("Une personne existe déjà à ce nom");
+      return false;
+    }
 
     setUpdating(true);
 
     const historyEntry = {
       date: new Date(),
       user: user._id,
-      data: {},
+      data: {} as Record<string, { oldValue: any; newValue: any }>,
     };
     for (const key in personToUpdate) {
       if (!allowedFieldsInHistory.includes(key)) continue;
@@ -204,7 +241,20 @@ const Person = ({ route, navigation }) => {
       }
     }
 
-    const body = {
+    const body: {
+      groupToUpdate?: string;
+      groupIdToDelete?: string;
+      actionsToTransfer: any[]; // FIXME
+      commentsToTransfer: any[]; // FIXME
+      actionIdsToDelete: string[];
+      commentIdsToDelete: string[];
+      passageIdsToDelete: string[];
+      rencontreIdsToDelete: string[];
+      consultationIdsToDelete: string[];
+      treatmentIdsToDelete: string[];
+      medicalFileIdsToDelete: string[];
+      relsPersonPlaceIdsToDelete: string[];
+    } = {
       // groupToUpdate: undefined,
       // groupIdToDelete: undefined,
       actionsToTransfer: [],
@@ -295,11 +345,7 @@ const Person = ({ route, navigation }) => {
   const onBack = () => {
     backRequestHandledRef.current = true;
     Sentry.setContext("person", {});
-    if (route.params?.fromRoute) {
-      navigation.navigate(route.params.fromRoute, { filters: route.params?.filters });
-    } else {
-      navigation.goBack();
-    }
+    navigation.goBack();
   };
 
   const onGoBackRequested = async () => {
@@ -308,10 +354,10 @@ const Person = ({ route, navigation }) => {
       if (!goToNextStep) return;
     }
     if (isUpdateDisabled) return onBack();
-    Alert.alert("Voulez-vous enregistrer les mises-à-jour sur cette personne ?", null, [
+    Alert.alert("Voulez-vous enregistrer les mises-à-jour sur cette personne ?", undefined, [
       {
         text: "Enregistrer",
-        onPress: onUpdatePerson,
+        onPress: () => onUpdatePerson(false),
       },
       {
         text: "Ne pas enregistrer",
@@ -333,8 +379,8 @@ const Person = ({ route, navigation }) => {
         <ScreenTitle
           title={person.name}
           onBack={onGoBackRequested}
-          onEdit={!editable ? onEdit : null}
-          onSave={!editable || isUpdateDisabled ? null : onUpdatePerson}
+          onEdit={!editable ? onEdit : undefined}
+          onSave={!editable || isUpdateDisabled ? undefined : onUpdatePerson}
           saving={updating}
           backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
           testID="person"
@@ -343,16 +389,12 @@ const Person = ({ route, navigation }) => {
         {showFoldersTab ? (
           <TabNavigator.Navigator
             tabBar={(props) => (
-              <Tabs
-                numberOfTabs={2}
-                {...props}
-                backgroundColor={!person?.outOfActiveList ? colors.app.backgroundColor : colors.app.colorBackgroundDarkGrey}
-              />
+              <Tabs numberOfTabs={2} {...props} backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey} />
             )}
             removeClippedSubviews={Platform.OS === "android"}
-            screenOptions={{ swipeEnabled: true }}
+            screenOptions={{ swipeEnabled: true, lazy: true }}
           >
-            <TabNavigator.Screen lazy name="Summary" options={{ tabBarLabel: "Résumé" }}>
+            <TabNavigator.Screen name="Summary" options={{ tabBarLabel: "Résumé" }}>
               {() => (
                 <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
                   <PersonSummary
@@ -370,11 +412,13 @@ const Person = ({ route, navigation }) => {
                     isUpdateDisabled={isUpdateDisabled}
                     updating={updating}
                     editable={editable}
+                    onRemoveFromActiveList={onRemoveFromActiveList}
+                    onAddActionRequest={onAddActionRequest}
                   />
                 </KeyboardAvoidingView>
               )}
             </TabNavigator.Screen>
-            <TabNavigator.Screen lazy name="Folders" options={{ tabBarLabel: "Dossiers" }}>
+            <TabNavigator.Screen name="Folders" options={{ tabBarLabel: "Dossiers" }}>
               {() => (
                 <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white" keyboardVerticalOffset={160}>
                   <FoldersNavigator
@@ -411,6 +455,8 @@ const Person = ({ route, navigation }) => {
               isUpdateDisabled={isUpdateDisabled}
               updating={updating}
               editable={editable}
+              onRemoveFromActiveList={onRemoveFromActiveList}
+              onAddActionRequest={onAddActionRequest}
             />
           </KeyboardAvoidingView>
         )}
@@ -418,5 +464,3 @@ const Person = ({ route, navigation }) => {
     </>
   );
 };
-
-export default Person;
