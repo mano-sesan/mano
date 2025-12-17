@@ -11,8 +11,12 @@ import { ListEmptyStructures } from "../../components/ListEmptyContainer";
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { structuresState } from "../../recoil/structures";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { StructureInstance } from "@/types/structure";
 
-const Structures = ({ navigation }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "STRUCTURES">;
+const Structures = ({ navigation }: Props) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -32,12 +36,12 @@ const Structures = ({ navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onCreateStructureRequest = () => navigation.navigate("NewStructureForm");
+  const onCreateStructureRequest = () => navigation.navigate("STRUCTURE_NEW");
 
-  const keyExtractor = (structure) => structure._id;
-  const renderRow = ({ item: structure }) => {
+  const keyExtractor = (structure: StructureInstance) => structure._id;
+  const renderRow = ({ item: structure }: { item: StructureInstance }) => {
     const { name } = structure;
-    return <Row withNextButton onPress={() => navigation.push("Structure", { structure })} Icon={PersonIcon} caption={name} />;
+    return <Row withNextButton onPress={() => navigation.push("STRUCTURE", { structure })} caption={name} />;
   };
   return (
     <SceneContainer>
@@ -45,13 +49,11 @@ const Structures = ({ navigation }) => {
       <FlashListStyled
         refreshing={refreshing}
         onRefresh={getStructures}
-        estimatedItemSize={80}
         key={JSON.stringify(structures)}
         data={structures}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
         ListEmptyComponent={loading ? Spinner : ListEmptyStructures}
-        defaultTop={0}
       />
       <FloatAddButton onPress={onCreateStructureRequest} />
     </SceneContainer>

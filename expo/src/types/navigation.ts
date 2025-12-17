@@ -10,6 +10,7 @@ import { PlaceInstance } from "./place";
 import { TerritoryInstance } from "./territory";
 import { TerritoryObservationInstance } from "./territoryObs";
 import { ReportInstance } from "./report";
+import { StructureInstance } from "./structure";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -51,7 +52,7 @@ export type RootStackParamList = {
   SERVICES: { date: string };
   STRUCTURES: undefined;
   STRUCTURE_NEW: undefined;
-  STRUCTURE: undefined;
+  STRUCTURE: { structure: StructureInstance; editable?: boolean };
   SOLIGUIDE: undefined;
   CHANGE_PASSWORD: undefined;
   CHANGE_TEAM: undefined;

@@ -14,7 +14,13 @@ import { structuresCategoriesSelector } from "../recoil/structures";
 import styled from "styled-components/native";
 import colors from "../utils/colors";
 
-const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }) => {
+type StructuresCategoriesModalSelectProps = {
+  values: string[];
+  onChange: (categories: string[]) => void;
+  editable?: boolean;
+};
+
+const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }: StructuresCategoriesModalSelectProps) => {
   const [open, setOpen] = useState(false);
   const allGroups = useAtomValue(structuresCategoriesSelector);
 
@@ -39,7 +45,7 @@ const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }) =>
     return group?.categories || [];
   }, [groupSelected, groups]);
 
-  const selectedCategoriesRef = useRef(null);
+  const selectedCategoriesRef = useRef<ScrollView>(null);
 
   return (
     <>
@@ -85,13 +91,12 @@ const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }) =>
                 renderItem={({ item: category }) => (
                   <Row
                     onPress={() => {
-                      selectedCategoriesRef.current.scrollToEnd();
+                      selectedCategoriesRef.current?.scrollToEnd();
                       onChange([...values, category]);
                     }}
                     caption={category}
                   />
                 )}
-                estimatedItemSize={70}
               />
             </View>
           </ScrollContainer>

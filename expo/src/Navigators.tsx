@@ -15,7 +15,7 @@ import PersonsListNavigator from "./scenes/Persons/PersonsListNavigator";
 import Person from "./scenes/Persons/Person";
 import Rencontre from "./scenes/Persons/Rencontre";
 import StructuresList from "./scenes/Structures/StructuresList";
-import NewStructureForm from "./scenes/Structures/NewStructureForm";
+import StructureNew from "./scenes/Structures/StructureNew";
 import Structure from "./scenes/Structures/Structure";
 import Soliguide from "./scenes/Soliguide/Soliguide";
 import Comment from "./scenes/Comments/Comment";
@@ -304,7 +304,7 @@ const App = () => {
               <AppStack.Screen name="SERVICES" component={Services} />
               {/* Structures */}
               <AppStack.Screen name="STRUCTURES" component={StructuresList} />
-              <AppStack.Screen name="STRUCTURE_NEW" component={NewStructureForm} />
+              <AppStack.Screen name="STRUCTURE_NEW" component={StructureNew} />
               <AppStack.Screen name="STRUCTURE" component={Structure} />
               {/* Autre */}
               <AppStack.Screen name="SOLIGUIDE" component={Soliguide} />

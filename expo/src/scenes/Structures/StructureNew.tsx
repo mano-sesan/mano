@@ -9,8 +9,12 @@ import Button from "../../components/Button";
 import API from "../../services/api";
 import { structuresState } from "../../recoil/structures";
 import { sortByName } from "../../utils/sortByName";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { StructureInstance } from "@/types/structure";
 
-const NewStructureForm = ({ navigation, route }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "STRUCTURE_NEW">;
+const StructureNew = ({ navigation, route }: Props) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
@@ -22,7 +26,7 @@ const NewStructureForm = ({ navigation, route }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -47,11 +51,12 @@ const NewStructureForm = ({ navigation, route }) => {
       Alert.alert(response.error);
       return;
     }
+    const newStructure = response.data as StructureInstance;
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      setStructures((structures) => [...structures, response.data].sort(sortByName));
-      navigation.replace("Structure", {
-        structure: response.data,
+      setStructures((structures) => [...structures, newStructure].sort(sortByName));
+      navigation.replace("STRUCTURE", {
+        structure: newStructure,
         editable: true,
       });
       setTimeout(() => setPosting(false), 250);
@@ -93,4 +98,4 @@ const NewStructureForm = ({ navigation, route }) => {
   );
 };
 
-export default NewStructureForm;
+export default StructureNew;
