@@ -14,14 +14,36 @@ import { getDayWithOffset } from "../../services/dateDayjs";
 import { rencontresState } from "../../recoil/rencontres";
 import { passagesState } from "../../recoil/passages";
 import { consultationIsVisibleByMe } from "../../recoil/consultations";
+import { ConsultationInstance } from "@/types/consultation";
+import { ActionInstance } from "@/types/action";
+import { ReportInstance } from "@/types/report";
+import { CommentInstance } from "@/types/comment";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { PassageInstance } from "@/types/passage";
+import { RencontreInstance } from "@/types/rencontre";
+import { PersonPopulated } from "@/types/person";
 
 export const currentTeamReportsSelector = atom((get) => {
   const reports = get(reportsState);
-  const currentTeam = get(currentTeamState);
+  const currentTeam = get(currentTeamState)!;
   return reports.filter((r) => r.team === currentTeam._id);
 });
 
-function emptyItemsForReport() {
+type ItemsGroupedByDate = {
+  actionsCreated: ActionInstance[];
+  actionsCompleted: ActionInstance[];
+  actionsCanceled: ActionInstance[];
+  consultationsCreated: ConsultationInstance[];
+  consultationsCompleted: ConsultationInstance[];
+  consultationsCanceled: ConsultationInstance[];
+  comments: Array<CommentInstance & { personPopulated: PersonPopulated; actionPopulated?: ActionInstance }>;
+  observations: TerritoryObservationInstance[];
+  passages: PassageInstance[];
+  rencontres: RencontreInstance[];
+  report?: ReportInstance;
+};
+
+function emptyItemsForReport(): ItemsGroupedByDate {
   return {
     actionsCreated: [],
     actionsCompleted: [],
@@ -33,14 +55,14 @@ function emptyItemsForReport() {
     observations: [],
     passages: [],
     rencontres: [],
-    report: null,
+    report: undefined,
   };
 }
 
 export const itemsGroupedDateSelector = atom((get) => {
-  const currentTeam = get(currentTeamState);
-  const itemsGroupedByDate = {};
-  const user = get(userState);
+  const currentTeam = get(currentTeamState)!;
+  const itemsGroupedByDate: Record<string, ItemsGroupedByDate> = {};
+  const user = get(userState)!;
   const persons = get(itemsGroupedByPersonSelector);
 
   const reports = get(currentTeamReportsSelector);
@@ -54,7 +76,7 @@ export const itemsGroupedDateSelector = atom((get) => {
 
   for (const report of reports) {
     if (report.team !== currentTeam._id) continue;
-    const date = getDayWithOffset(report.date, currentTeam.nightSession ? 12 : 0);
+    const date = getDayWithOffset(report.date, currentTeam.nightSession ? 12 : 0)!;
     if (!date) continue;
     if (!itemsGroupedByDate[date]) {
       itemsGroupedByDate[date] = emptyItemsForReport();
@@ -66,8 +88,8 @@ export const itemsGroupedDateSelector = atom((get) => {
     const teams = Array.isArray(action.teams) ? action.teams : [action.team];
     for (const team of teams) {
       if (team !== currentTeam._id) continue;
-      const created = getDayWithOffset(action.createdAt, currentTeam.nightSession ? 12 : 0);
-      const completed = getDayWithOffset(action.completedAt, currentTeam.nightSession ? 12 : 0);
+      const created = getDayWithOffset(action.createdAt, currentTeam.nightSession ? 12 : 0)!;
+      const completed = getDayWithOffset(action.completedAt, currentTeam.nightSession ? 12 : 0)!;
       if (!itemsGroupedByDate[created]) {
         itemsGroupedByDate[created] = emptyItemsForReport();
       }
@@ -88,8 +110,8 @@ export const itemsGroupedDateSelector = atom((get) => {
     const teams = Array.isArray(consultation.teams) ? consultation.teams : [consultation.team];
     for (const team of teams) {
       if (team !== currentTeam._id) continue;
-      const created = getDayWithOffset(consultation.createdAt, currentTeam.nightSession ? 12 : 0);
-      const completed = getDayWithOffset(consultation.completedAt, currentTeam.nightSession ? 12 : 0);
+      const created = getDayWithOffset(consultation.createdAt, currentTeam.nightSession ? 12 : 0)!;
+      const completed = getDayWithOffset(consultation.completedAt, currentTeam.nightSession ? 12 : 0)!;
       if (!itemsGroupedByDate) continue;
       if (!itemsGroupedByDate[created]) {
         itemsGroupedByDate[created] = emptyItemsForReport();
@@ -115,7 +137,7 @@ export const itemsGroupedDateSelector = atom((get) => {
     if (comment.person) {
       itemsGroupedByDate[date].comments.push({
         ...comment,
-        person: persons[comment.person],
+        personPopulated: persons[comment.person!],
         type: "person",
       });
     }
@@ -124,8 +146,8 @@ export const itemsGroupedDateSelector = atom((get) => {
       if (!action) continue;
       itemsGroupedByDate[date].comments.push({
         ...comment,
-        action,
-        personPopulated: persons[action.person],
+        actionPopulated: action,
+        personPopulated: persons[action.person!],
         type: "action",
       });
     }
@@ -166,7 +188,7 @@ export const itemsGroupedDateSelector = atom((get) => {
   return itemsGroupedByDate;
 });
 
-export const useActionsForReport = (date) => {
+export const useActionsForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return {
     actionsCreated: itemsGroupedByDate[date]?.actionsCreated || [],
@@ -175,7 +197,7 @@ export const useActionsForReport = (date) => {
   };
 };
 
-export const useConsultationsForReport = (date) => {
+export const useConsultationsForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return {
     consultationsCreated: itemsGroupedByDate[date]?.consultationsCreated || [],
@@ -184,22 +206,22 @@ export const useConsultationsForReport = (date) => {
   };
 };
 
-export const useCommentsForReport = (date) => {
+export const useCommentsForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return itemsGroupedByDate[date]?.comments || [];
 };
 
-export const useObservationsForReport = (date) => {
+export const useObservationsForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return itemsGroupedByDate[date]?.observations || [];
 };
 
-export const useRencontresForReport = (date) => {
+export const useRencontresForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return itemsGroupedByDate[date]?.rencontres || [];
 };
 
-export const usePassagesForReport = (date) => {
+export const usePassagesForReport = (date: string) => {
   const itemsGroupedByDate = useAtomValue(itemsGroupedDateSelector);
   return itemsGroupedByDate[date]?.passages || [];
 };

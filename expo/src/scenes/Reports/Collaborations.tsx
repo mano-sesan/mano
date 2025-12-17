@@ -15,27 +15,32 @@ import { getPeriodTitle } from "./utils";
 import { prepareReportForEncryption } from "../../recoil/reports";
 import { currentTeamReportsSelector } from "./selectors";
 import { refreshTriggerState } from "../../components/Loader";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const Collaborations = ({ route, navigation }) => {
-  const user = useAtomValue(userState);
+type Props = NativeStackScreenProps<RootStackParamList, "COLLABORATIONS">;
+const Collaborations = ({ route, navigation }: Props) => {
+  const user = useAtomValue(userState)!;
   const [collaboration, setCollaboration] = useState("");
   const [posting, setPosting] = useState(false);
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState)!;
   const teamsReports = useAtomValue(currentTeamReportsSelector);
 
   const day = route.params?.day;
   const reportDB = useMemo(() => teamsReports.find((r) => r.date === day), [teamsReports, day]);
 
-  const [organisation, setOrganisation] = useAtom(organisationState);
-  const collaborations = useMemo(() => organisation.collaborations, [organisation]);
+  const organisation = useAtomValue(organisationState)!;
+  const setOrganisation = useSetAtom(organisationState);
+
+  const collaborations = useMemo(() => organisation.collaborations!, [organisation]);
   const data = useMemo(() => {
     if (!collaboration) return collaborations;
     return collaborations.filter((c) => c.toLocaleLowerCase().includes(collaboration.toLocaleLowerCase()));
   }, [collaboration, collaborations]);
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -65,7 +70,7 @@ const Collaborations = ({ route, navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collaboration, collaborations, organisation._id, setOrganisation]);
 
-  const onSubmit = async (newCollaboration) => {
+  const onSubmit = async (newCollaboration: string) => {
     setPosting(true);
     const collaborations = [...new Set([...(reportDB?.collaborations || []), newCollaboration])];
     const response = reportDB?._id
@@ -127,8 +132,8 @@ const Collaborations = ({ route, navigation }) => {
       },
     ]);
   };
-  const keyExtractor = (c) => c;
-  const renderRow = ({ item: collaboration }) => <Row onPress={() => onSubmit(collaboration)} caption={collaboration} />;
+  const keyExtractor = (c: string) => c;
+  const renderRow = ({ item: collaboration }: { item: string }) => <Row onPress={() => onSubmit(collaboration)} caption={collaboration} />;
   const ListHeaderComponent = useMemo(
     () => (
       <>
@@ -142,10 +147,9 @@ const Collaborations = ({ route, navigation }) => {
   return (
     <SceneContainer>
       <ScreenTitle title={`Co-intervention - ${getPeriodTitle(day, currentTeam?.nightSession)}`} onBack={onGoBackRequested} />
-      <Search results={data} placeholder="Rechercher une co-intervention..." onChange={setCollaboration} />
+      <Search placeholder="Rechercher une co-intervention..." onChange={setCollaboration} />
       <FlashListStyled
         data={data}
-        estimatedItemSize={77}
         ListHeaderComponent={ListHeaderComponent}
         renderItem={renderRow}
         keyExtractor={keyExtractor}

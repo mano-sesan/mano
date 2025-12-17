@@ -49,7 +49,7 @@ import Actions from "./scenes/Reports/Actions";
 import CommentsForReport from "./scenes/Reports/CommentsForReport";
 import RencontresForReport from "./scenes/Reports/RencontresForReport";
 import PassagesForReport from "./scenes/Reports/PassagesForReport";
-import Observations from "./scenes/Reports/Observations";
+import ObservationsForReport from "./scenes/Reports/ObservationsForReport";
 import Services from "./scenes/Reports/Services";
 import Collaborations from "./scenes/Reports/Collaborations";
 import Treatment from "./scenes/Persons/Treatment";
@@ -59,7 +59,6 @@ import { currentTeamState, organisationState, teamsState, userState } from "./re
 import { appCurrentCacheKey, clearCache } from "./services/dataManagement";
 import useResetAllCachedDataRecoilStates from "./recoil/reset";
 import CGUsAcceptance from "./scenes/Login/CGUsAcceptance";
-import TerritoryObservationRencontre from "./scenes/Territories/TerritoryObservationRencontre";
 import Consultations from "./scenes/Reports/Consultations";
 import Passage from "./scenes/Persons/Passage";
 import ProgressBar from "./components/ProgressBar";
@@ -270,13 +269,13 @@ const App = () => {
               {/* Actions */}
               <AppStack.Screen name="ACTION" component={ActionScreen} />
               <AppStack.Screen name="ACTION_NEW_STACK" component={ActionNewScreen} />
-              <AppStack.Screen name="ACTIONS" component={Actions} />
+              <AppStack.Screen name="ACTIONS_FOR_REPORT" component={Actions} />
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />
               {/* Persons */}
               <AppStack.Screen name="PERSON" component={Person} />
               {/* Comments */}
               <AppStack.Screen name="COMMENT" component={Comment} />
-              <AppStack.Screen name="COMMENTS" component={CommentsForReport} />
+              <AppStack.Screen name="COMMENTS_FOR_REPORT" component={CommentsForReport} />
               {/* Place */}
               <AppStack.Screen name="PLACE" component={Place} />
               <AppStack.Screen name="PLACE_NEW" component={PlaceNew} />
@@ -286,20 +285,20 @@ const App = () => {
               <AppStack.Screen name="TERRITORY" component={Territory} />
               <AppStack.Screen name="TERRITORY_NEW" component={NewTerritoryForm} />
               <AppStack.Screen name="TERRITORY_OBSERVATION" component={TerritoryObservation} />
-              <AppStack.Screen name="TERRITORY_OBSERVATIONS" component={Observations} />
+              <AppStack.Screen name="TERRITORY_OBSERVATIONS_FOR_REPORT" component={ObservationsForReport} />
               {/* Rencontres */}
               <AppStack.Screen name="RENCONTRE" component={Rencontre} />
-              <AppStack.Screen name="RENCONTRES" component={RencontresForReport} />
+              <AppStack.Screen name="RENCONTRES_FOR_REPORT" component={RencontresForReport} />
               {/* Passages */}
               <AppStack.Screen name="PASSAGE" component={Passage} />
-              <AppStack.Screen name="PASSAGES" component={PassagesForReport} />
+              <AppStack.Screen name="PASSAGES_FOR_REPORT" component={PassagesForReport} />
               {/* Reports */}
               <AppStack.Screen name="COMPTES_RENDUS" component={ReportsCalendar} />
               <AppStack.Screen name="COMPTE_RENDU" component={Report} />
               {/* Collaborations */}
               <AppStack.Screen name="COLLABORATIONS" component={Collaborations} />
               {/* Consultations */}
-              <AppStack.Screen name="CONSULTATIONS" component={Consultations} />
+              <AppStack.Screen name="CONSULTATIONS_FOR_REPORT" component={Consultations} />
               <AppStack.Screen name="CONSULTATION" component={Consultation} />
               {/* Services */}
               <AppStack.Screen name="SERVICES" component={Services} />

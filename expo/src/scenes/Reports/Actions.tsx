@@ -13,13 +13,17 @@ import ScreenTitle from "../../components/ScreenTitle";
 import { CANCEL, DONE } from "../../recoil/actions";
 import { currentTeamState } from "../../recoil/auth";
 import { getPeriodTitle } from "./utils";
+import { ActionInstance } from "@/types/action";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { PersonInstance } from "@/types/person";
+const keyExtractor = (action: ActionInstance) => action._id;
 
-const keyExtractor = (action) => action._id;
-
-const Actions = ({ route, navigation }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "ACTIONS_FOR_REPORT">;
+const Actions = ({ route, navigation }: Props) => {
   const loading = useAtomValue(loadingState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
 
   const { actionsCreated, actionsCompleted, actionsCanceled } = useActionsForReport(date);
@@ -35,31 +39,28 @@ const Actions = ({ route, navigation }) => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
-  const onCreateAction = useCallback(() => navigation.navigate("NewActionForm", { fromRoute: "Actions" }), [navigation]);
+  const onCreateAction = useCallback(() => navigation.push("ACTION_NEW_STACK"), [navigation]);
 
   const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
 
   const onPseudoPress = useCallback(
-    (person) => {
+    (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.push("Person", { person, fromRoute: "ActionsList" });
+      navigation.push("PERSON", { person });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
-    (action) => {
+    (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.push("Action", {
-        action,
-        fromRoute: "ActionsList",
-      });
+      navigation.push("ACTION", { action });
     },
     [navigation]
   );
 
-  const renderItem = (item) => {
-    return <ActionRow action={item.item} onPseudoPress={onPseudoPress} onActionPress={onActionPress} />;
+  const renderItem = ({ item: action }: { item: ActionInstance }) => {
+    return <ActionRow action={action} onPseudoPress={onPseudoPress} onActionPress={onActionPress} />;
   };
 
   return (
@@ -74,9 +75,7 @@ const Actions = ({ route, navigation }) => {
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
-        estimatedItemSize={126}
         data={actionsToShow}
-        initialNumToRender={5}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}

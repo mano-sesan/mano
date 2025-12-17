@@ -21,12 +21,12 @@ export const flattenedServicesSelector = atom((get) => {
 
 const encryptedFields: Array<keyof ReportInstance> = ["description", "team", "date", "collaborations", "updatedBy"];
 
-export const prepareReportForEncryption = (report: ReportInstance) => {
+export const prepareReportForEncryption = (report: Partial<ReportInstance>) => {
   try {
-    if (!looseUuidRegex.test(report.team)) {
+    if (!looseUuidRegex.test(report.team!)) {
       throw new Error("Report is missing team");
     }
-    if (!dateRegex.test(report.date)) {
+    if (!dateRegex.test(report.date!)) {
       throw new Error("Report is missing date");
     }
   } catch (error) {

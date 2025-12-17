@@ -13,16 +13,21 @@ import { currentTeamState } from "../../recoil/auth";
 import { getPeriodTitle } from "./utils";
 import ConsultationRow from "../../components/ConsultationRow";
 import FloatAddButton from "../../components/FloatAddButton";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { ConsultationInstance } from "@/types/consultation";
+import { PersonInstance } from "@/types/person";
 
-const keyExtractor = (consultation) => consultation._id;
+const keyExtractor = (consultation: ConsultationInstance) => consultation._id;
 
-const Consultations = ({ route, navigation }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATIONS_FOR_REPORT">;
+const Consultations = ({ route, navigation }: Props) => {
   const loading = useAtomValue(loadingState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
 
-  const onCreateConsultation = useCallback(() => navigation.navigate("Consultation", { fromRoute: "Consultations" }), [navigation]);
+  const onCreateConsultation = useCallback(() => navigation.push("CONSULTATION"), [navigation]);
 
   const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useConsultationsForReport(date);
 
@@ -40,22 +45,24 @@ const Consultations = ({ route, navigation }) => {
   const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyConsultations), [loading]);
 
   const onPseudoPress = useCallback(
-    (person) => {
+    (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.push("Person", { person, fromRoute: "ActionsList" });
+      navigation.push("PERSON", { person });
     },
     [navigation]
   );
 
   const onConsultationPress = useCallback(
-    (consultationDB, personDB) => {
-      navigation.navigate("Consultation", { personDB, consultationDB, fromRoute: "Consultations" });
+    (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
+      navigation.push("CONSULTATION", { personDB, consultationDB });
     },
     [navigation]
   );
 
-  const renderItem = (item) => {
-    return <ConsultationRow consultation={item.item} onConsultationPress={onConsultationPress} onPseudoPress={onPseudoPress} withBadge showPseudo />;
+  const renderItem = ({ item: consultation }: { item: ConsultationInstance }) => {
+    return (
+      <ConsultationRow consultation={consultation} onConsultationPress={onConsultationPress} onPseudoPress={onPseudoPress} withBadge showPseudo />
+    );
   };
 
   return (
@@ -70,9 +77,7 @@ const Consultations = ({ route, navigation }) => {
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
-        estimatedItemSize={126}
         data={consultationsToShow}
-        initialNumToRender={5}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         ListEmptyComponent={ListEmptyComponent}

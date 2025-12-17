@@ -10,38 +10,35 @@ import { getPeriodTitle } from "./utils";
 import { currentTeamState } from "../../recoil/auth";
 import TerritoryObservationRow from "../Territories/TerritoryObservationRow";
 import { territoriesState } from "../../recoil/territory";
-const keyExtractor = (item) => item._id;
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { TerritoryInstance } from "@/types/territory";
+const keyExtractor = (item: TerritoryObservationInstance) => item._id;
 
-const Observations = ({ navigation, route }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "TERRITORY_OBSERVATIONS_FOR_REPORT">;
+const ObservationsForReport = ({ navigation, route }: Props) => {
   const { date } = route.params;
   const observations = useObservationsForReport(date);
   const territories = useAtomValue(territoriesState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState)!;
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
   const onUpdatObs = useCallback(
-    (obs) => navigation.navigate("TerritoryObservation", { obs, territory: territories.find((t) => t._id === obs.territory), editable: true }),
+    (obs: TerritoryObservationInstance) =>
+      navigation.push("TERRITORY_OBSERVATION", { obs, territory: territories.find((t) => t._id === obs.territory)!, editable: true }),
     [navigation, territories]
   );
 
-  const onTerritoryPress = useCallback((territory) => navigation.push("Territory", { territory }), [navigation]);
+  const onTerritoryPress = useCallback((territory: TerritoryInstance) => navigation.push("TERRITORY", { territory }), [navigation]);
 
-  const renderItem = ({ item }) => {
-    const obs = item;
+  const renderItem = ({ item: obs }: { item: TerritoryObservationInstance }) => {
     const territory = territories.find((t) => t._id === obs.territory);
-    return (
-      <TerritoryObservationRow
-        key={obs._id}
-        observation={obs}
-        onUpdate={onUpdatObs}
-        territoryToShow={territory}
-        onTerritoryPress={onTerritoryPress}
-      />
-    );
+    return <TerritoryObservationRow observation={obs} onUpdate={onUpdatObs} territoryToShow={territory} onTerritoryPress={onTerritoryPress} />;
   };
 
   return (
@@ -51,9 +48,7 @@ const Observations = ({ navigation, route }) => {
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
         data={observations}
-        initialNumToRender={5}
         renderItem={renderItem}
-        estimatedItemSize={545}
         keyExtractor={keyExtractor}
         onEndReachedThreshold={0.3}
         ListEmptyComponent={ListEmptyObservations}
@@ -63,4 +58,4 @@ const Observations = ({ navigation, route }) => {
   );
 };
 
-export default Observations;
+export default ObservationsForReport;

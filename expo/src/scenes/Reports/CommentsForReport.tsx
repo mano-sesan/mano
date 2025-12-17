@@ -14,14 +14,21 @@ import { commentsState, prepareCommentForEncryption } from "../../recoil/comment
 import { Alert } from "react-native";
 import API from "../../services/api";
 import { groupsState } from "../../recoil/groups";
-const keyExtractor = (item) => item._id;
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { CommentInstance } from "@/types/comment";
+import { ActionInstance } from "@/types/action";
+import { PersonInstance } from "@/types/person";
 
-const CommentsForReport = ({ navigation, route }) => {
+const keyExtractor = (item: CommentInstance) => item._id;
+
+type Props = NativeStackScreenProps<RootStackParamList, "COMMENTS_FOR_REPORT">;
+const CommentsForReport = ({ navigation, route }: Props) => {
   const date = route?.params?.date;
   const comments = useCommentsForReport(date);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState);
   const setComments = useSetAtom(commentsState);
 
@@ -30,27 +37,23 @@ const CommentsForReport = ({ navigation, route }) => {
   }, [setRefreshTrigger]);
 
   const onPseudoPress = useCallback(
-    (person) => {
+    (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.navigate("Person", { person, fromRoute: "CommentsForReport" });
+      navigation.push("PERSON", { person });
     },
     [navigation]
   );
 
   const onActionPress = useCallback(
-    (action) => {
+    (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.navigate("Action", {
-        action,
-        fromRoute: "CommentsForReport",
-      });
+      navigation.push("ACTION", { action });
     },
     [navigation]
   );
 
-  const renderItem = ({ item }) => {
-    const comment = item;
-    const commentedItem = comment.type === "action" ? comment.action : comment.person;
+  const renderItem = ({ item: comment }: { item: (typeof comments)[number] }) => {
+    const commentedItem = comment.type === "action" ? comment.actionPopulated : comment.personPopulated;
 
     return (
       <CommentRow
@@ -58,14 +61,16 @@ const CommentsForReport = ({ navigation, route }) => {
         comment={comment}
         canToggleUrgentCheck
         canToggleGroupCheck={
-          !!organisation.groupsEnabled && comment.person?._id && groups.find((group) => group.persons.includes(comment.person._id))
+          !!organisation.groupsEnabled &&
+          !!comment.personPopulated?._id &&
+          !!groups.find((group) => group.persons.includes(comment.personPopulated?._id))
         }
         itemName={
           comment.type === "action"
             ? `Action : ${commentedItem?.name} (pour ${comment.personPopulated?.name})`
             : `Personne suivie : ${commentedItem?.name}`
         }
-        onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.action) : onPseudoPress(comment.person))}
+        onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.actionPopulated!) : onPseudoPress(comment.personPopulated!))}
         onDelete={async () => {
           const response = await API.delete({ path: `/comment/${comment._id}` });
           if (response.error) {
@@ -78,8 +83,8 @@ const CommentsForReport = ({ navigation, route }) => {
         onUpdate={
           comment.team
             ? async (commentUpdated) => {
-                if (comment.type === "action") commentUpdated.action = comment.action._id;
-                if (comment.type === "person") commentUpdated.person = comment.person._id;
+                if (comment.type === "action") commentUpdated.action = comment.actionPopulated?._id;
+                if (comment.type === "person") commentUpdated.person = comment.personPopulated?._id;
                 const response = await API.put({
                   path: `/comment/${comment._id}`,
                   body: prepareCommentForEncryption(commentUpdated),
@@ -97,8 +102,9 @@ const CommentsForReport = ({ navigation, route }) => {
                   );
                   return true;
                 }
+                return false;
               }
-            : null
+            : undefined
         }
       />
     );
@@ -111,8 +117,6 @@ const CommentsForReport = ({ navigation, route }) => {
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
         data={comments}
-        initialNumToRender={5}
-        estimatedItemSize={545}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         onEndReachedThreshold={0.3}
