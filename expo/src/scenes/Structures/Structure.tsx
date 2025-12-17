@@ -16,28 +16,29 @@ import { useAtom } from "jotai";
 import { structuresState } from "../../recoil/structures";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import StructuresCategoriesModalSelect from "../../components/StructuresCategoriesModalSelect";
+import { StructureInstance } from "@/types/structure";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
 
-const isEven = (value) => {
+const isEven = (value: number) => {
   if (value % 2 === 0) return true;
   return false;
 };
 
-const castToStructure = (structure = {}) => ({
-  name: structure.name?.trim() || "",
-  adresse: structure.adresse?.trim() || "",
-  postcode: structure.postcode?.trim() || "",
-  city: structure.city?.trim() || "",
-  description: structure.description?.trim() || "",
-  phone: structure.phone?.trim() || "",
-  categories: structure.categories?.length ? structure.categories : [],
+const castToStructure = (structure: Partial<StructureInstance>) => ({
+  name: structure?.name?.trim() || "",
+  adresse: structure?.adresse?.trim() || "",
+  postcode: structure?.postcode?.trim() || "",
+  city: structure?.city?.trim() || "",
+  description: structure?.description?.trim() || "",
+  phone: structure?.phone?.trim() || "",
+  categories: structure?.categories?.length ? structure.categories : [],
 });
 
-const Structure = ({ navigation, route }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "STRUCTURE">;
+const Structure = ({ navigation, route }: Props) => {
   const [structures, setStructures] = useAtom(structuresState);
-  const [structureDB, setStructureDB] = useState(
-    () => structures.find((s) => s._id === route.params?.structure?._id),
-    [route.params?.structure?._id, structures]
-  );
+  const [structureDB, setStructureDB] = useState(() => structures.find((s) => s._id === route.params.structure._id)!);
 
   const [structure, setStructure] = useState(() => castToStructure(route?.params?.structure));
   const [updating, setUpdating] = useState(false);
@@ -49,7 +50,7 @@ const Structure = ({ navigation, route }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -64,11 +65,11 @@ const Structure = ({ navigation, route }) => {
   }, []);
   const onEdit = () => setEditable((e) => !e);
 
-  const setPostCode = async (postcode) => {
+  const setPostCode = async (postcode: string) => {
     setStructure((s) => ({ ...s, postcode }));
   };
 
-  const setPhone = (phone) => {
+  const setPhone = (phone: string) => {
     if (!phone.startsWith("0")) return setStructure((s) => ({ ...s, phone }));
     const phoneNumber = structure.phone;
     if (phone.length < phoneNumber.length) {
@@ -126,7 +127,7 @@ const Structure = ({ navigation, route }) => {
     }
     if (!response.ok) return false;
     Alert.alert("Structure supprimée !");
-    setStructures((structures) => structures.filter((s) => s._id !== structure._id));
+    setStructures((structures) => structures.filter((s) => s._id !== structureDB._id));
     setUpdating(false);
     return true;
   };
@@ -180,8 +181,8 @@ const Structure = ({ navigation, route }) => {
       <ScreenTitle
         title={name}
         onBack={onGoBackRequested}
-        onEdit={!editable ? onEdit : null}
-        onSave={!editable || isUpdateDisabled ? null : onUpdateStructure}
+        onEdit={!editable ? onEdit : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onUpdateStructure}
         saving={updating}
       />
       <ScrollContainer>
@@ -240,7 +241,7 @@ const Structure = ({ navigation, route }) => {
             keyboardType="number-pad"
             autoCorrect={false}
             editable={editable}
-            noMargin={editable || phone?.length}
+            noMargin={editable || !!phone?.length}
           />
           <Spacer />
           {!!phone.length && <Button caption="Appeler" Icon={PhoneIcon} color={colors.app.secondary} onPress={onCall} noBorder />}
