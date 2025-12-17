@@ -10,6 +10,9 @@ import { currentTeamState } from "../../recoil/auth";
 import colors from "../../utils/colors";
 import { refreshTriggerState } from "../../components/Loader";
 import { itemsGroupedDateSelector } from "./selectors";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { ReportInstance } from "@/types/report";
 
 LocaleConfig.locales.fr = {
   monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
@@ -20,10 +23,20 @@ LocaleConfig.locales.fr = {
 };
 LocaleConfig.defaultLocale = "fr";
 
-export const mappedReportsToCalendarDaysSelector = atom((get) => {
+type ReportToCalendarDay = {
+  selected?: boolean;
+  startingDay?: boolean;
+  endingDay?: boolean;
+  color?: string;
+  dotColor?: string;
+  marked?: boolean;
+  report?: ReportInstance;
+};
+
+export const mappedReportsToCalendarDaysSelector = atom<Record<string, ReportToCalendarDay>>((get) => {
   const itemsGroupedDate = get(itemsGroupedDateSelector);
   const today = dayjs().format("YYYY-MM-DD");
-  const dates = {
+  const dates: Record<string, ReportToCalendarDay> = {
     [today]: {
       selected: true,
       startingDay: true,
@@ -46,7 +59,9 @@ export const mappedReportsToCalendarDaysSelector = atom((get) => {
   return dates;
 });
 
-const ReportsCalendar = ({ navigation }) => {
+type ReportsCalendarProps = NativeStackScreenProps<RootStackParamList, "COMPTES_RENDUS">;
+
+const ReportsCalendar = ({ navigation }: ReportsCalendarProps) => {
   const dates = useAtomValue(mappedReportsToCalendarDaysSelector);
   const currentTeam = useAtomValue(currentTeamState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
@@ -56,11 +71,11 @@ const ReportsCalendar = ({ navigation }) => {
 
   const [submiting, setSubmiting] = useState(false);
 
-  const onDayPress = async ({ dateString }) => {
+  const onDayPress = async ({ dateString }: { dateString: string }) => {
     if (submiting) return;
     setSubmiting(true);
     const day = dayjs(dateString).startOf("day").format("YYYY-MM-DD");
-    navigation.navigate("Report", { report: dates[day]?.report, day });
+    navigation.navigate("COMPTE_RENDU", { report: dates[day]?.report, day });
     setSubmiting(false);
   };
 
@@ -70,10 +85,6 @@ const ReportsCalendar = ({ navigation }) => {
       <ScrollContainer refreshControl={<RefreshControl refreshing={refreshTrigger.status} onRefresh={onRefresh} />}>
         <Calendar
           onDayPress={onDayPress}
-          pastScrollRange={50}
-          futureScrollRange={50}
-          scrollEnabled={true}
-          showScrollIndicator={true}
           hideExtraDays={true}
           showWeekNumbers
           showSixWeeks

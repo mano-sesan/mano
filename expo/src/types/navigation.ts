@@ -9,6 +9,7 @@ import { RencontreInstance } from "./rencontre";
 import { PlaceInstance } from "./place";
 import { TerritoryInstance } from "./territory";
 import { TerritoryObservationInstance } from "./territoryObs";
+import { ReportInstance } from "./report";
 
 /*
 https://reactnavigation.org/docs/typescript/
@@ -20,12 +21,12 @@ export type RootStackParamList = {
   TABS_STACK: NavigatorScreenParams<TabsParamsList>;
   ACTION: ActionScreenParams;
   ACTION_NEW_STACK?: { person: PersonInstance };
-  ACTIONS: undefined;
+  ACTIONS_FOR_REPORT: { date: string; status: ActionStatus };
   ACTIONS_FILTER: undefined;
   PERSON: { person: PersonInstance; editable?: boolean };
   PERSON_NEW: undefined;
   COMMENT: { person: PersonInstance; commentTitle: string };
-  COMMENTS: undefined;
+  COMMENTS_FOR_REPORT: { date: string };
   PLACE: { place: PlaceInstance; personName: string };
   PLACE_NEW: { person: PersonPopulated };
   TREATMENT: { personDB: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
@@ -37,17 +38,17 @@ export type RootStackParamList = {
     editable?: boolean;
     rencontresInProgress?: Array<RencontreInstance>;
   };
-  TERRITORY_OBSERVATIONS: undefined;
+  TERRITORY_OBSERVATIONS_FOR_REPORT: { date: string };
   RENCONTRE: { rencontre?: RencontreInstance; person: PersonInstance };
-  RENCONTRES: undefined;
+  RENCONTRES_FOR_REPORT: { date: string };
   PASSAGE?: { passage?: PassageInstance; person?: PersonInstance };
-  PASSAGES: undefined;
+  PASSAGES_FOR_REPORT: { date: string };
   COMPTES_RENDUS: undefined;
-  COMPTE_RENDU: undefined;
-  COLLABORATIONS: undefined;
-  CONSULTATIONS: undefined;
+  COMPTE_RENDU: { report?: ReportInstance; day: string; editable?: boolean };
+  COLLABORATIONS: { report?: ReportInstance; day: string };
+  CONSULTATIONS_FOR_REPORT: { date: string; status: ActionStatus };
   CONSULTATION?: { personDB?: PersonInstance; consultationDB?: ConsultationInstance; duplicate?: boolean; editable?: boolean };
-  SERVICES?: { date: string };
+  SERVICES: { date: string };
   STRUCTURES: undefined;
   STRUCTURE_NEW: undefined;
   STRUCTURE: undefined;

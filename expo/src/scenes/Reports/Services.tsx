@@ -1,5 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
@@ -10,15 +11,32 @@ import { currentTeamState, organisationState } from "../../recoil/auth";
 import API from "../../services/api";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { servicesSelector } from "../../recoil/reports";
-const keyExtractor = (item) => item._id;
-import { useDebouncedCallback } from "use-debounce";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { ServiceInstance } from "@/types/service";
 
-function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
+type ServiceToShow = Pick<ServiceInstance, "service" | "_id" | "count">;
+
+const keyExtractor = (item: ServiceToShow) => item._id;
+
+function IncrementorSmall({
+  service,
+  date,
+  team,
+  initialValue,
+  onUpdated,
+}: {
+  service: ServiceToShow;
+  date: string;
+  team: string;
+  initialValue: number;
+  onUpdated: (count: number) => void;
+}) {
   const debounced = useDebouncedCallback(
-    function updateServiceInDatabase() {
-      if (value === initialValue) return;
+    function updateServiceInDatabase(_value) {
+      if (_value === initialValue) return;
 
-      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: value, service: service.service } }).then((res) => {
+      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: _value, service: service.service } }).then((res) => {
         if (res.error) {
           return Alert.alert("Erreur lors de la mise à jour du service");
         }
@@ -59,13 +77,14 @@ function IncrementorSmall({ service, date, team, initialValue, onUpdated }) {
   );
 }
 
-const Services = ({ navigation, route }) => {
+type Props = NativeStackScreenProps<RootStackParamList, "SERVICES">;
+const Services = ({ navigation, route }: Props) => {
   const groupedServices = useAtomValue(servicesSelector);
   const { date } = route.params;
-  const organisation = useAtomValue(organisationState);
+  const organisation = useAtomValue(organisationState)!;
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
-  const [services, setServices] = useState([]);
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const [services, setServices] = useState<Array<ServiceToShow>>([]);
   const [activeTab, setActiveTab] = useState(groupedServices[0]?.groupTitle || null);
 
   const onRefresh = useCallback(async () => {
@@ -81,18 +100,18 @@ const Services = ({ navigation, route }) => {
     initServices();
   }, [currentTeam._id, date]);
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item: service }: { item: ServiceToShow }) => {
     return (
       <IncrementorSmall
-        service={item}
+        service={service}
         date={date}
         team={currentTeam._id}
-        initialValue={item?.count || 0}
+        initialValue={service?.count || 0}
         onUpdated={(newCount) => {
-          if (services.find((e) => e.service === item.service)) {
-            setServices(services.map((e) => (e.service === item.service ? { ...e, count: newCount } : e)));
+          if (services.find((e) => e.service === service.service)) {
+            setServices(services.map((e) => (e.service === service.service ? { ...e, count: newCount } : e)));
           } else {
-            setServices([...services, { service: item.service, count: newCount }]);
+            setServices([...services, { service: service.service, count: newCount, _id: service._id } as ServiceToShow]);
           }
           return;
         }}
@@ -100,9 +119,9 @@ const Services = ({ navigation, route }) => {
     );
   };
 
-  if (!organisation.receptionEnabled || !organisation?.services || !groupedServices.length) return null;
+  if (!organisation.receptionEnabled || !groupedServices.length) return null;
 
-  const selectedServices = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
+  const selectedServices: Array<ServiceToShow> = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
     const service = (services || []).find((f) => f.service === e);
     return { service: e, _id: service?._id || e, count: service?.count || 0 };
   });
@@ -126,9 +145,7 @@ const Services = ({ navigation, route }) => {
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
         data={selectedServices}
-        initialNumToRender={50}
         renderItem={renderItem}
-        estimatedItemSize={545}
         keyExtractor={keyExtractor}
         onEndReachedThreshold={0.3}
         ListEmptyComponent={ListEmptyServices}

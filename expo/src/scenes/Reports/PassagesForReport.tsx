@@ -4,34 +4,38 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
-import { ListEmptyPassage, ListNoMorePassages } from "../../components/ListEmptyContainer";
+import { ListEmptyPassages, ListNoMorePassages } from "../../components/ListEmptyContainer";
 import { usePassagesForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { currentTeamState } from "../../recoil/auth";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
 import BubbleRow from "../../components/BubbleRow";
-const keyExtractor = (item) => item._id;
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { PassageInstance } from "@/types/passage";
 
-const PassagesForReport = ({ navigation, route }) => {
+const keyExtractor = (item: PassageInstance) => item._id;
+
+type Props = NativeStackScreenProps<RootStackParamList, "PASSAGES_FOR_REPORT">;
+const PassagesForReport = ({ navigation, route }: Props) => {
   const date = route?.params?.date;
   const passages = usePassagesForReport(date);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const currentTeam = useAtomValue(currentTeamState);
+  const currentTeam = useAtomValue(currentTeamState)!;
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
-  const renderItem = ({ item }) => {
-    const passage = item;
+  const renderItem = ({ item: passage }: { item: PassageInstance }) => {
     return (
       <BubbleRow
-        caption={passage.comment}
-        date={passage.date || passage.createdAt}
+        caption={passage.comment || ""}
+        date={passage.date || passage.createdAt!}
         user={passage.user}
-        urgent={passage.urgent}
-        itemName={personsObject[passage.person]?.name || personsObject[passage.person]?.personName || "Passage anonyme"}
+        urgent={false}
+        itemName={personsObject[passage.person!]?.name || personsObject[passage.person!]?.personName || "Passage anonyme"}
         metaCaption="Passage noté par"
       />
     );
@@ -44,12 +48,10 @@ const PassagesForReport = ({ navigation, route }) => {
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
         data={passages}
-        initialNumToRender={5}
-        estimatedItemSize={545}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         onEndReachedThreshold={0.3}
-        ListEmptyComponent={ListEmptyPassage}
+        ListEmptyComponent={ListEmptyPassages}
         ListFooterComponent={passages.length > 0 ? ListNoMorePassages : null}
       />
     </SceneContainer>

@@ -31,6 +31,7 @@ export const ListEmptyCollaboration = (collaboration: string) => () =>
 export const ListEmptyUrgent = () => <ListEmptyContainer opaque text="Il n'y a pas d'élément prioritaire à afficher" />;
 export const ListEmptyUrgentAction = () => <ListEmptyContainer opaque text="Il n'y a pas d'action urgente à afficher" />;
 export const ListEmptyUrgentComment = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire urgent à afficher" />;
+export const ListEmptyPassages = () => <ListEmptyContainer opaque text="Il n'y a pas de passage à afficher" />;
 
 export const ListNoMoreActions = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre action à afficher" />;
 export const ListNoMoreConsultations = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre consultation à afficher" />;
@@ -41,6 +42,7 @@ export const ListNoMoreServices = () => <ListEmptyContainer opaque text="Il n'y 
 export const ListNoMorePersons = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre personne à afficher" />;
 export const ListNoMoreStructures = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre contact à afficher" />;
 export const ListNoMoreTerritories = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre territoire à afficher" />;
+export const ListNoMorePassages = () => <ListEmptyContainer opaque text="Il n'y a pas d'autre passage à afficher" />;
 
 const Container = styled.View`
   flex: 1;

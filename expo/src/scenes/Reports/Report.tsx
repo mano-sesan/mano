@@ -1,6 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, InteractionManager, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import { useAtomValue, useSetAtom } from "jotai";
 import InputLabelled from "../../components/InputLabelled";
 import Label from "../../components/Label";
@@ -11,9 +11,9 @@ import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import Spacer from "../../components/Spacer";
 import Tags from "../../components/Tags";
-import { CANCEL, DONE } from "../../recoil/actions";
+import { CANCEL, DONE, TODO } from "../../recoil/actions";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { flattenedServicesSelector, prepareReportForEncryption, reportsState } from "../../recoil/reports";
+import { flattenedServicesSelector, prepareReportForEncryption } from "../../recoil/reports";
 import API from "../../services/api";
 import colors from "../../utils/colors";
 import {
@@ -27,14 +27,20 @@ import {
 } from "./selectors";
 import { getPeriodTitle } from "./utils";
 import { refreshTriggerState } from "../../components/Loader";
+import { ReportInstance } from "@/types/report";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { ServiceInstance } from "@/types/service";
 
-const castToReport = (report = {}) => ({
-  description: report.description?.trim() || "",
-  collaborations: report.collaborations || [],
-});
+const castToReport = (report?: ReportInstance) =>
+  ({
+    description: report?.description?.trim() || "",
+    collaborations: report?.collaborations || [],
+  } as ReportInstance);
 
-const ReportLoading = ({ navigation, route }) => {
-  const currentTeam = useAtomValue(currentTeamState);
+type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
+const ReportLoading = ({ navigation, route }: Props) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
 
   const day = route.params?.day;
   const [isLoading, setIsLoading] = useState(true);
@@ -45,7 +51,7 @@ const ReportLoading = ({ navigation, route }) => {
   );
 
   useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
+    requestIdleCallback(() => {
       setIsLoading(false);
     });
   }, []);
@@ -64,12 +70,11 @@ const ReportLoading = ({ navigation, route }) => {
   return <Report navigation={navigation} route={route} />;
 };
 
-const Report = ({ navigation, route }) => {
-  const currentTeam = useAtomValue(currentTeamState);
-  const setReports = useSetAtom(reportsState);
-  const flattenedServices = useAtomValue(flattenedServicesSelector);
-  const teamsReports = useAtomValue(currentTeamReportsSelector);
-  const user = useAtomValue(userState);
+const Report = ({ navigation, route }: Props) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const flattenedServices = useAtomValue(flattenedServicesSelector)!;
+  const teamsReports = useAtomValue(currentTeamReportsSelector)!;
+  const user = useAtomValue(userState)!;
 
   const day = route.params?.day;
   const reportDB = useMemo(() => teamsReports.find((r) => r.date === day), [teamsReports, day]);
@@ -81,7 +86,7 @@ const Report = ({ navigation, route }) => {
   const rencontres = useRencontresForReport(day);
   const passages = usePassagesForReport(day);
   const observations = useObservationsForReport(day);
-  const organisation = useAtomValue(organisationState);
+  const organisation = useAtomValue(organisationState)!;
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const [servicesCount, setServicesCount] = useState(0);
 
@@ -97,14 +102,13 @@ const Report = ({ navigation, route }) => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${day}` });
       if (response.error) return Alert.alert(response.error);
-      console.log(response.data);
-      setServicesCount(response.data?.map((s) => s.count).reduce((a, b) => a + b, 0));
+      setServicesCount(response.data?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
     }
     initServices();
   }, [currentTeam._id, day]);
 
   const [updating, setUpdating] = useState(false);
-  const [editable, setEditable] = useState(route?.params?.editable || false);
+  const [editable, setEditable] = useState(route.params.editable || false);
 
   const onBack = () => {
     backRequestHandledRef.current = true;
@@ -112,7 +116,7 @@ const Report = ({ navigation, route }) => {
   };
 
   const backRequestHandledRef = useRef(false);
-  const handleBeforeRemove = (e) => {
+  const handleBeforeRemove = (e: any) => {
     if (backRequestHandledRef.current === true) return;
     e.preventDefault();
     onGoBackRequested();
@@ -195,8 +199,8 @@ const Report = ({ navigation, route }) => {
       <ScreenTitle
         title={title}
         onBack={onGoBackRequested}
-        onEdit={!editable ? onEdit : null}
-        onSave={!editable || isUpdateDisabled ? null : onUpdateReport}
+        onEdit={!editable ? onEdit : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onUpdateReport}
         saving={updating}
         testID="report"
       />
@@ -212,30 +216,30 @@ const Report = ({ navigation, route }) => {
           />
           {editable ? <Label label="Co-intervention(s)" /> : <MyText className="text-main mb-4 text-base">Co-intervention(s) :</MyText>}
           <Tags
-            data={report.collaborations}
-            key={report.collaborations}
+            data={report.collaborations!}
+            key={report.collaborations?.join(",")}
             onChange={(collaborations) => setReport((r) => ({ ...r, collaborations }))}
             editable={editable}
-            onAddRequest={() => navigation.navigate("Collaborations", { report: reportDB, day })}
+            onAddRequest={() => navigation.navigate("COLLABORATIONS", { report: reportDB, day })}
             renderTag={(collaboration) => <MyText>{collaboration}</MyText>}
           />
         </View>
         <Row
           withNextButton
           caption={`Actions complétées (${actionsCompleted.length})`}
-          onPress={() => navigation.navigate("Actions", { date: day, status: DONE })}
+          onPress={() => navigation.navigate("ACTIONS", { date: day, status: DONE })}
           disabled={!actionsCompleted.length}
         />
         <Row
           withNextButton
           caption={`Actions créées (${actionsCreated.length})`}
-          onPress={() => navigation.navigate("Actions", { date: day, status: null })}
+          onPress={() => navigation.navigate("ACTIONS", { date: day, status: TODO })}
           disabled={!actionsCreated.length}
         />
         <Row
           withNextButton
           caption={`Actions annulées (${actionsCanceled.length})`}
-          onPress={() => navigation.navigate("Actions", { date: day, status: CANCEL })}
+          onPress={() => navigation.navigate("ACTIONS", { date: day, status: CANCEL })}
           disabled={!actionsCanceled.length}
         />
         <Spacer height={30} />
@@ -244,19 +248,19 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Consultations complétées (${consultationsCompleted.length})`}
-              onPress={() => navigation.navigate("Consultations", { date: day, status: DONE })}
+              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: DONE })}
               disabled={!consultationsCompleted.length}
             />
             <Row
               withNextButton
               caption={`Consultations créées (${consultationsCreated.length})`}
-              onPress={() => navigation.navigate("Consultations", { date: day, status: null })}
+              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: TODO })}
               disabled={!consultationsCreated.length}
             />
             <Row
               withNextButton
               caption={`Consultations annulées (${consultationsCanceled.length})`}
-              onPress={() => navigation.navigate("Consultations", { date: day, status: CANCEL })}
+              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: CANCEL })}
               disabled={!consultationsCanceled.length}
             />
             <Spacer height={30} />
@@ -267,20 +271,20 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Commentaires (${comments.length})`}
-              onPress={() => navigation.navigate("CommentsForReport", { date: day })}
+              onPress={() => navigation.navigate("COMMENTS_FOR_REPORT", { date: day })}
               disabled={!comments.length}
             />
             <Spacer height={30} />
             <Row
               withNextButton
               caption={`Rencontres (${rencontres.length})`}
-              onPress={() => navigation.navigate("RencontresForReport", { date: day })}
+              onPress={() => navigation.navigate("RENCONTRES_FOR_REPORT", { date: day })}
               disabled={!rencontres.length}
             />
             <Row
               withNextButton
               caption={`Passages (${passages.length})`}
-              onPress={() => navigation.navigate("PassagesForReport", { date: day })}
+              onPress={() => navigation.navigate("PASSAGES_FOR_REPORT", { date: day })}
               disabled={!passages.length}
             />
           </>
@@ -291,7 +295,7 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Observations (${observations.length})`}
-              onPress={() => navigation.navigate("Observations", { date: day })}
+              onPress={() => navigation.navigate("TERRITORY_OBSERVATIONS_FOR_REPORT", { date: day })}
               disabled={!observations.length}
             />
           </>
@@ -303,7 +307,7 @@ const Report = ({ navigation, route }) => {
             <Row
               withNextButton
               caption={`Services (${servicesCount})`}
-              onPress={() => navigation.navigate("Services", { date: day })}
+              onPress={() => navigation.navigate("SERVICES", { date: day })}
               disabled={!servicesCount}
             />
           </>

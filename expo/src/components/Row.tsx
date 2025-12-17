@@ -15,10 +15,11 @@ type RowProps = {
   onBack?: () => void;
   testID?: string;
   color?: string;
+  disabled?: boolean;
 };
 
-const Row = ({ loading, onPress, caption, withNextButton, center, onBack, testID, color = "#000" }: RowProps) => (
-  <RowContainer onPress={onPress} center={center || loading} disabled={loading} testID={testID}>
+const Row = ({ loading, onPress, caption, withNextButton, center, onBack, testID, color = "#000", disabled }: RowProps) => (
+  <RowContainer onPress={onPress} center={center || loading} disabled={loading || disabled} testID={testID}>
     {Boolean(onBack) && <ButtonRight onPress={onPress} caption="<" />}
     <Caption loading={loading} as={loading ? View : MyText} color={color}>
       {loading ? <ActivityIndicator size="small" color={colors.app.secondary} /> : caption}
