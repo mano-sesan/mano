@@ -62,20 +62,28 @@ const alignClasses = {
   right: "tw-text-right",
 };
 
+const DEFAULT_SIZE = "md" as const;
+const DEFAULT_COLOR = "main" as const;
+const DEFAULT_ALIGN = "center" as const;
+
 export default function Spinner({
-  size = "md",
-  color = "main",
-  align = "center",
+  size,
+  color,
+  align,
   className = "",
 }: SpinnerProps) {
+  const safeSize = size && sizeClasses[size] ? size : DEFAULT_SIZE;
+  const safeColor = color && fillClasses[color] ? color : DEFAULT_COLOR;
+  const safeAlign = align && alignClasses[align] ? align : DEFAULT_ALIGN;
+
   return (
-    <div className={[alignClasses[align], className].join(" ")} role="status">
+    <div className={[alignClasses[safeAlign], className].join(" ")} role="status">
       <svg
         aria-hidden="true"
         className={[
           "tw-inline tw-animate-spin tw-text-gray-200",
-          sizeClasses[size],
-          fillClasses[color],
+          sizeClasses[safeSize],
+          fillClasses[safeColor],
         ].join(" ")}
         viewBox="0 0 100 101"
         fill="none"
