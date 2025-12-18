@@ -42,6 +42,11 @@ export const preparePassageForEncryption = (passage) => {
     updatedAt: passage.updatedAt,
     organisation: passage.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: passage.person,
+    team: passage.team,
+    user: passage.user,
+
     decrypted,
     entityKey: passage.entityKey,
   };

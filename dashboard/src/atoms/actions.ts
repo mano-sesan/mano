@@ -90,6 +90,13 @@ export const prepareActionForEncryption = (action: ActionInstance, { checkRequir
     status: action.status,
     recurrence: action.recurrence,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    // Keep legacy fields in `decrypted` too (retro-compat).
+    person: action.person,
+    user: action.user,
+    team: action.team,
+    teams: action.teams,
+
     decrypted,
     entityKey: action.entityKey,
   };

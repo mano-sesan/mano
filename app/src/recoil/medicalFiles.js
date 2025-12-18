@@ -57,6 +57,9 @@ export const prepareMedicalFileForEncryption = (customFieldsMedicalFile) => (med
     updatedAt: medicalFile.updatedAt,
     organisation: medicalFile.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: medicalFile.person,
+
     decrypted,
     entityKey: medicalFile.entityKey,
   };

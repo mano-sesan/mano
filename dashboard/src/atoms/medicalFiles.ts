@@ -53,6 +53,9 @@ export const prepareMedicalFileForEncryption =
       deletedAt: medicalFile.deletedAt,
       organisation: medicalFile.organisation,
 
+      // Phase 1 (links migration): dual-write links outside encrypted blob.
+      person: medicalFile.person,
+
       decrypted,
       entityKey: medicalFile.entityKey,
     };

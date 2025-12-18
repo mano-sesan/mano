@@ -9,6 +9,12 @@ const validateUser = require("../middleware/validateUser");
 const { RelPersonPlace } = require("../db/sequelize");
 const { looseUuidRegex, positiveIntegerRegex } = require("../utils");
 
+const relPersonPlaceLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+  place: z.optional(z.string().regex(looseUuidRegex)),
+  user: z.optional(z.string().regex(looseUuidRegex)),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -19,6 +25,7 @@ router.post(
       z.object({
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...relPersonPlaceLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in relPersonPlace creation: ${e}`);
@@ -31,6 +38,9 @@ router.post(
         organisation: req.user.organisation,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
+        person: req.body.person || null,
+        place: req.body.place || null,
+        user: req.body.user || null,
       },
       { returning: true }
     );
@@ -45,6 +55,9 @@ router.post(
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        person: data.person,
+        place: data.place,
+        user: data.user,
       },
     });
   })
@@ -86,7 +99,7 @@ router.get(
 
     const data = await RelPersonPlace.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "person", "place", "user"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
   })
@@ -106,6 +119,7 @@ router.put(
         body: z.object({
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...relPersonPlaceLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -121,6 +135,9 @@ router.put(
     relPersonPlace.set({
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      person: req.body.person || null,
+      place: req.body.place || null,
+      user: req.body.user || null,
     });
     await relPersonPlace.save();
 
@@ -134,6 +151,9 @@ router.put(
         createdAt: relPersonPlace.createdAt,
         updatedAt: relPersonPlace.updatedAt,
         deletedAt: relPersonPlace.deletedAt,
+        person: relPersonPlace.person,
+        place: relPersonPlace.place,
+        user: relPersonPlace.user,
       },
     });
   })

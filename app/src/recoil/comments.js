@@ -41,6 +41,12 @@ export const prepareCommentForEncryption = (comment) => {
     updatedAt: comment.updatedAt,
     organisation: comment.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: comment.person,
+    action: comment.action,
+    team: comment.team,
+    user: comment.user,
+
     decrypted,
     entityKey: comment.entityKey,
   };

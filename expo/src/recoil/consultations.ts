@@ -106,6 +106,11 @@ export const prepareConsultationForEncryption = (customFieldsConsultations: Cust
     status: consultation.status,
     onlyVisibleBy: consultation.onlyVisibleBy,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: consultation.person,
+    user: consultation.user,
+    teams: consultation.teams,
+
     decrypted,
     entityKey: consultation.entityKey,
   };

@@ -42,6 +42,9 @@ export const prepareTerritoryForEncryption = (territory) => {
     updatedAt: territory.updatedAt,
     organisation: territory.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    user: territory.user,
+
     decrypted,
     entityKey: territory.entityKey,
   };
