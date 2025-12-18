@@ -13,7 +13,9 @@ import type { DocumentWithLinkedItem, FolderWithLinkedItem, Document, Folder } f
 import { useDataLoader } from "../../services/dataLoader";
 import { encryptItem } from "../../services/encryption";
 import { removeOldDefaultFolders } from "../../utils/documents";
-import { handleFilesUpload, DocumentModal, ButtonDownloadAll } from "../DocumentsGeneric";
+import { handleFilesUpload } from "./DocumentsUpload";
+import { DocumentModal } from "./DocumentModal";
+import { ButtonDownloadAll } from "./ButtonDownloadAll";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../tailwind/Modal";
 import { DocumentsTreeWrapper, DocumentsDropzone, useDocumentTreeData, useFolderOptions, type DocumentOrFolder } from "./DocumentTree";
 import { CreateFolderModal, EditFolderModal } from "./FolderModals";

@@ -46,7 +46,7 @@ import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
-import { UploadProgressProvider } from "./components/DocumentsGeneric";
+import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",

@@ -83,10 +83,10 @@ export function CreateFolderModal({ open, onClose, onCreateFolder, userId }: Cre
 }
 
 interface EditFolderModalProps {
-  folder: FolderWithLinkedItem | null;
+  folder: (FolderWithLinkedItem | Folder) | null;
   onClose: () => void;
-  onUpdateFolder: (folder: FolderWithLinkedItem, newName: string) => Promise<void>;
-  onDeleteFolder: (folder: FolderWithLinkedItem) => Promise<void>;
+  onUpdateFolder: (folder: FolderWithLinkedItem | Folder, newName: string) => Promise<void>;
+  onDeleteFolder: (folder: FolderWithLinkedItem | Folder) => Promise<void>;
 }
 
 export function EditFolderModal({ folder, onClose, onUpdateFolder, onDeleteFolder }: EditFolderModalProps) {

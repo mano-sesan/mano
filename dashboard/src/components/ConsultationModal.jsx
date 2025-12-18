@@ -23,11 +23,13 @@ import TagTeam from "./TagTeam";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import { itemsGroupedByConsultationSelector } from "../atoms/selectors";
 import { DocumentsModule } from "./DocumentsGeneric";
+import DocumentsListSimple from "./document/DocumentsListSimple";
 import TabsNav from "./tailwind/TabsNav";
 import { decryptItem } from "../services/encryption";
 import { useDataLoader } from "../services/dataLoader";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../utils";
+import { shouldUseNewDocumentsSystem } from "../config";
 
 export default function ConsultationModal() {
   const consultationsObjects = useAtomValue(itemsGroupedByConsultationSelector);
@@ -99,6 +101,7 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
 
 function ConsultationContent({ personId, consultation, date, onClose }) {
   const organisation = useAtomValue(organisationState);
+  const useNewDocumentsSystem = shouldUseNewDocumentsSystem(organisation?._id);
   const searchParams = new URLSearchParams(location.search);
   const teams = useAtomValue(teamsState);
   const history = useHistory();
@@ -727,47 +730,91 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
               .filter(Boolean)
               .join(" ")}
           >
-            <DocumentsModule
-              personId={data.person}
-              color="blue-900"
-              showAssociatedItem={false}
-              documents={data.documents.map((doc) => ({
-                ...doc,
-                type: doc.type ?? "document", // or 'folder'
-                linkedItem: { _id: consultation?._id, type: "consultation" },
-              }))}
-              onAddDocuments={async (nextDocuments) => {
-                const newData = {
-                  ...data,
-                  documents: [...data.documents, ...nextDocuments],
-                };
-                setData(newData);
-                if (isNewConsultation) return;
-                const ok = await handleSubmit({ newData });
-                if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-              }}
-              onDeleteDocument={async (document) => {
-                const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
-                setData(newData);
-                if (isNewConsultation) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document supprimé");
-                return ok;
-              }}
-              onSubmitDocument={async (document) => {
-                const newData = {
-                  ...data,
-                  documents: data.documents.map((d) => {
-                    if (d._id === document._id) return document;
-                    return d;
-                  }),
-                };
-                setData(newData);
-                if (isNewConsultation) return;
-                const ok = await handleSubmit({ newData });
-                if (ok) toast.success("Document mis à jour");
-              }}
-            />
+            {useNewDocumentsSystem ? (
+              <DocumentsListSimple
+                personId={data.person}
+                color="blue-900"
+                showAssociatedItem={false}
+                documents={data.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: consultation?._id, type: "consultation" },
+                }))}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...data,
+                    documents: [...data.documents, ...nextDocuments],
+                  };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...data,
+                    documents: data.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
+            ) : (
+              <DocumentsModule
+                personId={data.person}
+                color="blue-900"
+                showAssociatedItem={false}
+                documents={data.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: consultation?._id, type: "consultation" },
+                }))}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...data,
+                    documents: [...data.documents, ...nextDocuments],
+                  };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...data, documents: data.documents.filter((d) => d._id !== document._id) };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...data,
+                    documents: data.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setData(newData);
+                  if (isNewConsultation) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
+            )}
           </div>
           <div
             className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]

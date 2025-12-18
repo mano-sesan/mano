@@ -21,7 +21,7 @@ import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
 import { useDataLoader } from "../../../services/dataLoader";
 import { toast } from "react-toastify";
-import { MANO_TEST_ORG_ID } from "../../../config";
+import { shouldUseNewDocumentsSystem } from "../../../config";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -87,8 +87,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicalFile]);
 
-  const useNewDocumentSystem =
-    (organisation._id === MANO_TEST_ORG_ID || process.env.NODE_ENV === "development") && !import.meta.env.VITE_TEST_PLAYWRIGHT;
+  const useNewDocumentSystem = shouldUseNewDocumentsSystem(organisation?._id);
 
   return (
     <>
