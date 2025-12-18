@@ -43,6 +43,11 @@ export const prepareRencontreForEncryption = (rencontre, { checkRequiredFields =
     deletedAt: rencontre.deletedAt,
     organisation: rencontre.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: rencontre.person,
+    team: rencontre.team,
+    user: rencontre.user,
+
     decrypted,
     entityKey: rencontre.entityKey,
   };

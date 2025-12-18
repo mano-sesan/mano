@@ -9,6 +9,12 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, positiveIntegerRegex } = require("../utils");
 
+const passageLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+  team: z.optional(z.string().regex(looseUuidRegex)),
+  user: z.optional(z.string().regex(looseUuidRegex)),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -19,6 +25,7 @@ router.post(
       z.object({
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...passageLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in passage creation: ${e}`);
@@ -31,6 +38,9 @@ router.post(
         organisation: req.user.organisation,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
+        person: req.body.person || null,
+        team: req.body.team || null,
+        user: req.body.user || null,
       },
       { returning: true }
     );
@@ -45,6 +55,9 @@ router.post(
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        person: data.person,
+        team: data.team,
+        user: data.user,
       },
     });
   })
@@ -86,7 +99,7 @@ router.get(
 
     const data = await Passage.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "person", "team", "user"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
   })
@@ -107,6 +120,7 @@ router.put(
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
           ...(req.body.createdAt ? { createdAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
+          ...passageLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -123,6 +137,9 @@ router.put(
     const updatePassage = {
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      person: req.body.person || null,
+      team: req.body.team || null,
+      user: req.body.user || null,
     };
 
     await Passage.update(updatePassage, query, { silent: false });
@@ -138,6 +155,9 @@ router.put(
         createdAt: newPassage.createdAt,
         updatedAt: newPassage.updatedAt,
         deletedAt: newPassage.deletedAt,
+        person: newPassage.person,
+        team: newPassage.team,
+        user: newPassage.user,
       },
     });
   })

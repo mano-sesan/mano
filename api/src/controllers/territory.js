@@ -10,6 +10,10 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
 
+const territoryLinksSchema = z.object({
+  user: z.optional(z.string().regex(looseUuidRegex)),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -20,6 +24,7 @@ router.post(
       z.object({
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...territoryLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in territory creation: ${e}`);
@@ -31,6 +36,7 @@ router.post(
         organisation: req.user.organisation,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
+        user: req.body.user || null,
       },
       { returning: true }
     );
@@ -44,6 +50,7 @@ router.post(
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        user: data.user,
       },
     });
   })
@@ -125,7 +132,7 @@ router.get(
 
     const data = await Territory.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "user"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
   })
@@ -195,6 +202,7 @@ router.put(
         body: z.object({
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...territoryLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -211,6 +219,7 @@ router.put(
     const updateTerritory = {
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      user: req.body.user || null,
     };
 
     territory.set(updateTerritory);

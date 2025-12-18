@@ -24,6 +24,12 @@ export interface ReadyToEncryptTerritoryObservationInstance {
   deletedAt?: string | Date;
   updatedAt?: string | Date;
 
+  // Phase 1 (links migration): dual-write links outside encrypted blob.
+  // Optional for retro-compat / older cached items.
+  territory?: UUIDV4;
+  user?: UUIDV4;
+  team?: UUIDV4;
+
   decrypted: {
     territory?: UUIDV4;
     user?: UUIDV4;

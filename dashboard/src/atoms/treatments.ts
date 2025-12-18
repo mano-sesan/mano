@@ -60,6 +60,10 @@ export const prepareTreatmentForEncryption = (treatment: TreatmentInstance, { ch
     deletedAt: treatment.deletedAt,
     organisation: treatment.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: treatment.person,
+    user: treatment.user,
+
     decrypted,
     entityKey: treatment.entityKey,
   };

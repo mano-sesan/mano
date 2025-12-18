@@ -9,6 +9,13 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, positiveIntegerRegex } = require("../utils");
 
+const commentLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+  action: z.optional(z.string().regex(looseUuidRegex)),
+  team: z.optional(z.string().regex(looseUuidRegex)),
+  user: z.optional(z.string().regex(looseUuidRegex)),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -19,6 +26,7 @@ router.post(
       z.object({
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...commentLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in comment creation: ${e}`);
@@ -31,6 +39,10 @@ router.post(
         organisation: req.user.organisation,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
+        person: req.body.person || null,
+        action: req.body.action || null,
+        team: req.body.team || null,
+        user: req.body.user || null,
       },
       { returning: true }
     );
@@ -45,6 +57,10 @@ router.post(
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        person: data.person,
+        action: data.action,
+        team: data.team,
+        user: data.user,
       },
     });
   })
@@ -86,7 +102,7 @@ router.get(
 
     const data = await Comment.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "person", "action", "team", "user"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
   })
@@ -106,6 +122,7 @@ router.put(
         body: z.object({
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...commentLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -122,6 +139,10 @@ router.put(
     const updateComment = {
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      person: req.body.person || null,
+      action: req.body.action || null,
+      team: req.body.team || null,
+      user: req.body.user || null,
     };
 
     await Comment.update(updateComment, query, { silent: false });
@@ -137,6 +158,10 @@ router.put(
         createdAt: newComment.createdAt,
         updatedAt: newComment.updatedAt,
         deletedAt: newComment.deletedAt,
+        person: newComment.person,
+        action: newComment.action,
+        team: newComment.team,
+        user: newComment.user,
       },
     });
   })

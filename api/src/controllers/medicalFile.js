@@ -9,6 +9,10 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, positiveIntegerRegex } = require("../utils");
 
+const medicalFileLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -19,6 +23,7 @@ router.post(
       z.object({
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...medicalFileLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in medicalFile creation: ${e}`);
@@ -31,6 +36,7 @@ router.post(
         organisation: req.user.organisation,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
+        person: req.body.person || null,
       },
       { returning: true }
     );
@@ -45,6 +51,7 @@ router.post(
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
         deletedAt: data.deletedAt,
+        person: data.person,
       },
     });
   })
@@ -86,7 +93,7 @@ router.get(
 
     const data = await MedicalFile.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "person"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
   })
@@ -118,6 +125,7 @@ router.put(
           _id: z.string().regex(looseUuidRegex),
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...medicalFileLinksSchema.shape,
         }),
       }).parse(req.body);
     } catch (e) {
@@ -171,6 +179,7 @@ router.put(
       const updateMedicalFile = {
         encrypted: encrypted,
         encryptedEntityKey: encryptedEntityKey,
+        person: req.body.medicalFile.person || null,
       };
       await MedicalFile.update(updateMedicalFile, query, { silent: false, transaction: t });
     });
@@ -193,6 +202,7 @@ router.put(
         body: z.object({
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...medicalFileLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -209,6 +219,7 @@ router.put(
     const updateMedicalFile = {
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      person: req.body.person || null,
     };
 
     await MedicalFile.update(updateMedicalFile, query, { silent: false });
@@ -224,6 +235,7 @@ router.put(
         createdAt: newMedicalFile.createdAt,
         updatedAt: newMedicalFile.updatedAt,
         deletedAt: newMedicalFile.deletedAt,
+        person: newMedicalFile.person,
       },
     });
   })
