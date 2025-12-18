@@ -25,6 +25,7 @@ const View = () => {
   const [, setActiveTab] = useLocalStorage("stats-tabCaption");
   const [, setSelectedTerritories] = useLocalStorage("stats-territories");
   const user = useAtomValue(userState);
+  const canTransferTerritory = user?.role === "admin";
   const [territories] = useAtom(territoriesState);
   const [modalOpen, setModalOpen] = useState(false);
   const territory = territories.find((t) => t._id === id);
@@ -94,14 +95,16 @@ const View = () => {
               >
                 Statistiques du territoire
               </button>
-              <button
-                className="button-classic"
-                onClick={() => {
-                  setIsTransferModalOpen(true);
-                }}
-              >
-                Transférer les données vers un autre territoire
-              </button>
+              {canTransferTerritory && (
+                <button
+                  className="button-classic"
+                  onClick={() => {
+                    setIsTransferModalOpen(true);
+                  }}
+                >
+                  Transférer les données vers un autre territoire
+                </button>
+              )}
               <DeleteButtonAndConfirmModal
                 // eslint-disable-next-line no-irregular-whitespace
                 title={`Voulez-vous vraiment supprimer le territoire ${territory.name} ?`}
