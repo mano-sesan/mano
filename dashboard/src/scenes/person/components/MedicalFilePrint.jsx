@@ -1,13 +1,14 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
-import { currentTeamState, organisationState, usersState } from "../../../atoms/auth";
+import { currentTeamState, organisationState, usersState, userState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { sortActionsOrConsultations } from "../../../atoms/actions";
 import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/selectors";
 import { treatmentsState } from "../../../atoms/treatments";
 import { customFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
+import { disableConsultationRow } from "../../../atoms/consultations";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import UserName from "../../../components/UserName";
 
@@ -26,6 +27,7 @@ export function MedicalFilePrint({ person }) {
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
   const users = useAtomValue(usersState);
+  const user = useAtomValue(userState);
 
   const personConsultations = useMemo(() => (allConsultations || []).filter((c) => c.person === person._id), [allConsultations, person._id]);
   const personConsultationsFiltered = useMemo(
@@ -209,33 +211,37 @@ export function MedicalFilePrint({ person }) {
           return (
             <div key={c._id} className="tw-mb-8">
               <h4>{c.name}</h4>
-              {Object.entries(c)
-                .filter(([key, value]) => value && !hiddenKeys.includes(key))
-                .map(([key, value]) => {
-                  let field = organisation.consultations
-                    .find((e) => e.name === (c.type || ""))
-                    ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
-                    .find((e) => e.name === key);
-                  if (!field) {
-                    field = { type: "text", label: key };
-                    if (key === "type") field = { type: "text", label: "Type" };
-                    if (key === "status") field = { type: "text", label: "Statut" };
-                    if (key === "dueAt") field = { type: "date-with-time", label: "Date" };
-                    if (key === "user") {
-                      field = { type: "text", label: "Créé par" };
-                      value = users.find((u) => u._id === value)?.name;
+              {disableConsultationRow(c, user) ? (
+                <div>Contenu restreint</div>
+              ) : (
+                Object.entries(c)
+                  .filter(([key, value]) => value && !hiddenKeys.includes(key))
+                  .map(([key, value]) => {
+                    let field = organisation.consultations
+                      .find((e) => e.name === (c.type || ""))
+                      ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
+                      .find((e) => e.name === key);
+                    if (!field) {
+                      field = { type: "text", label: key };
+                      if (key === "type") field = { type: "text", label: "Type" };
+                      if (key === "status") field = { type: "text", label: "Statut" };
+                      if (key === "dueAt") field = { type: "date-with-time", label: "Date" };
+                      if (key === "user") {
+                        field = { type: "text", label: "Créé par" };
+                        value = users.find((u) => u._id === value)?.name;
+                      }
                     }
-                  }
 
-                  return (
-                    <div key={key}>
-                      {field.label}&nbsp;:{" "}
-                      <b>
-                        <CustomFieldDisplay key={key} type={field.type} value={value} />
-                      </b>
-                    </div>
-                  );
-                })}
+                    return (
+                      <div key={key}>
+                        {field.label}&nbsp;:{" "}
+                        <b>
+                          <CustomFieldDisplay key={key} type={field.type} value={value} />
+                        </b>
+                      </div>
+                    );
+                  })
+              )}
             </div>
           );
         })}
