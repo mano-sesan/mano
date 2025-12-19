@@ -1,21 +1,6 @@
 import { ReactNode } from "react";
 
-/**
- * Alert Component
- *
- * Styled wrapper around Bootstrap-like contextual alerts. Mirrors previous Reactstrap palette
- * (primary, secondary, success, danger, warning, info, light, dark) while using Tailwind utility classes.
- *
- * @example
- * // Warning banner with custom spacing
- * <Alert color="warning">
- *   Vérifiez vos informations avant de continuer.
- * </Alert>
- *
- * @prop {"primary"|"secondary"|"success"|"danger"|"warning"|"info"|"light"|"dark"} [color="info"] - Visual variant to apply. Defaults to "info" if omitted or invalid.
- * @prop {ReactNode} children - Alert content, usually text and inline elements
- * @prop {string} [className] - Extra Tailwind classes to append to the outer div
- */
+/** Contextual alert with Bootstrap-like color variants. */
 
 type AlertColor = "primary" | "secondary" | "success" | "danger" | "warning" | "info" | "light" | "dark";
 

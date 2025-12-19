@@ -1,37 +1,4 @@
-/**
- * Spinner Component
- *
- * A loading indicator using an animated SVG. Supports multiple sizes, colors, and alignments.
- *
- * @example
- * // Default (medium size, main color, centered)
- * <Spinner />
- *
- * // Small white spinner aligned left
- * <Spinner size="sm" color="white" align="left" />
- *
- * // Large success-colored spinner
- * <Spinner size="lg" color="success" />
- *
- * @prop {("sm"|"md"|"lg")} [size="md"] - Spinner size
- *   - sm: 16px (w-4 h-4)
- *   - md: 24px (w-6 h-6) — default
- *   - lg: 32px (w-8 h-8)
- *
- * @prop {("main"|"white"|"gray"|"success"|"danger"|"warning"|"info")} [color="main"] - Fill color of the spinning arc
- *   - main: brand/primary color (#226854)
- *   - white: white (for dark backgrounds)
- *   - gray: neutral gray
- *   - success: green
- *   - danger: red
- *   - warning: yellow/amber
- *   - info: blue
- *
- * @prop {("left"|"center"|"right")} [align="center"] - Horizontal alignment within parent container
- *   Note: if the spinner is wrapped inside a flex container, that parent may override the alignment.
- *
- * @prop {string} [className] - Additional Tailwind classes to apply to the wrapper div
- */
+/** Animated SVG loading spinner with size, color, and alignment options. */
 
 interface SpinnerProps {
   size?: "sm" | "md" | "lg";
