@@ -43,14 +43,14 @@ type PersonScreenParams = NativeStackScreenProps<RootStackParamList, "PERSON">;
 export default function PersonStackNavigator({ navigation, route }: PersonScreenParams) {
   const person = route.params.person;
   return (
-    <PersonStack.Navigator>
+    <PersonStack.Navigator screenOptions={{ headerShown: false }}>
       <PersonStack.Screen name="PERSON">
         {(props) => (
           <Person
             navigation={navigation}
             route={route}
             onRemoveFromActiveList={() => props.navigation.push("PERSON_OUT_OF_ACTIVE_LIST_REASON")}
-            onAddActionRequest={() => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK", { person })}
+            onAddActionRequest={() => navigation.navigate("ACTION_NEW_STACK", { person })}
           />
         )}
       </PersonStack.Screen>

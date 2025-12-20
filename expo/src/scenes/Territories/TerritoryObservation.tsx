@@ -73,7 +73,7 @@ export default function TerritoryObservationStackNavigator(props: TerritoryObser
   });
 
   return (
-    <ObsStack.Navigator>
+    <ObsStack.Navigator screenOptions={{ headerShown: false }}>
       <ObsStack.Screen name="TERRITORY_OBSERVATION">
         {(stackProps) => (
           <TerritoryObservation

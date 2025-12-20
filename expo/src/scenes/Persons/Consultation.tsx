@@ -130,7 +130,7 @@ const ConsultationScreen = (props: Props) => {
   }, []);
 
   return (
-    <ConsultationStack.Navigator>
+    <ConsultationStack.Navigator screenOptions={{ headerShown: false }}>
       <ConsultationStack.Screen name="CONSULTATION">
         {(stackProps) => (
           <ConsultationForm
