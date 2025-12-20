@@ -42,7 +42,7 @@ export default function ActionNewScreen({ route, navigation }: NewActionScreenPr
   const canChangePerson = !person;
 
   return (
-    <ActionNewStack.Navigator>
+    <ActionNewStack.Navigator screenOptions={{ headerShown: false }}>
       <ActionNewStack.Screen name="ACTION_NEW">
         {(stackProps) => (
           <NewActionForm

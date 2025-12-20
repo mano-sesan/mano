@@ -97,7 +97,7 @@ const ActionScreen = (props: ActionProps) => {
   }, []);
 
   return (
-    <ActionStack.Navigator>
+    <ActionStack.Navigator screenOptions={{ headerShown: false }}>
       <ActionStack.Screen name="ACTION">
         {(stackProps) => (
           <Action
