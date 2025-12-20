@@ -1,4 +1,4 @@
-package com.sesan.mano
+package com.sesan.mano.niort
 
 import android.app.Application
 import com.facebook.react.PackageList

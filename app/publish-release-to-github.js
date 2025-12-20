@@ -8,7 +8,7 @@ const mobileAppVersion = require('./package.json').version;
 
 const publishAppToLatestTag = async () => {
   const result = await exec(
-    `gh release create m${mobileAppVersion} ./android/app/build/outputs/apk/release/app-release.apk ./app.json --target main`
+    `gh release create niort${mobileAppVersion} ./android/app/build/outputs/apk/release/app-release.apk ./app.json --target main`
   );
 
   if (result.stderr?.length) {

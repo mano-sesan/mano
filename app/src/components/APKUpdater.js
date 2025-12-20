@@ -59,7 +59,7 @@ const APKUpdater = () => {
         });
 
       const apkPath = response.path();
-      // const apkPath = '/storage/emulated/0/Android/data/com.sesan.mano/files/Download/YourApp_latest.apk';
+      // const apkPath = '/storage/emulated/0/Android/data/com.sesan.mano.niort/files/Download/YourApp_latest.apk';
       console.log("Download completed:", apkPath);
       setDownloadProgress(100);
       // Verify the file exists
