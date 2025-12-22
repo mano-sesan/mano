@@ -156,10 +156,11 @@ const AddField = ({ groupTitle: typeName }) => {
 
   const onAddField = async (newField, onFinish) => {
     // Check for duplicate field names
-    const flattenFields = consultationFields.reduce((allFields, type) => [...allFields, ...type.fields], []);
-    if (flattenFields.map((e) => e.label).includes(newField.label)) {
+    // Check for duplicate field names
+    const currentGroup = consultationFields.find((type) => type.name === typeName);
+    if (currentGroup?.fields?.map((e) => e.label).includes(newField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newConsultationFields = consultationFields.map((type) => {
@@ -242,11 +243,12 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
 
   const onSaveField = async (editedField, onFinish) => {
     // Check for duplicate field names (excluding the current field being edited)
-    const flattenFields = consultationFields.reduce((allFields, type) => [...allFields, ...type.fields], []);
-    const otherFields = flattenFields.filter((field) => field.name !== customField.name);
+    // Check for duplicate field names (excluding the current field being edited)
+    const currentGroup = consultationFields.find((type) => type.name === typeName);
+    const otherFields = currentGroup?.fields?.filter((field) => field.name !== customField.name) || [];
     if (otherFields.map((e) => e.label).includes(editedField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newConsultationFields = consultationFields.map((type) => {

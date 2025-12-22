@@ -137,15 +137,17 @@ const MedicalFileSettings = () => {
 
 const AddField = ({ groupTitle: typeName }) => {
   const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+
   const [organisation, setOrganisation] = useAtom(organisationState);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
   const onAddField = async (newField, onFinish) => {
-    if (flatCustomFieldsMedicalFile.map((e) => e.label).includes(newField.label)) {
+    // Check for duplicate field names
+    const currentGroup = groupedCustomFieldsMedicalFile.find((type) => type.name === typeName);
+    if (currentGroup?.fields?.map((e) => e.label).includes(newField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newCustomFieldsMedicalFile = groupedCustomFieldsMedicalFile.map((type) => {
@@ -223,16 +225,17 @@ const MedicalFileCustomField = ({ item: customField, groupTitle: typeName }) => 
   const [organisation, setOrganisation] = useAtom(organisationState);
   const medicalFiles = useAtomValue(medicalFileState);
   const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
-  const flatCustomFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
     // Check for duplicate field names (excluding the current field being edited)
-    const otherFields = flatCustomFieldsMedicalFile.filter((field) => field.name !== customField.name);
+    // Check for duplicate field names (excluding the current field being edited)
+    const currentGroup = groupedCustomFieldsMedicalFile.find((type) => type.name === typeName);
+    const otherFields = currentGroup?.fields?.filter((field) => field.name !== customField.name) || [];
     if (otherFields.map((e) => e.label).includes(editedField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newCustomFieldsMedicalFile = groupedCustomFieldsMedicalFile.map((type) => {
