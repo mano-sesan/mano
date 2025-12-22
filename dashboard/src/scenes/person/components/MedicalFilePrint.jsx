@@ -210,13 +210,14 @@ export function MedicalFilePrint({ person }) {
           ];
           return (
             <div key={c._id} className="tw-mb-8">
-              <h4>{c.name}</h4>
               {disableConsultationRow(c, user) ? (
                 <div>Contenu restreint</div>
               ) : (
-                Object.entries(c)
-                  .filter(([key, value]) => value && !hiddenKeys.includes(key))
-                  .map(([key, value]) => {
+                <>
+                  <h4>{c.name}</h4>
+                  {Object.entries(c)
+                    .filter(([key, value]) => value && !hiddenKeys.includes(key))
+                    .map(([key, value]) => {
                     let field = organisation.consultations
                       .find((e) => e.name === (c.type || ""))
                       ?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
@@ -240,7 +241,8 @@ export function MedicalFilePrint({ person }) {
                         </b>
                       </div>
                     );
-                  })
+                  })}
+                </>
               )}
             </div>
           );
