@@ -107,7 +107,15 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
   return allPersons;
 };
 
-const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams }) => {
+const itemsForStatsSelector = ({
+  period,
+  filterPersons,
+  selectedTeamsObjectWithOwnPeriod,
+  viewAllOrganisationData,
+  allPersons,
+  teams,
+  territories,
+}) => {
   const relativeFilters = [
     "startFollowBySelectedTeamDuringPeriod",
     "hasAtLeastOneConsultation",
@@ -119,7 +127,12 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
   ];
 
   const activeFilters = filterPersons.filter(
-    (f) => f.value && !relativeFilters.includes(f.field) && f.field !== "outOfActiveList" && f.field !== "outOfTeamsDuringPeriod"
+    (f) =>
+      f.value &&
+      !relativeFilters.includes(f.field) &&
+      f.field !== "outOfActiveList" &&
+      f.field !== "outOfTeamsDuringPeriod" &&
+      f.field !== "territories"
   );
   const outOfActiveListFilter = filterPersons.find((f) => f.field === "outOfActiveList")?.value;
   const filterByStartFollowBySelectedTeamDuringPeriod = filterPersons.filter((f) => f.field === "startFollowBySelectedTeamDuringPeriod");
@@ -130,6 +143,7 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
   const filterByNumberOfRencontres = filterPersons.filter((f) => f.field === "numberOfRencontres");
   const filterByNumberOfTreatments = filterPersons.filter((f) => f.field === "numberOfTreatments");
   const filterByOutOfTeamsDuringPeriod = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriod");
+  const filterByTerritories = filterPersons.find((f) => f.field === "territories");
 
   const filterItemByTeam = (item, key) => {
     if (viewAllOrganisationData) return true;
@@ -162,6 +176,10 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
   // Pre-compute team IDs for outOfTeamsDuringPeriod filter (optimization: avoid recomputing inside loop)
   const outOfTeamsDuringPeriodTeamIds = filterByOutOfTeamsDuringPeriod?.value?.length
     ? new Set(teams.filter((t) => filterByOutOfTeamsDuringPeriod.value.includes(t.name)).map((t) => t._id))
+    : null;
+
+  const filterByTerritoriesIds = filterByTerritories?.value?.length
+    ? new Set(territories.filter((t) => filterByTerritories.value.includes(t.name)).map((t) => t._id))
     : null;
 
   for (let person of allPersons) {
@@ -211,6 +229,30 @@ const itemsForStatsSelector = ({ period, filterPersons, selectedTeamsObjectWithO
         }
       }
       if (!filterItem(filterByNumberOfTreatments)({ numberOfTreatments })) continue;
+    }
+
+    if (filterByTerritoriesIds) {
+      const includeNoTerritory = filterByTerritories.value.includes("Non renseigné");
+      let hasRencontreInTerritory = false;
+      for (const rencontre of person.rencontres || []) {
+        const territoryId = rencontre.observationObject?.territory;
+        if (!territoryId) {
+          if (!includeNoTerritory) continue;
+        } else {
+          if (!filterByTerritoriesIds.has(territoryId)) continue;
+        }
+        if (noPeriodSelected) {
+          hasRencontreInTerritory = true;
+          break;
+        }
+        const date = rencontre.date;
+        const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[rencontre.team] ?? defaultIsoDates;
+        if (date < isoStartDate) continue;
+        if (date >= isoEndDate) continue;
+        hasRencontreInTerritory = true;
+        break;
+      }
+      if (!hasRencontreInTerritory) continue;
     }
 
     // get persons for stats for period
@@ -578,8 +620,9 @@ const Stats = () => {
       selectedTeamsObjectWithOwnPeriod,
       viewAllOrganisationData,
       teams,
+      territories,
     });
-  }, [period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams]);
+  }, [period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams, territories]);
 
   const filterableActionsCategories = useMemo(() => {
     if (!actionsCategoriesGroups.length) return ["-- Aucune --", ...allCategories];
@@ -739,6 +782,14 @@ const Stats = () => {
       type: "multi-choice",
       options: teams.map((t) => t.name),
     });
+    // Stats-only filter: Territoires
+    filterBase.push({
+      field: "territories",
+      name: "territories",
+      label: "Rencontré·e dans un territoire",
+      type: "multi-choice",
+      options: territories.map((t) => t.name),
+    });
     return filterBase;
   }, [
     filterPersonsBase,
@@ -749,6 +800,7 @@ const Stats = () => {
     currentTeam,
     user,
     teams,
+    territories,
   ]);
 
   const availableTabs = tabs.filter((tabCaption) => {
