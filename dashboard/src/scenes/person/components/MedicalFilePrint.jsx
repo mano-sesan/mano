@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
-import { currentTeamState, organisationState, usersState } from "../../../atoms/auth";
+import { currentTeamState, organisationState, usersState, userState } from "../../../atoms/auth";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import { sortActionsOrConsultations } from "../../../atoms/actions";
@@ -9,6 +9,8 @@ import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/select
 import { treatmentsState } from "../../../atoms/treatments";
 import { customFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { useLocalStorage } from "../../../services/useLocalStorage";
+import { disableConsultationRow } from "../../../atoms/consultations";
+
 import UserName from "../../../components/UserName";
 
 export function MedicalFilePrint({ person }) {
@@ -26,6 +28,7 @@ export function MedicalFilePrint({ person }) {
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
   const users = useAtomValue(usersState);
+  const user = useAtomValue(userState);
 
   const personConsultations = useMemo(() => (allConsultations || []).filter((c) => c.person === person._id), [allConsultations, person._id]);
   const personConsultationsFiltered = useMemo(
@@ -188,6 +191,7 @@ export function MedicalFilePrint({ person }) {
       </div>
       <div className="printonly">
         {personConsultationsFiltered.map((c) => {
+          const isVisible = !disableConsultationRow(c, user);
           const hiddenKeys = [
             "_id",
             "name",
@@ -206,11 +210,13 @@ export function MedicalFilePrint({ person }) {
             "userPopulated",
             "history",
           ];
+          const keysForHiddenConsultation = ["status", "dueAt", "completedAt", "teams", "user"];
           return (
             <div key={c._id} className="tw-mb-8">
               <h4>{c.name}</h4>
+              {!isVisible && <div>Consultation seulement visible par {users.find((u) => u._id === c.user)?.name}</div>}
               {Object.entries(c)
-                .filter(([key, value]) => value && !hiddenKeys.includes(key))
+                .filter(([key, value]) => value && !hiddenKeys.includes(key) && (isVisible || keysForHiddenConsultation.includes(key)))
                 .map(([key, value]) => {
                   let field = organisation.consultations
                     .find((e) => e.name === (c.type || ""))
