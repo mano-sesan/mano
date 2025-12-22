@@ -210,7 +210,7 @@ export function MedicalFilePrint({ person }) {
             "userPopulated",
             "history",
           ];
-          const keysForHiddenConsultation = ["status", "dueAt", "completedAt", "teams", "user"];
+          const keysForHiddenConsultation = ["type", "status", "dueAt", "completedAt", "teams", "user"];
           return (
             <div key={c._id} className="tw-mb-8">
               <h4>{c.name}</h4>
