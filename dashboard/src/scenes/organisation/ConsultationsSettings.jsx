@@ -242,7 +242,6 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
 
   const onSaveField = async (editedField, onFinish) => {
     // Check for duplicate field names (excluding the current field being edited)
-    // Check for duplicate field names (excluding the current field being edited)
     const currentGroup = consultationFields.find((type) => type.name === typeName);
     const otherFields = currentGroup?.fields?.filter((field) => field.name !== customField.name) || [];
     if (otherFields.map((e) => e.label).includes(editedField.label)) {
