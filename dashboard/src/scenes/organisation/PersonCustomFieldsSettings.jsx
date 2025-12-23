@@ -136,14 +136,15 @@ const PersonCustomFieldsSettings = () => {
 const AddField = ({ groupTitle: typeName }) => {
   const [organisation, setOrganisation] = useAtom(organisationState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
   const onAddField = async (newField, onFinish) => {
-    if (flattenedCustomFieldsPersons.map((e) => e.label).includes(newField.label)) {
+    const currentGroup = customFieldsPersons.find((type) => type.name === typeName);
+    if (currentGroup?.fields?.map((e) => e.label).includes(newField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     try {
@@ -223,17 +224,18 @@ const ConsultationCustomField = ({ item: customField, groupTitle: typeName }) =>
   const [organisation, setOrganisation] = useAtom(organisationState);
   const allPersons = useAtomValue(personsState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
-  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+
   const { encryptPerson } = usePreparePersonForEncryption();
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
     // Check for duplicate field names (excluding the current field being edited)
-    const otherFields = flattenedCustomFieldsPersons.filter((field) => field.name !== customField.name);
+    const currentGroup = customFieldsPersons.find((type) => type.name === typeName);
+    const otherFields = currentGroup?.fields?.filter((field) => field.name !== customField.name) || [];
     if (otherFields.map((e) => e.label).includes(editedField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     try {
