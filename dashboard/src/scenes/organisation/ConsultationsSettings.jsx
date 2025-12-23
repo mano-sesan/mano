@@ -156,7 +156,6 @@ const AddField = ({ groupTitle: typeName }) => {
 
   const onAddField = async (newField, onFinish) => {
     // Check for duplicate field names
-    // Check for duplicate field names
     const currentGroup = consultationFields.find((type) => type.name === typeName);
     if (currentGroup?.fields?.map((e) => e.label).includes(newField.label)) {
       onFinish();
