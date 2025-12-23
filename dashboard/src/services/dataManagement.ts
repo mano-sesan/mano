@@ -1,4 +1,5 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
+import { toast } from "react-toastify";
 import { capture } from "./sentry";
 
 export const dashboardCurrentCacheKey = "mano_last_refresh_2024_10_21_4";
@@ -96,6 +97,32 @@ export async function setCacheItem(key: string, value: any) {
       } catch (error) {
         capture(error, { tags: { key } });
         return;
+      }
+    }
+    const errorString = String(error);
+    if (
+      errorString.includes("QuotaExceededError") ||
+      errorString.includes("DataError") ||
+      errorString.includes("IOError") ||
+      errorString.includes("Failed to write blobs")
+    ) {
+      try {
+        if (navigator.storage && navigator.storage.estimate) {
+          const { usage, quota } = await navigator.storage.estimate();
+          const valueSize = JSON.stringify(value).length;
+          const usageInMib = (usage || 0) / 1024 / 1024;
+          const quotaInMib = (quota || 0) / 1024 / 1024;
+          const valueSizeInMib = valueSize / 1024 / 1024;
+          const errorMessage = `Storage error for key ${key}: usage ${usageInMib.toFixed(2)}MiB, quota ${quotaInMib.toFixed(
+            2
+          )}MiB, payload ${valueSizeInMib.toFixed(2)}MiB`;
+          console.error(errorMessage);
+          capture(error, { tags: { key }, extra: { usage, quota, valueSize, errorMessage } });
+          toast.error("Impossible de mettre vos données en cache, veuillez vérifier votre espace disque et réessayer.");
+          return;
+        }
+      } catch (e) {
+        capture(e, { extra: { context: "Failed to estimate storage" } });
       }
     }
     capture(error, { tags: { key } });
