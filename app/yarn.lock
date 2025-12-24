@@ -8931,6 +8931,9 @@ __metadata:
     urijs: "npm:^1.19.11"
     use-debounce: "npm:^10.0.4"
     uuid: "npm:^3.4.0"
+  dependenciesMeta:
+    patch-package:
+      built: true
   languageName: unknown
   linkType: soft
 
