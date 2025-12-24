@@ -1,0 +1,47 @@
+import React from "react";
+import styled, { css } from "styled-components/native";
+import ButtonRight from "./ButtonRight";
+import RowContainer from "./RowContainer";
+import { MyText } from "./MyText";
+import { ActivityIndicator, View } from "react-native";
+import colors from "../utils/colors";
+
+type RowProps = {
+  loading?: boolean;
+  onPress: () => void;
+  caption?: string;
+  withNextButton?: boolean;
+  center?: boolean;
+  onBack?: () => void;
+  testID?: string;
+  color?: string;
+  disabled?: boolean;
+};
+
+const Row = ({ loading, onPress, caption, withNextButton, center, onBack, testID, color = "#000", disabled }: RowProps) => (
+  <RowContainer onPress={onPress} center={center || loading} disabled={loading || disabled} testID={testID}>
+    {Boolean(onBack) && <ButtonRight onPress={onPress} caption="<" />}
+    <Caption loading={loading} as={loading ? View : MyText} color={color}>
+      {loading ? <ActivityIndicator size="small" color={colors.app.secondary} /> : caption}
+    </Caption>
+    {withNextButton && <ButtonRight onPress={onPress} caption=">" />}
+  </RowContainer>
+);
+
+const loaderCss = css`
+  align-self: center;
+  justify-content: center;
+  flex-grow: 1;
+  text-align: center;
+`;
+
+const Caption = styled(MyText)<{ loading?: boolean }>`
+  margin-left: 15px;
+  font-size: 20px;
+  font-weight: bold;
+  max-width: 90%;
+  ${(props) => props.loading && loaderCss}
+  color: ${(props) => props.color};
+`;
+
+export default Row;

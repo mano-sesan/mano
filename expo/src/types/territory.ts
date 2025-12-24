@@ -1,7 +1,7 @@
 // types/user.ts
 import { UUIDV4 } from "./uuid";
 
-type TerritoryType =
+export type TerritoryType =
   | "Lieu de conso"
   | "Lieu de deal"
   | "Carrefour de passage"

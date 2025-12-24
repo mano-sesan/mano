@@ -1,0 +1,162 @@
+import React, { useMemo, useState } from "react";
+import { Alert, View, Modal, Keyboard } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import ButtonDelete from "../../components/ButtonDelete";
+import { useAtomValue } from "jotai";
+import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
+import DateAndTimeInput from "../../components/DateAndTimeInput";
+import { CommentInstance } from "@/types/comment";
+import dayjs, { Dayjs } from "dayjs";
+
+type CommentModalProps = {
+  title?: string;
+  visible: boolean;
+  commentDB: CommentInstance;
+  onClose: () => void;
+  onUpdate?: (comment: CommentInstance) => Promise<boolean>;
+  onDelete?: (comment: CommentInstance) => Promise<boolean>;
+  canToggleUrgentCheck?: boolean;
+  canToggleGroupCheck?: boolean;
+};
+
+const CommentModal = ({
+  title = "Commentaire",
+  visible,
+  commentDB,
+  onClose,
+  onUpdate,
+  onDelete,
+  canToggleUrgentCheck,
+  canToggleGroupCheck,
+}: CommentModalProps) => {
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
+  const organisation = useAtomValue(organisationState)!;
+
+  const [comment, setComment] = useState(commentDB?.comment?.split("\\n").join("\u000A") || "");
+  const [urgent, setUrgent] = useState(commentDB?.urgent || false);
+  const [date, setDate] = useState((commentDB?.date || commentDB?.createdAt) ?? dayjs());
+  const [group, setGroup] = useState(commentDB?.group || false);
+  const [updating, setUpdating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const isUpdateDisabled = useMemo(() => {
+    if ((commentDB?.comment || "") !== comment) return false;
+    if ((commentDB?.urgent || false) !== urgent) return false;
+    if ((commentDB?.group || false) !== group) return false;
+    if ((commentDB?.date || false) !== date) return false;
+    return true;
+  }, [comment, commentDB, urgent, group, date]);
+
+  const onUpdateComment = async () => {
+    if (!onUpdate) return;
+    setUpdating(true);
+    const body: CommentInstance = {
+      _id: commentDB._id,
+      team: commentDB.team || currentTeam?._id,
+      user: commentDB.user || user?._id,
+      comment: comment.trim(),
+      date: date as Dayjs,
+      urgent,
+      group,
+      organisation: organisation._id,
+      type: commentDB.type || undefined,
+      person: commentDB.person,
+      action: commentDB.action,
+    };
+    const success = await onUpdate(body);
+    Keyboard.dismiss();
+    setUpdating(false);
+    if (success) Alert.alert("Commentaire mis à jour !", undefined, [{ text: "OK", onPress: onClose }]);
+  };
+
+  const onDeleteConfirm = async () => {
+    if (!onDelete) return;
+    setDeleting(true);
+    const success = await onDelete(commentDB);
+    setDeleting(false);
+    if (!success) return;
+    Alert.alert("Commentaire supprimé !");
+    onClose();
+  };
+
+  const onDeleteRequest = () => {
+    Alert.alert("Voulez-vous vraiment supprimer ce commentaire ?", "Cette opération est irréversible.", [
+      {
+        text: "Supprimer",
+        style: "destructive",
+        onPress: onDeleteConfirm,
+      },
+      {
+        text: "Annuler",
+        style: "cancel",
+      },
+    ]);
+  };
+
+  const onGoBackRequested = () => {
+    if (isUpdateDisabled) {
+      onClose();
+      return;
+    }
+    Alert.alert("Voulez-vous enregistrer ce commentaire ?", undefined, [
+      {
+        text: "Enregistrer",
+        onPress: onUpdateComment,
+      },
+      {
+        text: "Ne pas enregistrer",
+        onPress: onClose,
+        style: "destructive",
+      },
+      {
+        text: "Annuler",
+        style: "cancel",
+      },
+    ]);
+  };
+
+  return (
+    <Modal animationType="fade" visible={!!visible}>
+      <SceneContainer>
+        <ScreenTitle title={title} onBack={onGoBackRequested} testID="comment" />
+        <ScrollContainer>
+          <View>
+            <InputLabelled label="Commentaire" onChangeText={setComment} value={comment} placeholder="Description" multiline />
+            {!!canToggleUrgentCheck && (
+              <CheckboxLabelled
+                _id="urgent"
+                label="Commentaire prioritaire (ce commentaire sera mis en avant par rapport aux autres)"
+                alone
+                onPress={() => setUrgent((u) => !u)}
+                value={urgent}
+              />
+            )}
+            <DateAndTimeInput label="Créé le / Concerne le" setDate={(a) => setDate(a as Dayjs)} date={date} showTime showDay withTime />
+            {!!canToggleGroupCheck && (
+              <CheckboxLabelled
+                _id="group"
+                label="Commentaire familial (ce commentaire sera visible pour toute la famille)"
+                alone
+                onPress={() => setGroup((g) => !g)}
+                value={group}
+              />
+            )}
+            <ButtonsContainer>
+              {Boolean(onDelete) && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
+              {Boolean(onUpdate) && <Button caption="Mettre à jour" onPress={onUpdateComment} disabled={isUpdateDisabled} loading={updating} />}
+            </ButtonsContainer>
+          </View>
+        </ScrollContainer>
+      </SceneContainer>
+    </Modal>
+  );
+};
+
+export default CommentModal;

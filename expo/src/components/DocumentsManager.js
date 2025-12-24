@@ -95,7 +95,8 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 };
 
 // La liste des documents en tant que telle.
-const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
+const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
+  documents = documents || [];
   const [selectedFolder, setSelectedFolder] = useState("root");
   const user = useAtomValue(userState);
   const [asset, setAsset] = useState(null);
@@ -318,7 +319,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
       },
       async (buttonIndex) => {
         if (options[buttonIndex] === "Supprimer") {
-          Alert.alert("Voulez-vous vraiment supprimer ce document ?", null, [
+          Alert.alert("Voulez-vous vraiment supprimer ce document ?", undefined, [
             {
               text: "Annuler",
               style: "cancel",

@@ -12,13 +12,13 @@ export const territoryObservationsState = atomWithCache<Array<TerritoryObservati
 export const customFieldsObsSelector = atom((get) => {
   const organisation = get(organisationState)!;
   if (Array.isArray(organisation.customFieldsObs) && organisation.customFieldsObs.length) return organisation.customFieldsObs;
-  return defaultCustomFields;
+  return defaultCustomFields as CustomField[];
 });
 
 export const groupedCustomFieldsObsSelector = atom((get) => {
   const organisation = get(organisationState)!;
   if (Array.isArray(organisation.groupedCustomFieldsObs) && organisation.groupedCustomFieldsObs.length) return organisation.groupedCustomFieldsObs;
-  return [{ name: "Groupe par défaut", fields: defaultCustomFields }];
+  return [{ name: "Groupe par défaut", fields: defaultCustomFields as CustomField[] }];
 });
 
 export const defaultCustomFields = [
@@ -83,15 +83,15 @@ export const defaultCustomFields = [
 
 const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
 
-export const prepareObsForEncryption = (customFields: CustomField[]) => (obs: TerritoryObservationInstance) => {
+export const prepareObsForEncryption = (customFields: CustomField[]) => (obs: Partial<TerritoryObservationInstance>) => {
   try {
     if (!looseUuidRegex.test(obs.territory || "")) {
       throw new Error("Observation is missing territory");
     }
-    if (!looseUuidRegex.test(obs.user)) {
+    if (!looseUuidRegex.test(obs.user || "")) {
       throw new Error("Observation is missing user");
     }
-    if (!looseUuidRegex.test(obs.team)) {
+    if (!looseUuidRegex.test(obs.team || "")) {
       throw new Error("Observation is missing team");
     }
     if (!obs.observedAt) {

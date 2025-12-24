@@ -83,7 +83,7 @@ export const usePreparePersonForEncryption = () => {
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
   const personFields = useAtomValue(personFieldsSelector);
-  const preparePersonForEncryption = (person: PersonInstance) => {
+  const preparePersonForEncryption = (person: Partial<PersonInstance>) => {
     try {
       if (!person.name) {
         throw new Error("Person is missing name");

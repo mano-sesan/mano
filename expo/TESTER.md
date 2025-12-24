@@ -1,0 +1,11 @@
+- duplication d'action
+- création d'action depuis le bouton +
+- création d'action depuis une personne
+- actions filter
+- dossier médical et consultations
+- 
+- FIX:
+- PossibleDate ? pour consultation/traitement/etc ? "fixer avec dayjsInstance().toISOString()" ?
+- commentaire: type ? parfois ? pas tout le temps ? même commentaire pour action/personne/traitement/etc. ?
+- _id optionnel ou pas : bizarre
+- revoir le `castTo`qui est pourrave
