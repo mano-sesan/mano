@@ -6,7 +6,7 @@
     "buildName": "3.16.1"
   },
   "bundle": {
-    "android": "com.sesan.mano",
-    "ios": "com.sesan.mano"
+    "android": "com.sesan.mano.niort",
+    "ios": "com.sesan.mano.niort"
   }
 }

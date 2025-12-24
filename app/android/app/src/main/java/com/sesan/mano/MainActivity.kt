@@ -1,4 +1,4 @@
-package com.sesan.mano
+package com.sesan.mano.niort
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
