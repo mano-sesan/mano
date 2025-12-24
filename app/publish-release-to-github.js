@@ -1,7 +1,7 @@
-const chalk = require('chalk');
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-const mobileAppVersion = require('./package.json').version;
+const chalk = require("chalk");
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
+const mobileAppVersion = require("./package.json").version;
 
 // Before running the script
 // To authenticate, please run `gh auth login`.
@@ -12,14 +12,14 @@ const publishAppToLatestTag = async () => {
   );
 
   if (result.stderr?.length) {
-    console.log(chalk.red('Error uploading app:'), chalk.bgRed(result.stderr));
+    console.log(chalk.red("Error uploading app:"), chalk.bgRed(result.stderr));
     return;
   }
   if (result.stdout?.length) {
-    console.log(chalk.green('Success uploading app:'), chalk.green(result.stdout));
+    console.log(chalk.green("Success uploading app:"), chalk.green(result.stdout));
   }
 
-  console.log(chalk.yellow('Transfer completed 😬: https://mano.sesan.fr/download'));
+  console.log(chalk.yellow("Transfer completed 😬: https://mano.sesan.fr/download-niort"));
 };
 
 publishAppToLatestTag();
