@@ -14,6 +14,12 @@ const DONE = "FAIT";
 const CANCEL = "ANNULEE";
 const STATUS = [TODO, DONE, CANCEL];
 
+const consultationLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+  user: z.optional(z.string().regex(looseUuidRegex)),
+  teams: z.optional(z.array(z.string().regex(looseUuidRegex))),
+});
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -28,6 +34,7 @@ router.post(
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
         onlyVisibleBy: z.array(z.string().regex(looseUuidRegex)),
+        ...consultationLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in consultation creation: ${e}`);
@@ -44,6 +51,9 @@ router.post(
       onlyVisibleBy: req.user.role !== "restricted-access" ? onlyVisibleBy : [],
       encrypted,
       encryptedEntityKey,
+      person: req.body.person || null,
+      user: req.body.user || null,
+      teams: Array.isArray(req.body.teams) ? req.body.teams : null,
     };
 
     const data = await Consultation.create(consultation, { returning: true });
@@ -61,6 +71,9 @@ router.post(
         status: data.status,
         dueAt: data.dueAt,
         completedAt: data.completedAt,
+        person: data.person,
+        user: data.user,
+        teams: data.teams,
       },
     });
   })
@@ -127,6 +140,10 @@ router.get(
         "dueAt",
         "completedAt",
         "onlyVisibleBy",
+        // Phase 1 (links migration): clear link fields
+        "person",
+        "user",
+        "teams",
         // All other fields are encrypted and should not be returned.
       ],
     });
@@ -148,6 +165,9 @@ router.get(
         status: consultation.status,
         dueAt: consultation.dueAt,
         completedAt: consultation.completedAt,
+        person: consultation.person,
+        user: consultation.user,
+        teams: consultation.teams,
       })),
       hasMore: data.length === Number(limit),
       total,
@@ -173,6 +193,7 @@ router.put(
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
           onlyVisibleBy: z.array(z.string().regex(looseUuidRegex)),
+          ...consultationLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -197,6 +218,9 @@ router.put(
       completedAt: completedAt || null,
       encrypted,
       encryptedEntityKey,
+      person: req.body.person || null,
+      user: req.body.user || null,
+      teams: Array.isArray(req.body.teams) ? req.body.teams : null,
     });
     await consultation.save();
 
@@ -214,6 +238,9 @@ router.put(
         dueAt: consultation.dueAt,
         completedAt: consultation.completedAt,
         onlyVisibleBy: consultation.onlyVisibleBy,
+        person: consultation.person,
+        user: consultation.user,
+        teams: consultation.teams,
       },
     });
   })

@@ -14,6 +14,24 @@ const DONE = "FAIT";
 const CANCEL = "ANNULEE";
 const STATUS = [TODO, DONE, CANCEL];
 
+const actionLinksSchema = z.object({
+  person: z.optional(z.string().regex(looseUuidRegex)),
+  user: z.optional(z.string().regex(looseUuidRegex)),
+  team: z.optional(z.string().regex(looseUuidRegex)),
+  teams: z.optional(z.array(z.string().regex(looseUuidRegex))),
+});
+
+function normalizeActionLinks(body) {
+  const teams = Array.isArray(body.teams) ? body.teams.filter(Boolean) : [];
+  const team = body.team || (teams.length === 1 ? teams[0] : null);
+  return {
+    person: body.person || null,
+    user: body.user || null,
+    team: team || null,
+    teams: teams.length ? teams : team ? [team] : null,
+  };
+}
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -27,6 +45,7 @@ router.post(
         ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
+        ...actionLinksSchema.shape,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in action creation: ${e}`);
@@ -35,6 +54,7 @@ router.post(
     }
 
     const { status, dueAt, completedAt, encrypted, encryptedEntityKey } = req.body;
+    const links = normalizeActionLinks(req.body);
     const action = {
       organisation: req.user.organisation,
       status,
@@ -42,6 +62,7 @@ router.post(
       completedAt: completedAt || null,
       encrypted,
       encryptedEntityKey,
+      ...links,
     };
 
     const data = await Action.create(action, { returning: true });
@@ -58,6 +79,10 @@ router.post(
         status: data.status,
         dueAt: data.dueAt,
         completedAt: data.completedAt,
+        person: data.person,
+        user: data.user,
+        team: data.team,
+        teams: data.teams,
       },
     });
   })
@@ -78,6 +103,7 @@ router.post(
           recurrence: z.optional(z.string().regex(looseUuidRegex)),
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...actionLinksSchema.shape,
         })
       ).parse(req.body);
     } catch (e) {
@@ -90,6 +116,7 @@ router.post(
       const actions = [];
       for (const action of req.body) {
         const { status, dueAt, completedAt, encrypted, encryptedEntityKey } = action;
+        const links = normalizeActionLinks(action);
         const actionToCreate = {
           organisation: req.user.organisation,
           status,
@@ -98,6 +125,7 @@ router.post(
           recurrence: action.recurrence || null,
           encrypted,
           encryptedEntityKey,
+          ...links,
         };
         await Action.create(actionToCreate, { transaction, returning: true }).then((data) => {
           actions.push({
@@ -112,6 +140,10 @@ router.post(
             status: data.status,
             dueAt: data.dueAt,
             completedAt: data.completedAt,
+            person: data.person,
+            user: data.user,
+            team: data.team,
+            teams: data.teams,
           });
         });
       }
@@ -182,6 +214,11 @@ router.get(
         "dueAt",
         "completedAt",
         "recurrence",
+        // Phase 1 (links migration): clear link fields
+        "person",
+        "user",
+        "team",
+        "teams",
         // All other fields are encrypted and should not be returned.
       ],
     });
@@ -210,6 +247,7 @@ router.put(
           ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
           encrypted: z.string(),
           encryptedEntityKey: z.string(),
+          ...actionLinksSchema.shape,
         }),
       }).parse(req);
     } catch (e) {
@@ -227,12 +265,14 @@ router.put(
     if (!action) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { status, dueAt, completedAt, encrypted, encryptedEntityKey } = req.body;
+    const links = normalizeActionLinks(req.body);
     action.set({
       status,
       dueAt,
       completedAt: completedAt || null,
       encrypted,
       encryptedEntityKey,
+      ...links,
     });
     await action.save();
 
@@ -249,6 +289,10 @@ router.put(
         status: action.status,
         dueAt: action.dueAt,
         completedAt: action.completedAt,
+        person: action.person,
+        user: action.user,
+        team: action.team,
+        teams: action.teams,
       },
     });
   })
