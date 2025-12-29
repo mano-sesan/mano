@@ -138,15 +138,17 @@ const ObservationsSettings = () => {
 
 const AddField = ({ groupTitle: typeName }) => {
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useAtomValue(customFieldsObsSelector);
+
   const [organisation, setOrganisation] = useAtom(organisationState);
   const [isAddingField, setIsAddingField] = useState(false);
   const { refresh } = useDataLoader();
 
   const onAddField = async (newField, onFinish) => {
-    if (flatCustomFieldsObs.map((e) => e.label).includes(newField.label)) {
+    // Check for duplicate field names
+    const currentGroup = groupedCustomFieldsObs.find((type) => type.name === typeName);
+    if (currentGroup?.fields?.map((e) => e.label).includes(newField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newCustomFieldsObs = groupedCustomFieldsObs.map((type) => {
@@ -225,16 +227,16 @@ const ObservationCustomField = ({ item: customField, groupTitle: typeName }) => 
   const [organisation, setOrganisation] = useAtom(organisationState);
   const observations = useAtomValue(territoryObservationsState);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
-  const flatCustomFieldsObs = useAtomValue(customFieldsObsSelector);
 
   const { refresh } = useDataLoader();
 
   const onSaveField = async (editedField, onFinish) => {
     // Check for duplicate field names (excluding the current field being edited)
-    const otherFields = flatCustomFieldsObs.filter((field) => field.name !== customField.name);
+    const currentGroup = groupedCustomFieldsObs.find((type) => type.name === typeName);
+    const otherFields = currentGroup?.fields?.filter((field) => field.name !== customField.name) || [];
     if (otherFields.map((e) => e.label).includes(editedField.label)) {
       onFinish();
-      return toast.error(`Ce nom de champ existe déjà dans un autre groupe`);
+      return toast.error(`Ce nom de champ existe déjà dans ce groupe`);
     }
 
     const newCustomFieldsObs = groupedCustomFieldsObs.map((type) => {
