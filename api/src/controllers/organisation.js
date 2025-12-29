@@ -1662,6 +1662,14 @@ router.get(
              pg_size_pretty(COALESCE(SUM(pg_column_size("Place".*::text)::bigint), 0)) as data_size
       FROM "mano"."Place" 
       WHERE organisation = :orgId
+
+      UNION ALL
+      
+      SELECT 'Recurrence' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Recurrence".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Recurrence" 
+      WHERE organisation = :orgId
       
       UNION ALL
       
@@ -1670,7 +1678,23 @@ router.get(
              pg_size_pretty(COALESCE(SUM(pg_column_size("RelPersonPlace".*::text)::bigint), 0)) as data_size
       FROM "mano"."RelPersonPlace" 
       WHERE organisation = :orgId
+
+      UNION ALL
       
+      SELECT 'Service' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Service".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Service" 
+      WHERE organisation = :orgId
+
+      UNION ALL
+      
+      SELECT 'Structure' as table_name,
+             COUNT(*) as row_count,
+             pg_size_pretty(COALESCE(SUM(pg_column_size("Structure".*::text)::bigint), 0)) as data_size
+      FROM "mano"."Structure" 
+      WHERE organisation = :orgId
+       
       UNION ALL
       
       SELECT 'User' as table_name,
