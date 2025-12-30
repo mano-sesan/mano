@@ -39,6 +39,31 @@ const initialLoadingTextState = "En attente de chargement";
 export const loadingTextState = atom(initialLoadingTextState);
 export const initialLoadIsDoneState = atom(false);
 
+// IMPORTANT:
+// - The entity caches (person, action, ...) are persisted in IndexedDB and shared across tabs.
+// - But the "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
+//   cursor forward and make other tabs permanently miss updates (then mergeItems keeps stale entities).
+const perTabLastRefreshKey = `mano-last-refresh-local-${dashboardCurrentCacheKey}`;
+
+function getPerTabLastRefresh() {
+  try {
+    const v = window.sessionStorage?.getItem(perTabLastRefreshKey);
+    if (!v) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+function setPerTabLastRefresh(value) {
+  try {
+    window.sessionStorage?.setItem(perTabLastRefreshKey, String(Number(value) || 0));
+  } catch (_e) {
+    // ignore
+  }
+}
+
 export function useDataLoader(options = { refreshOnMount: false }) {
   const [fullScreen, setFullScreen] = useAtom(fullScreenState);
   const [isLoading, setIsLoading] = useAtom(isLoadingState);
@@ -86,15 +111,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
 
-    let lastLoadValue = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
-    let now = Date.now();
-
+    // Use a per-tab cursor if available; otherwise bootstrap from the shared global cursor.
+    // This keeps the cache persistent across sessions, but prevents multi-tab cursor skipping.
+    const globalLastLoadValue = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
+    const perTabLastLoadValue = getPerTabLastRefresh();
+    let lastLoadValue = perTabLastLoadValue ?? globalLastLoadValue;
     // On vérifie s'il y a un autre identifiant d'organisation dans le cache pour le supprimer le cas échéant
     const otherOrganisationId = await getCacheItemDefaultValue("organisationId", null);
     if (otherOrganisationId && otherOrganisationId !== organisation._id) {
       setLoadingText("Nettoyage du cache de la précédente organisation");
       await clearCache("otherOrganisationId");
       lastLoadValue = 0;
+      setPerTabLastRefresh(0);
     }
 
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
@@ -640,6 +668,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // On enregistre également l'identifiant de l'organisation
     setCacheItem("organisationId", organisationId);
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
+    setPerTabLastRefresh(serverDate);
     setLoadingText("En attente de rafraichissement");
     // On ne reset pas les valeurs de progress et total si on est en initial load
     // Car on le fait après la redirection pour éviter un flash de chargement
@@ -655,6 +684,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
     await clearCache("resetLoaderOnError");
+    setPerTabLastRefresh(0);
     // Pas de message d'erreur si la page est en train de se fermer
     // et que l'erreur est liée à une requête annulable.
     if (error?.name === "BeforeUnloadAbortError") return false;
