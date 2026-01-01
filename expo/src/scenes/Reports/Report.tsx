@@ -227,19 +227,19 @@ const Report = ({ navigation, route }: Props) => {
         <Row
           withNextButton
           caption={`Actions complétées (${actionsCompleted.length})`}
-          onPress={() => navigation.navigate("ACTIONS", { date: day, status: DONE })}
+          onPress={() => navigation.navigate("ACTIONS_FOR_REPORT", { date: day, status: DONE })}
           disabled={!actionsCompleted.length}
         />
         <Row
           withNextButton
           caption={`Actions créées (${actionsCreated.length})`}
-          onPress={() => navigation.navigate("ACTIONS", { date: day, status: TODO })}
+          onPress={() => navigation.navigate("ACTIONS_FOR_REPORT", { date: day, status: null })}
           disabled={!actionsCreated.length}
         />
         <Row
           withNextButton
           caption={`Actions annulées (${actionsCanceled.length})`}
-          onPress={() => navigation.navigate("ACTIONS", { date: day, status: CANCEL })}
+          onPress={() => navigation.navigate("ACTIONS_FOR_REPORT", { date: day, status: CANCEL })}
           disabled={!actionsCanceled.length}
         />
         <Spacer height={30} />
@@ -248,19 +248,19 @@ const Report = ({ navigation, route }: Props) => {
             <Row
               withNextButton
               caption={`Consultations complétées (${consultationsCompleted.length})`}
-              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: DONE })}
+              onPress={() => navigation.navigate("CONSULTATIONS_FOR_REPORT", { date: day, status: DONE })}
               disabled={!consultationsCompleted.length}
             />
             <Row
               withNextButton
               caption={`Consultations créées (${consultationsCreated.length})`}
-              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: TODO })}
+              onPress={() => navigation.navigate("CONSULTATIONS_FOR_REPORT", { date: day, status: null })}
               disabled={!consultationsCreated.length}
             />
             <Row
               withNextButton
               caption={`Consultations annulées (${consultationsCanceled.length})`}
-              onPress={() => navigation.navigate("CONSULTATIONS", { date: day, status: CANCEL })}
+              onPress={() => navigation.navigate("CONSULTATIONS_FOR_REPORT", { date: day, status: CANCEL })}
               disabled={!consultationsCanceled.length}
             />
             <Spacer height={30} />
