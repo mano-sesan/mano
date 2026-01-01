@@ -111,7 +111,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
   const onActionPress = useCallback(
     (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION", {
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION_STACK", {
         action,
       });
     },

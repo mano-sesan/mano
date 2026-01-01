@@ -47,7 +47,7 @@ import { CommentInstance } from "@/types/comment";
 type DocumentOrFolder = Document | Folder;
 
 type ActionInstanceWithoutId = Omit<ActionInstance, "_id">;
-type ActionProps = NativeStackScreenProps<RootStackParamList, "ACTION">;
+type ActionProps = NativeStackScreenProps<RootStackParamList, "ACTION_STACK">;
 
 type ActionTopTabNavigatorParams = {
   ACTION_INFORMATIONS: undefined;
@@ -378,7 +378,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
     Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
-    navigation.replace("ACTION", {
+    navigation.replace("ACTION_STACK", {
       action: response.decryptedData,
       person: response.decryptedData.person,
       editable: true,

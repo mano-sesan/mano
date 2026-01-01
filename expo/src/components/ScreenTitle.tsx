@@ -1,11 +1,11 @@
 import React from "react";
 import styled from "styled-components/native";
-import { ActivityIndicator, Animated, StatusBar, StyleSheet, TouchableOpacity, View, ViewStyle } from "react-native";
+import { ActivityIndicator, Animated, StatusBar, TouchableOpacity, View, ViewStyle } from "react-native";
 import { MyText } from "./MyText";
 import colors from "../utils/colors";
 import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 import { DEVMODE_HIDE_STATUS_BAR } from "../config";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { type Edge, SafeAreaView } from "react-native-safe-area-context";
 
 const hitSlop = {
   top: 20,
@@ -33,6 +33,9 @@ type ScreenTitleProps = {
   forceTop?: boolean;
 };
 
+const withTopEdges: Edge[] = ["left", "right", "top"];
+const withoutTopEdges: Edge[] = ["left", "right"];
+
 const ScreenTitle = ({
   title,
   onBack,
@@ -51,63 +54,65 @@ const ScreenTitle = ({
 }: ScreenTitleProps) => {
   const showRightButton = Boolean(onAdd) || Boolean(onEdit) || Boolean(onSave);
   const showLeftButton = showRightButton || Boolean(onBack);
+  const topEdges = showRightButton || showLeftButton;
 
   return (
-    <>
-      <AnimatedSafeAreaView style={[styles.color(backgroundColor), styles.wrapper(parentScroll, forceTop)]}>
-        <StatusBar backgroundColor={backgroundColor} hidden={Boolean(__DEV__ && DEVMODE_HIDE_STATUS_BAR)} />
-        <Animated.View style={[styles.color(backgroundColor), styles.container(forceTop)]}>
-          <Animated.View style={styles.titleContainer(parentScroll, forceTop)}>
-            {!forceTop && <Animated.View style={[styles.buttonsContainer]} />}
-            <Animated.View style={styles.titleCaptionContainer}>
-              <Title ellipsizeMode="tail" color={color}>
-                {title}
-              </Title>
-              {Boolean(onPressRight) && (
-                <TouchableOpacity hitSlop={hitSlop} onPress={onPressRight}>
-                  <ButtonText>{customRight}</ButtonText>
+    <AnimatedSafeAreaView
+      edges={topEdges ? withTopEdges : withoutTopEdges}
+      style={[styles.color(backgroundColor), styles.wrapper(parentScroll, forceTop)]}
+    >
+      <StatusBar backgroundColor={backgroundColor} hidden={Boolean(__DEV__ && DEVMODE_HIDE_STATUS_BAR)} />
+      <Animated.View style={[styles.color(backgroundColor), styles.container(forceTop)]}>
+        <Animated.View style={styles.titleContainer(parentScroll, forceTop)}>
+          {!forceTop && <Animated.View style={[styles.buttonsContainer]} />}
+          <Animated.View style={styles.titleCaptionContainer}>
+            <Title ellipsizeMode="tail" color={color}>
+              {title}
+            </Title>
+            {Boolean(onPressRight) && (
+              <TouchableOpacity hitSlop={hitSlop} onPress={onPressRight}>
+                <ButtonText>{customRight}</ButtonText>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+        </Animated.View>
+        <View style={[styles.buttonsContainer, styles.buttonsContainerFixed]}>
+          {!!showLeftButton && (
+            <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
+              <TouchableOpacity hitSlop={hitSlop} onPress={onBack} testID={`${testID}-back-button`}>
+                <ArrowLeftExtended color="#fff" size={20} />
+              </TouchableOpacity>
+            </Animated.View>
+          )}
+          {!!showLeftButton && (
+            <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
+              {Boolean(onAdd) && (
+                <TouchableOpacity hitSlop={hitSlop} onPress={onAdd}>
+                  <ButtonText>Créer</ButtonText>
                 </TouchableOpacity>
               )}
-            </Animated.View>
-          </Animated.View>
-          <View style={[styles.buttonsContainer, styles.buttonsContainerFixed]}>
-            {!!showLeftButton && (
-              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
-                <TouchableOpacity hitSlop={hitSlop} onPress={onBack} testID={`${testID}-back-button`}>
-                  <ArrowLeftExtended color="#fff" size={20} />
-                </TouchableOpacity>
-              </Animated.View>
-            )}
-            {!!showLeftButton && (
-              <Animated.View style={styles.buttonContainer(Boolean(onBack))} pointerEvents={onBack ? "auto" : "none"}>
-                {Boolean(onAdd) && (
-                  <TouchableOpacity hitSlop={hitSlop} onPress={onAdd}>
-                    <ButtonText>Créer</ButtonText>
+              {Boolean(onEdit) &&
+                (saving ? (
+                  <ActivityIndicator size="small" color={color} />
+                ) : (
+                  <TouchableOpacity hitSlop={hitSlop} onPress={onEdit}>
+                    <ButtonText>Modifier</ButtonText>
                   </TouchableOpacity>
-                )}
-                {Boolean(onEdit) &&
-                  (saving ? (
-                    <ActivityIndicator size="small" color={color} />
-                  ) : (
-                    <TouchableOpacity hitSlop={hitSlop} onPress={onEdit}>
-                      <ButtonText>Modifier</ButtonText>
-                    </TouchableOpacity>
-                  ))}
-                {Boolean(onSave) &&
-                  (saving ? (
-                    <ActivityIndicator size="small" color={color} />
-                  ) : (
-                    <TouchableOpacity hitSlop={hitSlop} onPress={onSave}>
-                      <ButtonText>Enregistrer</ButtonText>
-                    </TouchableOpacity>
-                  ))}
-              </Animated.View>
-            )}
-          </View>
-        </Animated.View>
-        {children}
-      </AnimatedSafeAreaView>
-    </>
+                ))}
+              {Boolean(onSave) &&
+                (saving ? (
+                  <ActivityIndicator size="small" color={color} />
+                ) : (
+                  <TouchableOpacity hitSlop={hitSlop} onPress={onSave}>
+                    <ButtonText>Enregistrer</ButtonText>
+                  </TouchableOpacity>
+                ))}
+            </Animated.View>
+          )}
+        </View>
+      </Animated.View>
+      {children}
+    </AnimatedSafeAreaView>
   );
 };
 
@@ -132,8 +137,9 @@ type Styles = {
 };
 
 const styles: Styles = {
-  wrapper: (parentScroll, forceTop) =>
-    StyleSheet.flatten({
+  wrapper: (parentScroll, forceTop) => {
+    console.log("marginTop", forceTop ? 0 : parentScroll?.interpolate ? -90 : 0);
+    return {
       overflow: "visible",
       zIndex: 100,
       marginTop: forceTop ? 0 : parentScroll?.interpolate ? -90 : 0,
@@ -150,7 +156,8 @@ const styles: Styles = {
             : 0,
         },
       ],
-    }),
+    };
+  },
   titleContainer: (parentScroll, forceTop) => ({
     justifyContent: "flex-start",
     alignItems: "flex-start",

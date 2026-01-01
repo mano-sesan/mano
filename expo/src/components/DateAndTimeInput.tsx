@@ -130,7 +130,7 @@ const DateAndTimeInput = ({
 
   if (!editable) {
     const datetoShow = showDay
-      ? dayjsInstance(date).format(showTime && withTime ? "dddd DD MMMM HH:mm" : "dddd DD MMMM")
+      ? dayjsInstance(date).format(showTime && withTime ? "dddd D MMMM HH:mm" : "dddd D MMMM")
       : `${date ? convertDate(date, showDay) : "JJ-MM-AAAA"}${showTime && withTime ? ` à ${convertTime(date)}` : ""}`;
     return <InputLabelled label={label} value={datetoShow} editable={false} />;
   }
@@ -140,8 +140,8 @@ const DateAndTimeInput = ({
     // @ts-expect-error This comparison appears to be unintentional because the types 'Date' and 'string' have no overlap
     // eslint-disable-next-line eqeqeq
     if (new Date(date) == "Invalid Date") return "JJ-MM-AAAA";
-    if (showYear) return dayjsInstance(date).format("DD MMMM YYYY");
-    return dayjsInstance(date).format("dddd DD MMMM");
+    if (showYear) return dayjsInstance(date).format("D MMMM YYYY");
+    return dayjsInstance(date).format("dddd D MMMM");
   };
 
   return (
@@ -225,7 +225,7 @@ const WithTimeContainer = styled.TouchableOpacity`
   align-items: center;
   padding-horizontal: 15px;
   padding-vertical: 10px;
-  flex-grow: 1;
+  flex-grow: 0;
 `;
 const WithTime = styled(MyText)`
   font-weight: bold;
@@ -233,6 +233,8 @@ const WithTime = styled(MyText)`
   margin-horizontal: 15px;
 `;
 
-const Input = styled(MyText)``;
+const Input = styled(MyText)`
+  flex-grow: 1;
+`;
 
 export default DateAndTimeInput;

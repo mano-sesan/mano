@@ -47,7 +47,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
   const onActionPress = useCallback(
     (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.push("ACTION", { action });
+      navigation.push("ACTION_STACK", { action });
     },
     [navigation]
   );

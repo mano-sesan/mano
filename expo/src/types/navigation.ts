@@ -20,7 +20,7 @@ The type containing the mappings must be a type alias (e.g. type RootStackParamL
 export type RootStackParamList = {
   LOGIN_STACK: NavigatorScreenParams<LoginStackParamsList>;
   TABS_STACK: NavigatorScreenParams<TabsParamsList>;
-  ACTION: ActionScreenParams;
+  ACTION_STACK: ActionScreenParams;
   ACTION_NEW_STACK?: { person: PersonInstance };
   ACTIONS_FOR_REPORT: { date: string; status: ActionStatus };
   ACTIONS_FILTER: undefined;
@@ -107,7 +107,7 @@ export type ActionListParams = {
 };
 
 export type ActionStackParams = {
-  ACTION: NativeStackScreenProps<RootStackParamList, "ACTION">;
+  ACTION: NativeStackScreenProps<RootStackParamList, "ACTION_STACK">;
   PERSONS_SEARCH: undefined;
   PERSON_NEW: undefined;
 };

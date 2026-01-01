@@ -267,7 +267,7 @@ const App = () => {
             <>
               <AppStack.Screen name="TABS_STACK" component={TabNavigator} />
               {/* Actions */}
-              <AppStack.Screen name="ACTION" component={ActionScreen} />
+              <AppStack.Screen name="ACTION_STACK" component={ActionScreen} />
               <AppStack.Screen name="ACTION_NEW_STACK" component={ActionNewScreen} />
               <AppStack.Screen name="ACTIONS_FOR_REPORT" component={Actions} />
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />

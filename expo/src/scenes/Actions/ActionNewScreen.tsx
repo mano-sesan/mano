@@ -49,7 +49,7 @@ export default function ActionNewScreen({ route, navigation }: NewActionScreenPr
             onBack={() => navigation.goBack()}
             onActionCreated={(action) => {
               if (action) {
-                navigation.replace("ACTION", { action });
+                navigation.replace("ACTION_STACK", { action });
               } else {
                 navigation.goBack();
               }

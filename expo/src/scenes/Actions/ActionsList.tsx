@@ -110,7 +110,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const onActionPress = useCallback(
     (action: ActionInstance) => {
       Sentry.setContext("action", { _id: action._id });
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION", { action });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION_STACK", { action });
     },
     [navigation]
   );
