@@ -49,7 +49,7 @@ const cleanValue = (value: any) => {
   return value;
 };
 type DocumentOrFolder = Document | Folder;
-type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
+type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATION_STACK">;
 type ConsultationWithoutId = Omit<ConsultationInstance, "_id">;
 
 const ConsultationStack = createNativeStackNavigator<ConsultationStackParams>();
@@ -241,7 +241,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
     }
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     backRequestHandledRef.current = true;
-    navigation.replace("CONSULTATION", {
+    navigation.replace("CONSULTATION_STACK", {
       personDB: person,
       consultationDB: response.decryptedData,
       editable: true,

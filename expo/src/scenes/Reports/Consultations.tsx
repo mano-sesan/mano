@@ -27,7 +27,7 @@ const Consultations = ({ route, navigation }: Props) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
 
-  const onCreateConsultation = useCallback(() => navigation.push("CONSULTATION"), [navigation]);
+  const onCreateConsultation = useCallback(() => navigation.push("CONSULTATION_STACK"), [navigation]);
 
   const { consultationsCreated, consultationsCompleted, consultationsCanceled } = useConsultationsForReport(date);
 
@@ -54,7 +54,7 @@ const Consultations = ({ route, navigation }: Props) => {
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
-      navigation.push("CONSULTATION", { personDB, consultationDB });
+      navigation.push("CONSULTATION_STACK", { personDB, consultationDB });
     },
     [navigation]
   );

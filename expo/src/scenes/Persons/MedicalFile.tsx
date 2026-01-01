@@ -311,7 +311,7 @@ const MedicalFile = ({
     return true;
   };
 
-  const onGoToConsultation = (consultationDB?: ConsultationInstance) => navigation.push("CONSULTATION", { personDB, consultationDB });
+  const onGoToConsultation = (consultationDB?: ConsultationInstance) => navigation.push("CONSULTATION_STACK", { personDB, consultationDB });
   const onGoToTreatment = (treatmentDB?: TreatmentInstance) => navigation.navigate("TREATMENT", { personDB, treatmentDB });
 
   const onAddDocument = async (doc: Document) => {

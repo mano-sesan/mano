@@ -58,10 +58,10 @@ export default function PersonRow({ onPress, person, isPersonsSearchRow = false,
           navigation.push("PASSAGE", { person });
         }
         if (options[buttonIndex!] === "Ajouter une action") {
-          navigation.push("ACTION_NEW", { person });
+          navigation.push("ACTION_NEW_STACK", { person });
         }
         if (user.healthcareProfessional && options[buttonIndex!] === "Ajouter une consultation") {
-          navigation.push("CONSULTATION", { personDB: person });
+          navigation.push("CONSULTATION_STACK", { personDB: person });
         }
         if (options[buttonIndex!] === "Ajouter un commentaire") {
           navigation.push("COMMENT", { person, commentTitle: person.name });

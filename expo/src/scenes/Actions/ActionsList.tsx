@@ -83,7 +83,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
         }
         if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
-          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION");
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK");
         }
         if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
@@ -117,7 +117,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION", { personDB, consultationDB });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK", { personDB, consultationDB });
     },
     [navigation]
   );

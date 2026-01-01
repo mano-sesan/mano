@@ -13,7 +13,7 @@ const hitSlop = {
 type ButtonTopPlusProps = {
   onPress: () => void;
   color?: string;
-  disabled: boolean;
+  disabled?: boolean;
 };
 const ButtonTopPlus = ({ onPress, color = "#fff", disabled = false }: ButtonTopPlusProps) => (
   <ButtonContainer disabled={disabled} onPress={onPress} hitSlop={hitSlop}>

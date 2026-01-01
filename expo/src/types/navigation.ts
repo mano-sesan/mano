@@ -48,7 +48,7 @@ export type RootStackParamList = {
   COMPTE_RENDU: { report?: ReportInstance; day: string; editable?: boolean };
   COLLABORATIONS: { report?: ReportInstance; day: string };
   CONSULTATIONS_FOR_REPORT: { date: string; status: ActionStatus };
-  CONSULTATION?: { personDB?: PersonInstance; consultationDB?: ConsultationInstance; duplicate?: boolean; editable?: boolean };
+  CONSULTATION_STACK?: { personDB?: PersonInstance; consultationDB?: ConsultationInstance; duplicate?: boolean; editable?: boolean };
   SERVICES: { date: string };
   STRUCTURES: undefined;
   STRUCTURE_NEW: undefined;
@@ -124,7 +124,7 @@ export type PersonStackParams = {
 };
 
 export type ConsultationStackParams = {
-  CONSULTATION: NativeStackScreenProps<RootStackParamList, "CONSULTATION">;
+  CONSULTATION: NativeStackScreenProps<RootStackParamList, "CONSULTATION_STACK">;
   PERSONS_SEARCH: undefined;
   PERSON_NEW: undefined;
 };

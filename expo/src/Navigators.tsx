@@ -299,7 +299,7 @@ const App = () => {
               <AppStack.Screen name="COLLABORATIONS" component={Collaborations} />
               {/* Consultations */}
               <AppStack.Screen name="CONSULTATIONS_FOR_REPORT" component={Consultations} />
-              <AppStack.Screen name="CONSULTATION" component={Consultation} />
+              <AppStack.Screen name="CONSULTATION_STACK" component={Consultation} />
               {/* Services */}
               <AppStack.Screen name="SERVICES" component={Services} />
               {/* Structures */}
