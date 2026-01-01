@@ -17,7 +17,7 @@ import { PersonInstance } from "@/types/person";
 
 const FoldersStack = createStackNavigator<FoldersStackParams>();
 
-type FoldersNavigatorProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+type FoldersNavigatorProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
   onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
   onUpdatePerson: () => Promise<boolean>;

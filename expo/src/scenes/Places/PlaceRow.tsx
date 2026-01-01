@@ -14,7 +14,7 @@ type PlaceRowProps = {
   place: PlaceInstance;
   relPersonPlace: RelPersonPlaceInstance;
   personDB: PersonPopulated;
-  navigation: NativeStackNavigationProp<RootStackParamList, "PERSON">;
+  navigation: NativeStackNavigationProp<RootStackParamList, "PERSON_STACK">;
 };
 
 const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps) => {

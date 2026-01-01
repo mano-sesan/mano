@@ -40,7 +40,7 @@ import { UUIDV4 } from "@/types/uuid";
 import { PlaceInstance } from "@/types/place";
 import { ActionInstance } from "@/types/action";
 
-type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   person: Omit<PersonInstance, "_id">;
   personDB: PersonInstance;
   onUpdatePerson: (alert?: boolean, stateToMerge?: Partial<PersonInstance>) => Promise<boolean>;

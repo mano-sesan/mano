@@ -52,7 +52,7 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
   const renderPersonRow = ({ item: person }: { item: PersonInstance }) => {
     const onPress = () => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON", { person });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
     };
     return <PersonRow onPress={onPress} person={person} />;
   };

@@ -24,7 +24,7 @@ export type RootStackParamList = {
   ACTION_NEW_STACK?: { person: PersonInstance };
   ACTIONS_FOR_REPORT: { date: string; status: ActionStatus };
   ACTIONS_FILTER: undefined;
-  PERSON: { person: PersonInstance; editable?: boolean };
+  PERSON_STACK: { person: PersonInstance; editable?: boolean };
   PERSON_NEW: undefined;
   COMMENT: { person: PersonInstance; commentTitle: string };
   COMMENTS_FOR_REPORT: { date: string };

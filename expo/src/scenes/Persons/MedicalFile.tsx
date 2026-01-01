@@ -38,7 +38,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "@/types/treatment";
 
-type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
   onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
   onUpdatePerson: () => Promise<boolean>;

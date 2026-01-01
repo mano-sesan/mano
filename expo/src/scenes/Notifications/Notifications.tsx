@@ -103,7 +103,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON", { person });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
     },
     [navigation]
   );

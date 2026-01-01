@@ -102,7 +102,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON", { person });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON_STACK", { person });
     },
     [navigation]
   );
@@ -131,21 +131,11 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
           onPseudoPress={onPseudoPress}
           withBadge
           showPseudo
-          showStatus
           testID="consultation"
         />
       );
     }
-    return (
-      <ActionRow
-        action={item as ActionInstance}
-        onPseudoPress={onPseudoPress}
-        onActionPress={onActionPress}
-        showStatus
-        withTeamName
-        testID="action"
-      />
-    );
+    return <ActionRow action={item as ActionInstance} onPseudoPress={onPseudoPress} onActionPress={onActionPress} testID="action" />;
   };
 
   return (

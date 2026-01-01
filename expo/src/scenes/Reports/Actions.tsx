@@ -46,7 +46,7 @@ const Actions = ({ route, navigation }: Props) => {
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
-      navigation.push("PERSON", { person });
+      navigation.push("PERSON_STACK", { person });
     },
     [navigation]
   );

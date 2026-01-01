@@ -38,7 +38,7 @@ import { PersonStackParams, RootStackParamList } from "@/types/navigation";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
-type PersonScreenParams = NativeStackScreenProps<RootStackParamList, "PERSON">;
+type PersonScreenParams = NativeStackScreenProps<RootStackParamList, "PERSON_STACK">;
 
 export default function PersonStackNavigator({ navigation, route }: PersonScreenParams) {
   const person = route.params.person;
@@ -68,7 +68,7 @@ const cleanValue = (value: string | number | boolean | null | undefined) => {
   return value;
 };
 
-type PersonProps = NativeStackScreenProps<RootStackParamList, "PERSON"> & {
+type PersonProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   onRemoveFromActiveList: () => void;
   onAddActionRequest: () => void;
 };
