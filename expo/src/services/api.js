@@ -266,14 +266,21 @@ class ApiService {
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
-    // @ts-expect-error - 'cacheDirectory' not found in imported namespace 'FileSystem'
+    // In your download method around line 269-276
     const cacheDir = FileSystem.Paths.cache;
 
-    const file = new File(cacheDir, document.file.originalname, "base64");
+    // Create file instance
+    const file = new FileSystem.File(cacheDir, document.file.originalname);
+
+    // Create the file on disk first (required before writing)
+    file.create({ overwrite: true });
+
     if (decrypted) {
-      await file.write(decrypted);
+      // Write the decrypted data as base64 (decode from base64 string to binary)
+      file.write(decrypted, { encoding: "base64" });
     }
-    return { path: file.path, decrypted };
+
+    return { path: file.uri, decrypted };
   };
 
   // Upload a file to a path.

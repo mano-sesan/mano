@@ -138,7 +138,6 @@ type Styles = {
 
 const styles: Styles = {
   wrapper: (parentScroll, forceTop) => {
-    console.log("marginTop", forceTop ? 0 : parentScroll?.interpolate ? -90 : 0);
     return {
       overflow: "visible",
       zIndex: 100,
