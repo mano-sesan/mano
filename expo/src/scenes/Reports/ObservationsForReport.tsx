@@ -30,7 +30,7 @@ const ObservationsForReport = ({ navigation, route }: Props) => {
 
   const onUpdatObs = useCallback(
     (obs: TerritoryObservationInstance) =>
-      navigation.push("TERRITORY_OBSERVATION", { obs, territory: territories.find((t) => t._id === obs.territory)!, editable: true }),
+      navigation.push("TERRITORY_OBSERVATION_STACK", { obs, territory: territories.find((t) => t._id === obs.territory)!, editable: true }),
     [navigation, territories]
   );
 

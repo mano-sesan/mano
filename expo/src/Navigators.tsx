@@ -284,7 +284,7 @@ const App = () => {
               {/* Territories */}
               <AppStack.Screen name="TERRITORY" component={Territory} />
               <AppStack.Screen name="TERRITORY_NEW" component={NewTerritoryForm} />
-              <AppStack.Screen name="TERRITORY_OBSERVATION" component={TerritoryObservation} />
+              <AppStack.Screen name="TERRITORY_OBSERVATION_STACK" component={TerritoryObservation} />
               <AppStack.Screen name="TERRITORY_OBSERVATIONS_FOR_REPORT" component={ObservationsForReport} />
               {/* Rencontres */}
               <AppStack.Screen name="RENCONTRE" component={Rencontre} />

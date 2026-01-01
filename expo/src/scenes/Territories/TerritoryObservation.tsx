@@ -41,7 +41,7 @@ type ObsStackParams = {
 };
 const ObsStack = createNativeStackNavigator<ObsStackParams>();
 
-type TerritoryObservationProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_OBSERVATION">;
+type TerritoryObservationProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_OBSERVATION_STACK">;
 
 export default function TerritoryObservationStackNavigator(props: TerritoryObservationProps) {
   const rencontres = useAtomValue(rencontresState);

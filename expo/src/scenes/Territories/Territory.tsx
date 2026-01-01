@@ -122,10 +122,10 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
     return true;
   }, [territoryDB, territory]);
 
-  const onNewObservation = () => navigation.push("TERRITORY_OBSERVATION", { territory: territoryDB, editable: true });
+  const onNewObservation = () => navigation.push("TERRITORY_OBSERVATION_STACK", { territory: territoryDB, editable: true });
 
   const onUpdateObservation = (obs: TerritoryObservationInstance) => {
-    navigation.push("TERRITORY_OBSERVATION", { obs, territory: territoryDB, editable: true });
+    navigation.push("TERRITORY_OBSERVATION_STACK", { obs, territory: territoryDB, editable: true });
   };
 
   const onGoBackRequested = () => {

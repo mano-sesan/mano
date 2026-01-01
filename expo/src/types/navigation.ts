@@ -33,7 +33,7 @@ export type RootStackParamList = {
   TREATMENT: { personDB: PersonInstance; treatmentDB?: TreatmentInstance; duplicate?: boolean; editable?: boolean };
   TERRITORY: { territory: TerritoryInstance; editable?: boolean };
   TERRITORY_NEW: undefined;
-  TERRITORY_OBSERVATION: {
+  TERRITORY_OBSERVATION_STACK: {
     territory: TerritoryInstance;
     obs?: TerritoryObservationInstance;
     editable?: boolean;
