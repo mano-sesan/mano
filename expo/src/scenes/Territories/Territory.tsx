@@ -1,0 +1,225 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Alert, View } from "react-native";
+import ScrollContainer from "../../components/ScrollContainer";
+import SceneContainer from "../../components/SceneContainer";
+import ScreenTitle from "../../components/ScreenTitle";
+import InputLabelled from "../../components/InputLabelled";
+import Button from "../../components/Button";
+import API from "../../services/api";
+import ButtonsContainer from "../../components/ButtonsContainer";
+import TerritoryMultiCheckBoxes from "../../components/MultiCheckBoxes/TerritoryMultiCheckBoxes";
+import SubList from "../../components/SubList";
+import TerritoryObservationRow from "./TerritoryObservationRow";
+import { useAtom, useAtomValue } from "jotai";
+import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
+import { territoryObservationsState } from "../../recoil/territoryObservations";
+import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import { userState } from "../../recoil/auth";
+import { TerritoryInstance } from "@/types/territory";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { RootStackParamList } from "@/types/navigation";
+import { dayjsInstance } from "@/services/dateDayjs";
+import { TerritoryObservationInstance } from "@/types/territoryObs";
+
+const castToTerritory = (
+  territory: Partial<TerritoryInstance> = {}
+): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
+  name: territory.name?.trim() || "",
+  user: territory.user || "",
+  types: territory.types || [],
+  perimeter: territory.perimeter?.trim() || "",
+  description: territory.description?.trim() || "",
+  entityKey: territory.entityKey || "",
+});
+
+type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;
+
+const Territory = ({ route, navigation }: TerritoryProps) => {
+  const user = useAtomValue(userState)!;
+  const [territories, setTerritories] = useAtom(territoriesState);
+  const [territoryDB, setTerritoryDB] = useState(() => territories.find((territory) => territory._id === route.params?.territory?._id)!);
+
+  const [territory, setTerritory] = useState(castToTerritory(route?.params?.territory));
+  const [allTerritoryObservations, setTerritoryObservations] = useAtom(territoryObservationsState);
+  const territoryObservations = useMemo(() => {
+    return allTerritoryObservations
+      .filter((obs) => obs.territory === territoryDB?._id)
+      .sort((a, b) => dayjsInstance(b.observedAt || b.createdAt).diff(dayjsInstance(a.observedAt || a.createdAt)));
+  }, [territoryDB, allTerritoryObservations]);
+
+  const [updating, setUpdating] = useState(false);
+  const [editable, setEditable] = useState(route?.params?.editable || false);
+
+  const onBack = () => {
+    backRequestHandledRef.current = true;
+    navigation.goBack();
+  };
+
+  const backRequestHandledRef = useRef(false);
+  const handleBeforeRemove = (e: any) => {
+    if (backRequestHandledRef.current === true) return;
+    e.preventDefault();
+    onGoBackRequested();
+  };
+
+  useEffect(() => {
+    const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
+    return () => {
+      beforeRemoveListenerUnsbscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onEdit = () => setEditable((e) => !e);
+
+  const onUpdateTerritory = async () => {
+    setUpdating(true);
+    const response = await API.put({
+      path: `/territory/${territoryDB._id}`,
+      body: prepareTerritoryForEncryption({ ...castToTerritory(territory), user: territory.user || user._id }),
+    });
+    if (response.error) {
+      setUpdating(false);
+      Alert.alert(response.error);
+      return false;
+    }
+    if (response.ok) {
+      setTerritories((territories) =>
+        territories.map((a) => {
+          if (a._id === territoryDB._id) return response.decryptedData;
+          return a;
+        })
+      );
+      setTerritoryDB(response.decryptedData);
+      Alert.alert("Territoire mis à jour !");
+      setUpdating(false);
+      setEditable(false);
+      return true;
+    }
+  };
+
+  const onDelete = async () => {
+    const response = await API.delete({
+      path: `/territory/${territoryDB._id}`,
+      body: {
+        observationIds: territoryObservations.filter((o) => o.territory === territoryDB._id).map((o) => o._id),
+      },
+    });
+    if (response.error) {
+      Alert.alert(response.error);
+      return false;
+    }
+    if (!response.ok) return false;
+    setTerritories((territories) => territories.filter((t) => t._id !== territoryDB._id));
+    setTerritoryObservations((obs) => obs.filter((o) => o.territory !== territoryDB._id));
+    Alert.alert("Territoire supprimé !");
+    return true;
+  };
+
+  const isUpdateDisabled = useMemo(() => {
+    const newTerritory = { ...territoryDB, ...castToTerritory(territory) };
+    if (JSON.stringify(castToTerritory(territoryDB)) !== JSON.stringify(castToTerritory(newTerritory))) return false;
+    return true;
+  }, [territoryDB, territory]);
+
+  const onNewObservation = () => navigation.push("TERRITORY_OBSERVATION_STACK", { territory: territoryDB, editable: true });
+
+  const onUpdateObservation = (obs: TerritoryObservationInstance) => {
+    navigation.push("TERRITORY_OBSERVATION_STACK", { obs, territory: territoryDB, editable: true });
+  };
+
+  const onGoBackRequested = () => {
+    if (isUpdateDisabled) return onBack();
+    Alert.alert("Voulez-vous enregistrer ce territoire ?", undefined, [
+      {
+        text: "Enregistrer",
+        onPress: async () => {
+          const ok = await onUpdateTerritory();
+          if (ok) onBack();
+        },
+      },
+      {
+        text: "Ne pas enregistrer",
+        onPress: onBack,
+        style: "destructive",
+      },
+      {
+        text: "Annuler",
+        style: "cancel",
+      },
+    ]);
+  };
+
+  const { name, types, perimeter, description } = territory;
+
+  return (
+    <SceneContainer>
+      <ScreenTitle
+        title={name}
+        onBack={onGoBackRequested}
+        onEdit={!editable ? onEdit : undefined}
+        onSave={!editable || isUpdateDisabled ? undefined : onUpdateTerritory}
+        saving={updating}
+        testID="territory"
+      />
+      <ScrollContainer testID="territory">
+        <View>
+          {!!editable && (
+            <InputLabelled
+              label="Nom"
+              onChangeText={(name) => setTerritory((t) => ({ ...t, name }))}
+              value={name}
+              placeholder="Nom"
+              textContentType="organizationName"
+              editable={editable}
+            />
+          )}
+          <TerritoryMultiCheckBoxes values={types} onChange={(types) => setTerritory((t) => ({ ...t, types }))} editable={editable} />
+          <InputLabelled
+            label="Perimètre"
+            onChangeText={(perimeter) => setTerritory((t) => ({ ...t, perimeter }))}
+            value={perimeter}
+            placeholder="De la rue XXX à la rue XXX"
+            editable={editable}
+          />
+          <InputLabelled
+            label="Description"
+            onChangeText={(description) => setTerritory((t) => ({ ...t, description }))}
+            value={description}
+            placeholder="Description du territoire"
+            editable={editable}
+            multiline
+          />
+          <ButtonsContainer>
+            <DeleteButtonAndConfirmModal
+              title={`Voulez-vous vraiment supprimer ${territoryDB?.name} ?`}
+              onBack={onBack}
+              textToConfirm={territoryDB?.name}
+              onDelete={onDelete}
+            >
+              Cette opération est irréversible{"\n"}et entrainera la suppression définitive{"\n"}de toutes les observations liées au territoire
+            </DeleteButtonAndConfirmModal>
+            <Button
+              caption={editable ? "Mettre à jour" : "Modifier"}
+              onPress={editable ? onUpdateTerritory : onEdit}
+              disabled={editable ? isUpdateDisabled : false}
+              loading={updating}
+            />
+          </ButtonsContainer>
+          <SubList
+            label="Observations"
+            testID="observations"
+            key={territoryDB?._id}
+            data={territoryObservations}
+            renderItem={(obs, index) => <TerritoryObservationRow key={index} observation={obs} onUpdate={onUpdateObservation} />}
+            ifEmpty="Pas encore d'observation"
+          >
+            <Button caption="Nouvelle observation" onPress={onNewObservation} testID="observations-add" />
+          </SubList>
+        </View>
+      </ScrollContainer>
+    </SceneContainer>
+  );
+};
+
+export default Territory;

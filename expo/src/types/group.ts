@@ -17,7 +17,7 @@ export interface EncryptedGroupFields {
 }
 
 export interface GroupInstance extends EncryptedGroupFields {
-  _id?: UUIDV4;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   createdAt?: Date | string;
   updatedAt?: Date | string;

@@ -6,7 +6,7 @@ import { organisationState } from "./auth";
 import { territoryObservationsState } from "./territoryObservations";
 import structuredClone from "@ungap/structured-clone";
 import { filterBySearch } from "../utils/search";
-import { TerritoryInstance } from "@/types/territory";
+import { ReadyToEncryptTerritoryInstance, TerritoryInstance, TerritoryType } from "@/types/territory";
 import { atomWithCache } from "@/store";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { useMemo } from "react";
@@ -15,12 +15,12 @@ export const territoriesState = atomWithCache<Array<TerritoryInstance>>("territo
 
 const encryptedFields: Array<keyof TerritoryInstance> = ["name", "perimeter", "description", "types", "user"];
 
-export const prepareTerritoryForEncryption = (territory: TerritoryInstance) => {
+export const prepareTerritoryForEncryption = (territory: Partial<TerritoryInstance>): ReadyToEncryptTerritoryInstance => {
   try {
     if (!territory.name) {
       throw new Error("Territory is missing name");
     }
-    if (!looseUuidRegex.test(territory.user)) {
+    if (!looseUuidRegex.test(territory.user!)) {
       throw new Error("Territory is missing user");
     }
   } catch (error) {
@@ -36,13 +36,13 @@ export const prepareTerritoryForEncryption = (territory: TerritoryInstance) => {
     decrypted[field] = territory[field];
   }
   return {
-    _id: territory._id,
-    createdAt: territory.createdAt,
-    updatedAt: territory.updatedAt,
-    organisation: territory.organisation,
+    _id: territory._id!,
+    createdAt: territory.createdAt!,
+    updatedAt: territory.updatedAt!,
+    organisation: territory.organisation!,
 
     decrypted,
-    entityKey: territory.entityKey,
+    entityKey: territory.entityKey!,
   };
 };
 
@@ -53,7 +53,8 @@ export const territoriesTypesSelector = atom((get) => {
 
 export const flattenedTerritoriesTypesSelector = atom((get) => {
   const territoriesGroupedTypes = get(territoriesTypesSelector)!;
-  return territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], [] as string[]);
+  const flattenedTerritoriesTypes = territoriesGroupedTypes.reduce((allTypes, { types }) => [...allTypes, ...types], [] as string[]);
+  return flattenedTerritoriesTypes.map((type) => type as TerritoryType);
 });
 
 const territoriesWithObservations = atom((get) => {
@@ -78,6 +79,8 @@ const territoriesWithObservations = atom((get) => {
 
 export function useTerritoriesWithObservationsSearchSelector(search: string) {
   const territories = useAtomValue(territoriesWithObservations);
-  if (!search?.length) return territories;
-  return useMemo(() => filterBySearch(search, territories), [search, territories]);
+  return useMemo(() => {
+    if (!search?.length) return territories;
+    return filterBySearch(search, territories);
+  }, [search, territories]);
 }

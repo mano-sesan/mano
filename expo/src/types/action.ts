@@ -3,7 +3,7 @@ import { Document, Folder } from "./document";
 import { Dayjs } from "dayjs";
 
 export type ActionStatus = "A FAIRE" | "FAIT" | "ANNULEE";
-type PossibleDate = string | Date | Dayjs | null;
+export type PossibleDate = string | Date | Dayjs | null;
 
 // TODO: séparer la notion de consultation chiffrée, préparée pour le chiffrement et non chiffrée
 // + créer un type action ou consultation
@@ -32,7 +32,7 @@ export interface ActionInstance {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
-  completedAt: Date | undefined;
+  completedAt?: PossibleDate;
   isConsultation?: boolean;
   recurrence?: UUIDV4;
 }

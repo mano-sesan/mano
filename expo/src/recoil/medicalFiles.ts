@@ -56,12 +56,12 @@ export const prepareMedicalFileForEncryption =
     };
   };
 
-const defaultMedicalFileCustomFields = [
+const defaultMedicalFileCustomFields: CustomField[] = [
   {
     name: "numeroSecuriteSociale",
     label: "Numéro de sécurité sociale",
     type: "text",
-    options: null,
+    options: undefined,
     enabled: true,
     required: false,
     showInStats: false,

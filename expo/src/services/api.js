@@ -3,7 +3,7 @@ import { HOST, SCHEME, VERSION } from "../config";
 import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from "expo-file-system";
 import fetchRetry from "fetch-retry";
 import {
   getApiLevel,
@@ -264,17 +264,23 @@ class ApiService {
       fileCache: true,
     }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
     const responsePath = response.path();
-    const res = await ReactNativeBlobUtil.fs.readFile(responsePath, 'base64');
+    const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
-    const cacheDir = FileSystem.cacheDirectory;
-    const filePath = `${cacheDir}${document.file.originalname}`;
-    
+    // In your download method around line 269-276
+    const cacheDir = FileSystem.Paths.cache;
+
+    // Create file instance
+    const file = new FileSystem.File(cacheDir, document.file.originalname);
+
+    // Create the file on disk first (required before writing)
+    file.create({ overwrite: true });
+
     if (decrypted) {
-      await FileSystem.writeAsStringAsync(filePath, decrypted, { 
-        encoding: FileSystem.EncodingType.Base64 
-      });
+      // Write the decrypted data as base64 (decode from base64 string to binary)
+      file.write(decrypted, { encoding: "base64" });
     }
-    return { path: filePath, decrypted };
+
+    return { path: file.uri, decrypted };
   };
 
   // Upload a file to a path.
@@ -311,12 +317,28 @@ class ApiService {
         //     tel: '12345678',
         //   }),
         // },
-      ],
+      ]
     );
 
     const json = await response.json();
     return { ...json, encryptedEntityKey };
   };
+  token = "";
+  onLogIn = () => {};
+  logout = async (_clearAll) => {};
+  handleLogoutError = () => {};
+  handleApiError = () => {};
+  handleError = () => {};
+  handleWrongKey = () => {};
+  downloadAndInstallUpdate = (_link) => {};
+  updateLink = "";
+  navigation = null;
+  enableEncrypt = null;
+  hashedOrgEncryptionKey = null;
+  orgEncryptionKey = null;
+  organisation = null;
+  showTokenExpiredError = false;
+  platform = null;
 }
 
 const API = new ApiService();

@@ -1,7 +1,7 @@
 import { UUIDV4 } from "./uuid";
 
 export interface RencontreInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;
@@ -20,7 +20,7 @@ export interface RencontreInstance {
 }
 
 export interface ReadyToEncryptRencontreInstance {
-  _id?: string;
+  _id: UUIDV4;
   organisation?: UUIDV4;
   entityKey?: string;
   createdAt?: string | Date;
