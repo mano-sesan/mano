@@ -122,7 +122,10 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const handleFocus = () => {
+    const maybeRefreshOnReturn = () => {
+      // When switching tabs in the same window, `focus` is not reliably fired, but `visibilitychange` is.
+      // We only refresh when the tab becomes visible.
+      if (typeof document !== "undefined" && document.visibilityState && document.visibilityState !== "visible") return;
       // why `!window.location.pathname.includes("/auth")` ?
       // EXPLANATION: in global_cache-when-logout.spec.ts:L77, we do
       // `await page.goto("http://localhost:8090/auth");`
@@ -150,9 +153,11 @@ const App = () => {
         });
       }
     };
-    window.addEventListener("focus", handleFocus);
+    window.addEventListener("focus", maybeRefreshOnReturn);
+    document.addEventListener("visibilitychange", maybeRefreshOnReturn);
     return () => {
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("focus", maybeRefreshOnReturn);
+      document.removeEventListener("visibilitychange", maybeRefreshOnReturn);
     };
   }, [initialLoadIsDone, refresh, apiToken]);
 
@@ -227,7 +232,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
   if (!user) {
     try {
       window.sessionStorage.setItem("redirectPath", rest.location.pathname);
-    } catch (e) {
+    } catch (_e) {
       // On s'en fiche si ça ne marche pas
     }
   }
