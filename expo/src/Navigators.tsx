@@ -67,6 +67,7 @@ import ActionsFilter from "./scenes/Actions/ActionsFilter";
 import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
+import PersonNew from "./scenes/Persons/PersonNew";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -273,6 +274,7 @@ const App = () => {
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />
               {/* Persons */}
               <AppStack.Screen name="PERSON_STACK" component={Person} />
+              <AppStack.Screen name="PERSON_NEW_ROOT" component={PersonNew} />
               {/* Comments */}
               <AppStack.Screen name="COMMENT" component={Comment} />
               <AppStack.Screen name="COMMENTS_FOR_REPORT" component={CommentsForReport} />
