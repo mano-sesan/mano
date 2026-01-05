@@ -14,9 +14,7 @@ import UnBugButton from "./UnBugButton";
 import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
-import { markLogoutInitiatedByThisTab } from "../app";
-
-const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
+import { FORCE_LOGOUT_BROADCAST_KEY, markLogoutInitiatedByThisTab } from "../app";
 
 function broadcastLogoutToOtherTabs() {
   try {

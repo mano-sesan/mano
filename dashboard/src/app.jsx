@@ -48,7 +48,7 @@ import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 
-const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
+export const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
 // Track if this tab initiated the logout to avoid processing its own broadcast.
 // Note: This flag is never reset because once set, this tab is in the process of
