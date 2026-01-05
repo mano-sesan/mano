@@ -53,12 +53,8 @@ const TopBar = () => {
       })
       .then(() => clearCache("resetCacheAndLogout"))
       .then(() => {
-        // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
-        // Il n'a donc aucune utilité d'un point de vue code.
-        setTimeout(() => {
-          window.localStorage.removeItem("previously-logged-in");
-          window.location.href = "/auth";
-        }, 1500);
+        window.localStorage.removeItem("previously-logged-in");
+        window.location.href = "/auth";
       });
   }
 
