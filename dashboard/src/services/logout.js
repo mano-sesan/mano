@@ -18,6 +18,15 @@ export function resetLogoutInitiatedFlag() {
   thisTabInitiatedLogout = false;
 }
 
+export function removeLogoutBroadcastKey() {
+  // Clean up any lingering logout broadcast key from localStorage
+  try {
+    window.localStorage?.removeItem(FORCE_LOGOUT_BROADCAST_KEY);
+  } catch (_err) {
+    // ignore
+  }
+}
+
 function broadcastLogoutToOtherTabs() {
   try {
     // Remove the key first to ensure a storage event is triggered reliably,
