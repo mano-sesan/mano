@@ -14,6 +14,10 @@ export function isLogoutInitiatedByThisTab() {
   return thisTabInitiatedLogout;
 }
 
+export function resetLogoutInitiatedFlag() {
+  thisTabInitiatedLogout = false;
+}
+
 function broadcastLogoutToOtherTabs() {
   try {
     // Remove the key first to ensure a storage event is triggered reliably,

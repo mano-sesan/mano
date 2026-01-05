@@ -18,7 +18,7 @@ import {
   userState,
 } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
-import { logout } from "../../services/logout";
+import { logout, resetLogoutInitiatedFlag } from "../../services/logout";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
@@ -223,6 +223,8 @@ const SignIn = () => {
     }
     // now login !
     window.localStorage.setItem("previously-logged-in", "true");
+    // Reset the logout flag so this tab can receive logout broadcasts from other tabs
+    resetLogoutInitiatedFlag();
     // superadmin
     if (["superadmin"].includes(user.role)) {
       setIsSubmitting(false);
