@@ -30,6 +30,7 @@ import {
 } from "../services/encryption";
 import { capture } from "../services/sentry";
 import API, { tryFetch, tryFetchBlob, tryFetchExpectOk } from "../services/api";
+import { logout } from "../services/logout";
 import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
 import { useDataLoader } from "../services/dataLoader";
@@ -307,7 +308,7 @@ const EncryptionKey = ({ isMain }) => {
           <button
             className="button-submit !tw-bg-black"
             onClick={() => {
-              tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+              logout().then(() => {
                 window.localStorage.removeItem("previously-logged-in");
                 window.location.href = "/auth";
               });
