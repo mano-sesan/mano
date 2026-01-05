@@ -18,6 +18,7 @@ import {
   userState,
 } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
+import { logout, removeLogoutBroadcastKey, resetLogoutInitiatedFlag } from "../../services/logout";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
@@ -100,7 +101,7 @@ const SignIn = () => {
     setShowEncryption(false);
     setShowPassword(false);
     setAuthViaCookie(false);
-    tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+    logout().then(() => {
       window.localStorage.removeItem("previously-logged-in");
       window.location.href = "/auth";
     });
@@ -222,6 +223,11 @@ const SignIn = () => {
     }
     // now login !
     window.localStorage.setItem("previously-logged-in", "true");
+    // Reset the logout flag so this tab can receive logout broadcasts from other tabs
+    resetLogoutInitiatedFlag();
+    // Remove the logout broadcast key from localStorage
+    removeLogoutBroadcastKey();
+
     // superadmin
     if (["superadmin"].includes(user.role)) {
       setIsSubmitting(false);

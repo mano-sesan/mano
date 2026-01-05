@@ -40,13 +40,14 @@ import ConsultationModal from "./components/ConsultationModal";
 import TreatmentModal from "./scenes/person/components/TreatmentModal";
 import BottomBar from "./components/BottomBar";
 import CGUs from "./scenes/auth/cgus";
-import { getHashedOrgEncryptionKey } from "./services/encryption";
+import { getHashedOrgEncryptionKey, resetOrgEncryptionKey } from "./services/encryption";
 import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState } from "./atoms/version";
 import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
+import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -119,6 +120,36 @@ const App = () => {
     return () => {
       window.removeEventListener("beforeunload", abortRequests);
     };
+  }, []);
+
+  // Cross-tab logout: when another tab triggers "logout + clear cache",
+  // it writes a localStorage flag. Other tabs receive a `storage` event.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (!e) return;
+      if (e.key !== FORCE_LOGOUT_BROADCAST_KEY) return;
+      // Skip if this tab initiated the logout - it's already handling its own logout
+      if (isLogoutInitiatedByThisTab()) return;
+      // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
+      const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
+      abortRequests();
+      try {
+        // À garder en tête : tous les onglets déconnectés de force perdent leur session storage.
+        window.sessionStorage?.clear();
+      } catch (_err) {
+        // ignore
+      }
+      resetOrgEncryptionKey();
+      try {
+        window.localStorage?.removeItem("previously-logged-in");
+      } catch (_err) {
+        // ignore
+      }
+      if (alreadyOnAuth) return;
+      window.location.href = "/auth";
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   useEffect(() => {

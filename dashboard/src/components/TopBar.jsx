@@ -5,7 +5,6 @@ import logo from "../assets/logo-green-creux-plus-petit.png";
 import SelectTeam from "./SelectTeam";
 
 import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
-import API, { tryFetchExpectOk } from "../services/api";
 import { useAtom, useAtomValue } from "jotai";
 import Notification from "./Notification";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
@@ -14,6 +13,7 @@ import UnBugButton from "./UnBugButton";
 import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
+import { logout } from "../services/logout";
 
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
@@ -32,7 +32,7 @@ const TopBar = () => {
     // clearing cache wipes IndexedDB for all tabs; other tabs might still be active and could refresh
     // during that window. Logging out first reduces the chance of another tab re-advancing the cursor
     // while the shared cache is empty.
-    tryFetchExpectOk(() => API.post({ path: "/user/logout" }))
+    logout()
       .catch(() => {
         // Even if logout fails, we still want to clear local data to recover from corrupted cache.
       })
@@ -43,7 +43,7 @@ const TopBar = () => {
         setTimeout(() => {
           window.localStorage.removeItem("previously-logged-in");
           window.location.href = "/auth";
-        }, 1500);
+        }, 1000);
       });
   }
 
@@ -114,7 +114,7 @@ const TopBar = () => {
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
-                  tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+                  logout().then(() => {
                     window.localStorage.removeItem("previously-logged-in");
                     window.location.href = "/auth";
                   });

@@ -22,6 +22,7 @@ import { organisationState, teamsState, userState } from "../atoms/auth";
 
 import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "../services/api";
+import { logout } from "../services/logout";
 import useDataMigrator from "../components/DataMigrator";
 import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
 import { errorMessage } from "../utils";
@@ -140,7 +141,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (userError || !userResponse.ok) return resetLoaderOnError(userError || userResponse.error);
     // Si l'organisation est désactivée, on redirige vers la page d'organisation désactivé
     if (userResponse.user.organisation.disabledAt) {
-      tryFetchExpectOk(() => API.post({ path: "/user/logout" })).finally(() => {
+      logout().finally(() => {
         window.localStorage.removeItem("previously-logged-in");
         return (window.location.href = "/organisation-desactivee");
       });
