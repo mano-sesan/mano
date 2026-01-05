@@ -20,10 +20,12 @@ test("Test modif multiple tabs", async ({ context }) => {
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("a");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
+  await page.getByText("Création réussie !").click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("b");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
+  await page.getByText("Création réussie !").click();
 
   // Modification de la première personne dans un autre tab
   const pageTwo = await context.newPage();
@@ -35,6 +37,7 @@ test("Test modif multiple tabs", async ({ context }) => {
   await pageTwo.getByRole("button", { name: "Modifier" }).click();
   await pageTwo.getByLabel("Nom prénom ou Pseudonyme").fill("a modifié");
   await pageTwo.getByRole("button", { name: "Enregistrer" }).click();
+  await pageTwo.getByText("Mis à jour !").click();
 
   // Vérification que la modification a été appliquée dans le premier tab
   await page.getByRole("link", { name: "Personnes suivies" }).click();
@@ -45,6 +48,7 @@ test("Test modif multiple tabs", async ({ context }) => {
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.getByLabel("Nom prénom ou Pseudonyme").fill("b modifié");
   await page.getByRole("button", { name: "Enregistrer" }).click();
+  await page.getByText("Mis à jour !").click();
 
   // Vérification que la modification a été appliquée dans le deuxième tab
   await pageTwo.getByRole("link", { name: "Personnes suivies" }).click();
