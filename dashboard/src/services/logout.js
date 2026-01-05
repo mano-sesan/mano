@@ -1,6 +1,6 @@
 import API, { tryFetchExpectOk } from "./api";
 
-const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
+export const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
 // Module-level flag to track if this tab initiated the logout.
 // This prevents the tab from processing its own logout broadcast.
@@ -19,10 +19,7 @@ function broadcastLogoutToOtherTabs() {
     // Remove the key first to ensure a storage event is triggered reliably,
     // then set a value that always changes (timestamp + random component).
     window.localStorage.removeItem(FORCE_LOGOUT_BROADCAST_KEY);
-    window.localStorage.setItem(
-      FORCE_LOGOUT_BROADCAST_KEY,
-      JSON.stringify({ ts: Date.now(), rand: Math.random() })
-    );
+    window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, JSON.stringify({ ts: Date.now(), rand: Math.random() }));
   } catch (_e) {
     // ignore
   }
@@ -31,7 +28,7 @@ function broadcastLogoutToOtherTabs() {
 /**
  * Centralized logout utility function that handles both the API call and the broadcast to other tabs.
  * This ensures all logout paths properly notify other tabs to avoid broken cached state.
- * 
+ *
  * @param {Object} options - Logout options
  * @param {boolean} options.broadcast - Whether to broadcast logout to other tabs (default: true)
  * @returns {Promise} - Promise that resolves when the logout API call completes
@@ -43,6 +40,6 @@ export function logout({ broadcast = true } = {}) {
     // Notify other tabs to logout ASAP (storage event is fired in other tabs).
     broadcastLogoutToOtherTabs();
   }
-  
+
   return tryFetchExpectOk(() => API.post({ path: "/user/logout" }));
 }
