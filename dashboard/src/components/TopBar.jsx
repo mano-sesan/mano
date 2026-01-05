@@ -28,8 +28,16 @@ const TopBar = () => {
   function resetCacheAndLogout() {
     // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
     setModalCacheOpen(true);
-    clearCache().then(() => {
-      tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+    // Logout first, then clear cache:
+    // clearing cache wipes IndexedDB for all tabs; other tabs might still be active and could refresh
+    // during that window. Logging out first reduces the chance of another tab re-advancing the cursor
+    // while the shared cache is empty.
+    tryFetchExpectOk(() => API.post({ path: "/user/logout" }))
+      .catch(() => {
+        // Even if logout fails, we still want to clear local data to recover from corrupted cache.
+      })
+      .then(() => clearCache("resetCacheAndLogout"))
+      .then(() => {
         // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
         // Il n'a donc aucune utilité d'un point de vue code.
         setTimeout(() => {
@@ -37,7 +45,6 @@ const TopBar = () => {
           window.location.href = "/auth";
         }, 1500);
       });
-    });
   }
 
   return (
