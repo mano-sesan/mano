@@ -50,7 +50,9 @@ import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 
 const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
-// Track if this tab initiated the logout to avoid processing its own broadcast
+// Track if this tab initiated the logout to avoid processing its own broadcast.
+// Note: This flag is never reset because once set, this tab is in the process of
+// logging out and will soon navigate to /auth, which reloads the module with the flag reset.
 let thisTabInitiatedLogout = false;
 
 export function markLogoutInitiatedByThisTab() {
