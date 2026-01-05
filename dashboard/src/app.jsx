@@ -134,6 +134,7 @@ const App = () => {
       const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
       abortRequests();
       try {
+        // À garder en tête : tous les onglets déconnectés de force perdent leur session storage.
         window.sessionStorage?.clear();
       } catch (_err) {
         // ignore
