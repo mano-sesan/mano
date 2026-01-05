@@ -1,5 +1,4 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
-import { toast } from "react-toastify";
 import { capture } from "./sentry";
 import { logout } from "./logout";
 
