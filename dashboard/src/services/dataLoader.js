@@ -115,7 +115,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // This keeps the cache persistent across sessions, but prevents multi-tab cursor skipping.
     const globalLastLoadValue = await getCacheItemDefaultValue(dashboardCurrentCacheKey, 0);
     const perTabLastLoadValue = getPerTabLastRefresh();
-    let lastLoadValue = perTabLastLoadValue ?? globalLastLoadValue;
+    // If the shared cache was wiped (IndexedDB cleared), global cursor will be reset to 0.
+    // In that case, a remaining per-tab cursor from this tab would be stale and dangerous:
+    // it would make us query `after=<old>`, download nothing, but still advance the global cursor,
+    // leading to an empty cache considered "up-to-date".
+    if ((globalLastLoadValue === 0 || globalLastLoadValue == null) && perTabLastLoadValue != null && perTabLastLoadValue > 0) {
+      setPerTabLastRefresh(0);
+    }
+    const safePerTabLastLoadValue = getPerTabLastRefresh();
+    let lastLoadValue = safePerTabLastLoadValue ?? globalLastLoadValue;
     // On vérifie s'il y a un autre identifiant d'organisation dans le cache pour le supprimer le cas échéant
     const otherOrganisationId = await getCacheItemDefaultValue("organisationId", null);
     if (otherOrganisationId && otherOrganisationId !== organisation._id) {
