@@ -49,7 +49,7 @@ import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { isLogoutInitiatedByThisTab } from "./services/logout";
 
-const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
+export const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",

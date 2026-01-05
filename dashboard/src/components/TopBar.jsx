@@ -14,6 +14,15 @@ import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
+import { FORCE_LOGOUT_BROADCAST_KEY, markLogoutInitiatedByThisTab } from "../app";
+
+function broadcastLogoutToOtherTabs() {
+  try {
+    window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
+  } catch (_e) {
+    // ignore
+  }
+}
 
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
@@ -38,12 +47,8 @@ const TopBar = () => {
       })
       .then(() => clearCache("resetCacheAndLogout"))
       .then(() => {
-        // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
-        // Il n'a donc aucune utilité d'un point de vue code.
-        setTimeout(() => {
-          window.localStorage.removeItem("previously-logged-in");
-          window.location.href = "/auth";
-        }, 1500);
+        window.localStorage.removeItem("previously-logged-in");
+        window.location.href = "/auth";
       });
   }
 
