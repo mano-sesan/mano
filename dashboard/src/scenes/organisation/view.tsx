@@ -14,6 +14,7 @@ import {
 import TableCustomFields from "../../components/TableCustomFields";
 import { organisationState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
+import { logout } from "../../services/logout";
 import ExportData from "../data-import-export/ExportData";
 import ImportPersons from "../data-import-export/ImportPersons";
 import ImportConfig from "../data-import-export/ImportConfig";
@@ -214,7 +215,7 @@ const View = () => {
                             const [error] = await tryFetchExpectOk(async () => API.delete({ path: `/organisation/${organisation._id}` }));
                             if (!error) {
                               toast.success("Organisation supprimée");
-                              tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+                              logout().then(() => {
                                 window.localStorage.removeItem("previously-logged-in");
                                 window.location.href = "/auth";
                               });

@@ -18,6 +18,7 @@ import {
   userState,
 } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
+import { logout } from "../../services/logout";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
@@ -100,7 +101,7 @@ const SignIn = () => {
     setShowEncryption(false);
     setShowPassword(false);
     setAuthViaCookie(false);
-    tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+    logout().then(() => {
       window.localStorage.removeItem("previously-logged-in");
       window.location.href = "/auth";
     });

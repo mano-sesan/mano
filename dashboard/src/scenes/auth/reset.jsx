@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, Redirect, useLocation } from "react-router-dom";
 import ChangePassword from "../../components/ChangePassword";
 import API, { tryFetch } from "../../services/api";
+import { logout } from "../../services/logout";
 import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 
@@ -69,7 +70,7 @@ const Reset = () => {
             // On ne veut pas signaler d'erreur à l'utilisateur ni le rediriger vers la page de connexion
             // avec un message qui dit que sa connexion est expirée.
             try {
-              await API.post({ path: "/user/logout" });
+              await logout();
             } catch (_e) {
               // On ignore l'erreur
             }

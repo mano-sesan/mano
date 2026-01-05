@@ -5,10 +5,11 @@ import utc from "dayjs/plugin/utc";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 import { useAtomValue } from "jotai";
 import { organisationState, sessionInitialDateTimestamp } from "../atoms/auth";
-import API, { tryFetch, tryFetchExpectOk } from "../services/api";
+import API, { tryFetch } from "../services/api";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../services/encryption";
 import { toast } from "react-toastify";
 import KeyInput from "./KeyInput";
+import { logout } from "../services/logout";
 
 dayjs.extend(utc);
 dayjs.extend(duration);
@@ -48,7 +49,7 @@ const SessionCountDownLimiter = () => {
   const remainingTimeBeforeDeconnection = maxCookieAge - cookieSession;
 
   if (remainingTimeBeforeDeconnection < 1) {
-    tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
+    logout().then(() => {
       window.localStorage.removeItem("previously-logged-in");
       window.location.href = "/auth?disconnected=1";
     });

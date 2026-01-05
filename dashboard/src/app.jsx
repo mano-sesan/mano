@@ -47,17 +47,9 @@ import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
+import { isLogoutInitiatedByThisTab } from "./services/logout";
 
 const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
-
-// Track if this tab initiated the logout to avoid processing its own broadcast.
-// Note: This flag is never reset because once set, this tab is in the process of
-// logging out and will soon navigate to /auth, which reloads the module with the flag reset.
-let thisTabInitiatedLogout = false;
-
-export function markLogoutInitiatedByThisTab() {
-  thisTabInitiatedLogout = true;
-}
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -139,7 +131,7 @@ const App = () => {
       if (!e) return;
       if (e.key !== FORCE_LOGOUT_BROADCAST_KEY) return;
       // Skip if this tab initiated the logout - it's already handling its own logout
-      if (thisTabInitiatedLogout) return;
+      if (isLogoutInitiatedByThisTab()) return;
       // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
       const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
       abortRequests();
