@@ -11,7 +11,7 @@ test.beforeAll(async () => {
   await populate();
 });
 
-test("Test modif multiple tabs", async ({ context }) => {
+test("Modifications in multiple tabs should sync correctly", async ({ context }) => {
   const page = await context.newPage();
 
   // Création de deux personnes
