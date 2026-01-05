@@ -173,7 +173,7 @@ export async function getCacheItem(key: string) {
   }
 }
 
-export async function getCacheItemDefaultValue<T>(key: string, defaultValue: T): Promise<T> {
+export async function getCacheItemDefaultValue(key: string, defaultValue: any) {
   const storedValue = await getCacheItem(key);
-  return (storedValue || defaultValue) as T;
+  return storedValue || defaultValue;
 }
