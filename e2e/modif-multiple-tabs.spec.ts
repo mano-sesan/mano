@@ -41,6 +41,7 @@ test("Modifications in multiple tabs should sync correctly", async ({ context })
   await pageTwo.getByRole("button", { name: "Modifier" }).click();
   await pageTwo.getByLabel("Nom prénom ou Pseudonyme").fill(`${personNameA} modifié`);
   await pageTwo.getByRole("button", { name: "Enregistrer" }).click();
+  await pageTwo.getByText("Mis à jour !").click();
 
   // Vérification que la modification a été appliquée dans le premier tab
   await page.getByRole("link", { name: "Personnes suivies" }).click();
@@ -51,6 +52,7 @@ test("Modifications in multiple tabs should sync correctly", async ({ context })
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.getByLabel("Nom prénom ou Pseudonyme").fill(`${personNameB} modifié`);
   await page.getByRole("button", { name: "Enregistrer" }).click();
+  await page.getByText("Mis à jour !").click();
 
   // Vérification que la modification a été appliquée dans le deuxième tab
   await pageTwo.getByRole("link", { name: "Personnes suivies" }).click();
