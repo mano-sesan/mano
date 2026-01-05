@@ -50,6 +50,13 @@ import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 
 const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
+// Track if this tab initiated the logout to avoid processing its own broadcast
+let thisTabInitiatedLogout = false;
+
+export function markLogoutInitiatedByThisTab() {
+  thisTabInitiatedLogout = true;
+}
+
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
   exit: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-exit",
@@ -129,6 +136,8 @@ const App = () => {
     const onStorage = (e) => {
       if (!e) return;
       if (e.key !== FORCE_LOGOUT_BROADCAST_KEY) return;
+      // Skip if this tab initiated the logout - it's already handling its own logout
+      if (thisTabInitiatedLogout) return;
       // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
       const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
       abortRequests();

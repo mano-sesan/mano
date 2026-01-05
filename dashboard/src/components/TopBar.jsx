@@ -14,6 +14,7 @@ import UnBugButton from "./UnBugButton";
 import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
+import { markLogoutInitiatedByThisTab } from "../app";
 
 const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
 
@@ -30,6 +31,8 @@ const TopBar = () => {
   function resetCacheAndLogout() {
     // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
     setModalCacheOpen(true);
+    // Mark this tab as the logout initiator before broadcasting
+    markLogoutInitiatedByThisTab();
     // Notify other tabs to logout ASAP (storage event is fired in other tabs).
     try {
       window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
@@ -122,6 +125,8 @@ const TopBar = () => {
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
+                  // Mark this tab as the logout initiator before broadcasting
+                  markLogoutInitiatedByThisTab();
                   // Notify other tabs to logout ASAP (storage event is fired in other tabs).
                   try {
                     window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
