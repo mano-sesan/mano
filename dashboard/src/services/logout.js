@@ -16,7 +16,13 @@ export function isLogoutInitiatedByThisTab() {
 
 function broadcastLogoutToOtherTabs() {
   try {
-    window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
+    // Remove the key first to ensure a storage event is triggered reliably,
+    // then set a value that always changes (timestamp + random component).
+    window.localStorage.removeItem(FORCE_LOGOUT_BROADCAST_KEY);
+    window.localStorage.setItem(
+      FORCE_LOGOUT_BROADCAST_KEY,
+      JSON.stringify({ ts: Date.now(), rand: Math.random() })
+    );
   } catch (_e) {
     // ignore
   }
