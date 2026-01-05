@@ -70,7 +70,7 @@ const Reset = () => {
             // On ne veut pas signaler d'erreur à l'utilisateur ni le rediriger vers la page de connexion
             // avec un message qui dit que sa connexion est expirée.
             try {
-              await logout();
+              await logout({ broadcast: false });
             } catch (_e) {
               // On ignore l'erreur
             }
