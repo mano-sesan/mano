@@ -14,15 +14,6 @@ import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
-import { FORCE_LOGOUT_BROADCAST_KEY, markLogoutInitiatedByThisTab } from "../app";
-
-function broadcastLogoutToOtherTabs() {
-  try {
-    window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
-  } catch (_e) {
-    // ignore
-  }
-}
 
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
