@@ -1,6 +1,7 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
 import { toast } from "react-toastify";
 import { capture } from "./sentry";
+import { logout } from "./logout";
 
 export const dashboardCurrentCacheKey = "mano_last_refresh_2024_10_21_4";
 const legacyStoreName = "mano_last_refresh_2022_01_11";
@@ -9,6 +10,9 @@ const manoDB = "mano";
 const storeName = "store";
 
 let customStore: UseStore | null = null;
+let storageFailureHandled = false;
+
+export const AUTH_TOAST_KEY = "mano-auth-toast";
 
 (async () => {
   try {
@@ -84,7 +88,7 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   });
 }
 
-export async function setCacheItem(key: string, value: any) {
+export async function setCacheItem(key: string, value: unknown) {
   try {
     if (customStore) await set(key, value, customStore);
   } catch (error) {
@@ -118,7 +122,25 @@ export async function setCacheItem(key: string, value: any) {
           )}MiB, payload ${valueSizeInMib.toFixed(2)}MiB`;
           console.error(errorMessage);
           capture(error, { tags: { key }, extra: { usage, quota, valueSize, errorMessage } });
-          toast.error("Impossible de mettre vos données en cache, veuillez vérifier votre espace disque et réessayer.");
+          const userMessage = "Impossible de mettre vos données en cache, veuillez vérifier votre espace disque et réessayer.";
+          if (!storageFailureHandled) {
+            storageFailureHandled = true;
+            // Store a one-time message for the login page (shared across tabs).
+            try {
+              window.localStorage?.setItem(AUTH_TOAST_KEY, JSON.stringify({ type: "error", message: userMessage, ts: Date.now() }));
+            } catch (_e) {
+              // ignore
+            }
+            // Logout + broadcast to other tabs (best-effort).
+            logout().finally(() => {
+              try {
+                window.localStorage?.removeItem("previously-logged-in");
+              } catch (_e) {
+                // ignore
+              }
+              window.location.href = "/auth";
+            });
+          }
           return;
         }
       } catch (e) {
@@ -152,7 +174,7 @@ export async function getCacheItem(key: string) {
   }
 }
 
-export async function getCacheItemDefaultValue(key: string, defaultValue: any) {
+export async function getCacheItemDefaultValue<T>(key: string, defaultValue: T): Promise<T> {
   const storedValue = await getCacheItem(key);
-  return storedValue || defaultValue;
+  return (storedValue || defaultValue) as T;
 }

@@ -19,6 +19,7 @@ import {
 } from "../../atoms/auth";
 import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { logout, removeLogoutBroadcastKey, resetLogoutInitiatedFlag } from "../../services/logout";
+import { AUTH_TOAST_KEY } from "../../services/dataManagement";
 import useMinimumWidth from "../../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../../atoms/version";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "../../services/encryption";
@@ -69,6 +70,19 @@ const SignIn = () => {
       history.replace("/auth");
     }
   }, [isDisconnected, history]);
+
+  // Show a one-time message passed via localStorage (shared across tabs), then clear it.
+  useEffect(() => {
+    try {
+      const raw = window.localStorage?.getItem(AUTH_TOAST_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.message && parsed?.type === "error") toast.error(parsed.message);
+      window.localStorage?.removeItem(AUTH_TOAST_KEY);
+    } catch (_e) {
+      // ignore
+    }
+  }, []);
 
   const onSigninValidated = () =>
     startInitialLoad()
