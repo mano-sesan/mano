@@ -20,10 +20,12 @@ test("Modifications in multiple tabs should sync correctly", async ({ context })
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("a");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
+  await page.getByText("Création réussie !").click();
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("b");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
+  await page.getByText("Création réussie !").click();
 
   // Modification de la première personne dans un autre tab
   const pageTwo = await context.newPage();
