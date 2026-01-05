@@ -8,6 +8,12 @@ dayjs.extend(utc);
 jest.mock("../src/services/sentry", () => ({
   capture: jest.fn(),
 }));
+jest.mock("../src/services/logout", () => ({
+  logout: jest.fn(),
+}));
+jest.mock("../src/services/dataManagement", () => ({
+  clearCache: jest.fn(),
+}));
 
 describe("Clean history", () => {
   const minimalHistory: Array<PersonHistoryEntry> = [

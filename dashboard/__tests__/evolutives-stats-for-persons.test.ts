@@ -9,6 +9,13 @@ import * as SentryService from "../src/services/sentry";
 jest.mock("../src/services/sentry", () => ({
   capture: jest.fn(),
 }));
+jest.mock("../src/services/logout", () => ({
+  logout: jest.fn(),
+}));
+jest.mock("../src/services/dataManagement", () => ({
+  clearCache: jest.fn(),
+}));
+
 const mockedCapture = SentryService.capture as jest.MockedFunction<typeof SentryService.capture>;
 
 describe("Stats evolutives", () => {
