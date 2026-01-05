@@ -144,6 +144,12 @@ const App = () => {
       } catch (_err) {
         // ignore
       }
+      // Clean up the logout broadcast key to keep localStorage tidy
+      try {
+        window.localStorage?.removeItem(FORCE_LOGOUT_BROADCAST_KEY);
+      } catch (_err) {
+        // ignore
+      }
       if (alreadyOnAuth) return;
       window.location.href = "/auth";
     };
