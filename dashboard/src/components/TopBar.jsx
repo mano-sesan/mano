@@ -15,6 +15,8 @@ import ModalCacheResetLoader from "./ModalCacheResetLoader";
 import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 
+const FORCE_LOGOUT_BROADCAST_KEY = "mano-force-logout";
+
 const TopBar = () => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -28,6 +30,12 @@ const TopBar = () => {
   function resetCacheAndLogout() {
     // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
     setModalCacheOpen(true);
+    // Notify other tabs to logout ASAP (storage event is fired in other tabs).
+    try {
+      window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
+    } catch (_e) {
+      // ignore
+    }
     // Logout first, then clear cache:
     // clearing cache wipes IndexedDB for all tabs; other tabs might still be active and could refresh
     // during that window. Logging out first reduces the chance of another tab re-advancing the cursor
@@ -114,6 +122,12 @@ const TopBar = () => {
               </DropdownItem>
               <DropdownItem
                 onClick={() => {
+                  // Notify other tabs to logout ASAP (storage event is fired in other tabs).
+                  try {
+                    window.localStorage.setItem(FORCE_LOGOUT_BROADCAST_KEY, String(Date.now()));
+                  } catch (_e) {
+                    // ignore
+                  }
                   tryFetchExpectOk(() => API.post({ path: "/user/logout" })).then(() => {
                     window.localStorage.removeItem("previously-logged-in");
                     window.location.href = "/auth";
