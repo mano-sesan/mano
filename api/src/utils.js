@@ -119,22 +119,38 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
   if (isRaceCondition) {
     const timeDifferenceMs = dbTimestamp.getTime() - clientTimestamp.getTime();
     const timeDifferenceSeconds = Math.abs(timeDifferenceMs / 1000);
+    const timeDiffBucket =
+      timeDifferenceSeconds < 1
+        ? "<1s"
+        : timeDifferenceSeconds < 10
+        ? "1-10s"
+        : timeDifferenceSeconds < 60 * 60
+        ? "10s-1h"
+        : timeDifferenceSeconds < 24 * 60 * 60
+        ? "1h-24h"
+        : ">24h";
+
+    const lastUpdateAgo = Date.now() - dbTimestamp.getTime();
+    const lastUpdateAgoBucket =
+      lastUpdateAgo < 1000
+        ? "<1s"
+        : lastUpdateAgo < 10000
+        ? "1-10s"
+        : lastUpdateAgo < 60000 * 60
+        ? "10s-1h"
+        : lastUpdateAgo < 24 * 60 * 60 * 1000
+        ? "1h-24h"
+        : ">24h";
 
     // Prepare comprehensive context for Sentry
     const raceContext = {
-      entityType,
-      entityId,
       lastUpdatedBy,
       clientUpdatedAt: clientTimestamp.toISOString(),
       dbUpdatedAt: dbTimestamp.toISOString(),
       timeDifferenceMs,
       timeDifferenceSeconds,
-      isClientBehind: timeDifferenceMs > 0,
+      timeDiffBucket,
       component,
-      organisation: user.organisation,
-      userId: user._id,
-      userName: user.name,
-      userRole: user.role,
       userAgent: req.headers["user-agent"],
       platform: req.headers.platform,
       version: req.headers.version,
@@ -142,14 +158,20 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
       requestMethod: req.method,
       sessionId: req.headers["x-session-id"], // if available
       timestamp: new Date().toISOString(),
+      lastUpdateAgo,
+      lastUpdateAgoBucket, // if updatedBy is not me AND lastUpdateAgo is not so big, then someone else updated the entity while I was editing it
     };
 
     // Log to Sentry with detailed context
     capture("Race condition detected in encrypted entity update", {
       level: "warning",
       tags: {
+        entityId,
         entityType,
         component,
+        isClientBehind: timeDifferenceMs > 0,
+        timeDiffBucket,
+        lastUpdateAgoBucket,
         platform: req.headers.platform || "unknown",
         organisation: user.organisation,
         lastUpdatedIsMe: lastUpdatedBy === user._id,
@@ -170,6 +192,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
       client: clientTimestamp.toISOString(),
       db: dbTimestamp.toISOString(),
       diff: `${timeDifferenceSeconds}s`,
+      timeDiffBucket,
       component,
     });
   }
