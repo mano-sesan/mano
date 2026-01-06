@@ -146,6 +146,7 @@ export async function setCacheItem(key: string, value: unknown) {
         capture(e, { extra: { context: "Failed to estimate storage" } });
       }
     }
+    return;
     capture(error, { tags: { key } });
   }
 }
