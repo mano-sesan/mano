@@ -48,6 +48,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authViaCookie, setAuthViaCookie] = useState(false);
+  const [storageWarning, setStorageWarning] = useState(null);
   const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
@@ -69,6 +70,31 @@ const SignIn = () => {
       history.replace("/auth");
     }
   }, [isDisconnected, history]);
+
+  // Non-blocking warning when the browser storage is getting low.
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!navigator?.storage?.estimate) return;
+        const { usage, quota } = await navigator.storage.estimate();
+        if (typeof usage !== "number" || typeof quota !== "number") return;
+
+        const usageMiB = usage / 1024 / 1024;
+        const quotaMiB = quota / 1024 / 1024;
+        const remainingMiB = (quota - usage) / 1024 / 1024;
+
+        console.info(`[storage] quota=${quotaMiB.toFixed(2)}MiB remaining=${remainingMiB.toFixed(2)}MiB usage=${usageMiB.toFixed(2)}MiB`);
+
+        const MIN_TOTAL_QUOTA_MIB = 256;
+        const MIN_REMAINING_MIB = 32;
+        if (quotaMiB < MIN_TOTAL_QUOTA_MIB || remainingMiB < MIN_REMAINING_MIB) {
+          setStorageWarning({ quotaMiB, remainingMiB, usageMiB });
+        }
+      } catch (_e) {
+        // ignore (best effort)
+      }
+    })();
+  }, []);
 
   const onSigninValidated = () =>
     startInitialLoad()
@@ -430,6 +456,26 @@ const SignIn = () => {
   return (
     <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black sm:tw-drop-shadow-2xl">
       <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{userName ? `Bienvenue ${userName?.split(" ")?.[0]}` : "Bienvenue"}&nbsp;!</h1>
+      {!!storageWarning && (
+        <div className="tw-mb-6 tw-rounded tw-border tw-border-orange-50 tw-bg-amber-100 tw-text-orange-900 tw-p-3 tw-text-sm">
+          <p className="tw-m-0">
+            Il reste peu d'espace de stockage sur votre navigateur, ce qui peut provoquer des problèmes de stabilité. Assurez-vous d'avoir de la place
+            et rechargez la page.{" "}
+            <a
+              className="tw-text-main hover:tw-underline"
+              href="https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria#other_web_technologies"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              En savoir plus
+            </a>
+          </p>
+          <p className="tw-m-0 tw-pt-2 tw-text-xs tw-italic tw-text-orange-900/70">
+            Usage: {storageWarning.usageMiB.toFixed(2)}MiB - Quota: {storageWarning.quotaMiB.toFixed(2)}MiB - Restant:{" "}
+            {storageWarning.remainingMiB.toFixed(2)}MiB
+          </p>
+        </div>
+      )}
       {isAndroid && (
         <div className="tw-mb-6 tw-text-center">
           <a href="https://mano.sesan.fr/download" className="tw-text-main hover:tw-underline" target="_blank" rel="noopener noreferrer">
