@@ -74,6 +74,22 @@ const Account = () => {
               </div>
             </div>
             <div className="tw-flex tw-justify-end tw-items-center">
+              <DeleteButtonAndConfirmModal
+                buttonText="Supprimer mon compte"
+                title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
+                textToConfirm={user.email}
+                roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
+                onConfirm={async () => {
+                  const [error] = await tryFetch(async () => API.delete({ path: "/user/me" }));
+                  if (error) return;
+                  toast.success("Suppression réussie");
+                  window.location.reload();
+                }}
+              >
+                <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
+              </DeleteButtonAndConfirmModal>
+              <TestConnexion />
+              <LinkToChangePassword />
               <button type="button" className="button-submit" disabled={isSubmitting} onClick={() => handleSubmit()}>
                 Mettre à jour
               </button>
@@ -81,33 +97,6 @@ const Account = () => {
           </React.Fragment>
         )}
       </Formik>
-      <hr />
-      <h3 className="tw-my-10 tw-flex tw-justify-between tw-text-xl tw-font-extrabold">Actions</h3>
-      <ul className="tw-flex tw-flex-col tw-gap-y-2 tw-px-4 tw-list-disc tw-list-inside">
-        <li>
-          <LinkToChangePassword />
-        </li>
-        <li>
-          <DeleteButtonAndConfirmModal
-            buttonText="Supprimer mon compte"
-            className="hover:!tw-bg-red-200 !tw-bg-transparent !tw-shadow-none"
-            title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
-            textToConfirm={user.email}
-            roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
-            onConfirm={async () => {
-              const [error] = await tryFetch(async () => API.delete({ path: "/user/me" }));
-              if (error) return;
-              toast.success("Suppression réussie");
-              window.location.reload();
-            }}
-          >
-            <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
-          </DeleteButtonAndConfirmModal>
-        </li>
-        <li>
-          <TestConnexion />
-        </li>
-      </ul>
     </>
   );
 };
@@ -117,7 +106,7 @@ const LinkToChangePassword = () => {
 
   return (
     <>
-      <button type="button" className="button-classic !tw-shadow-none tw-border-none tw-w-full tw-text-left tw-pl-4" onClick={() => setOpen(true)}>
+      <button type="button" className="button-classic" onClick={() => setOpen(true)}>
         Modifier mon mot de passe
       </button>
 
@@ -248,7 +237,7 @@ const TestConnexion = () => {
 
   return (
     <>
-      <button type="button" className="button-classic !tw-shadow-none tw-border-none tw-w-full tw-text-left tw-pl-4" onClick={() => setOpen(true)}>
+      <button type="button" className="button-classic" onClick={() => setOpen(true)}>
         Tester ma connexion
       </button>
 
