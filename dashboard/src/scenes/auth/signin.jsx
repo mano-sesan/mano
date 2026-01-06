@@ -83,8 +83,6 @@ const SignIn = () => {
         const quotaMiB = quota / 1024 / 1024;
         const remainingMiB = (quota - usage) / 1024 / 1024;
 
-        // For testing purposes (you said you'll remove it later)
-        // eslint-disable-next-line no-console
         console.info(`[storage] quota=${quotaMiB.toFixed(2)}MiB remaining=${remainingMiB.toFixed(2)}MiB usage=${usageMiB.toFixed(2)}MiB`);
 
         const MIN_TOTAL_QUOTA_MIB = 256;
@@ -461,7 +459,7 @@ const SignIn = () => {
       {!!storageWarning && (
         <div className="tw-mb-6 tw-rounded tw-border tw-border-orange-50 tw-bg-amber-100 tw-text-orange-900 tw-p-3 tw-text-sm">
           <p className="tw-m-0">
-            Il reste peu d'espace de stockage sur votre navigateur, ce qui peut provoquer des problèmes de stabilité. Assurez vous d'avoir de la place
+            Il reste peu d'espace de stockage sur votre navigateur, ce qui peut provoquer des problèmes de stabilité. Assurez-vous d'avoir de la place
             et rechargez la page.{" "}
             <a
               className="tw-text-main hover:tw-underline"
