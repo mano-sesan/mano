@@ -1,7 +1,8 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
 import { capture } from "./sentry";
 
-export const dashboardCurrentCacheKey = "mano_last_refresh_2024_10_21_4";
+// If you need users to force refresh their cache, change the value of `dashboardCurrentCacheKey` and push to main
+export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_06_1";
 const legacyStoreName = "mano_last_refresh_2022_01_11";
 const legacyManoDB = "mano-dashboard";
 const manoDB = "mano";
