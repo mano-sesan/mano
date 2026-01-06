@@ -901,7 +901,7 @@ router.post(
       const { persons, groups, actions, comments, passages, rencontres, consultations, treatments, medicalFiles, relsPersonPlaces } = req.body;
       if (persons.length) {
         await sequelize.query(
-          'UPDATE "mano"."Person" SET "deletedAt" = NULL, "deletedBy" = NULL, "updatedAt" = NOW() WHERE "_id" IN (:ids) AND "organisation" = :organisation',
+          'UPDATE "mano"."Person" SET "deletedAt" = NULL, "deletedBy" = NULL, "updatedBy" = NULL, "updatedAt" = NOW() WHERE "_id" IN (:ids) AND "organisation" = :organisation',
           {
             replacements: { ids: persons, organisation: req.user.organisation },
             transaction: tx,

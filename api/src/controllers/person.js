@@ -362,6 +362,7 @@ router.put(
     const updatePerson = {
       encrypted: encrypted,
       encryptedEntityKey: encryptedEntityKey,
+      updatedBy: req.user._id,
     };
 
     await Person.update(updatePerson, query, { silent: false });
@@ -469,7 +470,7 @@ router.delete(
       let person = await Person.findOne({ where: { _id: req.params._id, organisation: req.user.organisation } });
       if (person) {
         await Person.update(
-          { deletedBy: req.user._id },
+          { deletedBy: req.user._id, updatedBy: req.user._id },
           { where: { _id: req.params._id, organisation: req.user.organisation } },
           { silent: true, transaction: tx }
         );

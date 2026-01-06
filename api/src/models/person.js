@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
     deletedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
+    updatedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
   };
 
   class Person extends Model {
