@@ -1,5 +1,6 @@
 import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
 import { capture } from "./sentry";
+import { logout } from "./logout";
 
 export const dashboardCurrentCacheKey = "mano_last_refresh_2024_10_21_4";
 const legacyStoreName = "mano_last_refresh_2022_01_11";
@@ -8,6 +9,9 @@ const manoDB = "mano";
 const storeName = "store";
 
 let customStore: UseStore | null = null;
+let storageFailureHandled = false;
+
+export const AUTH_TOAST_KEY = "mano-auth-toast";
 
 (async () => {
   try {
@@ -83,7 +87,7 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
   });
 }
 
-export async function setCacheItem(key: string, value: any) {
+export async function setCacheItem(key: string, value: unknown) {
   try {
     if (customStore) await set(key, value, customStore);
   } catch (error) {
@@ -96,6 +100,50 @@ export async function setCacheItem(key: string, value: any) {
       } catch (error) {
         capture(error, { tags: { key } });
         return;
+      }
+    }
+    const errorString = String(error);
+    if (
+      errorString.includes("QuotaExceededError") ||
+      errorString.includes("DataError") ||
+      errorString.includes("IOError") ||
+      errorString.includes("Failed to write blobs")
+    ) {
+      try {
+        if (navigator.storage && navigator.storage.estimate) {
+          const { usage, quota } = await navigator.storage.estimate();
+          const valueSize = JSON.stringify(value).length;
+          const usageInMib = (usage || 0) / 1024 / 1024;
+          const quotaInMib = (quota || 0) / 1024 / 1024;
+          const valueSizeInMib = valueSize / 1024 / 1024;
+          const errorMessage = `Storage error for key ${key}: usage ${usageInMib.toFixed(2)}MiB, quota ${quotaInMib.toFixed(
+            2
+          )}MiB, payload ${valueSizeInMib.toFixed(2)}MiB`;
+          console.error(errorMessage);
+          capture(error, { tags: { key }, extra: { usage, quota, valueSize, errorMessage } });
+          const userMessage = "Impossible de mettre vos données en cache, veuillez vérifier votre espace disque et réessayer.";
+          if (!storageFailureHandled) {
+            storageFailureHandled = true;
+            // Store a one-time message for the login page (shared across tabs).
+            try {
+              window.localStorage?.setItem(AUTH_TOAST_KEY, JSON.stringify({ type: "error", message: userMessage, ts: Date.now() }));
+            } catch (_e) {
+              // ignore
+            }
+            // Logout + broadcast to other tabs (best-effort).
+            logout().finally(() => {
+              try {
+                window.localStorage?.removeItem("previously-logged-in");
+              } catch (_e) {
+                // ignore
+              }
+              window.location.href = "/auth";
+            });
+          }
+          return;
+        }
+      } catch (e) {
+        capture(e, { extra: { context: "Failed to estimate storage" } });
       }
     }
     capture(error, { tags: { key } });

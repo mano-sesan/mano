@@ -10,6 +10,9 @@ jest.mock("../../src/config", () => ({
   theme: {},
   // other exports you need
 }));
+jest.mock("../../src/services/dataManagement", () => ({
+  clearCache: jest.fn(),
+}));
 
 describe("Import config", () => {
   it("should not modify organisation when uploading same config", () => {
