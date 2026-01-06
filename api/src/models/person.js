@@ -1,4 +1,5 @@
 const { Model, Deferrable } = require("sequelize");
+const { getRequestUserId } = require("../utils/requestContext");
 
 module.exports = (sequelize, DataTypes) => {
   const schema = {
@@ -7,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
     deletedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
+    updatedBy: { type: DataTypes.UUID, references: { model: "User", key: "_id" } },
   };
 
   class Person extends Model {
@@ -16,6 +18,44 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  Person.init(schema, { sequelize, modelName: "Person", freezeTableName: true, timestamps: true, paranoid: true });
+  function resolveUserId(options) {
+    // Prefer explicit context, then transaction metadata, then request-scoped context.
+    return options?.context?.userId || options?.transaction?.userId || getRequestUserId();
+  }
+
+  Person.init(schema, {
+    sequelize,
+    modelName: "Person",
+    freezeTableName: true,
+    timestamps: true,
+    paranoid: true,
+    hooks: {
+      beforeCreate: (instance, options) => {
+        const userId = resolveUserId(options);
+        if (!userId) return;
+        instance.updatedBy = userId;
+      },
+      beforeBulkCreate: (instances, options) => {
+        const userId = resolveUserId(options);
+        if (!userId) return;
+        for (const instance of instances) {
+          instance.updatedBy = userId;
+        }
+      },
+      beforeUpdate: (instance, options) => {
+        if (options?.silent) return;
+        const userId = resolveUserId(options);
+        if (!userId) return;
+        instance.updatedBy = userId;
+      },
+      beforeBulkUpdate: (options) => {
+        if (options?.silent) return;
+        const userId = resolveUserId(options);
+        if (!userId) return;
+        options.attributes = options.attributes || {};
+        options.attributes.updatedBy = userId;
+      },
+    },
+  });
   return Person;
 };

@@ -1,5 +1,6 @@
 const { z, ZodError } = require("zod");
 const { looseUuidRegex } = require("../utils");
+const { setRequestUser } = require("../utils/requestContext");
 
 /**
  * Check that the request user has the correct role, return 403 otherwise.
@@ -30,6 +31,8 @@ function validateUser(roles = ["admin", "normal"], options = { healthcareProfess
       return next(error);
     }
 
+    // Make the authenticated user available to downstream async work (e.g. Sequelize hooks)
+    setRequestUser(req.user);
     next();
   };
 }

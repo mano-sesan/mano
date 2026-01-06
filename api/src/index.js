@@ -12,6 +12,7 @@ const errors = require("./errors");
 
 const { SentryInit, capture } = require("./sentry");
 const Sentry = require("@sentry/node");
+const requestContextMiddleware = require("./middleware/requestContext");
 
 require("./db/sequelize");
 require("./utils/userLogClean");
@@ -31,6 +32,8 @@ SentryInit(app);
 app.use(Sentry.Handlers.requestHandler());
 // TracingHandler creates a trace for every incoming request
 app.use(Sentry.Handlers.tracingHandler());
+// Request-scoped context (used by Sequelize hooks to know the current user)
+app.use(requestContextMiddleware);
 
 if (process.env.NODE_ENV === "production") {
   app.use(cors({ credentials: true, origin: [/mano\.localhost$/, /sesan\.fr$/] }));
