@@ -118,21 +118,25 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
   if (isRaceCondition) {
     const timeDifferenceMs = dbTimestamp.getTime() - clientTimestamp.getTime();
     const timeDifferenceSeconds = Math.abs(timeDifferenceMs / 1000);
+    const timeDiffBucket =
+      timeDifferenceSeconds < 1
+        ? "<1s"
+        : timeDifferenceSeconds < 10
+        ? "1-10s"
+        : timeDifferenceSeconds < 60 * 60
+        ? "10s-1h"
+        : timeDifferenceSeconds < 24 * 60 * 60
+        ? "1h-24h"
+        : ">24h";
 
     // Prepare comprehensive context for Sentry
     const raceContext = {
-      entityType,
-      entityId,
       clientUpdatedAt: clientTimestamp.toISOString(),
       dbUpdatedAt: dbTimestamp.toISOString(),
       timeDifferenceMs,
       timeDifferenceSeconds,
-      isClientBehind: timeDifferenceMs > 0,
+      timeDiffBucket,
       component,
-      organisation: user.organisation,
-      userId: user._id,
-      userName: user.name,
-      userRole: user.role,
       userAgent: req.headers["user-agent"],
       platform: req.headers.platform,
       version: req.headers.version,
@@ -146,8 +150,11 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
     capture("Race condition detected in encrypted entity update", {
       level: "warning",
       tags: {
+        entityId,
         entityType,
         component,
+        isClientBehind: timeDifferenceMs > 0,
+        timeDiffBucket,
         platform: req.headers.platform || "unknown",
         organisation: user.organisation,
       },
@@ -167,6 +174,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
       client: clientTimestamp.toISOString(),
       db: dbTimestamp.toISOString(),
       diff: `${timeDifferenceSeconds}s`,
+      timeDiffBucket,
       component,
     });
   }
