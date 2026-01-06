@@ -129,6 +129,18 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
         ? "1h-24h"
         : ">24h";
 
+    const lastUpdateAgo = Date.now() - dbTimestamp.getTime();
+    const lastUpdateAgoBucket =
+      lastUpdateAgo < 1000
+        ? "<1s"
+        : lastUpdateAgo < 10000
+        ? "1-10s"
+        : lastUpdateAgo < 60000 * 60
+        ? "10s-1h"
+        : lastUpdateAgo < 24 * 60 * 60 * 1000
+        ? "1h-24h"
+        : ">24h";
+
     // Prepare comprehensive context for Sentry
     const raceContext = {
       clientUpdatedAt: clientTimestamp.toISOString(),
@@ -144,6 +156,8 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
       requestMethod: req.method,
       sessionId: req.headers["x-session-id"], // if available
       timestamp: new Date().toISOString(),
+      lastUpdateAgo,
+      lastUpdateAgoBucket, // if updatedBy is not me AND lastUpdateAgo is not so big, then someone else updated the entity while I was editing it
     };
 
     // Log to Sentry with detailed context
@@ -155,6 +169,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
         component,
         isClientBehind: timeDifferenceMs > 0,
         timeDiffBucket,
+        lastUpdateAgoBucket,
         platform: req.headers.platform || "unknown",
         organisation: user.organisation,
       },
