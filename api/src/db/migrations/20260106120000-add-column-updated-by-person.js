@@ -12,5 +12,3 @@ module.exports = {
     await queryInterface.sequelize.query(`ALTER TABLE "mano"."Person" DROP COLUMN IF EXISTS "updatedBy";`);
   },
 };
-
-
