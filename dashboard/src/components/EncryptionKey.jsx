@@ -565,7 +565,7 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   };
 };
 
-const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey) => {
+const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumentProcessed) => {
   if (!item.documents || !item.documents.length) return item;
   const updatedDocuments = [];
   for (const doc of item.documents) {
@@ -573,6 +573,7 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey) => {
       const recryptedDocument = await recryptDocument(doc, id, { fromKey: oldKey, toKey: newKey });
       if (!recryptedDocument) continue;
       updatedDocuments.push(recryptedDocument);
+      if (onDocumentProcessed) onDocumentProcessed();
     } catch (e) {
       console.error(e);
       // we need a temporary hack, for the organisations which already changed their encryption key
@@ -583,6 +584,7 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey) => {
       // if the recryption failed, we assume the document might have been encrypted with the newKey already
       // so we push it
       updatedDocuments.push(doc);
+      if (onDocumentProcessed) onDocumentProcessed();
     }
   }
   return { ...item, documents: updatedDocuments };
