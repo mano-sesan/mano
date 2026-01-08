@@ -183,19 +183,19 @@ const TestConnexion = () => {
     responses.current.push(await testEvery(1000, 10)); // 10 seconds
     setTestOneCallEvery1Seconds("done");
     setTestOneCallEvery500MS("ongoing");
-    responses.current.push(await testEvery(500, 20)); // 10 seconds
+    responses.current.push(await testEvery(500, 10)); // 5 seconds
     setTestOneCallEvery500MS("done");
     setTestOneCallEvery200MS("ongoing");
-    responses.current.push(await testEvery(200, 50)); // 10 seconds
+    responses.current.push(await testEvery(200, 25)); // 5 seconds
     setTestOneCallEvery200MS("done");
     setTestOneCallEvery100MS("ongoing");
-    responses.current.push(await testEvery(100, 50)); // 5 seconds
+    responses.current.push(await testEvery(100, 10)); // 1 seconds
     setTestOneCallEvery100MS("done");
     setTestOneCallEvery50MS("ongoing");
-    responses.current.push(await testEvery(50, 100)); // 5 seconds
+    responses.current.push(await testEvery(50, 20)); // 1 seconds
     setTestOneCallEvery50MS("done");
     setTestOneCallEvery10MS("ongoing");
-    responses.current.push(await testEvery(10, 500)); // 5 seconds
+    responses.current.push(await testEvery(10, 50)); // 0.5 seconds
     setTestOneCallEvery10MS("done");
     capture(new Error("Test connexion"), {
       extra: { tests: responses.current },
@@ -335,11 +335,11 @@ const TestConnexion = () => {
             <ul className="tw-flex-col tw-flex tw-gap-y-2">
               <li>{getTestIcon(testOneCallEvery2Seconds)} Test 1: 1 appel toutes les 2 secondes pendant 10 secondes</li>
               <li>{getTestIcon(testOneCallEvery1Seconds)} Test 2: 1 appel toutes les 1 secondes pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery500MS)} Test 3: 1 appel toutes les 500ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery200MS)} Test 4: 1 appel toutes les 200ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 5 secondes</li>
-              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery500MS)} Test 3: 1 appel toutes les 500ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery200MS)} Test 4: 1 appel toutes les 200ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 1 secondes</li>
+              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 1 secondes</li>
+              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 0.5 secondes</li>
             </ul>
           </ModalBody>
         ) : (
