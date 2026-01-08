@@ -114,7 +114,7 @@ const LinkToChangePassword = () => {
         <ModalHeader title="Modifier mon mot de passe" onClose={() => setOpen(false)} />
         <ModalBody className="tw-px-4 tw-py-2">
           <ChangePassword
-            onSubmit={async (body: any) => {
+            onSubmit={async (body: unknown) => {
               const [error, response] = await tryFetch(async () => API.post({ path: `/user/reset_password`, body }));
               if (error) {
                 toast.error(errorMessage(error));
@@ -132,6 +132,34 @@ const LinkToChangePassword = () => {
 
 type TestConnexionStatus = "done" | "ongoing" | "not-started";
 
+type TestConnexionFailureSample = {
+  index: number;
+  error?: string;
+  response?: unknown;
+  durationMs: number;
+};
+
+type TestConnexionResult = {
+  intervalMs: number;
+  numberOfTests: number;
+  startedAt: string;
+  endedAt: string;
+  okCount: number;
+  failCount: number;
+  avgDurationMs: number;
+  p50DurationMs: number;
+  p95DurationMs: number;
+  minDurationMs: number;
+  maxDurationMs: number;
+  failures: TestConnexionFailureSample[];
+};
+
+function percentile(sortedValues: number[], percentileValue: number) {
+  if (!sortedValues.length) return 0;
+  const idx = Math.floor((sortedValues.length - 1) * percentileValue);
+  return sortedValues[Math.min(sortedValues.length - 1, Math.max(0, idx))];
+}
+
 const TestConnexion = () => {
   const [open, setOpen] = useState(false);
   const [testLaunched, setTestLaunched] = useState(false);
@@ -143,61 +171,91 @@ const TestConnexion = () => {
   const [testOneCallEvery50MS, setTestOneCallEvery50MS] = useState<TestConnexionStatus>("not-started");
   const [testOneCallEvery10MS, setTestOneCallEvery10MS] = useState<TestConnexionStatus>("not-started");
 
-  const responses = useRef([]);
+  const responses = useRef<TestConnexionResult[]>([]);
 
   async function launchTest() {
     setTestLaunched(true);
     responses.current = [];
     setTestOneCallEvery2Seconds("ongoing");
-    responses.current.push(...(await testEvery(2000, 5))); // 10 seconds
+    responses.current.push(await testEvery(2000, 5)); // 10 seconds
     setTestOneCallEvery2Seconds("done");
     setTestOneCallEvery1Seconds("ongoing");
-    responses.current.push(...(await testEvery(1000, 10))); // 10 seconds
+    responses.current.push(await testEvery(1000, 10)); // 10 seconds
     setTestOneCallEvery1Seconds("done");
     setTestOneCallEvery500MS("ongoing");
-    responses.current.push(...(await testEvery(500, 20))); // 10 seconds
+    responses.current.push(await testEvery(500, 10)); // 5 seconds
     setTestOneCallEvery500MS("done");
     setTestOneCallEvery200MS("ongoing");
-    responses.current.push(...(await testEvery(200, 50))); // 10 seconds
+    responses.current.push(await testEvery(200, 25)); // 5 seconds
     setTestOneCallEvery200MS("done");
     setTestOneCallEvery100MS("ongoing");
-    responses.current.push(...(await testEvery(100, 50))); // 5 seconds
+    responses.current.push(await testEvery(100, 10)); // 1 seconds
     setTestOneCallEvery100MS("done");
     setTestOneCallEvery50MS("ongoing");
-    responses.current.push(...(await testEvery(50, 100))); // 5 seconds
+    responses.current.push(await testEvery(50, 20)); // 1 seconds
     setTestOneCallEvery50MS("done");
     setTestOneCallEvery10MS("ongoing");
-    responses.current.push(...(await testEvery(10, 500))); // 5 seconds
+    responses.current.push(await testEvery(10, 50)); // 0.5 seconds
     setTestOneCallEvery10MS("done");
     capture(new Error("Test connexion"), {
-      extra: { responses: responses.current },
+      extra: { tests: responses.current },
     });
     setTestLaunched(false);
   }
 
-  async function testEvery(interval: number, numberOfTests: number) {
-    const responses = [];
-    const counter = 1;
+  async function testEvery(intervalMs: number, numberOfTests: number): Promise<TestConnexionResult> {
+    const durationsMs: number[] = [];
+    const failures: TestConnexionFailureSample[] = [];
+    let okCount = 0;
+    let failCount = 0;
+    const startedAt = new Date().toISOString();
+
     for (let i = 0; i < numberOfTests; i++) {
-      await API.get({ path: "/check-auth" }).then((response) => {
-        if (!response.ok) {
-          responses.push({
-            test: `Test call every ${interval}ms #${counter}`,
-            response,
-          });
+      const t0 = performance.now();
+      const [error, response] = await tryFetch(async () => API.get({ path: "/check-auth" }));
+      const durationMs = Math.round(performance.now() - t0);
+      durationsMs.push(durationMs);
+
+      if (error) {
+        failCount += 1;
+        if (failures.length < 20) {
+          failures.push({ index: i + 1, error: error.message, response, durationMs });
         }
-      });
-      await new Promise((resolve) => setTimeout(resolve, interval));
+      } else {
+        okCount += 1;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
-    return responses;
+
+    const endedAt = new Date().toISOString();
+    const sorted = [...durationsMs].sort((a, b) => a - b);
+    const sum = durationsMs.reduce((acc, v) => acc + v, 0);
+
+    return {
+      intervalMs,
+      numberOfTests,
+      startedAt,
+      endedAt,
+      okCount,
+      failCount,
+      avgDurationMs: durationsMs.length ? Math.round(sum / durationsMs.length) : 0,
+      p50DurationMs: percentile(sorted, 0.5),
+      p95DurationMs: percentile(sorted, 0.95),
+      minDurationMs: sorted[0] ?? 0,
+      maxDurationMs: sorted[sorted.length - 1] ?? 0,
+      failures,
+    };
   }
 
   async function stopTest() {
     if (testLaunched) {
       if (!window.confirm("Êtes-vous sûr de vouloir arrêter le test ?")) return;
+      const okCount = responses.current.reduce((acc, r) => acc + (r?.okCount || 0), 0);
+      const failCount = responses.current.reduce((acc, r) => acc + (r?.failCount || 0), 0);
       capture(new Error("Test connexion"), {
-        extra: { responses: responses.current },
-        tags: { responsesOK: responses.current?.length },
+        extra: { tests: responses.current },
+        tags: { okCount, failCount },
         level: "warning",
       });
     }
@@ -277,11 +335,11 @@ const TestConnexion = () => {
             <ul className="tw-flex-col tw-flex tw-gap-y-2">
               <li>{getTestIcon(testOneCallEvery2Seconds)} Test 1: 1 appel toutes les 2 secondes pendant 10 secondes</li>
               <li>{getTestIcon(testOneCallEvery1Seconds)} Test 2: 1 appel toutes les 1 secondes pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery500MS)} Test 3: 1 appel toutes les 500ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery200MS)} Test 4: 1 appel toutes les 200ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 10 secondes</li>
-              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 5 secondes</li>
-              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery500MS)} Test 3: 1 appel toutes les 500ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery200MS)} Test 4: 1 appel toutes les 200ms pendant 5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 1 seconde</li>
+              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 1 seconde</li>
+              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 0.5 seconde</li>
             </ul>
           </ModalBody>
         ) : (
