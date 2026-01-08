@@ -337,9 +337,9 @@ const TestConnexion = () => {
               <li>{getTestIcon(testOneCallEvery1Seconds)} Test 2: 1 appel toutes les 1 secondes pendant 10 secondes</li>
               <li>{getTestIcon(testOneCallEvery500MS)} Test 3: 1 appel toutes les 500ms pendant 5 secondes</li>
               <li>{getTestIcon(testOneCallEvery200MS)} Test 4: 1 appel toutes les 200ms pendant 5 secondes</li>
-              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 1 secondes</li>
-              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 1 secondes</li>
-              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 0.5 secondes</li>
+              <li>{getTestIcon(testOneCallEvery100MS)} Test 5: 1 appel toutes les 100ms pendant 1 seconde</li>
+              <li>{getTestIcon(testOneCallEvery50MS)} Test 6: 1 appel toutes les 50ms pendant 1 seconde</li>
+              <li>{getTestIcon(testOneCallEvery10MS)} Test 7: 1 appel toutes les 10ms pendant 0.5 seconde</li>
             </ul>
           </ModalBody>
         ) : (
