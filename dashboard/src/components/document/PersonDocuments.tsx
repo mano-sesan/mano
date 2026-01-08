@@ -188,7 +188,7 @@ export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) 
       const actionIds = [...new Set(actionNextDocuments.map((d) => d.linkedItem._id))];
 
       for (const actionId of actionIds) {
-        const action = freshPerson.actions.find((a) => a._id === actionId);
+        const action = person.actions.find((a) => a._id === actionId);
         if (!action) continue;
 
         const actionDocs = actionNextDocuments.filter((d) => d.linkedItem._id === actionId);
