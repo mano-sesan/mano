@@ -348,7 +348,7 @@ const EncryptionKey = ({ isMain }) => {
       <Alert color="danger">
         <b>Ne fermez pas cette page</b> pendant le chiffrement des données.
         <br />
-        <b>N'oubliez pas votre nouvelle clé</b>, sinon toutes vos données seront <b>perdues</b>&nbsp;
+        <b>N'oubliez pas votre nouvelle clé</b>, sinon toutes vos données seront <b>perdues</b>.
       </Alert>
       <p className="tw-my-8 tw-block tw-w-full tw-text-red-500 tw-text-center">
         <span className="tw-mr-2">🔑</span> <b>{encryptionKey}</b>
