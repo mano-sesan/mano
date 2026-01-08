@@ -573,7 +573,13 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumen
       const recryptedDocument = await recryptDocument(doc, id, { fromKey: oldKey, toKey: newKey });
       if (!recryptedDocument) continue;
       updatedDocuments.push(recryptedDocument);
-      if (onDocumentProcessed) onDocumentProcessed();
+      if (onDocumentProcessed) {
+        try {
+          onDocumentProcessed();
+        } catch (callbackError) {
+          console.error("Error in onDocumentProcessed callback:", callbackError);
+        }
+      }
     } catch (e) {
       console.error(e);
       // we need a temporary hack, for the organisations which already changed their encryption key
@@ -584,7 +590,13 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumen
       // if the recryption failed, we assume the document might have been encrypted with the newKey already
       // so we push it
       updatedDocuments.push(doc);
-      if (onDocumentProcessed) onDocumentProcessed();
+      if (onDocumentProcessed) {
+        try {
+          onDocumentProcessed();
+        } catch (callbackError) {
+          console.error("Error in onDocumentProcessed callback:", callbackError);
+        }
+      }
     }
   }
   return { ...item, documents: updatedDocuments };
