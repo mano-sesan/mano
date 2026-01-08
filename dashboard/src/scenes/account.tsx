@@ -154,6 +154,12 @@ type TestConnexionResult = {
   failures: TestConnexionFailureSample[];
 };
 
+function percentile(sortedValues: number[], percentileValue: number) {
+  if (!sortedValues.length) return 0;
+  const idx = Math.floor((sortedValues.length - 1) * percentileValue);
+  return sortedValues[Math.min(sortedValues.length - 1, Math.max(0, idx))];
+}
+
 const TestConnexion = () => {
   const [open, setOpen] = useState(false);
   const [testLaunched, setTestLaunched] = useState(false);
@@ -197,14 +203,6 @@ const TestConnexion = () => {
     setTestLaunched(false);
   }
 
-  function percentile(sortedValues: number[], percentileValue: number) {
-    if (!sortedValues.length) return 0;
-    const idx = Math.floor((sortedValues.length - 1) * percentileValue);
-    return sortedValues[Math.min(sortedValues.length - 1, Math.max(0, idx))];
-  }
-
-  type CheckAuthResponse = { ok: boolean; data?: unknown; error?: string };
-
   async function testEvery(intervalMs: number, numberOfTests: number): Promise<TestConnexionResult> {
     const durationsMs: number[] = [];
     const failures: TestConnexionFailureSample[] = [];
@@ -214,7 +212,7 @@ const TestConnexion = () => {
 
     for (let i = 0; i < numberOfTests; i++) {
       const t0 = performance.now();
-      const [error, response] = await tryFetch<CheckAuthResponse>(async () => API.get({ path: "/check-auth" }) as Promise<CheckAuthResponse>);
+      const [error, response] = await tryFetch(async () => API.get({ path: "/check-auth" }));
       const durationMs = Math.round(performance.now() - t0);
       durationsMs.push(durationMs);
 
