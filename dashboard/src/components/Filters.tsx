@@ -496,8 +496,8 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
           value={value?.map((_value: any) => ({ label: _value, value: _value })) || []}
           getOptionLabel={(f) => f.label}
           getOptionValue={(f) => f.value}
-          onChange={(newValue) => onChangeValue(newValue?.map((option) => option.value))}
-          isClearable={!value?.length}
+          onChange={(newValue) => onChangeValue((Array.isArray(newValue) ? newValue : []).map((option) => option.value))}
+          isClearable={Boolean(value?.length)}
           isMulti
           inputId={`filter-value-${index}`}
           classNamePrefix={`filter-value-${index}`}
@@ -529,8 +529,8 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
       value={value ? { label: value, value } : null}
       getOptionLabel={(f) => f.label}
       getOptionValue={(f) => f.value}
-      onChange={(f) => onChangeValue(f.value)}
-      isClearable={!value}
+      onChange={(f) => onChangeValue(f?.value ?? null)}
+      isClearable={Boolean(value)}
       inputId={`filter-value-${index}`}
       classNamePrefix={`filter-value-${index}`}
     />
