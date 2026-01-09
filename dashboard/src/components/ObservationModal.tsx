@@ -85,10 +85,19 @@ function ObservationContent({
   const territories = useAtomValue(territoriesState);
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
-  const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
+  const visibleGroupedCustomFieldsObs = useMemo(() => {
+    return groupedCustomFieldsObs
+      .map((group) => ({
+        ...group,
+        fields: (group.fields || []).filter((f) => f).filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id)),
+      }))
+      .filter((group) => group.fields.length > 0);
+  }, [groupedCustomFieldsObs, team._id]);
+
+  const fieldsGroupNames = useMemo(() => visibleGroupedCustomFieldsObs.map((g) => g.name).filter((n) => n), [visibleGroupedCustomFieldsObs]);
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
-  const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
+  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [deleteRencontresChecked, setDeleteRencontresChecked] = useState(true);
 
@@ -96,6 +105,10 @@ function ObservationContent({
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
   const rencontresInProgress = modalObservation.rencontresInProgress;
+  const resolvedActiveTab =
+    activeTab === "_rencontres" || (activeTab && fieldsGroupNames.includes(activeTab))
+      ? activeTab
+      : fieldsGroupNames[0] || (organisation.rencontresEnabled ? "_rencontres" : undefined);
 
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
@@ -230,13 +243,13 @@ function ObservationContent({
                       setActiveTab(name);
                     }}
                     className={[
-                      activeTab === name ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                      resolvedActiveTab === name ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
                       "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
                     ]
                       .filter(Boolean)
                       .join(" ")}
                   >
-                    {groupedCustomFieldsObs.length > 1 || name !== "Groupe par défaut" ? name : "Informations"}
+                    {visibleGroupedCustomFieldsObs.length > 1 || name !== "Groupe par défaut" ? name : "Informations"}
                   </button>
                 </li>
               ))}
@@ -248,7 +261,7 @@ function ObservationContent({
                       setActiveTab("_rencontres");
                     }}
                     className={[
-                      activeTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                      resolvedActiveTab === "_rencontres" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
                       "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
                     ]
                       .filter(Boolean)
@@ -268,17 +281,14 @@ function ObservationContent({
             }}
           >
             <div className="tw-p-4 tw-min-h-[30vh] tw-grow">
-              {groupedCustomFieldsObs.map((group) => (
-                <div className="tw-flex tw-flex-row tw-flex-wrap" hidden={group.name !== activeTab} key={group.name}>
-                  {group.fields
-                    .filter((f) => f)
-                    .filter((f) => f.enabled || (f.enabledTeams || []).includes(team._id))
-                    .map((field) => (
-                      <CustomFieldInput model="observation" values={observation ?? {}} handleChange={handleChange} field={field} key={field.name} />
-                    ))}
+              {visibleGroupedCustomFieldsObs.map((group) => (
+                <div className="tw-flex tw-flex-row tw-flex-wrap" hidden={group.name !== resolvedActiveTab} key={group.name}>
+                  {group.fields.map((field) => (
+                    <CustomFieldInput model="observation" values={observation ?? {}} handleChange={handleChange} field={field} key={field.name} />
+                  ))}
                 </div>
               ))}
-              {activeTab === "_rencontres" && (
+              {resolvedActiveTab === "_rencontres" && (
                 <>
                   <Table
                     className="Table"
