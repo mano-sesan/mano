@@ -253,7 +253,11 @@ const EncryptionKey = ({ isMain }) => {
         recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1))
       );
       const encryptedGroups = await recrypt("/group");
-      const encryptedActions = await recrypt("/action");
+      const encryptedActions = await recrypt("/action", async (decryptedData) => {
+        // Action documents are uploaded under `/person/:personId/document`, so we need to recrypt files too.
+        if (!decryptedData?.person) return decryptedData;
+        return recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1));
+      });
       const encryptedComments = await recrypt("/comment");
       const encryptedPassages = await recrypt("/passage");
       const encryptedRencontres = await recrypt("/rencontre");
