@@ -149,9 +149,9 @@ const EncryptionKey = ({ isMain }) => {
     // - Upload ("Envoi"): 90% -> 99% (slow creep)
     // Never display 100% until the server confirms success.
     if (encryptingPhase === "Envoi") {
-      const startedAt = uploadStartedAtRef.current || Date.now();
+      if (!uploadStartedAtRef.current) return 90;
       const now = uploadNow || Date.now();
-      const elapsedMs = now - startedAt;
+      const elapsedMs = now - uploadStartedAtRef.current;
       const creep = Math.min(9, Math.floor(elapsedMs / 30000)); // +1% every 30s, max +9%
       return 90 + creep;
     }
