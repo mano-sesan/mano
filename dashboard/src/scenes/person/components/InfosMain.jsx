@@ -9,6 +9,8 @@ import { useAtomValue } from "jotai";
 export function InfosMain({ person, isMedicalFile }) {
   const user = useAtomValue(userState);
   const [editModal, setEditModal] = useState(false);
+  const birthdateDayjs = person.birthdate ? dayjsInstance(person.birthdate) : null;
+  const birthdateIsValid = Boolean(birthdateDayjs && birthdateDayjs.isValid());
   return (
     <div>
       {Boolean(editModal) && <EditModal isMedicalFile={isMedicalFile} person={person} selectedPanel={"main"} onClose={() => setEditModal(false)} />}
@@ -24,14 +26,12 @@ export function InfosMain({ person, isMedicalFile }) {
             <Teams person={person} />
           </div>
           <div className="tw-flex tw-flex-col tw-gap-4 tw-pt-4 tw-text-sm ">
-            {person.birthdate && (
+            <div>
               <div>
-                <div>
-                  <b>Âge :</b> {formatAge(person.birthdate)}
-                </div>
-                <i>{dayjsInstance(person.birthdate).format("DD/MM/YYYY")}</i>
+                <b>Âge :</b> {(birthdateIsValid ? formatAge(person.birthdate) : null) || "Non renseigné"}
               </div>
-            )}
+              {birthdateIsValid ? <i>{birthdateDayjs.format("DD/MM/YYYY")}</i> : null}
+            </div>
             <div>
               <b>Genre : </b>
               {person.gender}
