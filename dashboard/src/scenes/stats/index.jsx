@@ -527,6 +527,7 @@ const Stats = () => {
   const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
   const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
+  const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
   const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
 
   const [evolutivesStatsActivated, setEvolutivesStatsActivated] = useLocalStorage("stats-evolutivesStatsActivated", false);
@@ -632,9 +633,10 @@ const Stats = () => {
   }, [actionsCategoriesGroups, allCategories, groupsCategories]);
 
   const consultationsFilteredByStatus = useMemo(() => {
-    if (!consultationsStatuses.length) return consultationsFilteredByPersons;
-    return consultationsFilteredByPersons.filter((consultation) => consultationsStatuses.includes(consultation.status));
-  }, [consultationsFilteredByPersons, consultationsStatuses]);
+    return consultationsFilteredByPersons
+      .filter((consultation) => !consultationsStatuses.length || consultationsStatuses.includes(consultation.status))
+      .filter((consultation) => !consultationsTypes.length || consultationsTypes.includes(consultation.type));
+  }, [consultationsFilteredByPersons, consultationsStatuses, consultationsTypes]);
 
   const actionsWithDetailedGroupAndCategories = useMemo(() => {
     const actionsDetailed = [];
@@ -1026,7 +1028,7 @@ const Stats = () => {
         {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} />}
         {activeTab === "Consultations" && (
           <ConsultationsStats
-            consultations={consultationsFilteredByStatus} // filter by persons and status
+            consultations={consultationsFilteredByStatus} // filter by persons, status, and type
             // filter by persons
             personsUpdated={personsUpdated}
             personsWithConsultations={personsWithConsultations}
@@ -1036,6 +1038,9 @@ const Stats = () => {
             // filter by status
             consultationsStatuses={consultationsStatuses}
             setConsultationsStatuses={setConsultationsStatuses}
+            // filter by type
+            consultationsTypes={consultationsTypes}
+            setConsultationsTypes={setConsultationsTypes}
           />
         )}
         {activeTab === "Dossiers médicaux des personnes créées" && (
