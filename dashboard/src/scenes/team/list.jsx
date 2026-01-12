@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Col, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Col, FormGroup, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -173,13 +173,13 @@ const Create = () => {
                   <Row>
                     <Col md={6}>
                       <FormGroup>
-                        <Label htmlFor="name">Nom</Label>
-                        <Input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                        <label htmlFor="name" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Nom</label>
+                        <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 tw-text-sm focus:tw-border-main focus:tw-ring-main" />
                       </FormGroup>
                     </Col>
                     <Col md={6}>
                       <FormGroup>
-                        <Label htmlFor="">L'équipe travaille-t-elle de nuit ?</Label>
+                        <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">L'équipe travaille-t-elle de nuit ?</label>
                         <div style={{ display: "flex", flexDirection: "column", marginLeft: 20, width: "80%" }}>
                           <FormGroup style={{ marginBottom: 0 }}>
                             <input
