@@ -88,6 +88,8 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
       const parsed = JSON.parse(savedConsultation);
       // Only restore if it's for the same person, or both are unassigned
       if ((!personId && !parsed.person) || parsed.person === personId) {
+        // Clear sessionStorage after successful restoration
+        window.sessionStorage.removeItem("currentConsultation");
         return {
           ...parsed,
           // Restore dates as Date objects
@@ -96,6 +98,8 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
           createdAt: parsed.createdAt ? new Date(parsed.createdAt) : new Date(),
         };
       }
+      // Clear sessionStorage when restoration is skipped due to person mismatch
+      window.sessionStorage.removeItem("currentConsultation");
     } catch (_e) {
       // Ignore parsing errors
     }
