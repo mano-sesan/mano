@@ -1064,7 +1064,9 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
 
     if (sheetName === "Types de territoire") {
       const types = sheetData.data.map((curr) => curr.type as string);
-      if (types.length) updatedOrganisation.territoriesGroupedTypes = [{ groupTitle: "", types }];
+      // Preserve existing groupTitle if there was one, otherwise use empty string
+      const existingGroupTitle = organisation.territoriesGroupedTypes?.[0]?.groupTitle ?? "";
+      if (types.length) updatedOrganisation.territoriesGroupedTypes = [{ groupTitle: existingGroupTitle, types }];
     }
   }
   return updatedOrganisation;
