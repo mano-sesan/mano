@@ -15,6 +15,32 @@ import { encryptRencontre } from "../atoms/rencontres";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import { useDataLoader } from "../services/dataLoader";
 
+const getInitialRencontreValues = (rencontre) => {
+  const savedRencontre = window.sessionStorage.getItem("currentRencontre");
+  if (savedRencontre && !rencontre?._id) {
+    try {
+      const parsed = JSON.parse(savedRencontre);
+      // Only restore if it's for the same person (or no person specified)
+      if (!rencontre?.person || parsed.person === rencontre?.person) {
+        return {
+          date: parsed.date ? new Date(parsed.date) : new Date(),
+          ...parsed,
+          anonymousNumberOfRencontres: parsed.anonymousNumberOfRencontres ?? 1,
+          persons: parsed.persons ?? (parsed.person ? [parsed.person] : []),
+        };
+      }
+    } catch (_e) {
+      // Ignore parsing errors
+    }
+  }
+  return {
+    date: new Date(),
+    ...rencontre,
+    anonymousNumberOfRencontres: 1,
+    persons: rencontre?.person ? [rencontre.person] : rencontre?.persons ? rencontre?.persons : [],
+  };
+};
+
 const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToPerson = false }) => {
   const user = useAtomValue(userState);
   const teams = useAtomValue(teamsState);
@@ -45,6 +71,11 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
   const isForPerson = !!rencontre?.person;
   const showMultiSelect = isNew && !isForPerson;
 
+  const handleClose = () => {
+    window.sessionStorage.removeItem("currentRencontre");
+    setOpen(false);
+  };
+
   return (
     <ModalContainer
       dataTestId="modal-rencontre-create-edit-delete"
@@ -53,14 +84,9 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
       size="3xl"
       onAfterLeave={onFinished}
     >
-      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
+      <ModalHeader onClose={handleClose} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
       <Formik
-        initialValues={{
-          date: new Date(),
-          ...rencontre,
-          anonymousNumberOfRencontres: 1,
-          persons: rencontre?.person ? [rencontre.person] : rencontre?.persons ? rencontre?.persons : [],
-        }}
+        initialValues={getInitialRencontreValues(rencontre)}
         onSubmit={async (body, actions) => {
           if (!body.user) return toast.error("L'utilisateur est obligatoire");
           if (!body.date) return toast.error("La date est obligatoire");
@@ -88,6 +114,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
 
             onSave(rencontres);
             await refresh();
+            window.sessionStorage.removeItem("currentRencontre");
             setOpen(false);
             return;
           }
@@ -128,6 +155,9 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
 
           await refresh();
+          if (success) {
+            window.sessionStorage.removeItem("currentRencontre");
+          }
           setOpen(false);
 
           if (success) {
@@ -137,7 +167,19 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
         }}
       >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+        {({ values, handleChange: formikHandleChange, handleSubmit, isSubmitting }) => {
+          // Wrap handleChange to save to sessionStorage for new rencontres
+          const handleChange = (e) => {
+            formikHandleChange(e);
+            if (isNew) {
+              const target = e.currentTarget || e.target;
+              const { name, value } = target;
+              const currentSaved = window.sessionStorage.getItem("currentRencontre");
+              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
+              current[name] = value;
+              window.sessionStorage.setItem("currentRencontre", JSON.stringify(current));
+            }
+          };
           const buttonsDisabled = isSubmitting || isDeleting || !open;
           return (
             <>
@@ -192,7 +234,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" name="cancel" disabled={buttonsDisabled} className="button-cancel" onClick={() => setOpen(false)}>
+                <button type="button" name="cancel" disabled={buttonsDisabled} className="button-cancel" onClick={handleClose}>
                   Fermer
                 </button>
                 {!isNew && (

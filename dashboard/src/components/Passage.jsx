@@ -14,6 +14,32 @@ import AutoResizeTextarea from "./AutoresizeTextArea";
 import { ModalContainer, ModalHeader, ModalFooter, ModalBody } from "./tailwind/Modal";
 import { useDataLoader } from "../services/dataLoader";
 
+const getInitialPassageValues = (passage) => {
+  const savedPassage = window.sessionStorage.getItem("currentPassage");
+  if (savedPassage && !passage?._id) {
+    try {
+      const parsed = JSON.parse(savedPassage);
+      // Only restore if it's for the same person (or no person specified)
+      if (!passage?.person || parsed.person === passage?.person) {
+        return {
+          date: parsed.date ? new Date(parsed.date) : new Date(),
+          ...parsed,
+          anonymousNumberOfPassages: parsed.anonymousNumberOfPassages ?? 1,
+          persons: parsed.persons ?? (parsed.person ? [parsed.person] : []),
+        };
+      }
+    } catch (_e) {
+      // Ignore parsing errors
+    }
+  }
+  return {
+    date: new Date(),
+    ...passage,
+    anonymousNumberOfPassages: 1,
+    persons: passage?.person ? [passage?.person] : [],
+  };
+};
+
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useAtomValue(userState);
   const teams = useAtomValue(teamsState);
@@ -44,6 +70,11 @@ const Passage = ({ passage, personId, onFinished }) => {
   const showMultiSelect = isNew && !isForPerson;
   const isEditingAnonymous = !isNew && !isForPerson;
 
+  const handleClose = () => {
+    window.sessionStorage.removeItem("currentPassage");
+    setOpen(false);
+  };
+
   return (
     <ModalContainer
       dataTestId="modal-passage-create-edit-delete"
@@ -52,9 +83,9 @@ const Passage = ({ passage, personId, onFinished }) => {
       size="3xl"
       onAfterLeave={onFinished}
     >
-      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
+      <ModalHeader onClose={handleClose} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
       <Formik
-        initialValues={{ date: new Date(), ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
+        initialValues={getInitialPassageValues(passage)}
         onSubmit={async (body, actions) => {
           if (!body.user) return toast.error("L'utilisateur est obligatoire");
           if (!body.date) return toast.error("La date est obligatoire");
@@ -106,6 +137,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             }
 
             await refresh();
+            window.sessionStorage.removeItem("currentPassage");
             setOpen(false);
             toast.success(body.person?.length > 1 ? "Passage enregistré !" : "Passages enregistrés !");
             return;
@@ -122,11 +154,24 @@ const Passage = ({ passage, personId, onFinished }) => {
             return;
           }
           await refresh();
+          window.sessionStorage.removeItem("currentPassage");
           setOpen(false);
           toast.success("Passage mis à jour");
         }}
       >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+        {({ values, handleChange: formikHandleChange, handleSubmit, isSubmitting }) => {
+          // Wrap handleChange to save to sessionStorage for new passages
+          const handleChange = (e) => {
+            formikHandleChange(e);
+            if (isNew) {
+              const target = e.currentTarget || e.target;
+              const { name, value } = target;
+              const currentSaved = window.sessionStorage.getItem("currentPassage");
+              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
+              current[name] = value;
+              window.sessionStorage.setItem("currentPassage", JSON.stringify(current));
+            }
+          };
           const buttonsDisabled = isSubmitting || isDeleting || !open;
           return (
             <>
@@ -212,7 +257,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" disabled={buttonsDisabled} name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
+                <button type="button" disabled={buttonsDisabled} name="cancel" className="button-cancel" onClick={handleClose}>
                   Fermer
                 </button>
                 {!isNew && (
