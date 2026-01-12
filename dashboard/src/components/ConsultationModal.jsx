@@ -86,8 +86,8 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
   if (savedConsultation) {
     try {
       const parsed = JSON.parse(savedConsultation);
-      // Only restore if it's for the same person (or no person specified)
-      if (!personId || parsed.person === personId) {
+      // Only restore if it's for the same person, or both are unassigned
+      if ((!personId && !parsed.person) || parsed.person === personId) {
         return {
           ...parsed,
           // Restore dates as Date objects
