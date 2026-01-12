@@ -242,13 +242,13 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
               <Row>
                 <Col md={6}>
                   <FormGroup>
-                    <label htmlFor="name" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Nom</label>
-                    <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 tw-text-sm focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
+                    <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <label htmlFor="territory-select-types" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Types</label>
+                    <label htmlFor="territory-select-types" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Types</label>
                     <SelectCustom
                       options={territoryTypes.map((_option) => ({ value: _option, label: _option }))}
                       name="types"
@@ -265,14 +265,14 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <label htmlFor="description" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Description</label>
-                    <textarea name="description" id="description" value={values.description} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 tw-text-sm focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="description" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Description</label>
+                    <textarea name="description" id="description" value={values.description} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <label htmlFor="perimeter" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Périmètre</label>
-                    <textarea name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-2 tw-text-sm focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="perimeter" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Périmètre</label>
+                    <textarea name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
               </Row>
