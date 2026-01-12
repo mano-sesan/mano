@@ -81,23 +81,43 @@ export default function ConsultationModal() {
   );
 }
 
-const newConsultationInitialState = (organisationId, personId, userId, date, teams) => ({
-  _id: null,
-  dueAt: date ? new Date(date) : new Date(),
-  completedAt: new Date(),
-  name: "",
-  type: "",
-  status: TODO,
-  teams: teams.length === 1 ? [teams[0]._id] : [],
-  user: userId,
-  person: personId || null,
-  organisation: organisationId,
-  onlyVisibleBy: [],
-  documents: [],
-  comments: [],
-  history: [],
-  createdAt: new Date(),
-});
+const newConsultationInitialState = (organisationId, personId, userId, date, teams) => {
+  const savedConsultation = window.sessionStorage.getItem("currentConsultation");
+  if (savedConsultation) {
+    try {
+      const parsed = JSON.parse(savedConsultation);
+      // Only restore if it's for the same person (or no person specified)
+      if (!personId || parsed.person === personId) {
+        return {
+          ...parsed,
+          // Restore dates as Date objects
+          dueAt: parsed.dueAt ? new Date(parsed.dueAt) : new Date(),
+          completedAt: parsed.completedAt ? new Date(parsed.completedAt) : new Date(),
+          createdAt: parsed.createdAt ? new Date(parsed.createdAt) : new Date(),
+        };
+      }
+    } catch (_e) {
+      // Ignore parsing errors
+    }
+  }
+  return {
+    _id: null,
+    dueAt: date ? new Date(date) : new Date(),
+    completedAt: new Date(),
+    name: "",
+    type: "",
+    status: TODO,
+    teams: teams.length === 1 ? [teams[0]._id] : [],
+    user: userId,
+    person: personId || null,
+    organisation: organisationId,
+    onlyVisibleBy: [],
+    documents: [],
+    comments: [],
+    history: [],
+    createdAt: new Date(),
+  };
+};
 
 function ConsultationContent({ personId, consultation, date, onClose }) {
   const organisation = useAtomValue(organisationState);
@@ -137,6 +157,13 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
   useEffect(() => {
     setData(initialState);
   }, [initialState]);
+
+  // Save consultation data to sessionStorage when it changes (only for new consultations)
+  useEffect(() => {
+    if (isNewConsultation) {
+      window.sessionStorage.setItem("currentConsultation", JSON.stringify(data));
+    }
+  }, [data, isNewConsultation]);
 
   const [activeTab, setActiveTab] = useState("Informations");
 
@@ -187,6 +214,8 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
       setIsFetching(false);
       return false;
     }
+    // Clear saved consultation from sessionStorage on successful save
+    window.sessionStorage.removeItem("currentConsultation");
     const decryptedData = await decryptItem(response.data, { type: "consultation in modal" });
     if (decryptedData) {
       await refresh();
@@ -261,8 +290,14 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
   };
 
   const handleCheckBeforeClose = () => {
-    if (!isEditing && !canSave) return onClose();
-    if (JSON.stringify(data) === JSON.stringify(initialState)) return onClose();
+    if (!isEditing && !canSave) {
+      window.sessionStorage.removeItem("currentConsultation");
+      return onClose();
+    }
+    if (JSON.stringify(data) === JSON.stringify(initialState)) {
+      window.sessionStorage.removeItem("currentConsultation");
+      return onClose();
+    }
     setModalConfirmState({
       open: true,
       options: {
@@ -276,7 +311,10 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
           {
             text: "Oui",
             className: "button-destructive",
-            onClick: () => onClose(),
+            onClick: () => {
+              window.sessionStorage.removeItem("currentConsultation");
+              onClose();
+            },
           },
         ],
       },
