@@ -22,6 +22,9 @@ export default function ConsultationsStats({
   // status filtering props
   consultationsStatuses = [],
   setConsultationsStatuses = () => {},
+  // type filtering props
+  consultationsTypes = [],
+  setConsultationsTypes = () => {},
 }) {
   const organisation = useAtomValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
@@ -69,6 +72,24 @@ export default function ConsultationsStats({
               isClearable
               isMulti
               value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
+            />
+          </div>
+        </div>
+        <div>
+          <label htmlFor="filter-by-type" className="tw-m-0">
+            Filtrer par type
+          </label>
+          <div>
+            <SelectCustom
+              inputId="consultation-select-type-filter"
+              options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
+              getOptionValue={(s) => s._id}
+              getOptionLabel={(s) => s.name}
+              name="consultation-type"
+              onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
+              isClearable
+              isMulti
+              value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
             />
           </div>
         </div>
