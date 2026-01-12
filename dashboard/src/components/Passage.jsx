@@ -137,8 +137,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             }
 
             await refresh();
-            window.sessionStorage.removeItem("currentPassage");
-            setOpen(false);
+            handleClose();
             toast.success(body.person?.length > 1 ? "Passage enregistré !" : "Passages enregistrés !");
             return;
           }
@@ -151,13 +150,11 @@ const Passage = ({ passage, personId, onFinished }) => {
           if (error) {
             toast.error("Erreur lors de la mise à jour du passage");
             actions.setSubmitting(false);
-            window.sessionStorage.removeItem("currentPassage");
-            setOpen(false);
+            handleClose();
             return;
           }
           await refresh();
-          window.sessionStorage.removeItem("currentPassage");
-          setOpen(false);
+          handleClose();
           toast.success("Passage mis à jour");
         }}
       >

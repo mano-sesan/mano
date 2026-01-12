@@ -114,8 +114,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
 
             onSave(rencontres);
             await refresh();
-            window.sessionStorage.removeItem("currentRencontre");
-            setOpen(false);
+            handleClose();
             return;
           }
 
@@ -155,8 +154,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
 
           await refresh();
-          window.sessionStorage.removeItem("currentRencontre");
-          setOpen(false);
+          handleClose();
 
           if (success) {
             toast.success(isNew ? (showMultiSelect ? "Rencontres enregistrées" : "Rencontre enregistrée") : "Rencontre mise à jour");
