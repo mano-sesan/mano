@@ -79,7 +79,7 @@ const Passage = ({ passage, personId, onFinished }) => {
     <ModalContainer
       dataTestId="modal-passage-create-edit-delete"
       open={!!open && !!passage}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
       onAfterLeave={onFinished}
     >
@@ -151,6 +151,8 @@ const Passage = ({ passage, personId, onFinished }) => {
           if (error) {
             toast.error("Erreur lors de la mise à jour du passage");
             actions.setSubmitting(false);
+            window.sessionStorage.removeItem("currentPassage");
+            setOpen(false);
             return;
           }
           await refresh();
