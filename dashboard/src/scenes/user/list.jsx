@@ -243,11 +243,11 @@ const Create = ({ onChange, users }) => {
         return false;
       }
       toast.success("Création réussie !");
+      onChange();
       if (closeOnSubmit) {
         setOpen(false);
       } else {
         setIsSubmitting(false);
-        onChange();
         setData(initialState);
         // Focus email field to make it clear we're ready for a new entry
         setTimeout(() => emailInputRef.current?.focus(), 100);
