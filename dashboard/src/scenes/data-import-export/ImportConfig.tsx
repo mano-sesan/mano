@@ -316,6 +316,7 @@ const sheetNames = [
   "Observation de territoire",
   "Liste des services",
   "Catégories d action",
+  "Types de territoire",
 ] as const;
 type SheetName = (typeof sheetNames)[number];
 
@@ -326,6 +327,7 @@ const workbookColumns: Record<SheetName, string[]> = {
   "Observation de territoire": ["Rubrique", "Intitulé du champ", "Type de champ", "Choix"],
   "Liste des services": ["Liste des services", "Groupe"],
   "Catégories d action": ["Liste des catégories d'action", "Groupe d'action"],
+  "Types de territoire": ["Type de territoire"],
 };
 
 type WorkbookData = Record<
@@ -512,6 +514,31 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       });
       if (existingCategories.length) {
         data["Catégories d action"].fieldsToDelete = existingCategories;
+      }
+    }
+
+    // Check for territory types
+    if (organisation.territoriesGroupedTypes?.length) {
+      const importedTypes = new Set<string>();
+      if (workbook.SheetNames.includes("Types de territoire")) {
+        const sheet = workbook.Sheets["Types de territoire"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row["Type de territoire"]) {
+            importedTypes.add(row["Type de territoire"].trim());
+          }
+        });
+      }
+      const existingTypes: string[] = [];
+      organisation.territoriesGroupedTypes.forEach((group) => {
+        group.types.forEach((type) => {
+          if (!importedTypes.has(type.trim())) {
+            existingTypes.push(type.trim());
+          }
+        });
+      });
+      if (existingTypes.length) {
+        data["Types de territoire"].fieldsToDelete = existingTypes;
       }
     }
   }
@@ -801,6 +828,27 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
 
         data[sheetName].data.push(trimAllValues({ categorie, groupe }));
       }
+
+      if (sheetName === "Types de territoire") {
+        const [type] = row;
+        if (!type) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom du type est manquant` });
+
+        // Check for duplicate type names
+        if (type) {
+          const typeKey = type.trim();
+          if (seenFields.has(typeKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 0,
+              message: `Ce type existe déjà à la ligne ${seenFields.get(typeKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(typeKey, parseInt(key));
+          }
+        }
+
+        data[sheetName].data.push(trimAllValues({ type }));
+      }
     }
   }
   return data;
@@ -1013,6 +1061,11 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
       );
       if (categories.length) updatedOrganisation.actionsGroupedCategories = categories;
     }
+
+    if (sheetName === "Types de territoire") {
+      const types = sheetData.data.map((curr) => curr.type as string);
+      if (types.length) updatedOrganisation.territoriesGroupedTypes = [{ groupTitle: "", types }];
+    }
   }
   return updatedOrganisation;
 }
@@ -1127,6 +1180,13 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
       }, [] as string[][]),
     ]),
     "Catégories d action"
+  );
+
+  const territoriesGroupedTypes = organisation.territoriesGroupedTypes || [];
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([["Type de territoire"], ...territoriesGroupedTypes.flatMap((group) => group.types.map((type: string) => [type]))]),
+    "Types de territoire"
   );
 
   return workbook;
