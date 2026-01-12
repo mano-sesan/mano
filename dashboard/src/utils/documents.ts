@@ -35,7 +35,6 @@ export function removeOldDefaultFolders(
     // Nous avons donc à faire avec un dossier par défaut de l'ancienne configuration
     // qui n'est plus présent dans la configuration actuelle
     // il faut voir s'il a des documents dedans
-    console.log("item", item);
     foldersFromPreviousDefaultFolders.push(item);
   }
 
@@ -43,24 +42,30 @@ export function removeOldDefaultFolders(
     // on a des dossiers par défaut de l'ancienne configuration
     // il faut voir s'ils ont des documents dedans
     for (const item of foldersFromPreviousDefaultFolders) {
-      if (recursiveCheckIfFolderHasDocuments(item, docsOrFolders)) {
-        validItems.push(item);
+      if (checkIfFolderHasDocuments(item, docsOrFolders)) {
+        // Le dossier n'est plus un dossier par défaut, on le rend modifiable/déplaçable
+        validItems.push({ ...item, movable: undefined });
       }
     }
   }
 
-  return validItems;
+  // Gestion des orphelins : si un dossier parent a été supprimé,
+  // les enfants doivent être promus à la racine pour rester visibles
+  const keptFolderIds = new Set(validItems.filter((i) => i.type === "folder").map((i) => i._id));
+  return validItems.map((item) => {
+    // Si le parent existe ou est "root"/undefined, on ne change rien
+    if (!item.parentId || item.parentId === "root" || keptFolderIds.has(item.parentId)) {
+      return item;
+    }
+    // Le parent n'existe plus, on promeut l'item à la racine
+    return { ...item, parentId: "root" };
+  });
 }
 
-function recursiveCheckIfFolderHasDocuments(folder: FolderWithLinkedItem, docsOrFolders: Array<FolderWithLinkedItem | DocumentWithLinkedItem>) {
+function checkIfFolderHasDocuments(folder: FolderWithLinkedItem, docsOrFolders: Array<FolderWithLinkedItem | DocumentWithLinkedItem>) {
   const documents = docsOrFolders?.filter((d) => d.type === "document");
-  const folders = docsOrFolders?.filter((d) => d.type === "folder" && d._id !== folder._id);
   for (const doc of documents) {
     if (doc.parentId === folder._id) return true;
-  }
-  for (const folder of folders) {
-    if (folder.parentId !== folder._id) continue;
-    if (recursiveCheckIfFolderHasDocuments(folder as FolderWithLinkedItem, docsOrFolders)) return true;
   }
   return false;
 }
