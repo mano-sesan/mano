@@ -175,7 +175,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
               const target = e.currentTarget || e.target;
               const { name, value } = target;
               const currentSaved = window.sessionStorage.getItem("currentRencontre");
-              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
+              const current = currentSaved ? JSON.parse(currentSaved) : {};
               current[name] = value;
               window.sessionStorage.setItem("currentRencontre", JSON.stringify(current));
             }

@@ -167,7 +167,7 @@ const Passage = ({ passage, personId, onFinished }) => {
               const target = e.currentTarget || e.target;
               const { name, value } = target;
               const currentSaved = window.sessionStorage.getItem("currentPassage");
-              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
+              const current = currentSaved ? JSON.parse(currentSaved) : {};
               current[name] = value;
               window.sessionStorage.setItem("currentPassage", JSON.stringify(current));
             }
