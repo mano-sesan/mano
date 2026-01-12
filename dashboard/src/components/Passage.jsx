@@ -166,9 +166,8 @@ const Passage = ({ passage, personId, onFinished }) => {
             if (isNew) {
               const target = e.currentTarget || e.target;
               const { name, value } = target;
-              const currentSaved = window.sessionStorage.getItem("currentPassage");
-              const current = currentSaved ? JSON.parse(currentSaved) : {};
-              current[name] = value;
+              // Start with current form values, then update with the new value
+              const current = { ...values, [name]: value };
               window.sessionStorage.setItem("currentPassage", JSON.stringify(current));
             }
           };
