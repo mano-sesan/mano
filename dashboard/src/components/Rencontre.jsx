@@ -167,19 +167,14 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
         }}
       >
-        {({ values, handleChange: formikHandleChange, handleSubmit, isSubmitting }) => {
-          // Wrap handleChange to save to sessionStorage for new rencontres
-          const handleChange = (e) => {
-            formikHandleChange(e);
-            if (isNew) {
-              const target = e.currentTarget || e.target;
-              const { name, value } = target;
-              const currentSaved = window.sessionStorage.getItem("currentRencontre");
-              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
-              current[name] = value;
-              window.sessionStorage.setItem("currentRencontre", JSON.stringify(current));
+        {({ values, handleChange, handleSubmit, isSubmitting, setFieldValue }) => {
+          // Save values to sessionStorage whenever they change for new rencontres
+          useEffect(() => {
+            if (isNew && open) {
+              window.sessionStorage.setItem("currentRencontre", JSON.stringify(values));
             }
-          };
+          }, [values, isNew, open]);
+
           const buttonsDisabled = isSubmitting || isDeleting || !open;
           return (
             <>

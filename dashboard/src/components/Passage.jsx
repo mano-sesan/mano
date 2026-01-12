@@ -159,19 +159,14 @@ const Passage = ({ passage, personId, onFinished }) => {
           toast.success("Passage mis à jour");
         }}
       >
-        {({ values, handleChange: formikHandleChange, handleSubmit, isSubmitting }) => {
-          // Wrap handleChange to save to sessionStorage for new passages
-          const handleChange = (e) => {
-            formikHandleChange(e);
-            if (isNew) {
-              const target = e.currentTarget || e.target;
-              const { name, value } = target;
-              const currentSaved = window.sessionStorage.getItem("currentPassage");
-              const current = currentSaved ? JSON.parse(currentSaved) : { ...values };
-              current[name] = value;
-              window.sessionStorage.setItem("currentPassage", JSON.stringify(current));
+        {({ values, handleChange, handleSubmit, isSubmitting, setFieldValue }) => {
+          // Save values to sessionStorage whenever they change for new passages
+          useEffect(() => {
+            if (isNew && open) {
+              window.sessionStorage.setItem("currentPassage", JSON.stringify(values));
             }
-          };
+          }, [values, isNew, open]);
+
           const buttonsDisabled = isSubmitting || isDeleting || !open;
           return (
             <>
