@@ -150,7 +150,6 @@ const Passage = ({ passage, personId, onFinished }) => {
           if (error) {
             toast.error("Erreur lors de la mise à jour du passage");
             actions.setSubmitting(false);
-            handleClose();
             return;
           }
           await refresh();
