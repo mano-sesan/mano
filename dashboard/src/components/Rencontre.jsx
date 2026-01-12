@@ -80,7 +80,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
     <ModalContainer
       dataTestId="modal-rencontre-create-edit-delete"
       open={!!open && !!rencontre}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
       onAfterLeave={onFinished}
     >
@@ -114,8 +114,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
 
             onSave(rencontres);
             await refresh();
-            window.sessionStorage.removeItem("currentRencontre");
-            setOpen(false);
+            handleClose();
             return;
           }
 
@@ -155,10 +154,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
 
           await refresh();
-          if (success) {
-            window.sessionStorage.removeItem("currentRencontre");
-          }
-          setOpen(false);
+          handleClose();
 
           if (success) {
             toast.success(isNew ? (showMultiSelect ? "Rencontres enregistrées" : "Rencontre enregistrée") : "Rencontre mise à jour");

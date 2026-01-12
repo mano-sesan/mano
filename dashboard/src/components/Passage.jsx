@@ -79,7 +79,7 @@ const Passage = ({ passage, personId, onFinished }) => {
     <ModalContainer
       dataTestId="modal-passage-create-edit-delete"
       open={!!open && !!passage}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
       onAfterLeave={onFinished}
     >
@@ -137,8 +137,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             }
 
             await refresh();
-            window.sessionStorage.removeItem("currentPassage");
-            setOpen(false);
+            handleClose();
             toast.success(body.person?.length > 1 ? "Passage enregistré !" : "Passages enregistrés !");
             return;
           }
@@ -154,8 +153,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             return;
           }
           await refresh();
-          window.sessionStorage.removeItem("currentPassage");
-          setOpen(false);
+          handleClose();
           toast.success("Passage mis à jour");
         }}
       >
