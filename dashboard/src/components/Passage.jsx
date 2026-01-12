@@ -79,7 +79,7 @@ const Passage = ({ passage, personId, onFinished }) => {
     <ModalContainer
       dataTestId="modal-passage-create-edit-delete"
       open={!!open && !!passage}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
       onAfterLeave={onFinished}
     >

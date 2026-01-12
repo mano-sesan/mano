@@ -80,7 +80,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
     <ModalContainer
       dataTestId="modal-rencontre-create-edit-delete"
       open={!!open && !!rencontre}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
       onAfterLeave={onFinished}
     >
