@@ -369,6 +369,7 @@ export default function PersonDocuments({ person }: PersonDocumentsProps) {
           </button>
         </div>
         <input
+          data-testid="person-documents-upload-input"
           ref={fileInputRef}
           type="file"
           multiple

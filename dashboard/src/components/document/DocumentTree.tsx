@@ -126,7 +126,9 @@ export function DocumentTree({ treeData, onSaveOrder, expandedItems, onDocumentC
               {/* Name */}
               <span className="tw-truncate tw-flex tw-items-center tw-gap-1">
                 <span>{itemData.name}</span>
-                {isGroupDocument && <UsersIcon className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />}
+                {isGroupDocument && (
+                  <UsersIcon aria-label="Document familial" title="Document familial" className="tw-min-w-4 tw-w-4 tw-h-4 tw-text-main75" />
+                )}
                 {(itemData.movable === false || isFromOtherPerson) && (
                   <LockClosedIcon
                     className="tw-w-3 tw-h-3 tw-text-gray-700"
@@ -204,6 +206,7 @@ export function DocumentsTreeWrapper({
 }: DocumentsTreeWrapperProps) {
   return (
     <div
+      data-testid="documents-tree-wrapper"
       className={className}
       onDragEnter={(e) => {
         // Only show drop zone if files are being dragged from outside (not internal tree items)
