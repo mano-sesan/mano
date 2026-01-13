@@ -21,11 +21,11 @@ import { groupsState } from "../../atoms/groups";
 import { DocumentsTreeWrapper, DocumentsDropzone, useDocumentTreeData, useFolderOptions, type DocumentOrFolder } from "./DocumentTree";
 import { CreateFolderModal, EditFolderModal } from "./FolderModals";
 
-interface PersonDocumentsAltProps {
+interface PersonDocumentsProps {
   person: PersonPopulated;
 }
 
-export default function PersonDocumentsAlt({ person }: PersonDocumentsAltProps) {
+export default function PersonDocuments({ person }: PersonDocumentsProps) {
   const { refresh } = useDataLoader();
   const organisation = useAtomValue(organisationAuthentifiedState);
   const { encryptPerson } = usePreparePersonForEncryption();

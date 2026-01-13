@@ -11,7 +11,7 @@ import { flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
 import { customFieldsMedicalFileSelector, encryptMedicalFile, groupedCustomFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { Treatments } from "./Treatments";
 import { useEffect, useMemo } from "react";
-import MedicalFileDocumentsNew from "../../../components/document/MedicalFileDocuments";
+import MedicalFileDocuments from "../../../components/document/MedicalFileDocuments";
 import { MedicalFilePrint } from "./MedicalFilePrint";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import CommentsMedical from "./CommentsMedical";
@@ -96,7 +96,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
           <Consultations person={person} />
         </div>
         <div className="tw-col-span-4 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
-          {["restricted-access"].includes(user.role) ? <MedicalFileDocumentsNew person={person} /> : <CommentsMedical person={person} />}
+          {["restricted-access"].includes(user.role) ? <MedicalFileDocuments person={person} /> : <CommentsMedical person={person} />}
         </div>
       </div>
       {!["restricted-access"].includes(user.role) && (
@@ -120,7 +120,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
                 <Treatments person={person} />
               </div>
               <div className="tw-h-[400px] tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
-                <MedicalFileDocumentsNew person={person} />
+                <MedicalFileDocuments person={person} />
               </div>
             </div>
           </div>
