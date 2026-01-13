@@ -34,6 +34,7 @@ import PersonName from "../../components/PersonName";
 import { useDeletePerson } from "../../services/useDeletePerson";
 import { getPersonInfo } from "../../utils/get-person-infos";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 const limit = 20;
 
 // Hook to filter persons with search and filters (replaces selectorFamily)
@@ -359,9 +360,11 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
             <td className="tw-flex tw-flex-col tw-items-start tw-gap-1">
               <div className="tw-flex tw-items-center tw-gap-x-2">
                 {!!p.group && (
-                  <span aria-label="Personne avec des liens familiaux" title="Personne avec des liens familiaux">
-                    👪
-                  </span>
+                  <UserGroupIcon
+                    className="tw-w-6 tw-h-6 tw-text-main"
+                    aria-label="Personne avec des liens familiaux"
+                    title="Personne avec des liens familiaux"
+                  />
                 )}
                 {!!p.alertness && (
                   <ExclamationMarkButton
@@ -407,9 +410,11 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
             if (!person.group) return null;
             return (
               <div className="tw-flex tw-items-center tw-justify-center tw-gap-1">
-                <span className="tw-text-3xl" aria-label="Personne avec des liens familiaux" title="Personne avec des liens familiaux">
-                  👪
-                </span>
+                <UserGroupIcon
+                  className="tw-w-6 tw-h-6 tw-text-main"
+                  aria-label="Personne avec des liens familiaux"
+                  title="Personne avec des liens familiaux"
+                />
               </div>
             );
           },

@@ -16,6 +16,7 @@ import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import DescriptionIcon from "./DescriptionIcon";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 export default function ActionsWeekly({ actions, isNightSession, onCreateAction }) {
   const [startOfWeek, setStartOfWeek] = useSearchParamState("startOfWeek", dayjsInstance().startOf("week").format("YYYY-MM-DD"));
@@ -186,7 +187,9 @@ function ActionsOfDay({ actions }) {
             🧑 <PersonName item={action} />
           </div>
           <div className="tw-flex tw-flex-row tw-items-center tw-gap-2 tw-mt-1">
-            {!!organisation.groupsEnabled && !!action.group && <div className="tw-text-lg">👪</div>}
+            {!!organisation.groupsEnabled && !!action.group && (
+              <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
+            )}
             {!!action.description && <DescriptionIcon />}
             {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}
             {action.comments?.length ? <CommentIcon count={action.comments.length} /> : null}

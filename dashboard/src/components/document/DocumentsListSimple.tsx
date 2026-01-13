@@ -9,6 +9,7 @@ import PersonName from "../PersonName";
 import { formatDateTimeWithNameOfDay } from "../../services/date";
 import { DocumentModal } from "./DocumentModal";
 import { handleFilesUpload } from "./DocumentsUpload";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 type Color = "main" | "blue-900";
 
@@ -179,9 +180,7 @@ export default function DocumentsListSimple({
                   <td className="tw-p-3">
                     <p className="tw-m-0 tw-flex tw-items-center tw-overflow-hidden tw-font-bold">
                       {!!organisation.groupsEnabled && !!doc.group && (
-                        <span className="tw-mr-2 tw-text-xl" aria-label="Document familial" title="Document familial">
-                          👪
-                        </span>
+                        <UserGroupIcon className="tw-mr-2 tw-w-6 tw-h-6 tw-text-main" aria-label="Document familial" title="Document familial" />
                       )}
                       {doc.name}
                     </p>
