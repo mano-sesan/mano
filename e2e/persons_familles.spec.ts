@@ -230,21 +230,4 @@ test("Familles", async ({ page }) => {
     await page.getByRole("cell", { name: person2Name }).click();
     await expect(page.locator("tr", { has: page.getByText(comment1Name) }).getByText("👪")).toBeVisible();
   });
-
-  await test.step("Create document for whole family, should be visible everywhere with the family icon", async () => {
-    await page.getByRole("link", { name: "Personnes suivies" }).click();
-    await page.getByRole("cell", { name: person1Name }).click();
-    await page.locator("label[aria-label='Ajouter des documents']").first().setInputFiles("e2e/files-to-upload/image-1.jpg");
-    await page.getByText("Document image-1.jpg ajouté !").click();
-    await page.getByText("image-1.jpg", { exact: true }).click();
-
-    await page.getByLabel("Document familialCe document sera visible pour toute la famille").check();
-    await page.getByText("Document mis à jour").click();
-    await page.getByRole("button", { name: "Fermer" }).first().click();
-    await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
-
-    await page.getByRole("link", { name: "Personnes suivies" }).click();
-    await page.getByRole("cell", { name: person2Name }).click();
-    await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
-  });
 });

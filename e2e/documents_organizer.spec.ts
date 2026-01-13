@@ -1,7 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
-import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { changeReactSelectValue, clickOnEmptyReactSelect, createAction, createPerson, logOut, loginWith } from "./utils";
+import { clickOnEmptyReactSelect, createPerson, logOut, loginWith } from "./utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
