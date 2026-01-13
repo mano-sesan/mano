@@ -8,7 +8,6 @@ import type { UUIDV4 } from "../../types/uuid";
 import API, { tryFetchBlob } from "../../services/api";
 import { decryptFile, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { download, errorMessage } from "../../utils";
-import { shouldUseNewDocumentsSystem } from "../../config";
 import { itemsGroupedByActionSelector } from "../../atoms/selectors";
 import { defaultModalActionState, modalActionState } from "../../atoms/modal";
 import { organisationState } from "../../atoms/auth";
@@ -60,8 +59,6 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   const contentType = document.file.mimetype;
 
   const isLinkedToOtherPerson = !!document.group && personId !== document.linkedItem._id;
-
-  const canSeeInfo = shouldUseNewDocumentsSystem(organisation?._id);
 
   return (
     <ModalContainer open className="[overflow-wrap:anywhere]" size="prose">
@@ -183,17 +180,15 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
 
           <div className="tw-text-sm tw-pt-4 tw-opacity-60 tw-flex tw-items-center tw-gap-1">
             Créé par <UserName id={document.createdBy} /> le {formatDateTimeWithNameOfDay(document.createdAt)}
-            {canSeeInfo && (
-              <button
-                type="button"
-                className="tw-ml-2 tw-inline-flex tw-items-center tw-justify-center hover:tw-text-main"
-                onClick={() => setShowJson(!showJson)}
-                title="Voir les données brutes"
-                aria-label="Voir les données brutes"
-              >
-                <Cog6ToothIcon className="tw-h-4 tw-w-4" />
-              </button>
-            )}
+            <button
+              type="button"
+              className="tw-ml-2 tw-inline-flex tw-items-center tw-justify-center hover:tw-text-main"
+              onClick={() => setShowJson(!showJson)}
+              title="Voir les données brutes"
+              aria-label="Voir les données brutes"
+            >
+              <Cog6ToothIcon className="tw-h-4 tw-w-4" />
+            </button>
           </div>
           {showJson && (
             <div className="tw-w-full tw-overflow-auto tw-rounded tw-bg-gray-100 tw-p-2 tw-text-xs tw-font-mono">

@@ -53,18 +53,8 @@ const DEFAULT_ORGANISATION_KEY =
 
 const MANO_TEST_ORG_ID = "00000000-5f5a-89e2-2e60-88fa20cc50bf";
 
-/**
- * New headless-tree documents system is enabled:
- * - always in development
- * - in production only for the Mano test organisation
- * - never in Playwright runs (stable tests)
- */
-const shouldUseNewDocumentsSystem = (organisationId) => {
-  return !import.meta.env.VITE_TEST_PLAYWRIGHT && (process.env.NODE_ENV === "development" || organisationId === MANO_TEST_ORG_ID);
-};
-
 const DISABLED_FEATURES = {
   // "feature-key": true,
 };
 
-export { theme, HOST, SCHEME, ENV, VERSION, DEFAULT_ORGANISATION_KEY, DISABLED_FEATURES, MANO_TEST_ORG_ID, shouldUseNewDocumentsSystem };
+export { theme, HOST, SCHEME, ENV, VERSION, DEFAULT_ORGANISATION_KEY, DISABLED_FEATURES, MANO_TEST_ORG_ID };

@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
-import DocumentsOrganizer from "../../components/DocumentsOrganizer";
 import { Folder } from "../../types/document";
-import { FolderModal } from "../../components/DocumentsGeneric";
 import { useAtomValue } from "jotai";
 import { organisationAuthentifiedState, userAuthentifiedState } from "../../atoms/auth";
 import API, { tryFetchExpectOk } from "../../services/api";
 import { capture } from "../../services/sentry";
 import { toast } from "react-toastify";
 import FolderTreeManager from "../../components/document/FolderTreeManager";
-import { shouldUseNewDocumentsSystem } from "../../config";
 
 function DefaultFolders({
   errorText,
@@ -19,8 +16,6 @@ function DefaultFolders({
 }) {
   const organisation = useAtomValue(organisationAuthentifiedState);
   const user = useAtomValue(userAuthentifiedState);
-  const [folderToEdit, setFolderToEdit] = useState<Folder | null>(null);
-  const [addFolder, setAddFolder] = useState(false);
   const [items, setItems] = useState<Array<Folder>>(organisation[organisationProperty] || []);
   useEffect(() => {
     // FIXME: trouver une meilleure méthode de comparaison
@@ -38,8 +33,6 @@ function DefaultFolders({
     }
   }, [errorText, items, organisation, organisationProperty]);
 
-  const useNewDocumentSystem = shouldUseNewDocumentsSystem(organisation?._id);
-
   return (
     <>
       <div className="tw-mb-8">
@@ -47,65 +40,7 @@ function DefaultFolders({
           Vous pouvez ajouter des dossiers qui seront affichés dans les documents de chaque personne.
         </div>
       </div>
-      {useNewDocumentSystem ? (
-        <FolderTreeManager folders={items} onChange={setItems} userId={user?._id ?? ""} />
-      ) : (
-        <>
-          <DocumentsOrganizer
-            items={items}
-            htmlId="social"
-            rootFolderName="Dossier Racine"
-            onSave={(items) => {
-              setItems(items);
-              return null;
-            }}
-            onFolderClick={(folder) => {
-              setFolderToEdit(folder);
-            }}
-            color="main"
-          />
-          {addFolder || !!folderToEdit ? (
-            <FolderModal
-              key={`${addFolder}${folderToEdit?._id}`}
-              folder={folderToEdit}
-              onClose={() => {
-                setFolderToEdit(null);
-                setAddFolder(false);
-              }}
-              onDelete={() => {
-                setItems(
-                  items
-                    .filter((item) => item._id !== folderToEdit?._id)
-                    .map((item) => {
-                      if (item.parentId === folderToEdit._id) return { ...item, parentId: "root" };
-                      return item;
-                    })
-                );
-                return null;
-              }}
-              onSubmit={(folder) => {
-                setFolderToEdit(null);
-                setAddFolder(false);
-                setItems(items.map((item) => (item._id === folder._id ? folder : item)));
-                return null;
-              }}
-              onAddFolder={(folder) => {
-                setItems([...items, folder]);
-                return null;
-              }}
-              color="main"
-            />
-          ) : null}
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              setAddFolder(true);
-            }}
-          >
-            Ajouter un dossier
-          </button>
-        </>
-      )}
+      <FolderTreeManager folders={items} onChange={setItems} userId={user?._id ?? ""} />
     </>
   );
 }

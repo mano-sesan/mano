@@ -2,22 +2,7 @@
 
 export default {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  safelist: [
-    "tw-min-w-0",
-    // for line rows in DocumentsOrganizer, we need predefined paddings
-    "before:-tw-left-0",
-    "before:-tw-left-10",
-    "before:-tw-left-20",
-    "before:-tw-left-30",
-    "before:-tw-left-40",
-    "before:-tw-left-50",
-    "before:-tw-left-60",
-    "before:-tw-left-70",
-    "before:-tw-left-80",
-    "before:-tw-left-90",
-    "before:tw-bg-main",
-    "before:tw-bg-blue-900",
-  ],
+  safelist: ["tw-min-w-0"],
   theme: {
     extend: {
       animation: {
