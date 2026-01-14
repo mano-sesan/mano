@@ -687,8 +687,10 @@ const ActionInformation = ({
 
   return (
     <ScrollContainer noRadius>
-      {!!action.user && <UserName caption="Action ajoutée par" id={action.user} />}
-      {!editable && urgent ? <Urgent>❗ Action prioritaire</Urgent> : null}
+      <View className="items-center -mt-5">
+        {!!action.user && <UserName caption="Action ajoutée par" id={action.user} classNameProp="mx-auto" textClassNameProp="italic text-center" />}
+        {!editable && urgent ? <Urgent>❗ Action prioritaire</Urgent> : null}
+      </View>
       <InputLabelled
         label="Nom de l'action"
         onChangeText={(name) => setAction((a) => ({ ...a, name }))}

@@ -1,16 +1,18 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import styled from "styled-components/native";
 import { deletedUsersState, usersState } from "../recoil/auth";
 import { MyText } from "./MyText";
 import { UUIDV4 } from "@/types/uuid";
+import { View } from "react-native";
 
 type UserNameProps = {
   id: UUIDV4;
   caption: string;
+  classNameProp?: string;
+  textClassNameProp?: string;
 };
 
-const UserName = ({ id, caption }: UserNameProps) => {
+const UserName = ({ id, caption, classNameProp = "-mt-2.5 mb-5 ml-auto", textClassNameProp = "italic" }: UserNameProps) => {
   const users = useAtomValue(usersState);
   const deletedUsers = useAtomValue(deletedUsersState);
 
@@ -18,17 +20,12 @@ const UserName = ({ id, caption }: UserNameProps) => {
 
   if (!user?.name) return null;
   return (
-    <FromUser>
-      {caption} {user.name}
-    </FromUser>
+    <View className={classNameProp}>
+      <MyText className={textClassNameProp}>
+        {caption} {user.name}
+      </MyText>
+    </View>
   );
 };
 
 export default UserName;
-
-const FromUser = styled(MyText)`
-  font-style: italic;
-  margin-top: -10px;
-  margin-bottom: 20px;
-  margin-left: auto;
-`;
