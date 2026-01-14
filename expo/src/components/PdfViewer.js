@@ -33,6 +33,7 @@ const PdfViewer = ({ title, source, noHeader = false }) => {
           Alert.alert("Erreur lors de la lecture du PDF", error.message);
           console.log(error);
         }}
+        trustAllCerts={false}
         onPressLink={async (url) => {
           if (await Linking.canOpenURL(url)) Linking.openURL(url);
         }}
@@ -55,6 +56,7 @@ const PdfViewer = ({ title, source, noHeader = false }) => {
           onError={(error) => {
             console.log(error);
           }}
+          trustAllCerts={false}
           onPressLink={async (url) => {
             if (await Linking.canOpenURL(url)) Linking.openURL(url);
           }}

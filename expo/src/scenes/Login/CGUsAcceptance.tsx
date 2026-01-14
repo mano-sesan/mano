@@ -55,6 +55,7 @@ const CGUsAcceptance = ({ navigation }: CGUsAcceptanceProps) => {
               onPressLink={async (url) => {
                 if (await Linking.canOpenURL(url)) Linking.openURL(url);
               }}
+              trustAllCerts={false}
             />
           </PdfContainer>
           <Container>

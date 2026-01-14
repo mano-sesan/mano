@@ -53,6 +53,7 @@ const CharteAcceptance = ({ navigation }: CharteAcceptanceProps) => {
               onPressLink={async (url) => {
                 if (await Linking.canOpenURL(url)) Linking.openURL(url);
               }}
+              trustAllCerts={false}
             />
           </PdfContainer>
           <Container>
