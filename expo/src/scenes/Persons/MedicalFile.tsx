@@ -415,9 +415,10 @@ const MedicalFile = ({
         .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
         .map((field) => {
           const { label, name } = field;
+          console.log("label", label, name);
           return (
             <CustomFieldInput
-              key={label}
+              key={name}
               label={label}
               field={field}
               value={medicalFile?.[name]}

@@ -73,7 +73,6 @@ function flattenTreeForFolderSelect(node, depth = 0, result = []) {
 
 // Cette fonction permet de rendre l'arbre de documents
 const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
-  console.log("node", node);
   return (
     <View key={node._id}>
       {node.type === "document" ? (

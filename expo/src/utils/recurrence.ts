@@ -159,7 +159,7 @@ export function actionsWithoutFutureRecurrences(actionsToSet: ActionInstance[]) 
   return finalActions;
 }
 
-export function getNthWeekdayInMonth(date: Date | string | Dayjs): { nth: number; isLast: boolean } {
+export function getNthWeekdayInMonth(date: Date): { nth: number; isLast: boolean } {
   const currentDay = dayjsInstance(date);
   const weekday = currentDay.day();
   const firstDayOfMonth = currentDay.startOf("month");

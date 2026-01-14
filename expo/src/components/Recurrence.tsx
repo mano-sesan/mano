@@ -48,7 +48,7 @@ function SelectCustom<T extends { value: number | string; label: string | number
       <Picker
         selectedValue={value.value}
         onValueChange={(itemValue) => {
-          const option = options.find((o) => o.value === itemValue)!;
+          const option = options.find((o) => String(o.value) === String(itemValue))!;
           onChange(option);
         }}
       >
@@ -109,24 +109,21 @@ export default function RecurrenceComponent({ startDate, onChange, initialValues
     }
   };
 
-  const handleChangeStartDate = (date: Date | string | Dayjs, updatedDays: string[]) => {
-    if (updatedDays.length === 1) {
-      const initialDayLabel = ucFirst(dayjsInstance(date).format("dddd"));
-      setSelectedDays([initialDayLabel]);
-    }
-  };
-
   useEffect(() => {
-    handleChangeStartDate(startDate, selectedDays);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate]);
+    if (selectedDays.length === 1) {
+      const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
+      if (!selectedDays.includes(initialDayLabel)) {
+        setSelectedDays([initialDayLabel]);
+      }
+    }
+  }, [startDate, selectedDays]);
 
   useEffect(() => {
     if (onChange) {
       onChange({ startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear]);
+  }, [endDate, timeInterval, timeUnit, selectedDays, recurrenceTypeForMonthAndYear]);
 
   return (
     <View className="flex flex-col gap-4">
