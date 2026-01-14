@@ -42,10 +42,9 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
           <PersonsList
             persons={filteredPersons}
             numberOfFilters={numberOfFilters}
-            search={search}
             setSearch={setSearch}
-            personFilters={personFilters}
             onFiltersPress={() => navigation.navigate("PERSONS_FILTER")}
+            onCreatePersonRequest={() => navigation.navigate("PERSON_NEW")}
             {...props}
           />
         )}

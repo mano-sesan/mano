@@ -19,14 +19,14 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FlashListRef } from "@shopify/flash-list";
 
 type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
-  search: string;
   setSearch: (search: string) => void;
-  personFilters: { filterTeams: string[]; filterAlertness: boolean; filterOutOfActiveList: string };
   numberOfFilters: number;
   onFiltersPress: () => void;
   persons: PersonInstance[];
+  onCreatePersonRequest: () => void;
 };
-const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, onFiltersPress }: PersonListProps) => {
+
+const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, onFiltersPress, onCreatePersonRequest }: PersonListProps) => {
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const loading = useAtomValue(loadingState);
 
@@ -39,10 +39,6 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
     if (isFocused && refreshTrigger.status !== true) onRefresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
-  const onCreatePersonRequest = () => {
-    const parent = navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
-    parent?.navigate("PERSON_NEW");
-  };
 
   const keyExtractor = (person: PersonInstance) => person._id;
   const ListFooterComponent = useCallback(() => {
