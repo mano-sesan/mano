@@ -274,7 +274,6 @@ const App = () => {
               <AppStack.Screen name="ACTIONS_FILTER" component={ActionsFilter} />
               {/* Persons */}
               <AppStack.Screen name="PERSON_STACK" component={Person} />
-              <AppStack.Screen name="PERSON_NEW_ROOT" component={PersonNew} />
               {/* Comments */}
               <AppStack.Screen name="COMMENT" component={Comment} />
               <AppStack.Screen name="COMMENTS_FOR_REPORT" component={CommentsForReport} />

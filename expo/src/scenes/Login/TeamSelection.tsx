@@ -42,7 +42,7 @@ export const TeamSelection = (props: NativeStackScreenProps<LoginStackParamsList
   const onSelect = () =>
     props.navigation.getParent()?.reset({
       index: 0,
-      routes: [{ name: "TABS" }],
+      routes: [{ name: "TABS_STACK" }],
     });
 
   return (
