@@ -32,7 +32,13 @@ const RencontresForReport = ({ navigation, route }: Props) => {
   };
 
   const renderItem = ({ item: rencontre }: { item: RencontreInstance }) => {
-    return <RencontreRow rencontre={rencontre} onUpdate={(person) => onUpdateRencontre(person, rencontre)} />;
+    return (
+      <RencontreRow
+        rencontre={rencontre}
+        onUpdate={(person) => onUpdateRencontre(person, rencontre)}
+        onPersonPress={(person) => navigation.push("PERSON_STACK", { person })}
+      />
+    );
   };
 
   return (

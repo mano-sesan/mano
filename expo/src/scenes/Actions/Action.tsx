@@ -149,6 +149,7 @@ type ActionMainProps = ActionProps & {
 
 const Action = ({ navigation, route, actionDB, action, actions, setAction, persons, onSearchPerson }: ActionMainProps) => {
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const setActions = useSetAtom(actionsState);
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState);
@@ -241,8 +242,10 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       return false;
     }
     const oldAction = actions.find((a) => a._id === action._id);
+    console.log("action._id", action._id);
     if (!oldAction) {
       Alert.alert("Action non trouvée");
+      onRefresh();
       setUpdating(false);
       return false;
     }
@@ -361,7 +364,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       Alert.alert("Impossible de dupliquer !");
       return;
     }
-    onRefresh();
 
     for (let c of comments.filter((c) => c.action === actionDB._id)) {
       const body = {
@@ -378,6 +380,9 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
     Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
+    onRefresh();
+    setActions((actions) => [...actions, response.decryptedData]);
+
     navigation.replace("ACTION_STACK", {
       action: response.decryptedData,
       person: response.decryptedData.person,

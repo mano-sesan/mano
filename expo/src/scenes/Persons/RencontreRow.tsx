@@ -13,11 +13,10 @@ import { RencontreInstance } from "@/types/rencontre";
 type RencontreRowProps = {
   onUpdate?: (person: PersonPopulated) => void;
   rencontre: RencontreInstance;
-  itemName?: string;
-  onItemNamePress?: () => void;
+  onPersonPress?: (person: PersonPopulated) => void;
 };
 
-const RencontreRow = ({ onUpdate, rencontre, itemName, onItemNamePress }: RencontreRowProps) => {
+const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps) => {
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const user = useAtomValue(userState)!;
   const setRencontres = useSetAtom(rencontresState);
@@ -67,8 +66,8 @@ const RencontreRow = ({ onUpdate, rencontre, itemName, onItemNamePress }: Rencon
       date={rencontre.date || rencontre.createdAt!}
       user={rencontre.user}
       urgent={false}
-      itemName={itemName || person?.name || person?.personName}
-      onItemNamePress={onItemNamePress}
+      itemName={person?.name || person?.personName}
+      onItemNamePress={() => onPersonPress?.(person!)}
       metaCaption="Rencontre faite par"
     />
   );

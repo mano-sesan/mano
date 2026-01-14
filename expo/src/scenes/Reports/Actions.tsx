@@ -25,12 +25,8 @@ const Actions = ({ route, navigation }: Props) => {
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
-  console.log("route.params", JSON.stringify(route.params, null, 2));
 
   const { actionsCreated, actionsCompleted, actionsCanceled } = useActionsForReport(date);
-  console.log("actionsCreated", actionsCreated.length);
-  console.log("actionsCompleted", actionsCompleted.length);
-  console.log("actionsCanceled", actionsCanceled.length);
 
   const actionsToShow = useMemo(() => {
     if (!status) return actionsCreated;

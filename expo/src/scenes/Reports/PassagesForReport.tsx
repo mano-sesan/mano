@@ -35,6 +35,7 @@ const PassagesForReport = ({ navigation, route }: Props) => {
         date={passage.date || passage.createdAt!}
         user={passage.user}
         urgent={false}
+        onItemNamePress={() => navigation.push("PERSON_STACK", { person: personsObject[passage.person!] })}
         itemName={personsObject[passage.person!]?.name || personsObject[passage.person!]?.personName || "Passage anonyme"}
         metaCaption="Passage noté par"
       />
@@ -43,7 +44,7 @@ const PassagesForReport = ({ navigation, route }: Props) => {
 
   return (
     <SceneContainer backgroundColor="#fff">
-      <ScreenTitle title={`passages \n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
+      <ScreenTitle title={`Passages \n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
       <FlashListStyled
         refreshing={refreshTrigger.status}
         onRefresh={onRefresh}
