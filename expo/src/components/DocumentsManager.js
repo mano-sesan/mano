@@ -73,6 +73,7 @@ function flattenTreeForFolderSelect(node, depth = 0, result = []) {
 
 // Cette fonction permet de rendre l'arbre de documents
 const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
+  console.log("node", node);
   return (
     <View key={node._id}>
       {node.type === "document" ? (
@@ -97,7 +98,7 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 // La liste des documents en tant que telle.
 const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
   documents = documents || [];
-  const [selectedFolder, setSelectedFolder] = useState("root");
+  const [selectedFolder, setSelectedFolder] = useState(defaultParent);
   const user = useAtomValue(userState);
   const [asset, setAsset] = useState(null);
   const [name, setName] = useState("");
@@ -165,8 +166,8 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
         if (options[buttonIndex] === "Naviguer dans les documents") {
           setLoading("documents");
           try {
-            const documents = await DocumentsPicker.pick({ allowMultiSelection: false });
-            const document = documents[0];
+            const _documents = await DocumentsPicker.pick({ allowMultiSelection: false });
+            const document = _documents[0];
             if (!document) return;
             // [{
             //   "convertibleToMimeTypes": null,

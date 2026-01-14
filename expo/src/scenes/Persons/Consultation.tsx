@@ -415,6 +415,8 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
 
   const canDelete = canEditAllFields;
 
+  console.log({ documents: consultationDB.documents });
+
   return (
     <SceneContainer testID="consultation-form">
       <ScreenTitle
@@ -479,7 +481,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                       ),
                     })
                   }
-                  documents={consultationDB.documents}
+                  documents={consultation.documents}
                 />
               </>
             )}
