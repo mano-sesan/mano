@@ -10,7 +10,7 @@ export const reportsState = atomWithCache<Array<ReportInstance>>("report", []);
 
 export const servicesSelector = atom((get) => {
   const organisation = get(organisationState)!;
-  if (organisation.groupedServices) return organisation.groupedServices;
+  if (organisation?.groupedServices) return organisation.groupedServices;
   return [{ groupTitle: "Tous mes services", services: [] }];
 });
 

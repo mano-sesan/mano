@@ -1,9 +1,8 @@
 import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { Dimensions, Linking } from "react-native";
+import { Alert, Dimensions, Linking, View } from "react-native";
 
 import Pdf from "react-native-pdf";
-import styled from "styled-components/native";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 
@@ -31,10 +30,11 @@ const PdfViewer = ({ title, source, noHeader = false }) => {
           console.log(`Current page: ${page}`);
         }}
         onError={(error) => {
+          Alert.alert("Erreur lors de la lecture du PDF", error.message);
           console.log(error);
         }}
-        onPressLink={(url) => {
-          if (Linking.canOpenURL(url)) Linking.openURL(url);
+        onPressLink={async (url) => {
+          if (await Linking.canOpenURL(url)) Linking.openURL(url);
         }}
       />
     );
@@ -42,8 +42,9 @@ const PdfViewer = ({ title, source, noHeader = false }) => {
   return (
     <SceneContainer>
       <ScreenTitle title={title} onBack={navigation.goBack} />
-      <Container>
-        <PdfStyled
+      <View className="flex-1 justify-start items-center">
+        <Pdf
+          style={{ flex: 1, width: Dimensions.get("window").width, height: Dimensions.get("window").height }}
           source={source}
           onLoadComplete={(numberOfPages, filePath) => {
             console.log(`Number of pages: ${numberOfPages}`);
@@ -54,25 +55,13 @@ const PdfViewer = ({ title, source, noHeader = false }) => {
           onError={(error) => {
             console.log(error);
           }}
-          onPressLink={(url) => {
-            if (Linking.canOpenURL(url)) Linking.openURL(url);
+          onPressLink={async (url) => {
+            if (await Linking.canOpenURL(url)) Linking.openURL(url);
           }}
         />
-      </Container>
+      </View>
     </SceneContainer>
   );
 };
-
-const Container = styled.View`
-  flex: 1;
-  justify-content: flex-start;
-  align-items: center;
-`;
-
-const PdfStyled = styled(Pdf)`
-  flex: 1;
-  width: ${Dimensions.get("window").width}px;
-  height: ${Dimensions.get("window").height}px;
-`;
 
 export default PdfViewer;
