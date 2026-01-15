@@ -236,10 +236,10 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
         !isEmptyValue(consultation.type) ||
         !isEmptyValue(consultation.name) ||
         !isEmptyValue(consultation.description) ||
-        (consultation.documents && consultation.documents.length > 0) ||
-        (consultation.comments && consultation.comments.length > 0) ||
+        !isEmptyValue(consultation.documents) ||
+        !isEmptyValue(consultation.comments) ||
         // Check if any custom field has been filled
-        consultationsFieldsIncludingCustomFields.some((field) => !isEmptyValue(consultation[field.name]));
+        consultationsFieldsIncludingCustomFields.some((field) => field.name && !isEmptyValue(consultation[field.name]));
       
       if (!hasMeaningfulChanges) return onClose();
     }
