@@ -18,6 +18,7 @@ import ActionStatusSelect from "./ActionStatusSelect";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
   const setModalAction = useSetAtom(modalActionState);
@@ -129,9 +130,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
                 <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2">
                   {!!actionOrConsult.urgent && <ExclamationMarkButton />}
                   {!!organisation.groupsEnabled && !!actionOrConsult.group && (
-                    <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
-                      👪
-                    </span>
+                    <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
                   )}
                   {!!actionOrConsult.isConsultation && <ConsultationButton />}
                 </div>

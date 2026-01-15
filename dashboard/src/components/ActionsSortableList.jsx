@@ -22,6 +22,7 @@ import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import UserName from "./UserName";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 const ActionsSortableList = ({
   data,
@@ -102,9 +103,7 @@ const ActionsSortableList = ({
                   <div className="tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2">
                     {!!actionOrConsult.urgent && <ExclamationMarkButton />}
                     {!!organisation.groupsEnabled && !!actionOrConsult.group && (
-                      <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
-                        👪
-                      </span>
+                      <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
                     )}
                     {!!actionOrConsult.isConsultation && <ConsultationButton />}
                   </div>

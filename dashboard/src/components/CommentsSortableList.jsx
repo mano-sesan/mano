@@ -15,6 +15,7 @@ import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import ConsultationButton from "./ConsultationButton";
 import { NoComments } from "./CommentsGeneric";
 import SelectTeamMultiple from "./SelectTeamMultiple";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 export default function CommentsSortableList({
   data,
@@ -88,9 +89,7 @@ export default function CommentsSortableList({
           <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
             {!!comment.urgent && <ExclamationMarkButton />}
             {!!organisation.groupsEnabled && !!comment.group && (
-              <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
-                👪
-              </span>
+              <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Commentaire familial" title="Commentaire familial" />
             )}
             {comment.isMedicalCommentShared ? <ConsultationButton /> : null}
           </div>
@@ -205,9 +204,7 @@ export default function CommentsSortableList({
             <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
               {!!comment.urgent && <ExclamationMarkButton />}
               {!!organisation.groupsEnabled && !!comment.group && (
-                <span className="tw-text-3xl" aria-label="Commentaire familial" title="Commentaire familial">
-                  👪
-                </span>
+                <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Commentaire familial" title="Commentaire familial" />
               )}
             </div>
             {comment.isMedicalCommentShared ? (

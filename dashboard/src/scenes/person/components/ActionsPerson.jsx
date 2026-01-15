@@ -21,6 +21,7 @@ import { actionsWithoutFutureRecurrences } from "../../../utils/recurrence";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 import CommentIcon from "../../../components/CommentIcon";
 import DocumentIcon from "../../../components/DocumentIcon";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 // Hook to filter person actions (replaces selectorFamily)
 function useFilteredPersonActions({ personId, filterCategories, filterStatus, filterTeamIds }) {
@@ -249,9 +250,7 @@ const ActionsTable = ({ filteredData }) => {
                     <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
                       {action.urgent ? <ExclamationMarkButton /> : null}
                       {!!organisation.groupsEnabled && !!action.group && (
-                        <span className="tw-text-xl" aria-label="Action familiale" title="Action familiale">
-                          👪
-                        </span>
+                        <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
                       )}
                       {action.description ? <DescriptionIcon /> : null}
                       {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}

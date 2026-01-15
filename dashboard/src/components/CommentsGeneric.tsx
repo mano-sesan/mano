@@ -20,6 +20,7 @@ import SelectTeam from "./SelectTeam";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import CommentsSortableList from "./CommentsSortableList";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 /*
 3 components:
@@ -419,9 +420,11 @@ function CommentsTable({
                       </div>
                       <div className="tw-flex tw-w-full tw-flex-shrink tw-items-start">
                         {!!organisation.groupsEnabled && !!comment.group && (
-                          <span className="tw-mr-2 tw-text-xl" aria-label="Commentaire familial" title="Commentaire familial">
-                            👪
-                          </span>
+                          <UserGroupIcon
+                            className="tw-mr-2 tw-w-6 tw-h-6 tw-text-main"
+                            aria-label="Commentaire familial"
+                            title="Commentaire familial"
+                          />
                         )}
                         <div className="[overflow-wrap:anywhere] tw-leading-4">
                           {(comment.comment || "").split?.("\n")?.map((sentence, index) => (

@@ -19,6 +19,7 @@ import ActionOrConsultationName from "../../components/ActionOrConsultationName"
 import DateBloc, { TimeBlock } from "../../components/DateBloc";
 import { CANCEL, DONE } from "../../atoms/actions";
 import UserName from "../../components/UserName";
+import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 async function fetchPersons(organisationId) {
   const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/organisation/" + organisationId + "/deleted-data" }));
@@ -343,9 +344,11 @@ export default function Poubelle() {
                 if (!person.group) return null;
                 return (
                   <div className="tw-flex tw-items-center tw-justify-center tw-gap-1">
-                    <span className="tw-text-3xl" aria-label="Personne avec des liens familiaux" title="Personne avec des liens familiaux">
-                      👪
-                    </span>
+                    <UserGroupIcon
+                      className="tw-w-6 tw-h-6 tw-text-main"
+                      aria-label="Personne avec des liens familiaux"
+                      title="Personne avec des liens familiaux"
+                    />
                   </div>
                 );
               },
