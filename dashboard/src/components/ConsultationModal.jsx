@@ -230,6 +230,16 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
         ...consultationWithoutPopulated
       } = consultation;
       if (isEqual(consultationWithoutPopulated, initialExistingConsultationWithoutPopulated)) return onClose();
+    } else {
+      // For new consultations, check if the form has meaningful changes
+      const hasMeaningfulChanges = 
+        !isEmptyValue(consultation.type) ||
+        !isEmptyValue(consultation.name) ||
+        !isEmptyValue(consultation.description) ||
+        (consultation.documents && consultation.documents.length > 0) ||
+        (consultation.comments && consultation.comments.length > 0);
+      
+      if (!hasMeaningfulChanges) return onClose();
     }
     setModalConfirmState({
       open: true,
