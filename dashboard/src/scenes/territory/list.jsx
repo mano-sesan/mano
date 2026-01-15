@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import structuredClone from "@ungap/structured-clone";
-import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader, Input, Label } from "reactstrap";
+import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -242,13 +242,13 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
               <Row>
                 <Col md={6}>
                   <FormGroup>
-                    <Label htmlFor="name">Nom</Label>
-                    <Input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                    <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
+                    <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <Label htmlFor="territory-select-types">Types</Label>
+                    <label htmlFor="territory-select-types" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Types</label>
                     <SelectCustom
                       options={territoryTypes.map((_option) => ({ value: _option, label: _option }))}
                       name="types"
@@ -265,14 +265,14 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <Label htmlFor="description">Description</Label>
-                    <Input name="description" id="description" value={values.description} onChange={handleChange} type="textarea" rows={3} />
+                    <label htmlFor="description" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Description</label>
+                    <textarea name="description" id="description" value={values.description} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
                 <Col md={6}>
                   <FormGroup>
-                    <Label htmlFor="perimeter">Périmètre</Label>
-                    <Input name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} type="textarea" rows={3} />
+                    <label htmlFor="perimeter" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Périmètre</label>
+                    <textarea name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
                   </FormGroup>
                 </Col>
               </Row>
