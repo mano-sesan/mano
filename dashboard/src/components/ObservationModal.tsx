@@ -233,7 +233,7 @@ function ObservationContent({
       <ModalHeader title={observation?._id ? "Modifier l'observation" : "Créer une nouvelle observation"} onClose={() => onClose()} />
       <ModalBody>
         <div className="tw-flex tw-h-full tw-w-full tw-flex-col">
-          <nav className="noprint tw-flex tw-w-full" aria-label="Tabs">
+          <nav className="noprint tw-flex tw-w-full tw-sticky tw-top-0 tw-bg-white tw-z-10" aria-label="Tabs">
             <ul className={`tw-w-full tw-list-none tw-flex tw-gap-2 tw-px-3 tw-py-2 tw-border-b tw-border-main tw-border-opacity-20`}>
               {fieldsGroupNames.map((name) => (
                 <li key={name}>
@@ -378,7 +378,7 @@ function ObservationContent({
                 </>
               )}
             </div>
-            <div className="tw-p-4 tw-pt-0">
+            <div className="tw-p-4 tw-pt-0 tw-sticky tw-bottom-0 tw-bg-white tw-z-10">
               <div className="tw-flex tw-flex-row tw-flex-wrap">
                 <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
                   <hr />
