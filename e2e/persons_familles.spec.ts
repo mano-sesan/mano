@@ -112,17 +112,27 @@ test("Familles", async ({ page }) => {
   await test.step("Should have the family icon", async () => {
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: person1Name }) }).getByText("👪")).toBeVisible();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: person2Name }) }).getByText("👪")).toBeVisible();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: person3Name }) }).getByText("👪")).not.toBeVisible();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: person4Name }) }).getByText("👪")).not.toBeVisible();
+    await expect(
+      page.locator("tr", { has: page.getByRole("cell", { name: person1Name }) }).getByLabel("Personne avec des liens familiaux")
+    ).toBeVisible();
+    await expect(
+      page.locator("tr", { has: page.getByRole("cell", { name: person2Name }) }).getByLabel("Personne avec des liens familiaux")
+    ).toBeVisible();
+    await expect(
+      page.locator("tr", { has: page.getByRole("cell", { name: person3Name }) }).getByLabel("Personne avec des liens familiaux")
+    ).not.toBeVisible();
+    await expect(
+      page.locator("tr", { has: page.getByRole("cell", { name: person4Name }) }).getByLabel("Personne avec des liens familiaux")
+    ).not.toBeVisible();
 
     await page.getByRole("link", { name: "🔍 Recherche" }).click();
     await expect(page).toHaveURL("http://localhost:8090/search");
     await page.getByPlaceholder("Par mot clé").fill(person1Name);
     await expect(page).toHaveURL(`http://localhost:8090/search`);
     await page.getByText("Personnes (1)").click();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: person1Name }) }).getByText("👪")).toBeVisible();
+    await expect(
+      page.locator("tr", { has: page.getByRole("cell", { name: person1Name }) }).getByLabel("Personne avec des liens familiaux")
+    ).toBeVisible();
   });
 
   await test.step("Relation should be visible also on the other person", async () => {
@@ -174,29 +184,34 @@ test("Familles", async ({ page }) => {
   await test.step("Create action for whole family, should be visible everywhere with the family icon", async () => {
     await page.getByRole("link", { name: "Agenda" }).click();
     await createAction(page, action1Name, person1Name, { group: true });
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: action1Name }) }).getByText("👪")).toBeVisible();
+    await expect(page.locator("tr", { has: page.getByRole("cell", { name: action1Name }) }).getByLabel("Action familiale")).toBeVisible();
 
     await page.getByRole("link", { name: "🔍 Recherche" }).click();
     await expect(page).toHaveURL("http://localhost:8090/search");
     await page.getByPlaceholder("Par mot clé").fill(action1Name);
     await expect(page).toHaveURL(`http://localhost:8090/search`);
     await page.getByText("Actions (1)").click();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: action1Name }) }).getByText("👪")).toBeVisible();
+    await expect(page.locator("tr", { has: page.getByRole("cell", { name: action1Name }) }).getByLabel("Action familiale")).toBeVisible();
 
     await page.getByRole("link", { name: "Comptes rendus" }).click();
 
     await expect(page.getByRole("cell", { name: action1Name }).getByText(action1Name)).toBeVisible();
-    await expect(page.getByRole("cell", { name: "Action familiale" }).getByText("👪")).toBeVisible();
+    await expect(
+      page
+        .locator("tr", { has: page.getByText(action1Name) })
+        .first()
+        .getByLabel("Action familiale")
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await page.getByRole("cell", { name: person1Name }).click();
 
-    await expect(page.locator("tr", { has: page.getByText(action1Name) }).getByText("👪")).toBeVisible();
+    await expect(page.locator("tr", { has: page.getByText(action1Name) }).getByLabel("Action familiale")).toBeVisible();
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await page.getByRole("cell", { name: person2Name }).click();
 
-    await expect(page.locator("tr", { has: page.getByText(action1Name) }).getByText("👪")).toBeVisible();
+    await expect(page.locator("tr", { has: page.getByText(action1Name) }).getByLabel("Action familiale")).toBeVisible();
   });
 
   await test.step("Create comment for whole family, should be visible everywhere with the family icon", async () => {
@@ -215,19 +230,39 @@ test("Familles", async ({ page }) => {
     await page.getByPlaceholder("Par mot clé").fill(comment1Name);
 
     await page.getByText("Commentaires non médicaux (1)").click();
-    await expect(page.locator("tr", { has: page.getByText(comment1Name) }).getByText("👪")).toBeVisible();
+    await expect(
+      page
+        .locator("tr", { has: page.getByText(comment1Name) })
+        .first()
+        .getByLabel("Commentaire familial")
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Comptes rendus" }).click();
 
     await page.getByRole("button", { name: "Commentaires (1)" }).click();
-    await expect(page.locator("tr", { has: page.getByRole("cell", { name: comment1Name }) }).getByText("👪")).toBeVisible();
+    await expect(
+      page
+        .locator("tr", { has: page.getByRole("cell", { name: comment1Name }) })
+        .first()
+        .getByLabel("Commentaire familial")
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await page.getByRole("cell", { name: person1Name }).click();
-    await expect(page.locator("tr", { has: page.getByText(comment1Name) }).getByText("👪")).toBeVisible();
+    await expect(
+      page
+        .locator("tr", { has: page.getByText(comment1Name) })
+        .first()
+        .getByLabel("Commentaire familial")
+    ).toBeVisible();
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await page.getByRole("cell", { name: person2Name }).click();
-    await expect(page.locator("tr", { has: page.getByText(comment1Name) }).getByText("👪")).toBeVisible();
+    await expect(
+      page
+        .locator("tr", { has: page.getByText(comment1Name) })
+        .first()
+        .getByLabel("Commentaire familial")
+    ).toBeVisible();
   });
 });
