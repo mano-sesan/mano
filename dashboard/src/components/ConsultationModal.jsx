@@ -735,7 +735,7 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
               documents={consultation.documents.map((doc) => ({
                 ...doc,
                 type: doc.type ?? "document", // or 'folder'
-                linkedItem: { _id: initialExistingConsultation?._id, type: "consultation" },
+                ...(consultation._id && { linkedItem: { _id: consultation._id, type: "consultation" } }),
               }))}
               onAddDocuments={async (nextDocuments) => {
                 const newData = {
