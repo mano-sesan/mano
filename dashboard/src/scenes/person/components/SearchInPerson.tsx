@@ -12,10 +12,7 @@ import { filterBySearch } from "../../search/utils";
 import TreatmentsSortableList from "./TreatmentsSortableList";
 import ActionsSortableList from "../../../components/ActionsSortableList";
 import CommentsSortableList from "../../../components/CommentsSortableList";
-import { DocumentsModule } from "../../../components/DocumentsGeneric";
 import DocumentsListSimple from "../../../components/document/DocumentsListSimple";
-import { organisationState } from "../../../atoms/auth";
-import { shouldUseNewDocumentsSystem } from "../../../config";
 
 export default function SearchInPerson({ person }: { person: PersonPopulated }) {
   const [search, setSearch] = useLocalStorage("person-search", "");
@@ -52,8 +49,6 @@ export default function SearchInPerson({ person }: { person: PersonPopulated }) 
 
 function SearchResults({ person, search }: { person: PersonPopulated; search: string }) {
   const user = useAtomValue(userState);
-  const organisation = useAtomValue(organisationState);
-  const useNewDocumentsSystem = shouldUseNewDocumentsSystem(organisation?._id);
   const initTabs = useMemo(() => {
     const defaultTabs = ["Actions", "Commentaires non médicaux", "Lieux", "Documents non médicaux"];
     if (!user.healthcareProfessional) return defaultTabs;
@@ -147,37 +142,20 @@ function SearchResults({ person, search }: { person: PersonPopulated; search: st
         )}
         {activeTab === "Documents non médicaux" && (
           <pre>
-            {useNewDocumentsSystem ? (
-              <DocumentsListSimple
-                documents={documents.map((doc) => ({
-                  ...doc,
-                  type: doc.type ?? "document",
-                  linkedItem: { _id: person._id, type: "person" },
-                }))}
-                personId={person._id}
-                color="main"
-                showAddDocumentButton={false}
-                showAssociatedItem={false}
-                canToggleGroupCheck={false}
-                onDeleteDocument={async () => false}
-                onSubmitDocument={async () => {}}
-              />
-            ) : (
-              <DocumentsModule
-                documents={documents}
-                personId={person._id}
-                color="main"
-                showAddDocumentButton={false}
-                onDeleteDocument={() => null}
-                onSubmitDocument={() => null}
-                socialOrMedical="social"
-                canToggleGroupCheck={false}
-                onDeleteFolder={() => null}
-                showPanel={false}
-                onSaveNewOrder={() => null}
-                title=""
-              />
-            )}
+            <DocumentsListSimple
+              documents={documents.map((doc) => ({
+                ...doc,
+                type: doc.type ?? "document",
+                linkedItem: { _id: person._id, type: "person" },
+              }))}
+              personId={person._id}
+              color="main"
+              showAddDocumentButton={false}
+              showAssociatedItem={false}
+              canToggleGroupCheck={false}
+              onDeleteDocument={async () => false}
+              onSubmitDocument={async () => {}}
+            />
           </pre>
         )}
       </div>

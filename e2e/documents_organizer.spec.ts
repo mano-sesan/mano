@@ -1,7 +1,6 @@
 import { test, expect, Page } from "@playwright/test";
-import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { changeReactSelectValue, clickOnEmptyReactSelect, createAction, createPerson, logOut, loginWith } from "./utils";
+import { clickOnEmptyReactSelect, createPerson, logOut, loginWith } from "./utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
@@ -52,13 +51,12 @@ test("Documents organizer", async ({ page }) => {
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person1Name }).click();
   const now1 = dayjs();
-  await page.locator("label[aria-label='Ajouter des documents']").first().setInputFiles("e2e/files-to-upload/image-1.jpg");
-  await page.getByText("Document image-1.jpg ajouté !").click();
-  await page.getByText("image-1.jpg", { exact: true }).click();
+  await page.getByTestId("person-documents-upload-input").setInputFiles("e2e/files-to-upload/image-1.jpg");
+  await page.getByRole("button", { name: "Terminer" }).click();
+  await page.getByTestId("documents-tree-wrapper").getByText("image-1.jpg", { exact: true }).click();
 
   await page.getByLabel("Document familialCe document sera visible pour toute la famille").check();
   await page.getByText("Document mis à jour").click();
-  await page.getByRole("button", { name: "Fermer" }).first().click();
   await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
@@ -68,70 +66,69 @@ test("Documents organizer", async ({ page }) => {
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person1Name }).click();
   const now2 = dayjs();
-  await page
-    .locator("label[aria-label='Ajouter des documents']")
-    .first()
-    .setInputFiles(["e2e/files-to-upload/image-2.jpg", "e2e/files-to-upload/image-3.jpg"]);
-  await page.getByText("2 documents ajoutés !").click();
+  await page.getByTestId("person-documents-upload-input").setInputFiles(["e2e/files-to-upload/image-2.jpg", "e2e/files-to-upload/image-3.jpg"]);
+  await page.getByRole("button", { name: "Terminer" }).click();
   await page.getByText("Documents enregistrés !").click();
 
   await expect(page.locator("div").filter({ hasText: "image-1.jpg" }).getByLabel("Document familial")).toBeVisible();
-  await expect(page.getByText("image-2.jpg")).toBeVisible();
-  await expect(page.getByText("image-3.jpg")).toBeVisible();
+  await expect(page.getByTestId("documents-tree-wrapper").getByText("image-2.jpg")).toBeVisible();
+  await expect(page.getByTestId("documents-tree-wrapper").getByText("image-3.jpg")).toBeVisible();
 
-  await page.getByRole("button", { name: "Passer les documents en plein écran" }).click();
-  await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
-  await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
+  await page.getByLabel("Passer en plein écran").click();
+
+  //
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-3.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).toBeVisible();
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-3\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-2.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).toBeVisible();
-  // await expect(page.getByRole("button", { name: "📂 👪 Documents familiaux(1)" })).toBeVisible();
-  await page.getByRole("button", { name: "＋ Ajouter un dossier" }).click();
-  await page.getByRole("dialog", { name: "Créer un dossier" }).getByText("Nom").click();
-  await page.getByPlaceholder("Nouveau dossier").fill("Dossier1");
+  await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Créer un dossier" }).click();
+  await page.getByPlaceholder("Entrez le nom du dossier").fill("Dossier1");
   const now3 = dayjs();
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Dossier créé !").click();
-  // await page
-  //   .locator("span")
-  //   .filter({ hasText: `▼📁Dossier1(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })
-  //   .locator("small")
-  //   .click();
 
-  await page.getByRole("button", { name: "📁 Dossier1 (0)" }).click();
-  await page.getByPlaceholder("Nouveau dossier").fill("Dossier2");
+  await page.locator('[data-test-id="modal"]').getByText("Dossier1").hover();
+  await page.locator('[data-test-id="modal"]').getByLabel("Éditer le dossier").click();
+  await page.getByPlaceholder("Nom du dossier").fill("Dossier2");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Dossier mis à jour").click();
-  await page.getByRole("button", { name: "📃 image-3.jpg" }).click();
+  await page.locator('[data-test-id="modal"]').getByText("image-3.jpg").click();
   await page.getByTitle("Modifier le nom de ce document").click();
   await page.getByLabel("Nom").click();
   await page.getByLabel("Nom").fill("image-4.jpg");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Document mis à jour").click();
-  await page.getByRole("dialog", { name: "image-4.jpg" }).getByRole("button", { name: "Fermer" }).click();
-  await page.getByRole("button", { name: "📃 image-4.jpg" }).click();
-  await page.getByRole("dialog", { name: "image-4.jpg" }).getByRole("button", { name: "Fermer" }).click();
+  await expect(page.locator('[data-test-id="modal"]').getByText("image-4.jpg")).toBeVisible();
   await page.getByText("Fermer").click();
 
   await logOut(page, "User Admin Test - 1");
   await loginWith(page, "admin1@example.org");
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person1Name }).click();
-  await page.getByRole("button", { name: "Passer les documents en plein écran" }).click();
-  await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
-  await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
+  await page.getByLabel("Passer en plein écran").click();
+
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-2.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).toBeVisible();
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-4\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-4.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).toBeVisible();
-  // await expect(page.getByRole("button", { name: "📂 👪 Documents familiaux(1)" })).toBeVisible();
-  await expect(page.locator("span").filter({ hasText: `►📁Dossier2(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })).toBeVisible();
-  await page.getByRole("button", { name: "📃 image-2.jpg" }).click();
+  await expect(page.locator('[data-test-id="modal"]').getByText("Dossier2")).toBeVisible();
+  await page.locator('[data-test-id="modal"]').getByText("image-2.jpg").click();
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe(`Voulez-vous vraiment supprimer ce document ?`);
     dialog.accept();
@@ -139,7 +136,8 @@ test("Documents organizer", async ({ page }) => {
   await page.getByRole("dialog", { name: "image-2.jpg" }).getByRole("button", { name: "Supprimer" }).click();
   await page.getByText("Document supprimé").click();
 
-  await page.getByRole("button", { name: "📁 Dossier2 (0)" }).click();
+  await page.locator('[data-test-id="modal"]').getByText("Dossier2").hover();
+  await page.locator('[data-test-id="modal"]').getByLabel("Éditer le dossier").click();
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe(`Voulez-vous vraiment supprimer ce dossier ?`);
     dialog.accept();
@@ -153,16 +151,18 @@ test("Documents organizer", async ({ page }) => {
   await loginWith(page, "admin1@example.org");
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: person1Name }).click();
-  await page.getByRole("button", { name: "Passer les documents en plein écran" }).click();
-  await page.locator("#social-documents").getByText("NomCréé parCréé le").click();
-  await page.locator("#family-documents").getByText("NomCréé parCréé le").click();
+  await page.getByLabel("Passer en plein écran").click();
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-2\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-2.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).not.toBeVisible();
   await expect(
-    page.locator("#social-documents").filter({ hasText: `📃image-4\.jpgUser Admin Test - 1${now2.format("dddd D MMMM YYYY HH:mm")}` })
+    page
+      .locator('[data-test-id="modal"]')
+      .getByLabel("image-4.jpg")
+      .getByText(`Créé par User Admin Test - 1${now2.format("D MMMM YYYY HH:mm")}`)
   ).toBeVisible();
-  await expect(
-    page.locator("span").filter({ hasText: `▼📁Dossier2(0)User Admin Test - 1${now3.format("dddd D MMMM YYYY HH:mm")}` })
-  ).not.toBeVisible();
+  await expect(page.locator('[data-test-id="modal"]').getByText("Dossier2")).not.toBeVisible();
 });

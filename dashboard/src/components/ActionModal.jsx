@@ -21,7 +21,6 @@ import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import { itemsGroupedByActionSelector, itemsGroupedByPersonSelector } from "../atoms/selectors";
-import { DocumentsModule } from "./DocumentsGeneric";
 import DocumentsListSimple from "./document/DocumentsListSimple";
 import TabsNav from "./tailwind/TabsNav";
 import ActionsCategorySelect from "./tailwind/ActionsCategorySelect";
@@ -40,7 +39,6 @@ import DateBloc from "./DateBloc";
 import ActionsSortableList from "./ActionsSortableList";
 import { useDataLoader } from "../services/dataLoader";
 import { isEmptyValue } from "../utils";
-import { shouldUseNewDocumentsSystem } from "../config";
 
 export default function ActionModal() {
   const [modalAction, setModalAction] = useAtom(modalActionState);
@@ -97,7 +95,6 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
   const { refresh } = useDataLoader();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const isEditing = modalAction.isEditing;
-  const useNewDocumentsSystem = shouldUseNewDocumentsSystem(organisation?._id);
 
   const action = useMemo(
     () => ({
@@ -836,93 +833,48 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                 .filter(Boolean)
                 .join(" ")}
             >
-              {useNewDocumentsSystem ? (
-                <DocumentsListSimple
-                  personId={action.person}
-                  showAssociatedItem={false}
-                  showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
-                  documents={action.documents.map((doc) => ({
-                    ...doc,
-                    type: doc.type ?? "document", // or 'folder'
-                    linkedItem: { _id: action?._id, type: "action" },
-                  }))}
-                  canToggleGroupCheck={canToggleGroupCheck}
-                  onAddDocuments={async (nextDocuments) => {
-                    const newData = {
-                      ...action,
-                      documents: [...action.documents, ...nextDocuments],
-                    };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return;
-                    const ok = await handleSubmit({ newData });
-                    if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-                  }}
-                  onDeleteDocument={async (document) => {
-                    const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return true;
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Document supprimé");
-                    return ok;
-                  }}
-                  onSubmitDocument={async (document) => {
-                    const newData = {
-                      ...action,
-                      documents: action.documents.map((d) => {
-                        if (d._id === document._id) return document;
-                        return d;
-                      }),
-                    };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return;
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Document mis à jour");
-                  }}
-                />
-              ) : (
-                <DocumentsModule
-                  personId={Array.isArray(action.person) && action.person.length === 1 ? action.person[0] : action.person}
-                  showAssociatedItem={false}
-                  showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
-                  documents={action.documents.map((doc) => ({
-                    ...doc,
-                    type: doc.type ?? "document", // or 'folder'
-                    linkedItem: { _id: action?._id, type: "action" },
-                  }))}
-                  canToggleGroupCheck={canToggleGroupCheck}
-                  onAddDocuments={async (nextDocuments) => {
-                    const newData = {
-                      ...action,
-                      documents: [...action.documents, ...nextDocuments],
-                    };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return;
-                    const ok = await handleSubmit({ newData });
-                    if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
-                  }}
-                  onDeleteDocument={async (document) => {
-                    const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return true;
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Document supprimé");
-                    return ok;
-                  }}
-                  onSubmitDocument={async (document) => {
-                    const newData = {
-                      ...action,
-                      documents: action.documents.map((d) => {
-                        if (d._id === document._id) return document;
-                        return d;
-                      }),
-                    };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return;
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Document mis à jour");
-                  }}
-                />
-              )}
+              <DocumentsListSimple
+                personId={action.person}
+                showAssociatedItem={false}
+                showAddDocumentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
+                documents={action.documents.map((doc) => ({
+                  ...doc,
+                  type: doc.type ?? "document", // or 'folder'
+                  linkedItem: { _id: action?._id, type: "action" },
+                }))}
+                canToggleGroupCheck={canToggleGroupCheck}
+                onAddDocuments={async (nextDocuments) => {
+                  const newData = {
+                    ...action,
+                    documents: [...action.documents, ...nextDocuments],
+                  };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok && nextDocuments.length > 1) toast.success("Documents ajoutés");
+                }}
+                onDeleteDocument={async (document) => {
+                  const newData = { ...action, documents: action.documents.filter((d) => d._id !== document._id) };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return true;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document supprimé");
+                  return ok;
+                }}
+                onSubmitDocument={async (document) => {
+                  const newData = {
+                    ...action,
+                    documents: action.documents.map((d) => {
+                      if (d._id === document._id) return document;
+                      return d;
+                    }),
+                  };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return;
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Document mis à jour");
+                }}
+              />
             </div>
           )}
           {!["restricted-access"].includes(user.role) && (

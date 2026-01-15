@@ -10,16 +10,13 @@ import OutOfActiveList from "../OutOfActiveList";
 import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../atoms/persons";
 import { SummaryPrint } from "./SummaryPrint";
-import PersonDocumentsNew from "../../../components/document/PersonDocuments";
-import PersonDocuments from "./PersonDocuments";
-import { shouldUseNewDocumentsSystem } from "../../../config";
+import PersonDocuments from "../../../components/document/PersonDocuments";
 
 export default function Summary({ person }) {
   const user = useAtomValue(userState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
   const organisation = useAtomValue(organisationState);
 
-  const useNewDocumentSystem = shouldUseNewDocumentsSystem(organisation?._id);
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
@@ -59,7 +56,7 @@ export default function Summary({ person }) {
                 </div>
               )}
               <div className="tw-basis-1/2 tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-relative">
-                {useNewDocumentSystem ? <PersonDocumentsNew person={person} /> : <PersonDocuments person={person} />}
+                <PersonDocuments person={person} />
               </div>
             </div>
           </div>
