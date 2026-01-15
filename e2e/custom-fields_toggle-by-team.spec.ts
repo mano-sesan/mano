@@ -232,7 +232,7 @@ test("Create custom fields filtered by team", async ({ page }) => {
 
   await page.getByRole("cell", { name: territoryName }).click();
 
-  await page.getByText(`${testObsTerritoryField}: Magique`).click();
+  await page.getByText(`${testObsTerritoryField} :Magique`).click();
 
   await page.locator(`data-test-id=${testObsTerritoryField}`).click();
 
@@ -266,7 +266,7 @@ test("Create custom fields filtered by team", async ({ page }) => {
 
   await page.getByRole("cell", { name: territoryName }).click();
 
-  await expect(page.getByText("Test champ perso observation: Magique")).toBeHidden();
+  await expect(page.getByText("Test champ perso observation :Magique")).toBeHidden();
 
   await expect(page.locator(`data-test-id=${testObsTerritoryField}`)).toBeHidden();
 });

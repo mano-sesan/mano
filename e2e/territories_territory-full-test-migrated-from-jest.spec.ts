@@ -87,7 +87,7 @@ test("test territories", async ({ page }) => {
   await page.locator("#orgEncryptionKey").press("Enter");
   await page.getByRole("link", { name: "Territoires" }).click();
   await page.getByRole("cell", { name: "test de territoire new" }).click();
-  await page.getByText("Mon nouveau champ de territoire: AH VOILA LE NOUVEAU").click();
+  await page.getByText("Mon nouveau champ de territoire :AH VOILA LE NOUVEAU").click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Observation mise à jour").click();
 });

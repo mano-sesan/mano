@@ -134,9 +134,9 @@ test("test", async ({ page }) => {
     await page.getByRole("button", { name: "Sauvegarder" }).click();
     await page.getByText("Création réussie !").click();
 
-    await expect(page.getByText("Policiers: Très très beaucoup")).toBeVisible();
-    await expect(page.getByText("Policiers: Très beaucoup")).toBeVisible();
-    await expect(page.getByText("Policiers: beaucoup")).toBeVisible();
+    await expect(page.getByText("Policiers :Très très beaucoup")).toBeVisible();
+    await expect(page.getByText("Policiers :Très beaucoup")).toBeVisible();
+    await expect(page.getByText("Policiers :beaucoup")).toBeVisible();
   });
 
   await test.step("change choices value", async () => {
@@ -290,6 +290,6 @@ test("test", async ({ page }) => {
     await page.getByRole("link", { name: "Territoires" }).click();
     await page.getByRole("cell", { name: "territoire1" }).click();
 
-    await expect(page.getByText("Policiers: Plein")).toBeVisible();
+    await expect(page.getByText("Policiers :Plein")).toBeVisible();
   });
 });
