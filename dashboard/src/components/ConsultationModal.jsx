@@ -799,7 +799,7 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
         </div>
       </ModalBody>
       <ModalFooter>
-        <button name="Fermer" type="button" className="button-cancel" onClick={() => onClose()} disabled={isDeleting || isSubmitting}>
+        <button name="Fermer" type="button" className="button-cancel" onClick={handleCheckBeforeClose} disabled={isDeleting || isSubmitting}>
           Fermer
         </button>
         {!isNewConsultation && !!isEditing && user.role !== "restricted-access" && (
