@@ -61,7 +61,7 @@ const HelpModal = ({ open, setOpen, title, help, children, size = "lg" }) => {
           {!!help && (
             <p className="tw-mb-0">
               {help.split("\n").map((line, index, array) => (
-                <span key={index}>
+                <span key={`${index}-${line}`}>
                   {line}
                   {index < array.length - 1 && <br />}
                 </span>
