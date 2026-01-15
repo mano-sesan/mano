@@ -149,7 +149,9 @@ const List = ({ territory = {} }) => {
                       return (
                         <div key={name}>
                           <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
-                          <div className="tw-mt-1 tw-pl-3 tw-border-l-2 tw-border-gray-200 tw-text-gray-700 tw-whitespace-pre-wrap">{value}</div>
+                          <div className="tw-mt-1 tw-pl-3 tw-border-l-2 tw-border-gray-200 tw-text-gray-700">
+                            <CustomFieldDisplay type={type} value={value} />
+                          </div>
                         </div>
                       );
                     }
