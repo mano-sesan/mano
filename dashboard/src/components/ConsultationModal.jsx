@@ -155,9 +155,9 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
       !isNewConsultation && initialExistingConsultation && initialExistingConsultation.status !== CANCEL && body.status === CANCEL;
 
     if (closeOnSubmit) {
-      toast.success(isNewConsultation ? "Création réussie !" : "Mise à jour !");
       onClose();
     }
+    toast.success(isNewConsultation ? "Création réussie !" : "Mise à jour !");
 
     if (consultationCancelled) {
       setModalConfirmState({
