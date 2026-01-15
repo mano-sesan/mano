@@ -58,7 +58,16 @@ const HelpModal = ({ open, setOpen, title, help, children, size = "lg" }) => {
       <ModalHeader title={title} />
       <ModalBody>
         <div className="tw-flex tw-flex-col tw-gap-4  tw-px-8 tw-py-4">
-          {!!help && <p className="tw-mb-0" dangerouslySetInnerHTML={{ __html: help.split("\n").join("<br>") }} />}
+          {!!help && (
+            <p className="tw-mb-0">
+              {help.split("\n").map((line, index, array) => (
+                <span key={index}>
+                  {line}
+                  {index < array.length - 1 && <br />}
+                </span>
+              ))}
+            </p>
+          )}
           {children}
         </div>
       </ModalBody>
