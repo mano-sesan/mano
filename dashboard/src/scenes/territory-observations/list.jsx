@@ -116,29 +116,67 @@ const List = ({ territory = {} }) => {
           {
             title: "Observations",
             dataKey: "infos",
-            render: (obs) => (
-              <div className="tw-text-xs">
-                {customFieldsObs
-                  .filter((f) => f)
-                  .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
-                  .filter((f) => obs[f.name])
-                  .map((field) => {
-                    const { name, label } = field;
-                    return (
-                      <div key={name}>
-                        {label}:{" "}
-                        {["textarea"].includes(field.type) ? (
-                          <div className="tw-pl-8">
-                            <CustomFieldDisplay type={field.type} value={obs[field.name]} />
+            render: (obs) => {
+              const visibleFields = customFieldsObs
+                .filter((f) => f)
+                .filter((f) => f.enabled || f.enabledTeams?.includes(team._id))
+                .filter((f) => obs[f.name]);
+
+              return (
+                <div className="tw-space-y-2 tw-text-sm tw-py-1">
+                  {visibleFields.map((field) => {
+                    const { name, label, type } = field;
+                    const value = obs[name];
+
+                    // Multi-choice: render as inline tags
+                    if (type === "multi-choice" && Array.isArray(value)) {
+                      return (
+                        <div key={name}>
+                          <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
+                          <div className="tw-flex tw-flex-wrap tw-gap-1 tw-mt-1">
+                            {value.map((v) => (
+                              <span key={v} className="tw-inline-block tw-bg-main/10 tw-text-main tw-px-2 tw-py-0.5 tw-rounded-full tw-text-xs">
+                                {v}
+                              </span>
+                            ))}
                           </div>
-                        ) : (
-                          <CustomFieldDisplay type={field.type} value={obs[field.name]} />
-                        )}
+                        </div>
+                      );
+                    }
+
+                    // Textarea: render with proper indentation
+                    if (type === "textarea") {
+                      return (
+                        <div key={name}>
+                          <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
+                          <div className="tw-mt-1 tw-pl-3 tw-border-l-2 tw-border-gray-200 tw-text-gray-700 tw-whitespace-pre-wrap">{value}</div>
+                        </div>
+                      );
+                    }
+
+                    // Number: render with subtle emphasis
+                    if (type === "number") {
+                      return (
+                        <div key={name} className="tw-flex tw-items-baseline tw-gap-2">
+                          <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
+                          <span className="tw-font-medium tw-text-main">{value}</span>
+                        </div>
+                      );
+                    }
+
+                    // Default: inline label and value
+                    return (
+                      <div key={name} className="tw-flex tw-items-baseline tw-gap-2 tw-flex-wrap">
+                        <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
+                        <span className="tw-text-gray-800">
+                          <CustomFieldDisplay type={type} value={value} />
+                        </span>
                       </div>
                     );
                   })}
-              </div>
-            ),
+                </div>
+              );
+            },
           },
           {
             title: "Créée par",
