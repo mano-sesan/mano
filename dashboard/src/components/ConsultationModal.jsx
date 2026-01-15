@@ -213,7 +213,17 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
     return true;
   }
 
-  const canSave = true;
+  const canSave = useMemo(() => {
+    // For new consultations, allow saving at any time (matches previous behavior).
+    if (!initialExistingConsultation) return true;
+    const { personPopulated, userPopulated, ...initialExistingConsultationWithoutPopulated } = initialExistingConsultation;
+    const {
+      personPopulated: consultationPersonPopulated,
+      userPopulated: consultationUserPopulated,
+      ...consultationWithoutPopulated
+    } = consultation;
+    return !isEqual(consultationWithoutPopulated, initialExistingConsultationWithoutPopulated);
+  }, [initialExistingConsultation, consultation]);
 
   const handleChange = (event) => {
     const target = event.currentTarget || event.target;
