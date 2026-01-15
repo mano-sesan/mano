@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -17,7 +17,7 @@ import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
 import ConsultationButton from "./ConsultationButton";
 import SelectTeam from "./SelectTeam";
-import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
 import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import CommentsSortableList from "./CommentsSortableList";
 
@@ -305,6 +305,7 @@ function CommentsTable({
 }: CommentsTableProps) {
   const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
   const setModalAction = useSetAtom(modalActionState);
+  const [modalConsultation, setModalConsultation] = useAtom(modalConsultationState);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const history = useHistory();
@@ -325,16 +326,18 @@ function CommentsTable({
         history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
         break;
       case "consultation":
-        if (searchParams.get("newConsultation") === "true") {
-          onEditComment(comment);
-          break;
-        }
-        if (searchParams.get("consultationId") === comment.consultation._id) {
+        // If we're already in the consultation modal context
+        if (modalConsultation.open && modalConsultation.consultation?._id === comment.consultation._id) {
           if (comment.user === user._id) onEditComment(comment);
           break;
         }
-        searchParams.set("consultationId", comment.consultation._id);
-        history.push(`?${searchParams.toString()}`);
+        // If creating a new consultation and we're in that modal
+        if (modalConsultation.open && !modalConsultation.consultation?._id) {
+          onEditComment(comment);
+          break;
+        }
+        // Otherwise, open the consultation
+        setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation: comment.consultation });
         break;
       case "treatment":
         if (searchParams.get("newTreatment") === "true") {
@@ -391,8 +394,7 @@ function CommentsTable({
             {(comments || []).map((comment, i) => {
               if (!comment.type) throw new Error("type is required");
               const isNotEditable =
-                comment.isMedicalCommentShared ||
-                ((!!searchParams.get("consultationId") || !!searchParams.get("treatmentId")) && comment.user !== user._id);
+                comment.isMedicalCommentShared || ((modalConsultation.open || !!searchParams.get("treatmentId")) && comment.user !== user._id);
               return (
                 <tr
                   key={comment._id}
@@ -458,8 +460,12 @@ function CommentsTable({
                                   history.push(`/person/${comment.person}?rencontreId=${comment.rencontre}`);
                                   break;
                                 case "consultation":
-                                  searchParams.set("consultationId", comment.consultation._id);
-                                  history.push(`?${searchParams.toString()}`);
+                                  setModalConsultation({
+                                    ...defaultModalConsultationState(),
+                                    open: true,
+                                    from: location.pathname,
+                                    consultation: comment.consultation,
+                                  });
                                   break;
                                 case "treatment":
                                   searchParams.set("treatmentId", comment.treatment._id);

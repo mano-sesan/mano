@@ -15,12 +15,13 @@ import { useLocalStorage } from "../services/useLocalStorage";
 import TabsNav from "./tailwind/TabsNav";
 import DescriptionIcon from "./DescriptionIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
 
 const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "Personne suivie", "Créée le", "Statut", "Équipe(s) en charge"] }) => {
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
   const history = useHistory();
   const location = useLocation();
   const user = useAtomValue(userState);
@@ -98,10 +99,8 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
         return a;
       })}
       onRowClick={(actionOrConsultation) => {
-        const searchParams = new URLSearchParams(history.location.search);
         if (actionOrConsultation.isConsultation) {
-          searchParams.set("consultationId", actionOrConsultation._id);
-          history.push(`?${searchParams.toString()}`);
+          setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation: actionOrConsultation });
         } else {
           setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionOrConsultation });
         }

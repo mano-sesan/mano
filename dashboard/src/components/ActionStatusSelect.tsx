@@ -11,9 +11,8 @@ import { useDataLoader } from "../services/dataLoader";
 import { modalConfirmState } from "./ModalConfirm";
 import { encryptComment } from "../atoms/comments";
 import { decryptItem } from "../services/encryption";
-import { defaultModalActionState } from "../atoms/modal";
-import { modalActionState } from "../atoms/modal";
-import { useHistory } from "react-router-dom";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
+import { useLocation } from "react-router-dom";
 function isConsultation(action: ActionInstance | ConsultationInstance): action is ConsultationInstance {
   return action.isConsultation !== undefined && action.isConsultation;
 }
@@ -22,10 +21,11 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
   const organisation = useAtomValue(organisationState);
   const setModalConfirmState = useSetAtom(modalConfirmState);
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState);
   const { refresh } = useDataLoader();
-  const history = useHistory();
+  const location = useLocation();
 
   if (!organisation || !user) return null;
 
@@ -125,11 +125,15 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
                         toast.error("Erreur lors de la duplication de la consultation, les données n'ont pas été sauvegardées.");
                         return;
                       }
+                      const newDecryptedConsultation = await decryptItem(consultationReponse.data);
                       await refresh();
-                      const searchParams = new URLSearchParams(history.location.search);
-                      searchParams.set("consultationId", consultationReponse.data._id);
-                      searchParams.set("isEditing", "true");
-                      history.replace(`?${searchParams.toString()}`);
+                      setModalConsultation({
+                        ...defaultModalConsultationState(),
+                        open: true,
+                        from: location.pathname,
+                        isEditing: true,
+                        consultation: newDecryptedConsultation,
+                      });
                     },
                   },
                 ],

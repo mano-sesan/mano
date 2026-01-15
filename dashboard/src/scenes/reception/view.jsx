@@ -28,9 +28,10 @@ import UserName from "../../components/UserName";
 import ReceptionService from "../../components/ReceptionService";
 import { useDataLoader } from "../../services/dataLoader";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
-import { defaultModalActionState, modalActionState } from "../../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../../atoms/modal";
 import { flattenedServicesSelector } from "../../atoms/reports";
 import { useLocalStorage } from "../../services/useLocalStorage";
+import { defaultConsultationForModal } from "../../atoms/consultations";
 
 const actionsForCurrentTeamSelector = atom((get) => {
   const actions = get(arrayOfitemsGroupedByActionSelector);
@@ -93,6 +94,7 @@ const Reception = () => {
   const [services, setServices] = useState(null);
   const [todaysPassagesOpen, setTodaysPassagesOpen] = useState(false);
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
   const teams = useAtomValue(teamsState);
 
   const dataConsolidated = useMemo(
@@ -218,10 +220,18 @@ const Reception = () => {
             <ButtonCustom
               icon={plusIcon}
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("newConsultation", true);
-                if (selectedPersons?.[0]._id) searchParams.set("personId", selectedPersons?.[0]._id);
-                history.push(`?${searchParams.toString()}`);
+                setModalConsultation({
+                  ...defaultModalConsultationState(),
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  consultation: defaultConsultationForModal({
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    person: selectedPersons?.[0]?._id || null,
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
               }}
               type="button"
               color="primary"

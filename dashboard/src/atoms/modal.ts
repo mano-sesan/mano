@@ -2,6 +2,7 @@ import { atomWithLocalStorage } from "../store";
 import { ActionInstance } from "../types/action";
 import { TerritoryObservationInstance } from "../types/territoryObs";
 import { RencontreInstance } from "../types/rencontre";
+import { ConsultationInstance } from "../types/consultation";
 
 type ModalActionState = {
   open: boolean;
@@ -40,3 +41,19 @@ export const defaultModalObservationState = (): ModalObservationState => ({
 });
 
 export const modalObservationState = atomWithLocalStorage<ModalObservationState>("modalObservationValue", defaultModalObservationState());
+
+type ModalConsultationState = {
+  open: boolean;
+  from?: string;
+  isEditing?: boolean;
+  consultation?: Partial<ConsultationInstance>;
+};
+
+export const defaultModalConsultationState = (): ModalConsultationState => ({
+  open: false,
+  from: "/action",
+  isEditing: false,
+  consultation: null,
+});
+
+export const modalConsultationState = atomWithLocalStorage<ModalConsultationState>("modalConsultationValue", defaultModalConsultationState());

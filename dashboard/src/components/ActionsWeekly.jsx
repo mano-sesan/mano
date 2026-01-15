@@ -1,5 +1,5 @@
 import { forwardRef, useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAtomValue, useSetAtom } from "jotai";
 import DatePicker from "react-datepicker";
 import { CANCEL, DONE, TODO } from "../atoms/actions";
@@ -12,7 +12,7 @@ import TagTeam from "./TagTeam";
 import useSearchParamState from "../services/useSearchParamState";
 import { disableConsultationRow } from "../atoms/consultations";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
 import DescriptionIcon from "./DescriptionIcon";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
@@ -123,7 +123,8 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
 
 function ActionsOfDay({ actions }) {
   const setModalAction = useSetAtom(modalActionState);
-  const history = useHistory();
+  const setModalConsultation = useSetAtom(modalConsultationState);
+  const location = useLocation();
   const organisation = useAtomValue(organisationState);
   const user = useAtomValue(userState);
 
@@ -145,13 +146,11 @@ function ActionsOfDay({ actions }) {
         <div
           key={action._id}
           onClick={() => {
-            const searchParams = new URLSearchParams(history.location.search);
             if (action.isConsultation) {
               if (disableConsultationRow(action, user)) return;
-              searchParams.set("consultationId", action._id);
-              history.push(`?${searchParams.toString()}`);
+              setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation: action });
             } else {
-              setModalAction({ ...defaultModalActionState(), open: true, from: "/action", action });
+              setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action });
             }
           }}
           className={[

@@ -10,7 +10,7 @@ import PersonName from "./PersonName";
 import { useLocalStorage } from "../services/useLocalStorage";
 import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../atoms/comments";
-import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
 import { itemsGroupedByActionSelector } from "../atoms/selectors";
 import ConsultationButton from "./ConsultationButton";
 import { NoComments } from "./CommentsGeneric";
@@ -25,6 +25,7 @@ export default function CommentsSortableList({
   withFilters = false,
 }) {
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
   const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
   const organisation = useAtomValue(organisationState);
   const user = useAtomValue(userState);
@@ -296,8 +297,7 @@ export default function CommentsSortableList({
               history.push(`/person/${comment.person}`);
               break;
             case "consultation":
-              searchParams.set("consultationId", comment.consultation._id);
-              history.push(`?${searchParams.toString()}`);
+              setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation: comment.consultation });
               break;
             case "treatment":
               searchParams.set("treatmentId", comment.treatment._id);

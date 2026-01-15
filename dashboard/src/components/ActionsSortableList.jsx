@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useAtomValue, useSetAtom } from "jotai";
 import Table from "./table";
 import DateBloc, { TimeBlock } from "./DateBloc";
@@ -18,7 +18,7 @@ import useSearchParamState from "../services/useSearchParamState";
 import DescriptionIcon from "./DescriptionIcon";
 import { AgendaMutedIcon } from "../assets/icons/AgendaMutedIcon";
 import ActionStatusSelect from "./ActionStatusSelect";
-import { defaultModalActionState, modalActionState } from "../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../atoms/modal";
 import UserName from "./UserName";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
@@ -34,7 +34,8 @@ const ActionsSortableList = ({
 }) => {
   useTitle("Agenda");
   const setModalAction = useSetAtom(modalActionState);
-  const history = useHistory();
+  const setModalConsultation = useSetAtom(modalConsultationState);
+  const location = useLocation();
   const user = useAtomValue(userState);
   const currentTeam = useAtomValue(currentTeamState);
   const organisation = useAtomValue(organisationState);
@@ -72,10 +73,8 @@ const ActionsSortableList = ({
         data={dataConsolidatedPaginated}
         rowKey={"_id"}
         onRowClick={(actionOrConsultation) => {
-          const searchParams = new URLSearchParams(history.location.search);
           if (actionOrConsultation.isConsultation) {
-            searchParams.set("consultationId", actionOrConsultation._id);
-            history.push(`?${searchParams.toString()}`);
+            setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation: actionOrConsultation });
           } else {
             setModalAction({ ...defaultModalActionState(), open: true, from: location.pathname, action: actionOrConsultation });
             if (onAfterActionClick) onAfterActionClick(actionOrConsultation);

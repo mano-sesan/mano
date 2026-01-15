@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Search from "../../components/search";
 import ActionsCalendar from "../../components/ActionsCalendar";
 import ActionsWeekly from "../../components/ActionsWeekly";
@@ -19,7 +19,8 @@ import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ActionsSortableList from "../../components/ActionsSortableList";
 import { dayjsInstance } from "../../services/date";
 import useMinimumWidth from "../../services/useMinimumWidth";
-import { defaultModalActionState, modalActionState } from "../../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../../atoms/modal";
+import { defaultConsultationForModal } from "../../atoms/consultations";
 
 const showAsOptions = ["Calendrier", "Liste", "Hebdomadaire"];
 const showTypeOptions = ["Actions et consultations", "Actions", "Consultations"];
@@ -126,8 +127,9 @@ const List = () => {
   const teams = useAtomValue(teamsState);
   const organisation = useAtomValue(organisationState);
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
 
-  const history = useHistory();
+  const location = useLocation();
   const [search, setSearch] = useSearchParamState("search", "");
 
   const [categories, setCategories] = useLocalStorage("action-categories", []);
@@ -216,10 +218,18 @@ const List = () => {
               icon={agendaIcon}
               disabled={!currentTeam}
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("dueAt", dayjsInstance().toISOString());
-                searchParams.set("newConsultation", true);
-                history.push(`?${searchParams.toString()}`);
+                setModalConsultation({
+                  ...defaultModalConsultationState(),
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  consultation: defaultConsultationForModal({
+                    dueAt: dayjsInstance().toDate(),
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
               }}
               color="primary"
               title="Créer une consultation"
