@@ -53,7 +53,7 @@ export const defaultModalConsultationState = (): ModalConsultationState => ({
   open: false,
   from: "/action",
   isEditing: false,
-  consultation: null,
+  consultation: undefined,
 });
 
 export const modalConsultationState = atomWithLocalStorage<ModalConsultationState>("modalConsultationValue", defaultModalConsultationState());
