@@ -237,7 +237,9 @@ function ConsultationContent({ onClose, isSubmitting, setIsSubmitting, isDeletin
         !isEmptyValue(consultation.name) ||
         !isEmptyValue(consultation.description) ||
         (consultation.documents && consultation.documents.length > 0) ||
-        (consultation.comments && consultation.comments.length > 0);
+        (consultation.comments && consultation.comments.length > 0) ||
+        // Check if any custom field has been filled
+        consultationsFieldsIncludingCustomFields.some((field) => !isEmptyValue(consultation[field.name]));
       
       if (!hasMeaningfulChanges) return onClose();
     }
