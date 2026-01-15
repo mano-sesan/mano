@@ -156,12 +156,14 @@ const List = ({ territory = {} }) => {
                       );
                     }
 
-                    // Number: render with subtle emphasis
+                    // Number: render with subtle emphasis, using CustomFieldDisplay for consistency
                     if (type === "number") {
                       return (
                         <div key={name} className="tw-flex tw-items-baseline tw-gap-2">
                           <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
-                          <span className="tw-font-medium tw-text-main">{value}</span>
+                          <span className="tw-font-medium tw-text-main">
+                            <CustomFieldDisplay type={type} value={value} />
+                          </span>
                         </div>
                       );
                     }
