@@ -74,7 +74,7 @@ const SuperAdmin = () => {
 
   const filteredOrganisations = organisations?.filter((org) => {
     if (responsableFilter === null) return true;
-    if (responsableFilter === undefined) return !org.responsible;
+    if (responsableFilter === "__none__") return !org.responsible;
     return org.responsible === responsableFilter;
   });
 
@@ -102,12 +102,11 @@ const SuperAdmin = () => {
             classNamePrefix="responsable-filter"
             placeholder="Filtrer par responsable"
             isClearable
-            value={options.find((o) => o.value === responsableFilter) || null}
+            value={RESPONSABLE_OPTIONS.find((o) => o.value === responsableFilter) || null}
             onChange={(selected) => {
               setResponsableFilter(selected?.value ?? null);
             }}
-            options={options}
-            getOptionValue={(o) => o.value ?? "undefined"}
+            options={RESPONSABLE_OPTIONS}
             className="tw-min-w-48"
           />
           <button
@@ -532,6 +531,13 @@ const SuperAdmin = () => {
     </>
   );
 };
+
+const RESPONSABLE_OPTIONS = [
+  { value: "Guillaume", label: "Guillaume" },
+  { value: "Melissa", label: "Melissa" },
+  { value: "Simon", label: "Simon" },
+  { value: "__none__", label: "Non renseigné" },
+];
 
 const options = [
   { value: "Guillaume", label: "Guillaume" },
