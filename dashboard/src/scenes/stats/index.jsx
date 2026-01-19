@@ -222,6 +222,28 @@ const itemsForStatsSelector = ({
       const requiredCategoriesWithoutUnfilled = requiredCategories.filter((cat) => cat !== "Non renseigné");
       let hasActionWithAllCategories = false;
       for (const action of person.actions || []) {
+        // Filter by team
+        if (!filterItemByTeam(action, "teams")) continue;
+        // Filter by period
+        if (!noPeriodSelected) {
+          const date = action.completedAt || action.dueAt;
+          // Skip actions without dates when period is selected
+          if (!date) continue;
+          if (Array.isArray(action.teams)) {
+            let isIncluded = false;
+            for (const team of action.teams) {
+              const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[team] ?? defaultIsoDates;
+              if (date < isoStartDate) continue;
+              if (date >= isoEndDate) continue;
+              isIncluded = true;
+            }
+            if (!isIncluded) continue;
+          } else {
+            const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[action.team] ?? defaultIsoDates;
+            if (date < isoStartDate) continue;
+            if (date >= isoEndDate) continue;
+          }
+        }
         // If only "Non renseigné" is selected, match actions with no categories
         if (includesUnfilled && requiredCategoriesWithoutUnfilled.length === 0) {
           if (!action.categories?.length) {
