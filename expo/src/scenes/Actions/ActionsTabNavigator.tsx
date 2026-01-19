@@ -8,7 +8,6 @@ import ActionsList from "./ActionsList";
 import Tabs from "../../components/Tabs";
 import { actionsFiltersState, CANCEL, DONE, TODO } from "../../recoil/actions";
 import { INCOMINGDAYS, PASSED, TODAY } from "../../recoil/selectors";
-import { useNavigation } from "@react-navigation/native";
 import { useAtomValue } from "jotai";
 import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -21,6 +20,7 @@ export default function ActionsTabNavigator({ navigation }: ActionsTabNavigatorP
   return (
     <SceneContainer>
       <TopTab.Navigator
+        screenOptions={{ lazy: true, swipeEnabled: true }}
         tabBar={(props) => {
           return (
             <>
@@ -36,7 +36,6 @@ export default function ActionsTabNavigator({ navigation }: ActionsTabNavigatorP
           );
         }}
         removeClippedSubviews={Platform.OS === "android"}
-        screenOptions={{ swipeEnabled: true }}
       >
         <TopTab.Screen name={TODO} options={{ tabBarLabel: "À Faire" }} component={TodoNavigator} />
         <TopTab.Screen
@@ -154,6 +153,7 @@ const TodoNavigator = () => {
           borderColor: "red",
           borderWidth: 3,
         },
+        lazy: true,
       }}
     >
       <SubTab.Screen

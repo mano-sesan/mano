@@ -26,7 +26,6 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
-  const loading = useAtomValue(loadingState);
   const territories = useTerritoriesWithObservationsSearchSelector(search);
 
   const onRefresh = async () => {
@@ -94,7 +93,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         data={territories}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
-        ListEmptyComponent={loading ? Spinner : ListEmptyTerritories}
+        ListEmptyComponent={ListEmptyComponent}
         initialNumToRender={10}
         ListFooterComponent={ListFooterComponent}
         defaultTop={0}
@@ -104,6 +103,12 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   );
 };
 
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyTerritories />;
+};
 const Name = styled(MyText)`
   font-weight: bold;
   font-size: 17px;

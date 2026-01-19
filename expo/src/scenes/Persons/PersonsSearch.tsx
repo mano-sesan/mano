@@ -20,7 +20,6 @@ type PersonsSearchProps = {
 const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: PersonsSearchProps) => {
   const [search, setSearch] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const loading = useAtomValue(loadingState);
 
   const filteredPersons = usePersonsSearchSelector(search) as PersonInstance[];
 
@@ -48,11 +47,17 @@ const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: Pers
         extraData={filteredPersons}
         renderItem={renderPersonRow}
         keyExtractor={keyExtractor}
-        ListEmptyComponent={loading ? Spinner : ListEmptyPersons}
+        ListEmptyComponent={ListEmptyComponent}
         ListFooterComponent={ListFooterComponent}
       />
     </SceneContainer>
   );
 };
 
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyPersons />;
+};
 export default PersonsSearch;

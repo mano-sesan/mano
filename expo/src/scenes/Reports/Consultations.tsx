@@ -22,7 +22,6 @@ const keyExtractor = (consultation: ConsultationInstance) => consultation._id;
 
 type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATIONS_FOR_REPORT">;
 const Consultations = ({ route, navigation }: Props) => {
-  const loading = useAtomValue(loadingState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
@@ -41,8 +40,6 @@ const Consultations = ({ route, navigation }: Props) => {
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
-
-  const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyConsultations), [loading]);
 
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
@@ -89,4 +86,9 @@ const Consultations = ({ route, navigation }: Props) => {
   );
 };
 
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyConsultations />;
+};
 export default Consultations;

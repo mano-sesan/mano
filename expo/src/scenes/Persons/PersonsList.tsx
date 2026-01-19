@@ -28,7 +28,6 @@ type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
 
 const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, onFiltersPress, onCreatePersonRequest }: PersonListProps) => {
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const loading = useAtomValue(loadingState);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -91,7 +90,7 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
         estimatedItemSize={114}
         renderItem={renderPersonRow}
         keyExtractor={keyExtractor}
-        ListEmptyComponent={loading ? Spinner : ListEmptyPersons}
+        ListEmptyComponent={ListEmptyComponent}
         initialNumToRender={10}
         ListFooterComponent={ListFooterComponent}
         defaultTop={0}
@@ -99,6 +98,12 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
       <FloatAddButton onPress={onCreatePersonRequest} testID="add-person-button" />
     </SceneContainer>
   );
+};
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyPersons />;
 };
 
 export default PersonsList;

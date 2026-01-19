@@ -21,7 +21,6 @@ const keyExtractor = (action: ActionInstance) => action._id;
 
 type Props = NativeStackScreenProps<RootStackParamList, "ACTIONS_FOR_REPORT">;
 const Actions = ({ route, navigation }: Props) => {
-  const loading = useAtomValue(loadingState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
@@ -40,8 +39,6 @@ const Actions = ({ route, navigation }: Props) => {
   }, [setRefreshTrigger]);
 
   const onCreateAction = useCallback(() => navigation.push("ACTION_NEW_STACK"), [navigation]);
-
-  const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
 
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
@@ -87,4 +84,10 @@ const Actions = ({ route, navigation }: Props) => {
   );
 };
 
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyActions />;
+};
 export default Actions;

@@ -37,9 +37,10 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const flattenedServices = useAtomValue(flattenedServicesSelector);
   const organisation = useAtomValue(organisationState)!;
   const filters = useAtomValue(actionsFiltersState);
-  const loading = useAtomValue(loadingState);
   const user = useAtomValue(userState)!;
 
+
+  
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
@@ -97,7 +98,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     return ListNoMoreActions;
   }, [hasMore]);
 
-  const ListEmptyComponent = useMemo(() => (loading ? Spinner : ListEmptyActions), [loading]);
+  
 
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
@@ -159,3 +160,9 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     </View>
   );
 }
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyActions />;
+};
