@@ -124,6 +124,7 @@ const itemsForStatsSelector = ({
     "numberOfTreatments",
     "numberOfPassages",
     "numberOfRencontres",
+    "actionCategoriesCombined",
   ];
 
   const activeFilters = filterPersons.filter(
@@ -142,6 +143,7 @@ const itemsForStatsSelector = ({
   const filterByNumberOfPassages = filterPersons.filter((f) => f.field === "numberOfPassages");
   const filterByNumberOfRencontres = filterPersons.filter((f) => f.field === "numberOfRencontres");
   const filterByNumberOfTreatments = filterPersons.filter((f) => f.field === "numberOfTreatments");
+  const filterByActionCategoriesCombined = filterPersons.find((f) => f.field === "actionCategoriesCombined");
   const filterByOutOfTeamsDuringPeriod = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriod");
   const filterByTerritories = filterPersons.find((f) => f.field === "territories");
 
@@ -212,6 +214,32 @@ const itemsForStatsSelector = ({
       if (!wasOutOfSelectedTeam) continue;
     }
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
+
+    // Filter by action categories combined (person must have at least one action containing ALL selected categories)
+    if (filterByActionCategoriesCombined?.value?.length) {
+      const requiredCategories = filterByActionCategoriesCombined.value;
+      const includesUnfilled = requiredCategories.includes("Non renseigné");
+      const requiredCategoriesWithoutUnfilled = requiredCategories.filter((cat) => cat !== "Non renseigné");
+      let hasActionWithAllCategories = false;
+      for (const action of person.actions || []) {
+        // If only "Non renseigné" is selected, match actions with no categories
+        if (includesUnfilled && requiredCategoriesWithoutUnfilled.length === 0) {
+          if (!action.categories?.length) {
+            hasActionWithAllCategories = true;
+            break;
+          }
+          continue;
+        }
+        // Skip actions without categories if we need actual categories
+        if (!action.categories?.length) continue;
+        const hasAllCategories = requiredCategoriesWithoutUnfilled.every((cat) => action.categories.includes(cat));
+        if (hasAllCategories) {
+          hasActionWithAllCategories = true;
+          break;
+        }
+      }
+      if (!hasActionWithAllCategories) continue;
+    }
 
     if (filterByNumberOfTreatments.length) {
       let numberOfTreatments = 0;
