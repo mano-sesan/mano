@@ -399,7 +399,7 @@ export const DataLoader = () => {
 
   useEffect(() => {
     if (refreshTrigger.status === true) {
-      refresh();
+      requestIdleCallback(refresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger.status]);

@@ -95,7 +95,9 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   const isFocused = useIsFocused();
   useEffect(() => {
     if (isFocused && refreshTrigger.status !== true) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      requestIdleCallback(() => {
+        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);

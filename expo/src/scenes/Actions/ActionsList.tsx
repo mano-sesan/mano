@@ -58,7 +58,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const isFocused = useIsFocused();
   useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) onRefresh();
+    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isFocused]);
 

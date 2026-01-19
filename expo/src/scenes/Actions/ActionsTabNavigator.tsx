@@ -124,7 +124,7 @@ const TodoNavigator = () => {
                 >
                   <Animated.Text
                     style={{
-                      color: isFocused ? "#000" : "#000",
+                      color: "#000",
                       fontWeight: isFocused ? "bold" : "normal",
                       opacity,
                     }}
