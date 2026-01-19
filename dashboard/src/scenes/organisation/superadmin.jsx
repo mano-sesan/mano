@@ -43,6 +43,7 @@ const SuperAdmin = () => {
   const [superadmins, setSuperadmins] = useState(null);
   const [usersConnectedLast24h, setUsersConnectedLast24h] = useState(null);
   const [openDuplicateFieldsModal, setOpenDuplicateFieldsModal] = useState(false);
+  const [responsableFilter, setResponsableFilter] = useState(null);
   useTitle("Organisations");
 
   useEffect(() => {
@@ -71,7 +72,13 @@ const SuperAdmin = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sortBy, sortOrder]);
 
-  const total = organisations?.length;
+  const filteredOrganisations = organisations?.filter((org) => {
+    if (responsableFilter === null) return true;
+    if (responsableFilter === undefined) return !org.responsible;
+    return org.responsible === responsableFilter;
+  });
+
+  const total = filteredOrganisations?.length;
 
   if (user.role !== "superadmin") return <Redirect to="/stats" />;
 
@@ -80,12 +87,29 @@ const SuperAdmin = () => {
       <TopBar />
       <div className="tw-bg-white tw-z-10 tw-pb-4 tw-pt-2 tw-px-8 tw-flex tw-justify-between tw-shadow tw-w-full">
         <div>
-          <h2 className="tw-text-xl tw-mb-0">Organisations ({total})</h2>
+          <h2 className="tw-text-xl tw-mb-0">
+            Organisations ({total}
+            {responsableFilter !== null && organisations?.length !== total && ` / ${organisations?.length}`})
+          </h2>
           <div className="tw-text-xs tw-text-gray-500">
             <b>{superadmins || "-"}</b> superadmins • <b>{usersConnectedLast24h || "-"}</b> users connectés ces dernières 24h
           </div>
         </div>
-        <div>
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <SelectCustom
+            name="responsable-filter"
+            inputId="responsable-filter"
+            classNamePrefix="responsable-filter"
+            placeholder="Filtrer par responsable"
+            isClearable
+            value={options.find((o) => o.value === responsableFilter) || null}
+            onChange={(selected) => {
+              setResponsableFilter(selected?.value ?? null);
+            }}
+            options={options}
+            getOptionValue={(o) => o.value ?? "undefined"}
+            className="tw-min-w-48"
+          />
           <button
             className="button-classic"
             type="button"
@@ -159,13 +183,13 @@ const SuperAdmin = () => {
             organisation={selectedOrganisation}
           />
 
-          {!organisations?.length ? (
+          {!filteredOrganisations?.length ? (
             refresh ? (
               <Loading />
             ) : null
           ) : (
             <Table
-              data={organisations}
+              data={filteredOrganisations}
               key={updateKey}
               columns={[
                 {
@@ -469,7 +493,7 @@ const SuperAdmin = () => {
               onRowClick={null}
             />
           )}
-          {organisations?.length > 0 && (
+          {filteredOrganisations?.length > 0 && (
             <div className="tw-mt-8 tw-flex tw-gap-3 tw-justify-center tw-pb-4">
               <button
                 className="button-classic"
@@ -484,7 +508,7 @@ const SuperAdmin = () => {
                 className="button-classic"
                 type="button"
                 onClick={() => {
-                  const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(organisations), null, 2);
+                  const geoJson = JSON.stringify(getUmapGeoJSONFromOrgs(filteredOrganisations), null, 2);
                   // download
                   const blob = new Blob([geoJson], { type: "application/json" });
                   download(blob, "villes-utilisatrices-de-mano_umap.geojson");
