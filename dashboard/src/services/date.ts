@@ -86,6 +86,12 @@ export function ageFromBirthdateAsYear(date: PossibleDate): number | null {
   return dayjsInstance(dayjsInstance()).diff(birthDate, "year");
 }
 
+export function ageFromBirthdateAsMonths(date: PossibleDate): number | null {
+  if (!date) return null;
+  const birthDate = dayjs(date);
+  return dayjsInstance(dayjsInstance()).diff(birthDate, "month");
+}
+
 export function formatCalendarDate(date: PossibleDate): string | null {
   if (dayjs(date).isSame(dayjs(), "day")) {
     return "Aujourd'hui";

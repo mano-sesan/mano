@@ -105,6 +105,12 @@ export const filterPersonsBaseSelector = atom((get) => {
         label: "Age (en années)",
         type: "number",
       });
+      filterPersonsBase.push({
+        field: "ageInMonths",
+        name: "ageInMonths",
+        label: "Age (en mois)",
+        type: "number",
+      });
     }
   }
   const followUpFilter: FilterableField = {
