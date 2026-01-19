@@ -143,7 +143,7 @@ const itemsForStatsSelector = ({
   const filterByNumberOfPassages = filterPersons.filter((f) => f.field === "numberOfPassages");
   const filterByNumberOfRencontres = filterPersons.filter((f) => f.field === "numberOfRencontres");
   const filterByNumberOfTreatments = filterPersons.filter((f) => f.field === "numberOfTreatments");
-  const filterByActionCategoriesCombined = filterPersons.find((f) => f.field === "actionCategoriesCombined");
+  const filterByActionCategoriesCombined = filterPersons.filter((f) => f.field === "actionCategoriesCombined");
   const filterByOutOfTeamsDuringPeriod = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriod");
   const filterByTerritories = filterPersons.find((f) => f.field === "territories");
 
@@ -216,8 +216,8 @@ const itemsForStatsSelector = ({
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
 
     // Filter by action categories combined (person must have at least one action containing ALL selected categories)
-    if (filterByActionCategoriesCombined?.value?.length) {
-      const requiredCategories = filterByActionCategoriesCombined.value;
+    if (filterByActionCategoriesCombined[0]?.value?.length) {
+      const requiredCategories = filterByActionCategoriesCombined[0].value;
       const includesUnfilled = requiredCategories.includes("Non renseigné");
       const requiredCategoriesWithoutUnfilled = requiredCategories.filter((cat) => cat !== "Non renseigné");
       let hasActionWithAllCategories = false;
