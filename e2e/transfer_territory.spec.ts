@@ -57,7 +57,7 @@ test("Transfer territory", async ({ page }) => {
 
   // Verify observations are present
   await expect(page.getByText("Première observation")).toBeVisible();
-  await expect(page.getByText("Commentaire: Deuxième observation")).toBeVisible();
+  await expect(page.getByText("Commentaire :Deuxième observation")).toBeVisible();
 
   // Transfer territory data
   await page.getByRole("button", { name: "Transférer les données vers" }).click();
