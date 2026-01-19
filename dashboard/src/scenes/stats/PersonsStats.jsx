@@ -208,8 +208,8 @@ export default function PersonStats({
                 help={`${title} dans la période définie, sorties de la file active. La date de sortie de la file active n'est pas nécessairement dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
               />
               <CustomResponsiveBar
-                title="Raison de sortie de file active"
-                help={`Raisons de sortie de file active des ${title} dans la période définie, sorties de la file active. La date de sortie de la file active n'est pas nécessairement dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
+                title="Motif de sortie de file active"
+                help={`Motifs de sortie de file active des ${title} dans la période définie, sorties de la file active. La date de sortie de la file active n'est pas nécessairement dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
                 onItemClick={
                   user.role === "stats-only"
                     ? undefined
@@ -222,7 +222,7 @@ export default function PersonStats({
                       }
                 }
                 axisTitleY="File active"
-                axisTitleX="Raison de sortie de file active"
+                axisTitleX="Motif de sortie de file active"
                 isMultiChoice
                 totalForMultiChoice={personsForStats.filter((p) => !!p.outOfActiveList).length}
                 totalTitleForMultiChoice={<span className="tw-font-bold">Nombre de personnes concernées</span>}
