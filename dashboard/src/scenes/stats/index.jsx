@@ -227,6 +227,8 @@ const itemsForStatsSelector = ({
         // Filter by period
         if (!noPeriodSelected) {
           const date = action.completedAt || action.dueAt;
+          // Skip actions without dates when period is selected
+          if (!date) continue;
           if (Array.isArray(action.teams)) {
             let isIncluded = false;
             for (const team of action.teams) {
