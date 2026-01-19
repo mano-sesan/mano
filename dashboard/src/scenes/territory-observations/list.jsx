@@ -128,22 +128,6 @@ const List = ({ territory = {} }) => {
                     const { name, label, type } = field;
                     const value = obs[name];
 
-                    // Multi-choice: render as inline tags
-                    if (type === "multi-choice" && Array.isArray(value)) {
-                      return (
-                        <div key={name}>
-                          <span className="tw-font-semibold tw-text-gray-600">{label}&nbsp;:</span>
-                          <div className="tw-flex tw-flex-wrap tw-gap-1 tw-mt-1">
-                            {value.map((v) => (
-                              <span key={v} className="tw-inline-block tw-bg-main/10 tw-text-main tw-px-2 tw-py-0.5 tw-rounded-full tw-text-xs">
-                                {v}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    }
-
                     // Textarea: render with proper indentation
                     if (type === "textarea") {
                       return (
