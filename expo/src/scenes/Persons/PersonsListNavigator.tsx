@@ -54,7 +54,7 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
           <PersonsFilter
             onBack={(filters) => {
               setPersonFilters(filters);
-              navigation.navigate("PERSONS_LIST");
+              navigation.goBack();
             }}
             personFilters={personFilters}
             {...props}
