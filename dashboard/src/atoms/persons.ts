@@ -151,11 +151,19 @@ export const filterPersonsBaseSelector = atom((get) => {
   const actionsCategoriesFilter: FilterableField = {
     field: "actionCategories",
     name: "actionCategories",
-    label: "A bénéficié d'une catégorie d'action",
+    label: "A bénéficié d'une de ces catégories d'action",
     type: "enum",
     options: flattenedActionsCategories,
   };
   filterPersonsBase.push(actionsCategoriesFilter);
+  const actionsCategoriesCombinedFilter: FilterableField = {
+    field: "actionCategoriesCombined",
+    name: "actionCategoriesCombined",
+    label: "A bénéficié d'une action contenant toutes ces catégories",
+    type: "enum",
+    options: flattenedActionsCategories,
+  };
+  filterPersonsBase.push(actionsCategoriesCombinedFilter);
   const numberOfTreatmentsFilter: FilterableField = {
     field: "numberOfTreatments",
     name: "numberOfTreatments",
