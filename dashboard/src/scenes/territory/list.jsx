@@ -202,7 +202,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
   const territoryTypes = useAtomValue(flattenedTerritoriesTypesSelector);
 
   return (
-    <ModalContainer open={open} onClose={() => setOpen(false)} size="lg">
+    <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl">
       <ModalHeader title="Créer un territoire" onClose={() => setOpen(false)} />
       <ModalBody className="tw-p-4">
         <Formik

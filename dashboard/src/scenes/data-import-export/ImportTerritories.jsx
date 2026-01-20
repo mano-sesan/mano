@@ -141,7 +141,7 @@ export default function ImportTerritories() {
         style={{ display: "none" }}
         onChange={onParseData}
       />
-      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="lg">
+      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="3xl">
         <ModalHeader title="Résumé de l'import de territoires" onClose={() => setShowImportSummary(false)} />
         <ModalBody className="tw-p-4">
           <p>

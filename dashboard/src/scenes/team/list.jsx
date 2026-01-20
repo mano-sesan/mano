@@ -104,7 +104,7 @@ const Create = () => {
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       <ButtonCustom type="button" color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
-      <ModalContainer open={open} onClose={onboardingForTeams ? null : () => setOpen(false)} size="lg">
+      <ModalContainer open={open} onClose={onboardingForTeams ? null : () => setOpen(false)} size="3xl">
         <ModalHeader title={onboardingForTeams ? "Dernière étape !" : "Créer une équipe"} onClose={onboardingForTeams ? null : () => setOpen(false)} />
         <ModalBody className="tw-p-4">
           {Boolean(onboardingForTeams) && (

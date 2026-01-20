@@ -191,7 +191,7 @@ export default function ImportPersons() {
         style={{ display: "none" }}
         onChange={onParseData}
       />
-      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="lg">
+      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="3xl">
         <ModalHeader title="Résumé de l'import de personnes" onClose={() => setShowImportSummary(false)} />
         <ModalBody className="tw-p-4">
           {Boolean(duplicateNames.length) ? (
