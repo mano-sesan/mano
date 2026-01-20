@@ -4,7 +4,7 @@ import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
 import { reportsState } from "./reports";
-import { ageFromBirthdateAsYear, dayjsInstance, formatBirthDate } from "../services/date";
+import { ageFromBirthdateAsYear, ageFromBirthdateAsMonths, dayjsInstance, formatBirthDate } from "../services/date";
 import { customFieldsObsSelector, territoryObservationsState } from "./territoryObservations";
 import { actionsState } from "./actions";
 import { consultationsState, excludeConsultationsFieldsFromSearch } from "./consultations";
@@ -80,6 +80,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
       userPopulated: usersObject[person.user],
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
+      ageInMonths: ageFromBirthdateAsMonths(person.birthdate),
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
       interactions,
       assignedTeamsPeriods,
