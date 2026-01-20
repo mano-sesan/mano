@@ -95,8 +95,9 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 };
 
 // La liste des documents en tant que telle.
-const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
-  const [selectedFolder, setSelectedFolder] = useState("root");
+const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
+  documents = documents || [];
+  const [selectedFolder, setSelectedFolder] = useState(defaultParent);
   const user = useAtomValue(userState);
   const [asset, setAsset] = useState(null);
   const [name, setName] = useState("");
@@ -164,8 +165,8 @@ const DocumentsManager = ({ personDB, documents = [], onAddDocument, onUpdateDoc
         if (options[buttonIndex] === "Naviguer dans les documents") {
           setLoading("documents");
           try {
-            const documents = await DocumentsPicker.pick({ allowMultiSelection: false });
-            const document = documents[0];
+            const _documents = await DocumentsPicker.pick({ allowMultiSelection: false });
+            const document = _documents[0];
             if (!document) return;
             // [{
             //   "convertibleToMimeTypes": null,
@@ -318,7 +319,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
       },
       async (buttonIndex) => {
         if (options[buttonIndex] === "Supprimer") {
-          Alert.alert("Voulez-vous vraiment supprimer ce document ?", null, [
+          Alert.alert("Voulez-vous vraiment supprimer ce document ?", undefined, [
             {
               text: "Annuler",
               style: "cancel",

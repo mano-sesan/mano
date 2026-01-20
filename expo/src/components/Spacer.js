@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components/native";
 
-const Spacer = ({ height = 20, grow }) => <SpacerStyled height={height} grow={grow} />;
+const Spacer = ({ height = 20, grow = false }) => <SpacerStyled height={height} grow={grow} />;
 
 const SpacerStyled = styled.View`
   /* flex-shrink: 1; */

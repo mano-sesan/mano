@@ -1,3 +1,4 @@
+import { PersonInstance } from "./person";
 import { UUIDV4 } from "./uuid";
 
 export type LinkedItemType = "medical-file" | "consultation" | "treatment" | "person" | "action";
@@ -47,6 +48,8 @@ export interface Folder {
 
 export interface DocumentWithLinkedItem extends Document {
   linkedItem: LinkedItem;
+  personPopulated?: PersonInstance;
+  person?: UUIDV4;
 }
 
 export interface FolderWithLinkedItem extends Folder {

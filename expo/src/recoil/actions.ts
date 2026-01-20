@@ -49,18 +49,18 @@ export const allowedActionFieldsInHistory = [
   { name: "status", label: "Status" },
 ];
 
-export const prepareActionForEncryption = (action: ActionInstance) => {
+export const prepareActionForEncryption = (action: Partial<ActionInstance>) => {
   try {
     if (!looseUuidRegex.test(action.person || "")) {
       throw new Error("Action is missing person");
     }
-    for (const team of action.teams) {
+    for (const team of action.teams!) {
       if (!looseUuidRegex.test(team)) {
         throw new Error("Action is missing teams");
       }
     }
-    if (!action.teams.length) throw new Error("Action is missing teams");
-    if (!looseUuidRegex.test(action.user)) {
+    if (!action.teams!.length) throw new Error("Action is missing teams");
+    if (!looseUuidRegex.test(action.user!)) {
       throw new Error("Action is missing user");
     }
   } catch (error) {
@@ -102,7 +102,7 @@ export const mappedIdsToLabels = [
   { _id: CANCEL, name: "ANNULÉE" },
 ];
 
-export const actionsFiltersState = atom({
+export const actionsFiltersState = atom<Record<string, any>>({
   key: "actionsFiltersState",
   default: {},
 });

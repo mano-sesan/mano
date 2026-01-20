@@ -1,0 +1,168 @@
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import * as Sentry from "@sentry/react-native";
+import { useAtom, useAtomValue } from "jotai";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import ActionRow from "../../components/ActionRow";
+import Spinner from "../../components/Spinner";
+import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
+import FloatAddButton from "../../components/FloatAddButton";
+import { FlashListStyled } from "../../components/Lists";
+import { actionsFiltersState, TODO } from "../../recoil/actions";
+import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../recoil/selectors";
+import { useIsFocused } from "@react-navigation/native";
+import { refreshTriggerState, loadingState } from "../../components/Loader";
+import Button from "../../components/Button";
+import ConsultationRow from "../../components/ConsultationRow";
+import { organisationState, userState } from "../../recoil/auth";
+import { Dimensions, View } from "react-native";
+import { dayjsInstance } from "../../services/dateDayjs";
+import { flattenedServicesSelector } from "../../recoil/reports";
+import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList } from "@/types/navigation";
+import { MaterialTopTabScreenProps } from "@react-navigation/material-top-tabs";
+import { ActionInstance } from "@/types/action";
+import { PersonInstance } from "@/types/person";
+import { ConsultationInstance } from "@/types/consultation";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
+
+const limitSteps = 100;
+
+type ActionsListProps =
+  | MaterialTopTabScreenProps<ActionsScreenSubTabParams, "TODAY" | "PASSED" | "INCOMINGDAYS">
+  | MaterialTopTabScreenProps<ActionsScreenTopTabParams, "FAIT" | "ANNULEE">;
+
+export default function ActionsList({ navigation, route }: ActionsListProps) {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const organisation = useAtomValue(organisationState)!;
+  const filters = useAtomValue(actionsFiltersState);
+  const user = useAtomValue(userState)!;
+
+
+  
+  const { status, timeframe } = route.params;
+  const [limit, setLimit] = useState(limitSteps);
+  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+
+  const actionsByStatusAndTimeframe = useActionsByStatusAndTimeframeSelector(status, limit, timeframe, filters) as Array<
+    ActionInstance | ConsultationInstance
+  >;
+  const total = useTotalActionsByStatusSelector(status, timeframe, filters);
+
+  const hasMore = useMemo(() => limit < total, [limit, total]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+  }, [setRefreshTrigger]);
+
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFocused]);
+
+  const onPressFloatingButton = async () => {
+    const isConsultationButtonEnabled = user.healthcareProfessional;
+    const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
+    if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
+      return;
+    }
+
+    const options = ["Ajouter une action"];
+    if (isConsultationButtonEnabled) options.push("Ajouter une consultation");
+    if (isServiceButtonEnabled) options.push("Ajouter un service");
+    options.push("Annuler");
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: options.length - 1,
+      },
+      async (buttonIndex) => {
+        if (options[buttonIndex!] === "Ajouter une action") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
+        }
+        if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK");
+        }
+        if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
+        }
+      }
+    );
+  };
+
+  const FlatListFooterComponent = useMemo(() => {
+    if (hasMore) return <Button caption="Montrer plus d'actions" onPress={() => setLimit((l) => l + limitSteps)} testID="show-more-actions" />;
+    return ListNoMoreActions;
+  }, [hasMore]);
+
+  
+
+  const onPseudoPress = useCallback(
+    (person: PersonInstance) => {
+      Sentry.setContext("person", { _id: person._id });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON_STACK", { person });
+    },
+    [navigation]
+  );
+
+  const onActionPress = useCallback(
+    (action: ActionInstance) => {
+      Sentry.setContext("action", { _id: action._id });
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION_STACK", { action });
+    },
+    [navigation]
+  );
+
+  const onConsultationPress = useCallback(
+    (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK", { personDB, consultationDB });
+    },
+    [navigation]
+  );
+
+  const renderItem = ({ item }: { item: ActionInstance | ConsultationInstance }) => {
+    if (item.isConsultation) {
+      return (
+        <ConsultationRow
+          consultation={item as ConsultationInstance}
+          onConsultationPress={onConsultationPress}
+          onPseudoPress={onPseudoPress}
+          withBadge
+          showPseudo
+          testID="consultation"
+        />
+      );
+    }
+    return <ActionRow action={item as ActionInstance} onPseudoPress={onPseudoPress} onActionPress={onActionPress} testID="action" />;
+  };
+
+  return (
+    <View
+      className="flex-1 h-full"
+      style={{
+        minHeight: Dimensions.get("window").height - (status === TODO ? 330 : 230),
+      }}
+    >
+      <FlashListStyled
+        refreshing={refreshTrigger.status}
+        onRefresh={onRefresh}
+        data={actionsByStatusAndTimeframe}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={ListEmptyComponent}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={FlatListFooterComponent}
+      />
+      <FloatAddButton onPress={onPressFloatingButton} />
+    </View>
+  );
+}
+
+const ListEmptyComponent = () => {
+  const loading = useAtomValue(loadingState);
+  if (loading) return <Spinner />;
+  return <ListEmptyActions />;
+};
