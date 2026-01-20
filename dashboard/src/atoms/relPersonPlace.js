@@ -40,6 +40,11 @@ export const prepareRelPersonPlaceForEncryption = (relPersonPlace, { checkRequir
     deletedAt: relPersonPlace.deletedAt,
     organisation: relPersonPlace.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    person: relPersonPlace.person,
+    place: relPersonPlace.place,
+    user: relPersonPlace.user,
+
     decrypted,
     entityKey: relPersonPlace.entityKey,
   };

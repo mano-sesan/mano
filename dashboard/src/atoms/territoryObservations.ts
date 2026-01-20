@@ -122,6 +122,11 @@ export const prepareObsForEncryption =
       deletedAt: obs.deletedAt,
       organisation: obs.organisation,
 
+      // Phase 1 (links migration): dual-write links outside encrypted blob.
+      territory: obs.territory,
+      team: obs.team,
+      user: obs.user,
+
       decrypted,
       entityKey: obs.entityKey,
     };

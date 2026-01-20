@@ -39,6 +39,10 @@ export type ReadyToEncryptTerritoryInstance = {
   deletedAt?: string; // ISO date
   updatedAt: string; // ISO date
 
+  // Phase 1 (links migration): dual-write links outside encrypted blob.
+  // Optional for retro-compat / older cached items.
+  user?: UUIDV4;
+
   decrypted: {
     name?: string;
     perimeter?: string;

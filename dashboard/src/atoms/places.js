@@ -37,6 +37,9 @@ export const preparePlaceForEncryption = (place, { checkRequiredFields = true } 
     deletedAt: place.deletedAt,
     organisation: place.organisation,
 
+    // Phase 1 (links migration): dual-write links outside encrypted blob.
+    user: place.user,
+
     decrypted,
     entityKey: place.entityKey,
   };
