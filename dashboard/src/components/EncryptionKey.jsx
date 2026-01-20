@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { useHistory } from "react-router-dom";
+import { useHistory, Link } from "react-router-dom";
 
 import { MINIMUM_ENCRYPTION_KEY_LENGTH, encryptionKeyLengthState, organisationState, teamsState, userState } from "../atoms/auth";
 import { personsState } from "../atoms/persons";
@@ -491,10 +491,26 @@ const EncryptionKey = ({ isMain }) => {
 
   if (organisation.encryptionEnabled && !user.healthcareProfessional)
     return (
-      <em>
-        Vous ne pouvez pas changer la clé de chiffrement car vous n'êtes pas déclaré·e comme administrateur·trice de type professionel·le de santé. Il
-        est nécessaire d'avoir accès à l'ensemble des données de l'organisation pour pouvoir changer son chiffrement.
-      </em>
+      <Alert color="warning">
+        <p className="tw-mb-2">
+          <b>Vous ne pouvez pas changer la clé de chiffrement</b> car vous n'êtes pas déclaré·e comme professionnel·le de santé. Il est nécessaire
+          d'avoir accès à l'ensemble des données de l'organisation pour pouvoir changer son chiffrement.
+        </p>
+        <p className="tw-mb-2">Pour changer la clé, suivez ces étapes&nbsp;:</p>
+        <ol className="tw-list-decimal tw-list-inside tw-mb-2 tw-space-y-1">
+          <li>
+            Rendez-vous sur{" "}
+            <Link to={`/user/${user._id}`} className="tw-underline tw-text-red-900 hover:tw-text-red-700">
+              votre compte utilisateur
+            </Link>
+          </li>
+          <li>Cochez la case «&nbsp;Professionnel·le de santé&nbsp;»</li>
+          <li>
+            Revenez ici et changez la clé <b>en la notant bien quelque part</b>
+          </li>
+          <li>Retournez sur votre compte et décochez la case «&nbsp;Professionnel·le de santé&nbsp;»</li>
+        </ol>
+      </Alert>
     );
 
   if (!isAdmin) return null;
