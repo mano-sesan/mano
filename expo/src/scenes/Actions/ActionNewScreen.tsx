@@ -275,7 +275,6 @@ const NewActionForm = ({
     return true;
   }, [name, categories, dueAt, actionPersons, status, completedAt]);
 
-  console.log({ completedAt, status });
 
   const onGoBackRequested = () => {
     if (!name.length && !dueAt) {
