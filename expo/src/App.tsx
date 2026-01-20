@@ -25,30 +25,32 @@ dayjs.extend(isBetween);
 
 const reactNavigationIntegration = Sentry.reactNavigationIntegration();
 
-Sentry.init({
-  dsn: "https://1bab2dc91a5ed9ddde3e4273fe5438a5@o4506615228596224.ingest.sentry.io/4506829687554048",
-  environment: "app",
-  enabled: !__DEV__,
-  tracesSampleRate: 0.05,
-  release: `${Application.nativeApplicationVersion}`,
-  enableAppStartTracking: true,
-  enableNativeFramesTracking: true,
-  enableStallTracking: true,
-  enableUserInteractionTracing: true,
-  integrations: [reactNavigationIntegration],
-  // ignoreErrors: [
-  //   'Network request failed',
-  //   'Failed to fetch',
-  //   'NetworkError',
-  //   // ???
-  //   'withrealtime/messaging',
-  //   // This error seems to happen only in firefox and to be ignorable.
-  //   // The "fetch" failed because user has navigated.
-  //   // Since other browsers don't have this problem, we don't care about it,
-  //   // it may be a false positive.
-  //   'AbortError: The operation was aborted',
-  // ],
-});
+if (!__DEV__) {
+  Sentry.init({
+    dsn: "https://1bab2dc91a5ed9ddde3e4273fe5438a5@o4506615228596224.ingest.sentry.io/4506829687554048",
+    environment: "app",
+    enabled: !__DEV__,
+    tracesSampleRate: 0.05,
+    release: `${Application.nativeApplicationVersion}`,
+    enableAppStartTracking: true,
+    enableNativeFramesTracking: true,
+    enableStallTracking: true,
+    enableUserInteractionTracing: true,
+    integrations: [reactNavigationIntegration],
+    // ignoreErrors: [
+    //   'Network request failed',
+    //   'Failed to fetch',
+    //   'NetworkError',
+    //   // ???
+    //   'withrealtime/messaging',
+    //   // This error seems to happen only in firefox and to be ignorable.
+    //   // The "fetch" failed because user has navigated.
+    //   // Since other browsers don't have this problem, we don't care about it,
+    //   // it may be a false positive.
+    //   'AbortError: The operation was aborted',
+    // ],
+  });
+}
 
 function App() {
   const colorScheme = useColorScheme();

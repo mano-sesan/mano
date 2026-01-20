@@ -32,7 +32,7 @@ fileignoreconfig:
 - filename: e2e/scripts/populate-db.ts
   checksum: 4dcf8959d9b95e0451eebbfa0bc372ada4b5186f8fbd65286454016c1434095d
 - filename: expo/src/App.tsx
-  checksum: ea5d8c71908cd0be95c07d19c5c440a00c47b07d20fe247ab4f1ce52a51ffef9
+  checksum: 1f2764807e9fcbd7f7f3eaaecedb38eb3eedb936ced5c1e0d79baf4fccd7d238
 - filename: expo/src/components/Loader.js
   checksum: 499b6aef397a1fa94f58035201d5155e4c5e0200caa282389193ec30e74d29c9
 - filename: expo/src/components/Selects/SelectLabelled.js
