@@ -83,13 +83,13 @@ export function formatDuration(date: PossibleDate): string | null {
 export function ageFromBirthdateAsYear(date: PossibleDate): number | null {
   if (!date) return null;
   const birthDate = dayjs(date);
-  return dayjsInstance(dayjsInstance()).diff(birthDate, "year");
+  return dayjsInstance().diff(birthDate, "year");
 }
 
 export function ageFromBirthdateAsMonths(date: PossibleDate): number | null {
   if (!date) return null;
   const birthDate = dayjs(date);
-  return dayjsInstance(dayjsInstance()).diff(birthDate, "month");
+  return dayjsInstance().diff(birthDate, "month");
 }
 
 export function formatCalendarDate(date: PossibleDate): string | null {
