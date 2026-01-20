@@ -230,6 +230,7 @@ router.post(
         organisation: data.organisation,
         createdAt: data.createdAt,
         updatedAt: data.updatedAt,
+        updatedBy: data.updatedBy,
         deletedAt: data.deletedAt,
       },
     });
@@ -272,7 +273,7 @@ router.get(
 
     const data = await Person.findAll({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "updatedBy", "deletedAt"],
     });
 
     return res.status(200).send({
@@ -302,7 +303,7 @@ router.get(
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
     const person = await Person.findOne({
       ...query,
-      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt"],
+      attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "updatedBy", "deletedAt"],
     });
 
     if (!person) {
@@ -364,7 +365,7 @@ router.put(
       encryptedEntityKey: encryptedEntityKey,
     };
 
-    await Person.update(updatePerson, query, { silent: false });
+    await Person.update(updatePerson, { ...query, silent: false });
     const newPerson = await Person.findOne(query);
 
     res.status(200).send({
@@ -376,6 +377,7 @@ router.put(
         organisation: newPerson.organisation,
         createdAt: newPerson.createdAt,
         updatedAt: newPerson.updatedAt,
+        updatedBy: newPerson.updatedBy,
         deletedAt: newPerson.deletedAt,
       },
     });
@@ -470,8 +472,7 @@ router.delete(
       if (person) {
         await Person.update(
           { deletedBy: req.user._id },
-          { where: { _id: req.params._id, organisation: req.user.organisation } },
-          { silent: true, transaction: tx }
+          { where: { _id: req.params._id, organisation: req.user.organisation }, silent: true, transaction: tx }
         );
         await person.destroy({ transaction: tx });
       }

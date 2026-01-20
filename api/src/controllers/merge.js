@@ -164,8 +164,7 @@ router.post(
       if (person) {
         await Person.update(
           { deletedBy: req.user._id },
-          { where: { _id: personToDeleteId, organisation: req.user.organisation } },
-          { silent: true, transaction: tx }
+          { where: { _id: personToDeleteId, organisation: req.user.organisation }, silent: true, transaction: tx }
         );
         await person.destroy({ transaction: tx });
       }

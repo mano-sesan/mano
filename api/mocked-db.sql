@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS mano."Person" (
     "updatedAt" timestamp with time zone NOT NULL,
     encrypted text,
     "encryptedEntityKey" text,
-    "deletedAt" timestamp with time zone
+    "deletedAt" timestamp with time zone,
+    "deletedBy" uuid,
+    "updatedBy" uuid
 );
 
 --

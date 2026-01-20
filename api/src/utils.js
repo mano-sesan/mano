@@ -111,6 +111,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
 
   const clientTimestamp = new Date(clientUpdatedAt);
   const dbTimestamp = new Date(currentEntity.updatedAt);
+  const dbUpdatedBy = currentEntity.updatedBy;
 
   // Check if timestamps are different (race condition detected)
   const isRaceCondition = clientTimestamp.getTime() !== dbTimestamp.getTime();
@@ -143,6 +144,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
 
     // Prepare comprehensive context for Sentry
     const raceContext = {
+      dbUpdatedBy,
       clientUpdatedAt: clientTimestamp.toISOString(),
       dbUpdatedAt: dbTimestamp.toISOString(),
       timeDifferenceMs,
@@ -172,6 +174,7 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
         lastUpdateAgoBucket,
         platform: req.headers.platform || "unknown",
         organisation: user.organisation,
+        lastUpdatedIsMe: dbUpdatedBy === user._id,
       },
       extra: raceContext,
       user: {
