@@ -91,15 +91,16 @@ export const filterItem =
       // Special handling for "actionCategoriesCombined" filter
       // This filter checks if a person has at least one action that contains ALL selected categories
       if (filter.field === "actionCategoriesCombined") {
-        const actionCategorySets = item.actionCategorySets as string[][] | undefined;
+        const actions = item.actions as Array<{ categories?: string[] }> | undefined;
         // Handle "Non renseigné" case
         if (arrayFilterValue.length === 1 && arrayFilterValue[0] === "Non renseigné") {
-          if (!actionCategorySets?.length) continue;
+          const hasAnyCategories = actions?.some((action) => action.categories?.length);
+          if (!hasAnyCategories) continue;
           return false;
         }
         // Check if any action has ALL the selected categories
-        const hasMatchingAction = actionCategorySets?.some((actionCategories) =>
-          arrayFilterValue.every((selectedCategory) => actionCategories.includes(selectedCategory))
+        const hasMatchingAction = actions?.some(
+          (action) => action.categories?.length && arrayFilterValue.every((selectedCategory) => action.categories.includes(selectedCategory))
         );
         if (!hasMatchingAction) return false;
         continue;
