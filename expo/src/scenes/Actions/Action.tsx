@@ -685,6 +685,7 @@ const ActionInformation = ({
 }: ActionInformationProps) => {
   const { name, dueAt, withTime, description, categories, status, urgent, group, completedAt } = action;
 
+
   return (
     <ScrollContainer noRadius>
       <View className="items-center -mt-5">
@@ -721,6 +722,9 @@ const ActionInformation = ({
         onSelect={(status) => setAction((a) => ({ ...a, status }))}
         onSelectAndSave={(status) => {
           setAction((a) => ({ ...a, status }));
+          if (status === DONE && !completedAt) {
+            setAction((a) => ({ ...a, status, completedAt: new Date().toISOString() }));
+          }
         }}
         value={status}
         editable={editable}
@@ -739,7 +743,7 @@ const ActionInformation = ({
         <DateAndTimeInput
           label={status === DONE ? "Faite le" : "Annulée le"}
           setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt || undefined }))}
-          date={completedAt || new Date().toISOString()}
+          date={completedAt}
           showTime
           showDay
           withTime={withTime}
