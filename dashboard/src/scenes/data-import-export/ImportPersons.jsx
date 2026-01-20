@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import Alert from "../../components/tailwind/Alert";
 import ButtonCustom from "../../components/ButtonCustom";
 import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../atoms/persons";
@@ -191,9 +191,9 @@ export default function ImportPersons() {
         style={{ display: "none" }}
         onChange={onParseData}
       />
-      <Modal isOpen={showImportSummary} toggle={() => setShowImportSummary(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de personnes</ModalHeader>
-        <ModalBody>
+      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="lg">
+        <ModalHeader title="Résumé de l'import de personnes" onClose={() => setShowImportSummary(false)} />
+        <ModalBody className="tw-p-4">
           {Boolean(duplicateNames.length) ? (
             <>
               <Alert color="danger">
@@ -254,7 +254,7 @@ export default function ImportPersons() {
             </>
           )}
         </ModalBody>
-      </Modal>
+      </ModalContainer>
     </>
   );
 }

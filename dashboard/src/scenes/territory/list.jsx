@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import structuredClone from "@ungap/structured-clone";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -202,9 +202,9 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
   const territoryTypes = useAtomValue(flattenedTerritoriesTypesSelector);
 
   return (
-    <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-      <ModalHeader toggle={() => setOpen(false)}>Créer un territoire</ModalHeader>
-      <ModalBody>
+    <ModalContainer open={open} onClose={() => setOpen(false)} size="lg">
+      <ModalHeader title="Créer un territoire" onClose={() => setOpen(false)} />
+      <ModalBody className="tw-p-4">
         <Formik
           initialValues={initialValues}
           onSubmit={async (body, actions) => {
@@ -284,7 +284,7 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
           )}
         </Formik>
       </ModalBody>
-    </Modal>
+    </ModalContainer>
   );
 }
 

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import Alert from "../../components/tailwind/Alert";
 import ButtonCustom from "../../components/ButtonCustom";
 import { teamsState, userState } from "../../atoms/auth";
@@ -141,9 +141,9 @@ export default function ImportTerritories() {
         style={{ display: "none" }}
         onChange={onParseData}
       />
-      <Modal isOpen={showImportSummary} toggle={() => setShowImportSummary(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de territoires</ModalHeader>
-        <ModalBody>
+      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="lg">
+        <ModalHeader title="Résumé de l'import de territoires" onClose={() => setShowImportSummary(false)} />
+        <ModalBody className="tw-p-4">
           <p>
             Nombre de territoires à importer&nbsp;: <strong>{territoriesToImport.length}</strong>
           </p>
@@ -186,7 +186,7 @@ export default function ImportTerritories() {
 
           <ButtonCustom type="submit" onClick={onImportData} color="primary" title="Importer" padding="12px 24px" />
         </ModalBody>
-      </Modal>
+      </ModalContainer>
     </>
   );
 }
