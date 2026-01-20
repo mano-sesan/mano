@@ -722,6 +722,9 @@ const ActionInformation = ({
         onSelect={(status) => setAction((a) => ({ ...a, status }))}
         onSelectAndSave={(status) => {
           setAction((a) => ({ ...a, status }));
+          if (status === DONE && !completedAt) {
+            setAction((a) => ({ ...a, status, completedAt: new Date().toISOString() }));
+          }
         }}
         value={status}
         editable={editable}
