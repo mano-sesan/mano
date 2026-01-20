@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import structuredClone from "@ungap/structured-clone";
-import { Col, FormGroup, Row, Modal, ModalBody, ModalHeader } from "reactstrap";
+import { Modal, ModalBody, ModalHeader } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
@@ -83,14 +83,14 @@ const List = () => {
           <CreateTerritory />
         </div>
       </div>
-      <Row style={{ marginBottom: 40, borderBottom: "1px solid #ddd" }}>
-        <Col md={12} style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+      <div className="tw-flex tw-flex-wrap -tw-mx-2" style={{ marginBottom: 40, borderBottom: "1px solid #ddd" }}>
+        <div className="tw-w-full tw-px-2" style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
           <label htmlFor="search" style={{ marginRight: 20, width: 250, flexShrink: 0 }}>
             Recherche&nbsp;:{" "}
           </label>
           <Search placeholder="Par mot clé, présent dans le nom, une observation, ..." value={search} onChange={setSearch} />
-        </Col>
-      </Row>
+        </div>
+      </div>
       <Table
         data={data}
         rowKey={"_id"}
@@ -239,15 +239,15 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
         >
           {({ values, handleChange, handleSubmit, isSubmitting }) => (
             <React.Fragment>
-              <Row>
-                <Col md={6}>
-                  <FormGroup>
+              <div className="tw-flex tw-flex-wrap -tw-mx-2">
+                <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                  <div className="tw-mb-4">
                     <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
                     <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
+                  </div>
+                </div>
+                <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                  <div className="tw-mb-4">
                     <label htmlFor="territory-select-types" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Types</label>
                     <SelectCustom
                       options={territoryTypes.map((_option) => ({ value: _option, label: _option }))}
@@ -261,21 +261,21 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                       inputId="territory-select-types"
                       classNamePrefix="territory-select-types"
                     />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
+                  </div>
+                </div>
+                <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                  <div className="tw-mb-4">
                     <label htmlFor="description" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Description</label>
                     <textarea name="description" id="description" value={values.description} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
-                  </FormGroup>
-                </Col>
-                <Col md={6}>
-                  <FormGroup>
+                  </div>
+                </div>
+                <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                  <div className="tw-mb-4">
                     <label htmlFor="perimeter" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Périmètre</label>
                     <textarea name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
-                  </FormGroup>
-                </Col>
-              </Row>
+                  </div>
+                </div>
+              </div>
               <br />
               <div className="tw-mt-2 tw-flex tw-justify-end">
                 <ButtonCustom type="submit" disabled={isSubmitting} onClick={handleSubmit} title="Sauvegarder" />

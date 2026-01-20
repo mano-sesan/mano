@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Col, FormGroup, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Modal, ModalBody, ModalHeader } from "reactstrap";
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -170,18 +170,18 @@ const Create = () => {
             {({ values, handleChange, handleSubmit, isSubmitting }) => {
               return (
                 <React.Fragment>
-                  <Row>
-                    <Col md={6}>
-                      <FormGroup>
+                  <div className="tw-flex tw-flex-wrap -tw-mx-2">
+                    <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                      <div className="tw-mb-4">
                         <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
                         <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
+                      </div>
+                    </div>
+                    <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                      <div className="tw-mb-4">
                         <label className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">L'équipe travaille-t-elle de nuit ?</label>
                         <div style={{ display: "flex", flexDirection: "column", marginLeft: 20, width: "80%" }}>
-                          <FormGroup style={{ marginBottom: 0 }}>
+                          <div style={{ marginBottom: 0 }}>
                             <input
                               style={{ marginRight: 10 }}
                               type="radio"
@@ -192,8 +192,8 @@ const Create = () => {
                               onChange={handleChange}
                             />
                             <label htmlFor="nightSessionYes">Oui</label>
-                          </FormGroup>
-                          <FormGroup style={{ marginBottom: 0 }}>
+                          </div>
+                          <div style={{ marginBottom: 0 }}>
                             <input
                               style={{ marginRight: 10 }}
                               type="radio"
@@ -204,17 +204,17 @@ const Create = () => {
                               onChange={handleChange}
                             />
                             <label htmlFor="nightSessionNo">Non</label>
-                          </FormGroup>
+                          </div>
                         </div>
-                      </FormGroup>
-                    </Col>
-                  </Row>
+                      </div>
+                    </div>
+                  </div>
                   <br />
-                  <Row>
-                    <Col className="tw-mt-4 tw-flex tw-justify-end">
+                  <div className="tw-flex tw-flex-wrap -tw-mx-2">
+                    <div className="tw-w-full tw-px-2 tw-mt-4 tw-flex tw-justify-end">
                       <ButtonCustom type="button" id="create-team" title="Créer" loading={isSubmitting} onClick={handleSubmit} />
-                    </Col>
-                  </Row>
+                    </div>
+                  </div>
                 </React.Fragment>
               );
             }}
