@@ -154,7 +154,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
   // to dispatch comments efficiently
   const personPerAction = {};
   // to help adding action categories to persons efficiently
-  const personAactionCategoriesObject = {};
+  const personActionCategoriesObject = {};
 
   for (const action of Object.values(actions)) {
     if (!personsObject[action.person]) continue;
@@ -168,10 +168,10 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     personsObject[action.person].interactions.push(action.completedAt);
     if (action.categories) {
       for (const category of action.categories) {
-        personAactionCategoriesObject[action.person] = personAactionCategoriesObject[action.person] || {}; //
+        personActionCategoriesObject[action.person] = personActionCategoriesObject[action.person] || {}; //
         personsObject[action.person].actionCategories = personsObject[action.person].actionCategories || [];
-        if (!personAactionCategoriesObject[action.person][category]) {
-          personAactionCategoriesObject[action.person][category] = true;
+        if (!personActionCategoriesObject[action.person][category]) {
+          personActionCategoriesObject[action.person][category] = true;
           personsObject[action.person].actionCategories.push(category);
         }
       }
