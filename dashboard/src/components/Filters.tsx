@@ -507,6 +507,8 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
   }
 
   if (["enum", "multi-choice"].includes(type) && name !== "outOfActiveList") {
+    // Use "ET" for combined filters (AND logic), "OU" for others (OR logic)
+    const connector = name === "actionCategoriesCombined" ? "ET" : "OU";
     try {
       return (
         <SelectCustom
@@ -529,7 +531,7 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
               return (
                 <>
                   <components.MultiValueLabel {...props} />
-                  {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+                  {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">{connector}</span>}
                 </>
               );
             },
