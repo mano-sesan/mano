@@ -271,8 +271,11 @@ const NewActionForm = ({
     if (!name?.trim()?.length && !categories?.length) return false;
     if (!actionPersons.length) return false;
     if (!dueAt) return false;
+    if (status === DONE && !completedAt) return false;
     return true;
-  }, [name, categories, dueAt, actionPersons]);
+  }, [name, categories, dueAt, actionPersons, status, completedAt]);
+
+  console.log({ completedAt, status });
 
   const onGoBackRequested = () => {
     if (!name.length && !dueAt) {

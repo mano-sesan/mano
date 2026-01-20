@@ -685,6 +685,7 @@ const ActionInformation = ({
 }: ActionInformationProps) => {
   const { name, dueAt, withTime, description, categories, status, urgent, group, completedAt } = action;
 
+
   return (
     <ScrollContainer noRadius>
       <View className="items-center -mt-5">
@@ -739,7 +740,7 @@ const ActionInformation = ({
         <DateAndTimeInput
           label={status === DONE ? "Faite le" : "Annulée le"}
           setDate={(completedAt) => setAction((a) => ({ ...a, completedAt: completedAt || undefined }))}
-          date={completedAt || new Date().toISOString()}
+          date={completedAt}
           showTime
           showDay
           withTime={withTime}
