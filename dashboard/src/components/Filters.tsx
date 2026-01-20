@@ -87,6 +87,24 @@ export const filterItem =
 
       const arrayFilterValue = Array.isArray(filter.value) ? filter.value : [filter.value];
       if (!arrayFilterValue.length) continue;
+
+      // Special handling for "actionCategoriesCombined" filter
+      // This filter checks if a person has at least one action that contains ALL selected categories
+      if (filter.field === "actionCategoriesCombined") {
+        const actionCategorySets = item.actionCategorySets as string[][] | undefined;
+        // Handle "Non renseigné" case
+        if (arrayFilterValue.length === 1 && arrayFilterValue[0] === "Non renseigné") {
+          if (!actionCategorySets?.length) continue;
+          return false;
+        }
+        // Check if any action has ALL the selected categories
+        const hasMatchingAction = actionCategorySets?.some((actionCategories) =>
+          arrayFilterValue.every((selectedCategory) => actionCategories.includes(selectedCategory))
+        );
+        if (!hasMatchingAction) return false;
+        continue;
+      }
+
       // here the item needs to fulfill at least one filter value
       let isSelected = false;
       for (const filterValue of arrayFilterValue) {

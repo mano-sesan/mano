@@ -166,7 +166,12 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     personsObject[action.person].interactions.push(action.dueAt);
     personsObject[action.person].interactions.push(action.createdAt);
     personsObject[action.person].interactions.push(action.completedAt);
-    if (action.categories) {
+    if (action.categories?.length) {
+      // Store the full category array per action for the "combined" filter
+      // This allows checking if a person has at least one action with ALL selected categories
+      personsObject[action.person].actionCategorySets = personsObject[action.person].actionCategorySets || [];
+      personsObject[action.person].actionCategorySets.push(action.categories);
+
       for (const category of action.categories) {
         personAactionCategoriesObject[action.person] = personAactionCategoriesObject[action.person] || {}; //
         personsObject[action.person].actionCategories = personsObject[action.person].actionCategories || [];
