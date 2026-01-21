@@ -20,6 +20,7 @@ module.exports = {
       rules: {
         "react/no-unescaped-entities": "off",
         "react/prop-types": "off",
+        "prefer-const": "off",
       },
     },
   ],
