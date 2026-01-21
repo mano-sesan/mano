@@ -53,9 +53,15 @@ export default function TerritoryObservationStackNavigator(props: TerritoryObser
   });
   const user = useAtomValue(userState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
+
+  const [rencontrePersons, setRencontrePersons] = useState<Array<PersonInstance>>(() => {
+    if (!rencontresForObs.length) return [];
+    return rencontresForObs.filter((r) => r.person).map((r) => personsObject[r.person!]);
+  });
+
   const [rencontre, setRencontre] = useState(() => {
     return (
-      rencontresForObs.find((r) => r.person === rencontrePersons[0]._id) ||
+      rencontresForObs.find((r) => r.person === rencontrePersons?.[0]?._id) ||
       ({
         _id: UUID(),
         date: new Date().toISOString(),
@@ -65,11 +71,6 @@ export default function TerritoryObservationStackNavigator(props: TerritoryObser
         person: undefined,
       } as RencontreInstance)
     );
-  });
-
-  const [rencontrePersons, setRencontrePersons] = useState<Array<PersonInstance>>(() => {
-    if (!rencontresForObs.length) return [];
-    return rencontresForObs.filter((r) => r.person).map((r) => personsObject[r.person!]);
   });
 
   return (
