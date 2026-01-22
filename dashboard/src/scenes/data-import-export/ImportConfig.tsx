@@ -1139,9 +1139,11 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
           }),
           options: motifs,
         };
-        updatedOrganisation.fieldsPersonsCustomizableOptions = organisation.fieldsPersonsCustomizableOptions?.map((f) =>
-          f.name === "outOfActiveListReasons" ? updatedField : f
-        ) || [updatedField];
+        const existingOptions = organisation.fieldsPersonsCustomizableOptions || [];
+        const hasField = existingOptions.some((f) => f.name === "outOfActiveListReasons");
+        updatedOrganisation.fieldsPersonsCustomizableOptions = hasField
+          ? existingOptions.map((f) => (f.name === "outOfActiveListReasons" ? updatedField : f))
+          : [...existingOptions, updatedField];
       }
     }
   }
