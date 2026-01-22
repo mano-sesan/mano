@@ -1,13 +1,14 @@
 const { QueryTypes } = require("sequelize");
 const { sequelize } = require("../db/sequelize");
 const { MOBILE_APP_VERSION } = require("../config");
+const { getAppLinks } = require("../utils/appLinks");
 
 const MINIMUM_MOBILE_APP_VERSION = [3, 9, 0];
 
 let deploymentCommit = null;
 let deploymentDate = null;
 
-module.exports = async ({ path, headers: { version, platform } }, res, next) => {
+module.exports = async ({ path, headers: { version, platform, packageid } }, res, next) => {
   if (path.startsWith("/public")) return next();
   if (platform === "website") return next();
   if (platform === "dashboard") {
@@ -38,6 +39,9 @@ module.exports = async ({ path, headers: { version, platform } }, res, next) => 
 
   const appVer = version.split(".").map((d) => parseInt(d));
 
+
+  const { downloadLink, installLink } = getAppLinks(MOBILE_APP_VERSION, packageid);
+
   for (let i = 0; i < 3; i++) {
     if (appVer[i] > MINIMUM_MOBILE_APP_VERSION[i]) {
       return next();
@@ -49,11 +53,9 @@ module.exports = async ({ path, headers: { version, platform } }, res, next) => 
           `Veuillez mettre à jour votre application\u00A0!`,
           `Cette mise à jour est nécessaire pour continuer à utiliser l'application.`,
           [
-            { text: "Télécharger la dernière version", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
+            { text: "Télécharger la dernière version", link: downloadLink },
             {
-              text: "Installer",
-              link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk`,
-            },
+              text: "Installer", link: installLink },
           ],
         ],
       });

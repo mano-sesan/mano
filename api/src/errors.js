@@ -36,8 +36,8 @@ const sendError = (err, req, res, next) => {
     return res.status(401).send({ ok: false, code: "UNAUTHORIZED", error: "Vous êtes déconnecté, veuillez vous reconnecter." });
   }
   const { body, query, user, params, route, method, originalUrl, headers } = req;
-  const { version, platform } = headers;
-  capture(err, { extra: { body, query, params, route, method, originalUrl, version, platform }, user });
+  const { version, platform, packageid } = headers;
+  capture(err, { extra: { body, query, params, route, method, originalUrl, version, platform, packageid }, user });
 
   return res
     .status(err.status || 500)

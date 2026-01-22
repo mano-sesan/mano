@@ -6,7 +6,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano.expo",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-expo"
+      }
     },
     "preview": {
       "distribution": "internal"
@@ -14,8 +18,20 @@
     "production": {
       "autoIncrement": false,
       "environment": "production",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download"
+      },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "credentialsSource": "remote"
+      }
+    },
+    "production-niort": {
+      "extends": "production",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano.niort",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-niort"
       }
     }
   },

@@ -1,9 +1,9 @@
 import { ExpoConfig, ConfigContext } from "expo/config";
 
-export const version = "3.16.1";
-export const buildNumber = "51";
+export const version = "3.17.0";
+export const buildNumber = 52;
 
-const packageId = "com.sesan.mano.expo";
+const packageId = process.env.PACKAGE_ID || "com.sesan.mano";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
