@@ -38,6 +38,7 @@ Les étapes à suivre sont
 
 3. adaptez `./publish-releases-to-github.js` pour que la release soit faite pour ce `{nouveau-nom}`
 
+4. quand vous livrez un nouvea packageId pour la première fois, `eas` va demander le `Keystore`, puis n'en trouvant pas, va demander `Generate a new Android Keystore ?`, dites oui. Cette Keystore sera storée sur les serveurs d'expo : c'est très bien ainsi.
 
 
 ## Installer l'environnement de test
