@@ -1,6 +1,7 @@
 const { QueryTypes } = require("sequelize");
 const { sequelize } = require("../db/sequelize");
 const { MOBILE_APP_VERSION } = require("../config");
+const { getAppLinks } = require("../utils/appLinks");
 
 const MINIMUM_MOBILE_APP_VERSION = [3, 9, 0];
 
@@ -38,12 +39,8 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
 
   const appVer = version.split(".").map((d) => parseInt(d));
 
-  let downloadLink = `https://mano.sesan.fr/download?ts=${Date.now()}`;
-  let installLink = `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/mano-standard.apk`;
-  if (packageid === "com.sesan.mano.niort") {
-    downloadLink = `https://mano.sesan.fr/download-niort?ts=${Date.now()}`;
-    installLink = `https://github.com/mano-sesan/mano/releases/download/niort${MOBILE_APP_VERSION}/mano-niort.apk`;
-  }
+
+  const { downloadLink, installLink } = getAppLinks(MOBILE_APP_VERSION, packageid);
 
   for (let i = 0; i < 3; i++) {
     if (appVer[i] > MINIMUM_MOBILE_APP_VERSION[i]) {

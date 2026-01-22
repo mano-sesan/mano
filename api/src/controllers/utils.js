@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const { MOBILE_APP_VERSION } = require("../config");
+const { getAppLinks } = require("../utils/appLinks");
 
 router.get("/check-auth", passport.authenticate("user", { session: false, failWithError: true }), async (req, res) => {
   // called when the app / the dashboard get from unfocused to focused
@@ -23,12 +24,7 @@ router.get("/version", async (req, res) => {
     return res.status(200).send({ ok: true });
   }
 
-  let downloadLink = `https://mano.sesan.fr/download?ts=${Date.now()}`;
-  let installLink = `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/mano-standard.apk`;
-  if (req.headers.packageid === "com.sesan.mano.niort") {
-    downloadLink = `https://mano.sesan.fr/download-niort?ts=${Date.now()}`;
-    installLink = `https://github.com/mano-sesan/mano/releases/download/niort${MOBILE_APP_VERSION}/mano-niort.apk`;
-  }
+  const { downloadLink, installLink } = getAppLinks(MOBILE_APP_VERSION, req.headers.packageid);
 
   res.status(200).send({
     ok: false,

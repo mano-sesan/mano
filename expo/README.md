@@ -42,7 +42,7 @@ Les étapes à suivre sont
 
 5. Il faut rajouter une page `download-{nouveau-nom}` dans `../website/pages/`, duplicata de la page `download` existante avec le nom adapté et le lien adapté aussi
 
-6. Et enfin, modifier le fichier `../api/src/middleware/versionCheck.js` pour ajouter les liens de téléchargement et d'installation.
+6. Et enfin, modifier ajouter les liens de téléchargement et d'installation dans le fichier `../api/src/utils/appLinks.js`
 
 ## Installer l'environnement de test
 
