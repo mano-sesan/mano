@@ -317,6 +317,7 @@ const sheetNames = [
   "Liste des services",
   "Catégories d action",
   "Types de territoire",
+  "Motifs sortie file active",
 ] as const;
 type SheetName = (typeof sheetNames)[number];
 
@@ -328,6 +329,7 @@ const workbookColumns: Record<SheetName, string[]> = {
   "Liste des services": ["Liste des services", "Groupe"],
   "Catégories d action": ["Liste des catégories d'action", "Groupe d'action"],
   "Types de territoire": ["Type de territoire"],
+  "Motifs sortie file active": ["Motif de sortie de file active"],
 };
 
 type WorkbookData = Record<
@@ -539,6 +541,30 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       });
       if (existingTypes.length) {
         data["Types de territoire"].fieldsToDelete = existingTypes;
+      }
+    }
+
+    // Check for outOfActiveListReasons
+    const outOfActiveListReasonsField = organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons");
+    if (outOfActiveListReasonsField?.options?.length) {
+      const importedReasons = new Set<string>();
+      if (workbook.SheetNames.includes("Motifs sortie file active")) {
+        const sheet = workbook.Sheets["Motifs sortie file active"];
+        const rows = utils.sheet_to_json<Record<string, string>>(sheet);
+        rows.forEach((row) => {
+          if (row["Motif de sortie de file active"]) {
+            importedReasons.add(row["Motif de sortie de file active"].trim());
+          }
+        });
+      }
+      const existingReasons: string[] = [];
+      outOfActiveListReasonsField.options.forEach((reason) => {
+        if (!importedReasons.has(reason.trim())) {
+          existingReasons.push(reason.trim());
+        }
+      });
+      if (existingReasons.length) {
+        data["Motifs sortie file active"].fieldsToDelete = existingReasons;
       }
     }
   }
@@ -849,6 +875,36 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
 
         data[sheetName].data.push(trimAllValues({ type }));
       }
+
+      if (sheetName === "Motifs sortie file active") {
+        const [motif] = row;
+        if (!motif) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le motif est manquant` });
+
+        // Check for duplicate motif names
+        if (motif) {
+          const motifKey = motif.trim();
+          if (seenFields.has(motifKey)) {
+            data[sheetName].errors.push({
+              line: parseInt(key),
+              col: 0,
+              message: `Ce motif existe déjà à la ligne ${seenFields.get(motifKey)! + 2}`,
+            });
+          } else {
+            seenFields.set(motifKey, parseInt(key));
+          }
+        }
+
+        // Check if motif is new (doesn't exist in organisation)
+        if (organisation && motif) {
+          const existingReasons =
+            organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons")?.options || [];
+          if (!existingReasons.includes(motif.trim())) {
+            data[sheetName].newFields!.add(parseInt(key));
+          }
+        }
+
+        data[sheetName].data.push(trimAllValues({ motif }));
+      }
     }
   }
   return data;
@@ -1068,6 +1124,27 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
       const existingGroupTitle = organisation.territoriesGroupedTypes?.[0]?.groupTitle ?? "";
       if (types.length) updatedOrganisation.territoriesGroupedTypes = [{ groupTitle: existingGroupTitle, types }];
     }
+
+    if (sheetName === "Motifs sortie file active") {
+      const motifs = sheetData.data.map((curr) => curr.motif as string);
+      if (motifs.length) {
+        // Find and update the outOfActiveListReasons field, preserving other properties
+        const existingField = organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons");
+        const updatedField = {
+          ...(existingField || {
+            name: "outOfActiveListReasons",
+            type: "multi-choice",
+            label: "Motifs de sortie de file active",
+            enabled: true,
+            showInStats: true,
+          }),
+          options: motifs,
+        };
+        updatedOrganisation.fieldsPersonsCustomizableOptions = organisation.fieldsPersonsCustomizableOptions?.map((f) =>
+          f.name === "outOfActiveListReasons" ? updatedField : f
+        ) || [updatedField];
+      }
+    }
   }
   return updatedOrganisation;
 }
@@ -1189,6 +1266,14 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
     workbook,
     utils.aoa_to_sheet([["Type de territoire"], ...territoriesGroupedTypes.flatMap((group) => group.types.map((type: string) => [type]))]),
     "Types de territoire"
+  );
+
+  const outOfActiveListReasonsField = organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons");
+  const outOfActiveListReasons = outOfActiveListReasonsField?.options || [];
+  utils.book_append_sheet(
+    workbook,
+    utils.aoa_to_sheet([["Motif de sortie de file active"], ...outOfActiveListReasons.map((reason: string) => [reason])]),
+    "Motifs sortie file active"
   );
 
   return workbook;
