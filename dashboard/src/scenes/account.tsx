@@ -23,11 +23,18 @@ const Account = () => {
       </h1>
       <h3 className="tw-my-10 tw-flex tw-justify-between tw-text-xl tw-font-extrabold">Informations</h3>
       <Formik
-        initialValues={user}
-        onSubmit={async (body) => {
-          const [error] = await tryFetch(async () => API.put({ path: "/user", body }));
+        initialValues={{ ...user, currentPassword: "" }}
+        onSubmit={async (body, { setFieldValue }) => {
+          const isEmailChanged = body.email !== user.email;
+          const payload: Record<string, unknown> = { ...body };
+          // Remove currentPassword from payload if email is not being changed
+          if (!isEmailChanged) {
+            delete payload.currentPassword;
+          }
+          const [error] = await tryFetch(async () => API.put({ path: "/user", body: payload }));
           if (!error) {
             toast.success("Mis à jour !");
+            setFieldValue("currentPassword", "");
             const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/user/me" }));
             if (error) {
               toast.error(errorMessage(error));
@@ -39,63 +46,88 @@ const Account = () => {
           }
         }}
       >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => (
-          <React.Fragment>
-            <div className="tw-flex tw-flex-row tw-flex-wrap">
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <div className="tw-mb-4">
-                  <label htmlFor="orgName">Nom</label>
-                  <input
-                    className="tailwindui"
-                    autoComplete="off"
-                    type="text"
-                    name="name"
-                    id="name"
-                    value={values.name}
-                    onChange={handleChange}
-                    required
-                  />
+        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+          const isEmailChanged = values.email !== user.email;
+          return (
+            <React.Fragment>
+              <div className="tw-flex tw-flex-row tw-flex-wrap">
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <div className="tw-mb-4">
+                    <label htmlFor="orgName">Nom</label>
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      type="text"
+                      name="name"
+                      id="name"
+                      value={values.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
-                <div className="tw-mb-4">
-                  <label htmlFor="email">Email</label>
-                  <input
-                    className="tailwindui"
-                    autoComplete="off"
-                    type="email"
-                    name="email"
-                    id="email"
-                    value={values.email}
-                    onChange={handleChange}
-                    required
-                  />
+                <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+                  <div className="tw-mb-4">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      type="email"
+                      name="email"
+                      id="email"
+                      value={values.email}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
+                {isEmailChanged && (
+                  <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
+                    <div className="tw-mb-4">
+                      <label htmlFor="currentPassword">Mot de passe actuel (requis pour modifier l'email)</label>
+                      <input
+                        className="tailwindui"
+                        autoComplete="current-password"
+                        type="password"
+                        name="currentPassword"
+                        id="currentPassword"
+                        value={values.currentPassword}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="tw-flex tw-justify-end tw-items-center">
-              <DeleteButtonAndConfirmModal
-                buttonText="Supprimer mon compte"
-                title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
-                textToConfirm={user.email}
-                roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
-                onConfirm={async () => {
-                  const [error] = await tryFetch(async () => API.delete({ path: "/user/me" }));
-                  if (error) return;
-                  toast.success("Suppression réussie");
-                  window.location.reload();
-                }}
-              >
-                <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
-              </DeleteButtonAndConfirmModal>
-              <TestConnexion />
-              <LinkToChangePassword />
-              <button type="button" className="button-submit" disabled={isSubmitting} onClick={() => handleSubmit()}>
-                Mettre à jour
-              </button>
-            </div>
-          </React.Fragment>
-        )}
+              <div className="tw-flex tw-justify-end tw-items-center">
+                <DeleteButtonAndConfirmModal
+                  buttonText="Supprimer mon compte"
+                  title={`Voulez-vous vraiment supprimer l'utilisateur ${user.name}`}
+                  textToConfirm={user.email}
+                  roles={["admin", "superadmin", "normal", "restricted-access", "stats-only"]}
+                  onConfirm={async () => {
+                    const [error] = await tryFetch(async () => API.delete({ path: "/user/me" }));
+                    if (error) return;
+                    toast.success("Suppression réussie");
+                    window.location.reload();
+                  }}
+                >
+                  <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
+                </DeleteButtonAndConfirmModal>
+                <TestConnexion />
+                <LinkToChangePassword />
+                <button
+                  type="button"
+                  className="button-submit"
+                  disabled={isSubmitting || (isEmailChanged && !values.currentPassword)}
+                  onClick={() => handleSubmit()}
+                >
+                  Mettre à jour
+                </button>
+              </div>
+            </React.Fragment>
+          );
+        }}
       </Formik>
     </>
   );

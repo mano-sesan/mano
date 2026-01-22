@@ -820,7 +820,7 @@ router.put(
         name: z.optional(z.string().min(1)),
         phone: z.string().optional(),
         email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
-        password: z.optional(z.string().min(1)),
+        currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
         ...(req.body.termsAccepted ? { termsAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
@@ -833,7 +833,7 @@ router.put(
     }
 
     const _id = req.user._id;
-    const { name, email, password, team, termsAccepted, cgusAccepted, phone, gaveFeedbackSep2025 } = req.body;
+    const { name, email, currentPassword, team, termsAccepted, cgusAccepted, phone, gaveFeedbackSep2025 } = req.body;
 
     const user = await User.findOne({ where: { _id } });
     if (!user) return res.status(404).send({ ok: false, error: "Utilisateur non trouvé" });
@@ -842,6 +842,17 @@ router.put(
     if (phone) user.set({ phone: sanitizeAll(phone) });
     if (email) {
       const newEmail = email.trim().toLowerCase();
+      // Security: require current password verification when changing email (CWE-620 fix)
+      if (newEmail !== user.email) {
+        if (!currentPassword) {
+          return res.status(400).send({ ok: false, error: "Le mot de passe actuel est requis pour modifier l'email", code: "CURRENT_PASSWORD_REQUIRED" });
+        }
+        const { password: expectedPassword } = await User.scope("withPassword").findOne({ where: { _id }, attributes: ["password"] });
+        const auth = await comparePassword(currentPassword, expectedPassword);
+        if (!auth) {
+          return res.status(403).send({ ok: false, error: "Mot de passe incorrect", code: "WRONG_PASSWORD" });
+        }
+      }
       const existingUser = await User.findOne({ where: { email: newEmail, _id: { [Op.ne]: _id } } });
       if (existingUser) return res.status(400).send({ ok: false, error: "Un utilisateur existe déjà avec cet email" });
       user.set({ email: newEmail });
@@ -849,10 +860,6 @@ router.put(
     if (termsAccepted) user.set({ termsAccepted: termsAccepted });
     if (cgusAccepted) user.set({ cgusAccepted: cgusAccepted });
     if (gaveFeedbackSep2025) user.set({ gaveFeedbackSep2025: gaveFeedbackSep2025 });
-    if (password) {
-      if (!validatePassword(password)) return res.status(400).send({ ok: false, error: passwordCheckError, code: PASSWORD_NOT_VALIDATED });
-      user.set({ password: password });
-    }
 
     const tx = await User.sequelize.transaction();
     if (team && Array.isArray(team)) {
@@ -906,7 +913,6 @@ router.put(
           name: z.optional(z.string().min(1)),
           phone: z.string().optional(),
           email: z.optional(z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal("")))),
-          password: z.optional(z.string().min(1)),
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
           role: z.optional(z.enum(["admin", "normal", "restricted-access", "stats-only"])),
