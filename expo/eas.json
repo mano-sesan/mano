@@ -19,7 +19,8 @@
         "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "credentialsSource": "remote"
       }
     },
     "production-niort": {

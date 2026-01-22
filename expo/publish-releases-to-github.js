@@ -1,28 +1,36 @@
-const chalk = require('chalk');
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
-const mobileAppVersion = require('./package.json').version;
-const path = require('path');
-const fs = require('fs');
+import chalk from 'chalk';
+import path from 'path';
+import fs from 'fs';
+import util from 'util';
+import * as childProcess from 'child_process';
+import { fileURLToPath } from 'url';
+
+const exec = util.promisify(childProcess.exec);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Import version from package.json
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8'));
+const mobileAppVersion = packageJson.version;
 
 // Before running the script
 // To authenticate, please run `gh auth login`.
 
-const __dirname = path.dirname(require.main.filename);
-const standardApkPath = path.join(__dirname, 'builds', 'mano-standard.apk');
-const niortApkPath = path.join(__dirname, 'builds', 'mano-niort.apk');
+const standardApkPath = path.join(__dirname, 'mano-standard.apk');
+const niortApkPath = path.join(__dirname, 'mano-niort.apk');
 
 const publishApksToGithub = async () => {
   // Check if both APKs exist
   if (!fs.existsSync(standardApkPath)) {
     console.log(chalk.red('Error: Standard APK not found at'), standardApkPath);
-    console.log(chalk.yellow('Please run `yarn build:android-apks` first'));
+    console.log(chalk.yellow('Please run `yarn build-local:android-apks` first'));
     process.exit(1);
   }
 
   if (!fs.existsSync(niortApkPath)) {
     console.log(chalk.red('Error: Niort APK not found at'), niortApkPath);
-    console.log(chalk.yellow('Please run `yarn build:android-apks` first'));
+    console.log(chalk.yellow('Please run `yarn build-local:android-apks` first'));
     process.exit(1);
   }
 

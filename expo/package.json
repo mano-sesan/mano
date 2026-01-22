@@ -1,6 +1,6 @@
 {
   "name": "mano",
-  "version": "3.16.1",
+  "version": "3.17.0",
   "main": "index.tsx",
   "scripts": {
     "get-ip": "./get-ip.sh",
@@ -8,9 +8,10 @@
     "postinstall": "tar -xzf node_modules/react-native-libsodium/libsodium/build.tgz --directory ./node_modules/react-native-libsodium/libsodium",
     "start": "npm run get-ip && expo start --dev-client --clear",
     "build-dev-android": "npx expo run:android --device",
-    "build-local:android-apk": "eas build -p android --local --profile production",
-    "build:android-apks": "node build-android-apks.js",
-    "publish-release-to-github": "node publish-release-to-github.js",
+    "build-local:android-apk-standard": "eas build -p android --local --profile production && node rename-apk.js --append=standard",
+    "build-local:android-apk-niort": "eas build -p android --local --profile production-niort && node rename-apk.js --append=niort",
+    "build-local:android-apks": "npm run build-local:android-apk-standard && npm run build-local:android-apk-niort",
+    "publish-releases-to-github": "node publish-releases-to-github.js",
     "update-mobile-app-version": "npx tsx ./update-mobile-app-version.ts",
     "typecheck": "tsc -b",
     "ios": "expo run:ios",
