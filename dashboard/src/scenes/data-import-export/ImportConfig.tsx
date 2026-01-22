@@ -896,8 +896,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
 
         // Check if motif is new (doesn't exist in organisation)
         if (organisation && motif) {
-          const existingReasons =
-            organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons")?.options || [];
+          const existingReasons = organisation.fieldsPersonsCustomizableOptions?.find((f) => f.name === "outOfActiveListReasons")?.options || [];
           if (!existingReasons.includes(motif.trim())) {
             data[sheetName].newFields!.add(parseInt(key));
           }
