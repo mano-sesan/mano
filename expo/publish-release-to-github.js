@@ -2,24 +2,64 @@ const chalk = require('chalk');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const mobileAppVersion = require('./package.json').version;
+const path = require('path');
+const fs = require('fs');
 
 // Before running the script
 // To authenticate, please run `gh auth login`.
 
-const publishAppToLatestTag = async () => {
-  const result = await exec(
-    `gh release create m${mobileAppVersion} ./android/app/build/outputs/apk/release/app-release.apk ./app.json --target main`
-  );
+const __dirname = path.dirname(require.main.filename);
+const standardApkPath = path.join(__dirname, 'builds', 'mano-standard.apk');
+const niortApkPath = path.join(__dirname, 'builds', 'mano-niort.apk');
 
-  if (result.stderr?.length) {
-    console.log(chalk.red('Error uploading app:'), chalk.bgRed(result.stderr));
-    return;
-  }
-  if (result.stdout?.length) {
-    console.log(chalk.green('Success uploading app:'), chalk.green(result.stdout));
+const publishApksToGithub = async () => {
+  // Check if both APKs exist
+  if (!fs.existsSync(standardApkPath)) {
+    console.log(chalk.red('Error: Standard APK not found at'), standardApkPath);
+    console.log(chalk.yellow('Please run `yarn build:android-apks` first'));
+    process.exit(1);
   }
 
-  console.log(chalk.yellow('Transfer completed 😬: https://mano.sesan.fr/download'));
+  if (!fs.existsSync(niortApkPath)) {
+    console.log(chalk.red('Error: Niort APK not found at'), niortApkPath);
+    console.log(chalk.yellow('Please run `yarn build:android-apks` first'));
+    process.exit(1);
+  }
+
+  try {
+    // Upload standard variant with tag m{version}
+    console.log(chalk.blue(`Publishing standard APK with tag m${mobileAppVersion}...`));
+    const standardResult = await exec(
+      `gh release create m${mobileAppVersion} "${standardApkPath}" ./app.config.ts --target main --title "Mano v${mobileAppVersion}"`
+    );
+
+    if (standardResult.stderr?.length) {
+      console.log(chalk.red('Error uploading standard APK:'), chalk.bgRed(standardResult.stderr));
+    }
+    if (standardResult.stdout?.length) {
+      console.log(chalk.green('Success uploading standard APK:'), chalk.green(standardResult.stdout));
+    }
+
+    // Upload Niort variant with tag niort{version}
+    console.log(chalk.blue(`\nPublishing Niort APK with tag niort${mobileAppVersion}...`));
+    const niortResult = await exec(
+      `gh release create niort${mobileAppVersion} "${niortApkPath}" ./app.config.ts --target main --title "Mano Niort v${mobileAppVersion}"`
+    );
+
+    if (niortResult.stderr?.length) {
+      console.log(chalk.red('Error uploading Niort APK:'), chalk.bgRed(niortResult.stderr));
+    }
+    if (niortResult.stdout?.length) {
+      console.log(chalk.green('Success uploading Niort APK:'), chalk.green(niortResult.stdout));
+    }
+
+    console.log(chalk.green('\n✓ Both releases created successfully!'));
+    console.log(chalk.yellow('Standard release: https://mano.sesan.fr/download'));
+    console.log(chalk.yellow('Niort release: https://mano.sesan.fr/download-niort'));
+  } catch (error) {
+    console.error(chalk.red('Error publishing to GitHub:'), error);
+    process.exit(1);
+  }
 };
 
-publishAppToLatestTag();
+publishApksToGithub();

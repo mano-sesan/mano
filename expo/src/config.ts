@@ -3,11 +3,11 @@ import * as Application from 'expo-application';
 const SCHEME = process.env.EXPO_PUBLIC_SCHEME;
 const HOST = process.env.EXPO_PUBLIC_HOST;
 const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV;
-let MANO_DOWNLOAD_URL = 'https://mano.sesan.fr/download';
-if (Application.applicationId === 'com.sesan.mano.niort') {
-  MANO_DOWNLOAD_URL = 'https://mano.sesan.fr/download-niort';
-}
-
+// let MANO_DOWNLOAD_URL = 'https://mano.sesan.fr/download';
+// if (Application.applicationId === 'com.sesan.mano.niort') {
+//   MANO_DOWNLOAD_URL = 'https://mano.sesan.fr/download-niort';
+// }
+const MANO_DOWNLOAD_URL = process.env.EXPO_PUBLIC_MANO_DOWNLOAD_URL;
 const MANO_TEST_ORGANISATION_ID = process.env.EXPO_PUBLIC_MANO_TEST_ORGANISATION_ID;
 const MATOMO_SITE_ID = process.env.EXPO_PUBLIC_MATOMO_SITE_ID;
 const MATOMO_URL = process.env.EXPO_PUBLIC_MATOMO_URL;

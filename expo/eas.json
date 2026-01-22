@@ -14,8 +14,19 @@
     "production": {
       "autoIncrement": false,
       "environment": "production",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download"
+      },
       "android": {
         "buildType": "apk"
+      }
+    },
+    "production-niort": {
+      "extends": "production",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano.niort",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-niort"
       }
     }
   },
