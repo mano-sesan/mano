@@ -40,6 +40,9 @@ Les étapes à suivre sont
 
 4. quand vous livrez un nouvea packageId pour la première fois, `eas` va demander le `Keystore`, puis n'en trouvant pas, va demander `Generate a new Android Keystore ?`, dites oui. Cette Keystore sera storée sur les serveurs d'expo : c'est très bien ainsi.
 
+5. Il faut rajouter une page `download-{nouveau-nom}` dans `../website/pages/`, duplicata de la page `download` existante avec le nom adapté et le lien adapté aussi
+
+6. Et enfin, modifier le fichier `../api/src/middleware/versionCheck.js` pour ajouter les liens de téléchargement et d'installation.
 
 ## Installer l'environnement de test
 

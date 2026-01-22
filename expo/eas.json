@@ -6,7 +6,11 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "PACKAGE_ID": "com.sesan.mano.expo",
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-expo"
+      }
     },
     "preview": {
       "distribution": "internal"

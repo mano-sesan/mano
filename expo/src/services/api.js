@@ -5,6 +5,7 @@ import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
 import fetchRetry from "fetch-retry";
+import * as Application from "expo-application";
 import {
   getApiLevel,
   getBrand,
@@ -26,9 +27,11 @@ import {
   getUserAgent,
   isTablet,
 } from "react-native-device-info";
-import { Alert, Linking } from "react-native";
+import { Alert, Linking, Platform } from "react-native";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
+
+console.log(Application.applicationId)
 
 class ApiService {
   getUrl = (path, query = {}) => {
@@ -60,9 +63,17 @@ class ApiService {
   execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
+      console.log(this.packageId)
       const options = {
         method,
-        headers: { ...headers, "Content-Type": "application/json", Accept: "application/json", platform: this.platform, version: VERSION },
+        headers: { 
+          ...headers, 
+          "Content-Type": "application/json", 
+          Accept: "application/json", 
+          platform: this.platform, 
+          version: VERSION,
+          packageid: Application.applicationId,
+        },
       };
       if (body) {
         options.body = JSON.stringify(await this.encryptItem(body));
@@ -78,7 +89,7 @@ class ApiService {
       }
 
       const url = this.getUrl(path, query);
-      console.log({ url });
+      console.log({ url }, options.headers);
       const response =
         method === "GET"
           ? await fetchWithFetchRetry(url, {
@@ -338,7 +349,8 @@ class ApiService {
   orgEncryptionKey = null;
   organisation = null;
   showTokenExpiredError = false;
-  platform = null;
+  platform = Platform.OS;
+  packageId = Application.applicationId;
 }
 
 const API = new ApiService();
