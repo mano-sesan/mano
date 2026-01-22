@@ -5278,6 +5278,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-navigation-bar@npm:~5.0.10":
+  version: 5.0.10
+  resolution: "expo-navigation-bar@npm:5.0.10"
+  dependencies:
+    "@react-native/normalize-colors": "npm:0.81.5"
+    debug: "npm:^4.3.2"
+    react-native-is-edge-to-edge: "npm:^1.2.1"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+    react-native: "*"
+  checksum: 13810f4b79556c68c9cff40194e18a3df66be383c843ad079fbbbe59dfe3a6f3a9cec4f78d51a30d0300da2820c1934b20439b81d67f74013c19b0c7f2e2cbee
+  languageName: node
+  linkType: hard
+
 "expo-server@npm:^1.0.5":
   version: 1.0.5
   resolution: "expo-server@npm:1.0.5"
@@ -7112,6 +7127,7 @@ __metadata:
     expo-file-system: "npm:~19.0.21"
     expo-font: "npm:~14.0.10"
     expo-image-picker: "npm:~17.0.10"
+    expo-navigation-bar: "npm:~5.0.10"
     expo-splash-screen: "npm:~31.0.13"
     expo-system-ui: "npm:~6.0.9"
     fast-text-encoding: "npm:^1.0.6"

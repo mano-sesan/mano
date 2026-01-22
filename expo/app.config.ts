@@ -28,8 +28,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./src/assets/icon_inverted.png",
-        backgroundColor: "#efefef",
+        foregroundImage: "./src/assets/adaptive-icon.png",
+        backgroundColor: "#226854",
       },
       package: packageId,
       versionCode: Number(buildNumber),
@@ -94,6 +94,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           imageWidth: 300,
           resizeMode: "cover",
         },
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          // "backgroundColor": "#226854",
+          "barStyle": "dark",
+          // "borderColor": "#226854",
+          "visibility": "visible",
+          "behavior": "inset-swipe",
+          "position": "relative"
+        }
       ],
       "expo-image-picker",
       [

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
@@ -67,7 +68,6 @@ import ActionsFilter from "./scenes/Actions/ActionsFilter";
 import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
-import PersonNew from "./scenes/Persons/PersonNew";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -249,6 +249,8 @@ const App = () => {
           // @ts-expect-error - Property 'navigation' does not exist on type 'ApiService'.ts(2339)
           API.navigation = navigationRef;
           SplashScreen.hide();
+          NavigationBar.setButtonStyleAsync("dark");
+
         }}
         theme={{
           ...DefaultTheme,
