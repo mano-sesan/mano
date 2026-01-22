@@ -61,7 +61,6 @@ class ApiService {
   execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
-      console.log(this.packageId)
       const options = {
         method,
         headers: { 
