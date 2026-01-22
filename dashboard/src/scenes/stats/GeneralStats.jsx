@@ -21,7 +21,7 @@ const GeneralStats = ({
       <div className="tw-flex tw-basis-full tw-items-center">
         <Filters title="Filtrer par personnes suivies:" base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
       </div>
-      <div className="tw-grid tw-grid-cols-2 xl:tw-grid-cols-3 2xl:tw-grid-cols-4 tw-gap-4 tw-my-8">
+      <div className="tw-grid tw-grid-cols-2 tw-gap-4 tw-my-8">
         <Block
           data={personsCreated}
           title="Nombre de personnes créées"
@@ -34,7 +34,7 @@ const GeneralStats = ({
         />
         <Block
           data={personsUpdatedWithActions}
-          title="Nombre de personnes suivies concernées par au moins une action"
+          title="Personnes suivies concernées par au moins une action"
           help={`Nombre de personnes suivies par les équipes sélectionnées <b>pour lesquelles au moins une action a été créée</b> dans la période définie.\n\nSi aucune période n'est définie, on considère la totalité des actions par rapport à la totalité des personnes.`}
         />
         <Block
