@@ -22,18 +22,26 @@ router.get("/version", async (req, res) => {
   if (req.headers.version === MOBILE_APP_VERSION) {
     return res.status(200).send({ ok: true });
   }
+
+  let downloadLink = `https://mano.sesan.fr/download?ts=${Date.now()}`;
+  let installLink = `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/mano-standard.apk`;
+  if (req.headers.packageid === "com.sesan.mano.niort") {
+    downloadLink = `https://mano.sesan.fr/download-niort?ts=${Date.now()}`;
+    installLink = `https://github.com/mano-sesan/mano/releases/download/niort${MOBILE_APP_VERSION}/mano-niort.apk`;
+  }
+
   res.status(200).send({
     ok: false,
     data: MOBILE_APP_VERSION,
     inAppMessage: [
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
-Nouveautés: le temps de chargement initial des données a été réduit.
+Nouveautés: meilleure navigation entre les différents écrans.
 Vous pourrez aussi mettre à jour Mano sans sortir de l'application.
 `,
       [
-        { text: "Télécharger", link: `https://mano.sesan.fr/download?ts=${Date.now()}` },
-        { text: "Installer", link: `https://github.com/mano-sesan/mano/releases/download/m${MOBILE_APP_VERSION}/app-release.apk` },
+        { text: "Télécharger", link: downloadLink },
+        { text: "Installer", link: installLink },
         { text: "Plus tard", style: "cancel" },
       ],
       { cancelable: true },
