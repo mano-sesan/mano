@@ -27,7 +27,7 @@ const Account = () => {
         onSubmit={async (body, { setFieldValue }) => {
           const isEmailChanged = body.email !== user.email;
           const payload: Record<string, unknown> = { ...body };
-          // Only include currentPassword if email is being changed
+          // Remove currentPassword from payload if email is not being changed
           if (!isEmailChanged) {
             delete payload.currentPassword;
           }
