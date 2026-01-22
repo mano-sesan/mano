@@ -627,20 +627,18 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                         <CustomFieldDisplay value={action.categories?.join(", ")} type="text" />
                       )}
                     </div>
-                    {!["restricted-access"].includes(user.role) && (
-                      <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
-                        <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="description">
-                          Description
-                        </label>
-                        {isEditing ? (
-                          <div className="tw-block tw-w-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300 tw-text-base tw-transition-all">
-                            <AutoResizeTextarea name="description" id="description" value={action.description} onChange={handleChange} rows={4} />
-                          </div>
-                        ) : (
-                          <CustomFieldDisplay value={action.description} type="textarea" />
-                        )}
-                      </div>
-                    )}
+                    <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
+                      <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="description">
+                        Description
+                      </label>
+                      {isEditing ? (
+                        <div className="tw-block tw-w-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300 tw-text-base tw-transition-all">
+                          <AutoResizeTextarea name="description" id="description" value={action.description} onChange={handleChange} rows={4} />
+                        </div>
+                      ) : (
+                        <CustomFieldDisplay value={action.description} type="textarea" />
+                      )}
+                    </div>
                     {!!canToggleGroupCheck && (
                       <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
                         <label htmlFor="create-action-for-group">
