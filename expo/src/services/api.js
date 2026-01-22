@@ -31,8 +31,6 @@ import { Alert, Linking, Platform } from "react-native";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
-console.log(Application.applicationId)
-
 class ApiService {
   getUrl = (path, query = {}) => {
     return new URI().scheme(SCHEME).host(HOST).path(path).setSearch(query).toString();
