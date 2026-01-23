@@ -2,14 +2,20 @@ import { useState } from "react";
 import QuestionMarkButton from "./QuestionMarkButton";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "./tailwind/Modal";
 
-const HelpButtonAndModal = ({ title, help, children = null, size = "lg" }) => {
+const HelpButtonAndModal = ({ title, help, children = null, size = "lg", questionMarkColor = "main" }) => {
   const [helpOpen, setHelpOpen] = useState(false);
 
   if (!help && !children) return null;
 
   return (
     <>
-      <QuestionMarkButton title={help} aria-label={help} className="noprint tw-ml-2 tw-shrink-0" onClick={() => setHelpOpen(true)} />
+      <QuestionMarkButton
+        title={help}
+        aria-label={help}
+        questionMarkColor={questionMarkColor}
+        className="noprint tw-ml-2 tw-shrink-0"
+        onClick={() => setHelpOpen(true)}
+      />
       <HelpModal open={helpOpen} setOpen={setHelpOpen} title={title} help={help} size={size}>
         {children}
       </HelpModal>

@@ -3,15 +3,19 @@ import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 
+function ChartTitle({ title, help }) {
+  return (
+    <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
+      {title} {!!help && <HelpButtonAndModal title={title} help={help} questionMarkColor="violet" />}
+    </div>
+  );
+}
+
 function EmptyData({ title, help }) {
   return (
-    <div className="tw-m-0 tw-grid tw-gap-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-p-4  print:tw-break-before-all print:tw-break-inside-avoid">
-      <div className="tw-mx-auto tw-text-center tw-text-lg tw-font-medium tw-text-black tw-mt-4 tw-flex tw-justify-center print:tw-basis-0 print:tw-mb-0">
-        <div>
-          {title} {!!help && <HelpButtonAndModal title={title} help={help} />}
-        </div>
-      </div>
-      <div className="mx-auto tw-pb-4 tw-max-w-[450px] tw-text-center tw-text-gray-400">
+    <div className="tw-m-0 tw-grid tw-gap-y-8 tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+      <ChartTitle title={title} help={help} />
+      <div className="mx-auto tw-pb-4 tw-max-w-[450px] tw-text-center tw-text-gray-400 tw-col-span-7 print:tw-col-span-1">
         <p className="tw-text-lg tw-font-bold">Aucun élément à afficher</p>
         <p className="tw-mt-2 tw-text-sm">
           Pour afficher des données pour ce graphique, vérifiez le contexte sélectionné (dates, équipe, filtres, etc.)
@@ -50,18 +54,9 @@ export const CustomResponsivePie = ({
   if (data.length === 0) return <EmptyData title={title} help={help} />;
 
   return (
-    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-p-4  print:tw-break-before-all print:tw-break-inside-avoid">
-      <div
-        className={[
-          "tw-relative tw-col-span-7 print:tw-col-span-1 tw-mt-4 tw-flex tw-basis-full tw-justify-center print:tw-basis-0 print:tw-mb-0",
-          data.length > 40 ? "print:!tw-mb-4 print:!tw-mt-0" : "",
-        ].join(" ")}
-      >
-        <p className="tw-m-0 tw-inline-block tw-text-center tw-text-lg tw-font-medium tw-text-black">
-          {title} {!!help && <HelpButtonAndModal title={title} help={help} />}
-        </p>
-      </div>
-      <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
+    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+      <ChartTitle title={title} help={help} />
+      <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-pl-4 tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
@@ -102,7 +97,7 @@ export const CustomResponsivePie = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
           onItemClick ? "[&_path]:tw-cursor-pointer" : "",
         ].join(" ")}
       >
@@ -209,13 +204,9 @@ export const CustomResponsiveBar = ({
   if (data.length === 0) return <EmptyData title={title} help={help} />;
 
   return (
-    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-p-4  print:tw-break-before-all print:tw-break-inside-avoid">
-      <div className="tw-relative tw-col-span-7 print:tw-col-span-1 tw-mt-4 tw-flex tw-basis-full tw-justify-center print:tw-basis-0 print:tw-mb-0">
-        <p className="tw-m-0 tw-inline-block tw-text-center tw-text-lg tw-font-medium tw-text-black">
-          {title} {!!help && <HelpButtonAndModal title={title} help={help} />}
-        </p>
-      </div>
-      <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
+    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+      <ChartTitle title={title} help={help} />
+      <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
@@ -266,7 +257,7 @@ export const CustomResponsiveBar = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",
         ].join(" ")}
       >

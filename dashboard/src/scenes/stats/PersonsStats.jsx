@@ -117,7 +117,7 @@ export default function PersonStats({
               <h4 className="tw-inline tw-text-xl tw-text-black75">Général</h4>
             </summary>
             <div className="tw-flex tw-flex-col tw-gap-4">
-              <div className="tw-grid tw-grid-cols-2 2xl:tw-grid-cols-4 tw-gap-4">
+              <div className="tw-grid tw-grid-cols-2 tw-gap-4">
                 <Block data={personsForStats} title={`Nombre de ${title}`} help={firstBlockHelp} />
                 <BlockCreatedAt persons={personsForStats} />
                 <BlockWanderingAt persons={personsForStats} />

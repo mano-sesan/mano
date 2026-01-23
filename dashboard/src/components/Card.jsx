@@ -8,23 +8,23 @@ const Card = ({ title, count, unit, children, countId, dataTestId, help, onClick
   const props = onClick ? { onClick, type: "button", name: "card", className: "button-cancel" } : {};
   return (
     <>
-      <div className="tw-relative tw-flex tw-h-full tw-w-full tw-flex-col tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-px-3 tw-py-6 tw-font-bold">
+      <div className="tw-relative tw-flex tw-h-full tw-w-full tw-flex-col tw-items-start tw-justify-start tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-font-bold">
         {!!title && (
-          <div className="tw-relative">
-            <p className="tw-m-0 tw-inline-block tw-text-center tw-text-lg tw-font-medium tw-text-black">
-              {title} {!!help && <HelpButtonAndModal title={title} help={help} />}
-            </p>
+          <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
+            {title} {!!help && <HelpButtonAndModal questionMarkColor="violet" title={title} help={help} />}
           </div>
         )}
-        <Component {...props} className={["tw-grow tw-flex tw-items-end tw-text-6xl tw-text-main tw-my-2"].join(" ")}>
-          <div className="tw-flex tw-items-end">
-            <span data-test-id={`${dataTestId}-${count}`} id={countId}>
-              {count}
-            </span>
-            {!!unit && <span className="tw-ml-2.5 tw-mb-1 tw-text-base">{unit}</span>}
-          </div>
-        </Component>
-        {children}
+        <div className="tw-p-4 tw-w-full tw-flex tw-flex-col tw-items-center tw-justify-end tw-grow">
+          <Component {...props} className={["tw-grow tw-flex tw-items-end tw-text-6xl tw-text-main tw-my-2"].join(" ")}>
+            <div className="tw-flex tw-items-end">
+              <span data-test-id={`${dataTestId}-${count}`} id={countId}>
+                {count}
+              </span>
+              {!!unit && <span className="tw-ml-2.5 tw-mb-1 tw-text-base">{unit}</span>}
+            </div>
+          </Component>
+          {children}
+        </div>
       </div>
     </>
   );
