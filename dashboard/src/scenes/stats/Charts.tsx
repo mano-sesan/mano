@@ -13,7 +13,7 @@ function ChartTitle({ title, help }) {
 
 function EmptyData({ title, help }) {
   return (
-    <div className="tw-m-0 tw-grid tw-gap-y-8 tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+    <div className="tw-m-0 tw-grid tw-gap-y-8 tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
       <ChartTitle title={title} help={help} />
       <div className="mx-auto tw-pb-4 tw-max-w-[450px] tw-text-center tw-text-gray-400 tw-col-span-7 print:tw-col-span-1">
         <p className="tw-text-lg tw-font-bold">Aucun élément à afficher</p>
@@ -54,7 +54,7 @@ export const CustomResponsivePie = ({
   if (data.length === 0) return <EmptyData title={title} help={help} />;
 
   return (
-    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
       <ChartTitle title={title} help={help} />
       <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-pl-4 tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
@@ -97,7 +97,7 @@ export const CustomResponsivePie = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_path]:tw-cursor-pointer" : "",
         ].join(" ")}
       >
@@ -204,7 +204,7 @@ export const CustomResponsiveBar = ({
   if (data.length === 0) return <EmptyData title={title} help={help} />;
 
   return (
-    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-before-all print:tw-break-inside-avoid">
+    <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
       <ChartTitle title={title} help={help} />
       <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
@@ -257,7 +257,7 @@ export const CustomResponsiveBar = ({
       </div>
       <div
         className={[
-          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-items-center tw-justify-center tw-font-bold print:tw-order-2 print:!tw-w-none print:tw-mx-auto",
+          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",
         ].join(" ")}
       >

@@ -298,10 +298,22 @@ hr {
   .main,
   .main-container {
     height: auto;
+    overflow: visible !important;
   }
 
   #root {
-    overflow-y: auto;
+    overflow-y: visible !important;
+    overflow: visible !important;
+    height: auto;
+  }
+
+  body {
+    overflow: visible !important;
+  }
+  /* Ensure SVG charts render properly */
+  svg {
+    overflow: visible !important;
+    max-width: 100%;
     height: auto;
   }
 
