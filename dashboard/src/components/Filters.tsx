@@ -87,6 +87,25 @@ export const filterItem =
 
       const arrayFilterValue = Array.isArray(filter.value) ? filter.value : [filter.value];
       if (!arrayFilterValue.length) continue;
+
+      // Special handling for "actionCategoriesCombined" filter
+      // This filter checks if a person has at least one action that contains ALL selected categories
+      if (filter.field === "actionCategoriesCombined") {
+        const actions = item.actions as Array<{ categories?: string[] }> | undefined;
+        // Handle "Non renseigné" case
+        if (arrayFilterValue.length === 1 && arrayFilterValue[0] === "Non renseigné") {
+          const hasAnyCategories = actions?.some((action) => action.categories?.length);
+          if (!hasAnyCategories) continue;
+          return false;
+        }
+        // Check if any action has ALL the selected categories
+        const hasMatchingAction = actions?.some(
+          (action) => action.categories?.length && arrayFilterValue.every((selectedCategory) => action.categories.includes(selectedCategory))
+        );
+        if (!hasMatchingAction) return false;
+        continue;
+      }
+
       // here the item needs to fulfill at least one filter value
       let isSelected = false;
       for (const filterValue of arrayFilterValue) {
@@ -489,6 +508,8 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
   }
 
   if (["enum", "multi-choice"].includes(type) && name !== "outOfActiveList") {
+    // Use "ET" for combined filters (AND logic), "OU" for others (OR logic)
+    const connector = name === "actionCategoriesCombined" ? "ET" : "OU";
     try {
       return (
         <SelectCustom
@@ -511,7 +532,7 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
               return (
                 <>
                   <components.MultiValueLabel {...props} />
-                  {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+                  {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">{connector}</span>}
                 </>
               );
             },

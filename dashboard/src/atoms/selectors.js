@@ -167,7 +167,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     personsObject[action.person].interactions.push(action.dueAt);
     personsObject[action.person].interactions.push(action.createdAt);
     personsObject[action.person].interactions.push(action.completedAt);
-    if (action.categories) {
+    if (action.categories?.length) {
       for (const category of action.categories) {
         personActionCategoriesObject[action.person] = personActionCategoriesObject[action.person] || {}; //
         personsObject[action.person].actionCategories = personsObject[action.person].actionCategories || [];
