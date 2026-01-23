@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { theme } from "../config";
 
 export default function ProgressBar({ loadingText, progress, total }) {
-  const status = progress !== null && total !== null ? progress / total : 0.01;
+  const status = progress > -1 && total > -1 ? progress / total : 0.01;
   return (
     <>
       <ProgressContainer>

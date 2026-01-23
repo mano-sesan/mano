@@ -20,11 +20,11 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "../services/dataManagement";
-import API, { tryFetch, tryFetchExpectOk } from "../services/api";
-import { logout } from "../services/logout";
+import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "./dataManagement";
+import API, { tryFetch, tryFetchExpectOk } from "./api";
+import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
-import { decryptItem, getHashedOrgEncryptionKey } from "../services/encryption";
+import { decryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
@@ -32,8 +32,8 @@ import { capture } from "./sentry";
 // Update to flush cache.
 export const isLoadingState = atom(false);
 export const fullScreenState = atom(true);
-export const progressState = atom(null);
-export const totalState = atom(null);
+export const progressState = atom(-1);
+export const totalState = atom(-1);
 
 // Atom with localStorage effect
 const initialLoadingTextState = "En attente de chargement";
@@ -52,15 +52,15 @@ function getPerTabLastRefresh() {
     if (!v) return null;
     const n = Number(v);
     return Number.isFinite(n) ? n : null;
-  } catch (_e) {
+  } catch (_error: unknown) {
     return null;
   }
 }
 
-function setPerTabLastRefresh(value) {
+function setPerTabLastRefresh(value: number) {
   try {
     window.sessionStorage?.setItem(perTabLastRefreshKey, String(Number(value) || 0));
-  } catch (_e) {
+  } catch (_error: unknown) {
     // ignore
   }
 }
@@ -682,21 +682,21 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // On ne reset pas les valeurs de progress et total si on est en initial load
     // Car on le fait après la redirection pour éviter un flash de chargement
     if (!isStartingInitialLoad) {
-      setProgress(null);
-      setTotal(null);
+      setProgress(-1);
+      setTotal(-1);
       setInitialLoadIsDone(true);
     }
     return true;
   }
 
-  async function resetLoaderOnError(error) {
+  async function resetLoaderOnError(error?: string | Error) {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
     await clearCache("resetLoaderOnError");
     setPerTabLastRefresh(0);
     // Pas de message d'erreur si la page est en train de se fermer
     // et que l'erreur est liée à une requête annulable.
-    if (error?.name === "BeforeUnloadAbortError") return false;
+    if (error instanceof Error && error.name === "BeforeUnloadAbortError") return false;
     const message = errorMessage(error || "Désolé, une erreur est survenue lors du chargement de vos données, veuillez réessayer");
     toast.error(message, {
       onClose: () => {
@@ -710,8 +710,8 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   }
 
   const cleanupLoader = () => {
-    setProgress(null);
-    setTotal(null);
+    setProgress(-1);
+    setTotal(-1);
     setInitialLoadIsDone(true);
   };
 
@@ -736,7 +736,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   };
 }
 
-export function mergeItems(oldItems, newItems = [], { formatNewItemsFunction, filterNewItemsFunction } = {}) {
+export function mergeItems<T extends { _id?: string; deletedAt?: Date }>(oldItems: T[], newItems: T[] = [], { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}) {
   const newItemsCleanedAndFormatted = [];
   const newItemIds = {};
 
