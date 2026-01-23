@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { useAtom, useAtomValue } from "jotai";
+import {  useAtomValue } from "jotai";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -31,6 +31,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";
 import { isEmptyValue } from "../../utils";
+import { awaitSetAtomAndIDBCache } from "../../store";
 
 const getRawValue = (field, value) => {
   try {
@@ -59,7 +60,8 @@ const initMergeValue = (field, originPerson = {}, personToMergeAndDelete = {}) =
 
 const MergeTwoPersons = ({ person }) => {
   const [open, setOpen] = useState(false);
-  const [persons, setPersons] = useAtom(personsState);
+  const persons = useAtomValue(personsState);
+  const setPersons = awaitSetAtomAndIDBCache(personsState);
   const teams = useAtomValue(teamsState);
   const organisation = useAtomValue(organisationState);
   const user = useAtomValue(userState);
