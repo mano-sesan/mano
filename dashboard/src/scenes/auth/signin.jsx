@@ -110,8 +110,20 @@ const SignIn = () => {
     })();
   }, []);
 
-  const onSigninValidated = () =>
-    startInitialLoad()
+  const onSigninValidated = async () => {
+    // Request persistent storage to prevent data eviction
+    try {
+      if (navigator?.storage?.persist) {
+        const isPersisted = await navigator.storage.persist();
+        console.info(`[storage] persist request result: ${isPersisted ? "granted" : "denied"}`);
+      } else {
+        console.info("[storage] persist not supported");
+      }
+    } catch (e) {
+      console.warn("[storage] persist request failed:", e);
+    }
+
+    return startInitialLoad()
       // On redirige seulement après le chargement pour ne pas se retrouver dans un cas
       // où l'élément qu'on veut voir n'est pas encore chargé.
       .then(() => {
@@ -133,6 +145,7 @@ const SignIn = () => {
       })
       // On fait le nettoyage du loader après la redirection pour éviter un flash de chargement
       .then(() => cleanupLoader());
+  };
 
   const onLogout = async () => {
     setShowErrors(false);
