@@ -1,6 +1,7 @@
 export const AgendaIcon = require("./AgendaIcon").default;
 export const ArrowRightIcon = require("./ArrowRightIcon").default;
 export const EditIcon = require("./EditIcon").default;
+export const EmailIcon = require("./EmailIcon").default;
 export const FilterIcon = require("./FilterIcon").default;
 export const MenuIcon = require("./MenuIcon").default;
 export const PersonIcon = require("./PersonIcon").default;

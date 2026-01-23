@@ -18,6 +18,7 @@ interface PersonInstanceBase {
   alertness?: boolean;
   wanderingAt?: Date;
   phone?: string;
+  email?: string;
   assignedTeams?: UUIDV4[];
   followedSince?: Date;
   outOfActiveListDate?: Date;

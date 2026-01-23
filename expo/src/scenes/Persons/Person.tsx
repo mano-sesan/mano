@@ -119,6 +119,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         createdAt: person.createdAt,
         gender: person.gender,
         phone: person.phone?.trim(),
+        email: person.email?.trim(),
         description: person.description?.trim(),
         vulnerabilities: person.vulnerabilities,
         consumptions: person.consumptions,
