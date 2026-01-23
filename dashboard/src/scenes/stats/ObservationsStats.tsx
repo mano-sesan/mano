@@ -90,12 +90,13 @@ const ObservationsStats = ({
 
   const onSliceClick = (newSlice: string, fieldName: FilterableField["field"], observationsConcerned = observations) => {
     if (["stats-only"].includes(user.role)) return;
-    const newSlicefield = customFieldsObs.find((f) => f.name === fieldName);
+    const newSlicefield = filterBase.find((f) => f.field === fieldName);
+    if (!newSlicefield) return;
     setSliceField(newSlicefield);
     setSliceValue(newSlice);
     const slicedData =
       newSlicefield.type === "boolean"
-        ? observationsConcerned.filter((p) => (newSlice === "Non" ? !p[newSlicefield.name] : !!p[newSlicefield.name]))
+        ? observationsConcerned.filter((p) => (newSlice === "Non" ? !p[newSlicefield.field] : !!p[newSlicefield.field]))
         : filterData(observationsConcerned, [{ ...newSlicefield, value: newSlice, type: newSlicefield.type }]);
     setSlicedData(slicedData);
     setObsModalOpened(true);
