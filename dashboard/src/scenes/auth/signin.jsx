@@ -112,39 +112,43 @@ const SignIn = () => {
 
   const onSigninValidated = async () => {
     // Request persistent storage to prevent data eviction
-    try {
-      if (navigator?.storage?.persist) {
-        const isPersisted = await navigator.storage.persist();
-        console.info(`[storage] persist request result: ${isPersisted ? "granted" : "denied"}`);
-      } else {
-        console.info("[storage] persist not supported");
+    if (import.meta.env.VITE_TEST_PLAYWRIGHT !== "true") {
+      try {
+        if (navigator?.storage?.persist) {
+          const isPersisted = await navigator.storage.persist();
+          console.info(`[storage] persist request result: ${isPersisted ? "granted" : "denied"}`);
+        } else {
+          console.info("[storage] persist not supported");
+        }
+      } catch (e) {
+        console.warn("[storage] persist request failed:", e);
       }
-    } catch (e) {
-      console.warn("[storage] persist request failed:", e);
     }
 
-    return startInitialLoad()
-      // On redirige seulement après le chargement pour ne pas se retrouver dans un cas
-      // où l'élément qu'on veut voir n'est pas encore chargé.
-      .then(() => {
-        if (["stats-only"].includes(user.role)) return history.push("/stats");
-        // S'il y a une redirection prévues dans le sessionStorage, on la fait
-        const redirect = window.sessionStorage.getItem("redirectPath");
-        if (redirect && redirect !== "/") {
-          window.sessionStorage.removeItem("redirectPath");
-          history.push(redirect);
-        } else {
-          if (isDesktop && !!organisation?.receptionEnabled) {
-            history.push("/reception");
+    return (
+      startInitialLoad()
+        // On redirige seulement après le chargement pour ne pas se retrouver dans un cas
+        // où l'élément qu'on veut voir n'est pas encore chargé.
+        .then(() => {
+          if (["stats-only"].includes(user.role)) return history.push("/stats");
+          // S'il y a une redirection prévues dans le sessionStorage, on la fait
+          const redirect = window.sessionStorage.getItem("redirectPath");
+          if (redirect && redirect !== "/") {
+            window.sessionStorage.removeItem("redirectPath");
+            history.push(redirect);
           } else {
-            history.push("/action");
+            if (isDesktop && !!organisation?.receptionEnabled) {
+              history.push("/reception");
+            } else {
+              history.push("/action");
+            }
           }
-        }
-        // Pour éviter le problème de timing, on attend le prochain cycle.
-        return Promise.resolve();
-      })
-      // On fait le nettoyage du loader après la redirection pour éviter un flash de chargement
-      .then(() => cleanupLoader());
+          // Pour éviter le problème de timing, on attend le prochain cycle.
+          return Promise.resolve();
+        })
+        // On fait le nettoyage du loader après la redirection pour éviter un flash de chargement
+        .then(() => cleanupLoader())
+    );
   };
 
   const onLogout = async () => {
