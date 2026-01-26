@@ -22,7 +22,7 @@ export const reportsState = atom(
     const currentValue = get(reportsBaseAtom);
     const newValue = typeof update === "function" ? update(currentValue) : update;
     set(reportsBaseAtom, newValue);
-    setCacheItem(collectionName, newValue);
+    await setCacheItem(collectionName, newValue);
 
     /* check if duplicate reports */
     const duplicateReports = Object.entries(
