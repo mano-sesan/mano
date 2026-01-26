@@ -27,6 +27,7 @@ const HTML_ACCEPT_ATTRIBUTE = ACCEPTED_FILE_EXTENSIONS.join(",");
 
 // Vérifier si un MIME type est accepté
 function isAcceptedMimeType(mimetype) {
+  if (!mimetype) return false;
   return ACCEPTED_MIME_TYPES.includes(mimetype);
 }
 
