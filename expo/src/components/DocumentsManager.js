@@ -189,8 +189,10 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
             setName(document.name.replace(`.${document.name.split(".").reverse()[0]}`, "")); // remove extension
           } catch (docError) {
             console.log("docError", docError);
-            if (DocumentsPicker.isCancel(docError)) return;
-            if (DocumentsPicker.isInProgress(docError)) return; // multiple pickers were opened, only the last will be considered
+            if (DocumentsPicker.isErrorWithCode(docError)) {
+              if (docError.code === DocumentsPicker.errorCodes.OPERATION_CANCELED) return;
+              if (docError.code === DocumentsPicker.errorCodes.IN_PROGRESS) return; // multiple pickers were opened, only the last will be considered
+            }
             Alert.alert("Désolé, une erreur est survenue", "L'équipe technique a été prévenue");
             capture(docError, { extra: { message: "error uploading document" } });
             reset();
