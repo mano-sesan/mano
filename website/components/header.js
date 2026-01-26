@@ -108,7 +108,7 @@ export default function Header({ showMenu, setShowMenu }) {
               </li>
               <li className={`hover:underline decoration-mano underline-offset-2 cursor-pointer p-4 border-b`}>
                 <a
-                  href="#"
+                  href={connexionUrl}
                   onClick={() => {
                     setShowMenu(false);
                   }}
