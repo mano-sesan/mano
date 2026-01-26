@@ -20,6 +20,7 @@ import CheckboxLabelled from "../../components/CheckboxLabelled";
 import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
 import colors from "../../utils/colors";
 import PhoneIcon from "../../icons/PhoneIcon";
+import EmailIcon from "../../icons/EmailIcon";
 import { placesState } from "../../recoil/places";
 import { organisationState, teamsState, userState } from "../../recoil/auth";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -224,6 +225,30 @@ const PersonSummary = ({
             Icon={PhoneIcon}
             color={colors.app.secondary}
             onPress={() => Linking.openURL("tel:" + personDB?.phone?.split(" ").join(""))}
+            noBorder
+          />
+        )}
+      </Row>
+      <Row>
+        <InputLabelled
+          label="Email"
+          onChangeText={(email) => onChange({ email })}
+          value={person.email}
+          placeholder="exemple@email.com"
+          textContentType="emailAddress"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={editable}
+          noMargin={editable || !!personDB?.email?.length}
+        />
+        <Spacer />
+        {!!personDB?.email?.length && (
+          <Button
+            caption="Contacter"
+            Icon={EmailIcon}
+            color={colors.app.secondary}
+            onPress={() => Linking.openURL("mailto:" + personDB?.email)}
             noBorder
           />
         )}
