@@ -8,7 +8,7 @@ const Card = ({ title, count, unit, children, countId, dataTestId, help, onClick
   const props = onClick ? { onClick, type: "button", name: "card", className: "button-cancel" } : {};
   return (
     <>
-      <div className="tw-relative tw-flex tw-h-full tw-w-full tw-flex-col tw-items-start tw-justify-start tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-font-bold">
+      <div className="tw-relative tw-flex tw-h-full tw-w-full tw-flex-col tw-items-start tw-justify-start tw-rounded-2xl tw-border tw-border-main25 tw-bg-white tw-font-bold print:tw-break-inside-avoid">
         {!!title && (
           <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
             {title} {!!help && <HelpButtonAndModal questionMarkColor="violet" title={title} help={help} />}
