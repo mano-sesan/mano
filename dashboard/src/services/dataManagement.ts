@@ -1,11 +1,9 @@
-import { type UseStore, set, get, createStore, keys, delMany, clear } from "idb-keyval";
+import { type UseStore, set, get, createStore, keys, delMany } from "idb-keyval";
 import { capture } from "./sentry";
 import { logout } from "./logout";
 
 // If you need users to force refresh their cache, change the value of `dashboardCurrentCacheKey` and push to main
 export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_06_1";
-const legacyStoreName = "mano_last_refresh_2022_01_11";
-const legacyManoDB = "mano-dashboard";
 const manoDB = "mano";
 const storeName = "store";
 
@@ -30,10 +28,9 @@ export const AUTH_TOAST_KEY = "mano-auth-toast";
 })();
 
 async function setupDB() {
-  // Vidage du store historique qui ne sert plus à rien, mais qui peut-être encore présent
-  const legacyStore = createStore(legacyManoDB, legacyStoreName);
-  await clear(legacyStore).catch(capture); // Await the clear operation
-  // Pour plus tard, quand on sera sûr qu'elle n'est plus utilisée, on devrait même pouvoir la supprimer !
+  // legacy db, not used anymore, delete it
+  // no exception thrown if the database does not exist (https://developer.mozilla.org/en-US/docs/Web/API/IDBFactory/deleteDatabase#name)
+  window.indexedDB?.deleteDatabase("mano-dashboard");
   // Fin du legacy
   window.localStorage.setItem("mano-currentCacheKey", dashboardCurrentCacheKey);
   customStore = createStore(manoDB, storeName);
