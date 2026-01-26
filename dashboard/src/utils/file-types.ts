@@ -27,11 +27,17 @@ export const HTML_ACCEPT_ATTRIBUTE = ACCEPTED_FILE_EXTENSIONS.join(",");
 
 // Vérifier si un MIME type est accepté
 export function isAcceptedMimeType(mimetype: string): boolean {
+  if (!mimetype) {
+    return false;
+  }
   return ACCEPTED_MIME_TYPES.includes(mimetype);
 }
 
 // Vérifier si un fichier peut être ouvert dans l'interface
 export function isOpenableFile(mimetype: string): boolean {
+  if (!mimetype) {
+    return false;
+  }
   return Object.keys(OPENABLE_FILE_TYPES).includes(mimetype);
 }
 
