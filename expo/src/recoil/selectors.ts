@@ -64,13 +64,24 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     const nameLowercased = person.name.toLocaleLowerCase();
     // replace all accents with normal letters
     const nameNormalized = nameLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // Calculate follow since months
+    const followSinceMonths = Math.abs(dayjsInstance().diff(person.followedSince || person.createdAt, "months"));
     personsObject[person._id] = {
       ...person,
       nameNormalized,
       formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : undefined,
       age: age ? Number(age) : undefined,
+      followSinceMonths,
       // remove anything that is not a number
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
+      // Initialize counters for filters
+      numberOfActions: 0,
+      numberOfConsultations: 0,
+      numberOfTreatments: 0,
+      numberOfPassages: 0,
+      numberOfRencontres: 0,
+      hasAtLeastOneConsultation: false,
+      actionCategories: [],
     };
   }
   const actions = Object.values(get(actionsWithCommentsSelector));
@@ -116,11 +127,30 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     }
   }
 
+  // Helper object to track unique action categories per person
+  const personActionCategoriesObject: Record<string, Record<string, boolean>> = {};
+
   for (const action of actions) {
     if (!action.person) continue;
     if (!personsObject[action.person]) continue;
     personsObject[action.person].actions = personsObject[action.person].actions || [];
     personsObject[action.person].actions!.push(action);
+
+    // Increment numberOfActions
+    personsObject[action.person].numberOfActions = (personsObject[action.person].numberOfActions || 0) + 1;
+
+    // Track action categories (unique list)
+    if (action.categories?.length) {
+      for (const category of action.categories) {
+        personActionCategoriesObject[action.person] = personActionCategoriesObject[action.person] || {};
+        if (!personActionCategoriesObject[action.person][category]) {
+          personActionCategoriesObject[action.person][category] = true;
+          personsObject[action.person].actionCategories = personsObject[action.person].actionCategories || [];
+          personsObject[action.person].actionCategories!.push(category);
+        }
+      }
+    }
+
     if (!!action.group) {
       const group = personsObject[action.person].group;
       if (!group) continue;
@@ -161,11 +191,14 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     if (!personsObject[consultation.person]) continue;
     personsObject[consultation.person].consultations = personsObject[consultation.person].consultations || [];
     personsObject[consultation.person].consultations!.push(consultation);
+    personsObject[consultation.person].hasAtLeastOneConsultation = true;
+    personsObject[consultation.person].numberOfConsultations = (personsObject[consultation.person].numberOfConsultations || 0) + 1;
   }
   for (const treatment of treatments) {
     if (!personsObject[treatment.person]) continue;
     personsObject[treatment.person].treatments = personsObject[treatment.person].treatments || [];
     personsObject[treatment.person].treatments!.push(treatment);
+    personsObject[treatment.person].numberOfTreatments = (personsObject[treatment.person].numberOfTreatments || 0) + 1;
   }
   for (const medicalFile of medicalFiles) {
     if (!personsObject[medicalFile.person]) continue;
@@ -201,12 +234,14 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     if (!personsObject[passage.person]) continue;
     personsObject[passage.person].passages = personsObject[passage.person].passages || [];
     personsObject[passage.person].passages!.push(passage);
+    personsObject[passage.person].numberOfPassages = (personsObject[passage.person].numberOfPassages || 0) + 1;
   }
   for (const rencontre of rencontres) {
     if (!rencontre.person) continue;
     if (!personsObject[rencontre.person]) continue;
     personsObject[rencontre.person].rencontres = personsObject[rencontre.person].rencontres || [];
     personsObject[rencontre.person].rencontres!.push(rencontre);
+    personsObject[rencontre.person].numberOfRencontres = (personsObject[rencontre.person].numberOfRencontres || 0) + 1;
   }
   return personsObject;
 });

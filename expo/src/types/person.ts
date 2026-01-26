@@ -90,6 +90,7 @@ export interface PersonPopulated extends PersonInstance {
   documentsForModule?: DocumentWithLinkedItem[];
   groupDocuments?: DocumentWithLinkedItem[];
   actions?: any[];
+  actionCategories?: string[];
   comments?: any[];
   places?: any[];
   relsPersonPlace?: any[];
@@ -105,4 +106,5 @@ export interface PersonPopulated extends PersonInstance {
   medicalFile?: MedicalFileInstance;
   passages?: any[];
   rencontres?: any[];
+  nameNormalized?: string;
 }

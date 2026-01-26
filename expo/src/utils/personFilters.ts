@@ -128,11 +128,20 @@ export function filterPerson(person: PersonPopulated, filters: Array<Filter>): P
     // For other fields, at least one filter value must match (OR logic)
     let isSelected = false;
     for (const filterValue of arrayFilterValue) {
-      if (!itemValue?.length && filterValue === "Non renseigné") {
-        isSelected = true;
-        break;
-      }
-      if (typeof itemValue === "string") {
+      // Handle "Non renseigné" case
+      if (filterValue === "Non renseigné") {
+        // For strings, check if empty or undefined/null
+        if (typeof itemValue === "string") {
+          if (!itemValue || itemValue.trim() === "") {
+            isSelected = true;
+            break;
+          }
+        } else if (!itemValue?.length) {
+          // For arrays, check if empty or undefined/null
+          isSelected = true;
+          break;
+        }
+      } else if (typeof itemValue === "string") {
         // For type text we trim and lower case the value.
         if (filter.type && ["text", "textarea"].includes(filter.type)) {
           const trimmedItemValue = (itemValue || "").trim().toLowerCase();

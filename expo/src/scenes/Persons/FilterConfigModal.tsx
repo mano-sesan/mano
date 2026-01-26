@@ -67,9 +67,11 @@ const FilterConfigModal = ({ field, onBack, onAdd }: FilterConfigModalProps) => 
           <FilterConfigInput field={field} value={value} onChange={setValue} />
         </View>
       </ScrollContainer>
-      <ButtonsContainer>
-        <Button caption="Ajouter le filtre" onPress={handleAdd} disabled={isAddDisabled} testID="add-filter-button" />
-      </ButtonsContainer>
+      <View className="bg-white pb-8 pt-2">
+        <ButtonsContainer>
+          <Button caption="Ajouter le filtre" onPress={handleAdd} disabled={isAddDisabled} testID="add-filter-button" />
+        </ButtonsContainer>
+      </View>
     </SceneContainer>
   );
 };
