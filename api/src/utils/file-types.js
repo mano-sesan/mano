@@ -2,6 +2,7 @@
 const OPENABLE_FILE_TYPES = {
   "application/pdf": [".pdf"],
   "image/jpeg": [".jpg", ".jpeg"],
+  "image/jpg": [".jpg", ".jpeg"],
   "image/png": [".png"],
 };
 
