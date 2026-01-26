@@ -24,6 +24,7 @@ export function awaitSetAtomAndIDBCache<T>(atomWithCacheInstance: PrimitiveAtom<
   const collectionName = (atomWithCacheInstance as AtomWithDebugLabel<T>).debugLabel;
 
   if (!collectionName) {
+    console.error(atomWithCacheInstance);
     throw new Error("awaitSetAtomAndIDBCache can only be used with atoms created by atomWithCache");
   }
 

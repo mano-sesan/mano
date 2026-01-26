@@ -81,7 +81,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
   const setPersons = awaitSetAtomAndIDBCache(personsState);
   const setGroups = awaitSetAtomAndIDBCache(groupsState);
-  const setReports = awaitSetAtomAndIDBCache(reportsState);
+  const setReports = useSetAtom(reportsState);
   const setPassages = awaitSetAtomAndIDBCache(passagesState);
   const setRencontres = awaitSetAtomAndIDBCache(rencontresState);
   const setActions = awaitSetAtomAndIDBCache(actionsState);
@@ -91,9 +91,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setRelsPersonPlace = awaitSetAtomAndIDBCache(relsPersonPlaceState);
   const setTerritoryObservations = awaitSetAtomAndIDBCache(territoryObservationsState);
   const setComments = awaitSetAtomAndIDBCache(commentsState);
-  const setConsultations = awaitSetAtomAndIDBCache(consultationsState);
-  const setTreatments = awaitSetAtomAndIDBCache(treatmentsState);
-  const setMedicalFiles = awaitSetAtomAndIDBCache(medicalFileState);
+  const setConsultations = useSetAtom(consultationsState);
+  const setTreatments = useSetAtom(treatmentsState);
+  const setMedicalFiles = useSetAtom(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)
@@ -598,7 +598,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         await setConsultations(cacheConsultations);
       }
     } else if (newConsultations.length) {
-      await setConsultations((latestConsultations) => mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      await setConsultations((latestConsultations) =>
+        mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation })
+      );
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -737,7 +739,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   };
 }
 
-export function mergeItems<T extends { _id?: string; deletedAt?: Date }>(oldItems: T[], newItems: T[] = [], { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}) {
+export function mergeItems<T extends { _id?: string; deletedAt?: Date }>(
+  oldItems: T[],
+  newItems: T[] = [],
+  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}
+) {
   const newItemsCleanedAndFormatted = [];
   const newItemIds = {};
 
