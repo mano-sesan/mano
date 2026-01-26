@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { FolderIcon } from "@heroicons/react/24/outline";
 import API, { tryFetch } from "../../services/api";
-import type { Document, FileMetadata, Folder } from "../../types/document";
+import type { Document, FileMetadata } from "../../types/document";
 import type { UserInstance } from "../../types/user";
 import { encryptFile, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../tailwind/Modal";
 import SelectCustom from "../SelectCustom";
+import { isAcceptedMimeType, FILE_TYPE_ERROR_MESSAGE } from "../../utils/file-types";
 
 // Upload progress state
 interface UploadProgress {
@@ -160,6 +161,15 @@ export async function handleFilesUpload({
     uploadProgressModal.setFiles([...uploadFiles]);
 
     try {
+      // Validation du type de fichier
+      if (!isAcceptedMimeType(fileToUpload.type)) {
+        uploadFiles[i].status = "error";
+        uploadFiles[i].error = FILE_TYPE_ERROR_MESSAGE;
+        uploadProgressModal.setFiles([...uploadFiles]);
+        hasError = true;
+        continue;
+      }
+
       const { encryptedEntityKey, encryptedFile } = await encryptFile(fileToUpload, getHashedOrgEncryptionKey());
       const [docResponseError, docResponse] = await tryFetch(() => {
         return API.upload({ path: `/person/${resolvedPersonId}/document`, encryptedFile });
@@ -225,18 +235,6 @@ export async function handleFilesUpload({
     });
   }
 
-  // Original behavior (no folder selection)
-  setTimeout(() => {
-    uploadProgressModal.setIsOpen(false);
-    if (!hasError && docsResponses.length > 0) {
-      if (docsResponses.length === 1) {
-        toast.success(`Document ${docsResponses[0].name} ajouté !`);
-      } else {
-        toast.success(`${docsResponses.length} documents ajoutés !`);
-      }
-    }
-  }, 1000);
-
   return docsResponses.length > 0 ? docsResponses : undefined;
 }
 
@@ -261,7 +259,7 @@ function UploadProgressModal({
   onFolderChange,
   onFolderConfirm,
 }: UploadProgressModalProps) {
-  const completedFiles = files.filter((f) => f.status === "completed").length;
+  const processedFiles = files.filter((f) => f.status === "completed" || f.status === "error").length;
   const totalFiles = files.length;
   const hasErrors = files.some((f) => f.status === "error");
   const isComplete = files.every((f) => f.status === "completed" || f.status === "error");
@@ -277,13 +275,13 @@ function UploadProgressModal({
             <div className="tw-flex tw-justify-between tw-text-sm tw-text-gray-600 tw-mb-2">
               <span>Progression</span>
               <span>
-                {completedFiles}/{totalFiles}
+                {processedFiles}/{totalFiles}
               </span>
             </div>
             <div className="tw-w-full tw-bg-gray-200 tw-rounded-full tw-h-2">
               <div
                 className={`tw-h-2 tw-rounded-full tw-transition-all tw-duration-300 ${hasErrors ? "tw-bg-red-500" : "tw-bg-main"}`}
-                style={{ width: `${totalFiles > 0 ? (completedFiles / totalFiles) * 100 : 0}%` }}
+                style={{ width: `${totalFiles > 0 ? (processedFiles / totalFiles) * 100 : 0}%` }}
               />
             </div>
           </div>
@@ -390,6 +388,17 @@ function UploadProgressModal({
         )}
         {!isComplete && !isSaving && <div className="tw-text-sm tw-text-gray-500">Veuillez patienter pendant le téléversement...</div>}
         {isSaving && !showFolderSelection && <div className="tw-text-sm tw-text-gray-500">Enregistrement en cours...</div>}
+        {isComplete && !showFolderSelection && !isSaving && (
+          <button
+            type="button"
+            className="button-submit"
+            onClick={() => {
+              uploadProgressModal.setIsOpen(false);
+            }}
+          >
+            Fermer
+          </button>
+        )}
       </ModalFooter>
     </ModalContainer>
   );
