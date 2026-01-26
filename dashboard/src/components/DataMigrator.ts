@@ -23,7 +23,7 @@ export default function useDataMigrator() {
     // `migrationLastUpdateAt` should be set after each migration and send in every PUT/POST/PATCH request to server.
     migrateData: async (organisation: OrganisationInstance) => {
       const organisationId = organisation?._id;
-      let migrationLastUpdateAt = organisation.migrationLastUpdateAt;
+      const migrationLastUpdateAt = organisation.migrationLastUpdateAt;
       /*
       // Example of migration:
       if (!organisation.migrations?.includes("fix-custom-field-divergence-after-import")) {

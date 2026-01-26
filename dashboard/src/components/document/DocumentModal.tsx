@@ -8,8 +8,8 @@ import type { UUIDV4 } from "../../types/uuid";
 import API, { tryFetchBlob } from "../../services/api";
 import { decryptFile, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { download, errorMessage } from "../../utils";
-import { itemsGroupedByActionSelector } from "../../atoms/selectors";
-import { defaultModalActionState, modalActionState } from "../../atoms/modal";
+import { itemsGroupedByActionSelector, itemsGroupedByConsultationSelector } from "../../atoms/selectors";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../../atoms/modal";
 import { organisationState } from "../../atoms/auth";
 import { formatDateTimeWithNameOfDay } from "../../services/date";
 import PersonName from "../PersonName";
@@ -42,7 +42,9 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   externalIsDeleting,
 }: DocumentModalProps<T>) {
   const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
+  const consultationsObjects = useAtomValue(itemsGroupedByConsultationSelector);
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
   const organisation = useAtomValue(organisationState);
   const location = useLocation();
   const initialName = useMemo(() => document.name, [document.name]);
@@ -227,9 +229,8 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
           {!!showAssociatedItem && document?.linkedItem?.type === "consultation" && (
             <button
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("consultationId", document.linkedItem._id);
-                history.push(`?${searchParams.toString()}`);
+                const consultation = consultationsObjects[document.linkedItem._id];
+                setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation });
                 onClose();
               }}
               className="button-classic"

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CANCEL, DONE, TODO, defaultActionForModal, mappedIdsToLabels } from "../../../atoms/actions";
-import { useHistory } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import SelectCustom from "../../../components/SelectCustom";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
@@ -10,13 +10,16 @@ import { useLocalStorage } from "../../../services/useLocalStorage";
 import { useAtomValue, useSetAtom } from "jotai";
 import { organisationState, teamsState, userState } from "../../../atoms/auth";
 import { dayjsInstance } from "../../../services/date";
-import { defaultModalActionState, modalActionState } from "../../../atoms/modal";
+import { defaultModalActionState, defaultModalConsultationState, modalActionState, modalConsultationState } from "../../../atoms/modal";
+import { defaultConsultationForModal } from "../../../atoms/consultations";
 
 export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCreated, consultationsCreated, period }) => {
   const [activeTab, setActiveTab] = useLocalStorage("reports-actions-consultation-toggle", "Actions");
   const [fullScreen, setFullScreen] = useState(false);
   const [filterStatus, setFilterStatus] = useState([TODO, DONE, CANCEL]);
   const setModalAction = useSetAtom(modalActionState);
+  const setModalConsultation = useSetAtom(modalConsultationState);
+  const location = useLocation();
   const teams = useAtomValue(teamsState);
   const organisation = useAtomValue(organisationState);
 
@@ -40,7 +43,6 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
 
   const data = activeTab.includes("Actions") ? actions : consultations;
   const filteredData = activeTab.includes("Actions") ? filteredActions : filteredConsultations;
-  const history = useHistory();
   const user = useAtomValue(userState);
 
   const canSeeMedicalData = ["admin", "normal"].includes(user.role) && !!user.healthcareProfessional;
@@ -85,11 +87,20 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
                     }),
                   });
                 } else {
-                  const searchParams = new URLSearchParams(history.location.search);
-                  searchParams.set("newConsultation", true);
-                  searchParams.set("dueAt", period.startDate);
-                  searchParams.set("completedAt", dayjsInstance(period.startDate).set("hour", 12));
-                  history.push(`?${searchParams.toString()}`);
+                  setModalConsultation({
+                    ...defaultModalConsultationState(),
+                    open: true,
+                    from: location.pathname,
+                    isEditing: true,
+                    consultation: defaultConsultationForModal({
+                      dueAt: new Date(period.startDate),
+                      status: DONE,
+                      completedAt: dayjsInstance(period.startDate).set("hour", 12).toDate(),
+                      teams: teams.length === 1 ? [teams[0]._id] : [],
+                      user: user._id,
+                      organisation: organisation._id,
+                    }),
+                  });
                 }
               }}
             >
@@ -189,9 +200,17 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
                   }),
                 });
               } else {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("newConsultation", true);
-                history.push(`?${searchParams.toString()}`);
+                setModalConsultation({
+                  ...defaultModalConsultationState(),
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  consultation: defaultConsultationForModal({
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
               }
             }}
           >

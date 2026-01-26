@@ -156,6 +156,27 @@ export const formatConsultation = (consultation: ConsultationInstance) => {
   return { ...consultation, ...defaultConsultationFields };
 };
 
+export const defaultConsultationForModal = (
+  params: Partial<ConsultationInstance> & {
+    organisation: string;
+    teams: Array<string>;
+    user: string;
+  }
+): Partial<ConsultationInstance> => ({
+  _id: null,
+  dueAt: new Date(),
+  completedAt: new Date(),
+  name: "",
+  type: "",
+  status: "TODO",
+  onlyVisibleBy: [],
+  documents: [],
+  comments: [],
+  history: [],
+  createdAt: new Date(),
+  ...params,
+});
+
 export const disableConsultationRow = (actionOrConsultation: any, user: UserInstance) => {
   if (!actionOrConsultation.isConsultation) return false;
   if (!user.healthcareProfessional) return true;

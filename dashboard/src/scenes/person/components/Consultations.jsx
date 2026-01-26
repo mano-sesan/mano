@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { useAtomValue } from "jotai";
-import { useHistory } from "react-router-dom";
-import { organisationState, userState } from "../../../atoms/auth";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useLocation } from "react-router-dom";
+import { organisationState, teamsState, userState } from "../../../atoms/auth";
 import { CANCEL, DONE, mappedIdsToLabels } from "../../../atoms/actions";
 import SelectCustom from "../../../components/SelectCustom";
 import TagTeam from "../../../components/TagTeam";
@@ -11,7 +11,7 @@ import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../co
 import { arrayOfitemsGroupedByConsultationSelector } from "../../../atoms/selectors";
 import { useLocalStorage } from "../../../services/useLocalStorage";
 import { AgendaMutedIcon } from "../../../assets/icons/AgendaMutedIcon";
-import { disableConsultationRow } from "../../../atoms/consultations";
+import { defaultConsultationForModal, disableConsultationRow } from "../../../atoms/consultations";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import UserName from "../../../components/UserName";
 import DescriptionIcon from "../../../components/DescriptionIcon";
@@ -19,10 +19,15 @@ import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import DocumentIcon from "../../../components/DocumentIcon";
 import CommentIcon from "../../../components/CommentIcon";
 import ActionsSortableList from "../../../components/ActionsSortableList";
+import { defaultModalConsultationState, modalConsultationState } from "../../../atoms/modal";
 
 export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
-  const history = useHistory();
+  const setModalConsultation = useSetAtom(modalConsultationState);
+  const location = useLocation();
+  const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
+  const teams = useAtomValue(teamsState);
 
   const allConsultations = useAtomValue(arrayOfitemsGroupedByConsultationSelector);
   const [consultationTypes, setConsultationTypes] = useLocalStorage("consultation-types", []);
@@ -51,10 +56,18 @@ export const Consultations = ({ person }) => {
               aria-label="Ajouter une consultation"
               className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-blue-900 tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("newConsultation", true);
-                searchParams.set("personId", person._id);
-                history.push(`?${searchParams.toString()}`);
+                setModalConsultation({
+                  ...defaultModalConsultationState(),
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  consultation: defaultConsultationForModal({
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    person: person._id,
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
               }}
             >
               ＋
@@ -104,10 +117,18 @@ export const Consultations = ({ person }) => {
               type="button"
               className="button-submit !tw-bg-blue-900"
               onClick={() => {
-                const searchParams = new URLSearchParams(history.location.search);
-                searchParams.set("newConsultation", true);
-                searchParams.set("personId", person._id);
-                history.push(`?${searchParams.toString()}`);
+                setModalConsultation({
+                  ...defaultModalConsultationState(),
+                  open: true,
+                  from: location.pathname,
+                  isEditing: true,
+                  consultation: defaultConsultationForModal({
+                    teams: teams.length === 1 ? [teams[0]._id] : [],
+                    person: person._id,
+                    user: user._id,
+                    organisation: organisation._id,
+                  }),
+                });
               }}
             >
               ＋ Ajouter une consultation
@@ -172,7 +193,8 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
 
 const ConsultationsTable = ({ filteredData }) => {
   const user = useAtomValue(userState);
-  const history = useHistory();
+  const setModalConsultation = useSetAtom(modalConsultationState);
+  const location = useLocation();
 
   return (
     <>
@@ -192,9 +214,7 @@ const ConsultationsTable = ({ filteredData }) => {
                     }
                     onClick={() => {
                       if (disableConsultationRow(consultation, user)) return;
-                      const searchParams = new URLSearchParams(history.location.search);
-                      searchParams.set("consultationId", consultation._id);
-                      history.push(`?${searchParams.toString()}`);
+                      setModalConsultation({ ...defaultModalConsultationState(), open: true, from: location.pathname, consultation });
                     }}
                   >
                     <div className="tw-flex">
