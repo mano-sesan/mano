@@ -30,7 +30,7 @@ export const AUTH_TOAST_KEY = "mano-auth-toast";
 async function setupDB() {
   // legacy db, not used anymore, delete it
   // no exception thrown if the database does not exist (https://developer.mozilla.org/en-US/docs/Web/API/IDBFactory/deleteDatabase#name)
-  indexedDB.deleteDatabase("mano-dashboard");
+  window.indexedDB?.deleteDatabase("mano-dashboard");
   // Fin du legacy
   window.localStorage.setItem("mano-currentCacheKey", dashboardCurrentCacheKey);
   customStore = createStore(manoDB, storeName);
