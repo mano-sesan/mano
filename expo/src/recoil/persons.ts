@@ -1,9 +1,12 @@
 import { atomWithCache } from "@/store";
 import { atom, useAtomValue } from "jotai";
-import { organisationState } from "./auth";
+import { organisationState, currentTeamState, userState } from "./auth";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { PersonInstance } from "@/types/person";
+import { Filter, FilterableField } from "@/types/field";
+import { placesState } from "./places";
+import { flattenedActionsCategoriesSelector } from "./actions";
 
 export const personsState = atomWithCache<PersonInstance[]>("person", []);
 /*
@@ -119,3 +122,119 @@ export const usePreparePersonForEncryption = () => {
   };
   return preparePersonForEncryption;
 };
+
+/*
+
+Filters for persons list
+
+*/
+
+export const personsFiltersState = atomWithCache<Array<Filter>>("person-filters-v2", []);
+
+export const availablePersonFiltersSelector = atom((get) => {
+  const places = get(placesState);
+  const user = get(userState);
+  const team = get(currentTeamState);
+  const fieldsPersonsCustomizableOptions = get(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = get(flattenedCustomFieldsPersonsSelector);
+  const filterPersonsBase = get(filterPersonsBaseSelector);
+  const flattenedActionsCategories = get(flattenedActionsCategoriesSelector);
+
+  if (!user || !team) return [];
+
+  const filterBase: Array<FilterableField> = [
+    ...filterPersonsBase,
+    ...fieldsPersonsCustomizableOptions
+      .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+      .map((a) => ({ field: a.name, name: a.name, label: a.label, type: a.type, options: a.options })),
+    ...flattenedCustomFieldsPersons
+      .filter((a) => a.enabled || a.enabledTeams?.includes(team._id))
+      .map((a) => ({ field: a.name, name: a.name, label: a.label, type: a.type, options: a.options })),
+    {
+      field: "places",
+      name: "places",
+      label: "Lieux fréquentés",
+      type: "multi-choice" as const,
+      options: [...new Set(places.map((place) => place.name))],
+    },
+  ];
+
+  // Add calculated fields for statistics
+  const calculatedFields: Array<FilterableField> = [
+    {
+      field: "age",
+      name: "age",
+      label: "Âge (en années)",
+      type: "number",
+    },
+    {
+      field: "followSinceMonths",
+      name: "followSinceMonths",
+      label: "Suivi depuis (en mois)",
+      type: "number",
+    },
+    {
+      field: "hasAtLeastOneConsultation",
+      name: "hasAtLeastOneConsultation",
+      label: "A eu une consultation",
+      type: "boolean",
+    },
+    {
+      field: "numberOfConsultations",
+      name: "numberOfConsultations",
+      label: "Nombre de consultations",
+      type: "number",
+    },
+    {
+      field: "numberOfActions",
+      name: "numberOfActions",
+      label: "Nombre d'actions",
+      type: "number",
+    },
+    {
+      field: "actionCategories",
+      name: "actionCategories",
+      label: "A bénéficié d'une de ces catégories d'action",
+      type: "enum",
+      options: flattenedActionsCategories,
+    },
+    {
+      field: "actionCategoriesCombined",
+      name: "actionCategoriesCombined",
+      label: "A bénéficié d'une action contenant toutes ces catégories",
+      type: "enum",
+      options: flattenedActionsCategories,
+    },
+    {
+      field: "numberOfTreatments",
+      name: "numberOfTreatments",
+      label: "Nombre de traitements",
+      type: "number",
+    },
+    {
+      field: "numberOfPassages",
+      name: "numberOfPassages",
+      label: "Nombre de passages",
+      type: "number",
+    },
+    {
+      field: "numberOfRencontres",
+      name: "numberOfRencontres",
+      label: "Nombre de rencontres",
+      type: "number",
+    },
+    {
+      field: "group",
+      name: "group",
+      label: "Appartient à une famille",
+      type: "boolean",
+    },
+  ];
+
+  filterBase.push(...calculatedFields);
+
+  // TODO: Add medical fields if user.healthcareProfessional (Phase 2)
+  // This would require importing customFieldsMedicalFileSelector and flattenedCustomFieldsConsultationsSelector
+
+  return filterBase;
+});
