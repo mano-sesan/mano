@@ -1,78 +1,14 @@
-import { atom, type SetStateAction } from "jotai";
+import { atom } from "jotai";
 import { capture } from "../services/sentry";
 import { organisationState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
-import API from "../services/api";
 import type { ReportInstance, ReadyToEncryptReportInstance } from "../types/report";
-import { keepOnlyOneReportAndReturnReportToDelete } from "../utils/delete-duplicated-reports";
 import { encryptItem } from "../services/encryption";
-import { setCacheItem } from "../services/dataManagement";
+import { atomWithCache } from "../store";
 
 const collectionName = "report";
-
-// Base atom for reports
-const reportsBaseAtom = atom<ReportInstance[]>([]);
-
-// Derived atom with cache persistence and duplicate checking
-export const reportsState = atom(
-  (get) => get(reportsBaseAtom),
-  async (get, set, update: SetStateAction<ReportInstance[]>) => {
-    // Resolve the update - it could be a value or a function
-    const currentValue = get(reportsBaseAtom);
-    const newValue = typeof update === "function" ? update(currentValue) : update;
-    set(reportsBaseAtom, newValue);
-    await setCacheItem(collectionName, newValue);
-
-    /* check if duplicate reports */
-    const duplicateReports = Object.entries(
-      newValue.reduce<Record<string, Array<ReportInstance>>>((reportsByDate, report) => {
-        // TIL: undefined < '2022-11-25' === false. So we need to check if report.date is defined.
-        if (!report.date || report.date < "2022-11-25") return reportsByDate;
-        if (!reportsByDate[`${report.date}-${report.team}`]) reportsByDate[`${report.date}-${report.team}`] = [];
-        reportsByDate[`${report.date}-${report.team}`].push(report);
-        return reportsByDate;
-      }, {})
-    ).filter(([_key, reportsByDate]) => reportsByDate.length > 1);
-
-    if (duplicateReports.length > 0) {
-      for (const [key, reportsByDate] of duplicateReports) {
-        const reportsToDelete = keepOnlyOneReportAndReturnReportToDelete(reportsByDate);
-        for (const reportToDelete of reportsToDelete) {
-          // TODO : réfléchir si on traite les erreurs ici ou si on les laisse remonter
-          await API.delete({ path: `/report/${reportToDelete._id}` });
-        }
-        capture(new Error("Duplicated reports " + key), {
-          extra: {
-            [key]: reportsByDate.map((report) => ({
-              _id: report._id,
-              date: report.date,
-              team: report.team,
-              createdAt: report.createdAt,
-              deletedAt: report.deletedAt,
-              description: report.description,
-              collaborations: report.collaborations,
-              organisation: report.organisation,
-            })),
-            reportsToDelete: reportsToDelete.map((report) => ({
-              _id: report._id,
-              date: report.date,
-              team: report.team,
-              createdAt: report.createdAt,
-              deletedAt: report.deletedAt,
-              description: report.description,
-              collaborations: report.collaborations,
-              organisation: report.organisation,
-            })),
-          },
-          tags: {
-            unique_id: key,
-          },
-        });
-      }
-    }
-  }
-);
+export const reportsState = atomWithCache<ReportInstance[]>(collectionName, []);
 
 export const servicesSelector = atom((get) => {
   const organisation = get(organisationState);
