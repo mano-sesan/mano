@@ -1,39 +1,35 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import PersonsList from "./PersonsList";
-import PersonsFilter from "./PersonsFilter";
+import PersonsFilterScreen from "./PersonsFilterScreen";
+import FilterConfigModal from "./FilterConfigModal";
 import { TabsParamsList } from "@/types/navigation";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { userState } from "@/recoil/auth";
 import { arrayOfitemsGroupedByPersonSelector } from "@/recoil/selectors";
 import { filterBySearch } from "@/utils/search";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import PersonNew from "./PersonNew";
+import { personsFiltersState } from "@/recoil/persons";
+import { filterPersons } from "@/utils/personFilters";
+import { Filter } from "@/types/field";
 
 type PersonsListStackParams = {
   PERSONS_LIST: undefined;
   PERSONS_FILTER: undefined;
+  FILTER_CONFIG: { field: any };
   PERSON_NEW: undefined;
 };
 
 const PersonsListStack = createNativeStackNavigator<PersonsListStackParams>();
 type PersonsStackProps = BottomTabScreenProps<TabsParamsList, "PERSONNES">;
 
-type Filters = {
-  filterTeams: string[];
-  filterAlertness: boolean;
-  filterOutOfActiveList: string;
-};
-
 export default function PersonsListNavigator(props: PersonsStackProps) {
-  const [personFilters, setPersonFilters] = useState<Filters>({ filterTeams: [], filterAlertness: false, filterOutOfActiveList: "" });
-  const [search, setSearch] = useState("");
-  const filterTeams = personFilters.filterTeams;
-  const filterAlertness = personFilters.filterAlertness;
-  const filterOutOfActiveList = personFilters.filterOutOfActiveList;
-  const numberOfFilters = Number(Boolean(filterAlertness)) + filterTeams.length + Number(["Oui", "Non"].includes(filterOutOfActiveList));
+  const [filters, setFilters] = useAtom(personsFiltersState);
+  const [search, setSearch] = React.useState("");
+  const numberOfFilters = filters.filter((f) => Boolean(f?.value)).length;
 
-  const filteredPersons = usePersonsFilteredBySearchSelector(filterTeams, filterOutOfActiveList, filterAlertness, search);
+  const filteredPersons = usePersonsFilteredBySearchSelector(filters, search);
 
   return (
     <PersonsListStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="PERSONS_LIST">
@@ -51,13 +47,34 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
       </PersonsListStack.Screen>
       <PersonsListStack.Screen name="PERSONS_FILTER">
         {({ navigation }) => (
-          <PersonsFilter
-            onBack={(filters) => {
-              setPersonFilters(filters);
+          <PersonsFilterScreen
+            onBack={() => {
               navigation.goBack();
             }}
-            personFilters={personFilters}
-            {...props}
+            onNavigateToConfig={(field) => {
+              navigation.navigate("FILTER_CONFIG", { field });
+            }}
+          />
+        )}
+      </PersonsListStack.Screen>
+      <PersonsListStack.Screen name="FILTER_CONFIG">
+        {({ navigation, route }) => (
+          <FilterConfigModal
+            field={route.params.field}
+            onBack={() => {
+              navigation.goBack();
+            }}
+            onAdd={(filter: Filter) => {
+              // Add or replace filter
+              const existingFilterIndex = filters.findIndex((f) => f.field === filter.field);
+              if (existingFilterIndex >= 0) {
+                const newFilters = [...filters];
+                newFilters[existingFilterIndex] = filter;
+                setFilters(newFilters);
+              } else {
+                setFilters([...filters, filter]);
+              }
+            }}
           />
         )}
       </PersonsListStack.Screen>
@@ -68,50 +85,21 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
   );
 }
 
-function usePersonsFilteredSelector(
-  filterTeams: Filters["filterTeams"],
-  filterOutOfActiveList: Filters["filterOutOfActiveList"],
-  filterAlertness: Filters["filterAlertness"]
-) {
+const emptyArray: string[] = [];
+function usePersonsFilteredBySearchSelector(filters: Array<any>, search: string) {
+  const user = useAtomValue(userState)!;
   const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
 
   return useMemo(() => {
-    let personsFiltered = persons;
-    if (!filterTeams.length && !filterOutOfActiveList && !filterAlertness) {
-      return persons;
-    }
-    if (filterOutOfActiveList) {
-      personsFiltered = personsFiltered.filter((p) => (filterOutOfActiveList === "Oui" ? p.outOfActiveList : !p.outOfActiveList));
-    }
-    if (filterAlertness) personsFiltered = personsFiltered.filter((p) => !!p.alertness);
-    if (filterTeams.length) {
-      personsFiltered = personsFiltered.filter((p) => {
-        const assignedTeams = p.assignedTeams || [];
-        for (let assignedTeam of assignedTeams) {
-          if (filterTeams.includes(assignedTeam)) return true;
-        }
-        return false;
-      });
-    }
-    return personsFiltered;
-  }, [filterTeams, filterOutOfActiveList, filterAlertness, persons]);
-}
+    // First apply filters
+    const personsFiltered = filterPersons(persons, filters);
 
-const emptyArray: string[] = [];
-function usePersonsFilteredBySearchSelector(
-  filterTeams: Filters["filterTeams"],
-  filterOutOfActiveList: Filters["filterOutOfActiveList"],
-  filterAlertness: Filters["filterAlertness"],
-  search: string
-) {
-  const user = useAtomValue(userState)!;
+    // Then apply search
+    const restrictedFields =
+      user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : emptyArray;
 
-  const personsFiltered = usePersonsFilteredSelector(filterTeams, filterOutOfActiveList, filterAlertness);
+    const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
-  const restrictedFields =
-    user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : emptyArray;
-
-  const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
-
-  return personsfilteredBySearch;
+    return personsfilteredBySearch;
+  }, [filters, search, persons, user.role]);
 }
