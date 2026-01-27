@@ -41,6 +41,7 @@ export type RootStackParamList = {
   };
   TERRITORY_OBSERVATIONS_FOR_REPORT: { date: string };
   RENCONTRE: { rencontre?: RencontreInstance; person: PersonInstance };
+  RENCONTRE_NEW_STACK?: { person?: PersonInstance };
   RENCONTRES_FOR_REPORT: { date: string };
   PASSAGE?: { passage?: PassageInstance; person?: PersonInstance };
   PASSAGES_FOR_REPORT: { date: string };
@@ -125,6 +126,12 @@ export type PersonStackParams = {
 
 export type ConsultationStackParams = {
   CONSULTATION: NativeStackScreenProps<RootStackParamList, "CONSULTATION_STACK">;
+  PERSONS_SEARCH: undefined;
+  PERSON_NEW: undefined;
+};
+
+export type RencontreNewStackParams = {
+  RENCONTRE_NEW?: { person?: PersonInstance };
   PERSONS_SEARCH: undefined;
   PERSON_NEW: undefined;
 };
