@@ -2,7 +2,7 @@ import API from "./api";
 import { MMKV } from "react-native-mmkv";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const appCurrentCacheKey = "mano_last_refresh_2022_12_01";
+export const appCurrentCacheKey = "mano_last_refresh_2026_01_27_entitykey_base64";
 
 export const storage = new MMKV();
 
