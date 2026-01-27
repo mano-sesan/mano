@@ -77,12 +77,12 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
     return { width, position };
   };
 
-  let hasSkipped = false;
+  const skippedItems: Array<TeamHistorySlice> = [];
   const groupedData = data.reduce((acc, item) => {
     const { width, position } = calculatePosition(item.startDate, item.endDate);
     // Ne pas afficher les éléments trop courts (10px minimum)
     if (width < 10) {
-      hasSkipped = true;
+      skippedItems.push(item);
       return acc;
     }
     if (!acc[item.team]) {
@@ -118,6 +118,8 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
 
   if (dataForDisplay.length === 0) return null;
 
+  console.log(dataForDisplay);
+
   return (
     <div className="tw-border tw-border-gray-200 tw-rounded-lg tw-shadow tw-overflow-x-auto tw-overflow-y-hidden tw-p-2 tw-max-w-[824px] tw-mx-auto">
       <h3 className="tw-mb-4 tw-pb-1 tw-text-lg tw-font-semibold tw-border-b tw-border-zinc-200">
@@ -125,17 +127,17 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
       </h3>
       <div className="tw-relative tw-w-[800px] tw-overflow-hidden" style={{ height: `${lineIndex * 38}px` }}>
         {dataForDisplay.map((item, index) => {
-          const teamName = teams.find((t) => t._id === item.team)?.name || "n/c";
+          const teamName = teams.find((t) => t._id === item.team)?.name || "Équipe supprimée ou fusionnée";
           return (
             <div
               key={index}
-              className="tw-absolute tw-h-8 tw-flex tw-flex-col tw-rounded-sm tw-items-start"
+              className="tw-absolute tw-h-8 tw-flex tw-flex-col tw-rounded-sm tw-items-start tw-overflow-hidden"
               style={{
                 width: `${item.width}px`,
                 left: `${item.position}px`,
                 top: `${item.top}px`,
-                backgroundColor: item.backgroundColor,
-                border: "1px solid " + item.borderColor,
+                backgroundColor: item.backgroundColor || "#bbb",
+                border: "1px solid " + (item.borderColor || "aaa"),
               }}
               title={teamName}
             >
@@ -147,9 +149,19 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
           );
         })}
       </div>
-      {hasSkipped ? (
-        <div className="tw-italic tw-text-xs">
-          Plusieurs mouvements d'équipes sur des temps courts sont invisibles à cette échelle, consultez l'historique pour le détail complet.
+      {skippedItems.length > 0 ? (
+        <div className="tw-mt-4 tw-pt-2 tw-border-t tw-border-zinc-200">
+          <div className="tw-text-xs tw-font-medium tw-mb-1">Mouvements trop courts pour être affichés :</div>
+          <ul className="tw-text-xs tw-list-disc tw-pl-4">
+            {skippedItems.map((item, index) => {
+              const teamName = teams.find((t) => t._id === item.team)?.name || "Équipe supprimée ou fusionnée";
+              return (
+                <li key={index}>
+                  {teamName} du {dayjsInstance(item.startDate).format("DD/MM/YY HH:mm")} au {dayjsInstance(item.endDate).format("DD/MM/YY HH:mm")}
+                </li>
+              );
+            })}
+          </ul>
         </div>
       ) : null}
     </div>
