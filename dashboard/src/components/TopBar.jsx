@@ -15,7 +15,7 @@ import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
 
-const TopBar = () => {
+const TopBar = ({ onLogoClick }) => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const user = useAtomValue(userState);
@@ -24,6 +24,11 @@ const TopBar = () => {
   const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
 
   const { refresh, isLoading } = useDataLoader();
+
+  const handleRefresh = () => {
+    refresh();
+    onLogoClick?.();
+  };
 
   function resetCacheAndLogout() {
     // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
@@ -72,7 +77,7 @@ const TopBar = () => {
             className="tw-mx-auto tw-my-0 tw-h-9 tw-w-14 tw-bg-center tw-bg-no-repeat disabled:tw-opacity-30 tw-bg-contain"
             type="button"
             title="Cliquez ici pour rafraîchir les données"
-            onClick={refresh}
+            onClick={handleRefresh}
             disabled={isLoading}
             style={{
               backgroundImage: `url(${logo})`,
