@@ -61,6 +61,12 @@ Suivre les instructions de Detox, et tâtonner avec les Java et autre `ANDROID_H
   yarn
   ```
 
+- Libsodium needs a fix because we blocked its postinstall script (https://github.com/serenity-kit/react-native-libsodium/issues/87#issuecomment-3631781515)
+
+  ```sh
+  yarn fix-libsodium
+  ```
+
 - Prebuild first
 
   ```sh

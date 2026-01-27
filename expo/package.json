@@ -5,7 +5,7 @@
   "scripts": {
     "get-ip": "./get-ip.sh",
     "prebuild": "npx expo prebuild --clean --platform android",
-    "postinstall": "tar -xzf node_modules/react-native-libsodium/libsodium/build.tgz --directory ./node_modules/react-native-libsodium/libsodium",
+    "fix-libsodium": "tar -xzf node_modules/react-native-libsodium/libsodium/build.tgz --directory ./node_modules/react-native-libsodium/libsodium",
     "start": "npm run get-ip && expo start --dev-client --clear",
     "build-dev-android": "npx expo run:android --device",
     "build-local:android-apk-standard": "eas build -p android --local --profile production && node rename-apk.js --append=standard",
