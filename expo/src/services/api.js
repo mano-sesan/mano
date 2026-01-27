@@ -63,11 +63,11 @@ class ApiService {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options = {
         method,
-        headers: { 
-          ...headers, 
-          "Content-Type": "application/json", 
-          Accept: "application/json", 
-          platform: this.platform, 
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          platform: this.platform,
           version: VERSION,
           packageid: Application.applicationId,
         },
@@ -329,6 +329,10 @@ class ApiService {
     );
 
     const json = await response.json();
+    // Si erreur (ok: false), on retourne les infos d'erreur du backend
+    if (!json.ok) {
+      return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
+    }
     return { ...json, encryptedEntityKey };
   };
   token = "";

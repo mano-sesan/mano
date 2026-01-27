@@ -222,7 +222,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
     }
     const extension = asset.fileName.split(".").reverse()[0];
     const newName = `${name}.${extension}`;
-    const { data: file, encryptedEntityKey } = await API.upload({
+    const uploadResponse = await API.upload({
       file: {
         uri: asset.uri,
         base64: asset.base64,
@@ -231,11 +231,17 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
       },
       path: `/person/${personDB._id}/document`,
     });
-    if (!file) {
-      Alert.alert("Désolé, une erreur est survenue", "Veuillez réessayer d'enregistrer votre document");
+    if (!uploadResponse.ok || !uploadResponse.data) {
+      // Si le backend a renvoyé un message d'erreur, on l'affiche
+      if (uploadResponse.error) {
+        Alert.alert("Impossible d'envoyer le fichier", uploadResponse.error);
+      } else {
+        Alert.alert("Désolé, une erreur est survenue", "Veuillez réessayer d'enregistrer votre document");
+      }
       reset();
       return;
     }
+    const { data: file, encryptedEntityKey } = uploadResponse;
     await onAddDocument({
       _id: file.filename,
       name: newName,
