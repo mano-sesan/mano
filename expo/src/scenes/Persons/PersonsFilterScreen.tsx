@@ -7,7 +7,7 @@ import ScrollContainer from "@/components/ScrollContainer";
 import Search from "@/components/Search";
 import Tags from "@/components/Tags";
 import FilterGroup from "@/components/FilterGroup";
-import { personsFiltersState, availablePersonFiltersSelector } from "@/recoil/persons";
+import { personsFiltersState, availablePersonFiltersSelector, customFieldsPersonsSelector } from "@/recoil/persons";
 import { FilterableField } from "@/types/field";
 import { formatFilterLabel } from "@/utils/personFilters";
 import { MyText } from "@/components/MyText";
@@ -20,12 +20,13 @@ type PersonsFilterScreenProps = {
 const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreenProps) => {
   const [filters, setFilters] = useAtom(personsFiltersState);
   const availableFields = useAtomValue(availablePersonFiltersSelector);
+  const customFieldsSections = useAtomValue(customFieldsPersonsSelector);
   const [search, setSearch] = useState("");
 
   // Group fields into categories
   const groupedFields = useMemo(() => {
     const identityFields = ["name", "otherNames", "age", "birthdate", "gender", "phone", "email"];
-    const situationFields = ["outOfActiveList", "assignedTeams", "followedSince", "alertness", "wanderingAt"];
+    const situationFields = ["outOfActiveList", "assignedTeams", "followedSince", "alertness", "wanderingAt", "outOfActiveListReasons"];
     const statisticsFields = [
       "numberOfActions",
       "numberOfConsultations",
@@ -44,7 +45,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
       return field.label.toLowerCase().includes(searchLower) || field.field.toLowerCase().includes(searchLower);
     });
 
-    // Group the filtered fields
+    // Standard groups
     const groups = [
       {
         title: "IDENTITÉ",
@@ -63,22 +64,22 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
         fields: filteredFields.filter((f) => activityFields.includes(f.field)),
       },
       {
-        title: "CHAMPS PERSONNALISÉS",
-        fields: filteredFields.filter(
-          (f) =>
-            !identityFields.includes(f.field) &&
-            !situationFields.includes(f.field) &&
-            !statisticsFields.includes(f.field) &&
-            !activityFields.includes(f.field) &&
-            !placesFields.includes(f.field) &&
-            f.field.startsWith("custom-"),
-        ),
-      },
-      {
         title: "LIEUX",
         fields: filteredFields.filter((f) => placesFields.includes(f.field)),
       },
     ];
+
+    // Add custom fields sections dynamically
+    for (const section of customFieldsSections) {
+      const sectionFieldNames = section.fields.map((f) => f.name);
+      const sectionFields = filteredFields.filter((f) => sectionFieldNames.includes(f.field));
+      if (sectionFields.length > 0) {
+        groups.push({
+          title: section.name.toUpperCase(),
+          fields: sectionFields,
+        });
+      }
+    }
 
     // TODO: Add medical group if user.healthcareProfessional
     // if (user?.healthcareProfessional) {
@@ -90,7 +91,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
 
     // Filter out empty groups
     return groups.filter((g) => g.fields.length > 0);
-  }, [availableFields, search]);
+  }, [availableFields, search, customFieldsSections]);
 
   const handleFieldPress = React.useCallback(
     (field: FilterableField) => {
