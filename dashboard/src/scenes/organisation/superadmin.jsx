@@ -84,7 +84,7 @@ const SuperAdmin = () => {
 
   return (
     <>
-      <TopBar />
+      <TopBar onLogoClick={() => setRefresh(true)} />
       <div className="tw-bg-white tw-z-10 tw-pb-4 tw-pt-2 tw-px-8 tw-flex tw-justify-between tw-shadow tw-w-full">
         <div>
           <h2 className="tw-text-xl tw-mb-0">
