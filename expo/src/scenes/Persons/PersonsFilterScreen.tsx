@@ -71,7 +71,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
             !statisticsFields.includes(f.field) &&
             !activityFields.includes(f.field) &&
             !placesFields.includes(f.field) &&
-            f.field.startsWith("custom-")
+            f.field.startsWith("custom-"),
         ),
       },
       {
@@ -98,7 +98,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
         onNavigateToConfig(field);
       }
     },
-    [onNavigateToConfig]
+    [onNavigateToConfig],
   );
 
   const handleResetAll = React.useCallback(() => {
@@ -111,10 +111,10 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
     <SceneContainer testID="persons-filter-screen">
       <ScreenTitle title="Filtres" onBack={onBack} testID="persons-filter-screen-title" />
       <ScrollContainer testID="persons-filter-scroll">
-        <View className="p-4">
+        <View>
           {/* Active filters tags */}
           {activeFilters.length > 0 ? (
-            <View className="mb-4">
+            <View>
               <View className="flex-row items-center justify-between mb-2">
                 <MyText className="font-bold text-base">Filtres actifs ({activeFilters.length})</MyText>
                 <TouchableOpacity onPress={handleResetAll}>
