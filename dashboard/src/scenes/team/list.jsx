@@ -15,6 +15,7 @@ import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { errorMessage } from "../../utils";
+import { teamsColors, borderColors } from "../../components/TagTeam";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -62,6 +63,21 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            render: (team) => {
+              const teamIndex = teams.findIndex((t) => t._id === team._id);
+              return (
+                <div className="tw-flex tw-items-center tw-gap-2">
+                  <span
+                    className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
+                    style={{
+                      backgroundColor: teamsColors[teamIndex % teamsColors.length],
+                      border: `1px solid ${borderColors[teamIndex % borderColors.length]}`,
+                    }}
+                  />
+                  {team.name}
+                </div>
+              );
+            },
           },
           {
             title: "Créée le",
