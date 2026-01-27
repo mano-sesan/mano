@@ -26,8 +26,11 @@ const TopBar = ({ onLogoClick }) => {
   const { refresh, isLoading } = useDataLoader();
 
   const handleRefresh = () => {
-    refresh();
-    onLogoClick?.();
+    if (onLogoClick) {
+      onLogoClick();
+    } else {
+      refresh();
+    }
   };
 
   function resetCacheAndLogout() {
