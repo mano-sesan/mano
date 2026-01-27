@@ -118,8 +118,6 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
 
   if (dataForDisplay.length === 0) return null;
 
-  console.log(dataForDisplay);
-
   return (
     <div className="tw-border tw-border-gray-200 tw-rounded-lg tw-shadow tw-overflow-x-auto tw-overflow-y-hidden tw-p-2 tw-max-w-[824px] tw-mx-auto">
       <h3 className="tw-mb-4 tw-pb-1 tw-text-lg tw-font-semibold tw-border-b tw-border-zinc-200">
