@@ -188,7 +188,7 @@ const NewRencontreForm = ({
   };
 
   const onGoBackRequested = () => {
-    if (rencontrePersons.length > 0 || date || comment) {
+    if (rencontrePersons.length > 0 || comment) {
       Alert.alert("Voulez-vous abandonner la création de la rencontre ?", "Les informations saisies ne seront pas sauvegardées", [
         {
           text: "Continuer la création",
