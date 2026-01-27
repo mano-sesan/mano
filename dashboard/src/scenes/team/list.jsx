@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -120,11 +120,9 @@ const Create = () => {
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       <ButtonCustom type="button" color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
-      <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-        <ModalHeader close={onboardingForTeams ? <></> : null} toggle={() => setOpen(false)}>
-          {onboardingForTeams ? "Dernière étape !" : "Créer une équipe"}
-        </ModalHeader>
-        <ModalBody>
+      <ModalContainer open={open} onClose={onboardingForTeams ? null : () => setOpen(false)} size="3xl">
+        <ModalHeader title={onboardingForTeams ? "Dernière étape !" : "Créer une équipe"} onClose={onboardingForTeams ? null : () => setOpen(false)} />
+        <ModalBody className="tw-p-4">
           {Boolean(onboardingForTeams) && (
             <span>
               Veuillez créer une première équipe avant de commencer à utiliser la plateforme <br />
@@ -236,7 +234,7 @@ const Create = () => {
             }}
           </Formik>
         </ModalBody>
-      </Modal>
+      </ModalContainer>
       <OnboardingEndModal open={onboardingEndModalOpen} setOpen={setOnboardingEndModalOpen} />
     </div>
   );
