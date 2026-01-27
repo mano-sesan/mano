@@ -27,11 +27,11 @@ const FilterGroup = ({ title, fields, activeFilters, onFieldPress }: FilterGroup
       </TouchableOpacity>
       {expanded && (
         <View>
-          {fields.map((field) => {
+          {fields.map((field, index) => {
             const filtered = isFieldFiltered(field);
             return (
               <TouchableOpacity
-                key={field.field}
+                key={field.field + index}
                 onPress={() => onFieldPress(field)}
                 className="flex-row items-center justify-between py-3 px-4 border-b border-gray-100"
               >
