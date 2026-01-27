@@ -135,7 +135,7 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
                 left: `${item.position}px`,
                 top: `${item.top}px`,
                 backgroundColor: item.backgroundColor || "#bbb",
-                border: "1px solid " + (item.borderColor || "aaa"),
+                border: "1px solid " + (item.borderColor || "#aaa"),
               }}
               title={teamName}
             >
