@@ -48,7 +48,7 @@ export default function Recurrence({
   onChange?: (data: RecurrenceData) => void;
   initialValues?: RecurrenceData;
 }) {
-  const [endDate, setEndDate] = useState<Date>(initialValues.endDate || dayjsInstance(startDate).add(6, "month").toDate());
+  const [endDate, setEndDate] = useState<Date>(initialValues.endDate || dayjsInstance(startDate).add(2, "month").toDate());
   const initialDayLabel = ucFirst(dayjsInstance(startDate).format("dddd"));
   const [timeInterval, setTimeInterval] = useState<number>(initialValues.timeInterval || 1);
   const [timeUnit, setTimeUnit] = useState<(typeof timeUnits)[number]>(initialValues.timeUnit || "week");
