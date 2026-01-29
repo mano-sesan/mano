@@ -3,7 +3,7 @@ import { capture } from "./sentry";
 import { logout } from "./logout";
 
 // If you need users to force refresh their cache, change the value of `dashboardCurrentCacheKey` and push to main
-export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_27_entitykey_base64";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_29_2";
 const manoDB = "mano";
 const storeName = "store";
 
