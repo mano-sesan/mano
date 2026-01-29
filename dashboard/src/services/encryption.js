@@ -83,13 +83,15 @@ export const _decrypt_after_extracting_nonce_uint8array = async (nonce_and_cyphe
 };
 
 export const decrypt = async (encryptedContent, encryptedEntityKey, masterKey) => {
+  await libsodium.ready;
+  const sodium = libsodium;
   const entityKey_bytes_array = await _decrypt_after_extracting_nonce(encryptedEntityKey, masterKey);
   const content_uint8array = await _decrypt_after_extracting_nonce(encryptedContent, entityKey_bytes_array);
   const content = window.atob(new TextDecoder().decode(content_uint8array));
 
   return {
     content,
-    entityKey: entityKey_bytes_array,
+    entityKey: sodium.to_base64(entityKey_bytes_array, sodium.base64_variants.ORIGINAL),
   };
 };
 
@@ -133,8 +135,12 @@ export const encodeContent = (content) => {
 };
 
 export const encrypt = async (content, entityKey, masterKey) => {
-  const encryptedContent = await _encrypt_and_prepend_nonce(encodeContent(content), entityKey);
-  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKey, masterKey);
+  await libsodium.ready;
+  const sodium = libsodium;
+  // Convertir base64 string en Uint8Array si nécessaire
+  const entityKeyUint8 = typeof entityKey === "string" ? sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL) : entityKey;
+  const encryptedContent = await _encrypt_and_prepend_nonce(encodeContent(content), entityKeyUint8);
+  const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKeyUint8, masterKey);
 
   return {
     encryptedContent: encryptedContent,
