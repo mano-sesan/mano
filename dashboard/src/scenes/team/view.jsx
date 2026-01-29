@@ -243,7 +243,12 @@ const View = () => {
                   );
                   return;
                 }
-                const text = `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${teams.find((t) => t._id === transferSelectedTeam)?.name} et supprimer l'équipe ${team.name}.`;
+                const targetTeam = teams.find((t) => t._id === transferSelectedTeam);
+                if (!transferSelectedTeam || !targetTeam) {
+                  toast.error("Veuillez sélectionner une équipe de destination avant de transférer les données.");
+                  return;
+                }
+                const text = `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${targetTeam.name} et supprimer l'équipe ${team.name}.`;
 
                 if (!confirm(text)) return;
                 setIsConfirmModalOpen(true);
