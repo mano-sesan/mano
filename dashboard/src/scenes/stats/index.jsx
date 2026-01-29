@@ -132,6 +132,7 @@ const itemsForStatsSelector = ({
       !relativeFilters.includes(f.field) &&
       f.field !== "outOfActiveList" &&
       f.field !== "outOfTeamsDuringPeriod" &&
+      f.field !== "outOfTeamsDuringPeriodReasons" &&
       f.field !== "territories"
   );
   const outOfActiveListFilter = filterPersons.find((f) => f.field === "outOfActiveList")?.value;
@@ -143,6 +144,7 @@ const itemsForStatsSelector = ({
   const filterByNumberOfRencontres = filterPersons.filter((f) => f.field === "numberOfRencontres");
   const filterByNumberOfTreatments = filterPersons.filter((f) => f.field === "numberOfTreatments");
   const filterByOutOfTeamsDuringPeriod = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriod");
+  const filterByOutOfTeamsDuringPeriodReasons = filterPersons.find((f) => f.field === "outOfTeamsDuringPeriodReasons");
   const filterByTerritories = filterPersons.find((f) => f.field === "territories");
 
   const filterItemByTeam = (item, key) => {
@@ -178,6 +180,11 @@ const itemsForStatsSelector = ({
     ? new Set(teams.filter((t) => filterByOutOfTeamsDuringPeriod.value.includes(t.name)).map((t) => t._id))
     : null;
 
+  // Pre-compute reasons for outOfTeamsDuringPeriodReasons filter
+  const outOfTeamsDuringPeriodReasonsSet = filterByOutOfTeamsDuringPeriodReasons?.value?.length
+    ? new Set(filterByOutOfTeamsDuringPeriodReasons.value)
+    : null;
+
   const filterByTerritoriesIds = filterByTerritories?.value?.length
     ? new Set(territories.filter((t) => filterByTerritories.value.includes(t.name)).map((t) => t._id))
     : null;
@@ -210,6 +217,33 @@ const itemsForStatsSelector = ({
         if (wasOutOfSelectedTeam) break;
       }
       if (!wasOutOfSelectedTeam) continue;
+    }
+
+    // Filter by team exit reasons during period
+    if (outOfTeamsDuringPeriodReasonsSet) {
+      let hasMatchingReason = false;
+      for (const historyEntry of person.history || []) {
+        const historyDate = historyEntry.date;
+        if (!noPeriodSelected) {
+          if (historyDate < defaultIsoDates.isoStartDate) continue;
+          if (historyDate >= defaultIsoDates.isoEndDate) continue;
+        }
+
+        const outOfTeamsInformations = historyEntry.data?.outOfTeamsInformations;
+        if (outOfTeamsInformations) {
+          for (const info of outOfTeamsInformations) {
+            for (const reason of info.reasons || []) {
+              if (outOfTeamsDuringPeriodReasonsSet.has(reason)) {
+                hasMatchingReason = true;
+                break;
+              }
+            }
+            if (hasMatchingReason) break;
+          }
+        }
+        if (hasMatchingReason) break;
+      }
+      if (!hasMatchingReason) continue;
     }
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
 
@@ -783,6 +817,15 @@ const Stats = () => {
       label: "Sortie d'équipe",
       type: "multi-choice",
       options: teams.map((t) => t.name),
+    });
+    // Stats-only filter: Motif de sortie d'équipe
+    const outOfActiveListReasonsOptions = fieldsPersonsCustomizableOptions.find((f) => f.name === "outOfActiveListReasons")?.options || [];
+    filterBase.push({
+      field: "outOfTeamsDuringPeriodReasons",
+      name: "outOfTeamsDuringPeriodReasons",
+      label: "Motif de sortie d'équipe",
+      type: "multi-choice",
+      options: outOfActiveListReasonsOptions,
     });
     // Stats-only filter: Territoires
     filterBase.push({
