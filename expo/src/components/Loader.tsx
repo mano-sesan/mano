@@ -40,7 +40,7 @@ export const refreshTriggerState = atom({
 export function mergeItems<T extends { _id?: string; deletedAt?: any }>(
   oldItems: T[],
   newItems: T[] = [],
-  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}
+  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {},
 ): T[] {
   const newItemsCleanedAndFormatted: T[] = [];
   const newItemIds: Record<string, boolean> = {};
@@ -184,7 +184,7 @@ export const DataLoader = () => {
         lastRefresh,
       });
       if (refreshedPersons) {
-        const newPersons = refreshedPersons.map((p) => ({ ...p, followedSince: p.followedSince || p.createdAt }));
+        const newPersons = refreshedPersons.map((p) => ({ ...p, followedSince: p.followedSince }));
         setPersons((oldPersons) => mergeItems(oldPersons, newPersons));
       }
     }

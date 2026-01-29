@@ -115,7 +115,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         birthdate: person.birthdate,
         alertness: person.alertness,
         wanderingAt: person.wanderingAt,
-        followedSince: person.followedSince || person.createdAt,
+        followedSince: person.followedSince,
         createdAt: person.createdAt,
         gender: person.gender,
         phone: person.phone?.trim(),
@@ -131,7 +131,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         history: person.history,
       };
     },
-    [flattenedCustomFieldsPersons]
+    [flattenedCustomFieldsPersons],
   );
 
   const [person, setPerson] = useState(castToPerson(personDB));
@@ -158,7 +158,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   useFocusEffect(
     useCallback(() => {
       setPerson(castToPerson(personDB));
-    }, [personDB, castToPerson])
+    }, [personDB, castToPerson]),
   );
 
   const onEdit = () => setEditable((e) => !e);
@@ -209,7 +209,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       persons.map((p) => {
         if (p._id === personDB._id) return newPerson;
         return p;
-      })
+      }),
     );
     setPerson(castToPerson(newPerson));
     if (alert) Alert.alert("Personne mise à jour !");
@@ -235,7 +235,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
           [
             { text: "Annuler", style: "cancel", onPress: () => res(false) },
             { text: "Continuer", style: "destructive", onPress: () => res(true) },
-          ]
+          ],
         );
       });
       if (!keepGoing) {
@@ -297,14 +297,14 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
                 user: action.user || user._id,
               });
             })
-            .map(API.encryptItem)
+            .map(API.encryptItem),
         );
 
         body.commentsToTransfer = await Promise.all(
           comments
             .filter((c) => c.person === personDB._id && c.group === true)
             .map((comment) => prepareCommentForEncryption({ ...comment, person: personTransferId }))
-            .map(API.encryptItem)
+            .map(API.encryptItem),
         );
       }
     }
