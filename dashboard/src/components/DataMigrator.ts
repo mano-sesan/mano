@@ -65,10 +65,12 @@ export default function useDataMigrator() {
           path: "/person",
           query: { organisation: organisationId, after: "0", withDeleted: false },
         });
-
+        if (!personsRes.ok) {
+          return false;
+        }
         const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "person" })))).filter((e) => e);
 
-        const personsToUpdate = [];
+        const personsToUpdate: typeof decryptedPersons = [];
         for (const person of decryptedPersons) {
           if (!person.followedSince && person.createdAt) {
             personsToUpdate.push({

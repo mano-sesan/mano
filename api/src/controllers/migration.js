@@ -77,14 +77,14 @@ router.put(
                 _id: z.string().regex(looseUuidRegex),
                 encrypted: z.string(),
                 encryptedEntityKey: z.string(),
-              })
+              }),
             ).parse(req.body.encryptedObservations);
             z.array(
               z.object({
                 _id: z.string().regex(looseUuidRegex),
                 encrypted: z.string(),
                 encryptedEntityKey: z.string(),
-              })
+              }),
             ).parse(req.body.encryptedPersons);
           } catch (e) {
             const error = new Error(`Invalid request in ${req.params.migrationName}: ${e}`);
@@ -109,7 +109,7 @@ router.put(
                 _id: z.string().regex(looseUuidRegex),
                 encrypted: z.string(),
                 encryptedEntityKey: z.string(),
-              })
+              }),
             ).parse(req.body.encryptedPersons);
           } catch (e) {
             const error = new Error(`Invalid request in ${req.params.migrationName}: ${e}`);
@@ -117,7 +117,10 @@ router.put(
             throw error;
           }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedPersons) {
-            await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+            await Person.update(
+              { encrypted, encryptedEntityKey },
+              { where: { _id, organisation: req.user.organisation }, transaction: tx, paranoid: false },
+            );
           }
           organisation.set({
             migrations: [...(organisation.migrations || []), req.params.migrationName],
@@ -143,7 +146,7 @@ router.put(
       ok: true,
       organisation: serializeOrganisation(organisation),
     });
-  })
+  }),
 );
 
 module.exports = router;
