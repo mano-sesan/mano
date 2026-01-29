@@ -16,6 +16,7 @@ const {
   Team,
   Service,
   RelUserTeam,
+  Organisation,
 } = require("../db/sequelize");
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex } = require("../utils");
@@ -46,7 +47,7 @@ router.post(
             _id: z.string().regex(looseUuidRegex),
             encrypted: z.string(),
             encryptedEntityKey: z.string(),
-          })
+          }),
         ).parse(req.body[key]);
       } catch (e) {
         const error = new Error(`Invalid request in transfer team ${key}: ${e}`);
@@ -96,7 +97,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of observationsToUpdate) {
         await TerritoryObservation.update(
           { encrypted, encryptedEntityKey },
-          { where: { _id, organisation: req.user.organisation }, transaction: tx }
+          { where: { _id, organisation: req.user.organisation }, transaction: tx },
         );
       }
 
@@ -117,7 +118,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of reportsToUpdate) {
         await Report.update(
           { encrypted, encryptedEntityKey, team: targetTeamId },
-          { where: { _id, team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx }
+          { where: { _id, team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx },
         );
       }
 
@@ -128,7 +129,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of reportsInTargetTeamToUpdate) {
         await Report.update(
           { encrypted, encryptedEntityKey, team: targetTeamId },
-          { where: { _id, team: targetTeamId, organisation: req.user.organisation }, transaction: tx }
+          { where: { _id, team: targetTeamId, organisation: req.user.organisation }, transaction: tx },
         );
       }
 
@@ -180,6 +181,125 @@ router.post(
         transaction: tx,
       });
 
+      // Transfer custom fields enabledTeams
+      const organisation = await Organisation.findOne({ where: { _id: req.user.organisation }, transaction: tx });
+      if (organisation) {
+        const updateOrg = {};
+        let hasChanges = false;
+
+        // Process groupedCustomFieldsObs
+        if (organisation.groupedCustomFieldsObs) {
+          const updated = structuredClone(organisation.groupedCustomFieldsObs);
+          for (const group of updated) {
+            if (group.fields) {
+              for (const field of group.fields) {
+                if (field.enabledTeams?.includes(teamToDeleteId)) {
+                  field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
+                  if (!field.enabledTeams.includes(targetTeamId)) {
+                    field.enabledTeams.push(targetTeamId);
+                  }
+                  hasChanges = true;
+                }
+              }
+            }
+          }
+          if (hasChanges) updateOrg.groupedCustomFieldsObs = updated;
+        }
+
+        // Process groupedCustomFieldsMedicalFile
+        if (organisation.groupedCustomFieldsMedicalFile) {
+          const updated = structuredClone(organisation.groupedCustomFieldsMedicalFile);
+          let changed = false;
+          for (const group of updated) {
+            if (group.fields) {
+              for (const field of group.fields) {
+                field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
+                if (field.enabledTeams?.includes(teamToDeleteId)) {
+                  if (!field.enabledTeams.includes(targetTeamId)) {
+                    field.enabledTeams.push(targetTeamId);
+                  }
+                  changed = true;
+                }
+              }
+            }
+          }
+          if (changed) {
+            updateOrg.groupedCustomFieldsMedicalFile = updated;
+            hasChanges = true;
+          }
+        }
+
+        // Process fieldsPersonsCustomizableOptions
+        if (organisation.fieldsPersonsCustomizableOptions) {
+          const updated = structuredClone(organisation.fieldsPersonsCustomizableOptions);
+          let changed = false;
+          for (const field of updated) {
+            if (field.enabledTeams?.includes(teamToDeleteId)) {
+              field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
+              if (!field.enabledTeams.includes(targetTeamId)) {
+                field.enabledTeams.push(targetTeamId);
+              }
+              changed = true;
+            }
+          }
+          if (changed) {
+            updateOrg.fieldsPersonsCustomizableOptions = updated;
+            hasChanges = true;
+          }
+        }
+
+        // Process customFieldsPersons
+        if (organisation.customFieldsPersons) {
+          const updated = structuredClone(organisation.customFieldsPersons);
+          let changed = false;
+          for (const group of updated) {
+            if (group.fields) {
+              for (const field of group.fields) {
+                if (field.enabledTeams?.includes(teamToDeleteId)) {
+                  field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
+                  if (!field.enabledTeams.includes(targetTeamId)) {
+                    field.enabledTeams.push(targetTeamId);
+                  }
+                  changed = true;
+                }
+              }
+            }
+          }
+          if (changed) {
+            updateOrg.customFieldsPersons = updated;
+            hasChanges = true;
+          }
+        }
+
+        // Process consultations
+        if (organisation.consultations) {
+          const updated = structuredClone(organisation.consultations);
+          let changed = false;
+          for (const group of updated) {
+            if (group.fields) {
+              for (const field of group.fields) {
+                if (field.enabledTeams?.includes(teamToDeleteId)) {
+                  field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
+                  if (!field.enabledTeams.includes(targetTeamId)) {
+                    field.enabledTeams.push(targetTeamId);
+                  }
+                  changed = true;
+                }
+              }
+            }
+          }
+          if (changed) {
+            updateOrg.consultations = updated;
+            hasChanges = true;
+          }
+        }
+
+        if (hasChanges) {
+          organisation.set(updateOrg);
+          await organisation.save({ transaction: tx, context: { userId: req.user._id } });
+        }
+      }
+
       let team = await Team.findOne({ where: { _id: teamToDeleteId, organisation: req.user.organisation } });
       if (team) {
         await team.destroy({ transaction: tx });
@@ -187,7 +307,7 @@ router.post(
     });
 
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 module.exports = router;
