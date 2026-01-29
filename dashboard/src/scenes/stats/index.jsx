@@ -819,13 +819,13 @@ const Stats = () => {
       options: teams.map((t) => t.name),
     });
     // Stats-only filter: Motif de sortie d'équipe
-    const outOfActiveListReasonsOptions = fieldsPersonsCustomizableOptions.find((f) => f.name === "outOfActiveListReasons")?.options || [];
+    const outOfTeamsDuringPeriodReasonsOptions = fieldsPersonsCustomizableOptions.find((f) => f.name === "outOfActiveListReasons")?.options || [];
     filterBase.push({
       field: "outOfTeamsDuringPeriodReasons",
       name: "outOfTeamsDuringPeriodReasons",
       label: "Motif de sortie d'équipe",
       type: "multi-choice",
-      options: outOfActiveListReasonsOptions,
+      options: outOfTeamsDuringPeriodReasonsOptions,
     });
     // Stats-only filter: Territoires
     filterBase.push({
