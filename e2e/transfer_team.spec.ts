@@ -142,7 +142,7 @@ test("Transfer team", async ({ page }) => {
   // Vérification
   await page.getByRole("link", { name: "Comptes rendus" }).click();
   await page.locator(".report-team-select__indicator").click();
-  await page.getByText("nouvelle", { exact: true }).click();
+  await page.getByText("nouvelle", { exact: true }).nth(1).click();
   await page.getByText("1passagePassages (1)Ajouter").click();
   await page.getByText("1rencontreRencontres (1)").click();
   await page.getByText("1personne crééePersonnes créé").click();
@@ -155,5 +155,5 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page.getByRole("link", { name: "Utilisateurs" }).click();
   await page.getByText("test@example.org").click();
-  await page.getByText("nouvelle").click();
+  await page.getByText("nouvelle").nth(1).click();
 });
