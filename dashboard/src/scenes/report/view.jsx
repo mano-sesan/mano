@@ -341,8 +341,8 @@ const View = () => {
           <DateRangePickerWithPresets
             presets={reportsPresets}
             period={{
-              startDate: dateForDatePicker(period.startDate),
-              endDate: dateForDatePicker(period.endDate),
+              startDate: dateForDatePicker(period.startDate, "start"),
+              endDate: dateForDatePicker(period.endDate, "end"),
             }}
             setPeriod={setPeriod}
             preset={preset}

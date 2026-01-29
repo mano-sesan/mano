@@ -5,12 +5,6 @@ import DatePicker from "react-datepicker";
 import type { Dayjs, ManipulateType } from "dayjs";
 import type { Period, Preset } from "../types/date";
 
-const getOffsetFromToday = (value: number, unit: ManipulateType, end = false): Dayjs => {
-  const a = dayjsInstance();
-  const b = a.subtract(value, unit);
-  return end ? b.endOf("day") : b.startOf("day");
-};
-
 export const statsPresets: Array<Preset> = [
   {
     label: "Toutes les données",
@@ -22,7 +16,7 @@ export const statsPresets: Array<Preset> = [
   },
   {
     label: "Hier",
-    period: { startDate: getOffsetFromToday(1, "day"), endDate: getOffsetFromToday(1, "day", true) },
+    period: { startDate: dayjsInstance().subtract(1, "day").startOf("day"), endDate: dayjsInstance().subtract(1, "day").endOf("day") },
   },
   {
     label: "Cette semaine",
@@ -42,11 +36,11 @@ export const statsPresets: Array<Preset> = [
   },
   {
     label: "Les trois derniers mois glissants",
-    period: { startDate: dayjsInstance().subtract(3, "month"), endDate: dayjsInstance() },
+    period: { startDate: dayjsInstance().subtract(3, "month").startOf("day"), endDate: dayjsInstance().endOf("day") },
   },
   {
     label: "Les six derniers mois glissants",
-    period: { startDate: dayjsInstance().subtract(6, "month"), endDate: dayjsInstance() },
+    period: { startDate: dayjsInstance().subtract(6, "month").startOf("day"), endDate: dayjsInstance().endOf("day") },
   },
   {
     label: "Ce semestre",
@@ -79,11 +73,11 @@ export const statsPresets: Array<Preset> = [
 if (import.meta.env.VITE_TEST_PLAYWRIGHT) {
   statsPresets.push({
     label: "2020",
-    period: { startDate: dayjsInstance("2020-01-01"), endDate: dayjsInstance("2020-12-31") },
+    period: { startDate: dayjsInstance("2020-01-01").startOf("day"), endDate: dayjsInstance("2020-12-31").endOf("day") },
   });
   statsPresets.push({
     label: "2021",
-    period: { startDate: dayjsInstance("2021-01-01"), endDate: dayjsInstance("2021-12-31") },
+    period: { startDate: dayjsInstance("2021-01-01").startOf("day"), endDate: dayjsInstance("2021-12-31").endOf("day") },
   });
 }
 
@@ -94,7 +88,7 @@ export const reportsPresets: Array<Preset> = [
   },
   {
     label: "Hier",
-    period: { startDate: getOffsetFromToday(1, "day"), endDate: getOffsetFromToday(1, "day", true) },
+    period: { startDate: dayjsInstance().subtract(1, "day").startOf("day"), endDate: dayjsInstance().subtract(1, "day").endOf("day") },
   },
   {
     label: "Cette semaine",
@@ -150,8 +144,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
       if (defaultPreset) {
         setPreset(defaultPreset.label);
         setPeriod({
-          startDate: dateForDatePicker(defaultPreset.period.startDate),
-          endDate: dateForDatePicker(defaultPreset.period.endDate),
+          startDate: dateForDatePicker(defaultPreset.period.startDate, "start"),
+          endDate: dateForDatePicker(defaultPreset.period.endDate, "end"),
         });
       } else {
         setPeriod({ startDate: null, endDate: null });
@@ -174,8 +168,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
     if (!endDate) return setLocalStartDate(startDate);
     setLocalStartDate(null);
     setPeriod({
-      startDate: dateForDatePicker(startDate),
-      endDate: dateForDatePicker(endDate),
+      startDate: dateForDatePicker(startDate, "start"),
+      endDate: dateForDatePicker(endDate, "end"),
     });
     removePreset();
   };
@@ -187,8 +181,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
   const setPresetRequest = (preset) => {
     setPreset(preset.label);
     setPeriod({
-      startDate: dateForDatePicker(preset.period.startDate),
-      endDate: dateForDatePicker(preset.period.endDate),
+      startDate: dateForDatePicker(preset.period.startDate, "start"),
+      endDate: dateForDatePicker(preset.period.endDate, "end"),
     });
     closeDatePicker();
   };
@@ -223,10 +217,10 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
               inline
               locale="fr"
               name="date"
-              selected={dateForDatePicker(localStartDate || period.startDate)}
+              selected={dateForDatePicker(localStartDate || period.startDate, "start")}
               onChange={onChange}
-              startDate={dateForDatePicker(localStartDate || period.startDate)}
-              endDate={dateForDatePicker(localStartDate ? null : period.endDate)}
+              startDate={dateForDatePicker(localStartDate || period.startDate, "start")}
+              endDate={dateForDatePicker(localStartDate ? null : period.endDate, "end")}
             />
           </div>
         </OutsideClickHandler>
