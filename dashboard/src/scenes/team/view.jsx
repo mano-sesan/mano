@@ -237,11 +237,20 @@ const View = () => {
                 if (passagesInTeam.length) items.push(`${passagesInTeam.length} passages`);
                 if (rencontresInTeam.length) items.push(`${rencontresInTeam.length} rencontres`);
                 if (reportsInTeam.length) items.push(`${reportsInTeam.length} rapports`);
-                const text = items.length
-                  ? `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${teams.find((t) => t._id === transferSelectedTeam)?.name} et supprimer l'équipe ${team.name}.`
-                  : null;
+                if (!items.length) {
+                  toast.error(
+                    `Il n'y a rien à transférer depuis l'équipe "${team.name}" : aucune action, consultation, commentaire, observation, personne, passage, rencontre ou compte-rendu. Vous pouvez la supprimer sans problème.`
+                  );
+                  return;
+                }
+                const targetTeam = teams.find((t) => t._id === transferSelectedTeam);
+                if (!transferSelectedTeam || !targetTeam) {
+                  toast.error("Veuillez sélectionner une équipe de destination avant de transférer les données.");
+                  return;
+                }
+                const text = `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${targetTeam.name} et supprimer l'équipe ${team.name}.`;
 
-                if (!text || !confirm(text)) return;
+                if (!confirm(text)) return;
                 setIsConfirmModalOpen(true);
               }}
             >
