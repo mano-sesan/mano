@@ -81,7 +81,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
   const setPersons = awaitSetAtomAndIDBCache(personsState);
   const setGroups = awaitSetAtomAndIDBCache(groupsState);
-  const setReports = useSetAtom(reportsState);
+  const setReports = awaitSetAtomAndIDBCache(reportsState);
   const setPassages = awaitSetAtomAndIDBCache(passagesState);
   const setRencontres = awaitSetAtomAndIDBCache(rencontresState);
   const setActions = awaitSetAtomAndIDBCache(actionsState);
