@@ -348,6 +348,8 @@ const View = () => {
           );
           if (transferTeamError) return toast.error(errorMessage(transferTeamError));
           setTeams(teams.filter((t) => t._id !== id));
+          setCurrentTeam(teams.find((t) => t._id === transferSelectedTeam));
+          if (currentTeam._id === id) setCurrentTeam(teams.find((t) => t._id === transferSelectedTeam));
           refresh();
           toast.success("Données transférées avec succès");
           history.goBack();
