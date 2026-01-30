@@ -10,7 +10,7 @@ export function getPersonInfo(person: PersonInstance) {
   if (person.gender) {
     infos.push(`Genre : ${person.gender ?? ""}`);
   }
-  infos.push(`Suivi·e depuis le : ${dayjsInstance(person.followedSince || person.createdAt).format("DD/MM/YYYY")}`);
+  infos.push(`Suivi·e depuis le : ${dayjsInstance(person.followedSince).format("DD/MM/YYYY")}`);
   if (person.wanderingAt) {
     infos.push(`En rue depuis le : ${dayjsInstance(person.wanderingAt).format("DD/MM/YYYY")}`);
   }

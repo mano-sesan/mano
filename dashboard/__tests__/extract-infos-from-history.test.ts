@@ -20,6 +20,7 @@ describe("Extract infos from history", () => {
   test("no team change, only one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [],
@@ -33,6 +34,7 @@ describe("Extract infos from history", () => {
   test("one team change, from one team to another", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [
@@ -56,6 +58,7 @@ describe("Extract infos from history", () => {
   test("one team change, adding one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_B", "TEAM_ID_A"],
       history: [
@@ -79,6 +82,7 @@ describe("Extract infos from history", () => {
   test("one team change, removing one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [
@@ -102,6 +106,7 @@ describe("Extract infos from history", () => {
   test("two team changes", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [

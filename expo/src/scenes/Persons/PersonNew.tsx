@@ -73,7 +73,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     });
     if (response.ok) {
       setPersons((persons) => {
-        const nextPersons = [response.decryptedData, ...persons].map((p) => ({ ...p, followedSince: p.followedSince || p.createdAt }));
+        const nextPersons = [response.decryptedData, ...persons].map((p) => ({ ...p, followedSince: p.followedSince }));
         return nextPersons;
       });
     }

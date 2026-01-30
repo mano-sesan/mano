@@ -494,8 +494,8 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
           sortOrder,
           sortBy,
           render: (p) => {
-            if (p.outOfActiveList) return <div className="tw-text-black50">{formatDateWithFullMonth(p.followedSince || p.createdAt || "")}</div>;
-            return formatDateWithFullMonth(p.followedSince || p.createdAt || "");
+            if (p.outOfActiveList) return <div className="tw-text-black50">{formatDateWithFullMonth(p.followedSince)}</div>;
+            return formatDateWithFullMonth(p.followedSince);
           },
         },
         {
