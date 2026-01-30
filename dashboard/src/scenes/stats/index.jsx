@@ -182,7 +182,7 @@ const itemsForStatsSelector = ({
 
   // Pre-compute reasons for outOfTeamsDuringPeriodReasons filter
   const outOfTeamsDuringPeriodReasonsSet = filterByOutOfTeamsDuringPeriodReasons?.value?.length
-    ? new Set(filterByOutOfTeamsDuringPeriodReasons.value)
+    ? new Set(filterByOutOfTeamsDuringPeriodReasons.value.filter((r) => r !== "Non renseigné"))
     : null;
 
   const filterByTerritoriesIds = filterByTerritories?.value?.length
@@ -220,7 +220,7 @@ const itemsForStatsSelector = ({
     }
 
     // Filter by team exit reasons during period
-    if (outOfTeamsDuringPeriodReasonsSet) {
+    if (filterByOutOfTeamsDuringPeriodReasons?.value?.length) {
       const includeNoReason = filterByOutOfTeamsDuringPeriodReasons.value.includes("Non renseigné");
       let hasMatchingReason = false;
       for (const historyEntry of person.history || []) {
@@ -238,11 +238,13 @@ const itemsForStatsSelector = ({
               hasMatchingReason = true;
               break;
             }
-            // Check for matching reasons
-            for (const reason of info.reasons || []) {
-              if (outOfTeamsDuringPeriodReasonsSet.has(reason)) {
-                hasMatchingReason = true;
-                break;
+            // Check for matching reasons (only if Set has values)
+            if (outOfTeamsDuringPeriodReasonsSet) {
+              for (const reason of info.reasons || []) {
+                if (outOfTeamsDuringPeriodReasonsSet.has(reason)) {
+                  hasMatchingReason = true;
+                  break;
+                }
               }
             }
             if (hasMatchingReason) break;
