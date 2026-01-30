@@ -10,6 +10,7 @@ import { formatDateTimeWithNameOfDay } from "../../services/date";
 import { DocumentModal } from "./DocumentModal";
 import { handleFilesUpload } from "./DocumentsUpload";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
+import { HTML_ACCEPT_ATTRIBUTE } from "../../utils/file-types";
 
 type Color = "main" | "blue-900";
 
@@ -129,6 +130,7 @@ export default function DocumentsListSimple({
           <input
             ref={fileInputRef}
             type="file"
+            accept={HTML_ACCEPT_ATTRIBUTE}
             multiple
             key={resetFileInputKey}
             className="tw-hidden"
