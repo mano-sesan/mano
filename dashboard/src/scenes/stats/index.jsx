@@ -221,6 +221,7 @@ const itemsForStatsSelector = ({
 
     // Filter by team exit reasons during period
     if (outOfTeamsDuringPeriodReasonsSet) {
+      const includeNoReason = filterByOutOfTeamsDuringPeriodReasons.value.includes("Non renseigné");
       let hasMatchingReason = false;
       for (const historyEntry of person.history || []) {
         const historyDate = historyEntry.date;
@@ -232,6 +233,12 @@ const itemsForStatsSelector = ({
         const outOfTeamsInformations = historyEntry.data?.outOfTeamsInformations;
         if (outOfTeamsInformations) {
           for (const info of outOfTeamsInformations) {
+            // Check if reasons is empty/missing and "Non renseigné" is selected
+            if (!info.reasons?.length && includeNoReason) {
+              hasMatchingReason = true;
+              break;
+            }
+            // Check for matching reasons
             for (const reason of info.reasons || []) {
               if (outOfTeamsDuringPeriodReasonsSet.has(reason)) {
                 hasMatchingReason = true;
