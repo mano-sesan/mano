@@ -3,10 +3,20 @@ import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 
-function ChartTitle({ title, help }) {
+function ChartTitle({
+  title,
+  help,
+  settingsButton,
+}: {
+  title: string | React.ReactNode;
+  help?: string;
+  settingsButton?: React.ReactNode;
+}) {
   return (
     <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
-      {title} {!!help && <HelpButtonAndModal title={title} help={help} questionMarkColor="violet" />}
+      {title}
+      {!!help && <HelpButtonAndModal title={typeof title === "string" ? title : ""} help={help} questionMarkColor="violet" />}
+      {!!settingsButton && <span className="tw-ml-auto tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
     </div>
   );
 }
@@ -33,9 +43,10 @@ export const CustomResponsivePie = ({
   onItemClick = null,
   help,
   tableHeaderTitles,
+  settingsButton,
 }: {
   data: PieData;
-  title: string;
+  title: string | React.ReactNode;
   onItemClick?: (id: string) => void;
   help?: string;
   tableHeaderTitles?: {
@@ -43,6 +54,7 @@ export const CustomResponsivePie = ({
     value: string;
     percentage: string;
   };
+  settingsButton?: React.ReactNode;
 }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
@@ -51,17 +63,17 @@ export const CustomResponsivePie = ({
     onItemClick(id);
   };
 
-  if (data.length === 0) return <EmptyData title={title} help={help} />;
+  if (data.length === 0) return <EmptyData title={typeof title === "string" ? title : ""} help={help} />;
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} />
       <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-pl-4 tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || (typeof title === "string" ? title : "")}</div>
               </th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
               {total ? <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th> : <></>}
@@ -156,8 +168,9 @@ export const CustomResponsiveBar = ({
   help,
   tableHeaderTitles,
   showTotal = true,
+  settingsButton,
 }: {
-  title: string;
+  title: string | React.ReactNode;
   data: BarData;
   categories?: string[];
   onItemClick?: (id: string) => void;
@@ -173,6 +186,7 @@ export const CustomResponsiveBar = ({
     percentage: string;
   };
   showTotal?: boolean;
+  settingsButton?: React.ReactNode;
 }) => {
   // if we have too many categories with small data, we see nothing in the chart
   // so we filter by keeping the first 15 categories whatever
@@ -201,17 +215,17 @@ export const CustomResponsiveBar = ({
     onItemClick(id);
   };
 
-  if (data.length === 0) return <EmptyData title={title} help={help} />;
+  if (data.length === 0) return <EmptyData title={typeof title === "string" ? title : ""} help={help} />;
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} />
       <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || (typeof title === "string" ? title : "")}</div>
               </th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th>
