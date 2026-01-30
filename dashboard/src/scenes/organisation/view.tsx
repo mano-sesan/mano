@@ -144,7 +144,12 @@ const View = () => {
             <MenuButton selected={tab === "infos"} text="Informations" onClick={() => setTab("infos")} />
             <MenuButton selected={tab === "encryption"} text="Chiffrement" onClick={() => setTab("encryption")} />
           </div>
-          <div className="tw-text-white tw-font-bold  tw-text-sm mt-3">Paramétrage de l’activité</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Personnes suivies</div>
+          <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
+            <MenuButton selected={tab === "persons"} text="Personnes suivies" onClick={() => setTab("persons")} />
+            <MenuButton selected={tab === "medicalFile"} text="Dossier Médical" onClick={() => setTab("medicalFile")} />
+          </div>
+          <div className="tw-text-white tw-font-bold  tw-text-sm mt-3">Paramétrage de l'activité</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "reception"} text="Accueil de jour" onClick={() => setTab("reception")} />
             <MenuButton selected={tab === "actions"} text="Actions" onClick={() => setTab("actions")} />
@@ -153,11 +158,6 @@ const View = () => {
             <MenuButton selected={tab === "rencontres-passages"} text="Passages/rencontres" onClick={() => setTab("rencontres-passages")} />
             <MenuButton selected={tab === "consultations"} text="Consultations" onClick={() => setTab("consultations")} />
             <MenuButton selected={tab === "collaborations"} text="Co-interventions" onClick={() => setTab("collaborations")} />
-          </div>
-          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Personnes suivies</div>
-          <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
-            <MenuButton selected={tab === "persons"} text="Personnes suivies" onClick={() => setTab("persons")} />
-            <MenuButton selected={tab === "medicalFile"} text="Dossier Médical" onClick={() => setTab("medicalFile")} />
           </div>
           <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Import et export</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
