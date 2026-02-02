@@ -165,7 +165,7 @@ const TerritoryObservation = ({
       }
       return {
         ...toReturn,
-        observedAt: territoryObservation.observedAt || (territoryObservation.createdAt! as Date),
+        observedAt: territoryObservation.observedAt || (territoryObservation.createdAt! as Date) || new Date(),
         createdAt: territoryObservation.createdAt,
         user: territoryObservation.user || "",
         entityKey: territoryObservation.entityKey || "",
@@ -234,10 +234,9 @@ const TerritoryObservation = ({
     const response = await API.post({
       path: "/territory-observation",
       body: prepareObsForEncryption(customFieldsObs)(
-        Object.assign({}, castToTerritoryObservation(obs), {
+        Object.assign({}, castToTerritoryObservation({ ...obs, observedAt: date || new Date() }), {
           territory: route.params.territory._id,
           user: user._id,
-          observedAt: new Date(),
           team: currentTeam._id,
           organisation: organisation._id,
         })
@@ -394,7 +393,7 @@ const TerritoryObservation = ({
           contentContainerStyle={{ paddingBottom: 20 }}
         >
           <View className="mt-3">
-            {editable && obsDB?._id ? (
+            {editable ? (
               <DateAndTimeInput
                 label="Observation faite le"
                 // @ts-expect-error Argument of type 'PossibleDate' is not assignable to parameter of type 'SetStateAction<Date>'
