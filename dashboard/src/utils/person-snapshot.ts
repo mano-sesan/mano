@@ -50,13 +50,14 @@ export function getPersonSnapshotAtDate({
       const oldValue = replaceNullishWithNonRenseigne
         ? getValueByField(fieldName, typesByFields[fieldName], historyItem.data[fieldName].oldValue)
         : historyItem.data[fieldName].oldValue;
-      const historyNewValue = replaceNullishWithNonRenseigne
-        ? getValueByField(fieldName, typesByFields[fieldName], historyItem.data[fieldName].newValue)
-        : historyItem.data[fieldName].newValue;
-      const currentPersonValue = replaceNullishWithNonRenseigne
-        ? getValueByField(fieldName, typesByFields[fieldName], snapshot[fieldName])
-        : snapshot[fieldName];
-      if (JSON.stringify(historyNewValue) !== JSON.stringify(currentPersonValue)) {
+      /* DEBUG PART */
+      // const historyNewValue = replaceNullishWithNonRenseigne
+      //   ? getValueByField(fieldName, typesByFields[fieldName], historyItem.data[fieldName].newValue)
+      //   : historyItem.data[fieldName].newValue;
+      // const currentPersonValue = replaceNullishWithNonRenseigne
+      //   ? getValueByField(fieldName, typesByFields[fieldName], snapshot[fieldName])
+      //   : snapshot[fieldName];
+      /* if (JSON.stringify(historyNewValue) !== JSON.stringify(currentPersonValue)) {
         capture(new Error("Incoherent snapshot history 4"), {
           extra: {
             historyItem,
@@ -75,7 +76,8 @@ export function getPersonSnapshotAtDate({
             fieldName,
           },
         });
-      }
+      } */
+      /* DEBUG PART END */
       if (oldValue === "") continue;
       snapshot = {
         ...snapshot,
