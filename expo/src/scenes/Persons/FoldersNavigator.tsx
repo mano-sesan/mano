@@ -14,6 +14,7 @@ import { customFieldsPersonsSelector } from "../../recoil/persons";
 import { FoldersStackParams, RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PersonInstance } from "@/types/person";
+import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 const FoldersStack = createStackNavigator<FoldersStackParams>();
 
@@ -59,9 +60,9 @@ const FoldersSummary = ({ navigation, backgroundColor }: FoldersSummaryProps) =>
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector)!;
-
+  useEditButtonStatusOnFocused("hide");
   return (
-    <ScrollContainer noPadding backgroundColor={backgroundColor || colors.app.color}>
+    <ScrollContainer noPadding backgroundColor={backgroundColor || colors.app.color} contentContainerStyle={{ paddingBottom: 100 }}>
       <Spacer />
       {customFieldsPersons.map(({ name }) => {
         return <Row key={name} withNextButton caption={name} onPress={() => navigation.navigate(name)} />;

@@ -20,6 +20,7 @@ import CustomFieldInput from "../../components/CustomFieldInput";
 import ConsultationRow from "../../components/ConsultationRow";
 import TreatmentRow from "../../components/TreatmentRow";
 import DocumentsManager from "../../components/DocumentsManager";
+import { MyText } from "../../components/MyText";
 import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import CommentRow from "../Comments/CommentRow";
 import NewCommentInput from "../Comments/NewCommentInput";
