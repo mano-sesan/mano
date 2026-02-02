@@ -8,6 +8,7 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import UserStatus from "../../components/UserStatus";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 export default function SuperadminOrganisationUsers({
   organisation,
@@ -172,11 +173,19 @@ export default function SuperadminOrganisationUsers({
                   <UserStatus user={user} />
                 </td>
                 <td>
-                  {user.email}
+                  <a
+                    href={`mailto:${user.email}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="tw-text-main tw-flex tw-items-center tw-gap-1 hover:tw-underline focus:tw-underline"
+                  >
+                    {user.email}
+                    <ArrowTopRightOnSquareIcon className="tw-h-4 tw-w-4" />
+                  </a>
                   {user.phone ? <div>{user.phone}</div> : ""}
                 </td>
                 <td>
-                  <div>{user.role}</div>
+                  {user.role}
                   {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
                 </td>
                 <td>
