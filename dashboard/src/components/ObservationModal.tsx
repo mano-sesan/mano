@@ -329,7 +329,8 @@ function ObservationContent({
                       },
                       { title: "Commentaire", dataKey: "comment" },
                       {
-                        title: "Équipe en charge",                        dataKey: "team",
+                        title: "Équipe en charge",
+                        dataKey: "team",
                         render: (rencontre) => <TagTeam teamId={rencontre?.team} />,
                       },
                       {
