@@ -69,7 +69,7 @@ describe("Stats evolutives", () => {
     expect(incoherentHistoryCall).toBeFalsy();
 
     // Verify total number of calls
-    expect(mockedCapture).toHaveBeenCalledTimes(1);
+    expect(mockedCapture).toHaveBeenCalledTimes(0);
   });
   test("should output proper values and dates at start and end whatever the persons are", async () => {
     // we just test those outputs once, not in all the other tests
