@@ -356,7 +356,14 @@ function ObservationContent({
                           ) : null;
                         },
                       },
-                    ]}
+                    ].filter((rows) => {
+                      if (rows.dataKey === "actions") {
+                        if (currentRencontres.filter((r) => !r._id).length === 0) {
+                          return false;
+                        }
+                      }
+                      return true;
+                    })}
                   />
                   <div className="tw-flex tw-justify-center tw-items-center tw-mt-4">
                     <button
