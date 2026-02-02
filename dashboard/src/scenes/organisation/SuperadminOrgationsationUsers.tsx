@@ -185,7 +185,7 @@ export default function SuperadminOrganisationUsers({
                   {user.phone ? <div>{user.phone}</div> : ""}
                 </td>
                 <td>
-                  {user.role}
+                  <div>{user.role}</div>
                   {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
                 </td>
                 <td>
