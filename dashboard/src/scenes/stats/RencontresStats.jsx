@@ -60,7 +60,7 @@ const RencontresStats = ({
     for (const r of rencontres) {
       const territoryKey = r.territoryObject?.name || NO_TERRITORY_KEY;
       if (isFilteredByTerritories && !territoriesObject[territoryKey]) continue;
-      if (!personObject[r.person]) continue;
+      if (filterPersons.length && !personObject[r.person]) continue;
 
       if (!filteredPersonsObject[r.person]) {
         filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
@@ -88,7 +88,7 @@ const RencontresStats = ({
     const filteredPersons = Object.values(filteredPersonsObject);
     const filteredRencontresByTerritoriesUniquePersons = Object.values(rencontresGroupedByTerritoriesUniquePersonsObject).flat();
     return { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons };
-  }, [rencontres, selectedTerritories, personObject]);
+  }, [rencontres, selectedTerritories, personObject, filterPersons]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {
