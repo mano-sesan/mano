@@ -210,7 +210,7 @@ export const capture = (err: Error | string, context: OptionalScopeContext = {})
       } else {
         // Sanitize password fields
         const extraValueObj = extraValue as Record<string, unknown>;
-        if (extraValueObj && "password" in extraValueObj) {
+        if (extraValueObj && typeof extraValueObj === "object" && "password" in extraValueObj) {
           extraValueObj.password = "******";
         }
         newExtra[extraKey] = JSON.stringify(extraValue);
