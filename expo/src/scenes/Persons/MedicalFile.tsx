@@ -20,7 +20,6 @@ import CustomFieldInput from "../../components/CustomFieldInput";
 import ConsultationRow from "../../components/ConsultationRow";
 import TreatmentRow from "../../components/TreatmentRow";
 import DocumentsManager from "../../components/DocumentsManager";
-import { MyText } from "../../components/MyText";
 import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import CommentRow from "../Comments/CommentRow";
 import NewCommentInput from "../Comments/NewCommentInput";
@@ -37,6 +36,7 @@ import { MedicalFileInstance } from "@/types/medicalFile";
 import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "@/types/treatment";
+import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
@@ -65,7 +65,7 @@ const MedicalFile = ({
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
-
+  useEditButtonStatusOnFocused("show");
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector)!;
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
@@ -78,7 +78,7 @@ const MedicalFile = ({
       (allConsultations || [])
         .filter((c) => c.person === personDB?._id)
         .sort((p1, p2) => ((p1.completedAt || p1.dueAt) > (p2.completedAt || p2.dueAt) ? -1 : 1)),
-    [allConsultations, personDB?._id]
+    [allConsultations, personDB?._id],
   );
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === personDB?._id), [allTreatments, personDB?._id]);
@@ -140,7 +140,7 @@ const MedicalFile = ({
         .flat() || [];
     const otherComments = medicalFile?.comments || [];
     return [...treatmentsComments, ...consultationsComments, ...otherComments].sort((a, b) =>
-      dayjsInstance(b.date || b.createdAt).diff(dayjsInstance(a.date || a.createdAt))
+      dayjsInstance(b.date || b.createdAt).diff(dayjsInstance(a.date || a.createdAt)),
     );
   }, [consultations, medicalFile, treatments, user]);
 
@@ -303,7 +303,7 @@ const MedicalFile = ({
       medicalFiles.map((m) => {
         if (m._id === medicalFileDB!._id) return response.decryptedData;
         return m;
-      })
+      }),
     );
     setMedicalFile(response.decryptedData);
     const personResponse = await onUpdatePerson();
@@ -326,7 +326,7 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
@@ -344,7 +344,7 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
@@ -362,7 +362,7 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
