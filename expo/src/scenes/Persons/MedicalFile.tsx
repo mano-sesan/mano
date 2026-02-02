@@ -20,7 +20,6 @@ import CustomFieldInput from "../../components/CustomFieldInput";
 import ConsultationRow from "../../components/ConsultationRow";
 import TreatmentRow from "../../components/TreatmentRow";
 import DocumentsManager from "../../components/DocumentsManager";
-import { MyText } from "../../components/MyText";
 import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
 import CommentRow from "../Comments/CommentRow";
 import NewCommentInput from "../Comments/NewCommentInput";
@@ -37,6 +36,7 @@ import { MedicalFileInstance } from "@/types/medicalFile";
 import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "@/types/treatment";
+import SubHeader from "@/components/SubHeader";
 
 type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
@@ -48,6 +48,7 @@ type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK
   isUpdateDisabled: boolean;
   editable: boolean;
   updating: boolean;
+  onBack: () => void;
 };
 
 const MedicalFile = ({
@@ -61,11 +62,11 @@ const MedicalFile = ({
   isUpdateDisabled,
   backgroundColor,
   onChange,
+  onBack: onBackProp,
 }: MedicalFileProps) => {
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
-
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector)!;
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
@@ -78,7 +79,7 @@ const MedicalFile = ({
       (allConsultations || [])
         .filter((c) => c.person === personDB?._id)
         .sort((p1, p2) => ((p1.completedAt || p1.dueAt) > (p2.completedAt || p2.dueAt) ? -1 : 1)),
-    [allConsultations, personDB?._id]
+    [allConsultations, personDB?._id],
   );
 
   const treatments = useMemo(() => (allTreatments || []).filter((t) => t.person === personDB?._id), [allTreatments, personDB?._id]);
@@ -113,7 +114,7 @@ const MedicalFile = ({
   };
   const onBack = () => {
     backRequestHandledRef.current = true;
-    navigation.goBack();
+    onBackProp();
   };
   useEffect(() => {
     const beforeRemoveListenerUnsbscribe = navigation.addListener("beforeRemove", handleBeforeRemove);
@@ -140,7 +141,7 @@ const MedicalFile = ({
         .flat() || [];
     const otherComments = medicalFile?.comments || [];
     return [...treatmentsComments, ...consultationsComments, ...otherComments].sort((a, b) =>
-      dayjsInstance(b.date || b.createdAt).diff(dayjsInstance(a.date || a.createdAt))
+      dayjsInstance(b.date || b.createdAt).diff(dayjsInstance(a.date || a.createdAt)),
     );
   }, [consultations, medicalFile, treatments, user]);
 
@@ -303,7 +304,7 @@ const MedicalFile = ({
       medicalFiles.map((m) => {
         if (m._id === medicalFileDB!._id) return response.decryptedData;
         return m;
-      })
+      }),
     );
     setMedicalFile(response.decryptedData);
     const personResponse = await onUpdatePerson();
@@ -326,7 +327,7 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
@@ -344,7 +345,7 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
@@ -362,178 +363,185 @@ const MedicalFile = ({
         medicalFiles.map((m) => {
           if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
           return m;
-        })
+        }),
       );
       setMedicalFile(medicalFileResponse.decryptedData);
     }
   };
 
   return (
-    <ScrollContainer noRadius keyboardShouldPersistTaps="handled" backgroundColor={backgroundColor || colors.app.color} testID="person-summary">
-      <BackButton onPress={onGoBackRequested}>
-        <MyText color={colors.app.color}>{"<"} Retour vers la personne</MyText>
-      </BackButton>
-      <InputLabelled
-        label="Nom prénom ou Pseudonyme"
-        onChangeText={(name) => onChange({ name })}
-        value={person.name}
-        placeholder="Monsieur X"
-        editable={editable}
+    <>
+      <SubHeader
+        // backgroundColor="#1F398A" // TODO: use this color also in the Person header
+        backgroundColor={backgroundColor || colors.app.color}
+        onBack={onGoBackRequested}
+        caption="Dossier médical"
       />
-      <GenderSelect onSelect={(gender) => onChange({ gender })} value={person.gender} editable={editable} />
-      {editable ? (
-        <DateAndTimeInput
-          label="Date de naissance"
-          // @ts-expect-error This comparison appears to be unintentional because the types 'Date' and 'string' have no overlap
-          setDate={(birthdate: PossibleDate) => onChange({ birthdate })}
-          date={person.birthdate}
-          editable={editable}
-          showYear
-        />
-      ) : (
-        <InputLabelled label="Âge" value={populatedPerson.formattedBirthDate} placeholder="JJ-MM-AAAA" editable={false} />
-      )}
-      {/* These custom fields are displayed by default, because they where displayed before they became custom fields */}
-      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances")) && (
-        <HealthInsuranceMultiCheckBox
-          values={person.healthInsurances}
-          onChange={(healthInsurances) => onChange({ healthInsurances })}
-          editable={editable}
-        />
-      )}
-      {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical")) && (
+      <ScrollContainer noRadius keyboardShouldPersistTaps="handled" backgroundColor={backgroundColor || colors.app.color} testID="person-summary">
         <InputLabelled
-          label="Structure de suivi médical"
-          onChangeText={(structureMedical) => onChange({ structureMedical })}
-          value={person.structureMedical || (editable ? null : "-- Non renseignée --")}
-          placeholder="Renseignez la structure médicale le cas échéant"
+          label="Nom prénom ou Pseudonyme"
+          onChangeText={(name) => onChange({ name })}
+          value={person.name}
+          placeholder="Monsieur X"
           editable={editable}
         />
-      )}
-      {customFieldsMedicalFile
-        .filter((f) => f)
-        .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
-        .map((field) => {
-          const { label, name } = field;
-          console.log("label", label, name);
-          return (
-            <CustomFieldInput
-              key={name}
-              label={label}
-              field={field}
-              value={medicalFile?.[name]}
-              handleChange={(newValue) => setMedicalFile((file) => ({ ...file!, [name]: newValue }))}
-              editable={editable}
-            />
-          );
-        })}
-
-      <ButtonsContainer>
-        <Button
-          caption={editable ? "Mettre à jour" : "Modifier"}
-          onPress={() => (editable ? onUpdateRequest() : onEdit())}
-          disabled={editable ? isUpdateDisabled && isMedicalFileUpdateDisabled : false}
-          loading={updating}
-        />
-      </ButtonsContainer>
-      <SubList
-        label="Commentaires"
-        key={medicalFileDB?._id ?? "" + allMedicalComments.length}
-        data={allMedicalComments}
-        renderItem={(comment) => (
-          <CommentRow
-            key={comment._id}
-            comment={comment}
-            itemName={
-              ["consultation", "treatment"].includes(comment.type) ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}` : undefined
-            }
-            onItemNamePress={
-              ["consultation", "treatment"].includes(comment.type)
-                ? () => (comment.type === "consultation" ? onGoToConsultation(comment.consultation) : onGoToTreatment(comment.treatment))
-                : undefined
-            }
-            onDelete={
-              comment.type === "medical-file"
-                ? async () => {
-                    const medicalFileToSave: MedicalFileInstance = {
-                      ...medicalFile!,
-                      comments: medicalFile!.comments.filter((c) => c._id !== comment._id),
-                    };
-                    setMedicalFile(medicalFileToSave); // optimistic UI
-                    // need to pass `medicalFileToSave` if we want last comment to be taken into account
-                    // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                    const success = await onUpdateRequest(medicalFileToSave);
-                    return success;
-                  }
-                : undefined
-            }
-            onUpdate={
-              comment.type === "medical-file"
-                ? async (commentUpdated) => {
-                    const medicalFileToSave = {
-                      ...medicalFile!,
-                      comments: medicalFile!.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
-                    };
-                    setMedicalFile(medicalFileToSave); // optimistic UI
-                    // need to pass `medicalFileToSave` if we want last comment to be taken into account
-                    // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                    const success = await onUpdateRequest(medicalFileToSave);
-                    return success;
-                  }
-                : undefined
-            }
+        <GenderSelect onSelect={(gender) => onChange({ gender })} value={person.gender} editable={editable} />
+        {editable ? (
+          <DateAndTimeInput
+            label="Date de naissance"
+            // @ts-expect-error This comparison appears to be unintentional because the types 'Date' and 'string' have no overlap
+            setDate={(birthdate: PossibleDate) => onChange({ birthdate })}
+            date={person.birthdate}
+            editable={editable}
+            showYear
+          />
+        ) : (
+          <InputLabelled label="Âge" value={populatedPerson.formattedBirthDate} placeholder="JJ-MM-AAAA" editable={false} />
+        )}
+        {/* These custom fields are displayed by default, because they where displayed before they became custom fields */}
+        {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "healthInsurances")) && (
+          <HealthInsuranceMultiCheckBox
+            values={person.healthInsurances}
+            onChange={(healthInsurances) => onChange({ healthInsurances })}
+            editable={editable}
           />
         )}
-        ifEmpty="Pas encore de commentaire"
-      >
-        <NewCommentInput
-          forwardRef={newCommentRef}
-          onCommentWrite={setWritingComment}
-          onCreate={async (newComment) => {
-            const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile!.comments || [])];
-            const medicalFileToSave = { ...medicalFile!, comments: newComments };
-            setMedicalFile(medicalFileToSave); // optimistic UI
-            // need to pass comments as parameters if we want last comment to be taken into account
-            // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-            return await onUpdateRequest(medicalFileToSave);
-          }}
-        />
-      </SubList>
-      <SubList
-        label="Traitements"
-        onAdd={() => onGoToTreatment()}
-        data={treatments}
-        renderItem={(treatment) => <TreatmentRow treatment={treatment} key={treatment._id} onTreatmentPress={onGoToTreatment} />}
-        ifEmpty="Pas encore de traitement"
-      />
-      <SubList
-        label="Consultations"
-        onAdd={() => onGoToConsultation()}
-        testID="person-consultations-list"
-        data={consultations}
-        renderItem={(consultation) => (
-          <ConsultationRow consultation={consultation} key={consultation._id} onConsultationPress={onGoToConsultation} showStatus />
+        {Boolean(flattenedCustomFieldsPersons.find((e) => e.name === "structureMedical")) && (
+          <InputLabelled
+            label="Structure de suivi médical"
+            onChangeText={(structureMedical) => onChange({ structureMedical })}
+            value={person.structureMedical || (editable ? null : "-- Non renseignée --")}
+            placeholder="Renseignez la structure médicale le cas échéant"
+            editable={editable}
+          />
         )}
-        ifEmpty="Pas encore de consultation"
-      />
-      <SubList
-        disableVoirPlus={true}
-        label="Documents médicaux"
-        data={allMedicalDocuments}
-        customCount={allMedicalDocuments.filter((d) => d.type === "document").length}
-        renderItem={() => null}
-        ifEmpty="Pas encore de document médical"
-      >
-        <DocumentsManager
-          defaultParent="root"
-          documents={allMedicalDocuments}
-          personDB={personDB}
-          onUpdateDocument={onUpdateDocument}
-          onAddDocument={onAddDocument}
-          onDelete={onDelete}
+        {customFieldsMedicalFile
+          .filter((f) => f)
+          .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
+          .map((field) => {
+            const { label, name } = field;
+            console.log("label", label, name);
+            return (
+              <CustomFieldInput
+                key={name}
+                label={label}
+                field={field}
+                value={medicalFile?.[name]}
+                handleChange={(newValue) => setMedicalFile((file) => ({ ...file!, [name]: newValue }))}
+                editable={editable}
+              />
+            );
+          })}
+
+        <ButtonsContainer>
+          <Button
+            caption={editable ? "Mettre à jour" : "Modifier"}
+            onPress={() => (editable ? onUpdateRequest() : onEdit())}
+            disabled={editable ? isUpdateDisabled && isMedicalFileUpdateDisabled : false}
+            loading={updating}
+          />
+        </ButtonsContainer>
+        <SubList
+          label="Commentaires"
+          key={medicalFileDB?._id ?? "" + allMedicalComments.length}
+          data={allMedicalComments}
+          renderItem={(comment) => (
+            <CommentRow
+              key={comment._id}
+              comment={comment}
+              itemName={
+                ["consultation", "treatment"].includes(comment.type)
+                  ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}`
+                  : undefined
+              }
+              onItemNamePress={
+                ["consultation", "treatment"].includes(comment.type)
+                  ? () => (comment.type === "consultation" ? onGoToConsultation(comment.consultation) : onGoToTreatment(comment.treatment))
+                  : undefined
+              }
+              onDelete={
+                comment.type === "medical-file"
+                  ? async () => {
+                      const medicalFileToSave: MedicalFileInstance = {
+                        ...medicalFile!,
+                        comments: medicalFile!.comments.filter((c) => c._id !== comment._id),
+                      };
+                      setMedicalFile(medicalFileToSave); // optimistic UI
+                      // need to pass `medicalFileToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      const success = await onUpdateRequest(medicalFileToSave);
+                      return success;
+                    }
+                  : undefined
+              }
+              onUpdate={
+                comment.type === "medical-file"
+                  ? async (commentUpdated) => {
+                      const medicalFileToSave = {
+                        ...medicalFile!,
+                        comments: medicalFile!.comments.map((c) => (c._id === comment._id ? commentUpdated : c)),
+                      };
+                      setMedicalFile(medicalFileToSave); // optimistic UI
+                      // need to pass `medicalFileToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      const success = await onUpdateRequest(medicalFileToSave);
+                      return success;
+                    }
+                  : undefined
+              }
+            />
+          )}
+          ifEmpty="Pas encore de commentaire"
+        >
+          <NewCommentInput
+            forwardRef={newCommentRef}
+            onCommentWrite={setWritingComment}
+            onCreate={async (newComment) => {
+              const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile!.comments || [])];
+              const medicalFileToSave = { ...medicalFile!, comments: newComments };
+              setMedicalFile(medicalFileToSave); // optimistic UI
+              // need to pass comments as parameters if we want last comment to be taken into account
+              // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+              return await onUpdateRequest(medicalFileToSave);
+            }}
+          />
+        </SubList>
+        <SubList
+          label="Traitements"
+          onAdd={() => onGoToTreatment()}
+          data={treatments}
+          renderItem={(treatment) => <TreatmentRow treatment={treatment} key={treatment._id} onTreatmentPress={onGoToTreatment} />}
+          ifEmpty="Pas encore de traitement"
         />
-      </SubList>
-    </ScrollContainer>
+        <SubList
+          label="Consultations"
+          onAdd={() => onGoToConsultation()}
+          testID="person-consultations-list"
+          data={consultations}
+          renderItem={(consultation) => (
+            <ConsultationRow consultation={consultation} key={consultation._id} onConsultationPress={onGoToConsultation} showStatus />
+          )}
+          ifEmpty="Pas encore de consultation"
+        />
+        <SubList
+          disableVoirPlus={true}
+          label="Documents médicaux"
+          data={allMedicalDocuments}
+          customCount={allMedicalDocuments.filter((d) => d.type === "document").length}
+          renderItem={() => null}
+          ifEmpty="Pas encore de document médical"
+        >
+          <DocumentsManager
+            defaultParent="root"
+            documents={allMedicalDocuments}
+            personDB={personDB}
+            onUpdateDocument={onUpdateDocument}
+            onAddDocument={onAddDocument}
+            onDelete={onDelete}
+          />
+        </SubList>
+      </ScrollContainer>
+    </>
   );
 };
 
