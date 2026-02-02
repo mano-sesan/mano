@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { utils, writeFile } from "@e965/xlsx";
+import SortableJS from "sortablejs";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { CustomResponsiveBar, CustomResponsivePie } from "./Charts";
 import Filters, { filterData } from "../../components/Filters";
@@ -23,6 +24,7 @@ import EvolutiveStatsViewer from "../../components/EvolutiveStatsViewer";
 import { capitalize } from "../../utils";
 import { mergedPersonAssignedTeamPeriodsWithQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
+import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 
 export default function PersonStats({
   title,
@@ -390,59 +392,362 @@ const initCategories = (categories) => {
   return objCategories;
 };
 
+// Default age ranges that match the original hardcoded behavior
+const DEFAULT_AGE_RANGES = [
+  { id: "1", min: 0, max: 2, comparison: "between", unit: "years" },
+  { id: "2", min: 3, max: 17, comparison: "between", unit: "years" },
+  { id: "3", min: 18, max: 24, comparison: "between", unit: "years" },
+  { id: "4", min: 25, max: 44, comparison: "between", unit: "years" },
+  { id: "5", min: 45, max: 59, comparison: "between", unit: "years" },
+  { id: "6", min: 60, max: null, comparison: "and_more", unit: "years" },
+];
+
+const DEFAULT_AGE_RANGE_SETTINGS = {
+  ranges: DEFAULT_AGE_RANGES,
+  hideEmptyRanges: true,
+};
+
+const AGE_RANGE_STORAGE_KEY = "mano-age-range-settings";
+
+// Format a range into a human-readable label
+const formatRangeLabel = (range) => {
+  const unitLabel = range.unit === "months" ? "mois" : "ans";
+  if (range.comparison === "and_more") {
+    return `${range.min}${unitLabel === "ans" ? "" : " " + unitLabel}+`;
+  }
+  if (range.unit === "months") {
+    return `${range.min} - ${range.max} mois`;
+  }
+  return `${range.min} - ${range.max}`;
+};
+
+// Convert age to the appropriate unit for comparison
+const getAgeInUnit = (ageInYears, unit) => {
+  if (unit === "months") {
+    return ageInYears * 12;
+  }
+  return ageInYears;
+};
+
+// Check if settings are customized (different from defaults)
+const areSettingsCustomized = (settings) => {
+  if (settings.hideEmptyRanges !== DEFAULT_AGE_RANGE_SETTINGS.hideEmptyRanges) return true;
+  if (settings.ranges.length !== DEFAULT_AGE_RANGES.length) return true;
+
+  for (let i = 0; i < settings.ranges.length; i++) {
+    const current = settings.ranges[i];
+    const defaultRange = DEFAULT_AGE_RANGES[i];
+    if (
+      current.min !== defaultRange.min ||
+      current.max !== defaultRange.max ||
+      current.comparison !== defaultRange.comparison ||
+      current.unit !== defaultRange.unit
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
 export const AgeRangeBar = ({ persons, onItemClick }) => {
-  const categories = ["0 - 2", "3 - 17", "18 - 24", "25 - 44", "45 - 59", "60+", "Non renseigné"];
+  const [storedSettings, setStoredSettings] = useLocalStorage(AGE_RANGE_STORAGE_KEY, DEFAULT_AGE_RANGE_SETTINGS);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [tempSettings, setTempSettings] = useState(storedSettings);
+  const sortableRef = useRef(null);
+  const listRef = useRef(null);
 
-  const data = persons.reduce((newData, person) => {
-    if (!person.birthdate || !person.birthdate.length) {
-      newData["Non renseigné"].push(person);
-      return newData;
-    }
-    // now person has an `age` field
-    if (person.age < 2) {
-      newData["0 - 2"].push(person);
-      return newData;
-    }
-    if (person.age < 18) {
-      newData["3 - 17"].push(person);
-      return newData;
-    }
-    if (person.age < 25) {
-      newData["18 - 24"].push(person);
-      return newData;
-    }
-    if (person.age < 45) {
-      newData["25 - 44"].push(person);
-      return newData;
-    }
-    if (person.age < 60) {
-      newData["45 - 59"].push(person);
-      return newData;
-    }
-    newData["60+"].push(person);
-    return newData;
-  }, initCategories(categories));
+  const settings = storedSettings || DEFAULT_AGE_RANGE_SETTINGS;
+  const isCustomized = areSettingsCustomized(settings);
 
-  const dataCount = Object.keys(data)
-    .filter((key) => data[key]?.length > 0)
-    .map((key) => ({ name: key, [key]: data[key]?.length }));
+  // Setup SortableJS when modal opens
+  useEffect(() => {
+    if (modalOpen && listRef.current) {
+      sortableRef.current = SortableJS.create(listRef.current, {
+        animation: 150,
+        handle: ".drag-handle",
+        onEnd: (evt) => {
+          const newRanges = [...tempSettings.ranges];
+          const [movedItem] = newRanges.splice(evt.oldIndex, 1);
+          newRanges.splice(evt.newIndex, 0, movedItem);
+          setTempSettings({ ...tempSettings, ranges: newRanges });
+        },
+      });
+    }
+    return () => {
+      if (sortableRef.current) {
+        sortableRef.current.destroy();
+        sortableRef.current = null;
+      }
+    };
+  }, [modalOpen, tempSettings]);
+
+  // Generate categories and data based on settings
+  const { categories, data, dataCount } = useMemo(() => {
+    const cats = settings.ranges.map(formatRangeLabel);
+    cats.push("Non renseigné");
+
+    const initialData = {};
+    for (const cat of cats) {
+      initialData[cat] = [];
+    }
+
+    const result = persons.reduce((newData, person) => {
+      if (!person.birthdate || !person.birthdate.length) {
+        newData["Non renseigné"].push(person);
+        return newData;
+      }
+
+      // Find which range the person falls into
+      const ageInYears = person.age;
+      let matched = false;
+
+      for (const range of settings.ranges) {
+        const ageInUnit = getAgeInUnit(ageInYears, range.unit);
+        const label = formatRangeLabel(range);
+
+        if (range.comparison === "and_more") {
+          if (ageInUnit >= range.min) {
+            newData[label].push(person);
+            matched = true;
+            break;
+          }
+        } else {
+          // "between" comparison: min <= age <= max
+          if (ageInUnit >= range.min && ageInUnit <= range.max) {
+            newData[label].push(person);
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      // If no range matched, put in "Non renseigné"
+      if (!matched) {
+        newData["Non renseigné"].push(person);
+      }
+
+      return newData;
+    }, initialData);
+
+    const countData = Object.keys(result)
+      .filter((key) => (settings.hideEmptyRanges ? result[key]?.length > 0 : true))
+      .map((key) => ({ name: key, [key]: result[key]?.length || 0 }));
+
+    return {
+      categories: cats.filter((c) => c !== "Non renseigné"),
+      data: result,
+      dataCount: countData,
+    };
+  }, [persons, settings]);
+
+  const handleOpenModal = () => {
+    setTempSettings(settings);
+    setModalOpen(true);
+  };
+
+  const handleSave = () => {
+    setStoredSettings(tempSettings);
+    setModalOpen(false);
+  };
+
+  const handleReset = () => {
+    setTempSettings(DEFAULT_AGE_RANGE_SETTINGS);
+  };
+
+  const handleAddRange = () => {
+    const newId = String(Date.now());
+    const lastRange = tempSettings.ranges[tempSettings.ranges.length - 1];
+    const newRange = {
+      id: newId,
+      min: lastRange ? (lastRange.max || lastRange.min) + 1 : 0,
+      max: lastRange ? (lastRange.max || lastRange.min) + 10 : 10,
+      comparison: "between",
+      unit: "years",
+    };
+    setTempSettings({
+      ...tempSettings,
+      ranges: [...tempSettings.ranges, newRange],
+    });
+  };
+
+  const handleRemoveRange = (rangeId) => {
+    setTempSettings({
+      ...tempSettings,
+      ranges: tempSettings.ranges.filter((r) => r.id !== rangeId),
+    });
+  };
+
+  const handleUpdateRange = (rangeId, field, value) => {
+    setTempSettings({
+      ...tempSettings,
+      ranges: tempSettings.ranges.map((r) => {
+        if (r.id !== rangeId) return r;
+        const updated = { ...r, [field]: value };
+        // If changing to "and_more", set max to null
+        if (field === "comparison" && value === "and_more") {
+          updated.max = null;
+        }
+        // If changing from "and_more" to "between", set a default max
+        if (field === "comparison" && value === "between" && r.max === null) {
+          updated.max = r.min + 10;
+        }
+        return updated;
+      }),
+    });
+  };
+
+  const settingsButton = (
+    <>
+      {isCustomized && <span className="tw-rounded tw-bg-blue-100 tw-px-2 tw-py-0.5 tw-text-xs tw-text-blue-800 tw-font-normal">Personnalisé</span>}
+      <button
+        type="button"
+        onClick={handleOpenModal}
+        className="tw-p-1 tw-rounded hover:tw-bg-white/20 tw-transition-colors tw-flex tw-items-center"
+        title="Paramétrer les tranches d'âge"
+        aria-label="Paramétrer les tranches d'âge"
+      >
+        <Cog6ToothIcon className="tw-h-5 tw-w-5" />
+      </button>
+    </>
+  );
+
+  const title = "Tranche d'âges";
 
   return (
-    <CustomResponsiveBar
-      title="Tranche d'âges"
-      categories={categories.filter((c) => c !== "Non renseigné")}
-      onItemClick={
-        onItemClick
-          ? (item) => {
-              onItemClick(item, data[item]);
-            }
-          : null
-      }
-      data={dataCount}
-      axisTitleX="Tranche d'âge"
-      axisTitleY="Nombre de personnes"
-      help={`Répartition des âges des personnes concernées, dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
-    />
+    <>
+      <CustomResponsiveBar
+        title={title}
+        categories={categories}
+        onItemClick={
+          onItemClick
+            ? (item) => {
+                onItemClick(item, data[item]);
+              }
+            : null
+        }
+        data={dataCount}
+        axisTitleX="Tranche d'âge"
+        axisTitleY="Nombre de personnes"
+        help={`Répartition des âges des personnes concernées, dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
+        settingsButton={settingsButton}
+      />
+
+      <ModalContainer open={modalOpen} onClose={() => setModalOpen(false)} size="xl">
+        <ModalHeader title="Paramètres de l'affichage des tranches d'âge" />
+        <ModalBody className="tw-py-4 tw-px-6">
+          <div className="tw-flex tw-flex-col tw-gap-4">
+            <div ref={listRef} className="tw-flex tw-flex-col tw-gap-2">
+              {tempSettings.ranges.map((range, index) => (
+                <div
+                  key={range.id}
+                  data-id={range.id}
+                  className="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-gray-50 tw-rounded tw-border tw-border-gray-200"
+                >
+                  <button type="button" className="drag-handle tw-cursor-move tw-text-gray-400 hover:tw-text-gray-600 tw-p-1" title="Glisser pour réordonner">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-5 tw-w-5" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="9" cy="6" r="1.5" />
+                      <circle cx="15" cy="6" r="1.5" />
+                      <circle cx="9" cy="12" r="1.5" />
+                      <circle cx="15" cy="12" r="1.5" />
+                      <circle cx="9" cy="18" r="1.5" />
+                      <circle cx="15" cy="18" r="1.5" />
+                    </svg>
+                  </button>
+
+                  <span className="tw-text-sm tw-text-gray-600 tw-whitespace-nowrap">Entre</span>
+
+                  <input
+                    type="number"
+                    min="0"
+                    value={range.min}
+                    onChange={(e) => handleUpdateRange(range.id, "min", parseInt(e.target.value) || 0)}
+                    className="tw-w-16 tw-px-2 tw-py-1 tw-border tw-border-gray-300 tw-rounded tw-text-sm"
+                  />
+
+                  <select
+                    value={range.comparison}
+                    onChange={(e) => handleUpdateRange(range.id, "comparison", e.target.value)}
+                    className="tw-px-2 tw-py-1 tw-border tw-border-gray-300 tw-rounded tw-text-sm"
+                  >
+                    <option value="between">Et</option>
+                    <option value="and_more">Et plus</option>
+                  </select>
+
+                  {range.comparison === "between" && (
+                    <input
+                      type="number"
+                      min="0"
+                      value={range.max ?? ""}
+                      onChange={(e) => handleUpdateRange(range.id, "max", parseInt(e.target.value) || 0)}
+                      className="tw-w-16 tw-px-2 tw-py-1 tw-border tw-border-gray-300 tw-rounded tw-text-sm"
+                    />
+                  )}
+
+                  <select
+                    value={range.unit}
+                    onChange={(e) => handleUpdateRange(range.id, "unit", e.target.value)}
+                    className="tw-px-2 tw-py-1 tw-border tw-border-gray-300 tw-rounded tw-text-sm"
+                  >
+                    <option value="years">Années</option>
+                    <option value="months">Mois</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveRange(range.id)}
+                    disabled={tempSettings.ranges.length <= 1}
+                    className="tw-ml-auto tw-text-red-500 hover:tw-text-red-700 disabled:tw-text-gray-300 disabled:tw-cursor-not-allowed tw-text-sm tw-px-2 tw-py-1"
+                    title="Retirer cette tranche"
+                  >
+                    Retirer
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button type="button" onClick={handleAddRange} className="tw-text-main tw-text-sm tw-flex tw-items-center tw-gap-1 hover:tw-underline">
+              <span className="tw-text-lg">+</span> Ajouter une nouvelle tranche
+            </button>
+
+            <div className="tw-border-t tw-border-gray-200 tw-pt-4 tw-mt-2">
+              <div className="tw-flex tw-flex-col tw-gap-2">
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                  <input
+                    type="radio"
+                    name="hideEmptyRanges"
+                    checked={tempSettings.hideEmptyRanges === true}
+                    onChange={() => setTempSettings({ ...tempSettings, hideEmptyRanges: true })}
+                    className="tw-w-4 tw-h-4"
+                  />
+                  <span className="tw-text-sm">Masquer les tranches sans données</span>
+                </label>
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                  <input
+                    type="radio"
+                    name="hideEmptyRanges"
+                    checked={tempSettings.hideEmptyRanges === false}
+                    onChange={() => setTempSettings({ ...tempSettings, hideEmptyRanges: false })}
+                    className="tw-w-4 tw-h-4"
+                  />
+                  <span className="tw-text-sm">Afficher toutes les tranches (y compris à 0)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <button type="button" className="button-cancel tw-mr-auto" onClick={handleReset}>
+            Réinitialiser
+          </button>
+          <button type="button" className="button-cancel" onClick={() => setModalOpen(false)}>
+            Fermer
+          </button>
+          <button type="button" className="button-submit" onClick={handleSave}>
+            Enregistrer
+          </button>
+        </ModalFooter>
+      </ModalContainer>
+    </>
   );
 };
 
