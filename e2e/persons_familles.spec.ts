@@ -125,7 +125,7 @@ test("Familles", async ({ page }) => {
       page.locator("tr", { has: page.getByRole("cell", { name: person4Name }) }).getByLabel("Personne avec des liens familiaux")
     ).not.toBeVisible();
 
-    await page.getByRole("link", { name: "🔍 Recherche" }).click();
+    await page.getByRole("link", { name: "Recherche" }).click();
     await expect(page).toHaveURL("http://localhost:8090/search");
     await page.getByPlaceholder("Par mot clé").fill(person1Name);
     await expect(page).toHaveURL(`http://localhost:8090/search`);
