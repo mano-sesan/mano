@@ -8,6 +8,20 @@ import { deploymentShortCommitSHAState } from "../atoms/version";
 import AddPersons from "./AddPersons";
 import { useEffect, useState } from "react";
 import API from "../services/api";
+import {
+  MagnifyingGlassIcon,
+  HomeIcon,
+  CalendarDaysIcon,
+  UserCircleIcon,
+  MapIcon,
+  DocumentTextIcon,
+  BuildingOffice2Icon,
+  ChartBarIcon,
+  BuildingOfficeIcon,
+  UsersIcon,
+  UserIcon,
+  MapPinIcon,
+} from "@heroicons/react/24/outline";
 
 export const showDrawerState = atom({
   key: "showDrawerState",
@@ -53,12 +67,15 @@ const Drawer = () => {
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
       >
-        <div className="tw-pl-0 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-0.5 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none">
+        <div className="tw-pl-0 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none">
           {["admin", "normal"].includes(role) && isDesktop && (
             <>
               <li>
                 <NavLink to="/search" activeClassName="active">
-                  &#128269; Recherche
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <MagnifyingGlassIcon className="tw-h-4 tw-w-4" />
+                    Recherche
+                  </span>
                 </NavLink>
               </li>
               <hr />
@@ -67,28 +84,40 @@ const Drawer = () => {
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
             <li>
               <NavLink to="/reception" activeClassName="active">
-                Accueil
+                <span className="tw-flex tw-items-center tw-gap-2">
+                  <HomeIcon className="tw-h-4 tw-w-4" />
+                  Accueil
+                </span>
               </NavLink>
             </li>
           )}
           {["admin", "normal", "restricted-access"].includes(role) && (
             <li>
               <NavLink to="/action" activeClassName="active">
-                Agenda
+                <span className="tw-flex tw-items-center tw-gap-2">
+                  <CalendarDaysIcon className="tw-h-4 tw-w-4" />
+                  Agenda
+                </span>
               </NavLink>
             </li>
           )}
           {["admin", "normal", "restricted-access"].includes(role) && (
             <li>
               <NavLink to="/person" activeClassName="active">
-                Personnes suivies
+                <span className="tw-flex tw-items-center tw-gap-2">
+                  <UserIcon className="tw-h-4 tw-w-4" />
+                  Personnes suivies
+                </span>
               </NavLink>
             </li>
           )}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.territoriesEnabled && (
             <li>
               <NavLink to="/territory" activeClassName="active">
-                Territoires
+                <span className="tw-flex tw-items-center tw-gap-2">
+                  <MapIcon className="tw-h-4 tw-w-4" />
+                  Territoires
+                </span>
               </NavLink>
             </li>
           )}
@@ -96,7 +125,10 @@ const Drawer = () => {
             <>
               <li>
                 <NavLink to="/report" activeClassName="active">
-                  Comptes rendus
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <DocumentTextIcon className="tw-h-4 tw-w-4" />
+                    Comptes rendus
+                  </span>
                 </NavLink>
               </li>
             </>
@@ -106,12 +138,19 @@ const Drawer = () => {
               <hr />
               <li>
                 <NavLink to="/structure" activeClassName="active">
-                  Contacts
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <BuildingOffice2Icon className="tw-h-4 tw-w-4" />
+                    Contacts
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <a href="https://soliguide.fr/" target="_blank" rel="noreferrer">
-                  Soliguide <OpenNewWindowIcon />
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <MapPinIcon className="tw-h-4 tw-w-4" />
+                    Soliguide
+                    <OpenNewWindowIcon />
+                  </span>
                 </a>
               </li>
               <hr />
@@ -121,7 +160,10 @@ const Drawer = () => {
             <>
               <li>
                 <NavLink to="/stats" activeClassName="active">
-                  Statistiques
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <ChartBarIcon className="tw-h-4 tw-w-4" />
+                    Statistiques
+                  </span>
                 </NavLink>
               </li>
             </>
@@ -131,17 +173,26 @@ const Drawer = () => {
               <hr />
               <li id="show-on-onboarding">
                 <NavLink to={`/organisation/${organisation._id}`} activeClassName="active">
-                  Organisation
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <BuildingOfficeIcon className="tw-h-4 tw-w-4" />
+                    Organisation
+                  </span>
                 </NavLink>
               </li>
               <li id="show-on-onboarding">
                 <NavLink to="/team" activeClassName="active">
-                  Équipes
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <UsersIcon className="tw-h-4 tw-w-4" />
+                    Équipes
+                  </span>
                 </NavLink>
               </li>
               <li>
                 <NavLink to="/user" activeClassName="active">
-                  Utilisateurs
+                  <span className="tw-flex tw-items-center tw-gap-2">
+                    <UserCircleIcon className="tw-h-4 tw-w-4" />
+                    Utilisateurs
+                  </span>
                 </NavLink>
               </li>
               {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && (
