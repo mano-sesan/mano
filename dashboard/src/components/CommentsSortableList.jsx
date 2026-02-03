@@ -12,7 +12,7 @@ import DateBloc, { TimeBlock } from "./DateBloc";
 import { sortComments } from "../atoms/comments";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { itemsGroupedByActionSelector } from "../atoms/selectors";
-import ConsultationButton from "./ConsultationButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import { NoComments } from "./CommentsGeneric";
 import SelectTeamMultiple from "./SelectTeamMultiple";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
@@ -91,7 +91,7 @@ export default function CommentsSortableList({
             {!!organisation.groupsEnabled && !!comment.group && (
               <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Commentaire familial" title="Commentaire familial" />
             )}
-            {comment.isMedicalCommentShared ? <ConsultationButton /> : null}
+            {comment.isMedicalCommentShared ? <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" /> : null}
           </div>
         );
       },
@@ -209,7 +209,7 @@ export default function CommentsSortableList({
             </div>
             {comment.isMedicalCommentShared ? (
               <div className="tw-mt-1 tw-flex tw-items-center tw-justify-center tw-gap-1">
-                <ConsultationButton />
+                <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" />
               </div>
             ) : null}
           </>

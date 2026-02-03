@@ -15,7 +15,7 @@ import DatePicker from "./DatePicker";
 import AutoResizeTextarea from "./AutoresizeTextArea";
 import UserName from "./UserName";
 import CustomFieldDisplay from "./CustomFieldDisplay";
-import ConsultationButton from "./ConsultationButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import SelectTeam from "./SelectTeam";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { itemsGroupedByActionSelector } from "../atoms/selectors";
@@ -414,7 +414,7 @@ function CommentsTable({
                         <div className="tw-text-xs tw-opacity-50 tw-grow">{formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</div>
                         {comment.isMedicalCommentShared ? (
                           <div>
-                            <ConsultationButton />
+                            <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" />
                           </div>
                         ) : null}
                       </div>

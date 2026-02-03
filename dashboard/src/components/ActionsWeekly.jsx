@@ -6,6 +6,7 @@ import { CANCEL, DONE, TODO } from "../atoms/actions";
 import { dayjsInstance, formatTime } from "../services/date";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import PersonName from "./PersonName";
 import { organisationState, userState } from "../atoms/auth";
 import TagTeam from "./TagTeam";
@@ -170,8 +171,9 @@ function ActionsOfDay({ actions }) {
                 </div>
               )}
               {Boolean(action.isConsultation) && (
-                <div className="tw-flex tw-flex-row tw-items-center tw-font-bold tw-text-[#43738b]">
-                  <i>🩺 Consultation</i>
+                <div className="tw-flex tw-flex-row tw-items-center tw-gap-1 tw-font-bold tw-text-[#43738b]">
+                  <StethoscopeIcon className="tw-w-4 tw-h-4" />
+                  <span>Consultation</span>
                 </div>
               )}
             </div>
