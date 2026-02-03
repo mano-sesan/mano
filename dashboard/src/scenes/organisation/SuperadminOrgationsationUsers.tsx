@@ -8,10 +8,12 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import UserStatus from "../../components/UserStatus";
-import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon } from "@heroicons/react/24/outline";
+import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 export default function SuperadminOrganisationUsers({
   organisation,
+  refresh,
+  setRefresh,
   setOpen,
   setOpenCreateUserModal,
   setOpenEditUserModal,
@@ -21,6 +23,8 @@ export default function SuperadminOrganisationUsers({
   openEditUserModal,
 }: {
   organisation: OrganisationInstance;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
   setOpen: (open: boolean) => void;
   setOpenCreateUserModal: (open: boolean) => void;
   setEditUser: (user: UserInstance) => void;
@@ -51,7 +55,7 @@ export default function SuperadminOrganisationUsers({
     } else {
       onClose();
     }
-  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose]);
+  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose, refresh]);
 
   return (
     <ModalContainer open={open} onClose={onClose} size="full">
@@ -194,7 +198,15 @@ export default function SuperadminOrganisationUsers({
                   <UserStatus user={user} />
                 </td>
                 <td>
-                  {user.email}
+                  <a
+                    href={`mailto:${user.email}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="tw-text-main tw-flex tw-items-center tw-gap-1 hover:tw-underline focus:tw-underline"
+                  >
+                    {user.email}
+                    <ArrowTopRightOnSquareIcon className="tw-h-4 tw-w-4" />
+                  </a>
                   {user.phone ? <div>{user.phone}</div> : ""}
                 </td>
                 <td>
@@ -228,6 +240,7 @@ export default function SuperadminOrganisationUsers({
                         if (error) return;
                         toast.success("Suppression réussie");
                         setUsers(users.filter((u) => u._id !== user._id));
+                        setRefresh(true);
                       }}
                     >
                       <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>

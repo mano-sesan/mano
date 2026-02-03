@@ -31,10 +31,11 @@ import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
-import { createNativeStackNavigator, NativeStackNavigationProp, NativeStackScreenProps } from "@react-navigation/native-stack";
+import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PersonInstance } from "@/types/person";
 import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
 import { PersonStackParams, RootStackParamList } from "@/types/navigation";
+import { hideEditButtonAtom } from "@/utils/hide-edit-button";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
@@ -87,6 +88,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   const consultations = useAtomValue(consultationsState);
   const treatments = useAtomValue(treatmentsState);
   const medicalFiles = useAtomValue(medicalFileState);
+  const hideEditButton = useAtomValue(hideEditButtonAtom);
   const relsPersonPlace = useAtomValue(relsPersonPlaceState) as Array<{ _id: string; person: string; place: string; createdAt: Date }>;
   const user = useAtomValue(userState)!;
 
@@ -131,7 +133,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         history: person.history,
       };
     },
-    [flattenedCustomFieldsPersons]
+    [flattenedCustomFieldsPersons],
   );
 
   const [person, setPerson] = useState(castToPerson(personDB));
@@ -158,7 +160,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   useFocusEffect(
     useCallback(() => {
       setPerson(castToPerson(personDB));
-    }, [personDB, castToPerson])
+    }, [personDB, castToPerson]),
   );
 
   const onEdit = () => setEditable((e) => !e);
@@ -209,7 +211,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       persons.map((p) => {
         if (p._id === personDB._id) return newPerson;
         return p;
-      })
+      }),
     );
     setPerson(castToPerson(newPerson));
     if (alert) Alert.alert("Personne mise à jour !");
@@ -235,7 +237,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
           [
             { text: "Annuler", style: "cancel", onPress: () => res(false) },
             { text: "Continuer", style: "destructive", onPress: () => res(true) },
-          ]
+          ],
         );
       });
       if (!keepGoing) {
@@ -297,14 +299,14 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
                 user: action.user || user._id,
               });
             })
-            .map(API.encryptItem)
+            .map(API.encryptItem),
         );
 
         body.commentsToTransfer = await Promise.all(
           comments
             .filter((c) => c.person === personDB._id && c.group === true)
             .map((comment) => prepareCommentForEncryption({ ...comment, person: personTransferId }))
-            .map(API.encryptItem)
+            .map(API.encryptItem),
         );
       }
     }
@@ -382,7 +384,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         <ScreenTitle
           title={person.name!}
           onBack={onGoBackRequested}
-          onEdit={!editable ? onEdit : undefined}
+          onEdit={hideEditButton ? undefined : !editable ? onEdit : undefined}
           onSave={!editable || isUpdateDisabled ? undefined : onUpdatePerson}
           saving={updating}
           backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}

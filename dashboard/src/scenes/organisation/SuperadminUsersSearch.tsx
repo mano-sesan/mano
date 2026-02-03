@@ -14,10 +14,12 @@ export default function SuperadminUsersSearch({
   open,
   setOpen,
   setSelectedOrganisation,
+  refresh,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   setSelectedOrganisation: (organisation: OrganisationInstance) => void;
+  refresh: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
@@ -40,7 +42,7 @@ export default function SuperadminUsersSearch({
       setUsers(response.data);
       setIsLoading(false);
     });
-  }, [open, search]);
+  }, [open, search, refresh]);
 
   return (
     <ModalContainer
