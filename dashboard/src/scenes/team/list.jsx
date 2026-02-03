@@ -16,6 +16,7 @@ import useTitle from "../../services/useTitle";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { errorMessage } from "../../utils";
 import { teamsColors, borderColors } from "../../components/TagTeam";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -96,7 +97,8 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            render: (i) => (i.nightSession ? "🌒" : "☀️"),
+            render: (i) =>
+              i.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />,
           },
         ]}
       />
