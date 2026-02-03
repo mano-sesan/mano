@@ -150,7 +150,7 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await expect(page.getByRole("button", { name: "Consultations (0)" })).toBeVisible();
 
   // Vérification avec une autre équipe
-  await page.getByLabel("Remove Team Test -").click();
+  await page.locator(".report-team-select__multi-value").filter({ hasText: "Team Test" }).locator(".report-team-select__multi-value__remove").click();
   await changeReactSelectValue(page, "report-team-select", "autre équipe");
   await page.getByRole("button", { name: "Hier" }).click();
   await page.getByRole("button", { name: "Aujourd'hui" }).click();
