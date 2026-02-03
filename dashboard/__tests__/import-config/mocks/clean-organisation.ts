@@ -807,5 +807,6 @@ export const cleanOrgTeams = [
     createdAt: new Date("2025-03-24 18:29:51.489+01"),
     updatedAt: "2025-03-24 18:29:51.489+01",
     nightSession: false,
+    color: null,
   },
 ];

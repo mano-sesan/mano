@@ -1,5 +1,5 @@
 import { formatDateWithFullMonth, dayjsInstance } from "../../../services/date";
-import { borderColors, teamsColors } from "../../../components/TagTeam";
+import { getTeamColors } from "../../../components/TagTeam";
 import { TeamInstance } from "../../../types/team";
 import { PersonHistoryEntry, PersonInstance, FieldChangeData } from "../../../types/person";
 
@@ -89,12 +89,14 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
       acc[item.team] = [];
     }
     const teamIndex = teams.findIndex((t) => t._id === item.team);
+    const team = teams[teamIndex];
+    const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
     acc[item.team].push({
       ...item,
       width,
       position,
-      backgroundColor: teamsColors[teamIndex % teamsColors.length],
-      borderColor: borderColors[teamIndex % borderColors.length],
+      backgroundColor,
+      borderColor,
     });
 
     return acc;

@@ -3,7 +3,7 @@ import SelectCustom from "./SelectCustom";
 import type { TeamInstance } from "../types/team";
 import type { SelectCustomProps } from "./SelectCustom";
 import type { GroupBase, SingleValue, ActionMeta } from "react-select";
-import { teamsColors, borderColors } from "./TagTeam";
+import { getTeamColors } from "./TagTeam";
 
 interface SelectTeamProps extends Omit<SelectCustomProps<TeamInstance, false, GroupBase<TeamInstance>>, "onChange"> {
   name: string;
@@ -39,14 +39,12 @@ const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefin
         getOptionLabel={(team) => team.name}
         formatOptionLabel={(team) => {
           const teamIndex = teams.findIndex((t) => t._id === team._id);
+          const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
           return (
             <div className="tw-flex tw-items-center tw-gap-2">
               <span
                 className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
-                style={{
-                  backgroundColor: teamsColors[teamIndex % teamsColors.length],
-                  border: `1px solid ${borderColors[teamIndex % borderColors.length]}`,
-                }}
+                style={{ backgroundColor, border: `1px solid ${borderColor}` }}
               />
               {team.name}
             </div>

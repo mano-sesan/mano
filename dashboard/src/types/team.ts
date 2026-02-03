@@ -6,4 +6,5 @@ export type TeamInstance = {
   name: string;
   organisation: UUIDV4;
   nightSession: boolean | null;
+  color: string | null;
 };

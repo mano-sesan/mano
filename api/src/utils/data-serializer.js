@@ -109,6 +109,7 @@ function serializeTeam(team) {
     createdAt: team.createdAt,
     updatedAt: team.updatedAt,
     nightSession: team.nightSession,
+    color: team.color,
   };
 }
 

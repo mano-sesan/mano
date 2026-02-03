@@ -27,6 +27,7 @@ import { encryptReport, reportsState } from "../../atoms/reports";
 import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 import ConfirmModal from "../../components/ConfirmModal";
+import { borderColors } from "../../components/TagTeam";
 
 const View = () => {
   const [team, setTeam] = useState(null);
@@ -116,7 +117,10 @@ const View = () => {
           }
         }}
       >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => (
+        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+          const teamIndex = teams.findIndex((t) => t._id === id);
+          const fallbackColor = borderColors[teamIndex % borderColors.length];
+          return (
           <React.Fragment>
             <div className="tw-flex tw-flex-col tw-gap-4">
               <div className="tw-max-w-96">
@@ -129,6 +133,22 @@ const View = () => {
                 <input type="checkbox" name="nightSession" id="nightSession" checked={values.nightSession} onChange={handleChange} />
                 <label htmlFor="nightSession">Équipe de nuit</label>
                 <NightSessionModale />
+              </div>
+              <div className="tw-max-w-96">
+                <label htmlFor="color" className="tw-m-0">
+                  Couleur de l'équipe
+                </label>
+                <div className="tw-flex tw-items-center tw-gap-2 tw-mt-2">
+                  <input
+                    type="color"
+                    name="color"
+                    id="color"
+                    value={values.color || fallbackColor}
+                    onChange={handleChange}
+                    className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
+                  />
+                  <span className="tw-text-sm tw-text-gray-500">{values.color || "Automatique"}</span>
+                </div>
               </div>
             </div>
             <div className="tw-flex tw-justify-end">
@@ -176,7 +196,7 @@ const View = () => {
               </div>
             </div>
           </React.Fragment>
-        )}
+        );}}
       </Formik>
       <ModalContainer
         open={isTransferModalOpen}
