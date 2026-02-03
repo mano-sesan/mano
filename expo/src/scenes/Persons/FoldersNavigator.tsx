@@ -45,7 +45,11 @@ const FoldersNavigator = (props: FoldersNavigatorProps) => {
       })}
       <FoldersStack.Screen name="DOCUMENTS_MANO">{(stackProps) => <Documents {...props} {...stackProps} />}</FoldersStack.Screen>
       <FoldersStack.Screen name="GROUP">{(stackProps) => <Group {...props} {...stackProps} />}</FoldersStack.Screen>
-      {!!user?.healthcareProfessional && <FoldersStack.Screen name="MEDICAL_FILE">{() => <MedicalFile {...props} />}</FoldersStack.Screen>}
+      {!!user?.healthcareProfessional && (
+        <FoldersStack.Screen name="MEDICAL_FILE">
+          {(stackProps) => <MedicalFile {...props} onBack={() => stackProps.navigation.goBack()} />}
+        </FoldersStack.Screen>
+      )}
     </FoldersStack.Navigator>
   );
 };
