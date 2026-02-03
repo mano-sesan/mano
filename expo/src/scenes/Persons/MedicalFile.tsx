@@ -37,6 +37,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "@/types/treatment";
 import SubHeader from "@/components/SubHeader";
+import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
@@ -67,6 +68,7 @@ const MedicalFile = ({
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
+  useEditButtonStatusOnFocused("show");
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector)!;
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
 
