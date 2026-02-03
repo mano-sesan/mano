@@ -7,6 +7,7 @@ import { SelectedPersonsModal } from "./PersonsStats";
 import { userState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import SelectCustom from "../../components/SelectCustom";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 
 const NO_TERRITORY_KEY = "__NO_TERRITORY__";
 
@@ -31,6 +32,7 @@ const RencontresStats = ({
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
   const [territoriesSlice, setTerritoriesSlice] = useState(null);
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector);
   // const [selectedTerritories, setSelectedTerritories] = useState([]);
   const user = useAtomValue(userState);
   const filterTitle = useMemo(() => {
@@ -63,7 +65,11 @@ const RencontresStats = ({
       if (filterPersons.length && !personObject[r.person]) continue;
 
       if (!filteredPersonsObject[r.person]) {
-        filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
+        if (filterPersons.length) {
+          filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
+        } else {
+          filteredPersonsObject[r.person] = { ...allPersonsObject[r.person], territories: [] };
+        }
       }
       filteredPersonsObject[r.person].territories.push(territoryKey);
 
