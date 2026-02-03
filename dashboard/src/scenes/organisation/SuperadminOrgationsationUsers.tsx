@@ -8,7 +8,7 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import UserStatus from "../../components/UserStatus";
-import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 
 export default function SuperadminOrganisationUsers({
   organisation,
@@ -88,7 +88,21 @@ export default function SuperadminOrganisationUsers({
                       ) : (
                         <>
                           {generatedLink && generatedLink[0] === user._id && (
-                            <div className="tw-flex tw-cursor-default tw-items-center tw-text-green-700">✅ {generatedLink[1]}</div>
+                            <div>
+                              <div className="tw-flex tw-cursor-default tw-items-start tw-text-green-700">
+                                <LinkIcon className="tw-h-4 tw-w-4 tw-mr-2 tw-mt-1" /> {generatedLink[1]}
+                              </div>
+                              <button
+                                className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline tw-flex tw-items-center tw-gap-1"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(generatedLink[1]);
+                                  toast.success("Lien de connexion copié dans le presse-papiers");
+                                }}
+                              >
+                                <DocumentDuplicateIcon className="tw-h-4 tw-w-4" />
+                                Copier le lien de connexion
+                              </button>
+                            </div>
                           )}
                           <button
                             className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
@@ -105,7 +119,14 @@ export default function SuperadminOrganisationUsers({
                               })();
                             }}
                           >
-                            {generatedLink && generatedLink[0] === user._id ? "🔄 Régénérer" : "Générer un lien de connexion"}
+                            {generatedLink && generatedLink[0] === user._id ? (
+                              <div className="tw-flex tw-items-center tw-gap-1">
+                                <ArrowPathIcon className="tw-h-4 tw-w-4" />
+                                Régénérer
+                              </div>
+                            ) : (
+                              "Générer un lien de connexion"
+                            )}
                           </button>
                         </>
                       )}
