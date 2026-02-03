@@ -11,6 +11,8 @@ import UserStatus from "../../components/UserStatus";
 
 export default function SuperadminOrganisationUsers({
   organisation,
+  refresh,
+  setRefresh,
   setOpen,
   setOpenCreateUserModal,
   setOpenEditUserModal,
@@ -20,6 +22,8 @@ export default function SuperadminOrganisationUsers({
   openEditUserModal,
 }: {
   organisation: OrganisationInstance;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
   setOpen: (open: boolean) => void;
   setOpenCreateUserModal: (open: boolean) => void;
   setEditUser: (user: UserInstance) => void;
@@ -50,7 +54,7 @@ export default function SuperadminOrganisationUsers({
     } else {
       onClose();
     }
-  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose]);
+  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose, refresh]);
 
   return (
     <ModalContainer open={open} onClose={onClose} size="full">
@@ -206,6 +210,7 @@ export default function SuperadminOrganisationUsers({
                         if (error) return;
                         toast.success("Suppression réussie");
                         setUsers(users.filter((u) => u._id !== user._id));
+                        setRefresh(true);
                       }}
                     >
                       <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>

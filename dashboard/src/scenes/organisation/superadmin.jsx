@@ -141,6 +141,8 @@ const SuperAdmin = () => {
             openEditUserModal={openEditUserModal}
             organisation={selectedOrganisation}
             setSelectedOrganisation={setSelectedOrganisation}
+            refresh={refresh}
+            setRefresh={setRefresh}
           />
           <SuperadminUsersSearch
             open={searchUserModal}
@@ -149,6 +151,7 @@ const SuperAdmin = () => {
               setSelectedOrganisation(o);
               setOpenUserListModal(true);
             }}
+            refresh={refresh}
           />
           <SuperadminOrganisationSettings
             key={selectedOrganisation?._id}
