@@ -322,7 +322,8 @@ const Create = ({ onChange, users }) => {
                   <SelectTeamMultiple
                     onChange={(teamIds) => handleChange({ target: { value: teamIds, name: "team" } })}
                     value={data.team}
-                    inputId="team"
+                    inputId="user-team-select"
+                    classNamePrefix="user-team-select"
                     name="team"
                   />
                 </div>
