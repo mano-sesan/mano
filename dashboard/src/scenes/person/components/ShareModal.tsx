@@ -18,10 +18,8 @@ import {
 } from "../../../types/share";
 import { generateSharePDF } from "../../../services/sharePdf";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
-import API from "../../../services/api";
 import { toast } from "react-toastify";
 import { DocumentArrowDownIcon, PrinterIcon } from "@heroicons/react/24/outline";
-import { DISABLED_FEATURES } from "../../../config";
 
 export default function ShareModal() {
   const [{ open, person, options }, setShareModalState] = useAtom(shareModalState);
@@ -38,8 +36,6 @@ export default function ShareModal() {
   const flattenedActionsCategories = useAtomValue(flattenedActionsCategoriesSelector);
 
   const [isGenerating, setIsGenerating] = useState(false);
-  const [emailModalOpen, setEmailModalOpen] = useState(false);
-  const [emailAddress, setEmailAddress] = useState("");
 
   const isHealthcareProfessional = user.healthcareProfessional === true;
 
@@ -275,43 +271,6 @@ export default function ShareModal() {
       setIsGenerating(false);
     }
   }, [person, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams]);
-
-  const handleSendEmail = useCallback(async () => {
-    if (!person || !emailAddress) return;
-    setIsGenerating(true);
-    try {
-      const blob = await generateSharePDF(person, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams);
-      const reader = new FileReader();
-      reader.readAsDataURL(blob);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        const base64 = base64data.split(",")[1];
-
-        const response = await API.post({
-          path: "/share/email",
-          body: {
-            email: emailAddress,
-            subject: `Dossier de ${person.name}`,
-            pdfBase64: base64,
-            filename: `dossier-${person.name}-${dayjsInstance().format("YYYY-MM-DD")}.pdf`,
-          },
-        });
-
-        if (response.ok) {
-          toast.success("Email envoyé");
-          setEmailModalOpen(false);
-          setEmailAddress("");
-        } else {
-          toast.error("Erreur lors de l'envoi de l'email");
-        }
-      };
-    } catch (error) {
-      console.error("Error sending email:", error);
-      toast.error("Erreur lors de l'envoi de l'email");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [person, emailAddress, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams]);
 
   // Helpers pour vérifier si au moins un champ est sélectionné
   const hasSelectedFields = (fields: Record<string, boolean> | undefined) => {
@@ -721,16 +680,6 @@ export default function ShareModal() {
               </button>
             </div>
             <div className="tw-flex tw-gap-2">
-              {!DISABLED_FEATURES["share-by-email"] && (
-                <button
-                  type="button"
-                  className="button-submit tw-flex tw-items-center tw-gap-2"
-                  onClick={() => setEmailModalOpen(true)}
-                  disabled={isGenerating}
-                >
-                  Envoyer par email
-                </button>
-              )}
               <button
                 type="button"
                 className="button-submit tw-flex tw-items-center tw-gap-2"
@@ -748,33 +697,6 @@ export default function ShareModal() {
           </div>
         </ModalFooter>
       </ModalContainer>
-
-      {/* Email Modal */}
-      {!DISABLED_FEATURES["share-by-email"] && (
-        <ModalContainer open={emailModalOpen} onClose={() => setEmailModalOpen(false)} size="lg" dataTestId="email-modal">
-          <ModalHeader title="Envoyer par email" onClose={() => setEmailModalOpen(false)} />
-          <ModalBody className="tw-p-4">
-            <div>
-              <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Adresse email du destinataire</label>
-              <input
-                type="email"
-                className="tailwindui tw-w-full"
-                placeholder="email@example.com"
-                value={emailAddress}
-                onChange={(e) => setEmailAddress(e.target.value)}
-              />
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <button type="button" className="button-classic" onClick={() => setEmailModalOpen(false)}>
-              Annuler
-            </button>
-            <button type="button" className="button-submit" onClick={handleSendEmail} disabled={isGenerating || !emailAddress}>
-              {isGenerating ? "Envoi en cours..." : "Envoyer"}
-            </button>
-          </ModalFooter>
-        </ModalContainer>
-      )}
     </>
   );
 }
