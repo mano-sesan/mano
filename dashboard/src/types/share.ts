@@ -51,7 +51,7 @@ export const GENERAL_INFO_FIELDS = [
   { name: "followedSince", label: "Suivi·e depuis le" },
   { name: "assignedTeams", label: "Équipes assignées" },
   { name: "outOfActiveList", label: "Sortie de file active" },
-  { name: "outOfActiveListReason", label: "Motif de sortie" },
+  { name: "outOfActiveListReasons", label: "Motif(s) de sortie" },
   { name: "outOfActiveListDate", label: "Date de sortie" },
 ] as const;
 

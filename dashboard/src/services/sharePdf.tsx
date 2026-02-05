@@ -261,10 +261,10 @@ function SharePDFDocument({
                 <Text style={styles.value}>Oui</Text>
               </View>
             )}
-            {options.generalInfoFields.outOfActiveListReason && person.outOfActiveListReason && (
+            {options.generalInfoFields.outOfActiveListReasons && person.outOfActiveListReasons && person.outOfActiveListReasons.length > 0 && (
               <View style={styles.row}>
-                <Text style={styles.label}>Motif de sortie</Text>
-                <Text style={styles.value}>{person.outOfActiveListReason}</Text>
+                <Text style={styles.label}>Motif(s) de sortie</Text>
+                <Text style={styles.value}>{person.outOfActiveListReasons.join(", ")}</Text>
               </View>
             )}
             {options.generalInfoFields.outOfActiveListDate && person.outOfActiveListDate && (
