@@ -49,17 +49,13 @@ router.post(
       <p>Bonjour,</p>
       <p>${safeName} vous envoie un dossier via l'application Mano.</p>
       <p>Vous trouverez le document en pièce jointe.</p>
-      <p>Cordialement,<br/>L'équipe Mano</p>
     `;
 
     const text = `Bonjour,
 
 ${user.name} vous envoie un dossier via l'application Mano.
 
-Vous trouverez le document en pièce jointe.
-
-Cordialement,
-L'équipe Mano`;
+Vous trouverez le document en pièce jointe.`;
 
     await sendEmailWithAttachment(email, subject, text, html, [
       {
