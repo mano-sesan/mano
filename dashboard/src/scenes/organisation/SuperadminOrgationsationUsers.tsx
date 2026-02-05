@@ -8,7 +8,7 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import UserStatus from "../../components/UserStatus";
-import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon, ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon, ArrowTopRightOnSquareIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 export default function SuperadminOrganisationUsers({
   organisation,
@@ -224,7 +224,7 @@ export default function SuperadminOrganisationUsers({
                         }}
                         className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
                       >
-                        {team.nightSession && <span>🌒</span>}
+                        {team.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
                         {team.name}
                       </div>
                     ))}

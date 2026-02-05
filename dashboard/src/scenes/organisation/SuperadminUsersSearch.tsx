@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import Search from "../../components/search";
 import UserStatus from "../../components/UserStatus";
+import { MoonIcon } from "@heroicons/react/24/outline";
 
 export default function SuperadminUsersSearch({
   open,
@@ -131,7 +132,7 @@ export default function SuperadminUsersSearch({
                             }}
                             className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
                           >
-                            {team.nightSession && <span>🌒</span>}
+                            {team.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
                             {team.name}
                           </div>
                         ))}
