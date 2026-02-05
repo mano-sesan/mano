@@ -15,12 +15,8 @@ import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { errorMessage } from "../../utils";
-<<<<<<< changement-de-couleur-d'équipe
 import { getTeamColors } from "../../components/TagTeam";
-=======
-import { teamsColors, borderColors } from "../../components/TagTeam";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
->>>>>>> main
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
