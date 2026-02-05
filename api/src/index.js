@@ -129,6 +129,7 @@ app.use("/medical-file", require("./controllers/medicalFile"));
 app.use("/recurrence", require("./controllers/recurrence"));
 app.use("/transfer-team", require("./controllers/transferTeam"));
 app.use("/transfer-territory", require("./controllers/transferTerritory"));
+app.use("/share", require("./controllers/share"));
 
 // The error handler must be before any other error middleware and after all controllers
 app.use(Sentry.Handlers.errorHandler());

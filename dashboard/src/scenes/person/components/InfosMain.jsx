@@ -4,11 +4,13 @@ import EditModal from "./EditModal";
 import TagTeam from "../../../components/TagTeam";
 import ExclamationMarkButton from "../../../components/tailwind/ExclamationMarkButton";
 import { userState } from "../../../atoms/auth";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { openShareModal } from "../../../atoms/share";
 
 export function InfosMain({ person, isMedicalFile }) {
   const user = useAtomValue(userState);
   const [editModal, setEditModal] = useState(false);
+  const openShare = useSetAtom(openShareModal);
   const birthdateDayjs = person.birthdate ? dayjsInstance(person.birthdate) : null;
   const birthdateIsValid = Boolean(birthdateDayjs && birthdateDayjs.isValid());
   return (
@@ -60,9 +62,9 @@ export function InfosMain({ person, isMedicalFile }) {
             </div>
           </div>
           <div className="tw-mt-4 tw-flex tw-flex-row tw-items-center tw-justify-center tw-gap-2">
-            {user.role !== "restricted-access" && (
-              <button className="tw-block tw-px-2 tw-py-1 tw-text-sm tw-text-white tw-underline tw-opacity-80" onClick={() => window.print()}>
-                Imprimer
+            {user.role !== "restricted-access" && user.role !== "stats-only" && (
+              <button className="tw-block tw-px-2 tw-py-1 tw-text-sm tw-text-white tw-underline tw-opacity-80" onClick={() => openShare(person)}>
+                Partager
               </button>
             )}
             <button
