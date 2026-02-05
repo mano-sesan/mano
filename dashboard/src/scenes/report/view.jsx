@@ -21,6 +21,7 @@ import { PersonsReport } from "./components/PersonsReport";
 import Transmissions from "./components/Transmissions";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import Priorites from "./components/Priorites";
 
 const getPeriodTitle = (date, nightSession) => {
@@ -353,13 +354,19 @@ const View = () => {
         </div>
         {selectedTeams.length > 1 && selectedTeams.filter((t) => t.nightSession).length > 0 && (
           <details className="tw-px-8 tw-py-0 tw-font-normal">
-            <summary className="tw-text-xs">
-              Certaines équipes travaillent de nuit 🌒, <u>cliquez ici</u> pour savoir la période concernée par chacune
+            <summary className="tw-text-xs tw-flex tw-items-center tw-gap-1">
+              Certaines équipes travaillent de nuit <MoonIcon className="tw-inline tw-h-4 tw-w-4 tw-text-blue-900" />, <u>cliquez ici</u> pour savoir la
+              période concernée par chacune
             </summary>
             {selectedTeams.map((team) => (
-              <p key={team._id} className="tw-mb-0 tw-ml-5 tw-text-xs">
-                <b>
-                  {team.nightSession ? "🌒" : "☀️"} {team?.name || ""}
+              <p key={team._id} className="tw-mb-0 tw-ml-5 tw-text-xs tw-flex tw-items-center tw-gap-1">
+                <b className="tw-flex tw-items-center tw-gap-1">
+                  {team.nightSession ? (
+                    <MoonIcon className="tw-h-4 tw-w-4 tw-text-blue-900" />
+                  ) : (
+                    <SunIcon className="tw-h-4 tw-w-4 tw-text-yellow-500" />
+                  )}{" "}
+                  {team?.name || ""}
                 </b>{" "}
                 - {getPeriodTitle(dateString, team?.nightSession)}
               </p>

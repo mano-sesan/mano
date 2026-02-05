@@ -6,6 +6,7 @@ import { CANCEL, DONE, TODO } from "../atoms/actions";
 import { dayjsInstance, formatTime } from "../services/date";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import PersonName from "./PersonName";
 import { organisationState, userState } from "../atoms/auth";
 import TagTeam from "./TagTeam";
@@ -17,6 +18,7 @@ import DescriptionIcon from "./DescriptionIcon";
 import DocumentIcon from "./DocumentIcon";
 import CommentIcon from "./CommentIcon";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
+import { ClockIcon, UserIcon } from "@heroicons/react/24/outline";
 
 export default function ActionsWeekly({ actions, isNightSession, onCreateAction }) {
   const [startOfWeek, setStartOfWeek] = useSearchParamState("startOfWeek", dayjsInstance().startOf("week").format("YYYY-MM-DD"));
@@ -170,8 +172,9 @@ function ActionsOfDay({ actions }) {
                 </div>
               )}
               {Boolean(action.isConsultation) && (
-                <div className="tw-flex tw-flex-row tw-items-center tw-font-bold tw-text-[#43738b]">
-                  <i>🩺 Consultation</i>
+                <div className="tw-flex tw-flex-row tw-items-center tw-gap-1 tw-font-bold tw-text-[#43738b]">
+                  <StethoscopeIcon className="tw-w-4 tw-h-4" />
+                  <span>Consultation</span>
                 </div>
               )}
             </div>
@@ -182,9 +185,15 @@ function ActionsOfDay({ actions }) {
           <div>
             <ActionOrConsultationName item={action} />
           </div>
-          {Boolean(action.withTime) && <div>🕑 {formatTime(action.dueAt)}</div>}
-          <div>
-            🧑 <PersonName item={action} />
+          {Boolean(action.withTime) && (
+            <div className="tw-flex tw-items-center tw-gap-1">
+              <ClockIcon className="tw-h-4 tw-w-4" />
+              {formatTime(action.dueAt)}
+            </div>
+          )}
+          <div className="tw-flex tw-items-center tw-gap-1">
+            <UserIcon className="tw-h-4 tw-w-4" />
+            <PersonName item={action} />
           </div>
           <div className="tw-flex tw-flex-row tw-items-center tw-gap-2 tw-mt-1">
             {!!organisation.groupsEnabled && !!action.group && (

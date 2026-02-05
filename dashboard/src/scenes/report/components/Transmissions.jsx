@@ -11,6 +11,7 @@ import { errorMessage } from "../../../utils";
 import { decryptItem } from "../../../services/encryption";
 import { useAtomValue } from "jotai";
 import { usersState } from "../../../atoms/auth";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 export default function Transmissions({ userId, period, selectedTeamsObject, reports }) {
   const [transmissionForModal, setTransmissionForModal] = useState(null);
@@ -90,8 +91,9 @@ function TransmissionPrint({ report, team }) {
   return (
     <>
       <div className="p-2 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100 tw-mx-4 tw-bg-transparent">
-        <p className="tw-font-medium">
-          {team?.nightSession ? "🌒" : "☀️ "} {team?.name || ""}
+        <p className="tw-font-medium tw-flex tw-items-center tw-gap-1">
+          {team?.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />}{" "}
+          {team?.name || ""}
         </p>
         <div className="tw-ml-4 tw-border-l-2 tw-border-zinc-300 tw-pl-8">
           {!report?.description ? (
@@ -158,8 +160,9 @@ function Transmission({ report, team, day, teamId, userId, reactSelectInputId, o
   return (
     <>
       <div className="p-2 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100">
-        <p className="tw-font-medium">
-          {team?.nightSession ? "🌒" : "☀️ "} {team?.name || ""}
+        <p className="tw-font-medium tw-flex tw-items-center tw-gap-1">
+          {team?.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />}{" "}
+          {team?.name || ""}
         </p>
         <div>
           {!report?.description ? (
@@ -274,7 +277,15 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
         onClosed();
       }}
     >
-      <ModalHeader title={`Transmission du ${dayjsInstance(day).format("dddd D MMM")} - ${team?.nightSession ? "🌒" : "☀️ "} ${team?.name || ""}`} />
+      <ModalHeader
+        title={
+          <span className="tw-flex tw-items-center tw-gap-1">
+            Transmission du {dayjsInstance(day).format("dddd D MMM")} -{" "}
+            {team?.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />}{" "}
+            {team?.name || ""}
+          </span>
+        }
+      />
       <ModalBody className="tw-py-2">
         <form
           id={`edit-transmission-${day}-${teamId}`}

@@ -1,6 +1,7 @@
 import React from "react";
 import { useAtomValue } from "jotai";
 import { teamsState } from "../atoms/auth";
+import { MoonIcon } from "@heroicons/react/24/solid";
 
 /**
  * Retourne la couleur de fond et de bordure pour une équipe
@@ -31,7 +32,7 @@ const TagTeam = ({ teamId }) => {
       style={{ backgroundColor, borderColor }}
       className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
     >
-      {team?.nightSession && <span>🌒</span>}
+      {team?.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
       {team?.name}
     </div>
   );

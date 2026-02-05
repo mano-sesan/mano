@@ -5,7 +5,7 @@ import { addOneDay, dayjsInstance, formatCalendarDate, formatDateTimeWithNameOfD
 import Table from "./table";
 import ActionOrConsultationName from "./ActionOrConsultationName";
 import PersonName from "./PersonName";
-import ConsultationButton from "./ConsultationButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import { organisationState, userState } from "../atoms/auth";
 import { disableConsultationRow } from "../atoms/consultations";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
@@ -132,7 +132,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
                   {!!organisation.groupsEnabled && !!actionOrConsult.group && (
                     <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
                   )}
-                  {!!actionOrConsult.isConsultation && <ConsultationButton />}
+                  {!!actionOrConsult.isConsultation && <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" />}
                 </div>
               </div>
             );
