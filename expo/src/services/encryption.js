@@ -65,7 +65,7 @@ const decrypt = async (encryptedContent, encryptedEntityKey, masterKey) => {
 
   return {
     content,
-    entityKey,
+    entityKey: sodium.to_base64(entityKey, sodium.base64_variants.ORIGINAL),
   };
 };
 
