@@ -718,6 +718,7 @@ router.get(
     const query = { where: { _id: req.params._id } };
     query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
+    if (!user) return res.status(404).send({ ok: false, error: "User not found" });
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
     return res.status(200).send({
       ok: true,
