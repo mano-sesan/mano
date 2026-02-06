@@ -97,3 +97,47 @@ Organizations can define custom fields for persons, actions, consultations, etc.
 
 - Prettier with `printWidth: 150`
 - Package manager: Yarn 4.0.2 (use corepack)
+
+## Commits
+
+Les messages de commit doivent être rédigés **en français** et décrire l'impact fonctionnel/métier plutôt que les détails techniques.
+
+### Format
+
+```
+<type>(<scope>): <description>
+```
+
+- **Pas de majuscule** après le préfixe
+- **Pas de point** à la fin
+- Description concise mais explicite sur ce qui change pour l'utilisateur
+
+### Types
+
+- `feat:` nouvelle fonctionnalité
+- `fix:` correction de bug
+- `chore:` maintenance technique (refactoring, nettoyage, config)
+- `chore(deps):` mise à jour de dépendances
+
+### Scopes optionnels
+
+- `(app)` : changements spécifiques à l'application mobile
+- `(superadmin)` : changements liés à l'interface superadmin
+- `(deps)` : dépendances
+
+### Exemples
+
+```bash
+# ✅ Bon : décrit l'impact utilisateur
+feat: possibilité de copier le lien de connexion (superadmin)
+fix: au survol, les points d'interrogation des graphiques sont maintenant violet
+feat(app): possibilité d'ajouter des rencontres pour plusieurs personnes depuis l'agenda
+
+# ❌ Mauvais : trop technique, pas orienté métier
+fix: change color from green to purple in HelpIcon component
+feat: add copy button to admin link
+```
+
+### Principe clé
+
+Le message doit répondre à la question : **"Qu'est-ce qui change pour l'utilisateur ?"** plutôt que "Qu'est-ce que j'ai modifié dans le code ?"
