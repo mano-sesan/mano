@@ -8,6 +8,33 @@ import { forbiddenPersonFieldsInHistory } from "../atoms/persons";
 
 const fixedInTimeFields = ["birthdate", "gender", "followedSince"];
 
+// Champs liés à la sortie de file active - ils utilisent outOfActiveListDate comme date de référence
+const outOfActiveListFields = ["outOfActiveList", "outOfActiveListDate", "outOfActiveListReasons"];
+
+// Détermine la date de référence pour un item d'historique et un champ donné
+// Pour les champs de sortie de file active, on utilise la date indiquée (outOfActiveListDate) au lieu de la date de saisie
+function getReferenceDateForHistoryItem(historyItem: PersonPopulated["history"][number], fieldName: string): Date {
+  // Si c'est un champ de sortie de file active et qu'on a une date de sortie indiquée
+  if (outOfActiveListFields.includes(fieldName) && "outOfActiveListDate" in historyItem.data && "outOfActiveList" in historyItem.data) {
+    const outOfActiveListDateEntry = historyItem.data.outOfActiveListDate as { oldValue?: unknown; newValue?: unknown } | undefined;
+    const outOfActiveListEntry = historyItem.data.outOfActiveList as { oldValue?: unknown; newValue?: unknown } | undefined;
+
+    // Si c'est une sortie de file active (pas une réintégration) avec une date indiquée
+    if (outOfActiveListDateEntry?.newValue && outOfActiveListEntry?.newValue === true) {
+      const indicatedDate = outOfActiveListDateEntry.newValue;
+      if (typeof indicatedDate === "number") {
+        return new Date(indicatedDate);
+      } else if (typeof indicatedDate === "string") {
+        return new Date(indicatedDate);
+      } else if (indicatedDate instanceof Date) {
+        return indicatedDate;
+      }
+    }
+  }
+  // Par défaut, utiliser la date de saisie de l'historique
+  return new Date(historyItem.date);
+}
+
 export function getPersonSnapshotAtDate({
   person,
   snapshotDate,
@@ -29,16 +56,9 @@ export function getPersonSnapshotAtDate({
   }
   const reversedHistory = [...person.history].reverse();
   let snapshot = structuredClone(person);
+  // On doit parcourir tout l'historique car les champs outOfActiveList* peuvent avoir
+  // une date de référence différente de la date de saisie (date antidatée)
   for (const historyItem of reversedHistory) {
-    const historyDate = dayjsInstance(historyItem.date).format("YYYY-MM-DD");
-    // history is: before the date
-    // snapshot is: after the date
-    // what should we do for a history change on the same day as the snapshot ?
-    // 2 options: we keep the snapshot, or we keep the history change
-    // we keep the snapshot because it's more coherent with L258-L259
-    if (historyDate <= snapshotDate) {
-      return snapshot; // if snapshot's day is history's day, we return the snapshot
-    }
     for (const fieldName of Object.keys(historyItem.data)) {
       if (forbiddenPersonFieldsInHistory.includes(fieldName)) continue;
       // Certains champs sont fixes dans le temps et donc ignorés. Il s'agit des champs "genre" et "date de naissance" qu'on considère (arbitrairement) comme fixes.
@@ -47,6 +67,18 @@ export function getPersonSnapshotAtDate({
       if (fixedInTimeFields.includes(fieldName)) continue;
       if (onlyForFieldName && fieldName !== onlyForFieldName) continue; // we support only one indicator for now
       if (!typesByFields[fieldName]) continue; // this is a deleted custom field
+
+      // Déterminer la date de référence pour ce champ
+      // Pour les champs de sortie de file active, on utilise la date indiquée si disponible
+      const referenceDate = getReferenceDateForHistoryItem(historyItem, fieldName);
+      const historyDate = dayjsInstance(referenceDate).format("YYYY-MM-DD");
+
+      // Si la modification est avant ou le jour même du snapshot, on garde la valeur actuelle du snapshot
+      if (historyDate <= snapshotDate) {
+        continue;
+      }
+
+      // Sinon, on remet l'ancienne valeur
       const oldValue = replaceNullishWithNonRenseigne
         ? getValueByField(fieldName, typesByFields[fieldName], historyItem.data[fieldName].oldValue)
         : historyItem.data[fieldName].oldValue;
