@@ -68,12 +68,13 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Éditer les dossier médical" }).click();
     await page.getByLabel("Numéro de sécurité sociale").fill("123");
     await page.getByRole("button", { name: "Enregistrer" }).click();
-
     await page.getByText("Mis à jour !").click();
+
     await page.getByLabel("Ajouter un commentaire").click();
     await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire 1");
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Commentaire enregistré").click();
+
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
     await page.getByRole("cell", { name: "2", exact: true }).click();
@@ -92,12 +93,12 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Éditer les dossier médical" }).click();
     await clickOnEmptyReactSelect(page, "person-custom-select-multi-champ", "choix 1");
     await changeReactSelectValue(page, "person-custom-select-multi-champ", "choix 2");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await page.getByText("Mis à jour !").click();
     await page.getByLabel("Ajouter un commentaire").click();
     await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire 2");
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Commentaire enregistré").click();
-    await page.getByRole("button", { name: "Enregistrer" }).click();
-    await page.getByText("Mis à jour !").click();
   });
 
   await test.step("try to merge as health professional", async () => {
@@ -190,7 +191,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByText("456").click();
     await page.getByText("choix 1").click();
     await page.getByText("choix 2").click();
-    await page.getByText("Commentaire 1").click();
-    await page.getByText("Commentaire 2").click();
+    await expect(page.getByText("Commentaire 1")).toBeVisible();
+    await expect(page.getByText("Commentaire 2")).toBeVisible();
   });
 });
