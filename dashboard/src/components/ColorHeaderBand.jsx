@@ -8,8 +8,7 @@ export default function ColorHeaderBand({ teamId }) {
   const teamIndex = teams?.findIndex((t) => t._id === teamId);
   const team = teams[teamIndex];
 
-  const { borderColor } = getTeamColors(team, teamIndex);
-  const backgroundColor = `${borderColor}CC`;
+  const { borderColor, backgroundColor } = getTeamColors(team, teamIndex);
 
   useEffect(() => {
     const metaThemeColor = document.querySelector("meta[name=theme-color]");
