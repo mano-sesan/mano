@@ -175,10 +175,10 @@ const App = () => {
       // and checking only /auth makes sense as you shouldn't need to /check-auth on /auth page anyway
       if (apiToken && !window.location.pathname.includes("/auth")) {
         // Cela déclenchera un logout si la session est expirée
-        tryFetch(() => API.getAbortable({ path: "/check-auth" })).then(() => {
+        tryFetch(() => API.getAbortable({ path: "/check-auth" })).then(([error]) => {
           // On ne recharge que s'il y a une clé de chiffrement
           // Sinon ça met du bazar en cache (parce que ça va chercher des données chiffrées et que ça échoue)
-          if (initialLoadIsDone && getHashedOrgEncryptionKey()) {
+          if (!error && initialLoadIsDone && getHashedOrgEncryptionKey()) {
             refresh();
           }
         });
