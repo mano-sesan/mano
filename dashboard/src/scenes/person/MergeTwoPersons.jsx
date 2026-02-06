@@ -305,7 +305,7 @@ const MergeTwoPersons = ({ person }) => {
               })),
             ],
             comments: [
-              ...(originPersonMedicalFile.comments || []),
+              ...((originPersonMedicalFile || {}).comments || []),
               ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
                 ...comment,
                 person: originPerson._id,
