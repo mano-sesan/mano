@@ -213,8 +213,8 @@ router.post(
           for (const group of updated) {
             if (group.fields) {
               for (const field of group.fields) {
-                field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
                 if (field.enabledTeams?.includes(teamToDeleteId)) {
+                  field.enabledTeams = field.enabledTeams.filter((team) => team !== teamToDeleteId);
                   if (!field.enabledTeams.includes(targetTeamId)) {
                     field.enabledTeams.push(targetTeamId);
                   }
