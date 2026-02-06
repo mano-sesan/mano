@@ -12,7 +12,6 @@ const CommentsMedical = ({ person }) => {
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
 
   const medicalFile = person.medicalFile;
-
   const commentsMedical = useMemo(
     () => [...(person?.commentsMedical || [])].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)),
     [person]
