@@ -46,7 +46,7 @@ export function SummaryPrint({ person }: { person: PersonPopulated }) {
           <strong>Genre</strong>&nbsp;: <CustomFieldDisplay type="text" value={person.gender} />
         </div>
         <div>
-          <strong>Suivi·e depuis le</strong>&nbsp;: <CustomFieldDisplay type="date" value={person.followedSince || person.createdAt} />
+          <strong>Suivi·e depuis le</strong>&nbsp;: <CustomFieldDisplay type="date" value={person.followedSince} />
         </div>
         {person.wanderingAt ? (
           <div>

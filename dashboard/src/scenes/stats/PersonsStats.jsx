@@ -345,7 +345,7 @@ const BlockCreatedAt = ({ persons }) => {
   const averageFollowedTime =
     persons.reduce((total, person) => {
       let totalFollowedTime = 0;
-      let followStart = Date.parse(person.followedSince || person.createdAt);
+      let followStart = Date.parse(person.followedSince);
 
       const history = person.history || [];
 
@@ -755,11 +755,11 @@ const StatsCreatedAtRangeBar = ({ persons, onItemClick }) => {
   const categories = ["0-6 mois", "6-12 mois", "1-2 ans", "2-5 ans", "+ 5 ans"];
 
   let data = persons.reduce((newData, person) => {
-    if (!person.followedSince || !person.createdAt || !person.createdAt.length) {
+    if (!person.followedSince) {
       return newData;
       // newData["Non renseigné"].push(person);
     }
-    const parsedDate = Date.parse(person.followedSince || person.createdAt);
+    const parsedDate = Date.parse(person.followedSince);
     const fromNowInMonths = (Date.now() - parsedDate) / 1000 / 60 / 60 / 24 / (365.25 / 12);
     if (fromNowInMonths < 6) {
       newData["0-6 mois"].push(person);
@@ -992,7 +992,7 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
                 onSortBy: setSortBy,
                 sortOrder,
                 sortBy,
-                render: (p) => formatDateWithFullMonth(p.followedSince || p.createdAt || ""),
+                render: (p) => formatDateWithFullMonth(p.followedSince),
               },
             ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
           />

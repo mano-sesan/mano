@@ -117,7 +117,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         birthdate: person.birthdate,
         alertness: person.alertness,
         wanderingAt: person.wanderingAt,
-        followedSince: person.followedSince || person.createdAt,
+        followedSince: person.followedSince,
         createdAt: person.createdAt,
         gender: person.gender,
         phone: person.phone?.trim(),

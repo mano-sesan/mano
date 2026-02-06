@@ -100,7 +100,7 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
     });
     return {
       ...snapshotAtDate,
-      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince || person.createdAt, "months"),
+      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince, "months"),
     };
   });
 
@@ -256,7 +256,7 @@ const itemsForStatsSelector = ({
     }
 
     // get persons for stats for period
-    const createdDate = person.followedSince || person.createdAt;
+    const createdDate = person.followedSince;
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,

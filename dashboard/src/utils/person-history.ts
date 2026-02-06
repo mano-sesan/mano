@@ -51,7 +51,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
   interactions: Array<Date>;
   assignedTeamsPeriods: AssignedTeamsPeriods;
 } {
-  const interactions = [person.followedSince || person.createdAt];
+  const interactions = [person.followedSince];
   // assignedTeamsPeriods
   // final format example, after looping the whole history: { teamIdA: [{ endDate: startDate: }, { endDate: startDate: }] }
   // current format: { teamIdA: [{ endDate: now,  startDate: undefined }] }
@@ -68,7 +68,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
     {
       all: [
         {
-          isoStartDate: dayjsInstance(person.followedSince || person.createdAt).toISOString(),
+          isoStartDate: dayjsInstance(person.followedSince).toISOString(),
           isoEndDate: dayjsInstance().startOf("day").toISOString(),
         },
       ],
@@ -112,7 +112,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
     assignedTeamsPeriods[teamId] = (assignedTeamsPeriods[teamId] || []).map((period) => {
       if (period.isoStartDate) return period;
       return {
-        isoStartDate: dayjsInstance(person.followedSince || person.createdAt).toISOString(),
+        isoStartDate: dayjsInstance(person.followedSince).toISOString(),
         isoEndDate: period.isoEndDate,
       };
     });
