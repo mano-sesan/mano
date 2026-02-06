@@ -101,7 +101,7 @@ const Drawer = () => {
     >
       <div
         className={[
-          "noprint tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-r tw-border-black tw-border-opacity-10 tw-bg-white tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
+          "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-r tw-border-black tw-border-opacity-10 tw-bg-white tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
           isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-p-2" : "tw-w-64 tw-basis-52 tw-p-4",
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
@@ -181,16 +181,6 @@ const Drawer = () => {
             <SessionCountDownLimiter />
           </div>
         )}
-        {isDesktop && (
-          <button
-            type="button"
-            aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
-            className="tw-mt-auto tw-flex tw-w-12 tw-items-center tw-justify-center tw-rounded-lg tw-border tw-border-gray-200 tw-p-2 tw-text-gray-500 tw-transition-colors hover:tw-bg-gray-100 hover:tw-text-gray-700"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? <ChevronDoubleRightIcon className="tw-h-5 tw-w-5" /> : <ChevronDoubleLeftIcon className="tw-h-5 tw-w-5" />}
-          </button>
-        )}
         <button
           type="button"
           aria-label="Cacher la navigation latérale"
@@ -206,6 +196,17 @@ const Drawer = () => {
           </svg>
         </button>
       </div>
+      {isDesktop && (
+        <button
+          type="button"
+          aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
+          className="tw-absolute tw-top-3 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
+          style={{ left: isCollapsed ? "4rem" : "13rem" }}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? <ChevronDoubleRightIcon className="tw-h-4 tw-w-4" /> : <ChevronDoubleLeftIcon className="tw-h-4 tw-w-4" />}
+        </button>
+      )}
     </nav>
   );
 };
