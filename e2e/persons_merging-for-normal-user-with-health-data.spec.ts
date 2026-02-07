@@ -70,6 +70,11 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Mis à jour !").click();
 
+    await page.getByLabel("Ajouter un commentaire").click();
+    await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire 1");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await page.getByText("Commentaire enregistré").click();
+
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
     await page.getByRole("cell", { name: "2", exact: true }).click();
@@ -90,6 +95,10 @@ test("merging normal user with health data", async ({ page }) => {
     await changeReactSelectValue(page, "person-custom-select-multi-champ", "choix 2");
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Mis à jour !").click();
+    await page.getByLabel("Ajouter un commentaire").click();
+    await page.getByLabel("Commentaire", { exact: true }).fill("Commentaire 2");
+    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await page.getByText("Commentaire enregistré").click();
   });
 
   await test.step("try to merge as health professional", async () => {
@@ -125,7 +134,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Fusionner avec un autre dossier" }).click();
     const forbiddenMergeListener = async (dialog) => {
       expect(dialog.message()).toBe(
-        "Les champs médicaux ne sont pas identiques. Vous devez être un·e professionnel·le de santé pour fusionner des dossiers médicaux différents."
+        "Les champs médicaux ne sont pas identiques. Vous devez être un·e professionnel·le de santé pour fusionner des dossiers médicaux différents.",
       );
       await dialog.accept();
     };
@@ -182,5 +191,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByText("456").click();
     await page.getByText("choix 1").click();
     await page.getByText("choix 2").click();
+    await expect(page.getByText("Commentaire 1")).toBeVisible();
+    await expect(page.getByText("Commentaire 2")).toBeVisible();
   });
 });

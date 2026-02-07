@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import {  useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -304,6 +304,14 @@ const MergeTwoPersons = ({ person }) => {
                 downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
               })),
             ],
+            comments: [
+              ...((originPersonMedicalFile || {}).comments || []),
+              ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
+                ...comment,
+                person: originPerson._id,
+                type: "medical-file",
+              })),
+            ],
           }),
           medicalFileToDeleteId: personToMergeMedicalFile?._id,
         };
@@ -319,6 +327,13 @@ const MergeTwoPersons = ({ person }) => {
               ..._doc,
               downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
             })),
+            comments: [
+              ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
+                ...comment,
+                person: originPerson._id,
+                type: "medical-file",
+              })),
+            ],
           }),
         };
       }
