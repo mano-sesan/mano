@@ -96,11 +96,6 @@ app.post("/api/deploy", (req, res) => {
   res.send("Déploiement déclenché");
 });
 
-app.use("*", (req, res) => {
-  res.status(503).json({ ok: false, error: "Désolé le service est momentanément indisponible. Veuillez réessayer demain." });
-  return;
-});
-
 // Routes
 app.use(versionCheck);
 require("./passport")(app);
