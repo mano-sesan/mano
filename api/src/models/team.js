@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     _id: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4, primaryKey: true },
     name: DataTypes.TEXT,
     nightSession: DataTypes.BOOLEAN,
+    color: DataTypes.TEXT,
     organisation: { type: DataTypes.UUID, references: { model: "Organisation", key: "_id", deferrable: Deferrable.INITIALLY_IMMEDIATE } },
   };
 

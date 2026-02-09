@@ -3,18 +3,33 @@ import { useAtomValue } from "jotai";
 import { teamsState } from "../atoms/auth";
 import { MoonIcon } from "@heroicons/react/24/solid";
 
+/**
+ * Retourne la couleur de fond et de bordure pour une équipe
+ * Utilise team.color si disponible, sinon fallback sur l'index
+ */
+export const getTeamColors = (team, teamIndex) => {
+  if (team?.color) {
+    return {
+      backgroundColor: `${team.color}cc`,
+      borderColor: team.color,
+    };
+  }
+  return {
+    backgroundColor: teamsColors[teamIndex % teamsColors.length],
+    borderColor: borderColors[teamIndex % borderColors.length],
+  };
+};
+
 const TagTeam = ({ teamId }) => {
   const teams = useAtomValue(teamsState);
   const teamIndex = teams?.findIndex((t) => t._id === teamId);
   const team = teams?.find((t) => t._id === teamId);
   if (!team) return null;
+  const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
   return (
     <div
       key={team?._id}
-      style={{
-        backgroundColor: teamsColors[teamIndex % teamsColors?.length],
-        borderColor: borderColors[teamIndex % borderColors?.length],
-      }}
+      style={{ backgroundColor, borderColor }}
       className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
     >
       {team?.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
