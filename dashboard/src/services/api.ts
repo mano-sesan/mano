@@ -68,6 +68,11 @@ class Api {
       Accept: "application/json",
       platform: "dashboard",
       version: "2.1.0",
+      // Empêcher les réponses 304 qui peuvent causer des problèmes de cache
+      // lors du delta-sync (le paramètre "after" change mais le navigateur
+      // pourrait retourner une réponse cachée)
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
     };
 
     // Add race condition detection headers if provided
