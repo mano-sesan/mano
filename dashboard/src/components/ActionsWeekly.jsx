@@ -183,7 +183,7 @@ function ActionsOfDay({ actions }) {
             {Array.isArray(action?.teams) ? action.teams.map((e) => <TagTeam key={e} teamId={e} />) : <TagTeam teamId={action?.team} />}
           </div>
           <div>
-            <ActionOrConsultationName item={action} />
+            <ActionOrConsultationName item={action} fullWidth />
           </div>
           {Boolean(action.withTime) && (
             <div className="tw-flex tw-items-center tw-gap-1">
