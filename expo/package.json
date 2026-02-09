@@ -15,7 +15,9 @@
     "build-local:android-apk-niort": "eas build -p android --local --output ./mano-niort.apk --profile production-niort",
     "build-local:android-apks": "npm run build-local:android-apk-standard && npm run build-local:android-apk-niort",
     "publish-releases-to-github": "node publish-releases-to-github.js",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/react-native-action-sheet": "^4.1.0",
