@@ -42,7 +42,7 @@ if (process.env.NODE_ENV === "production") {
     cors({
       credentials: true,
       origin: ["http://localhost:1420", "http://localhost:4145", "http://localhost:8083", "http://localhost:8090", "http://localhost:3000"],
-    })
+    }),
   );
 }
 
@@ -68,7 +68,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   // if you change these values, you need to change them also in
   // https://github.com/mano-sesan/mano/blob/main/.server/vhost/api-mano.sesan.fr#L1
-  const limitedSize = req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") || req.path.startsWith("/transfer-territory") ? "350mb" : "50mb";
+  const limitedSize =
+    req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") || req.path.startsWith("/transfer-territory") ? "350mb" : "50mb";
   express.json({ limit: limitedSize })(req, res, next);
 });
 app.use(helmet());
@@ -93,6 +94,11 @@ app.post("/api/deploy", (req, res) => {
     });
   }
   res.send("Déploiement déclenché");
+});
+
+app.use("*", (req, res) => {
+  res.status(503).json({ ok: false, error: "Désolé le service est momentanément indisponible. Veuillez réessayer demain." });
+  return;
 });
 
 // Routes
