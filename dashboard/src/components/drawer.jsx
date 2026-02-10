@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { atom, useAtom, useAtomValue } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
@@ -22,11 +23,14 @@ import {
   UserIcon,
   MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/20/solid";
 
 export const showDrawerState = atom({
   key: "showDrawerState",
   default: false,
 });
+
+export const isDrawerCollapsedState = atomWithStorage("drawer-collapsed", false);
 
 const Drawer = () => {
   const [user, setUser] = useAtom(userState);
@@ -40,6 +44,7 @@ const Drawer = () => {
 
   const isOnboarding = onboardingForEncryption || onboardingForTeams;
   const [showDrawer, setShowDrawer] = useAtom(showDrawerState);
+  const [isCollapsed, setIsCollapsed] = useAtom(isDrawerCollapsedState);
 
   const isDesktop = useMinimumWidth("sm");
 
@@ -53,6 +58,39 @@ const Drawer = () => {
     });
   }, []);
 
+  const collapsed = isCollapsed && isDesktop;
+
+  const NavItem = ({ to, icon: Icon, label, external, id }) => {
+    const linkContent = (
+      <span
+        className={["tw-flex tw-items-center tw-transition-all", collapsed ? "tw-justify-center" : "tw-gap-2"].join(" ")}
+        title={collapsed ? label : undefined}
+      >
+        <Icon className={["tw-shrink-0 tw-transition-all", collapsed ? "tw-h-6 tw-w-6" : "tw-h-4 tw-w-4"].join(" ")} />
+        {!collapsed && <span>{label}</span>}
+        {!collapsed && external && <OpenNewWindowIcon />}
+      </span>
+    );
+
+    if (external) {
+      return (
+        <li id={id}>
+          <a href={to} target="_blank" rel="noreferrer" title={collapsed ? label : undefined}>
+            {linkContent}
+          </a>
+        </li>
+      );
+    }
+
+    return (
+      <li id={id}>
+        <NavLink to={to} activeClassName="active" title={collapsed ? label : undefined}>
+          {linkContent}
+        </NavLink>
+      </li>
+    );
+  };
+
   return (
     <nav
       title="Navigation principale"
@@ -63,139 +101,43 @@ const Drawer = () => {
     >
       <div
         className={[
-          "noprint tw-max-h-full tw-w-64 tw-min-w-min tw-shrink-0 tw-basis-52 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-r tw-border-black tw-border-opacity-10 tw-bg-white tw-p-4 tw-drop-shadow-xl sm:!tw-flex sm:tw-drop-shadow-none",
+          "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-r tw-border-black tw-border-opacity-10 tw-bg-white tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
+          isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-p-2" : "tw-w-64 tw-basis-52 tw-p-4",
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
       >
         <div className="tw-pl-0 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none">
           {["admin", "normal"].includes(role) && isDesktop && (
             <>
-              <li>
-                <NavLink to="/search" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <MagnifyingGlassIcon className="tw-h-4 tw-w-4" />
-                    Recherche
-                  </span>
-                </NavLink>
-              </li>
+              <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />
               <hr />
             </>
           )}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
-            <li>
-              <NavLink to="/reception" activeClassName="active">
-                <span className="tw-flex tw-items-center tw-gap-2">
-                  <HomeIcon className="tw-h-4 tw-w-4" />
-                  Accueil
-                </span>
-              </NavLink>
-            </li>
+            <NavItem to="/reception" icon={HomeIcon} label="Accueil" />
           )}
-          {["admin", "normal", "restricted-access"].includes(role) && (
-            <li>
-              <NavLink to="/action" activeClassName="active">
-                <span className="tw-flex tw-items-center tw-gap-2">
-                  <CalendarDaysIcon className="tw-h-4 tw-w-4" />
-                  Agenda
-                </span>
-              </NavLink>
-            </li>
-          )}
-          {["admin", "normal", "restricted-access"].includes(role) && (
-            <li>
-              <NavLink to="/person" activeClassName="active">
-                <span className="tw-flex tw-items-center tw-gap-2">
-                  <UserIcon className="tw-h-4 tw-w-4" />
-                  Personnes suivies
-                </span>
-              </NavLink>
-            </li>
-          )}
+          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/action" icon={CalendarDaysIcon} label="Agenda" />}
+          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/person" icon={UserIcon} label="Personnes suivies" />}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.territoriesEnabled && (
-            <li>
-              <NavLink to="/territory" activeClassName="active">
-                <span className="tw-flex tw-items-center tw-gap-2">
-                  <MapIcon className="tw-h-4 tw-w-4" />
-                  Territoires
-                </span>
-              </NavLink>
-            </li>
+            <NavItem to="/territory" icon={MapIcon} label="Territoires" />
           )}
-          {["admin", "normal", "restricted-access"].includes(role) && (
-            <>
-              <li>
-                <NavLink to="/report" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <DocumentTextIcon className="tw-h-4 tw-w-4" />
-                    Comptes rendus
-                  </span>
-                </NavLink>
-              </li>
-            </>
-          )}
+          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/report" icon={DocumentTextIcon} label="Comptes rendus" />}
           {["admin", "normal", "restricted-access"].includes(role) && (
             <>
               <hr />
-              <li>
-                <NavLink to="/structure" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <BuildingOffice2Icon className="tw-h-4 tw-w-4" />
-                    Contacts
-                  </span>
-                </NavLink>
-              </li>
-              <li>
-                <a href="https://soliguide.fr/" target="_blank" rel="noreferrer">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <MapPinIcon className="tw-h-4 tw-w-4" />
-                    Soliguide
-                    <OpenNewWindowIcon />
-                  </span>
-                </a>
-              </li>
+              <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
+              <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
               <hr />
             </>
           )}
-          {["admin", "normal"].includes(role) && isDesktop && (
-            <>
-              <li>
-                <NavLink to="/stats" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <ChartBarIcon className="tw-h-4 tw-w-4" />
-                    Statistiques
-                  </span>
-                </NavLink>
-              </li>
-            </>
-          )}
+          {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />}
           {["admin"].includes(role) && isDesktop && (
             <>
               <hr />
-              <li id="show-on-onboarding">
-                <NavLink to={`/organisation/${organisation._id}`} activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <BuildingOfficeIcon className="tw-h-4 tw-w-4" />
-                    Organisation
-                  </span>
-                </NavLink>
-              </li>
-              <li id="show-on-onboarding">
-                <NavLink to="/team" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <UsersIcon className="tw-h-4 tw-w-4" />
-                    Équipes
-                  </span>
-                </NavLink>
-              </li>
-              <li>
-                <NavLink to="/user" activeClassName="active">
-                  <span className="tw-flex tw-items-center tw-gap-2">
-                    <UserCircleIcon className="tw-h-4 tw-w-4" />
-                    Utilisateurs
-                  </span>
-                </NavLink>
-              </li>
-              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && (
+              <NavItem to={`/organisation/${organisation._id}`} icon={BuildingOfficeIcon} label="Organisation" id="show-on-onboarding" />
+              <NavItem to="/team" icon={UsersIcon} label="Équipes" id="show-on-onboarding" />
+              <NavItem to="/user" icon={UserCircleIcon} label="Utilisateurs" />
+              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
                 <>
                   <hr />
                   <li>
@@ -206,7 +148,7 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {!user.gaveFeedbackSep2025 && (
+        {!user.gaveFeedbackSep2025 && !collapsed && (
           <>
             <a
               target="_blank"
@@ -223,7 +165,7 @@ const Drawer = () => {
             >
               <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
               <div className="tw-px-2 tw-py-2 tw-text-center tw-text-xs tw-font-semibold">
-                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l’avez pas déjà fait&nbsp;?
+                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l'avez pas déjà fait&nbsp;?
               </div>
             </a>
             <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
@@ -232,11 +174,13 @@ const Drawer = () => {
             <small className="tw-block tw-text-[0.65rem] tw-text-main">{feedbacks.count} sur 2000 à récolter</small>
           </>
         )}
-        <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
-          <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
-          <p className="m-0">Accessibilité&nbsp;: partielle</p>
-          <SessionCountDownLimiter />
-        </div>
+        {!collapsed && (
+          <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
+            <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
+            <p className="m-0">Accessibilité&nbsp;: partielle</p>
+            <SessionCountDownLimiter />
+          </div>
+        )}
         <button
           type="button"
           aria-label="Cacher la navigation latérale"
@@ -252,6 +196,17 @@ const Drawer = () => {
           </svg>
         </button>
       </div>
+      {isDesktop && (
+        <button
+          type="button"
+          aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
+          className="tw-absolute tw-top-3 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
+          style={{ left: isCollapsed ? "4rem" : "13rem" }}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? <ChevronDoubleRightIcon className="tw-h-4 tw-w-4" /> : <ChevronDoubleLeftIcon className="tw-h-4 tw-w-4" />}
+        </button>
+      )}
     </nav>
   );
 };
