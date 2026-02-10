@@ -76,15 +76,10 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
 
     const groups = Array.from(groupsElements).map((group) => {
       const groupTitle = (group as HTMLElement).dataset.group!;
-      return { groupTitle, items: [] as string[] };
+      const categoriesElements = group.querySelectorAll("[data-item]");
+      const items = Array.from(categoriesElements).map((category) => (category as HTMLElement).dataset.item!);
+      return { groupTitle, items };
     });
-
-    for (const group of groups) {
-      const categoriesElements = gridRef.current?.querySelectorAll(`[data-group="${group.groupTitle}"] [data-item]`);
-      if (categoriesElements) {
-        group.items = Array.from(categoriesElements).map((category) => (category as HTMLElement).dataset.item!);
-      }
-    }
 
     if (groups.length !== data.length) {
       capture(new Error("Drag and drop group error"), { extra: { groups, data, title } });
