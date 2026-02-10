@@ -236,7 +236,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
     toast.error("Une erreur est survenue lors de la récupération des données déchiffrées: " + errorDecryptParsing);
     capture(new Error("ERROR PARSING CONTENT"), {
       fingerprint: [`error-parsing-content`, item._id],
-      extra: { errorDecryptParsing: errorDecryptParsing?.message || errorDecryptParsing, content, item, type },
+      extra: { errorDecryptParsing: errorDecryptParsing?.message || errorDecryptParsing, content, type },
       tags: { _id: item._id, type: type || "item" },
     });
     return null;
