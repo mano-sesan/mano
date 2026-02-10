@@ -37,7 +37,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
         key={field.name}
       >
         <div className="tw-mb-4">
-          {!hideLabel && (
+          {!hideLabel && field.type !== "boolean" && (
             <label className="tw-text-sm tw-font-semibold tw-text-gray-600" data-test-id={field.label} htmlFor={id}>
               {field.label}
             </label>
@@ -97,8 +97,8 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
             </div>
           )}
           {!!["boolean"].includes(field.type) && (
-            <div className="tw-basis-full tw-p-4">
-              <label htmlFor={id}>
+            <div className="tw-basis-full tw-pt-1">
+              <label htmlFor={id} className="tw-flex tw-items-center tw-cursor-pointer tw-select-none tw-gap-2 tw-text-sm tw-font-semibold tw-text-gray-600">
                 <input
                   type="checkbox"
                   id={id}
@@ -107,7 +107,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
                   checked={values[field.name]}
                   onChange={() => handleChange({ target: { value: !values[field.name], name: field.name } })}
                   disabled={disabled}
-                  className="tw-mr-2"
+                  className="tw-h-4 tw-w-4 tw-rounded tw-border-gray-300 tw-text-blue-600 focus:tw-ring-blue-500 tw-cursor-pointer"
                 />
                 {field.label}
               </label>
