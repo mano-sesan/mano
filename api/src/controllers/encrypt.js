@@ -128,60 +128,62 @@ router.post(
         // Why paranoid false everywhere?
         // Because we want to recrypt deleted items too. Otherwise, they would be lost forever.
 
+        const orgWhere = { organisation: req.user.organisation };
+
         for (let { encrypted, encryptedEntityKey, _id } of persons) {
-          await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Person.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of groups) {
-          await Group.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Group.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of actions) {
-          await Action.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Action.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of consultations) {
-          await Consultation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Consultation.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of treatments) {
-          await Treatment.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Treatment.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of medicalFiles) {
-          await MedicalFile.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await MedicalFile.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of comments) {
-          await Comment.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Comment.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of passages) {
-          await Passage.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Passage.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of rencontres) {
-          await Rencontre.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Rencontre.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of territories) {
-          await Territory.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Territory.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of observations) {
-          await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of places) {
-          await Place.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Place.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of relsPersonPlace) {
-          await RelPersonPlace.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await RelPersonPlace.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of reports) {
-          await Report.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Report.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
         organisation.set({
           encryptionEnabled: "true",
