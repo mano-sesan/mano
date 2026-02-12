@@ -21,6 +21,7 @@ export default defineConfig({
     sourcemap: true,
   },
   define: {
-    "process.env": process.env,
+    "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV),
+    "process.env.SHA": JSON.stringify(process.env.SHA),
   },
 });
