@@ -9,6 +9,12 @@ interface TeamHistorySlice {
   endDate: string | Date;
 }
 
+interface OutOfActiveListPeriod {
+  startDate: string | Date;
+  endDate: string | Date;
+  reasons: string[];
+}
+
 function getPersonTeamHistory(changes: Array<PersonHistoryEntry>, creationDate: string | Date): Array<TeamHistorySlice> {
   const teamHistory = {};
   const result: Array<TeamHistorySlice> = [];
@@ -61,10 +67,77 @@ function getPersonTeamHistory(changes: Array<PersonHistoryEntry>, creationDate: 
   return result;
 }
 
-const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Array<TeamInstance> }) => {
-  const globalStartDate = new Date(Math.min(...data.map((item) => new Date(item.startDate).getTime())));
-  const globalEndDate = new Date(Math.max(...data.map((item) => new Date(item.endDate).getTime())));
+function getOutOfActiveListPeriods(changes: Array<PersonHistoryEntry>, person: PersonInstance): Array<OutOfActiveListPeriod> {
+  const periods: Array<OutOfActiveListPeriod> = [];
+  const relevantChanges = changes
+    .filter((change) => change.data && (change.data as FieldChangeData).outOfActiveList)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  let currentPeriodStart: string | Date | null = null;
+  let currentReasons: string[] = [];
+
+  for (const change of relevantChanges) {
+    const data = change.data as FieldChangeData;
+
+    if (data.outOfActiveList.newValue === true) {
+      // Si une période est déjà ouverte, la fermer d'abord
+      if (currentPeriodStart) {
+        periods.push({ startDate: currentPeriodStart, endDate: change.date, reasons: currentReasons });
+      }
+      currentPeriodStart = data.outOfActiveListDate?.newValue || change.date;
+      currentReasons = data.outOfActiveListReasons?.newValue || [];
+    } else if (data.outOfActiveList.newValue === false && currentPeriodStart) {
+      // Réintégration en file active
+      periods.push({ startDate: currentPeriodStart, endDate: change.date, reasons: currentReasons });
+      currentPeriodStart = null;
+      currentReasons = [];
+    }
+  }
+
+  // Si actuellement hors file active, fermer la période avec aujourd'hui
+  if (person.outOfActiveList) {
+    if (currentPeriodStart) {
+      periods.push({
+        startDate: currentPeriodStart,
+        endDate: new Date().toISOString(),
+        reasons: person.outOfActiveListReasons || currentReasons,
+      });
+    } else if (!relevantChanges.length && person.outOfActiveListDate) {
+      // Pas de changement dans l'historique mais personne hors file active
+      periods.push({
+        startDate: person.outOfActiveListDate,
+        endDate: new Date().toISOString(),
+        reasons: person.outOfActiveListReasons || [],
+      });
+    }
+  }
+
+  return periods;
+}
+
+const GanttChart = ({
+  data,
+  teams,
+  outOfActiveListPeriods,
+}: {
+  data: Array<TeamHistorySlice>;
+  teams: Array<TeamInstance>;
+  outOfActiveListPeriods: Array<OutOfActiveListPeriod>;
+}) => {
+  const allDates = [
+    ...data.map((item) => new Date(item.startDate).getTime()),
+    ...data.map((item) => new Date(item.endDate).getTime()),
+    ...outOfActiveListPeriods.map((item) => new Date(item.startDate).getTime()),
+    ...outOfActiveListPeriods.map((item) => new Date(item.endDate).getTime()),
+  ];
+
+  if (allDates.length === 0) return null;
+
+  const globalStartDate = new Date(Math.min(...allDates));
+  const globalEndDate = new Date(Math.max(...allDates));
   const totalDuration = globalEndDate.getTime() - globalStartDate.getTime();
+
+  if (totalDuration === 0) return null;
 
   const calculatePosition = (startDate, endDate) => {
     const totalWidth = 800;
@@ -118,14 +191,47 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
     lineIndex++;
   }
 
-  if (dataForDisplay.length === 0) return null;
+  // Préparer les barres de sortie de file active
+  const teamLinesCount = lineIndex;
+  const outOfActiveListBars = outOfActiveListPeriods
+    .map((period) => {
+      const { width, position } = calculatePosition(period.startDate, period.endDate);
+      return { ...period, width, position };
+    })
+    .filter((item) => item.width >= 10);
+
+  const hasOutOfActiveListRow = outOfActiveListBars.length > 0;
+  if (hasOutOfActiveListRow) lineIndex++;
+
+  if (dataForDisplay.length === 0 && !hasOutOfActiveListRow) return null;
+
+  const chartHeight = lineIndex * 38;
 
   return (
     <div className="tw-border tw-border-gray-200 tw-rounded-lg tw-shadow tw-overflow-x-auto tw-overflow-y-hidden tw-p-2 tw-max-w-[824px] tw-mx-auto">
       <h3 className="tw-mb-4 tw-pb-1 tw-text-lg tw-font-semibold tw-border-b tw-border-zinc-200">
         Mouvements d'équipe du {formatDateWithFullMonth(globalStartDate)} au {formatDateWithFullMonth(globalEndDate)}
       </h3>
-      <div className="tw-relative tw-w-[800px] tw-overflow-hidden" style={{ height: `${lineIndex * 38}px` }}>
+      <div className="tw-relative tw-w-[800px] tw-overflow-hidden" style={{ height: `${chartHeight}px` }}>
+        {/* Bandes de fond pour les périodes hors file active */}
+        {outOfActiveListPeriods.map((period, index) => {
+          const { width, position } = calculatePosition(period.startDate, period.endDate);
+          if (width < 2) return null;
+          return (
+            <div
+              key={`oal-bg-${index}`}
+              className="tw-absolute tw-top-0"
+              style={{
+                width: `${width}px`,
+                left: `${position}px`,
+                height: `${teamLinesCount * 38}px`,
+                background: `repeating-linear-gradient(-45deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.08) 4px, rgba(251, 191, 36, 0.18) 4px, rgba(251, 191, 36, 0.18) 8px)`,
+              }}
+              title={`Hors file active${period.reasons.length ? ` : ${period.reasons.join(", ")}` : ""}`}
+            />
+          );
+        })}
+        {/* Barres d'équipe */}
         {dataForDisplay.map((item, index) => {
           const teamName = teams.find((t) => t._id === item.team)?.name || "Équipe supprimée ou fusionnée";
           return (
@@ -148,6 +254,25 @@ const GanttChart = ({ data, teams }: { data: Array<TeamHistorySlice>; teams: Arr
             </div>
           );
         })}
+        {/* Barre dédiée hors file active */}
+        {outOfActiveListBars.map((item, index) => (
+          <div
+            key={`oal-${index}`}
+            className="tw-absolute tw-h-8 tw-flex tw-items-center tw-rounded-sm tw-overflow-hidden"
+            style={{
+              width: `${item.width}px`,
+              left: `${item.position}px`,
+              top: `${teamLinesCount * 38}px`,
+              background: `repeating-linear-gradient(-45deg, #fef3c7, #fef3c7 4px, #fde68a 4px, #fde68a 8px)`,
+              border: "1px dashed #d97706",
+            }}
+            title={`Hors file active${item.reasons.length ? ` : ${item.reasons.join(", ")}` : ""}`}
+          >
+            <div className="tw-text-xs tw-font-medium tw-text-orange-800 tw-truncate tw-pl-1">
+              Hors file active{item.reasons.length ? ` : ${item.reasons.join(", ")}` : ""}
+            </div>
+          </div>
+        ))}
       </div>
       {skippedItems.length > 0 ? (
         <div className="tw-mt-4 tw-pt-2 tw-border-t tw-border-zinc-200">
@@ -178,6 +303,7 @@ export default function PersonTeamHistory({
   teams: Array<TeamInstance>;
 }) {
   const data = getPersonTeamHistory(history || [], person.createdAt);
+  const outOfActiveListPeriods = getOutOfActiveListPeriods(history || [], person);
 
-  return <GanttChart data={data} teams={teams} />;
+  return <GanttChart data={data} teams={teams} outOfActiveListPeriods={outOfActiveListPeriods} />;
 }
