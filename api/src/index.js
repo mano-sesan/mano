@@ -17,6 +17,7 @@ const requestContextMiddleware = require("./middleware/requestContext");
 require("./db/sequelize");
 require("./utils/userLogClean");
 require("./utils/desactivateUsers");
+require("./utils/cleanOrphanedFiles");
 
 const versionCheck = require("./middleware/versionCheck");
 

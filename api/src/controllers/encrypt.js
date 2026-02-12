@@ -21,11 +21,12 @@ const {
   TerritoryObservation,
   sequelize,
   UserLog,
+  OrphanedFile,
 } = require("../db/sequelize");
 
 const { capture } = require("../sentry");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex } = require("../utils");
+const { looseUuidRegex, cryptoHexRegex } = require("../utils");
 const { serializeOrganisation } = require("../utils/data-serializer");
 
 // This controller is required because:
@@ -206,6 +207,40 @@ router.post(
     }
 
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
+  })
+);
+
+router.post(
+  "/orphaned-files",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser("admin"),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        files: z.array(
+          z.object({
+            personId: z.string().regex(looseUuidRegex),
+            filename: z.string().regex(cryptoHexRegex),
+          })
+        ),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in orphaned-files: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const now = new Date();
+    await OrphanedFile.bulkCreate(
+      req.body.files.map((f) => ({
+        organisation: req.user.organisation,
+        personId: f.personId,
+        filename: f.filename,
+        replacedAt: now,
+      }))
+    );
+
+    return res.status(200).send({ ok: true });
   })
 );
 

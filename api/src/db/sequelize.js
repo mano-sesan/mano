@@ -34,6 +34,7 @@ db.User = require("../models/user")(sequelize, Sequelize);
 db.UserLog = require("../models/userLog")(sequelize, Sequelize);
 db.OrganisationLog = require("../models/organisationLog")(sequelize, Sequelize);
 db.Recurrence = require("../models/recurrence")(sequelize, Sequelize);
+db.OrphanedFile = require("../models/orphanedFile")(sequelize, Sequelize);
 
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
