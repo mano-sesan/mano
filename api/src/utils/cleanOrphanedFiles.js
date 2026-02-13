@@ -23,6 +23,11 @@ async function cleanOrphanedFiles() {
 
   for (const orphan of orphans) {
     try {
+      if (!orphan.organisation || !orphan.personId || !orphan.filename) {
+        capture("Orphaned file with missing fields", { extra: { orphanId: orphan._id } });
+        await orphan.destroy();
+        continue;
+      }
       const filePath = path.resolve(personDocumentBasedir(orphan.organisation, orphan.personId), orphan.filename);
       if (!filePath.startsWith(resolvedUploadsBasedir + path.sep)) {
         capture("Orphaned file path traversal blocked", { extra: { orphanId: orphan._id, filePath } });
