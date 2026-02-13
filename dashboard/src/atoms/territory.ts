@@ -78,7 +78,7 @@ export const sortTerritories = (sortBy: SortBy, sortOrder: SortOrder) => (a: Ter
     if (!a.description?.length && !b.description?.length) return defaultSort(a, b, sortOrder);
     if (!a.description?.length) return sortOrder === "ASC" ? 1 : -1;
     if (!b.description?.length) return sortOrder === "ASC" ? -1 : 1;
-    return sortOrder === "ASC" ? a.perimeter.localeCompare(b.perimeter) : b.perimeter.localeCompare(a.perimeter);
+    return sortOrder === "ASC" ? a.description.localeCompare(b.description) : b.description.localeCompare(a.description);
   }
   if (sortBy === "createdAt") {
     if (a.createdAt > b.createdAt) return sortOrder === "ASC" ? 1 : -1;
