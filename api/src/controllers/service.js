@@ -14,6 +14,7 @@ const { Organisation, Service, sequelize } = require("../db/sequelize");
 router.post(
   "/team/:team/date/:date",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({ count: z.number(), service: z.string().min(1) }).parse(req.body);
@@ -44,6 +45,7 @@ router.post(
 router.get(
   "/team/:team/date/:date",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -68,6 +70,7 @@ router.get(
 router.get(
   "/for-reports",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -109,6 +112,7 @@ router.get(
 router.get(
   "/all",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal"]),
   catchErrors(async (req, res) => {
     const services = await Service.findAll({ where: { organisation: req.user.organisation } });
 
@@ -137,6 +141,7 @@ router.get(
 router.get(
   "/team/:team/month-stats/:date",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "stats-only"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -169,6 +174,7 @@ router.get(
 router.get(
   "/team/:team/stats",
   passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "stats-only"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
