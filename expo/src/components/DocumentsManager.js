@@ -16,6 +16,7 @@ import * as DocumentsPicker from "@react-native-documents/picker";
 import * as DocumentViewer from "@react-native-documents/viewer";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import SelectLabelled from "./Selects/SelectLabelled";
+import MultiPhotosCaptureModal from "./MultiPhotosCaptureModal";
 
 // Cette fonction vient du dashboard pour transformer les documents en arbre
 const buildFolderTree = (items, rootFolderName, defaultParent) => {
@@ -105,11 +106,12 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
   const { showActionSheetWithOptions } = useActionSheet();
 
   // Add the new permission hooks
+  const [showMultiPhotosModal, setShowMultiPhotosModal] = useState(false);
   const [cameraPermissionInformation, requestCameraPermission] = ImagePicker.useCameraPermissions();
   const [mediaLibraryPermissionInformation, requestMediaLibraryPermission] = ImagePicker.useMediaLibraryPermissions();
 
   const onAddPress = async () => {
-    const options = ["Prendre une photo", "Bibliothèque d'images", "Naviguer dans les documents", "Annuler"];
+    const options = ["Prendre une photo", "Bibliothèque d'images", "Document multi-pages", "Naviguer dans les documents", "Annuler"];
     showActionSheetWithOptions(
       {
         options,
@@ -161,6 +163,9 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
             quality: 1,
           });
           handleSavePicture(result);
+        }
+        if (options[buttonIndex] === "Document multi-pages") {
+          setShowMultiPhotosModal(true);
         }
         if (options[buttonIndex] === "Naviguer dans les documents") {
           setLoading("documents");
@@ -304,6 +309,18 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
           </ScrollContainer>
         </SceneContainer>
       </Modal>
+      <MultiPhotosCaptureModal
+        visible={showMultiPhotosModal}
+        onClose={() => setShowMultiPhotosModal(false)}
+        onDone={(pdfAsset) => {
+          setAsset(pdfAsset);
+          setName("scan");
+        }}
+        cameraPermissionInformation={cameraPermissionInformation}
+        requestCameraPermission={requestCameraPermission}
+        mediaLibraryPermissionInformation={mediaLibraryPermissionInformation}
+        requestMediaLibraryPermission={requestMediaLibraryPermission}
+      />
     </>
   );
 };
