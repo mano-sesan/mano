@@ -61,7 +61,7 @@ router.put(
             await Thing.destroy({ where: { _id, organisation: req.user.organisation }, transaction: tx });
           }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.thingsToUpdate) {
-            await Thing.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+            await Thing.update({ encrypted, encryptedEntityKey }, { where: { _id, organisation: req.user.organisation }, transaction: tx, paranoid: false });
           }
           organisation.set({
             migrations: [...(organisation.migrations || []), req.params.migrationName],
@@ -92,10 +92,10 @@ router.put(
             throw error;
           }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedObservations) {
-            await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+            await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id, organisation: req.user.organisation }, transaction: tx, paranoid: false });
           }
           for (const { _id, encrypted, encryptedEntityKey } of req.body.encryptedPersons) {
-            await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+            await Person.update({ encrypted, encryptedEntityKey }, { where: { _id, organisation: req.user.organisation }, transaction: tx, paranoid: false });
           }
           organisation.set({
             migrations: [...(organisation.migrations || []), req.params.migrationName],
