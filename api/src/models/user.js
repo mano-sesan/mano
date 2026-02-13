@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     otp: DataTypes.TEXT,
     lastOtpAt: DataTypes.DATE,
     disabledAt: DataTypes.DATE,
+    lastDeactivationWarningAt: DataTypes.DATE,
     // we don't have `nextDecryptAttemptAt` because
     // 1. the flow is different than signin (the encryption key is checked in the frontend) and
     // 2. we create a userLog at every decrypt attempt (failure or success) so we can track the number of attempts
