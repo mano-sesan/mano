@@ -213,7 +213,7 @@ router.post(
 router.get(
   "/stats",
   passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
+  validateUser(["admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -228,7 +228,12 @@ router.get(
       return next(error);
     }
 
-    const query = { where: { organisation: req.query.organisation } };
+    if (req.query.organisation !== req.user.organisation) {
+      const error = new Error("Vous n'avez pas accès aux statistiques de cette organisation");
+      error.status = 403;
+      return next(error);
+    }
+    const query = { where: { organisation: req.user.organisation } };
     const { after, withDeleted, withAllMedicalData } = req.query;
 
     if (withDeleted === "true") query.paranoid = false;
@@ -256,7 +261,7 @@ router.get(
     // Medical data is never saved in cache so we always have to download all at every page reload.
     // In other words "after" param is intentionnaly ignored for consultations, treatments and medical files.
     const medicalDataQuery =
-      withAllMedicalData !== "true" ? query : { where: { organisation: req.query.organisation }, paranoid: withDeleted === "true" ? false : true };
+      withAllMedicalData !== "true" ? query : { where: { organisation: req.user.organisation }, paranoid: withDeleted === "true" ? false : true };
     const consultations = await Consultation.count(medicalDataQuery);
     const medicalFiles = await MedicalFile.count(medicalDataQuery);
     const treatments = await Treatment.count(medicalDataQuery);
