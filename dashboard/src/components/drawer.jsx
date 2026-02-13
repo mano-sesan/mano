@@ -7,8 +7,6 @@ import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../atoms/version";
 import AddPersons from "./AddPersons";
-import { useEffect, useState } from "react";
-import API from "../services/api";
 import {
   MagnifyingGlassIcon,
   HomeIcon,
@@ -33,7 +31,7 @@ export const showDrawerState = atom({
 export const isDrawerCollapsedState = atomWithStorage("drawer-collapsed", false);
 
 const Drawer = () => {
-  const [user, setUser] = useAtom(userState);
+  const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const teams = useAtomValue(teamsState);
   const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
@@ -47,16 +45,6 @@ const Drawer = () => {
   const [isCollapsed, setIsCollapsed] = useAtom(isDrawerCollapsedState);
 
   const isDesktop = useMinimumWidth("sm");
-
-  const [feedbacks, setFeedbacks] = useState(0);
-
-  useEffect(() => {
-    API.get({ path: "/public/feedbacks" }).then((res) => {
-      if (res.ok) {
-        setFeedbacks(res.data);
-      }
-    });
-  }, []);
 
   const collapsed = isCollapsed && isDesktop;
 
@@ -148,32 +136,6 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {!user.gaveFeedbackSep2025 && !collapsed && (
-          <>
-            <a
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => {
-                API.put({ path: "/user", body: { gaveFeedbackSep2025: true } }).then((res) => {
-                  if (res.ok) {
-                    setUser(res.user);
-                  }
-                });
-              }}
-              href="https://docs.google.com/forms/d/e/1FAIpQLSdjL-EWZ99h006MCtuhd8qR5kNCDlLSny41Wv9-qtYKW4-DLA/viewform?usp=header"
-              className="tw-block tw-relative tw-w-11/12 !tw-mt-4 tw-cursor-pointer tw-rounded-md tw-border-black !tw-bg-main !tw-text-white hover:!tw-opacity-100 motion-safe:tw-animate-brrrr"
-            >
-              <div className="tw-absolute -tw-top-2 -tw-left-2 tw-text-2xl motion-safe:tw-animate-coucou">👋</div>
-              <div className="tw-px-2 tw-py-2 tw-text-center tw-text-xs tw-font-semibold">
-                Hep&nbsp;! Avez-vous 5&nbsp;min pour nous parler de votre pratique, si vous ne l'avez pas déjà fait&nbsp;?
-              </div>
-            </a>
-            <div className="tw-mt-1 tw-h-1 tw-w-11/12 tw-rounded-full tw-bg-gray-200">
-              <div className="tw-h-1 tw-rounded-full tw-bg-main" style={{ width: `${(feedbacks.count / 2000) * 100}%` }} />
-            </div>
-            <small className="tw-block tw-text-[0.65rem] tw-text-main">{feedbacks.count} sur 2000 à récolter</small>
-          </>
-        )}
         {!collapsed && (
           <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
