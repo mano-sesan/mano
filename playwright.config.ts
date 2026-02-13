@@ -121,8 +121,6 @@ const config: PlaywrightTestConfig = {
       port: 8090,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
-      stderr: "pipe",
-      stdout: "pipe",
       env: {
         PORT: "8090",
         VITE_HOST: "127.0.0.1:8091",
@@ -136,8 +134,6 @@ const config: PlaywrightTestConfig = {
       port: 8091,
       timeout: 120 * 1000,
       reuseExistingServer: !process.env.CI,
-      stderr: "pipe",
-      stdout: "pipe",
       env: {
         PORT: "8091",
         NODE_ENV: "test",
