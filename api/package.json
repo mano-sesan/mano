@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "NODE_ENV=development sequelize-cli db:migrate && NODE_ENV=development nodemon ./src/index.js",
     "start": "NODE_ENV=production sequelize-cli db:migrate && NODE_ENV=production node ./src/index.js",
-    "start:test": "NODE_ENV=test sequelize-cli db:migrate && NODE_ENV=test node ./src/index.js"
+    "start:test": "NODE_ENV=test sequelize-cli db:migrate && NODE_ENV=test node ./src/index.js",
+    "preview-emails": "node ./src/utils/preview-emails.js"
   },
   "author": "",
   "license": "Apache-2.0",
