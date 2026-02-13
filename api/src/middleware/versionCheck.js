@@ -51,7 +51,7 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
         message: "Veuillez mettre à jour votre application!",
         inAppMessage: [
           `Veuillez mettre à jour votre application\u00A0!`,
-          `Cette mise à jour est nécessaire pour continuer à utiliser l'application.`,
+          `Nouveautés :\n- Documents multipages (plusieurs photos pour un seul document PDF)\n- Couleurs d'équipe personnalisables\n- Date d'observation modifiable dès la création\n- Quelques bugs mineurs corrigés`,
           [
             { text: "Télécharger la dernière version", link: downloadLink },
             {

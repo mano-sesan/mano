@@ -32,9 +32,11 @@ router.get("/version", async (req, res) => {
     inAppMessage: [
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
-Nouveautés: meilleure navigation entre les différents écrans.
-Vous pourrez aussi mettre à jour Mano sans sortir de l'application.
-`,
+Nouveautés :
+- Documents multipages (plusieurs photos pour un seul document PDF)
+- Couleurs d'équipe personnalisables
+- Date d'observation modifiable dès la création
+- Quelques bugs mineurs corrigés`,
       [
         { text: "Télécharger", link: downloadLink },
         { text: "Installer", link: installLink },
