@@ -519,7 +519,12 @@ router.post(
     await user.save({ transaction: tx });
 
     const organisation = await Organisation.findOne({ where: { _id: organisationId } });
-    await mailservice.sendEmail(data.email, "Bienvenue dans Mano", null, mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible));
+    await mailservice.sendEmail(
+      data.email,
+      "Bienvenue dans Mano",
+      null,
+      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible)
+    );
 
     return res.status(200).send({
       ok: true,
@@ -826,7 +831,7 @@ router.put(
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
         ...(req.body.termsAccepted ? { termsAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
         ...(req.body.cgusAccepted ? { cgusAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
-      });
+      }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in put user by id: ${e}`);
       error.status = 400;
@@ -846,7 +851,9 @@ router.put(
       // Security: require current password verification when changing email (CWE-620 fix)
       if (newEmail !== user.email) {
         if (!currentPassword) {
-          return res.status(400).send({ ok: false, error: "Le mot de passe actuel est requis pour modifier l'email", code: "CURRENT_PASSWORD_REQUIRED" });
+          return res
+            .status(400)
+            .send({ ok: false, error: "Le mot de passe actuel est requis pour modifier l'email", code: "CURRENT_PASSWORD_REQUIRED" });
         }
         const { password: expectedPassword } = await User.scope("withPassword").findOne({ where: { _id }, attributes: ["password"] });
         const auth = await comparePassword(currentPassword, expectedPassword);
