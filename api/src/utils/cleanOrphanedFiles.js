@@ -5,9 +5,10 @@ const { OrphanedFile } = require("../db/sequelize");
 const { STORAGE_DIRECTORY } = require("../config");
 const { capture } = require("../sentry");
 
+const uploadsBasedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+
 function personDocumentBasedir(organisation, personId) {
-  const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-  return path.join(basedir, `${organisation}`, "persons", `${personId}`);
+  return path.join(uploadsBasedir, `${organisation}`, "persons", `${personId}`);
 }
 
 async function cleanOrphanedFiles() {
@@ -18,9 +19,16 @@ async function cleanOrphanedFiles() {
     where: { replacedAt: { [Op.lt]: ninetyDaysAgo } },
   });
 
+  const resolvedUploadsBasedir = path.resolve(uploadsBasedir);
+
   for (const orphan of orphans) {
     try {
-      const filePath = path.join(personDocumentBasedir(orphan.organisation, orphan.personId), orphan.filename);
+      const filePath = path.resolve(personDocumentBasedir(orphan.organisation, orphan.personId), orphan.filename);
+      if (!filePath.startsWith(resolvedUploadsBasedir + path.sep)) {
+        capture("Orphaned file path traversal blocked", { extra: { orphanId: orphan._id, filePath } });
+        await orphan.destroy();
+        continue;
+      }
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
