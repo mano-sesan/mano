@@ -39,7 +39,6 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
 
   const appVer = version.split(".").map((d) => parseInt(d));
 
-
   const { downloadLink, installLink } = getAppLinks(MOBILE_APP_VERSION, packageid);
 
   for (let i = 0; i < 3; i++) {
@@ -55,7 +54,9 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
           [
             { text: "Télécharger la dernière version", link: downloadLink },
             {
-              text: "Installer", link: installLink },
+              text: "Installer",
+              link: installLink,
+            },
           ],
         ],
       });
