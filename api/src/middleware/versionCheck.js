@@ -39,7 +39,6 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
 
   const appVer = version.split(".").map((d) => parseInt(d));
 
-
   const { downloadLink, installLink } = getAppLinks(MOBILE_APP_VERSION, packageid);
 
   for (let i = 0; i < 3; i++) {
@@ -51,11 +50,13 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
         message: "Veuillez mettre à jour votre application!",
         inAppMessage: [
           `Veuillez mettre à jour votre application\u00A0!`,
-          `Nouveautés :\n- Documents multipages (plusieurs photos pour un seul document PDF)\n- Couleurs d'équipe personnalisables\n- Date d'observation modifiable dès la création\n- Quelques bugs mineurs corrigés`,
+          `Cette mise à jour est nécessaire pour continuer à utiliser l'application.`,
           [
             { text: "Télécharger la dernière version", link: downloadLink },
             {
-              text: "Installer", link: installLink },
+              text: "Installer",
+              link: installLink,
+            },
           ],
         ],
       });
