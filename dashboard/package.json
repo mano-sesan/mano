@@ -27,7 +27,6 @@
     "bootstrap": "4.6.2",
     "dayjs": "1.11.5",
     "detect-browser": "5.3.0",
-    "fetch-retry": "5.0.6",
     "formik": "2.2.9",
     "idb-keyval": "6.2.1",
     "jotai": "2.15.2",
