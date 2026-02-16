@@ -188,6 +188,15 @@ body {
   color: #1d2021;
 }
 
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 ul {
   padding: initial;
   margin: initial;
