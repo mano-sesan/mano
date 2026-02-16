@@ -364,6 +364,52 @@ input:-webkit-autofill:active {
   visibility: hidden;
 }
 
+/* Tables (replaces Bootstrap table classes) */
+table.table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.5rem;
+    vertical-align: top;
+    text-align: left;
+  }
+
+  thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #dee2e6;
+  }
+}
+
+table.table-striped tbody tr:nth-child(odd) {
+  background-color: #f8f9fa;
+}
+
+table.table-bordered {
+  border: 1px solid #dee2e6;
+
+  th,
+  td {
+    border: 1px solid #dee2e6;
+  }
+}
+
+table.table-sm {
+  th,
+  td {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8125rem;
+  }
+}
+
 /* Pagination (replaces Bootstrap pagination classes used by react-js-pagination) */
 .pagination {
   display: flex;
