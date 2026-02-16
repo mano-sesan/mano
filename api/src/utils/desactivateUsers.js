@@ -14,6 +14,7 @@ async function sendDeactivationWarningEmails() {
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
   const usersToWarn = await User.findAll({
+    attributes: ["_id", "email", "name"],
     where: {
       disabledAt: null,
       lastDeactivationWarningAt: null,
@@ -46,6 +47,7 @@ async function desactivateInactiveUsers() {
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
   const usersToDisable = await User.findAll({
+    attributes: ["_id", "email", "name"],
     where: {
       [Op.or]: [
         {
