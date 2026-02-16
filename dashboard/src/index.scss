@@ -251,8 +251,10 @@ a {
 }
 
 hr {
-  margin-top: 1vw;
-  margin-bottom: 1vw;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 
