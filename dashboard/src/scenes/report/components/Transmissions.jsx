@@ -90,7 +90,7 @@ function TransmissionPrint({ report, team }) {
 
   return (
     <>
-      <div className="p-2 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100 tw-mx-4 tw-bg-transparent">
+      <div className="tw-p-2 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100 tw-mx-4 tw-bg-transparent">
         <p className="tw-font-medium tw-flex tw-items-center tw-gap-1">
           {team?.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />}{" "}
           {team?.name || ""}
@@ -159,7 +159,7 @@ function Transmission({ report, team, day, teamId, userId, reactSelectInputId, o
 
   return (
     <>
-      <div className="p-2 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100">
+      <div className="tw-p-4 tw-mb-4 tw-flex tw-flex-col tw-rounded-2xl tw-bg-gray-100">
         <p className="tw-font-medium tw-flex tw-items-center tw-gap-1">
           {team?.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />}{" "}
           {team?.name || ""}
