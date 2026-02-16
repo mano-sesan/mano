@@ -91,6 +91,7 @@ const InlineLabel = styled(MyText)`
 const Content = styled(MyText)`
   font-size: 17px;
   line-height: 20px;
+  flex-shrink: 1;
 `;
 
 const Input = styled(MyTextInput)`
