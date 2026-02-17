@@ -1,0 +1,679 @@
+import { useMemo, useState } from "react";
+import { useAtomValue } from "jotai";
+import { useLocalStorage } from "../../services/useLocalStorage";
+import {
+  fieldsPersonsCustomizableOptionsSelector,
+  filterPersonsBaseSelector,
+  personFieldsSelector,
+  flattenedCustomFieldsPersonsSelector,
+  personTypesByFieldsNamesSelector,
+} from "../../atoms/persons";
+import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
+import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
+import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } from "../../atoms/actions";
+import { reportsState } from "../../atoms/reports";
+import { territoriesState } from "../../atoms/territory";
+import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
+import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../atoms/selectors";
+import useTitle from "../../services/useTitle";
+import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
+import SelectTeamMultiple from "../../components/SelectTeamMultiple";
+import ExportFormattedData from "../data-import-export/ExportFormattedData";
+import GeneralStats from "./GeneralStats";
+import ServicesStats from "./ServicesStats";
+import ActionsStats from "./ActionsStats";
+import PersonStats from "./PersonsStats";
+import PassagesStats from "./PassagesStats";
+import RencontresStats from "./RencontresStats";
+import ObservationsStats from "./ObservationsStats";
+import ReportsStats from "./ReportsStats";
+import ConsultationsStats from "./ConsultationsStats";
+import MedicalFilesStats from "./MedicalFilesStats";
+import ButtonCustom from "../../components/ButtonCustom";
+import dayjs from "dayjs";
+import { filterItem } from "../../components/Filters";
+import { flattenedCustomFieldsConsultationsSelector } from "../../atoms/consultations";
+import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
+import { dayjsInstance } from "../../services/date";
+import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import SelectCustom from "../../components/SelectCustom";
+import HelpButtonAndModal from "../../components/HelpButtonAndModal";
+import FilterChipsV2 from "./FilterChipsV2";
+import FilterModalV2 from "./FilterModalV2";
+import { itemsForStatsV2Selector } from "./items-for-stats-v2";
+
+const tabsV2 = [
+  "Général",
+  "Services",
+  "Actions",
+  "Personnes",
+  "Passages",
+  "Rencontres",
+  "Observations",
+  "Comptes-rendus",
+  "Consultations",
+  "Dossiers médicaux",
+];
+
+const personTypeOptions = [
+  { label: "Toutes les personnes", value: "modified" },
+  { label: "Personnes suivies", value: "followed" },
+  { label: "Nouvelles personnes", value: "created" },
+];
+
+const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
+  const snapshotDate = dayjsInstance(period.endDate).format("YYYY-MM-DD");
+
+  const allPersons = allRawPersons.map((person) => {
+    const snapshotAtDate = getPersonSnapshotAtDate({
+      person,
+      snapshotDate: snapshotDate,
+      typesByFields: personTypesByFieldsNames,
+    });
+    return {
+      ...snapshotAtDate,
+      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince, "months"),
+    };
+  });
+
+  return allPersons;
+};
+
+const StatsV2 = ({ onSwitchVersion }) => {
+  const organisation = useAtomValue(organisationState);
+  const currentTeam = useAtomValue(currentTeamState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+
+  const allreports = useAtomValue(reportsState);
+  const allObservations = useAtomValue(territoryObservationsState);
+  const allPassagesPopulated = useAtomValue(populatedPassagesSelector);
+  const customFieldsObs = useAtomValue(customFieldsObsSelector);
+  const fieldsPersonsCustomizableOptions = useAtomValue(fieldsPersonsCustomizableOptionsSelector);
+  const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
+  const consultationFields = useAtomValue(flattenedCustomFieldsConsultationsSelector);
+  const personFields = useAtomValue(personFieldsSelector);
+  const territories = useAtomValue(territoriesState);
+  const allCategories = useAtomValue(flattenedActionsCategoriesSelector);
+  const groupsCategories = useAtomValue(actionsCategoriesSelector);
+
+  const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
+  const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "modified");
+  const [filterPersons, setFilterPersons] = useLocalStorage("stats-v2-filterPersons", []);
+  const [filterObs, setFilterObs] = useLocalStorage("stats-filterObs-defaultEverybody", []);
+  const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("stats-viewAllOrganisationData", teams.length === 1);
+  const [period, setPeriod] = useLocalStorage("period", { startDate: null, endDate: null });
+  const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);
+  const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage("stats-teams", [currentTeam]);
+  const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses", DONE);
+  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
+  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
+  const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
+  const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
+  const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
+
+  const [evolutivesStatsActivated, setEvolutivesStatsActivated] = useLocalStorage("stats-evolutivesStatsActivated", false);
+  const [evolutiveStatsIndicators, setEvolutiveStatsIndicators] = useLocalStorage("stats-evolutivesStatsIndicatorsArray", []);
+
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+
+  useTitle(`${activeTab} - Statistiques`);
+
+  const selectedTeams = useMemo(() => {
+    if (viewAllOrganisationData) return teams;
+    return manuallySelectedTeams;
+  }, [manuallySelectedTeams, viewAllOrganisationData, teams]);
+
+  const selectedTeamsObjectWithOwnPeriod = useMemo(() => {
+    const teamsIdsObject = {};
+    for (const team of selectedTeams) {
+      const offsetHours = team.nightSession ? 12 : 0;
+      const isoStartDate = period.startDate ? dayjs(period.startDate).startOf("day").add(offsetHours, "hour").toISOString() : null;
+      const isoEndDate = period.endDate ? dayjs(period.endDate).startOf("day").add(1, "day").add(offsetHours, "hour").toISOString() : null;
+      teamsIdsObject[team._id] = {
+        isoStartDate,
+        isoEndDate,
+      };
+    }
+    return teamsIdsObject;
+  }, [selectedTeams, period]);
+
+  const defaultIsoDates = useMemo(
+    () => ({
+      isoStartDate: period.startDate ? dayjs(period.startDate).startOf("day").toISOString() : null,
+      isoEndDate: period.endDate ? dayjs(period.endDate).startOf("day").add(1, "day").toISOString() : null,
+    }),
+    [period]
+  );
+
+  const allRawPersons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+  const personTypesByFieldsNames = useAtomValue(personTypesByFieldsNamesSelector);
+
+  const allPersons = useMemo(() => {
+    return personsForStatsSelector(period, allRawPersons, personTypesByFieldsNames);
+  }, [period, allRawPersons, personTypesByFieldsNames]);
+
+  const {
+    personsForStats,
+    personsUpdatedWithActions,
+    actionsFilteredByPersons,
+    personsWithConsultations,
+    consultationsFilteredByPersons,
+    personsWithPassages,
+    personsInPassagesBeforePeriod,
+    passagesFilteredByPersons,
+    personsInRencontresBeforePeriod,
+    rencontresFilteredByPersons,
+  } = useMemo(() => {
+    return itemsForStatsV2Selector({
+      period,
+      allPersons,
+      filterPersons,
+      selectedTeamsObjectWithOwnPeriod,
+      viewAllOrganisationData,
+      teams,
+      territories,
+      personType,
+    });
+  }, [period, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, allPersons, teams, territories, personType]);
+
+  const filterableActionsCategories = useMemo(() => {
+    if (!actionsCategoriesGroups.length) return ["-- Aucune --", ...allCategories];
+    return groupsCategories
+      .filter((group) => actionsCategoriesGroups.includes(group.groupTitle))
+      .reduce((filteredCats, group) => [...filteredCats, ...group.categories], []);
+  }, [actionsCategoriesGroups, allCategories, groupsCategories]);
+
+  const consultationsFilteredByStatus = useMemo(() => {
+    return consultationsFilteredByPersons
+      .filter((consultation) => !consultationsStatuses.length || consultationsStatuses.includes(consultation.status))
+      .filter((consultation) => !consultationsTypes.length || consultationsTypes.includes(consultation.type));
+  }, [consultationsFilteredByPersons, consultationsStatuses, consultationsTypes]);
+
+  const actionsWithDetailedGroupAndCategories = useMemo(() => {
+    const actionsDetailed = [];
+    const categoriesGroupObject = {};
+    for (const groupCategory of groupsCategories) {
+      for (const category of groupCategory.categories) {
+        categoriesGroupObject[category] = groupCategory.groupTitle;
+      }
+    }
+    for (const action of actionsFilteredByPersons) {
+      if (!!actionsStatuses.length && !actionsStatuses.includes(action.status)) {
+        continue;
+      }
+      if (action.categories?.length) {
+        for (const category of action.categories) {
+          actionsDetailed.push({
+            ...action,
+            category,
+            categoryGroup: categoriesGroupObject[category] ?? "Catégories supprimées",
+          });
+        }
+      } else {
+        actionsDetailed.push(action);
+      }
+    }
+    const _actionsWithDetailedGroupAndCategories = actionsDetailed
+      .filter((a) => !actionsCategoriesGroups.length || actionsCategoriesGroups.includes(a.categoryGroup))
+      .filter((a) => {
+        if (!actionsCategories.length) return true;
+        if (actionsCategories.length === 1 && actionsCategories[0] === "-- Aucune --") return !a.categories?.length;
+        return actionsCategories.includes(a.category);
+      });
+    return _actionsWithDetailedGroupAndCategories;
+  }, [actionsFilteredByPersons, groupsCategories, actionsCategoriesGroups, actionsCategories, actionsStatuses]);
+
+  const passages = useMemo(() => {
+    const activeFilters = filterPersons.filter((f) => f.value);
+    if (activeFilters.length) {
+      return passagesFilteredByPersons;
+    }
+    const passagesFiltered = [];
+    for (const passage of allPassagesPopulated) {
+      if (!viewAllOrganisationData) {
+        if (!selectedTeamsObjectWithOwnPeriod[passage.team]) continue;
+      }
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[passage.team] ?? defaultIsoDates;
+      const date = passage.date ?? passage.createdAt;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      passagesFiltered.push(passage);
+    }
+    return passagesFiltered;
+  }, [allPassagesPopulated, defaultIsoDates, passagesFilteredByPersons, filterPersons, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData]);
+
+  const observations = useMemo(() => {
+    const observationsFiltered = [];
+    const territoriesById = {};
+    for (const territory of territories) {
+      territoriesById[territory._id] = territory;
+    }
+    const activeFilters = filterObs.filter((f) => f.value);
+    const territoryFilter = activeFilters.find((f) => f.field === "territory");
+    const territoryTypesFilter = activeFilters.find((f) => f.field === "territoryTypes");
+    const otherFilters = activeFilters.filter((f) => f.field !== "territory" && f.field !== "territoryTypes");
+    for (const observation of allObservations) {
+      if (!viewAllOrganisationData) {
+        if (!selectedTeamsObjectWithOwnPeriod[observation.team]) continue;
+      }
+      if (territoryFilter) {
+        if (!territoryFilter.value.includes(territoriesById[observation.territory]?.name)) continue;
+      }
+      if (territoryTypesFilter) {
+        const observationTerritory = territoriesById[observation.territory];
+        if (!observationTerritory?.types) continue;
+        const hasMatchingType = observationTerritory.types.some((type) => territoryTypesFilter.value.includes(type));
+        if (!hasMatchingType) continue;
+      }
+      if (!filterItem(otherFilters)(observation)) continue;
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[observation.team] ?? defaultIsoDates;
+      const date = observation.observedAt ?? observation.createdAt;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      observationsFiltered.push(observation);
+    }
+    return observationsFiltered;
+  }, [allObservations, filterObs, territories, defaultIsoDates, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData]);
+
+  const reports = useMemo(() => {
+    const reportsFiltered = [];
+    for (const report of allreports) {
+      if (!viewAllOrganisationData) {
+        if (!selectedTeamsObjectWithOwnPeriod[report.team]) continue;
+      }
+      const { isoStartDate, isoEndDate } = selectedTeamsObjectWithOwnPeriod[report.team] ?? defaultIsoDates;
+      const date = report.date;
+      if (date < isoStartDate) continue;
+      if (date >= isoEndDate) continue;
+      reportsFiltered.push(report);
+    }
+    return reportsFiltered;
+  }, [allreports, defaultIsoDates, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData]);
+
+  const filterPersonsBase = useAtomValue(filterPersonsBaseSelector);
+  const filterPersonsWithAllFields = useMemo(() => {
+    const filterBase = [
+      ...filterPersonsBase.map((f) => {
+        if (f.field === "outOfActiveList") {
+          return {
+            ...f,
+            // V2: only "Oui" and "Non", no more "Oui et non"
+            options: ["Oui", "Non"],
+            type: "multi-choice",
+          };
+        }
+        return f;
+      }),
+      ...fieldsPersonsCustomizableOptions.map((a) => ({ field: a.name, ...a })),
+      ...flattenedCustomFieldsPersons.filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id)).map((a) => ({ field: a.name, ...a })),
+    ];
+    if (user.healthcareProfessional) {
+      filterBase.push(
+        ...customFieldsMedicalFile
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+          .map((a) => ({ field: a.name, ...a, category: "medicalFile" }))
+      );
+      filterBase.push(
+        ...consultationFields
+          .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+          .map((a) => ({ field: a.name, ...a, category: "flattenedConsultations" }))
+      );
+    }
+    filterBase.push({
+      field: "outOfTeamsDuringPeriod",
+      name: "outOfTeamsDuringPeriod",
+      label: "Sortie d'équipe",
+      type: "multi-choice",
+      options: teams.map((t) => t.name),
+    });
+    filterBase.push({
+      field: "territories",
+      name: "territories",
+      label: "Rencontré·e dans un territoire",
+      type: "multi-choice",
+      options: territories.map((t) => t.name),
+    });
+    return filterBase;
+  }, [
+    filterPersonsBase,
+    fieldsPersonsCustomizableOptions,
+    flattenedCustomFieldsPersons,
+    customFieldsMedicalFile,
+    consultationFields,
+    currentTeam,
+    user,
+    teams,
+    territories,
+  ]);
+
+  const availableTabs = tabsV2.filter((tabCaption) => {
+    if (["Observations"].includes(tabCaption)) return !!organisation.territoriesEnabled;
+    if (["Services"].includes(tabCaption)) return !!organisation.receptionEnabled;
+    if (["Rencontres"].includes(tabCaption)) return !!organisation.rencontresEnabled;
+    if (["Passages"].includes(tabCaption)) return !!organisation.passagesEnabled;
+    return true;
+  });
+
+  useRestoreScrollPosition();
+
+  const filtersDisabled = ["Services", "Observations", "Comptes-rendus"].includes(activeTab);
+  const evolutifDisabled = activeTab !== "Personnes";
+
+  return (
+    <>
+      <div>
+        <div className="printonly tw-px-8 tw-py-4 tw-text-2xl tw-font-bold" aria-hidden>
+          Statistiques{" "}
+          {viewAllOrganisationData ? (
+            <>globales</>
+          ) : (
+            <>
+              {selectedTeams.length > 1 ? "des équipes" : "de l'équipe"} {selectedTeams.map((t) => t.name).join(", ")}
+            </>
+          )}{" "}
+          - {formatPeriod({ period, preset })}
+        </div>
+        {/* Line 1: Title + switch button */}
+        <div className="noprint tw-flex tw-items-center tw-mt-8 tw-mb-4">
+          <h1 className="tw-grow tw-text-xl tw-font-normal">Statistiques</h1>
+          <div className="tw-flex tw-items-center tw-gap-4">
+            <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
+            <ExportFormattedData
+              observations={observations}
+              passages={passagesFilteredByPersons}
+              rencontres={rencontresFilteredByPersons}
+              personCreated={personsForStats}
+              personUpdated={personsForStats}
+              actions={actionsWithDetailedGroupAndCategories}
+              consultations={consultationsFilteredByPersons}
+            />
+            <button
+              type="button"
+              className="tw-text-xs tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
+              onClick={onSwitchVersion}
+            >
+              Revenir à l'ancienne version
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Line 2: Tabs */}
+      <div className="noprint tw-flex tw-flex-row tw-flex-wrap tw-border-b tw-border-zinc-200 tw-mb-6">
+        {availableTabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={[
+              "tw-px-3 tw-py-2 tw-text-sm tw-font-medium tw-border-b-2 tw-transition-colors tw-cursor-pointer",
+              activeTab === tab
+                ? "tw-border-main tw-text-main tw-bg-stone-50 tw-rounded-t-md"
+                : "tw-border-transparent tw-text-zinc-500 hover:tw-text-zinc-700 hover:tw-border-zinc-300",
+            ].join(" ")}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Line 3: Controls */}
+      <div className="noprint tw-flex tw-flex-row tw-items-end tw-gap-4 tw-flex-wrap">
+        <div className="tw-max-w-72 tw-min-w-48 tw-grow">
+          <SelectTeamMultiple
+            onChange={(teamsId) => {
+              setSelectedTeams(teams.filter((t) => teamsId.includes(t._id)));
+            }}
+            value={selectedTeams.map((e) => e?._id)}
+            colored
+            isDisabled={viewAllOrganisationData}
+          />
+          {teams.length > 1 && (
+            <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-sm">
+              <input
+                id="viewAllOrganisationData-v2"
+                type="checkbox"
+                className="tw-mr-2.5"
+                checked={viewAllOrganisationData}
+                value={viewAllOrganisationData}
+                onChange={() => setViewAllOrganisationData(!viewAllOrganisationData)}
+              />
+              Statistiques de toute l'organisation
+            </label>
+          )}
+        </div>
+
+        <div className="tw-shrink-0">
+          <DateRangePickerWithPresets
+            presets={statsPresets}
+            period={period}
+            setPeriod={setPeriod}
+            preset={preset}
+            setPreset={setPreset}
+            removePreset={removePreset}
+          />
+        </div>
+
+        <div className="tw-flex tw-items-center tw-shrink-0">
+          <SelectCustom
+            options={personTypeOptions}
+            value={personTypeOptions.find((o) => o.value === personType) || personTypeOptions[0]}
+            onChange={(option) => setPersonType(option?.value || "modified")}
+            name="person-type-v2"
+            inputId="person-type-v2"
+            className="tw-text-sm tw-min-w-56"
+            formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
+          />
+          <HelpButtonAndModal title="Personnes comptabilisées dans les statistiques" size="3xl">
+            <div className="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-zinc-700">
+              <p>
+                Ce filtre détermine quelles personnes sont comptabilisées dans les statistiques. Seules les personnes assignées à au moins{" "}
+                <b>une des équipes sélectionnées pendant la période sélectionnée</b> sont prises en compte.
+              </p>
+              <div>
+                <h4 className="tw-text-lg">Toutes les personnes</h4>
+                <p>
+                  Toutes les personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au
+                  moment de la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées :
+                  création, modification, commentaire, action, rencontre, passage, lieu fréquenté, consultation, traitement.
+                </p>
+              </div>
+              <div>
+                <h4 className="tw-text-lg">Personnes suivies</h4>
+                <p>
+                  Personnes pour lesquelles il y a eu au moins une interaction durant la période, en excluant les interactions réalisées lorsque la
+                  personne était sortie de file active ou en dehors des équipes sélectionnées.
+                </p>
+              </div>
+              <div>
+                <h4 className="tw-text-lg">Nouvelles personnes</h4>
+                <p>
+                  Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont la fiche a été créée durant la période
+                  sélectionnée.
+                </p>
+              </div>
+              <p className="tw-text-zinc-500 tw-italic">
+                Si aucune période n'est définie, l'ensemble des personnes présentes dans une des équipes sélectionnées à un moment ou un autre est
+                considéré.
+              </p>
+            </div>
+          </HelpButtonAndModal>
+        </div>
+
+        <label
+          className={[
+            "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0",
+            evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
+          ].join(" ")}
+        >
+          <div
+            onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
+            className={[
+              "tw-relative tw-inline-flex tw-h-5 tw-w-9 tw-shrink-0 tw-rounded-full tw-transition-colors tw-duration-200",
+              !evolutifDisabled ? "tw-cursor-pointer" : "",
+              evolutivesStatsActivated && !evolutifDisabled ? "tw-bg-main" : "tw-bg-zinc-300",
+            ].join(" ")}
+          >
+            <span
+              className={[
+                "tw-inline-block tw-h-4 tw-w-4 tw-rounded-full tw-bg-white tw-shadow tw-transform tw-transition-transform tw-duration-200 tw-mt-0.5",
+                evolutivesStatsActivated && !evolutifDisabled ? "tw-translate-x-4 tw-ml-0.5" : "tw-translate-x-0 tw-ml-0.5",
+              ].join(" ")}
+            />
+          </div>
+          <span className="tw-text-sm tw-text-zinc-700">Affichage évolutif</span>
+        </label>
+      </div>
+
+      {/* Line 4: Filter chips */}
+      <div className="noprint tw-mt-4">
+        <FilterChipsV2
+          filters={filterPersons}
+          setFilters={setFilterPersons}
+          filterBase={filterPersonsWithAllFields}
+          disabled={filtersDisabled}
+          onAddFilter={() => setFilterModalOpen(true)}
+        />
+      </div>
+
+      <FilterModalV2
+        open={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        filterBase={filterPersonsWithAllFields}
+        onAddFilter={(newFilter) => {
+          setFilterPersons([...filterPersons, newFilter]);
+        }}
+      />
+
+      {/* Tab content */}
+      <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
+        {activeTab === "Général" && (
+          <GeneralStats
+            personsCreated={personsForStats}
+            personsUpdated={personsForStats}
+            rencontres={rencontresFilteredByPersons}
+            passages={passagesFilteredByPersons}
+            actions={actionsWithDetailedGroupAndCategories}
+            personsUpdatedWithActions={personsUpdatedWithActions}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            hideFilters
+          />
+        )}
+        {!!organisation.receptionEnabled && activeTab === "Services" && <ServicesStats period={period} teamIds={selectedTeams.map((e) => e?._id)} />}
+        {activeTab === "Actions" && (
+          <ActionsStats
+            actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
+            setActionsStatuses={setActionsStatuses}
+            actionsStatuses={actionsStatuses}
+            setActionsCategoriesGroups={setActionsCategoriesGroups}
+            actionsCategoriesGroups={actionsCategoriesGroups}
+            groupsCategories={groupsCategories}
+            setActionsCategories={setActionsCategories}
+            actionsCategories={actionsCategories}
+            filterableActionsCategories={filterableActionsCategories}
+            personsUpdatedWithActions={personsUpdatedWithActions}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            hideFilters
+          />
+        )}
+        {activeTab === "Personnes" && (
+          <PersonStats
+            title="personnes"
+            firstBlockHelp={`Nombre de personnes comptabilisées selon le filtre sélectionné.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            personsForStats={personsForStats}
+            personFields={personFields}
+            flattenedCustomFieldsPersons={flattenedCustomFieldsPersons}
+            evolutivesStatsActivated={evolutivesStatsActivated}
+            period={period}
+            evolutiveStatsIndicators={evolutiveStatsIndicators}
+            setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
+            viewAllOrganisationData={viewAllOrganisationData}
+            selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
+            hideFilters
+          />
+        )}
+        {!!organisation.passagesEnabled && activeTab === "Passages" && (
+          <PassagesStats
+            passages={passages}
+            personFields={personFields}
+            personsInPassagesBeforePeriod={personsInPassagesBeforePeriod}
+            personsUpdated={personsForStats}
+            personsWithPassages={personsWithPassages}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            hideFilters
+          />
+        )}
+        {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
+          <RencontresStats
+            rencontres={rencontresFilteredByPersons}
+            territories={territories}
+            personFields={personFields}
+            personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
+            personsUpdated={personsForStats}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            selectedTerritories={rencontresTerritories}
+            setSelectedTerritories={setRencontresTerritories}
+            isTerritoriesEnabled={!!organisation.territoriesEnabled}
+            hideFilters
+          />
+        )}
+        {activeTab === "Observations" && (
+          <ObservationsStats
+            territories={territories}
+            filterObs={filterObs}
+            setFilterObs={setFilterObs}
+            observations={observations}
+            customFieldsObs={customFieldsObs}
+            period={period}
+            selectedTeams={selectedTeams}
+          />
+        )}
+        {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} />}
+        {activeTab === "Consultations" && (
+          <ConsultationsStats
+            consultations={consultationsFilteredByStatus}
+            personsUpdated={personsForStats}
+            personsWithConsultations={personsWithConsultations}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            consultationsStatuses={consultationsStatuses}
+            setConsultationsStatuses={setConsultationsStatuses}
+            consultationsTypes={consultationsTypes}
+            setConsultationsTypes={setConsultationsTypes}
+            hideFilters
+          />
+        )}
+        {activeTab === "Dossiers médicaux" && (
+          <MedicalFilesStats
+            title="personnes"
+            personsUpdated={personsForStats}
+            personsForStats={personsForStats}
+            customFieldsMedicalFile={customFieldsMedicalFile}
+            personFields={personFields}
+            filterBase={filterPersonsWithAllFields}
+            filterPersons={filterPersons}
+            setFilterPersons={setFilterPersons}
+            hideFilters
+          />
+        )}
+      </div>
+      {/* HACK: this last div is because Chrome crop the end of the page - I didn't find any better solution */}
+      <div className="printonly tw-h-screen" aria-hidden />
+    </>
+  );
+};
+
+export default StatsV2;

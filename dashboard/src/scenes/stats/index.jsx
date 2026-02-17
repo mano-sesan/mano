@@ -40,6 +40,7 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import StatsV2 from "./index-v2";
 
 const tabs = [
   "Général",
@@ -78,6 +79,7 @@ with StatsLoader:
 const StatsLoader = () => {
   const { isLoading } = useDataLoader({ refreshOnMount: true });
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
+  const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
 
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
@@ -86,7 +88,9 @@ const StatsLoader = () => {
   }, [isLoading, hasStartLoaded]);
 
   if (!hasStartLoaded) return <Loading />;
-  return <Stats />;
+
+  if (statsVersion === "v2") return <StatsV2 onSwitchVersion={() => setStatsVersion("v1")} />;
+  return <Stats onSwitchVersion={() => setStatsVersion("v2")} />;
 };
 
 const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
@@ -497,7 +501,7 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
-const Stats = () => {
+const Stats = ({ onSwitchVersion }) => {
   const organisation = useAtomValue(organisationState);
   const currentTeam = useAtomValue(currentTeamState);
   const teams = useAtomValue(teamsState);
@@ -841,6 +845,15 @@ const Stats = () => {
           <h1 className="tw-block tw-text-xl tw-min-w-64 tw-full tw-font-normal">
             <span>Statistiques {viewAllOrganisationData ? <>globales</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}</span>
           </h1>
+          {!!onSwitchVersion && (
+            <button
+              type="button"
+              className="tw-ml-auto tw-text-xs tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer tw-shrink-0"
+              onClick={onSwitchVersion}
+            >
+              Essayer la nouvelle version
+            </button>
+          )}
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
               onChange={(teamsId) => {

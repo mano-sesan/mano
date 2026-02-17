@@ -40,6 +40,7 @@ export default function PersonStats({
   setEvolutiveStatsIndicators,
   viewAllOrganisationData,
   selectedTeamsObjectWithOwnPeriod,
+  hideFilters,
 }) {
   const allGroups = useAtomValue(groupsState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
@@ -82,8 +83,8 @@ export default function PersonStats({
   };
   return (
     <>
-      {!evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
-      <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+      {!hideFilters && !evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
+      {!hideFilters && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />}
       {evolutivesStatsActivated ? (
         <>
           <EvolutiveStatsSelector

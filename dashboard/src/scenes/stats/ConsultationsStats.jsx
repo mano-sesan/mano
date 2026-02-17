@@ -25,6 +25,7 @@ export default function ConsultationsStats({
   // type filtering props
   consultationsTypes = [],
   setConsultationsTypes = () => {},
+  hideFilters,
 }) {
   const organisation = useAtomValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
@@ -52,10 +53,12 @@ export default function ConsultationsStats({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>
-      <div className="tw-flex tw-basis-full tw-items-center">
-        <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
-      </div>
+      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>}
+      {!hideFilters && (
+        <div className="tw-flex tw-basis-full tw-items-center">
+          <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        </div>
+      )}
       <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
         <div>
           <label htmlFor="filter-by-status" className="tw-m-0">

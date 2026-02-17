@@ -18,6 +18,7 @@ const MedicalFilesStats = ({
   customFieldsMedicalFile,
   personFields,
   title,
+  hideFilters,
 }) => {
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
   const [sliceField, setSliceField] = useState(null);
@@ -53,9 +54,9 @@ const MedicalFilesStats = ({
   };
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des dossiers médicaux des {title}</h3>
+      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques des dossiers médicaux des {title}</h3>}
       <div className="tw-flex tw-flex-col tw-gap-4">
-        <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} title={filterTitle} />
+        {!hideFilters && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} title={filterTitle} />}
         <AgeRangeBar
           persons={personsForStats}
           onItemClick={

@@ -105,10 +105,6 @@ const Stats = () => {
                   personne était sortie de file active ou en dehors des équipes sélectionnées.
                 </p>
               </div>
-              {/* <div>
-                <h4 className="tw-text-lg">Personnes créées</h4>
-                <p>Uniquement les personnes dont la fiche a été créée durant la période sélectionnée.</p>
-              </div> */}
               <div>
                 <h4 className="tw-text-lg">Nouvelles personnes</h4>
                 <p>
