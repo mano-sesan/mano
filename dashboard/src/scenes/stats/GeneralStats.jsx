@@ -13,13 +13,13 @@ const GeneralStats = ({
   filterBase,
   filterPersons,
   setFilterPersons,
-  hideFilters,
+  v2,
 }) => {
   const organisation = useAtomValue(organisationState);
   return (
     <>
-      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques générales</h3>}
-      {!hideFilters && (
+      {!v2 && <h3 className="tw-my-5 tw-text-xl">Statistiques générales</h3>}
+      {!v2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title="Filtrer par personnes suivies:" base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
         </div>

@@ -42,7 +42,7 @@ import FilterChipsV2 from "./FilterChipsV2";
 import FilterModalV2 from "./FilterModalV2";
 import FilterModalSimple from "./FilterModalSimple";
 import { itemsForStatsV2Selector } from "./items-for-stats-v2";
-import { StatsCompactProvider } from "./StatsContext";
+import { StatsV2Provider } from "./StatsContext";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabsV2 = [
@@ -684,7 +684,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             preset={preset}
             setPreset={setPreset}
             removePreset={removePreset}
-            statsV2={true}
+            v2
           />
         </div>
 
@@ -961,7 +961,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
       />
 
       {/* Tab content */}
-      <StatsCompactProvider>
+      <StatsV2Provider>
       <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
         {activeTab === "Général" && (
           <GeneralStats
@@ -974,14 +974,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
-            hideFilters
+            v2
           />
         )}
         {!!organisation.receptionEnabled && activeTab === "Services" && (
           <ServicesStats
             period={period}
             teamIds={selectedTeams.map((e) => e?._id)}
-            hideFilters
+            v2
             servicesGroupFilter={servicesGroupFilter}
             setServicesGroupFilter={setServicesGroupFilter}
             servicesFilter={servicesFilter}
@@ -1003,7 +1003,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
-            hideFilters
+            v2
           />
         )}
         {activeTab === "Personnes" && (
@@ -1022,7 +1022,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
             viewAllOrganisationData={viewAllOrganisationData}
             selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
-            hideFilters
+            v2
           />
         )}
         {!!organisation.passagesEnabled && activeTab === "Passages" && (
@@ -1035,7 +1035,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
-            hideFilters
+            v2
           />
         )}
         {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
@@ -1051,7 +1051,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             selectedTerritories={rencontresTerritories}
             setSelectedTerritories={setRencontresTerritories}
             isTerritoriesEnabled={!!organisation.territoriesEnabled}
-            hideFilters
+            v2
           />
         )}
         {activeTab === "Observations" && (
@@ -1063,7 +1063,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             customFieldsObs={customFieldsObs}
             period={period}
             selectedTeams={selectedTeams}
-            hideFilters
+            v2
           />
         )}
         {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
@@ -1079,7 +1079,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             setConsultationsStatuses={setConsultationsStatuses}
             consultationsTypes={consultationsTypes}
             setConsultationsTypes={setConsultationsTypes}
-            hideFilters
+            v2
           />
         )}
         {activeTab === "Dossiers médicaux" && (
@@ -1092,11 +1092,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}
-            hideFilters
+            v2
           />
         )}
       </div>
-      </StatsCompactProvider>
+      </StatsV2Provider>
       {/* HACK: this last div is because Chrome crop the end of the page - I didn't find any better solution */}
       <div className="printonly tw-h-screen" aria-hidden />
     </>

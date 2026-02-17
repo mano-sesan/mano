@@ -5,15 +5,15 @@ import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 import { useStatsContext } from "./StatsContext";
 
 function ChartTitle({ title, help, settingsButton }: { title: string | React.ReactNode; help?: string; settingsButton?: React.ReactNode }) {
-  const { compact } = useStatsContext();
+  const { v2 } = useStatsContext();
   return (
     <div
       className={[
         "tw-w-full tw-flex tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black tw-bg-[#707597] print:tw-bg-white tw-rounded-t-2xl",
-        compact ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
+        v2 ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
       ].join(" ")}
     >
-      {compact ? (
+      {v2 ? (
         <>
           <div className="tw-flex-1">{title}</div>
           {!!settingsButton && <span className="tw-ml-auto tw-pl-4 tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}

@@ -32,7 +32,7 @@ interface ObservationsStatsProps {
   customFieldsObs: Array<CustomField>;
   period: Period;
   selectedTeams: Array<TeamInstance>;
-  hideFilters?: boolean;
+  v2?: boolean;
 }
 
 const ObservationsStats = ({
@@ -43,7 +43,7 @@ const ObservationsStats = ({
   customFieldsObs,
   period,
   selectedTeams,
-  hideFilters,
+  v2,
 }: ObservationsStatsProps) => {
   const currentTeam = useAtomValue(currentTeamState);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
@@ -106,14 +106,14 @@ const ObservationsStats = ({
 
   return (
     <>
-      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>}
-      {!hideFilters && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
+      {!v2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>}
+      {!v2 && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
 
       <details
         open={
           import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
           window.localStorage.getItem("observation-stats-general-open") === "true" ||
-          (hideFilters && window.localStorage.getItem("observation-stats-general-open") !== "false")
+          (v2 && window.localStorage.getItem("observation-stats-general-open") !== "false")
         }
         onToggle={(e) => {
           window.localStorage.setItem("observation-stats-general-open", (e.target as HTMLDetailsElement).open ? "true" : "false");
@@ -153,7 +153,7 @@ const ObservationsStats = ({
               open={
                 import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
                 window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
-                (hideFilters && window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
+                (v2 && window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
               }
               onToggle={(e) => {
                 window.localStorage.setItem(

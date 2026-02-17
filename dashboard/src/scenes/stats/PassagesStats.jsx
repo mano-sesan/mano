@@ -16,7 +16,7 @@ const PassagesStats = ({
   filterBase,
   filterPersons,
   setFilterPersons,
-  hideFilters,
+  v2,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
@@ -46,8 +46,8 @@ const PassagesStats = ({
 
   return (
     <>
-      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques des passages</h3>}
-      {!hideFilters && (
+      {!v2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des passages</h3>}
+      {!v2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
         </div>

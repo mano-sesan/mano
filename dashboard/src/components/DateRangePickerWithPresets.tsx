@@ -120,7 +120,7 @@ export const formatPeriod = ({ preset, period }: { preset: string | null; period
 };
 
 // https://reactdatepicker.com/#example-date-range
-const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset, statsV2 = false }) => {
+const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset, v2 = false }) => {
   const [showDatePicker, setShowDatepicker] = useState(false);
   const [numberOfMonths, setNumberOfMonths] = useState(() => (window.innerWidth < 1100 ? 1 : 2));
 
@@ -188,8 +188,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
   };
 
   return (
-    <div className={`noprint tw-relative ${statsV2 ? "tw-min-w-0" : "tw-min-w-[15rem]"}`}>
-      {statsV2 ? (
+    <div className={`noprint tw-relative ${v2 ? "tw-min-w-0" : "tw-min-w-[15rem]"}`}>
+      {v2 ? (
         <button
           type="button"
           className="button-classic !tw-ml-0 !tw-font-normal !tw-px-3 tw-flex tw-items-center tw-gap-2 tw-whitespace-nowrap"
@@ -210,13 +210,13 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
       {!!showDatePicker && (
         <OutsideClickHandler onOutsideClick={closeDatePicker}>
           <div
-            className={`stats-datepicker tw-absolute tw-top-12 ${statsV2 ? "-tw-right-56" : "tw-left-0"} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
+            className={`stats-datepicker tw-absolute tw-top-12 ${v2 ? "-tw-right-56" : "tw-left-0"} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
           >
             <div className="tw-absolute tw-bottom-0 tw-left-0 tw-top-0 tw-ml-2 tw-box-border tw-flex tw-max-h-full tw-w-56 tw-flex-1 tw-flex-col tw-items-start tw-justify-start tw-overflow-y-scroll">
               {presets.map((p) => (
                 <button
                   type="button"
-                  className={`tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 hover:tw-bg-main25 ${statsV2 ? "tw-text-sm tw-text-left" : "tw-text-center"}`}
+                  className={`tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 hover:tw-bg-main25 ${v2 ? "tw-text-sm tw-text-left" : "tw-text-center"}`}
                   key={p.label}
                   onClick={() => setPresetRequest(p)}
                 >
