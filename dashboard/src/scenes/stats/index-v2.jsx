@@ -41,6 +41,7 @@ import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 import FilterChipsV2 from "./FilterChipsV2";
 import FilterModalV2 from "./FilterModalV2";
 import { itemsForStatsV2Selector } from "./items-for-stats-v2";
+import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabsV2 = [
   "Général",
@@ -364,6 +365,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
   return (
     <>
       <div>
+        <button
+          type="button"
+          className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
+          onClick={onSwitchVersion}
+        >
+          <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
+          Revenir à l'ancienne version
+        </button>
         <div className="printonly tw-px-8 tw-py-4 tw-text-2xl tw-font-bold" aria-hidden>
           Statistiques{" "}
           {viewAllOrganisationData ? (
@@ -389,13 +398,6 @@ const StatsV2 = ({ onSwitchVersion }) => {
               actions={actionsWithDetailedGroupAndCategories}
               consultations={consultationsFilteredByPersons}
             />
-            <button
-              type="button"
-              className="tw-text-xs tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
-              onClick={onSwitchVersion}
-            >
-              Revenir à l'ancienne version
-            </button>
           </div>
         </div>
       </div>
@@ -419,8 +421,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
       </div>
 
       {/* Line 3: Controls */}
-      <div className="noprint tw-flex tw-flex-row tw-items-end tw-gap-4 tw-flex-wrap">
-        <div className="tw-max-w-72 tw-min-w-48 tw-grow">
+      <div className="noprint tw-flex tw-flex-row tw-items-start tw-gap-2 tw-flex-nowrap">
+        <div className="tw-min-w-48 tw-grow">
           <SelectTeamMultiple
             onChange={(teamsId) => {
               setSelectedTeams(teams.filter((t) => teamsId.includes(t._id)));
@@ -430,11 +432,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
             isDisabled={viewAllOrganisationData}
           />
           {teams.length > 1 && (
-            <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-sm">
+            <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-xs tw-mt-0.5 tw-ml-3">
               <input
                 id="viewAllOrganisationData-v2"
                 type="checkbox"
-                className="tw-mr-2.5"
+                className="tw-mr-1"
                 checked={viewAllOrganisationData}
                 value={viewAllOrganisationData}
                 onChange={() => setViewAllOrganisationData(!viewAllOrganisationData)}
@@ -452,6 +454,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             preset={preset}
             setPreset={setPreset}
             removePreset={removePreset}
+            statsV2={true}
           />
         </div>
 
@@ -462,8 +465,9 @@ const StatsV2 = ({ onSwitchVersion }) => {
             onChange={(option) => setPersonType(option?.value || "modified")}
             name="person-type-v2"
             inputId="person-type-v2"
-            className="tw-text-sm tw-min-w-56"
+            className="tw-text-sm tw-w-52"
             formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
+            isDisabled={filtersDisabled}
           />
           <HelpButtonAndModal title="Personnes comptabilisées dans les statistiques" size="3xl">
             <div className="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-zinc-700">
@@ -489,7 +493,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               <div>
                 <h4 className="tw-text-lg">Nouvelles personnes</h4>
                 <p>
-                  Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont la fiche a été créée durant la période
+                  Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont le suivi a commencé durant la période
                   sélectionnée.
                 </p>
               </div>
@@ -503,7 +507,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
         <label
           className={[
-            "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0",
+            "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0 tw-mt-2",
             evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
           ].join(" ")}
         >
@@ -527,15 +531,16 @@ const StatsV2 = ({ onSwitchVersion }) => {
       </div>
 
       {/* Line 4: Filter chips */}
-      <div className="noprint tw-mt-4">
-        <FilterChipsV2
-          filters={filterPersons}
-          setFilters={setFilterPersons}
-          filterBase={filterPersonsWithAllFields}
-          disabled={filtersDisabled}
-          onAddFilter={() => setFilterModalOpen(true)}
-        />
-      </div>
+      {!filtersDisabled && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={filterPersons}
+            setFilters={setFilterPersons}
+            filterBase={filterPersonsWithAllFields}
+            onAddFilter={() => setFilterModalOpen(true)}
+          />
+        </div>
+      )}
 
       <FilterModalV2
         open={filterModalOpen}
@@ -640,7 +645,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             selectedTeams={selectedTeams}
           />
         )}
-        {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} />}
+        {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
         {activeTab === "Consultations" && (
           <ConsultationsStats
             consultations={consultationsFilteredByStatus}

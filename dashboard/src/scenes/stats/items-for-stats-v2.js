@@ -13,7 +13,7 @@ function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeams
     const allPeriods = assignedTeamsPeriods?.all;
     if (!allPeriods?.length) return false;
     for (const period of allPeriods) {
-      if (isoDate >= period.isoStartDate && isoDate < period.isoEndDate) return true;
+      if (isoDate >= period.isoStartDate && (period.isoEndDate == null || isoDate < period.isoEndDate)) return true;
     }
     return false;
   }
@@ -21,7 +21,7 @@ function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeams
     if (teamId === "all") continue;
     if (!selectedTeamsObjectWithOwnPeriod[teamId]) continue;
     for (const period of periods) {
-      if (isoDate >= period.isoStartDate && isoDate < period.isoEndDate) return true;
+      if (isoDate >= period.isoStartDate && (period.isoEndDate == null || isoDate < period.isoEndDate)) return true;
     }
   }
   return false;
@@ -220,7 +220,8 @@ export const itemsForStatsV2Selector = ({
             // Check not in out-of-active-list period
             if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
             // Check person was assigned to a selected team at this date
-            if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
+            if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData))
+              continue;
             hasValidInteraction = true;
             break;
           }

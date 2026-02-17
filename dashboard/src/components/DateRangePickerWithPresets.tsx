@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import OutsideClickHandler from "react-outside-click-handler";
 import { dayjsInstance, dateForDatePicker } from "../services/date";
 import DatePicker from "react-datepicker";
-import type { Dayjs, ManipulateType } from "dayjs";
 import type { Period, Preset } from "../types/date";
+import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 
 export const statsPresets: Array<Preset> = [
   {
@@ -120,7 +120,7 @@ export const formatPeriod = ({ preset, period }: { preset: string | null; period
 };
 
 // https://reactdatepicker.com/#example-date-range
-const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset }) => {
+const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset, statsV2 = false }) => {
   const [showDatePicker, setShowDatepicker] = useState(false);
   const [numberOfMonths, setNumberOfMonths] = useState(() => (window.innerWidth < 1100 ? 1 : 2));
 
@@ -188,14 +188,25 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
   };
 
   return (
-    <div className="noprint tw-relative tw-min-w-[15rem]">
-      <button
-        type="button"
-        className="tw-min-w-[15rem] tw-rounded-lg tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1 tw-shadow-none"
-        onClick={openDatePicker}
-      >
-        {formatPeriod({ preset, period })}
-      </button>
+    <div className={`noprint tw-relative ${statsV2 ? "tw-min-w-0" : "tw-min-w-[15rem]"}`}>
+      {statsV2 ? (
+        <button
+          type="button"
+          className="button-classic !tw-ml-0 !tw-font-normal !tw-px-3 tw-flex tw-items-center tw-gap-2 tw-whitespace-nowrap"
+          onClick={openDatePicker}
+        >
+          <CalendarDaysIcon className="tw-w-4 tw-h-4" />
+          {formatPeriod({ preset, period })}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="tw-min-w-[15rem] tw-rounded-lg tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1 tw-shadow-none"
+          onClick={openDatePicker}
+        >
+          {formatPeriod({ preset, period })}
+        </button>
+      )}
       {!!showDatePicker && (
         <OutsideClickHandler onOutsideClick={closeDatePicker}>
           <div className="stats-datepicker tw-absolute tw-top-12 tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]">

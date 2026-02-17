@@ -4,11 +4,11 @@ import { getPieData } from "./utils";
 import { organisationState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 
-const ReportsStats = ({ reports }) => {
+const ReportsStats = ({ reports, hideTitle = false }) => {
   const organisation = useAtomValue(organisationState);
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des comptes-rendus</h3>
+      {!hideTitle && <h3 className="tw-my-5 tw-text-xl">Statistiques des comptes-rendus</h3>}
       <div className="tw-flex tw-flex-col tw-gap-4">
         <CustomResponsivePie
           title="Répartition des comptes-rendus par collaboration"

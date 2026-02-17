@@ -41,6 +41,7 @@ import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
 import StatsV2 from "./index-v2";
+import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabs = [
   "Général",
@@ -848,9 +849,10 @@ const Stats = ({ onSwitchVersion }) => {
           {!!onSwitchVersion && (
             <button
               type="button"
-              className="tw-ml-auto tw-text-xs tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer tw-shrink-0"
+              className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
               onClick={onSwitchVersion}
             >
+              <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
               Essayer la nouvelle version
             </button>
           )}
