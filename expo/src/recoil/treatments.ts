@@ -1,10 +1,10 @@
-import { atom } from "jotai";
+import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { TreatmentInstance } from "@/types/treatment";
 
-export const treatmentsState = atom<TreatmentInstance[]>([]);
+export const treatmentsState = atomWithCache<TreatmentInstance[]>("treatment", []);
 
 const encryptedFields: Array<keyof TreatmentInstance> = [
   "person",
@@ -41,7 +41,7 @@ export const prepareTreatmentForEncryption = (treatment: Partial<TreatmentInstan
   } catch (error) {
     Alert.alert(
       "Le traitement n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

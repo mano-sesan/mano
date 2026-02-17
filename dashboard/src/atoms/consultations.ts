@@ -7,9 +7,10 @@ import type { CustomFieldsGroup } from "../types/field";
 import type { UserInstance } from "../types/user";
 import { organisationState } from "./auth";
 import { encryptItem } from "../services/encryption";
+import { atomWithCache } from "../store";
 
 const collectionName = "consultation";
-export const consultationsState = atom<ConsultationInstance[]>([]);
+export const consultationsState = atomWithCache<Array<ConsultationInstance>>(collectionName, []);
 
 const encryptedFields: Array<keyof ConsultationInstance> = [
   // Normal fields

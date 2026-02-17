@@ -91,9 +91,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setRelsPersonPlace = awaitSetAtomAndIDBCache(relsPersonPlaceState);
   const setTerritoryObservations = awaitSetAtomAndIDBCache(territoryObservationsState);
   const setComments = awaitSetAtomAndIDBCache(commentsState);
-  const setConsultations = useSetAtom(consultationsState);
-  const setTreatments = useSetAtom(treatmentsState);
-  const setMedicalFiles = useSetAtom(medicalFileState);
+  const setConsultations = awaitSetAtomAndIDBCache(consultationsState);
+  const setTreatments = awaitSetAtomAndIDBCache(treatmentsState);
+  const setMedicalFiles = awaitSetAtomAndIDBCache(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)

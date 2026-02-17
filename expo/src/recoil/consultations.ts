@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithCache } from "@/store";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
@@ -7,7 +8,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import { CustomFieldsGroup } from "@/types/field";
 import { UserInstance } from "@/types/user";
 
-export const consultationsState = atom<ConsultationInstance[]>([]);
+export const consultationsState = atomWithCache<ConsultationInstance[]>("consultation", []);
 
 export const encryptedFields: Array<keyof ConsultationInstance> = [
   "name",
@@ -84,7 +85,7 @@ export const prepareConsultationForEncryption = (customFieldsConsultations: Cust
   } catch (error) {
     Alert.alert(
       "La consultation n'a pas été sauvegardée car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

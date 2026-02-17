@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithCache } from "@/store";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
@@ -6,7 +7,7 @@ import { Alert } from "react-native";
 import { MedicalFileInstance, NewMedicalFileInstance } from "@/types/medicalFile";
 import { CustomField } from "@/types/field";
 
-export const medicalFileState = atom<MedicalFileInstance[]>([]);
+export const medicalFileState = atomWithCache<MedicalFileInstance[]>("medical-file", []);
 
 export const customFieldsMedicalFileSelector = atom((get) => {
   const organisation = get(organisationState)!;
@@ -35,7 +36,7 @@ export const prepareMedicalFileForEncryption =
     } catch (error) {
       Alert.alert(
         "Le dossier médical n'a pas été sauvegardé car son format était incorrect.",
-        "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+        "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
       );
       capture(error);
       throw error;

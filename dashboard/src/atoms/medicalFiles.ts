@@ -6,9 +6,10 @@ import { looseUuidRegex } from "../utils";
 import type { MedicalFileInstance, NewMedicalFileInstance } from "../types/medicalFile";
 import type { CustomField } from "../types/field";
 import { encryptItem } from "../services/encryption";
+import { atomWithCache } from "../store";
 
 const collectionName = "medical-file";
-export const medicalFileState = atom<MedicalFileInstance[]>([]);
+export const medicalFileState = atomWithCache<Array<MedicalFileInstance>>(collectionName, []);
 
 export const customFieldsMedicalFileSelector = atom<CustomField[]>((get) => {
   const organisation = get(organisationAuthentifiedState);
