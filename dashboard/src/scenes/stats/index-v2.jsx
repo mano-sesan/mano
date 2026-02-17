@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
@@ -10,8 +10,8 @@ import {
 } from "../../atoms/persons";
 import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
 import { currentTeamState, organisationState, teamsState, userState } from "../../atoms/auth";
-import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector } from "../../atoms/actions";
-import { reportsState } from "../../atoms/reports";
+import { actionsCategoriesSelector, DONE, flattenedActionsCategoriesSelector, mappedIdsToLabels } from "../../atoms/actions";
+import { reportsState, servicesSelector } from "../../atoms/reports";
 import { territoriesState } from "../../atoms/territory";
 import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "../../atoms/selectors";
@@ -40,6 +40,7 @@ import SelectCustom from "../../components/SelectCustom";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 import FilterChipsV2 from "./FilterChipsV2";
 import FilterModalV2 from "./FilterModalV2";
+import FilterModalSimple from "./FilterModalSimple";
 import { itemsForStatsV2Selector } from "./items-for-stats-v2";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
@@ -99,6 +100,9 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const allCategories = useAtomValue(flattenedActionsCategoriesSelector);
   const groupsCategories = useAtomValue(actionsCategoriesSelector);
 
+  const groupedServices = useAtomValue(servicesSelector);
+  const allServices = useMemo(() => groupedServices.reduce((services, group) => [...services, ...group.services], []), [groupedServices]);
+
   const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
   const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "modified");
   const [filterPersons, setFilterPersons] = useLocalStorage("stats-v2-filterPersons", []);
@@ -113,12 +117,23 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
   const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
   const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
+  const [servicesGroupFilter, setServicesGroupFilter] = useLocalStorage("stats-servicesGroupFilter", []);
+  const [servicesFilter, setServicesFilter] = useLocalStorage("stats-servicesFilter", []);
 
   const [evolutivesStatsActivated, setEvolutivesStatsActivated] = useLocalStorage("stats-evolutivesStatsActivated", false);
   const [evolutiveStatsIndicators, setEvolutiveStatsIndicators] = useLocalStorage("stats-evolutivesStatsIndicatorsArray", []);
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
   const [editingFilterIndex, setEditingFilterIndex] = useState(null);
+
+  // Simple filter modal state (Actions, Services, Consultations, Rencontres)
+  const [simpleFilterModalOpen, setSimpleFilterModalOpen] = useState(false);
+  const [simpleFilterTab, setSimpleFilterTab] = useState(null);
+  const [simpleFilterEditingIndex, setSimpleFilterEditingIndex] = useState(null);
+
+  // Observations filter modal state
+  const [obsFilterModalOpen, setObsFilterModalOpen] = useState(false);
+  const [obsEditingFilterIndex, setObsEditingFilterIndex] = useState(null);
 
   useTitle(`${activeTab} - Statistiques`);
 
@@ -350,6 +365,217 @@ const StatsV2 = ({ onSwitchVersion }) => {
     territories,
   ]);
 
+  // === Tab-specific filter bases ===
+  const actionsFilterBase = useMemo(
+    () => [
+      { field: "status", label: "Statut", options: mappedIdsToLabels.map((s) => s.name) },
+      { field: "categoryGroup", label: "Groupe de catégories", options: groupsCategories.map((g) => g.groupTitle) },
+      { field: "category", label: "Catégorie", options: filterableActionsCategories },
+    ],
+    [groupsCategories, filterableActionsCategories]
+  );
+
+  const servicesFilterBase = useMemo(
+    () => [
+      { field: "serviceGroup", label: "Groupe de services", options: groupedServices.map((g) => g.groupTitle) },
+      { field: "service", label: "Service", options: allServices },
+    ],
+    [groupedServices, allServices]
+  );
+
+  const consultationsFilterBase = useMemo(
+    () => [
+      { field: "status", label: "Statut", options: mappedIdsToLabels.map((s) => s.name) },
+      { field: "type", label: "Type", options: organisation.consultations.map((c) => c.name) },
+    ],
+    [organisation.consultations]
+  );
+
+  const rencontresFilterBase = useMemo(() => {
+    if (!organisation.territoriesEnabled) return [];
+    return [{ field: "territory", label: "Territoire", options: territories.map((t) => t.name) }];
+  }, [organisation.territoriesEnabled, territories]);
+
+  const obsFilterBase = useMemo(() => {
+    const allTerritoryTypes = new Set();
+    territories.forEach((t) => {
+      if (t.types && Array.isArray(t.types)) t.types.forEach((type) => allTerritoryTypes.add(type));
+    });
+    return [
+      { field: "territory", name: "territory", label: "Territoire", type: "multi-choice", options: territories.map((t) => t.name) },
+      {
+        field: "territoryTypes",
+        name: "territoryTypes",
+        label: "Type de territoire",
+        type: "multi-choice",
+        options: Array.from(allTerritoryTypes).sort(),
+      },
+      ...customFieldsObs
+        .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
+        .map((f) => ({ field: f.name, name: f.name, label: f.label, type: f.type, options: f.options })),
+    ];
+  }, [territories, customFieldsObs, currentTeam._id]);
+
+  // === Tab-specific chip filters (derived from state) ===
+  const actionsChipFilters = useMemo(() => {
+    const filters = [];
+    if (actionsStatuses.length) {
+      filters.push({
+        field: "status",
+        value: actionsStatuses.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
+      });
+    }
+    if (actionsCategoriesGroups.length) {
+      filters.push({ field: "categoryGroup", value: actionsCategoriesGroups });
+    }
+    if (actionsCategories.length) {
+      filters.push({ field: "category", value: actionsCategories });
+    }
+    return filters;
+  }, [actionsStatuses, actionsCategoriesGroups, actionsCategories]);
+
+  const servicesChipFilters = useMemo(() => {
+    const filters = [];
+    if (servicesGroupFilter.length) {
+      filters.push({ field: "serviceGroup", value: servicesGroupFilter });
+    }
+    if (servicesFilter.length) {
+      filters.push({ field: "service", value: servicesFilter });
+    }
+    return filters;
+  }, [servicesGroupFilter, servicesFilter]);
+
+  const consultationsChipFilters = useMemo(() => {
+    const filters = [];
+    if (consultationsStatuses.length) {
+      filters.push({
+        field: "status",
+        value: consultationsStatuses.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
+      });
+    }
+    if (consultationsTypes.length) {
+      filters.push({ field: "type", value: consultationsTypes });
+    }
+    return filters;
+  }, [consultationsStatuses, consultationsTypes]);
+
+  const rencontresChipFilters = useMemo(() => {
+    const filters = [];
+    if (rencontresTerritories.length) {
+      filters.push({ field: "territory", value: rencontresTerritories.map((t) => t.label || t.value) });
+    }
+    return filters;
+  }, [rencontresTerritories]);
+
+  // === Tab chip filter setters (for remove via setFilters) ===
+  const setActionsChipFilters = useCallback(
+    (newFilters) => {
+      const statusFilter = newFilters.find((f) => f.field === "status");
+      setActionsStatuses(statusFilter ? statusFilter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []);
+      const groupFilter = newFilters.find((f) => f.field === "categoryGroup");
+      setActionsCategoriesGroups(groupFilter ? groupFilter.value : []);
+      const catFilter = newFilters.find((f) => f.field === "category");
+      setActionsCategories(catFilter ? catFilter.value : []);
+    },
+    [setActionsStatuses, setActionsCategoriesGroups, setActionsCategories]
+  );
+
+  const setServicesChipFilters = useCallback(
+    (newFilters) => {
+      const groupFilter = newFilters.find((f) => f.field === "serviceGroup");
+      setServicesGroupFilter(groupFilter ? groupFilter.value : []);
+      const serviceFilter = newFilters.find((f) => f.field === "service");
+      setServicesFilter(serviceFilter ? serviceFilter.value : []);
+    },
+    [setServicesGroupFilter, setServicesFilter]
+  );
+
+  const setConsultationsChipFilters = useCallback(
+    (newFilters) => {
+      const statusFilter = newFilters.find((f) => f.field === "status");
+      setConsultationsStatuses(
+        statusFilter ? statusFilter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []
+      );
+      const typeFilter = newFilters.find((f) => f.field === "type");
+      setConsultationsTypes(typeFilter ? typeFilter.value : []);
+    },
+    [setConsultationsStatuses, setConsultationsTypes]
+  );
+
+  const setRencontresChipFilters = useCallback(
+    (newFilters) => {
+      const territoryFilter = newFilters.find((f) => f.field === "territory");
+      setRencontresTerritories(territoryFilter ? territoryFilter.value.map((name) => ({ value: name, label: name })) : []);
+    },
+    [setRencontresTerritories]
+  );
+
+  // === Simple filter modal helpers ===
+  const simpleFilterModalBase = useMemo(() => {
+    if (simpleFilterTab === "Actions") return actionsFilterBase;
+    if (simpleFilterTab === "Services") return servicesFilterBase;
+    if (simpleFilterTab === "Consultations") return consultationsFilterBase;
+    if (simpleFilterTab === "Rencontres") return rencontresFilterBase;
+    return [];
+  }, [simpleFilterTab, actionsFilterBase, servicesFilterBase, consultationsFilterBase, rencontresFilterBase]);
+
+  const simpleFilterEditingFilter = useMemo(() => {
+    if (simpleFilterEditingIndex == null) return null;
+    const filters =
+      simpleFilterTab === "Actions"
+        ? actionsChipFilters
+        : simpleFilterTab === "Services"
+          ? servicesChipFilters
+          : simpleFilterTab === "Consultations"
+            ? consultationsChipFilters
+            : simpleFilterTab === "Rencontres"
+              ? rencontresChipFilters
+              : [];
+    const active = filters.filter((f) => f.field && f.value);
+    return active[simpleFilterEditingIndex] || null;
+  }, [simpleFilterEditingIndex, simpleFilterTab, actionsChipFilters, servicesChipFilters, consultationsChipFilters, rencontresChipFilters]);
+
+  const applySimpleFilter = useCallback(
+    (filter) => {
+      if (simpleFilterTab === "Actions") {
+        if (filter.field === "status") {
+          setActionsStatuses(filter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
+        } else if (filter.field === "categoryGroup") {
+          setActionsCategoriesGroups(filter.value);
+        } else if (filter.field === "category") {
+          setActionsCategories(filter.value);
+        }
+      } else if (simpleFilterTab === "Services") {
+        if (filter.field === "serviceGroup") {
+          setServicesGroupFilter(filter.value);
+        } else if (filter.field === "service") {
+          setServicesFilter(filter.value);
+        }
+      } else if (simpleFilterTab === "Consultations") {
+        if (filter.field === "status") {
+          setConsultationsStatuses(filter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
+        } else if (filter.field === "type") {
+          setConsultationsTypes(filter.value);
+        }
+      } else if (simpleFilterTab === "Rencontres") {
+        if (filter.field === "territory") {
+          setRencontresTerritories(filter.value.map((name) => ({ value: name, label: name })));
+        }
+      }
+    },
+    [
+      simpleFilterTab,
+      setActionsStatuses,
+      setActionsCategoriesGroups,
+      setActionsCategories,
+      setServicesGroupFilter,
+      setServicesFilter,
+      setConsultationsStatuses,
+      setConsultationsTypes,
+      setRencontresTerritories,
+    ]
+  );
+
   const availableTabs = tabsV2.filter((tabCaption) => {
     if (["Observations"].includes(tabCaption)) return !!organisation.territoriesEnabled;
     if (["Services"].includes(tabCaption)) return !!organisation.receptionEnabled;
@@ -433,7 +659,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             isDisabled={viewAllOrganisationData}
           />
           {teams.length > 1 && (
-            <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-xs tw-mt-0.5 tw-ml-3">
+            <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-xs tw-mt-0.5 text-zinc-700">
               <input
                 id="viewAllOrganisationData-v2"
                 type="checkbox"
@@ -552,6 +778,128 @@ const StatsV2 = ({ onSwitchVersion }) => {
         </div>
       )}
 
+      {/* Tab-specific filter chips */}
+      {activeTab === "Actions" && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={actionsChipFilters}
+            setFilters={setActionsChipFilters}
+            filterBase={actionsFilterBase}
+            chipBgClass="tw-bg-orange-600/10"
+            chipTextClass="tw-text-orange-700"
+            chipLabelClass="tw-text-orange-700/60"
+            chipHoverClass="hover:tw-bg-orange-600/20"
+            addFilterLabel="Ajouter un filtre d'action"
+            onAddFilter={() => {
+              setSimpleFilterTab("Actions");
+              setSimpleFilterEditingIndex(null);
+              setSimpleFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              setSimpleFilterTab("Actions");
+              setSimpleFilterEditingIndex(chipIndex);
+              setSimpleFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+      {!!organisation.receptionEnabled && activeTab === "Services" && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={servicesChipFilters}
+            setFilters={setServicesChipFilters}
+            filterBase={servicesFilterBase}
+            chipBgClass="tw-bg-pink-500/10"
+            chipTextClass="tw-text-pink-700"
+            chipLabelClass="tw-text-pink-700/60"
+            chipHoverClass="hover:tw-bg-pink-500/20"
+            addFilterLabel="Ajouter un filtre de service"
+            onAddFilter={() => {
+              setSimpleFilterTab("Services");
+              setSimpleFilterEditingIndex(null);
+              setSimpleFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              setSimpleFilterTab("Services");
+              setSimpleFilterEditingIndex(chipIndex);
+              setSimpleFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+      {activeTab === "Consultations" && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={consultationsChipFilters}
+            setFilters={setConsultationsChipFilters}
+            filterBase={consultationsFilterBase}
+            chipBgClass="tw-bg-sky-600/10"
+            chipTextClass="tw-text-sky-700"
+            chipLabelClass="tw-text-sky-700/60"
+            chipHoverClass="hover:tw-bg-sky-600/20"
+            addFilterLabel="Ajouter un filtre de consultation"
+            onAddFilter={() => {
+              setSimpleFilterTab("Consultations");
+              setSimpleFilterEditingIndex(null);
+              setSimpleFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              setSimpleFilterTab("Consultations");
+              setSimpleFilterEditingIndex(chipIndex);
+              setSimpleFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+      {!!organisation.rencontresEnabled && activeTab === "Rencontres" && !!organisation.territoriesEnabled && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={rencontresChipFilters}
+            setFilters={setRencontresChipFilters}
+            filterBase={rencontresFilterBase}
+            chipBgClass="tw-bg-rose-500/10"
+            chipTextClass="tw-text-rose-700"
+            chipLabelClass="tw-text-rose-700/60"
+            chipHoverClass="hover:tw-bg-rose-500/20"
+            addFilterLabel="Ajouter un filtre de rencontre"
+            onAddFilter={() => {
+              setSimpleFilterTab("Rencontres");
+              setSimpleFilterEditingIndex(null);
+              setSimpleFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              setSimpleFilterTab("Rencontres");
+              setSimpleFilterEditingIndex(chipIndex);
+              setSimpleFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+      {activeTab === "Observations" && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={filterObs}
+            setFilters={setFilterObs}
+            filterBase={obsFilterBase}
+            chipBgClass="tw-bg-orange-600/10"
+            chipTextClass="tw-text-orange-700"
+            chipLabelClass="tw-text-orange-700/60"
+            chipHoverClass="hover:tw-bg-orange-600/20"
+            addFilterLabel="Ajouter un filtre d'observation"
+            onAddFilter={() => {
+              setObsEditingFilterIndex(null);
+              setObsFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              const activeFilters = filterObs.filter((f) => f.field && f.value);
+              const realIndex = filterObs.findIndex((f) => f === activeFilters[chipIndex]);
+              setObsEditingFilterIndex(realIndex);
+              setObsFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+
       <FilterModalV2
         open={filterModalOpen}
         onClose={() => {
@@ -565,6 +913,34 @@ const StatsV2 = ({ onSwitchVersion }) => {
         }}
         onEditFilter={(updatedFilter) => {
           setFilterPersons(filterPersons.map((f, i) => (i === editingFilterIndex ? updatedFilter : f)));
+        }}
+      />
+
+      <FilterModalSimple
+        open={simpleFilterModalOpen}
+        onClose={() => {
+          setSimpleFilterEditingIndex(null);
+          setSimpleFilterModalOpen(false);
+        }}
+        filterBase={simpleFilterModalBase}
+        editingFilter={simpleFilterEditingFilter}
+        onAddFilter={applySimpleFilter}
+        onEditFilter={applySimpleFilter}
+      />
+
+      <FilterModalV2
+        open={obsFilterModalOpen}
+        onClose={() => {
+          setObsEditingFilterIndex(null);
+          setObsFilterModalOpen(false);
+        }}
+        filterBase={obsFilterBase}
+        editingFilter={obsEditingFilterIndex != null ? filterObs[obsEditingFilterIndex] : null}
+        onAddFilter={(newFilter) => {
+          setFilterObs([...filterObs, newFilter]);
+        }}
+        onEditFilter={(updatedFilter) => {
+          setFilterObs(filterObs.map((f, i) => (i === obsEditingFilterIndex ? updatedFilter : f)));
         }}
       />
 
@@ -584,7 +960,17 @@ const StatsV2 = ({ onSwitchVersion }) => {
             hideFilters
           />
         )}
-        {!!organisation.receptionEnabled && activeTab === "Services" && <ServicesStats period={period} teamIds={selectedTeams.map((e) => e?._id)} />}
+        {!!organisation.receptionEnabled && activeTab === "Services" && (
+          <ServicesStats
+            period={period}
+            teamIds={selectedTeams.map((e) => e?._id)}
+            hideFilters
+            servicesGroupFilter={servicesGroupFilter}
+            setServicesGroupFilter={setServicesGroupFilter}
+            servicesFilter={servicesFilter}
+            setServicesFilter={setServicesFilter}
+          />
+        )}
         {activeTab === "Actions" && (
           <ActionsStats
             actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
@@ -660,6 +1046,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             customFieldsObs={customFieldsObs}
             period={period}
             selectedTeams={selectedTeams}
+            hideFilters
           />
         )}
         {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}

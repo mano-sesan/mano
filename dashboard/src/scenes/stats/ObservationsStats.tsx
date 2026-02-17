@@ -32,6 +32,7 @@ interface ObservationsStatsProps {
   customFieldsObs: Array<CustomField>;
   period: Period;
   selectedTeams: Array<TeamInstance>;
+  hideFilters?: boolean;
 }
 
 const ObservationsStats = ({
@@ -42,6 +43,7 @@ const ObservationsStats = ({
   customFieldsObs,
   period,
   selectedTeams,
+  hideFilters,
 }: ObservationsStatsProps) => {
   const currentTeam = useAtomValue(currentTeamState);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
@@ -104,8 +106,8 @@ const ObservationsStats = ({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>
-      <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />
+      {!hideFilters && <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>}
+      {!hideFilters && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
 
       <details
         open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("observation-stats-general-open") === "true"}

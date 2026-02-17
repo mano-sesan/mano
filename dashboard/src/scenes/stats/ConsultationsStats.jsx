@@ -59,44 +59,46 @@ export default function ConsultationsStats({
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
         </div>
       )}
-      <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
-        <div>
-          <label htmlFor="filter-by-status" className="tw-m-0">
-            Filtrer par statut
-          </label>
+      {!hideFilters && (
+        <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
-            <SelectCustom
-              inputId="consultation-select-status-filter"
-              options={mappedIdsToLabels}
-              getOptionValue={(s) => s._id}
-              getOptionLabel={(s) => s.name}
-              name="consultation-status"
-              onChange={(s) => setConsultationsStatuses(s.map((s) => s._id))}
-              isClearable
-              isMulti
-              value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
-            />
+            <label htmlFor="filter-by-status" className="tw-m-0">
+              Filtrer par statut
+            </label>
+            <div>
+              <SelectCustom
+                inputId="consultation-select-status-filter"
+                options={mappedIdsToLabels}
+                getOptionValue={(s) => s._id}
+                getOptionLabel={(s) => s.name}
+                name="consultation-status"
+                onChange={(s) => setConsultationsStatuses(s.map((s) => s._id))}
+                isClearable
+                isMulti
+                value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="filter-by-type" className="tw-m-0">
+              Filtrer par type
+            </label>
+            <div>
+              <SelectCustom
+                inputId="consultation-select-type-filter"
+                options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
+                getOptionValue={(s) => s._id}
+                getOptionLabel={(s) => s.name}
+                name="consultation-type"
+                onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
+                isClearable
+                isMulti
+                value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
+              />
+            </div>
           </div>
         </div>
-        <div>
-          <label htmlFor="filter-by-type" className="tw-m-0">
-            Filtrer par type
-          </label>
-          <div>
-            <SelectCustom
-              inputId="consultation-select-type-filter"
-              options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
-              getOptionValue={(s) => s._id}
-              getOptionLabel={(s) => s.name}
-              name="consultation-type"
-              onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
-              isClearable
-              isMulti
-              value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
-            />
-          </div>
-        </div>
-      </div>
+      )}
       <details
         open={window.localStorage.getItem("consultations-stats-general-open") === "true"}
         onToggle={(e) => {

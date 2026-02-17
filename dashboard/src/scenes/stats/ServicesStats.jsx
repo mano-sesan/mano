@@ -8,13 +8,25 @@ import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
 import { servicesSelector } from "../../atoms/reports";
 
-const ServicesStats = ({ period, teamIds }) => {
+const ServicesStats = ({
+  period,
+  teamIds,
+  hideFilters,
+  servicesGroupFilter: propsGroupFilter,
+  setServicesGroupFilter: propsSetGroupFilter,
+  servicesFilter: propsFilter,
+  setServicesFilter: propsSetFilter,
+}) => {
   const groupedServices = useAtomValue(servicesSelector);
   const allServices = useMemo(() => {
     return groupedServices.reduce((services, group) => [...services, ...group.services], []);
   }, [groupedServices]);
-  const [servicesGroupFilter, setServicesGroupFilter] = useLocalStorage("stats-servicesGroupFilter", []);
-  const [servicesFilter, setServicesFilter] = useLocalStorage("stats-servicesFilter", []);
+  const [localGroupFilter, setLocalGroupFilter] = useLocalStorage("stats-servicesGroupFilter", []);
+  const [localFilter, setLocalFilter] = useLocalStorage("stats-servicesFilter", []);
+  const servicesGroupFilter = propsGroupFilter !== undefined ? propsGroupFilter : localGroupFilter;
+  const setServicesGroupFilter = propsSetGroupFilter !== undefined ? propsSetGroupFilter : setLocalGroupFilter;
+  const servicesFilter = propsFilter !== undefined ? propsFilter : localFilter;
+  const setServicesFilter = propsSetFilter !== undefined ? propsSetFilter : setLocalFilter;
   const [servicesFromDatabase, setServicesFromDatabase] = useState(null);
   const startDate = useMemo(() => (period.startDate ? dayjsInstance(period.startDate).format("YYYY-MM-DD") : null), [period.startDate]);
   const endDate = useMemo(() => (period.endDate ? dayjsInstance(period.endDate).format("YYYY-MM-DD") : null), [period.endDate]);
@@ -84,41 +96,45 @@ const ServicesStats = ({ period, teamIds }) => {
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des services</h3>
-      <div className="tw-mb-5 tw-flex tw-basis-full tw-items-center">
-        <label htmlFor="filter-by-status" className="tw-mx-5 tw-w-64 tw-shrink-0">
-          Filtrer par groupe de services :
-        </label>
-        <div className="tw-basis-[500px]">
-          <SelectCustom
-            value={servicesGroupFilter?.map((_option) => ({ value: _option, label: _option })) || []}
-            options={groupedServices.map((group) => group.groupTitle).map((_option) => ({ value: _option, label: _option }))}
-            getOptionValue={(s) => s.value}
-            getOptionLabel={(s) => s.label}
-            onChange={(groups) => setServicesGroupFilter(groups.map((s) => s.value))}
-            name="service-group-filter"
-            inputId="service-group-filter"
-            isClearable
-            isMulti
-          />
-        </div>
-        <label htmlFor="filter-by-status" className="tw-mx-5 tw-w-64 tw-shrink-0">
-          Filtrer par service :
-        </label>
-        <div className="tw-basis-[500px]">
-          <SelectCustom
-            value={servicesFilter?.map((_option) => ({ value: _option, label: _option })) || []}
-            options={allServices.map((_option) => ({ value: _option, label: _option }))}
-            getOptionValue={(s) => s.value}
-            getOptionLabel={(s) => s.label}
-            onChange={(services) => setServicesFilter(services.map((s) => s.value))}
-            name="service-filter"
-            inputId="service-filter"
-            isClearable
-            isMulti
-          />
-        </div>
-      </div>
+      {!hideFilters && (
+        <>
+          <h3 className="tw-my-5 tw-text-xl">Statistiques des services</h3>
+          <div className="tw-mb-5 tw-flex tw-basis-full tw-items-center">
+            <label htmlFor="filter-by-status" className="tw-mx-5 tw-w-64 tw-shrink-0">
+              Filtrer par groupe de services :
+            </label>
+            <div className="tw-basis-[500px]">
+              <SelectCustom
+                value={servicesGroupFilter?.map((_option) => ({ value: _option, label: _option })) || []}
+                options={groupedServices.map((group) => group.groupTitle).map((_option) => ({ value: _option, label: _option }))}
+                getOptionValue={(s) => s.value}
+                getOptionLabel={(s) => s.label}
+                onChange={(groups) => setServicesGroupFilter(groups.map((s) => s.value))}
+                name="service-group-filter"
+                inputId="service-group-filter"
+                isClearable
+                isMulti
+              />
+            </div>
+            <label htmlFor="filter-by-status" className="tw-mx-5 tw-w-64 tw-shrink-0">
+              Filtrer par service :
+            </label>
+            <div className="tw-basis-[500px]">
+              <SelectCustom
+                value={servicesFilter?.map((_option) => ({ value: _option, label: _option })) || []}
+                options={allServices.map((_option) => ({ value: _option, label: _option }))}
+                getOptionValue={(s) => s.value}
+                getOptionLabel={(s) => s.label}
+                onChange={(services) => setServicesFilter(services.map((s) => s.value))}
+                name="service-filter"
+                inputId="service-filter"
+                isClearable
+                isMulti
+              />
+            </div>
+          </div>
+        </>
+      )}
       <div className="tw-flex tw-flex-col tw-gap-4">
         <CustomResponsivePie
           title="Répartition des services par groupe"

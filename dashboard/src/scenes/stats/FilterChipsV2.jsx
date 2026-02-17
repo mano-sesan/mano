@@ -20,12 +20,24 @@ function getFilterDisplayValue(filter) {
   }
   if (Array.isArray(filter.value)) {
     if (filter.value.length === 0) return null;
-    return filter.value.join(", ");
+    return filter.value.join(" ou ");
   }
   return String(filter.value);
 }
 
-export default function FilterChipsV2({ filters, setFilters, filterBase, disabled, onAddFilter, onEditFilter }) {
+export default function FilterChipsV2({
+  filters,
+  setFilters,
+  filterBase,
+  disabled,
+  onAddFilter,
+  onEditFilter,
+  chipBgClass = "tw-bg-main/10",
+  chipTextClass = "tw-text-main",
+  chipLabelClass = "tw-text-main/60",
+  chipHoverClass = "hover:tw-bg-main/20",
+  addFilterLabel = "Ajouter un filtre de personne",
+}) {
   const activeFilters = filters.filter((f) => f.field && f.value);
 
   const removeFilter = (index) => {
@@ -45,16 +57,16 @@ export default function FilterChipsV2({ filters, setFilters, filterBase, disable
         return (
           <span
             key={`${filter.field}-${index}`}
-            className="tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-md tw-bg-main/10 tw-text-main tw-text-sm tw-pl-3 tw-pr-1.5 tw-py-1"
+            className={`tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-md ${chipBgClass} ${chipTextClass} tw-text-sm tw-pl-3 tw-pr-1.5 tw-py-1`}
           >
             <button type="button" onClick={() => onEditFilter?.(index)} className="tw-inline-flex tw-items-center tw-gap-1.5 tw-cursor-pointer">
-              <span className="tw-text-main/60">{label} :</span>
+              <span className={chipLabelClass}>{label} :</span>
               <span className="tw-font-medium tw-max-w-48 tw-truncate">{displayValue}</span>
             </button>
             <button
               type="button"
               onClick={() => removeFilter(index)}
-              className="tw-ml-0.5 tw-rounded hover:tw-bg-main/20 tw-p-0.5 tw-cursor-pointer tw-transition-colors"
+              className={`tw-ml-0.5 tw-rounded ${chipHoverClass} tw-p-0.5 tw-cursor-pointer tw-transition-colors`}
             >
               <XMarkIcon className="tw-w-3.5 tw-h-3.5" />
             </button>
@@ -67,7 +79,7 @@ export default function FilterChipsV2({ filters, setFilters, filterBase, disable
         className="tw-inline-flex tw-items-center tw-gap-1 tw-rounded-md tw-border tw-border-dashed tw-border-zinc-300 tw-text-zinc-500 tw-text-sm tw-px-3 tw-py-1 hover:tw-border-zinc-400 hover:tw-text-zinc-700 tw-cursor-pointer tw-transition-colors"
       >
         <PlusIcon className="tw-w-3.5 tw-h-3.5" />
-        Ajouter un filtre de personne
+        {addFilterLabel}
       </button>
     </div>
   );
