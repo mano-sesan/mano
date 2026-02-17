@@ -118,6 +118,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const [evolutiveStatsIndicators, setEvolutiveStatsIndicators] = useLocalStorage("stats-evolutivesStatsIndicatorsArray", []);
 
   const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [editingFilterIndex, setEditingFilterIndex] = useState(null);
 
   useTitle(`${activeTab} - Statistiques`);
 
@@ -537,17 +538,33 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filters={filterPersons}
             setFilters={setFilterPersons}
             filterBase={filterPersonsWithAllFields}
-            onAddFilter={() => setFilterModalOpen(true)}
+            onAddFilter={() => {
+              setEditingFilterIndex(null);
+              setFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              const activeFilters = filterPersons.filter((f) => f.field && f.value);
+              const realIndex = filterPersons.findIndex((f) => f === activeFilters[chipIndex]);
+              setEditingFilterIndex(realIndex);
+              setFilterModalOpen(true);
+            }}
           />
         </div>
       )}
 
       <FilterModalV2
         open={filterModalOpen}
-        onClose={() => setFilterModalOpen(false)}
+        onClose={() => {
+          setEditingFilterIndex(null);
+          setFilterModalOpen(false);
+        }}
         filterBase={filterPersonsWithAllFields}
+        editingFilter={editingFilterIndex != null ? filterPersons[editingFilterIndex] : null}
         onAddFilter={(newFilter) => {
           setFilterPersons([...filterPersons, newFilter]);
+        }}
+        onEditFilter={(updatedFilter) => {
+          setFilterPersons(filterPersons.map((f, i) => (i === editingFilterIndex ? updatedFilter : f)));
         }}
       />
 

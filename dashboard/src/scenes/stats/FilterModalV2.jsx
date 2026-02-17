@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 import DatePicker from "../../components/DatePicker";
@@ -39,14 +39,29 @@ const numberOptions = [
   { label: "Non renseigné", value: "unfilled" },
 ];
 
-export default function FilterModalV2({ open, onClose, filterBase, onAddFilter }) {
+export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, editingFilter, onEditFilter }) {
   const [selectedField, setSelectedField] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
   const [comparator, setComparator] = useState(null);
 
+  const isEditing = editingFilter != null;
+
   const filterFields = filterBase
     .filter((_filter) => _filter.field !== "alertness")
     .map((f) => ({ label: f.label, field: f.field, type: f.type, category: f.category }));
+
+  // Pre-fill when editing
+  useEffect(() => {
+    if (open && editingFilter) {
+      const field = filterFields.find((f) => f.field === editingFilter.field && (f.category || "") === (editingFilter.category || ""));
+      setSelectedField(field || null);
+      setFilterValue(editingFilter.value ?? null);
+      if (typeof editingFilter.value === "object" && editingFilter.value?.comparator) {
+        setComparator(editingFilter.value.comparator);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const filterOptions = selectedField ? getFilterOptionsByField(selectedField.field, filterBase) : [];
 
@@ -57,14 +72,19 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter }
     onClose();
   };
 
-  const handleAdd = () => {
+  const handleSubmit = () => {
     if (!selectedField || filterValue == null) return;
-    onAddFilter({
+    const filter = {
       field: selectedField.field,
       value: filterValue,
       type: selectedField.type,
       category: selectedField.category,
-    });
+    };
+    if (isEditing) {
+      onEditFilter(filter);
+    } else {
+      onAddFilter(filter);
+    }
     handleClose();
   };
 
@@ -89,7 +109,7 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter }
 
   return (
     <ModalContainer open={open} onClose={handleClose} size="lg">
-      <ModalHeader title="Ajouter un filtre" />
+      <ModalHeader title={isEditing ? "Modifier le filtre" : "Ajouter un filtre"} />
       <ModalBody className="tw-py-4 tw-px-6">
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div>
@@ -142,8 +162,8 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter }
         <button type="button" className="button-cancel" onClick={handleClose}>
           Annuler
         </button>
-        <button type="button" className="button-submit" onClick={handleAdd} disabled={!hasValue}>
-          Ajouter
+        <button type="button" className="button-submit" onClick={handleSubmit} disabled={!hasValue}>
+          {isEditing ? "Modifier" : "Ajouter"}
         </button>
       </ModalFooter>
     </ModalContainer>
