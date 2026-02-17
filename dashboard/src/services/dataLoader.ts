@@ -28,7 +28,6 @@ import { decryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
-import { store } from "../store";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -80,6 +79,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [teams, setTeams] = useAtom(teamsState);
   const [organisation, setOrganisation] = useAtom(organisationState);
   const { migrateData } = useDataMigrator();
+
+  const setPersons = useSetAtom(personsState);
+  const setGroups = useSetAtom(groupsState);
+  const setReports = useSetAtom(reportsState);
+  const setPassages = useSetAtom(passagesState);
+  const setRencontres = useSetAtom(rencontresState);
+  const setActions = useSetAtom(actionsState);
+  const setRecurrences = useSetAtom(recurrencesState);
+  const setTerritories = useSetAtom(territoriesState);
+  const setPlaces = useSetAtom(placesState);
+  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const setTerritoryObservations = useSetAtom(territoryObservationsState);
+  const setComments = useSetAtom(commentsState);
+  const setConsultations = useSetAtom(consultationsState);
+  const setTreatments = useSetAtom(treatmentsState);
+  const setMedicalFiles = useSetAtom(medicalFileState);
 
   useEffect(function refreshOnMountEffect() {
     if (options.refreshOnMount && !isLoading)
@@ -234,9 +249,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newPersonsRaw.length ? mergeItems(encryptedCache, newPersonsRaw) : encryptedCache;
       await setCacheItem("person", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
-      store.set(personsState, allDecrypted);
+      setPersons(allDecrypted);
     } else if (newPersons.length) {
-      store.set(personsState, (prev) => mergeItems(prev, newPersons));
+      setPersons((prev) => mergeItems(prev, newPersons));
       const encryptedCache = await getCacheItemDefaultValue("person", []);
       await setCacheItem("person", mergeItems(encryptedCache, newPersonsRaw));
     }
@@ -266,9 +281,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newGroupsRaw.length ? mergeItems(encryptedCache, newGroupsRaw) : encryptedCache;
       await setCacheItem("group", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "groups" })))).filter((e) => e);
-      store.set(groupsState, allDecrypted);
+      setGroups(allDecrypted);
     } else if (newGroups.length) {
-      store.set(groupsState, (prev) => mergeItems(prev, newGroups));
+      setGroups((prev) => mergeItems(prev, newGroups));
       const encryptedCache = await getCacheItemDefaultValue("group", []);
       await setCacheItem("group", mergeItems(encryptedCache, newGroupsRaw));
     }
@@ -299,12 +314,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newReportsRaw.length ? mergeItems(encryptedCache, newReportsRaw) : encryptedCache;
       await setCacheItem("report", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "reports" })))).filter((e) => e);
-      store.set(
-        reportsState,
-        allDecrypted.filter((r) => !!r.team && !!r.date)
-      );
+      setReports(allDecrypted.filter((r) => !!r.team && !!r.date));
     } else if (newReports.length) {
-      store.set(reportsState, (prev) => mergeItems(prev, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      setReports((prev) => mergeItems(prev, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
       const encryptedCache = await getCacheItemDefaultValue("report", []);
       await setCacheItem("report", mergeItems(encryptedCache, newReportsRaw));
     }
@@ -334,9 +346,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newPassagesRaw.length ? mergeItems(encryptedCache, newPassagesRaw) : encryptedCache;
       await setCacheItem("passage", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "passages" })))).filter((e) => e);
-      store.set(passagesState, allDecrypted);
+      setPassages(allDecrypted);
     } else if (newPassages.length) {
-      store.set(passagesState, (prev) => mergeItems(prev, newPassages));
+      setPassages((prev) => mergeItems(prev, newPassages));
       const encryptedCache = await getCacheItemDefaultValue("passage", []);
       await setCacheItem("passage", mergeItems(encryptedCache, newPassagesRaw));
     }
@@ -366,9 +378,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newRencontresRaw.length ? mergeItems(encryptedCache, newRencontresRaw) : encryptedCache;
       await setCacheItem("rencontre", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "rencontres" })))).filter((e) => e);
-      store.set(rencontresState, allDecrypted);
+      setRencontres(allDecrypted);
     } else if (newRencontres.length) {
-      store.set(rencontresState, (prev) => mergeItems(prev, newRencontres));
+      setRencontres((prev) => mergeItems(prev, newRencontres));
       const encryptedCache = await getCacheItemDefaultValue("rencontre", []);
       await setCacheItem("rencontre", mergeItems(encryptedCache, newRencontresRaw));
     }
@@ -398,9 +410,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newActionsRaw.length ? mergeItems(encryptedCache, newActionsRaw) : encryptedCache;
       await setCacheItem("action", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "actions" })))).filter((e) => e);
-      store.set(actionsState, allDecrypted);
+      setActions(allDecrypted);
     } else if (newActions.length) {
-      store.set(actionsState, (prev) => mergeItems(prev, newActions));
+      setActions((prev) => mergeItems(prev, newActions));
       const encryptedCache = await getCacheItemDefaultValue("action", []);
       await setCacheItem("action", mergeItems(encryptedCache, newActionsRaw));
     }
@@ -430,9 +442,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newRecurrencesRaw.length ? mergeItems(encryptedCache, newRecurrencesRaw) : encryptedCache;
       await setCacheItem("recurrence", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
-      store.set(recurrencesState, allDecrypted);
+      setRecurrences(allDecrypted);
     } else if (newRecurrences.length) {
-      store.set(recurrencesState, (prev) => mergeItems(prev, newRecurrences));
+      setRecurrences((prev) => mergeItems(prev, newRecurrences));
       const encryptedCache = await getCacheItemDefaultValue("recurrence", []);
       await setCacheItem("recurrence", mergeItems(encryptedCache, newRecurrencesRaw));
     }
@@ -462,9 +474,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newTerritoriesRaw.length ? mergeItems(encryptedCache, newTerritoriesRaw) : encryptedCache;
       await setCacheItem("territory", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "territories" })))).filter((e) => e);
-      store.set(territoriesState, allDecrypted);
+      setTerritories(allDecrypted);
     } else if (newTerritories.length) {
-      store.set(territoriesState, (prev) => mergeItems(prev, newTerritories));
+      setTerritories((prev) => mergeItems(prev, newTerritories));
       const encryptedCache = await getCacheItemDefaultValue("territory", []);
       await setCacheItem("territory", mergeItems(encryptedCache, newTerritoriesRaw));
     }
@@ -494,9 +506,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newPlacesRaw.length ? mergeItems(encryptedCache, newPlacesRaw) : encryptedCache;
       await setCacheItem("place", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "places" })))).filter((e) => e);
-      store.set(placesState, allDecrypted);
+      setPlaces(allDecrypted);
     } else if (newPlaces.length) {
-      store.set(placesState, (prev) => mergeItems(prev, newPlaces));
+      setPlaces((prev) => mergeItems(prev, newPlaces));
       const encryptedCache = await getCacheItemDefaultValue("place", []);
       await setCacheItem("place", mergeItems(encryptedCache, newPlacesRaw));
     }
@@ -526,9 +538,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newRelsPersonPlaceRaw.length ? mergeItems(encryptedCache, newRelsPersonPlaceRaw) : encryptedCache;
       await setCacheItem("relPersonPlace", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
-      store.set(relsPersonPlaceState, allDecrypted);
+      setRelsPersonPlace(allDecrypted);
     } else if (newRelsPersonPlace.length) {
-      store.set(relsPersonPlaceState, (prev) => mergeItems(prev, newRelsPersonPlace));
+      setRelsPersonPlace((prev) => mergeItems(prev, newRelsPersonPlace));
       const encryptedCache = await getCacheItemDefaultValue("relPersonPlace", []);
       await setCacheItem("relPersonPlace", mergeItems(encryptedCache, newRelsPersonPlaceRaw));
     }
@@ -560,9 +572,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         : encryptedCache;
       await setCacheItem("territory-observation", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
-      store.set(territoryObservationsState, allDecrypted);
+      setTerritoryObservations(allDecrypted);
     } else if (newTerritoryObservations.length) {
-      store.set(territoryObservationsState, (prev) => mergeItems(prev, newTerritoryObservations));
+      setTerritoryObservations((prev) => mergeItems(prev, newTerritoryObservations));
       const encryptedCache = await getCacheItemDefaultValue("territory-observation", []);
       await setCacheItem("territory-observation", mergeItems(encryptedCache, newTerritoryObservationsRaw));
     }
@@ -592,9 +604,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newCommentsRaw.length ? mergeItems(encryptedCache, newCommentsRaw) : encryptedCache;
       await setCacheItem("comment", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "comments" })))).filter((e) => e);
-      store.set(commentsState, allDecrypted);
+      setComments(allDecrypted);
     } else if (newComments.length) {
-      store.set(commentsState, (prev) => mergeItems(prev, newComments));
+      setComments((prev) => mergeItems(prev, newComments));
       const encryptedCache = await getCacheItemDefaultValue("comment", []);
       await setCacheItem("comment", mergeItems(encryptedCache, newCommentsRaw));
     }
@@ -626,9 +638,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       const mergedEncrypted = newConsultationsRaw.length ? mergeItems(encryptedCache, newConsultationsRaw) : encryptedCache;
       await setCacheItem("consultation", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
-      store.set(consultationsState, allDecrypted.map(formatConsultation));
+      setConsultations(allDecrypted.map(formatConsultation));
     } else if (newConsultations.length) {
-      store.set(consultationsState, (prev) => mergeItems(prev, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      setConsultations((prev) => mergeItems(prev, newConsultations, { formatNewItemsFunction: formatConsultation }));
       const encryptedCache = await getCacheItemDefaultValue("consultation", []);
       await setCacheItem("consultation", mergeItems(encryptedCache, newConsultationsRaw));
     }
@@ -662,9 +674,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         const mergedEncrypted = newTreatmentsRaw.length ? mergeItems(encryptedCache, newTreatmentsRaw) : encryptedCache;
         await setCacheItem("treatment", mergedEncrypted);
         const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
-        store.set(treatmentsState, allDecrypted);
+        setTreatments(allDecrypted);
       } else if (newTreatments.length) {
-        store.set(treatmentsState, (prev) => mergeItems(prev, newTreatments));
+        setTreatments((prev) => mergeItems(prev, newTreatments));
         const encryptedCache = await getCacheItemDefaultValue("treatment", []);
         await setCacheItem("treatment", mergeItems(encryptedCache, newTreatmentsRaw));
       }
@@ -699,9 +711,9 @@ export function useDataLoader(options = { refreshOnMount: false }) {
         const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache;
         await setCacheItem("medical-file", mergedEncrypted);
         const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
-        store.set(medicalFileState, allDecrypted);
+        setMedicalFiles(allDecrypted);
       } else if (newMedicalFiles.length) {
-        store.set(medicalFileState, (prev) => mergeItems(prev, newMedicalFiles));
+        setMedicalFiles((prev) => mergeItems(prev, newMedicalFiles));
         const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
         await setCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw));
       }
