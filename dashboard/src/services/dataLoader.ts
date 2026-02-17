@@ -47,7 +47,6 @@ export const initialLoadIsDoneState = atom(false);
 //   cursor forward and make other tabs permanently miss updates (then mergeItems keeps stale entities).
 const perTabLastRefreshKey = `mano-last-refresh-local-${dashboardCurrentCacheKey}`;
 
-
 function getPerTabLastRefresh() {
   try {
     const v = window.sessionStorage?.getItem(perTabLastRefreshKey);
@@ -233,7 +232,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/person", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPersonsRaw.push(...res.data);
+        newPersonsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPersons.push(...decryptedData);
@@ -265,7 +264,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/group", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newGroupsRaw.push(...res.data);
+        newGroupsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "groups" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newGroups.push(...decryptedData);
@@ -297,7 +296,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/report", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newReportsRaw.push(...res.data);
+        newReportsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "reports" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newReports.push(...decryptedData);
@@ -330,7 +329,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/passage", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPassagesRaw.push(...res.data);
+        newPassagesRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "passages" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPassages.push(...decryptedData);
@@ -362,7 +361,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/rencontre", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRencontresRaw.push(...res.data);
+        newRencontresRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "rencontres" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRencontres.push(...decryptedData);
@@ -394,7 +393,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/action", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newActionsRaw.push(...res.data);
+        newActionsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "actions" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newActions.push(...decryptedData);
@@ -426,7 +425,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/recurrence", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRecurrencesRaw.push(...res.data);
+        newRecurrencesRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRecurrences.push(...decryptedData);
@@ -458,7 +457,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/territory", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newTerritoriesRaw.push(...res.data);
+        newTerritoriesRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territories" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritories.push(...decryptedData);
@@ -490,7 +489,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/place", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPlacesRaw.push(...res.data);
+        newPlacesRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "places" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPlaces.push(...decryptedData);
@@ -522,7 +521,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRelsPersonPlaceRaw.push(...res.data);
+        newRelsPersonPlaceRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRelsPersonPlace.push(...decryptedData);
@@ -554,7 +553,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/territory-observation", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newTerritoryObservationsRaw.push(...res.data);
+        newTerritoryObservationsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritoryObservations.push(...decryptedData);
@@ -567,9 +566,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
     if (isStartingInitialLoad) {
       const encryptedCache = await getCacheItemDefaultValue("territory-observation", []);
-      const mergedEncrypted = newTerritoryObservationsRaw.length
-        ? mergeItems(encryptedCache, newTerritoryObservationsRaw)
-        : encryptedCache;
+      const mergedEncrypted = newTerritoryObservationsRaw.length ? mergeItems(encryptedCache, newTerritoryObservationsRaw) : encryptedCache;
       await setCacheItem("territory-observation", mergedEncrypted);
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
       setTerritoryObservations(allDecrypted);
@@ -588,7 +585,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/comment", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newCommentsRaw.push(...res.data);
+        newCommentsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "comments" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newComments.push(...decryptedData);
@@ -623,7 +620,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           });
         });
         if (error) return resetLoaderOnError();
-        newConsultationsRaw.push(...res.data);
+        newConsultationsRaw.push(structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newConsultations.push(...decryptedData);
@@ -658,7 +655,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
-          newTreatmentsRaw.push(...res.data);
+          newTreatmentsRaw.push(structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newTreatments.push(...decryptedData);
@@ -695,7 +692,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
-          newMedicalFilesRaw.push(...res.data);
+          newMedicalFilesRaw.push(structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newMedicalFiles.push(...decryptedData);
