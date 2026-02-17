@@ -239,7 +239,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
         activeTabIndex={activeTabIndex}
       />
 
-      <div className="tw-mb-5">
+      <div className="tw-mt-4 tw-mb-5">
         {!!isNightSession && (
           <p className="tw-m-0 tw-text-center tw-text-xs tw-opacity-50">
             On affiche les actions faites/à faire entre midi de ce jour et 11h59 du jour suivant

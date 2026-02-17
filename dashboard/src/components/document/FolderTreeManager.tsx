@@ -195,7 +195,7 @@ export default function FolderTreeManager({
     <div className="tw-flex tw-flex-col tw-gap-3 tw-p-4">
       <div className="tw-flex tw-justify-between tw-items-center">
         <h3 className="tw-text-lg tw-mb-0">Dossiers par défaut</h3>
-        <button type="button" className="btn btn-primary" onClick={() => setShowCreate(true)}>
+        <button type="button" className="tw-rounded tw-border tw-border-[#226854] tw-bg-[#226854] tw-px-3 tw-py-1.5 tw-text-base tw-font-normal tw-text-white hover:tw-bg-[#1a5443] hover:tw-border-[#1a5443]" onClick={() => setShowCreate(true)}>
           Ajouter un dossier
         </button>
       </div>
