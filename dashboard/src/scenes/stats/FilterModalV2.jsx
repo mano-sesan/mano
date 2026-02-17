@@ -101,7 +101,8 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
     if (typeof filterValue === "object" && "comparator" in filterValue) {
       if (!filterValue.comparator) return false;
       if (filterValue.comparator === "unfilled") return true;
-      if (filterValue.comparator === "between") return filterValue.number !== "" && filterValue.number != null && filterValue.number2 !== "" && filterValue.number2 != null;
+      if (filterValue.comparator === "between")
+        return filterValue.number !== "" && filterValue.number != null && filterValue.number2 !== "" && filterValue.number2 != null;
       return filterValue.number !== "" && filterValue.number != null;
     }
     return true;
@@ -128,12 +129,12 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
                 if (current.category) {
                   return (
                     <>
-                      {current.label}
+                      <span className="tw-text-sm">{current.label}</span>
                       <span className="tw-ml-2 tw-text-gray-500 tw-text-xs">{categoryToLabel(current.category)}</span>
                     </>
                   );
                 }
-                return current.label;
+                return <span className="tw-text-sm">{current.label}</span>;
               }}
               isSearchable
               getOptionValue={(_option) => `${_option.field}-${_option.category || ""}`}
@@ -207,6 +208,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
             setComparator(e.value);
             onChange({ date: value?.date, comparator: e.value });
           }}
+          formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
           className="tw-text-sm"
         />
         {value?.comparator !== "unfilled" && value?.comparator && (
@@ -236,6 +238,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
             setComparator(e.value);
             onChange({ number: value?.number, comparator: e.value });
           }}
+          formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
           className="tw-text-sm"
         />
         {value?.comparator !== "unfilled" && value?.comparator && (
@@ -284,6 +287,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
         inputId="filter-modal-value"
         classNamePrefix="filter-modal-value"
         className="tw-text-sm"
+        formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
         components={{
           MultiValueContainer: (props) => {
             if (props.selectProps?.value?.length <= 1) return <components.MultiValueContainer {...props} />;
@@ -313,6 +317,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
       inputId="filter-modal-value"
       classNamePrefix="filter-modal-value"
       className="tw-text-sm"
+      formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
     />
   );
 }

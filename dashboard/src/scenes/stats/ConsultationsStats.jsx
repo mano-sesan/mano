@@ -100,13 +100,12 @@ export default function ConsultationsStats({
         </div>
       )}
       <details
-        open={window.localStorage.getItem("consultations-stats-general-open") === "true"}
+        open={
+          window.localStorage.getItem("consultations-stats-general-open") === "true" ||
+          (hideFilters && window.localStorage.getItem("consultations-stats-general-open") !== "false")
+        }
         onToggle={(e) => {
-          if (e.target.open) {
-            window.localStorage.setItem("consultations-stats-general-open", "true");
-          } else {
-            window.localStorage.removeItem("consultations-stats-general-open");
-          }
+          window.localStorage.setItem("consultations-stats-general-open", e.target.open ? "true" : "false");
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
@@ -157,13 +156,12 @@ export default function ConsultationsStats({
       {organisation.consultations.map((c) => {
         return (
           <details
-            open={window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"}
+            open={
+              window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+              (hideFilters && window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
+            }
             onToggle={(e) => {
-              if (e.target.open) {
-                window.localStorage.setItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-              } else {
-                window.localStorage.removeItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-              }
+              window.localStorage.setItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");
             }}
             key={c.name}
           >

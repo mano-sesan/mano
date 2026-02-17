@@ -110,13 +110,13 @@ const ObservationsStats = ({
       {!hideFilters && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
 
       <details
-        open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("observation-stats-general-open") === "true"}
+        open={
+          import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
+          window.localStorage.getItem("observation-stats-general-open") === "true" ||
+          (hideFilters && window.localStorage.getItem("observation-stats-general-open") !== "false")
+        }
         onToggle={(e) => {
-          if ((e.target as HTMLDetailsElement).open) {
-            window.localStorage.setItem("observation-stats-general-open", "true");
-          } else {
-            window.localStorage.removeItem("observation-stats-general-open");
-          }
+          window.localStorage.setItem("observation-stats-general-open", (e.target as HTMLDetailsElement).open ? "true" : "false");
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
@@ -152,14 +152,14 @@ const ObservationsStats = ({
               className="print:tw-break-before-page"
               open={
                 import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
-                window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"
+                window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+                (hideFilters && window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
               }
               onToggle={(e) => {
-                if ((e.target as HTMLDetailsElement).open) {
-                  window.localStorage.setItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-                } else {
-                  window.localStorage.removeItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-                }
+                window.localStorage.setItem(
+                  `observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`,
+                  (e.target as HTMLDetailsElement).open ? "true" : "false"
+                );
               }}
             >
               <summary className="tw-mx-0 tw-my-8">

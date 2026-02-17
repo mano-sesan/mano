@@ -209,12 +209,14 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
       )}
       {!!showDatePicker && (
         <OutsideClickHandler onOutsideClick={closeDatePicker}>
-          <div className="stats-datepicker tw-absolute tw-top-12 tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]">
+          <div
+            className={`stats-datepicker tw-absolute tw-top-12 ${statsV2 ? "-tw-right-56" : "tw-left-0"} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
+          >
             <div className="tw-absolute tw-bottom-0 tw-left-0 tw-top-0 tw-ml-2 tw-box-border tw-flex tw-max-h-full tw-w-56 tw-flex-1 tw-flex-col tw-items-start tw-justify-start tw-overflow-y-scroll">
               {presets.map((p) => (
                 <button
                   type="button"
-                  className="tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 tw-text-center hover:tw-bg-main25"
+                  className={`tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 hover:tw-bg-main25 ${statsV2 ? "tw-text-sm tw-text-left" : "tw-text-center"}`}
                   key={p.label}
                   onClick={() => setPresetRequest(p)}
                 >

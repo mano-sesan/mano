@@ -107,13 +107,13 @@ export default function PersonStats({
       ) : (
         <>
           <details
-            open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("person-stats-general-open") === "true"}
+            open={
+              import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
+              window.localStorage.getItem("person-stats-general-open") === "true" ||
+              (hideFilters && window.localStorage.getItem("person-stats-general-open") !== "false")
+            }
             onToggle={(e) => {
-              if (e.target.open) {
-                window.localStorage.setItem("person-stats-general-open", "true");
-              } else {
-                window.localStorage.removeItem("person-stats-general-open");
-              }
+              window.localStorage.setItem("person-stats-general-open", e.target.open ? "true" : "false");
             }}
           >
             <summary className="tw-mx-0 tw-my-8">
@@ -244,14 +244,11 @@ export default function PersonStats({
                 className="print:tw-break-before-page"
                 open={
                   import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
-                  window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"
+                  window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+                  (hideFilters && window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
                 }
                 onToggle={(e) => {
-                  if (e.target.open) {
-                    window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-                  } else {
-                    window.localStorage.removeItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-                  }
+                  window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");
                 }}
               >
                 <summary className="tw-mx-0 tw-my-8">

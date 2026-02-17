@@ -420,10 +420,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
   // === Tab-specific chip filters (derived from state) ===
   const actionsChipFilters = useMemo(() => {
     const filters = [];
-    if (actionsStatuses.length) {
+    const statusesArray = Array.isArray(actionsStatuses) ? actionsStatuses : actionsStatuses ? [actionsStatuses] : [];
+    if (statusesArray.length) {
       filters.push({
         field: "status",
-        value: actionsStatuses.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
+        value: statusesArray.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
       });
     }
     if (actionsCategoriesGroups.length) {
@@ -448,10 +449,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   const consultationsChipFilters = useMemo(() => {
     const filters = [];
-    if (consultationsStatuses.length) {
+    const statusesArray = Array.isArray(consultationsStatuses) ? consultationsStatuses : [];
+    if (statusesArray.length) {
       filters.push({
         field: "status",
-        value: consultationsStatuses.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
+        value: statusesArray.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
       });
     }
     if (consultationsTypes.length) {
