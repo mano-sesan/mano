@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { components } from "react-select";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 import DatePicker from "../../components/DatePicker";
@@ -39,7 +40,7 @@ const numberOptions = [
   { label: "Non renseigné", value: "unfilled" },
 ];
 
-export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, editingFilter, onEditFilter }) {
+export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, editingFilter, onEditFilter, filterLabel = "" }) {
   const [selectedField, setSelectedField] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
   const [comparator, setComparator] = useState(null);
@@ -65,11 +66,10 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
 
   const filterOptions = selectedField ? getFilterOptionsByField(selectedField.field, filterBase) : [];
 
-  const handleClose = () => {
+  const resetState = () => {
     setSelectedField(null);
     setFilterValue(null);
     setComparator(null);
-    onClose();
   };
 
   const handleSubmit = () => {
@@ -85,7 +85,7 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
     } else {
       onAddFilter(filter);
     }
-    handleClose();
+    onClose();
   };
 
   const hasValue = (() => {
@@ -108,8 +108,8 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
   })();
 
   return (
-    <ModalContainer open={open} onClose={handleClose} size="lg">
-      <ModalHeader title={isEditing ? "Modifier le filtre" : "Ajouter un filtre"} />
+    <ModalContainer open={open} onClose={onClose} onAfterLeave={resetState} size="lg">
+      <ModalHeader title={isEditing ? "Modifier le filtre" : `Ajouter un filtre ${filterLabel}`.trim()} />
       <ModalBody className="tw-py-4 tw-px-6">
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div>
@@ -141,6 +141,7 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
               isMulti={false}
               inputId="filter-modal-field"
               classNamePrefix="filter-modal-field"
+              className="tw-text-sm"
             />
           </div>
           {selectedField && (
@@ -159,7 +160,7 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
         </div>
       </ModalBody>
       <ModalFooter>
-        <button type="button" className="button-cancel" onClick={handleClose}>
+        <button type="button" className="button-cancel" onClick={onClose}>
           Annuler
         </button>
         <button type="button" className="button-submit" onClick={handleSubmit} disabled={!hasValue}>
@@ -206,6 +207,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
             setComparator(e.value);
             onChange({ date: value?.date, comparator: e.value });
           }}
+          className="tw-text-sm"
         />
         {value?.comparator !== "unfilled" && value?.comparator && (
           <DatePicker
@@ -234,6 +236,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
             setComparator(e.value);
             onChange({ number: value?.number, comparator: e.value });
           }}
+          className="tw-text-sm"
         />
         {value?.comparator !== "unfilled" && value?.comparator && (
           <div className="tw-flex tw-items-center tw-gap-2">
@@ -280,6 +283,20 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
         isMulti
         inputId="filter-modal-value"
         classNamePrefix="filter-modal-value"
+        className="tw-text-sm"
+        components={{
+          MultiValueContainer: (props) => {
+            if (props.selectProps?.value?.length <= 1) return <components.MultiValueContainer {...props} />;
+            const lastValue = props.selectProps?.value?.[props.selectProps?.value?.length - 1]?.value;
+            const isLastValue = props?.data?.value === lastValue;
+            return (
+              <>
+                <components.MultiValueLabel {...props} />
+                {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+              </>
+            );
+          },
+        }}
       />
     );
   }
@@ -295,6 +312,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
       isClearable={Boolean(value)}
       inputId="filter-modal-value"
       classNamePrefix="filter-modal-value"
+      className="tw-text-sm"
     />
   );
 }

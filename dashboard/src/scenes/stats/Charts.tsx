@@ -2,21 +2,32 @@ import { useMemo } from "react";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
+import { useStatsContext } from "./StatsContext";
 
-function ChartTitle({
-  title,
-  help,
-  settingsButton,
-}: {
-  title: string | React.ReactNode;
-  help?: string;
-  settingsButton?: React.ReactNode;
-}) {
+function ChartTitle({ title, help, settingsButton }: { title: string | React.ReactNode; help?: string; settingsButton?: React.ReactNode }) {
+  const { compact } = useStatsContext();
   return (
-    <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
-      {title}
-      {!!help && <HelpButtonAndModal title={typeof title === "string" ? title : ""} help={help} questionMarkColor="violet" />}
-      {!!settingsButton && <span className="tw-ml-auto tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
+    <div
+      className={[
+        "tw-w-full tw-flex tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black tw-bg-[#707597] print:tw-bg-white tw-rounded-t-2xl",
+        compact ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
+      ].join(" ")}
+    >
+      {compact ? (
+        <>
+          <div className="tw-flex-1">{title}</div>
+          {!!settingsButton && <span className="tw-ml-auto tw-pl-4 tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
+          <div className="tw-flex-none -tw-mt-1">
+            {!!help && <HelpButtonAndModal questionMarkColor="violet" title={typeof title === "string" ? title : ""} help={help} />}
+          </div>
+        </>
+      ) : (
+        <>
+          {title}
+          {!!help && <HelpButtonAndModal title={typeof title === "string" ? title : ""} help={help} questionMarkColor="violet" />}
+          {!!settingsButton && <span className="tw-ml-auto tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
+        </>
+      )}
     </div>
   );
 }

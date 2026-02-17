@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { components } from "react-select";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 
-export default function FilterModalSimple({ open, onClose, filterBase, editingFilter, onAddFilter, onEditFilter }) {
+export default function FilterModalSimple({ open, onClose, filterBase, editingFilter, onAddFilter, onEditFilter, filterLabel = "" }) {
   const [selectedField, setSelectedField] = useState(null);
   const [filterValue, setFilterValue] = useState([]);
 
@@ -17,10 +18,9 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handleClose = () => {
+  const resetState = () => {
     setSelectedField(null);
     setFilterValue([]);
-    onClose();
   };
 
   const handleSubmit = () => {
@@ -31,7 +31,7 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
     } else {
       onAddFilter(filter);
     }
-    handleClose();
+    onClose();
   };
 
   // Strip `options` from filterBase items to prevent React-Select from treating them as groups
@@ -39,8 +39,8 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
   const selectedFieldOptions = selectedField ? filterBase.find((f) => f.field === selectedField.field)?.options || [] : [];
 
   return (
-    <ModalContainer open={open} onClose={handleClose} size="lg">
-      <ModalHeader title={isEditing ? "Modifier le filtre" : "Ajouter un filtre"} />
+    <ModalContainer open={open} onClose={onClose} onAfterLeave={resetState} size="lg">
+      <ModalHeader title={isEditing ? "Modifier le filtre" : `Ajouter un filtre ${filterLabel}`.trim()} />
       <ModalBody className="tw-py-4 tw-px-6">
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div>
@@ -59,6 +59,7 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
               isMulti={false}
               inputId="filter-modal-simple-field"
               classNamePrefix="filter-modal-simple-field"
+              className="tw-text-sm"
             />
           </div>
           {selectedField && (
@@ -74,13 +75,27 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
                 isMulti
                 inputId="filter-modal-simple-value"
                 classNamePrefix="filter-modal-simple-value"
+                className="tw-text-sm"
+                components={{
+                  MultiValueContainer: (props) => {
+                    if (props.selectProps?.value?.length <= 1) return <components.MultiValueContainer {...props} />;
+                    const lastValue = props.selectProps?.value?.[props.selectProps?.value?.length - 1]?.value;
+                    const isLastValue = props?.data?.value === lastValue;
+                    return (
+                      <>
+                        <components.MultiValueLabel {...props} />
+                        {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+                      </>
+                    );
+                  },
+                }}
               />
             </div>
           )}
         </div>
       </ModalBody>
       <ModalFooter>
-        <button type="button" className="button-cancel" onClick={handleClose}>
+        <button type="button" className="button-cancel" onClick={onClose}>
           Annuler
         </button>
         <button type="button" className="button-submit" onClick={handleSubmit} disabled={!selectedField || !filterValue.length}>

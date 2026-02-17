@@ -20,7 +20,13 @@ function getFilterDisplayValue(filter) {
   }
   if (Array.isArray(filter.value)) {
     if (filter.value.length === 0) return null;
-    return filter.value.join(" ou ");
+    if (filter.value.length === 1) return filter.value[0];
+    return filter.value.map((v, i) => (
+      <span key={i}>
+        {i > 0 && <span className="tw-font-normal tw-italic"> ou </span>}
+        {v}
+      </span>
+    ));
   }
   return String(filter.value);
 }
@@ -60,8 +66,8 @@ export default function FilterChipsV2({
             className={`tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-md ${chipBgClass} ${chipTextClass} tw-text-sm tw-pl-3 tw-pr-1.5 tw-py-1`}
           >
             <button type="button" onClick={() => onEditFilter?.(index)} className="tw-inline-flex tw-items-center tw-gap-1.5 tw-cursor-pointer">
-              <span className={chipLabelClass}>{label} :</span>
-              <span className="tw-font-medium tw-max-w-48 tw-truncate">{displayValue}</span>
+              <span className={chipLabelClass}>{label}&nbsp;:</span>
+              <span className="tw-font-medium tw-max-w-96 tw-truncate">{displayValue}</span>
             </button>
             <button
               type="button"

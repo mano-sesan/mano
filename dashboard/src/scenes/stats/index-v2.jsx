@@ -42,6 +42,7 @@ import FilterChipsV2 from "./FilterChipsV2";
 import FilterModalV2 from "./FilterModalV2";
 import FilterModalSimple from "./FilterModalSimple";
 import { itemsForStatsV2Selector } from "./items-for-stats-v2";
+import { StatsCompactProvider } from "./StatsContext";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabsV2 = [
@@ -914,6 +915,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
         onEditFilter={(updatedFilter) => {
           setFilterPersons(filterPersons.map((f, i) => (i === editingFilterIndex ? updatedFilter : f)));
         }}
+        filterLabel="de personne"
       />
 
       <FilterModalSimple
@@ -926,6 +928,17 @@ const StatsV2 = ({ onSwitchVersion }) => {
         editingFilter={simpleFilterEditingFilter}
         onAddFilter={applySimpleFilter}
         onEditFilter={applySimpleFilter}
+        filterLabel={
+          simpleFilterTab === "Actions"
+            ? "d'action"
+            : simpleFilterTab === "Services"
+              ? "de service"
+              : simpleFilterTab === "Consultations"
+                ? "de consultation"
+                : simpleFilterTab === "Rencontres"
+                  ? "de rencontre"
+                  : ""
+        }
       />
 
       <FilterModalV2
@@ -942,9 +955,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
         onEditFilter={(updatedFilter) => {
           setFilterObs(filterObs.map((f, i) => (i === obsEditingFilterIndex ? updatedFilter : f)));
         }}
+        filterLabel="d'observation"
       />
 
       {/* Tab content */}
+      <StatsCompactProvider>
       <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
         {activeTab === "Général" && (
           <GeneralStats
@@ -1079,6 +1094,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
           />
         )}
       </div>
+      </StatsCompactProvider>
       {/* HACK: this last div is because Chrome crop the end of the page - I didn't find any better solution */}
       <div className="printonly tw-h-screen" aria-hidden />
     </>
