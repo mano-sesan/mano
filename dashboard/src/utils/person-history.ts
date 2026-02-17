@@ -81,6 +81,10 @@ export function extractInfosFromHistory(person: PersonInstance): {
     // we want to loop it from the newest to the oldest (descending order)
     for (let i = person.history.length - 1; i >= 0; i--) {
       const historyEntry = person.history[i];
+      // @ts-expect-error Property 'outOfActiveList' does not exist on type 'MergeData'
+      if (historyEntry.data?.outOfActiveList?.newValue === true) {
+        continue;
+      }
       interactions.push(historyEntry.date);
       const data = historyEntry.data as FieldChangeData;
       if (!data.assignedTeams) continue;
