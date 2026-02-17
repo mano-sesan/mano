@@ -40,6 +40,7 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import StatsNew from "./StatsNew";
 
 const tabs = [
   "Général",
@@ -86,7 +87,13 @@ const StatsLoader = () => {
   }, [isLoading, hasStartLoaded]);
 
   if (!hasStartLoaded) return <Loading />;
-  return <Stats />;
+  return <StatsRouter />;
+};
+
+const StatsRouter = () => {
+  const [version, setVersion] = useLocalStorage("stats-version", "new");
+  if (version === "legacy") return <Stats onSwitchToNew={() => setVersion("new")} />;
+  return <StatsNew onSwitchToLegacy={() => setVersion("legacy")} />;
 };
 
 const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
@@ -497,7 +504,7 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
-const Stats = () => {
+const Stats = ({ onSwitchToNew }) => {
   const organisation = useAtomValue(organisationState);
   const currentTeam = useAtomValue(currentTeamState);
   const teams = useAtomValue(teamsState);
@@ -840,6 +847,11 @@ const Stats = () => {
         <div className="noprint tw-flex tw-justify-start tw-items-start tw-mt-10 tw-mb-8">
           <h1 className="tw-block tw-text-xl tw-min-w-64 tw-full tw-font-normal">
             <span>Statistiques {viewAllOrganisationData ? <>globales</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}</span>
+            {!!onSwitchToNew && (
+              <button type="button" className="tw-ml-4 tw-text-sm tw-text-zinc-500 hover:tw-text-zinc-700 tw-cursor-pointer tw-font-normal" onClick={onSwitchToNew}>
+                Essayer la nouvelle interface
+              </button>
+            )}
           </h1>
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
