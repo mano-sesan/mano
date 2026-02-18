@@ -4,8 +4,8 @@ import API, { tryFetchExpectOk } from "../services/api";
 import { DONE, encryptAction, TODO } from "../atoms/actions";
 import { usePreparePersonForEncryption } from "../atoms/persons";
 
-const numberOfPersons = 2000;
-const numberOfActionsPerPerson = 100;
+const numberOfPersons = 200;
+const numberOfActionsPerPerson = 10;
 
 export default function AddPersons() {
   const currentTeam = useAtomValue(currentTeamAuthentifiedState);

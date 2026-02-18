@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import {  useAtomValue } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
 import { organisationState, userState } from "../../atoms/auth";
@@ -15,6 +15,7 @@ import { encryptRelPersonPlace, relsPersonPlaceState } from "../../atoms/relPers
 import QuestionMarkButton from "../../components/QuestionMarkButton";
 import { errorMessage } from "../../utils";
 import { decryptItem } from "../../services/encryption";
+import { awaitSetAtomAndIDBCache } from "../../store";
 
 const PersonPlaces = ({ person }) => {
   const user = useAtomValue(userState);
@@ -188,7 +189,7 @@ const PersonPlaces = ({ person }) => {
 
 const RelPersonPlaceModal = ({ open, setOpen, person, relPersonPlaceModal, setPlaceToEdit }) => {
   const places = useAtomValue(placesState);
-  const setPlaces = useSetAtom(placesState);
+  const setPlaces = awaitSetAtomAndIDBCache(placesState);
   const me = useAtomValue(userState);
   const [placeId, setPlaceId] = useState(relPersonPlaceModal?.place);
   const [userId, setUserId] = useState(relPersonPlaceModal?.user ?? me._id);

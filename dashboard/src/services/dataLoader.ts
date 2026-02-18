@@ -28,6 +28,7 @@ import { decryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { errorMessage } from "../utils";
 import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
+import { awaitSetAtomAndIDBCache } from "../store";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -41,8 +42,9 @@ export const loadingTextState = atom(initialLoadingTextState);
 export const initialLoadIsDoneState = atom(false);
 
 // IMPORTANT:
-// - The entity caches (person, action, ...) are persisted in IndexedDB as ENCRYPTED items (raw API responses).
-// - Decryption only happens in memory when populating Jotai atoms.
+// - Non-medical entity caches (person, action, ...) are persisted DECRYPTED in IndexedDB via awaitSetAtomAndIDBCache.
+// - Medical entity caches (consultation, treatment, medical-file) are persisted ENCRYPTED in IndexedDB.
+//   Decryption only happens in memory when populating Jotai atoms.
 // - The "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
 //   cursor forward and make other tabs permanently miss updates (then mergeItems keeps stale entities).
 const perTabLastRefreshKey = `mano-last-refresh-local-${dashboardCurrentCacheKey}`;
@@ -79,18 +81,18 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const [organisation, setOrganisation] = useAtom(organisationState);
   const { migrateData } = useDataMigrator();
 
-  const setPersons = useSetAtom(personsState);
-  const setGroups = useSetAtom(groupsState);
-  const setReports = useSetAtom(reportsState);
-  const setPassages = useSetAtom(passagesState);
-  const setRencontres = useSetAtom(rencontresState);
-  const setActions = useSetAtom(actionsState);
-  const setRecurrences = useSetAtom(recurrencesState);
-  const setTerritories = useSetAtom(territoriesState);
-  const setPlaces = useSetAtom(placesState);
-  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
-  const setTerritoryObservations = useSetAtom(territoryObservationsState);
-  const setComments = useSetAtom(commentsState);
+  const setPersons = awaitSetAtomAndIDBCache(personsState);
+  const setGroups = awaitSetAtomAndIDBCache(groupsState);
+  const setReports = awaitSetAtomAndIDBCache(reportsState);
+  const setPassages = awaitSetAtomAndIDBCache(passagesState);
+  const setRencontres = awaitSetAtomAndIDBCache(rencontresState);
+  const setActions = awaitSetAtomAndIDBCache(actionsState);
+  const setRecurrences = awaitSetAtomAndIDBCache(recurrencesState);
+  const setTerritories = awaitSetAtomAndIDBCache(territoriesState);
+  const setPlaces = awaitSetAtomAndIDBCache(placesState);
+  const setRelsPersonPlace = awaitSetAtomAndIDBCache(relsPersonPlaceState);
+  const setTerritoryObservations = awaitSetAtomAndIDBCache(territoryObservationsState);
+  const setComments = awaitSetAtomAndIDBCache(commentsState);
   const setConsultations = useSetAtom(consultationsState);
   const setTreatments = useSetAtom(treatmentsState);
   const setMedicalFiles = useSetAtom(medicalFileState);
@@ -185,7 +187,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           organisation: organisationId,
           after: lastLoadValue,
           withDeleted: true,
-          // Medical data is never saved in cache so we always have to download all at every page reload.
+          // Medical data is cached encrypted in IndexedDB, but we still reload all on initial load for safety.
           withAllMedicalData: isStartingInitialLoad,
         },
       });
@@ -224,7 +226,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     };
 
     let newPersons = [];
-    let newPersonsRaw = [];
     if (stats.persons > 0) {
       setLoadingText("Chargement des personnes");
       async function loadPersons(page = 0) {
@@ -232,7 +233,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/person", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPersonsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPersons.push(...decryptedData);
@@ -244,19 +244,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("person", []);
-      const mergedEncrypted = newPersonsRaw.length ? mergeItems(encryptedCache, newPersonsRaw) : encryptedCache;
-      await setCacheItem("person", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "persons" })))).filter((e) => e);
-      setPersons(allDecrypted);
+      const cachePersons = await getCacheItemDefaultValue("person", []);
+      if (newPersons.length) {
+        await setPersons(mergeItems(cachePersons, newPersons));
+      } else {
+        await setPersons(cachePersons);
+      }
     } else if (newPersons.length) {
-      setPersons((prev) => mergeItems(prev, newPersons));
-      const encryptedCache = await getCacheItemDefaultValue("person", []);
-      await setCacheItem("person", mergeItems(encryptedCache, newPersonsRaw));
+      await setPersons((latestPersons) => mergeItems(latestPersons, newPersons));
     }
 
     let newGroups = [];
-    let newGroupsRaw = [];
     if (stats.groups > 0) {
       setLoadingText("Chargement des familles");
       async function loadGroups(page = 0) {
@@ -264,7 +262,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/group", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newGroupsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "groups" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newGroups.push(...decryptedData);
@@ -276,19 +273,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("group", []);
-      const mergedEncrypted = newGroupsRaw.length ? mergeItems(encryptedCache, newGroupsRaw) : encryptedCache;
-      await setCacheItem("group", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "groups" })))).filter((e) => e);
-      setGroups(allDecrypted);
+      const cacheGroups = await getCacheItemDefaultValue("group", []);
+      if (newGroups.length) {
+        await setGroups(mergeItems(cacheGroups, newGroups));
+      } else {
+        await setGroups(cacheGroups);
+      }
     } else if (newGroups.length) {
-      setGroups((prev) => mergeItems(prev, newGroups));
-      const encryptedCache = await getCacheItemDefaultValue("group", []);
-      await setCacheItem("group", mergeItems(encryptedCache, newGroupsRaw));
+      await setGroups((latestGroups) => mergeItems(latestGroups, newGroups));
     }
 
     let newReports = [];
-    let newReportsRaw = [];
     if (stats.reports > 0) {
       setLoadingText("Chargement des comptes-rendus");
       async function loadReports(page = 0) {
@@ -296,7 +291,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/report", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newReportsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "reports" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newReports.push(...decryptedData);
@@ -308,20 +302,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      // Cache stores all items (encrypted, no filter). Filter only applies to the atom.
-      const encryptedCache = await getCacheItemDefaultValue("report", []);
-      const mergedEncrypted = newReportsRaw.length ? mergeItems(encryptedCache, newReportsRaw) : encryptedCache;
-      await setCacheItem("report", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "reports" })))).filter((e) => e);
-      setReports(allDecrypted.filter((r) => !!r.team && !!r.date));
+      const cacheReports = await getCacheItemDefaultValue("report", []);
+      if (newReports.length) {
+        await setReports(mergeItems(cacheReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
+      } else {
+        await setReports(cacheReports);
+      }
     } else if (newReports.length) {
-      setReports((prev) => mergeItems(prev, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
-      const encryptedCache = await getCacheItemDefaultValue("report", []);
-      await setCacheItem("report", mergeItems(encryptedCache, newReportsRaw));
+      await setReports((latestReports) => mergeItems(latestReports, newReports, { filterNewItemsFunction: (r) => !!r.team && !!r.date }));
     }
 
     let newPassages = [];
-    let newPassagesRaw = [];
     if (stats.passages > 0) {
       setLoadingText("Chargement des passages");
       async function loadPassages(page = 0) {
@@ -329,7 +320,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/passage", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPassagesRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "passages" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPassages.push(...decryptedData);
@@ -341,19 +331,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("passage", []);
-      const mergedEncrypted = newPassagesRaw.length ? mergeItems(encryptedCache, newPassagesRaw) : encryptedCache;
-      await setCacheItem("passage", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "passages" })))).filter((e) => e);
-      setPassages(allDecrypted);
+      const cachePassages = await getCacheItemDefaultValue("passage", []);
+      if (newPassages.length) {
+        await setPassages(mergeItems(cachePassages, newPassages));
+      } else {
+        await setPassages(cachePassages);
+      }
     } else if (newPassages.length) {
-      setPassages((prev) => mergeItems(prev, newPassages));
-      const encryptedCache = await getCacheItemDefaultValue("passage", []);
-      await setCacheItem("passage", mergeItems(encryptedCache, newPassagesRaw));
+      await setPassages((latestPassages) => mergeItems(latestPassages, newPassages));
     }
 
     let newRencontres = [];
-    let newRencontresRaw = [];
     if (stats.rencontres > 0) {
       setLoadingText("Chargement des rencontres");
       async function loadRencontres(page = 0) {
@@ -361,7 +349,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/rencontre", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRencontresRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "rencontres" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRencontres.push(...decryptedData);
@@ -373,19 +360,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("rencontre", []);
-      const mergedEncrypted = newRencontresRaw.length ? mergeItems(encryptedCache, newRencontresRaw) : encryptedCache;
-      await setCacheItem("rencontre", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "rencontres" })))).filter((e) => e);
-      setRencontres(allDecrypted);
+      const cacheRencontres = await getCacheItemDefaultValue("rencontre", []);
+      if (newRencontres.length) {
+        await setRencontres(mergeItems(cacheRencontres, newRencontres));
+      } else {
+        await setRencontres(cacheRencontres);
+      }
     } else if (newRencontres.length) {
-      setRencontres((prev) => mergeItems(prev, newRencontres));
-      const encryptedCache = await getCacheItemDefaultValue("rencontre", []);
-      await setCacheItem("rencontre", mergeItems(encryptedCache, newRencontresRaw));
+      await setRencontres((latestRencontres) => mergeItems(latestRencontres, newRencontres));
     }
 
     let newActions = [];
-    let newActionsRaw = [];
     if (stats.actions > 0) {
       setLoadingText("Chargement des actions");
       async function loadActions(page = 0) {
@@ -393,7 +378,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/action", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newActionsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "actions" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newActions.push(...decryptedData);
@@ -405,19 +389,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("action", []);
-      const mergedEncrypted = newActionsRaw.length ? mergeItems(encryptedCache, newActionsRaw) : encryptedCache;
-      await setCacheItem("action", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "actions" })))).filter((e) => e);
-      setActions(allDecrypted);
+      const cacheActions = await getCacheItemDefaultValue("action", []);
+      if (newActions.length) {
+        await setActions(mergeItems(cacheActions, newActions));
+      } else {
+        await setActions(cacheActions);
+      }
     } else if (newActions.length) {
-      setActions((prev) => mergeItems(prev, newActions));
-      const encryptedCache = await getCacheItemDefaultValue("action", []);
-      await setCacheItem("action", mergeItems(encryptedCache, newActionsRaw));
+      await setActions((latestActions) => mergeItems(latestActions, newActions));
     }
 
     let newRecurrences = [];
-    let newRecurrencesRaw = [];
     if (stats.recurrences > 0) {
       setLoadingText("Chargement des actions récurrentes");
       async function loadRecurrences(page = 0) {
@@ -425,7 +407,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/recurrence", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRecurrencesRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRecurrences.push(...decryptedData);
@@ -437,19 +418,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("recurrence", []);
-      const mergedEncrypted = newRecurrencesRaw.length ? mergeItems(encryptedCache, newRecurrencesRaw) : encryptedCache;
-      await setCacheItem("recurrence", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "recurrence" })))).filter((e) => e);
-      setRecurrences(allDecrypted);
+      const cacheRecurrences = await getCacheItemDefaultValue("recurrence", []);
+      if (newRecurrences.length) {
+        await setRecurrences(mergeItems(cacheRecurrences, newRecurrences));
+      } else {
+        await setRecurrences(cacheRecurrences);
+      }
     } else if (newRecurrences.length) {
-      setRecurrences((prev) => mergeItems(prev, newRecurrences));
-      const encryptedCache = await getCacheItemDefaultValue("recurrence", []);
-      await setCacheItem("recurrence", mergeItems(encryptedCache, newRecurrencesRaw));
+      await setRecurrences((latestRecurrences) => mergeItems(latestRecurrences, newRecurrences));
     }
 
     let newTerritories = [];
-    let newTerritoriesRaw = [];
     if (stats.territories > 0) {
       setLoadingText("Chargement des territoires");
       async function loadTerritories(page = 0) {
@@ -457,7 +436,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/territory", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newTerritoriesRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territories" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritories.push(...decryptedData);
@@ -469,19 +447,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("territory", []);
-      const mergedEncrypted = newTerritoriesRaw.length ? mergeItems(encryptedCache, newTerritoriesRaw) : encryptedCache;
-      await setCacheItem("territory", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "territories" })))).filter((e) => e);
-      setTerritories(allDecrypted);
+      const cacheTerritories = await getCacheItemDefaultValue("territory", []);
+      if (newTerritories.length) {
+        await setTerritories(mergeItems(cacheTerritories, newTerritories));
+      } else {
+        await setTerritories(cacheTerritories);
+      }
     } else if (newTerritories.length) {
-      setTerritories((prev) => mergeItems(prev, newTerritories));
-      const encryptedCache = await getCacheItemDefaultValue("territory", []);
-      await setCacheItem("territory", mergeItems(encryptedCache, newTerritoriesRaw));
+      await setTerritories((latestTerritories) => mergeItems(latestTerritories, newTerritories));
     }
 
     let newPlaces = [];
-    let newPlacesRaw = [];
     if (stats.places > 0) {
       setLoadingText("Chargement des lieux");
       async function loadPlaces(page = 0) {
@@ -489,7 +465,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/place", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newPlacesRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "places" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPlaces.push(...decryptedData);
@@ -501,19 +476,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("place", []);
-      const mergedEncrypted = newPlacesRaw.length ? mergeItems(encryptedCache, newPlacesRaw) : encryptedCache;
-      await setCacheItem("place", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "places" })))).filter((e) => e);
-      setPlaces(allDecrypted);
+      const cachePlaces = await getCacheItemDefaultValue("place", []);
+      if (newPlaces.length) {
+        await setPlaces(mergeItems(cachePlaces, newPlaces));
+      } else {
+        await setPlaces(cachePlaces);
+      }
     } else if (newPlaces.length) {
-      setPlaces((prev) => mergeItems(prev, newPlaces));
-      const encryptedCache = await getCacheItemDefaultValue("place", []);
-      await setCacheItem("place", mergeItems(encryptedCache, newPlacesRaw));
+      await setPlaces((latestPlaces) => mergeItems(latestPlaces, newPlaces));
     }
 
     let newRelsPersonPlace = [];
-    let newRelsPersonPlaceRaw = [];
     if (stats.relsPersonPlace > 0) {
       setLoadingText("Chargement des relations personne-lieu");
       async function loadRelsPersonPlace(page = 0) {
@@ -521,7 +494,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newRelsPersonPlaceRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRelsPersonPlace.push(...decryptedData);
@@ -533,19 +505,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("relPersonPlace", []);
-      const mergedEncrypted = newRelsPersonPlaceRaw.length ? mergeItems(encryptedCache, newRelsPersonPlaceRaw) : encryptedCache;
-      await setCacheItem("relPersonPlace", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
-      setRelsPersonPlace(allDecrypted);
+      const cacheRelsPersonPlace = await getCacheItemDefaultValue("relPersonPlace", []);
+      if (newRelsPersonPlace.length) {
+        await setRelsPersonPlace(mergeItems(cacheRelsPersonPlace, newRelsPersonPlace));
+      } else {
+        await setRelsPersonPlace(cacheRelsPersonPlace);
+      }
     } else if (newRelsPersonPlace.length) {
-      setRelsPersonPlace((prev) => mergeItems(prev, newRelsPersonPlace));
-      const encryptedCache = await getCacheItemDefaultValue("relPersonPlace", []);
-      await setCacheItem("relPersonPlace", mergeItems(encryptedCache, newRelsPersonPlaceRaw));
+      await setRelsPersonPlace((latestRelsPersonPlace) => mergeItems(latestRelsPersonPlace, newRelsPersonPlace));
     }
 
     let newTerritoryObservations = [];
-    let newTerritoryObservationsRaw = [];
     if (stats.territoryObservations > 0) {
       setLoadingText("Chargement des observations de territoire");
       async function loadObservations(page = 0) {
@@ -553,7 +523,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/territory-observation", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newTerritoryObservationsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritoryObservations.push(...decryptedData);
@@ -565,19 +534,17 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("territory-observation", []);
-      const mergedEncrypted = newTerritoryObservationsRaw.length ? mergeItems(encryptedCache, newTerritoryObservationsRaw) : encryptedCache;
-      await setCacheItem("territory-observation", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "territoryObservations" })))).filter((e) => e);
-      setTerritoryObservations(allDecrypted);
+      const cacheTerritoryObservations = await getCacheItemDefaultValue("territory-observation", []);
+      if (newTerritoryObservations.length) {
+        await setTerritoryObservations(mergeItems(cacheTerritoryObservations, newTerritoryObservations));
+      } else {
+        await setTerritoryObservations(cacheTerritoryObservations);
+      }
     } else if (newTerritoryObservations.length) {
-      setTerritoryObservations((prev) => mergeItems(prev, newTerritoryObservations));
-      const encryptedCache = await getCacheItemDefaultValue("territory-observation", []);
-      await setCacheItem("territory-observation", mergeItems(encryptedCache, newTerritoryObservationsRaw));
+      await setTerritoryObservations((latestTerritoryObservations) => mergeItems(latestTerritoryObservations, newTerritoryObservations));
     }
 
     let newComments = [];
-    let newCommentsRaw = [];
     if (stats.comments > 0) {
       setLoadingText("Chargement des commentaires");
       async function loadComments(page = 0) {
@@ -585,7 +552,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           return API.getAbortable({ path: "/comment", query: { ...query, page: String(page) } });
         });
         if (error) return resetLoaderOnError();
-        newCommentsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "comments" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newComments.push(...decryptedData);
@@ -597,15 +563,14 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     if (isStartingInitialLoad) {
-      const encryptedCache = await getCacheItemDefaultValue("comment", []);
-      const mergedEncrypted = newCommentsRaw.length ? mergeItems(encryptedCache, newCommentsRaw) : encryptedCache;
-      await setCacheItem("comment", mergedEncrypted);
-      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "comments" })))).filter((e) => e);
-      setComments(allDecrypted);
+      const cacheComments = await getCacheItemDefaultValue("comment", []);
+      if (newComments.length) {
+        await setComments(mergeItems(cacheComments, newComments));
+      } else {
+        await setComments(cacheComments);
+      }
     } else if (newComments.length) {
-      setComments((prev) => mergeItems(prev, newComments));
-      const encryptedCache = await getCacheItemDefaultValue("comment", []);
-      await setCacheItem("comment", mergeItems(encryptedCache, newCommentsRaw));
+      await setComments((latestComments) => mergeItems(latestComments, newComments));
     }
 
     let newConsultations = [];
