@@ -296,7 +296,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     personsObject[consultation.person].interactions.push(consultation.dueAt);
     personsObject[consultation.person].interactions.push(consultation.createdAt);
     personsObject[consultation.person].interactions.push(consultation.completedAt);
-    const consultationIsVisibleByMe = consultation.onlyVisibleBy.length === 0 || consultation.onlyVisibleBy.includes(user._id);
+    const consultationIsVisibleByMe = consultation.onlyVisibleBy?.length === 0 || consultation.onlyVisibleBy?.includes(user._id);
     for (const comment of consultation.comments || []) {
       personsObject[consultation.person].interactions.push(comment.date);
       if (!consultationIsVisibleByMe) continue;
