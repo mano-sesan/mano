@@ -17,6 +17,7 @@ export interface RencontreInstance {
 
   observation?: UUIDV4;
   comment?: string;
+  _pendingSync?: boolean;
 }
 
 export interface ReadyToEncryptRencontreInstance {

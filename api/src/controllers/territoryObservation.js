@@ -17,6 +17,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
+        _id: z.optional(z.string().regex(looseUuidRegex)),
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
       }).parse(req.body);
@@ -26,6 +27,7 @@ router.post(
       return next(error);
     }
     const newObs = {
+      _id: req.body._id || undefined,
       organisation: req.user.organisation,
       encrypted: req.body.encrypted,
       encryptedEntityKey: req.body.encryptedEntityKey,
