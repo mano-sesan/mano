@@ -29,9 +29,10 @@ function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeams
 
 /**
  * V2 version of itemsForStatsSelector.
- * Adds support for personType: "modified" | "followed" | "created"
+ * Adds support for personType: "all" | "modified" | "followed" | "created"
  *
- * - "modified" (Toutes les personnes): same as V1 personsUpdated logic
+ * - "all" (Toutes les personnes): all persons assigned to a selected team during the period, regardless of interactions
+ * - "modified" (Personnes mises à jour): same as V1 personsUpdated logic
  * - "followed" (Personnes suivies): excludes interactions during out-of-active-list or out-of-selected-teams periods
  * - "created" (Nouvelles personnes): followedSince in period OR first assignment to a selected team during period
  */
@@ -43,7 +44,7 @@ export const itemsForStatsV2Selector = ({
   allPersons,
   teams,
   territories,
-  personType = "modified",
+  personType = "all",
 }) => {
   const relativeFilters = [
     "startFollowBySelectedTeamDuringPeriod",
@@ -193,8 +194,11 @@ export const itemsForStatsV2Selector = ({
     });
 
     if (personIsInAssignedTeamDuringPeriod) {
-      if (personType === "modified") {
-        // "Toutes les personnes" = same as V1 personsUpdated
+      if (personType === "all") {
+        // "Toutes les personnes" = all persons assigned to a selected team during the period
+        personsForStats[person._id] = person;
+      } else if (personType === "modified") {
+        // "Personnes mises à jour" = same as V1 personsUpdated
         if (noPeriodSelected) {
           personsForStats[person._id] = person;
         } else {

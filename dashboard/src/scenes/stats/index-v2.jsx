@@ -59,7 +59,8 @@ const tabsV2 = [
 ];
 
 const personTypeOptions = [
-  { label: "Toutes les personnes", value: "modified" },
+  { label: "Toutes les personnes", value: "all" },
+  { label: "Personnes mises à jour", value: "modified" },
   { label: "Personnes suivies", value: "followed" },
   { label: "Nouvelles personnes", value: "created" },
 ];
@@ -105,7 +106,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const allServices = useMemo(() => groupedServices.reduce((services, group) => [...services, ...group.services], []), [groupedServices]);
 
   const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
-  const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "modified");
+  const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "all");
   const [filterPersons, setFilterPersons] = useLocalStorage("stats-v2-filterPersons", []);
   const [filterObs, setFilterObs] = useLocalStorage("stats-filterObs-defaultEverybody", []);
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("stats-viewAllOrganisationData", teams.length === 1);
@@ -692,10 +693,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
           <SelectCustom
             options={personTypeOptions}
             value={personTypeOptions.find((o) => o.value === personType) || personTypeOptions[0]}
-            onChange={(option) => setPersonType(option?.value || "modified")}
+            onChange={(option) => setPersonType(option?.value || "all")}
             name="person-type-v2"
             inputId="person-type-v2"
-            className="tw-text-sm tw-w-52"
+            className="tw-text-sm tw-w-56"
             formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
             isDisabled={filtersDisabled}
           />
@@ -706,22 +707,28 @@ const StatsV2 = ({ onSwitchVersion }) => {
                 <b>une des équipes sélectionnées pendant la période sélectionnée</b> sont prises en compte.
               </p>
               <div>
-                <h4 className="tw-text-lg">Toutes les personnes</h4>
+                <h4 className="tw-text-base !tw-mb-1">Toutes les personnes</h4>
                 <p>
-                  Toutes les personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au
-                  moment de la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées :
-                  création, modification, commentaire, action, rencontre, passage, lieu fréquenté, consultation, traitement.
+                  Toutes les personnes assignées à au moins une des équipes sélectionnées pendant la période, qu'il y ait eu une interaction ou non.
                 </p>
               </div>
               <div>
-                <h4 className="tw-text-lg">Personnes suivies</h4>
+                <h4 className="tw-text-base !tw-mb-1">Personnes mises à jour</h4>
+                <p>
+                  Personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au moment de
+                  la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées : création,
+                  modification, commentaire, action, rencontre, passage, lieu fréquenté, consultation, traitement.
+                </p>
+              </div>
+              <div>
+                <h4 className="tw-text-base !tw-mb-1">Personnes suivies</h4>
                 <p>
                   Personnes pour lesquelles il y a eu au moins une interaction durant la période, en excluant les interactions réalisées lorsque la
                   personne était sortie de file active ou en dehors des équipes sélectionnées.
                 </p>
               </div>
               <div>
-                <h4 className="tw-text-lg">Nouvelles personnes</h4>
+                <h4 className="tw-text-base !tw-mb-1">Nouvelles personnes</h4>
                 <p>
                   Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont le suivi a commencé durant la période
                   sélectionnée.
@@ -962,140 +969,140 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
       {/* Tab content */}
       <StatsV2Provider>
-      <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
-        {activeTab === "Général" && (
-          <GeneralStats
-            personsCreated={personsForStats}
-            personsUpdated={personsForStats}
-            rencontres={rencontresFilteredByPersons}
-            passages={passagesFilteredByPersons}
-            actions={actionsWithDetailedGroupAndCategories}
-            personsUpdatedWithActions={personsUpdatedWithActions}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            v2
-          />
-        )}
-        {!!organisation.receptionEnabled && activeTab === "Services" && (
-          <ServicesStats
-            period={period}
-            teamIds={selectedTeams.map((e) => e?._id)}
-            v2
-            servicesGroupFilter={servicesGroupFilter}
-            setServicesGroupFilter={setServicesGroupFilter}
-            servicesFilter={servicesFilter}
-            setServicesFilter={setServicesFilter}
-          />
-        )}
-        {activeTab === "Actions" && (
-          <ActionsStats
-            actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
-            setActionsStatuses={setActionsStatuses}
-            actionsStatuses={actionsStatuses}
-            setActionsCategoriesGroups={setActionsCategoriesGroups}
-            actionsCategoriesGroups={actionsCategoriesGroups}
-            groupsCategories={groupsCategories}
-            setActionsCategories={setActionsCategories}
-            actionsCategories={actionsCategories}
-            filterableActionsCategories={filterableActionsCategories}
-            personsUpdatedWithActions={personsUpdatedWithActions}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            v2
-          />
-        )}
-        {activeTab === "Personnes" && (
-          <PersonStats
-            title="personnes"
-            firstBlockHelp={`Nombre de personnes comptabilisées selon le filtre sélectionné.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            personsForStats={personsForStats}
-            personFields={personFields}
-            flattenedCustomFieldsPersons={flattenedCustomFieldsPersons}
-            evolutivesStatsActivated={evolutivesStatsActivated}
-            period={period}
-            evolutiveStatsIndicators={evolutiveStatsIndicators}
-            setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
-            viewAllOrganisationData={viewAllOrganisationData}
-            selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
-            v2
-          />
-        )}
-        {!!organisation.passagesEnabled && activeTab === "Passages" && (
-          <PassagesStats
-            passages={passages}
-            personFields={personFields}
-            personsInPassagesBeforePeriod={personsInPassagesBeforePeriod}
-            personsUpdated={personsForStats}
-            personsWithPassages={personsWithPassages}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            v2
-          />
-        )}
-        {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
-          <RencontresStats
-            rencontres={rencontresFilteredByPersons}
-            territories={territories}
-            personFields={personFields}
-            personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
-            personsUpdated={personsForStats}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            selectedTerritories={rencontresTerritories}
-            setSelectedTerritories={setRencontresTerritories}
-            isTerritoriesEnabled={!!organisation.territoriesEnabled}
-            v2
-          />
-        )}
-        {activeTab === "Observations" && (
-          <ObservationsStats
-            territories={territories}
-            filterObs={filterObs}
-            setFilterObs={setFilterObs}
-            observations={observations}
-            customFieldsObs={customFieldsObs}
-            period={period}
-            selectedTeams={selectedTeams}
-            v2
-          />
-        )}
-        {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
-        {activeTab === "Consultations" && (
-          <ConsultationsStats
-            consultations={consultationsFilteredByStatus}
-            personsUpdated={personsForStats}
-            personsWithConsultations={personsWithConsultations}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            consultationsStatuses={consultationsStatuses}
-            setConsultationsStatuses={setConsultationsStatuses}
-            consultationsTypes={consultationsTypes}
-            setConsultationsTypes={setConsultationsTypes}
-            v2
-          />
-        )}
-        {activeTab === "Dossiers médicaux" && (
-          <MedicalFilesStats
-            title="personnes"
-            personsUpdated={personsForStats}
-            personsForStats={personsForStats}
-            customFieldsMedicalFile={customFieldsMedicalFile}
-            personFields={personFields}
-            filterBase={filterPersonsWithAllFields}
-            filterPersons={filterPersons}
-            setFilterPersons={setFilterPersons}
-            v2
-          />
-        )}
-      </div>
+        <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
+          {activeTab === "Général" && (
+            <GeneralStats
+              personsCreated={personsForStats}
+              personsUpdated={personsForStats}
+              rencontres={rencontresFilteredByPersons}
+              passages={passagesFilteredByPersons}
+              actions={actionsWithDetailedGroupAndCategories}
+              personsUpdatedWithActions={personsUpdatedWithActions}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              v2
+            />
+          )}
+          {!!organisation.receptionEnabled && activeTab === "Services" && (
+            <ServicesStats
+              period={period}
+              teamIds={selectedTeams.map((e) => e?._id)}
+              v2
+              servicesGroupFilter={servicesGroupFilter}
+              setServicesGroupFilter={setServicesGroupFilter}
+              servicesFilter={servicesFilter}
+              setServicesFilter={setServicesFilter}
+            />
+          )}
+          {activeTab === "Actions" && (
+            <ActionsStats
+              actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
+              setActionsStatuses={setActionsStatuses}
+              actionsStatuses={actionsStatuses}
+              setActionsCategoriesGroups={setActionsCategoriesGroups}
+              actionsCategoriesGroups={actionsCategoriesGroups}
+              groupsCategories={groupsCategories}
+              setActionsCategories={setActionsCategories}
+              actionsCategories={actionsCategories}
+              filterableActionsCategories={filterableActionsCategories}
+              personsUpdatedWithActions={personsUpdatedWithActions}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              v2
+            />
+          )}
+          {activeTab === "Personnes" && (
+            <PersonStats
+              title="personnes"
+              firstBlockHelp={`Nombre de personnes comptabilisées selon le filtre sélectionné.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              personsForStats={personsForStats}
+              personFields={personFields}
+              flattenedCustomFieldsPersons={flattenedCustomFieldsPersons}
+              evolutivesStatsActivated={evolutivesStatsActivated}
+              period={period}
+              evolutiveStatsIndicators={evolutiveStatsIndicators}
+              setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
+              viewAllOrganisationData={viewAllOrganisationData}
+              selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
+              v2
+            />
+          )}
+          {!!organisation.passagesEnabled && activeTab === "Passages" && (
+            <PassagesStats
+              passages={passages}
+              personFields={personFields}
+              personsInPassagesBeforePeriod={personsInPassagesBeforePeriod}
+              personsUpdated={personsForStats}
+              personsWithPassages={personsWithPassages}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              v2
+            />
+          )}
+          {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
+            <RencontresStats
+              rencontres={rencontresFilteredByPersons}
+              territories={territories}
+              personFields={personFields}
+              personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
+              personsUpdated={personsForStats}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              selectedTerritories={rencontresTerritories}
+              setSelectedTerritories={setRencontresTerritories}
+              isTerritoriesEnabled={!!organisation.territoriesEnabled}
+              v2
+            />
+          )}
+          {activeTab === "Observations" && (
+            <ObservationsStats
+              territories={territories}
+              filterObs={filterObs}
+              setFilterObs={setFilterObs}
+              observations={observations}
+              customFieldsObs={customFieldsObs}
+              period={period}
+              selectedTeams={selectedTeams}
+              v2
+            />
+          )}
+          {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
+          {activeTab === "Consultations" && (
+            <ConsultationsStats
+              consultations={consultationsFilteredByStatus}
+              personsUpdated={personsForStats}
+              personsWithConsultations={personsWithConsultations}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              consultationsStatuses={consultationsStatuses}
+              setConsultationsStatuses={setConsultationsStatuses}
+              consultationsTypes={consultationsTypes}
+              setConsultationsTypes={setConsultationsTypes}
+              v2
+            />
+          )}
+          {activeTab === "Dossiers médicaux" && (
+            <MedicalFilesStats
+              title="personnes"
+              personsUpdated={personsForStats}
+              personsForStats={personsForStats}
+              customFieldsMedicalFile={customFieldsMedicalFile}
+              personFields={personFields}
+              filterBase={filterPersonsWithAllFields}
+              filterPersons={filterPersons}
+              setFilterPersons={setFilterPersons}
+              v2
+            />
+          )}
+        </div>
       </StatsV2Provider>
       {/* HACK: this last div is because Chrome crop the end of the page - I didn't find any better solution */}
       <div className="printonly tw-h-screen" aria-hidden />

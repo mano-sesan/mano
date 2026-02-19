@@ -192,7 +192,7 @@ describe("isDateInOutOfActiveListPeriod", () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// itemsForStatsV2Selector - les trois modes de sélection des personnes
+// itemsForStatsV2Selector - les quatre modes de sélection des personnes
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TEAM_A_ID = "team-a-id";
@@ -244,8 +244,59 @@ function callSelector(persons: any[], personType: string, period = testPeriod) {
 }
 
 describe("itemsForStatsV2Selector", () => {
-  // ─── Mode "modified" (Toutes les personnes) ───
-  describe("mode 'modified' (Toutes les personnes)", () => {
+  // ─── Mode "all" (Toutes les personnes) ───
+  describe("mode 'all' (Toutes les personnes)", () => {
+    test("inclut une personne assignée à l'équipe pendant la période, même sans interaction", () => {
+      const person = makeBasePerson({
+        _id: "p1",
+        interactions: [], // aucune interaction
+      });
+      const result = callSelector([person], "all");
+      expect(result.personsForStats).toHaveLength(1);
+      expect(result.personsForStats[0]._id).toBe("p1");
+    });
+
+    test("inclut une personne assignée à l'équipe même si hors file active", () => {
+      const person = makeBasePerson({
+        _id: "p1",
+        outOfActiveList: true,
+        interactions: [],
+        history: [
+          {
+            date: "2025-03-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+        ],
+      });
+      const result = callSelector([person], "all");
+      expect(result.personsForStats).toHaveLength(1);
+    });
+
+    test("exclut une personne qui n'est pas assignée à l'équipe sélectionnée pendant la période", () => {
+      const person = makeBasePerson({
+        _id: "p1",
+        interactions: ["2025-06-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: isoDate("2024-12-01") }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: isoDate("2024-12-01") }],
+        },
+      });
+      const result = callSelector([person], "all");
+      expect(result.personsForStats).toHaveLength(0);
+    });
+
+    test("inclut toutes les personnes quand aucune période n'est sélectionnée", () => {
+      const persons = [
+        makeBasePerson({ _id: "p1", interactions: [] }),
+        makeBasePerson({ _id: "p2", interactions: [] }),
+      ];
+      const result = callSelector(persons, "all", { startDate: null, endDate: null });
+      expect(result.personsForStats).toHaveLength(2);
+    });
+  });
+
+  // ─── Mode "modified" (Personnes mises à jour) ───
+  describe("mode 'modified' (Personnes mises à jour)", () => {
     test("inclut une personne avec une interaction dans la période", () => {
       const person = makeBasePerson({
         _id: "p1",
@@ -434,13 +485,14 @@ describe("itemsForStatsV2Selector", () => {
   });
 
   // ─── Comparaison entre les modes ───
-  describe("comparaison des trois modes sur un même jeu de données", () => {
+  describe("comparaison des quatre modes sur un même jeu de données", () => {
     // Scénario réaliste :
-    // - personA : suivie normalement, interaction en mars 2025 → incluse dans les 3 modes si nouvelle
+    // - personA : suivie normalement, interaction en mars 2025 → incluse dans tous les modes sauf "created" si pas nouvelle
     // - personB : sortie de file active en février, interaction en avril → exclue de "followed"
     // - personC : a quitté l'équipe A en février, interaction en mai → exclue de "followed"
     // - personD : créée en 2024, dans l'équipe depuis 2024, interaction en mars 2025 → exclue de "created"
     // - personE : dans l'équipe depuis mars 2025 (nouvelle), interaction en avril → incluse dans "created"
+    // - personF : dans l'équipe, aucune interaction → incluse uniquement dans "all"
 
     const personA = makeBasePerson({
       _id: "personA",
@@ -487,19 +539,36 @@ describe("itemsForStatsV2Selector", () => {
       },
     });
 
-    const allPersons = [personA, personB, personC, personD, personE];
+    const personF = makeBasePerson({
+      _id: "personF",
+      followedSince: "2024-06-01",
+      interactions: [], // aucune interaction
+    });
+
+    const allPersons = [personA, personB, personC, personD, personE, personF];
+
+    test("mode 'all' inclut toutes les personnes assignées à l'équipe pendant la période", () => {
+      const result = callSelector(allPersons, "all");
+      const ids = result.personsForStats.map((p: any) => p._id).sort();
+      // personC exclue car elle a quitté l'équipe A en février 2025 (avant la période non, mais son assignedTeamsPeriods
+      // indique isoEndDate = 2025-02-01, donc elle n'est plus dans l'équipe pendant la majeure partie de la période)
+      // En fait, personC a une période [2024-06-01, 2025-02-01) pour l'équipe A, ce qui chevauche la période 2025
+      // Donc elle devrait être incluse par filterPersonByAssignedTeamDuringQueryPeriod
+      expect(ids).toEqual(["personA", "personB", "personC", "personD", "personE", "personF"]);
+    });
 
     test("mode 'modified' inclut toutes les personnes avec une interaction dans la période", () => {
       const result = callSelector(allPersons, "modified");
       const ids = result.personsForStats.map((p: any) => p._id).sort();
-      // Toutes ont une interaction dans la période
+      // Toutes sauf personF (aucune interaction)
       expect(ids).toEqual(["personA", "personB", "personC", "personD", "personE"]);
     });
 
     test("mode 'followed' exclut les personnes hors file active ou hors équipe au moment de l'interaction", () => {
       const result = callSelector(allPersons, "followed");
       const ids = result.personsForStats.map((p: any) => p._id).sort();
-      // personB exclue (hors file active), personC exclue (hors équipe A)
+      // personB exclue (hors file active), personC exclue (hors équipe A au moment de l'interaction)
+      // personF exclue (aucune interaction)
       expect(ids).toEqual(["personA", "personD", "personE"]);
     });
 
@@ -508,7 +577,7 @@ describe("itemsForStatsV2Selector", () => {
       const ids = result.personsForStats.map((p: any) => p._id).sort();
       // personA : followedSince en 2025 → nouvelle
       // personE : première assignation à l'équipe A en mars 2025 → nouvelle
-      // personB, personC, personD : créées/assignées avant la période → pas nouvelles
+      // personB, personC, personD, personF : créées/assignées avant la période → pas nouvelles
       expect(ids).toEqual(["personA", "personE"]);
     });
   });
