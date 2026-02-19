@@ -87,6 +87,12 @@ export const itemsForStatsV2Selector = ({
 
   const personsForStats = {};
   const personsUpdatedWithActions = {};
+  // Counts for the 4 person types (used by Général tab)
+  let countAll = 0;
+  let countModified = 0;
+  let countFollowed = 0;
+  let countCreated = 0;
+  let countFollowedWithActions = 0;
   const actionsFilteredByPersons = {};
   const consultationsFilteredByPersons = [];
   const personsWithConsultations = {};
@@ -193,74 +199,77 @@ export const itemsForStatsV2Selector = ({
       filterByStartFollowBySelectedTeamDuringPeriod,
     });
 
+    let isFollowed = false;
+
     if (personIsInAssignedTeamDuringPeriod) {
-      if (personType === "all") {
-        // "Toutes les personnes" = all persons assigned to a selected team during the period
-        personsForStats[person._id] = person;
-      } else if (personType === "modified") {
-        // "Personnes mises à jour" = same as V1 personsUpdated
-        if (noPeriodSelected) {
-          personsForStats[person._id] = person;
-        } else {
-          for (const date of person.interactions) {
-            if (date < defaultIsoDates.isoStartDate) continue;
-            if (date >= defaultIsoDates.isoEndDate) continue;
-            personsForStats[person._id] = person;
-            break;
-          }
+      // Always compute all 4 person type counts (for Général tab)
+      // 1. "all" — always included
+      countAll++;
+
+      // 2. "modified" — has any interaction in period
+      let isModified = false;
+      if (noPeriodSelected) {
+        isModified = true;
+      } else {
+        for (const date of person.interactions) {
+          if (date < defaultIsoDates.isoStartDate) continue;
+          if (date >= defaultIsoDates.isoEndDate) continue;
+          isModified = true;
+          break;
         }
-      } else if (personType === "followed") {
-        // "Personnes suivies" = exclude interactions during out-of-active-list periods
-        // AND exclude interactions when person was not assigned to any of the selected teams
-        if (noPeriodSelected) {
-          personsForStats[person._id] = person;
-        } else {
-          const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);
-          let hasValidInteraction = false;
-          for (const date of person.interactions) {
-            if (date < defaultIsoDates.isoStartDate) continue;
-            if (date >= defaultIsoDates.isoEndDate) continue;
-            const isoDate = dayjsInstance(date).startOf("day").toISOString();
-            // Check not in out-of-active-list period
-            if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
-            // Check person was assigned to a selected team at this date
-            if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData))
-              continue;
-            hasValidInteraction = true;
-            break;
-          }
-          if (hasValidInteraction) {
-            personsForStats[person._id] = person;
-          }
+      }
+      if (isModified) countModified++;
+
+      // 3. "followed" — has valid interaction (not out-of-active-list, in assigned team)
+      if (noPeriodSelected) {
+        isFollowed = true;
+      } else {
+        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);
+        for (const date of person.interactions) {
+          if (date < defaultIsoDates.isoStartDate) continue;
+          if (date >= defaultIsoDates.isoEndDate) continue;
+          const isoDate = dayjsInstance(date).startOf("day").toISOString();
+          if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
+          if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData))
+            continue;
+          isFollowed = true;
+          break;
         }
-      } else if (personType === "created") {
-        // "Nouvelles personnes" = followedSince in period OR first assignment to a selected team during period
-        if (noPeriodSelected) {
-          personsForStats[person._id] = person;
-        } else {
-          let isNew = false;
-          // Check followedSince in period
-          if (createdDate >= defaultIsoDates.isoStartDate && createdDate < defaultIsoDates.isoEndDate) {
-            isNew = true;
-          }
-          // Check first assignment to a selected team during period
-          if (!isNew && person.assignedTeamsPeriods) {
-            for (const [teamId, teamPeriods] of Object.entries(person.assignedTeamsPeriods)) {
-              if (teamId === "all") continue;
-              if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
-              if (teamPeriods.length > 0) {
-                const firstPeriodStart = teamPeriods[0].isoStartDate;
-                if (firstPeriodStart >= defaultIsoDates.isoStartDate && firstPeriodStart < defaultIsoDates.isoEndDate) {
-                  isNew = true;
-                  break;
-                }
+      }
+      if (isFollowed) countFollowed++;
+
+      // 4. "created" — followedSince in period OR first assignment to a selected team during period
+      let isCreated = false;
+      if (noPeriodSelected) {
+        isCreated = true;
+      } else {
+        if (createdDate >= defaultIsoDates.isoStartDate && createdDate < defaultIsoDates.isoEndDate) {
+          isCreated = true;
+        }
+        if (!isCreated && person.assignedTeamsPeriods) {
+          for (const [teamId, teamPeriods] of Object.entries(person.assignedTeamsPeriods)) {
+            if (teamId === "all") continue;
+            if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
+            if (teamPeriods.length > 0) {
+              const firstPeriodStart = teamPeriods[0].isoStartDate;
+              if (firstPeriodStart >= defaultIsoDates.isoStartDate && firstPeriodStart < defaultIsoDates.isoEndDate) {
+                isCreated = true;
+                break;
               }
             }
           }
-          if (isNew) {
-            personsForStats[person._id] = person;
-          }
         }
+      }
+      if (isCreated) countCreated++;
+
+      // Populate personsForStats based on the selected personType
+      if (
+        personType === "all" ||
+        (personType === "modified" && isModified) ||
+        (personType === "followed" && isFollowed) ||
+        (personType === "created" && isCreated)
+      ) {
+        personsForStats[person._id] = person;
       }
     }
 
@@ -292,6 +301,7 @@ export const itemsForStatsV2Selector = ({
       actionsFilteredByPersons[action._id] = action;
       if (personsForStats[person._id]) personsUpdatedWithActions[person._id] = person;
     }
+    if (isFollowed && numberOfActions > 0) countFollowedWithActions++;
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {
         delete personsForStats[person._id];
@@ -448,6 +458,8 @@ export const itemsForStatsV2Selector = ({
   return {
     personsForStats: Object.values(personsForStats),
     personsUpdatedWithActions: Object.keys(personsUpdatedWithActions).length,
+    countFollowedWithActions,
+    personTypeCounts: { all: countAll, modified: countModified, followed: countFollowed, created: countCreated },
     actionsFilteredByPersons: Object.values(actionsFilteredByPersons),
     personsWithConsultations: Object.keys(personsWithConsultations).length,
     consultationsFilteredByPersons,

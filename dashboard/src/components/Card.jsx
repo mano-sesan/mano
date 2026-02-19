@@ -4,7 +4,7 @@ import { useStatsContext } from "../scenes/stats/StatsContext";
 
 const Card = ({ title, count, unit, children, countId, dataTestId, help, onClick = null }) => {
   dataTestId = dataTestId || title.toLocaleLowerCase().split(" ").join("-");
-  const { v2 } = useStatsContext();
+  const { isStatsV2 } = useStatsContext();
 
   const Component = onClick ? "button" : "div";
   const props = onClick ? { onClick, type: "button", name: "card", className: "button-cancel" } : {};
@@ -15,10 +15,10 @@ const Card = ({ title, count, unit, children, countId, dataTestId, help, onClick
           <div
             className={[
               "tw-w-full tw-flex tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black tw-bg-[#707597] print:tw-bg-white tw-rounded-t-2xl",
-              v2 ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
+              isStatsV2 ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
             ].join(" ")}
           >
-            {v2 ? (
+            {isStatsV2 ? (
               <>
                 <div className="tw-flex-1">{title}</div>
                 <div className="tw-flex-none -tw-mt-1">{!!help && <HelpButtonAndModal questionMarkColor="violet" title={title} help={help} />}</div>

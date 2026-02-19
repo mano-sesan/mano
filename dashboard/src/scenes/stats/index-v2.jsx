@@ -176,6 +176,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const {
     personsForStats,
     personsUpdatedWithActions,
+    countFollowedWithActions,
+    personTypeCounts,
     actionsFilteredByPersons,
     personsWithConsultations,
     consultationsFilteredByPersons,
@@ -591,7 +593,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   useRestoreScrollPosition();
 
   const filtersDisabled = ["Services", "Observations", "Comptes-rendus"].includes(activeTab);
-  const personTypeDisabled = !["Général", "Personnes", "Dossiers médicaux"].includes(activeTab);
+  const personTypeDisabled = !["Personnes", "Dossiers médicaux"].includes(activeTab);
   const evolutifDisabled = activeTab !== "Personnes";
 
   return (
@@ -977,11 +979,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
         <div className="tw-pb-[75vh] tw-mt-6 print:tw-flex print:tw-flex-col print:tw-px-8 print:tw-py-4">
           {activeTab === "Général" && (
             <GeneralStats
-              personsCreated={personsForStats}
-              personsUpdated={personsForStats}
+              personTypeCounts={personTypeCounts}
               rencontres={rencontresFilteredByPersons}
               passages={passagesFilteredByPersons}
               actions={actionsWithDetailedGroupAndCategories}
+              countFollowedWithActions={countFollowedWithActions}
               personsUpdatedWithActions={personsUpdatedWithActions}
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
@@ -1056,7 +1058,6 @@ const StatsV2 = ({ onSwitchVersion }) => {
               territories={territories}
               personFields={personFields}
               personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
-              personsUpdated={personsForStats}
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}

@@ -580,5 +580,52 @@ describe("itemsForStatsV2Selector", () => {
       // personB, personC, personD, personF : créées/assignées avant la période → pas nouvelles
       expect(ids).toEqual(["personA", "personE"]);
     });
+
+    test("personTypeCounts contient les 4 compteurs calculés en une seule passe", () => {
+      // On peut utiliser n'importe quel mode, les compteurs sont toujours calculés
+      const result = callSelector(allPersons, "all");
+      expect(result.personTypeCounts).toEqual({
+        all: 6, // toutes les 6 personnes sont assignées à l'équipe pendant la période
+        modified: 5, // toutes sauf personF (aucune interaction)
+        followed: 3, // personA, personD, personE (exclut personB hors file active, personC hors équipe, personF sans interaction)
+        created: 2, // personA (followedSince en 2025), personE (première assignation en 2025)
+      });
+    });
+
+  });
+
+  // ─── countFollowedWithActions ───
+  describe("countFollowedWithActions", () => {
+    test("compte uniquement les personnes 'followed' ayant au moins une action", () => {
+      const personWithAction = makeBasePerson({
+        _id: "pWithAction",
+        followedSince: "2024-01-01",
+        interactions: ["2025-03-15T10:00:00.000Z"],
+        actions: [{ _id: "a1", teams: [TEAM_A_ID], dueAt: "2025-03-15T10:00:00.000Z" }],
+      });
+      const personWithoutAction = makeBasePerson({
+        _id: "pWithoutAction",
+        followedSince: "2024-01-01",
+        interactions: ["2025-03-15T10:00:00.000Z"],
+        actions: [],
+      });
+      // Personne hors file active avec une action → ne doit PAS compter
+      const personOutOfActiveListWithAction = makeBasePerson({
+        _id: "pOutWithAction",
+        followedSince: "2024-01-01",
+        outOfActiveList: true,
+        interactions: ["2025-03-15T10:00:00.000Z"],
+        actions: [{ _id: "a2", teams: [TEAM_A_ID], dueAt: "2025-03-15T10:00:00.000Z" }],
+        history: [
+          {
+            date: "2025-01-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+        ],
+      });
+      const result = callSelector([personWithAction, personWithoutAction, personOutOfActiveListWithAction], "all");
+      // Seule personWithAction est "followed" ET a une action
+      expect(result.countFollowedWithActions).toBe(1);
+    });
   });
 });

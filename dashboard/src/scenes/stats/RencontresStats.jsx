@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { CustomResponsivePie } from "./Charts";
 import { getPieData } from "./utils";
-import Filters from "../../components/Filters";
+import Filters, { filterItem } from "../../components/Filters";
 import { Block } from "./Blocks";
 import { SelectedPersonsModal } from "./PersonsStats";
 import { userState } from "../../atoms/auth";
@@ -18,7 +18,6 @@ const RencontresStats = ({
   rencontres,
   territories,
   personFields,
-  personsUpdated,
   personsInRencontresBeforePeriod,
   // filter by persons
   filterBase,
@@ -36,19 +35,9 @@ const RencontresStats = ({
   const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector);
   // const [selectedTerritories, setSelectedTerritories] = useState([]);
   const user = useAtomValue(userState);
-  const filterTitle = useMemo(() => {
-    if (!filterPersons.length) return `Filtrer par personnes suivies :`;
-    if (personsUpdated.length === 1) return `Filtrer par personnes suivies (${personsUpdated.length} personne concernée par le filtre actuel) :`;
-    return `Filtrer par personnes suivies (${personsUpdated.length} personnes concernées par le filtre actuel) :`;
-  }, [filterPersons, personsUpdated.length]);
+  const filterTitle = `Filtrer par personnes suivies :`;
 
-  const personObject = useMemo(() => {
-    const personObject = {};
-    for (const p of personsUpdated) {
-      personObject[p._id] = p;
-    }
-    return personObject;
-  }, [personsUpdated]);
+  const matchesPersonFilter = useMemo(() => filterItem(filterPersons), [filterPersons]);
 
   const { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons } = useMemo(() => {
     const rencontresGroupedByTerritories = {};
@@ -63,14 +52,10 @@ const RencontresStats = ({
     for (const r of rencontres) {
       const territoryKey = r.territoryObject?.name || NO_TERRITORY_KEY;
       if (isFilteredByTerritories && !territoriesObject[territoryKey]) continue;
-      if (filterPersons.length && !personObject[r.person]) continue;
+      if (filterPersons.length && !matchesPersonFilter(allPersonsObject[r.person] || {})) continue;
 
       if (!filteredPersonsObject[r.person]) {
-        if (filterPersons.length) {
-          filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
-        } else {
-          filteredPersonsObject[r.person] = { ...allPersonsObject[r.person], territories: [] };
-        }
+        filteredPersonsObject[r.person] = { ...allPersonsObject[r.person], territories: [] };
       }
       filteredPersonsObject[r.person].territories.push(territoryKey);
 
@@ -95,7 +80,7 @@ const RencontresStats = ({
     const filteredPersons = Object.values(filteredPersonsObject);
     const filteredRencontresByTerritoriesUniquePersons = Object.values(rencontresGroupedByTerritoriesUniquePersonsObject).flat();
     return { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons };
-  }, [rencontres, selectedTerritories, personObject, filterPersons]);
+  }, [rencontres, selectedTerritories, matchesPersonFilter, filterPersons, allPersonsObject]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {
