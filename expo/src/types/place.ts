@@ -11,6 +11,7 @@ export interface PlaceInstance {
   user: UUIDV4;
 
   name?: string;
+  _pendingSync?: boolean;
 }
 
 export interface ReadyToEncryptPlaceInstance {
@@ -40,4 +41,5 @@ export interface RelPersonPlaceInstance {
   place: UUIDV4;
   person: UUIDV4;
   user: UUIDV4;
+  _pendingSync?: boolean;
 }

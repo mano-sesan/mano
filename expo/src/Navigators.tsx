@@ -38,9 +38,14 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
+import { startNetworkListener, stopNetworkListener } from "./services/network";
+import { Directory, Paths } from "expo-file-system";
+import { initQueue, clearQueue } from "./services/offlineQueue";
+import { processQueue, startSyncListener } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
+import OfflineBanner from "./components/OfflineBanner";
 import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
 import DotsIcon from "./icons/DotsIcon";
 import Notifications from "./scenes/Notifications/Notifications";
@@ -68,6 +73,7 @@ import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
+import ConflictResolution from "./scenes/Conflicts/ConflictResolution";
 import { store } from "./store";
 import { resetOrgEncryptionKey } from "./services/encryption";
 
@@ -179,11 +185,18 @@ const App = () => {
   const clearAllRef = useRef(false);
 
   useEffect(() => {
+    // Initialize offline infrastructure
+    initQueue();
+    startNetworkListener();
+    const unsubscribeSyncListener = startSyncListener();
+
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
       appStateListener.current = AppState.addEventListener("change", (nextAppState) => {
         if (appState.current.match(/inactive|background/) && nextAppState === "active") {
           if (API.token) API.get({ path: "/check-auth" }); // will force logout if session is expired
+          // Also try to process offline queue on app foreground
+          if (API.token) processQueue().catch(() => {});
           logEvents.logAppVisit();
         } else {
           logEvents.logAppClose();
@@ -202,6 +215,8 @@ const App = () => {
     return () => {
       logEvents.logAppClose();
       appStateListener.current?.remove();
+      stopNetworkListener();
+      unsubscribeSyncListener();
     };
   }, []);
 
@@ -210,6 +225,14 @@ const App = () => {
     AsyncStorage.removeItem("persistent_token");
     resetOrgEncryptionKey();
     if (clearAllRef.current) {
+      clearQueue();
+      // Clean up any pending offline file uploads
+      try {
+        const offlineDir = new Directory(Paths.document, "offline-uploads");
+        if (offlineDir.exists) offlineDir.delete();
+      } catch {
+        /* ignore */
+      }
       await clearCache();
       resetMMKVAndAtoms();
       setLastRefresh(0);
@@ -312,10 +335,13 @@ const App = () => {
               <AppStack.Screen name="PRIVACY" component={Privacy} />
               <AppStack.Screen name="CGU" component={Cgu} />
               <AppStack.Screen name="CHARTE" component={Charte} />
+              {/* Conflicts */}
+              <AppStack.Screen name="CONFLICT_RESOLUTION" component={ConflictResolution} />
             </>
           )}
         </AppStack.Navigator>
         <ProgressBar isLoading={isLoading} loadingText={loadingText} progress={progress} fullScreen={isFullScreen} total={total} />
+        {isLoggedIn && <OfflineBanner />}
         <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>

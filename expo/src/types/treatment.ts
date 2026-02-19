@@ -19,4 +19,5 @@ export interface TreatmentInstance {
   updatedAt: Date;
   deletedAt?: Date;
   history: any[];
+  _pendingSync?: boolean;
 }
