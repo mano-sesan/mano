@@ -47,15 +47,15 @@ import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabsV2 = [
   "Général",
-  "Services",
-  "Actions",
   "Personnes",
+  "Dossiers médicaux",
+  "Actions",
+  "Consultations",
   "Passages",
   "Rencontres",
   "Observations",
+  "Services",
   "Comptes-rendus",
-  "Consultations",
-  "Dossiers médicaux",
 ];
 
 const personTypeOptions = [
@@ -591,6 +591,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   useRestoreScrollPosition();
 
   const filtersDisabled = ["Services", "Observations", "Comptes-rendus"].includes(activeTab);
+  const personTypeDisabled = !["Général", "Personnes", "Dossiers médicaux"].includes(activeTab);
   const evolutifDisabled = activeTab !== "Personnes";
 
   return (
@@ -685,86 +686,90 @@ const StatsV2 = ({ onSwitchVersion }) => {
             preset={preset}
             setPreset={setPreset}
             removePreset={removePreset}
-            v2
+            isStatsV2
           />
         </div>
 
-        <div className="tw-flex tw-items-center tw-shrink-0">
-          <SelectCustom
-            options={personTypeOptions}
-            value={personTypeOptions.find((o) => o.value === personType) || personTypeOptions[0]}
-            onChange={(option) => setPersonType(option?.value || "all")}
-            name="person-type-v2"
-            inputId="person-type-v2"
-            className="tw-text-sm tw-w-56"
-            formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
-            isDisabled={filtersDisabled}
-          />
-          <HelpButtonAndModal title="Personnes comptabilisées dans les statistiques" size="3xl">
-            <div className="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-zinc-700">
-              <p>
-                Ce filtre détermine quelles personnes sont comptabilisées dans les statistiques. Seules les personnes assignées à au moins{" "}
-                <b>une des équipes sélectionnées pendant la période sélectionnée</b> sont prises en compte.
-              </p>
-              <div>
-                <h4 className="tw-text-base !tw-mb-1">Toutes les personnes</h4>
+        {!personTypeDisabled && (
+          <div className="tw-flex tw-items-center tw-shrink-0">
+            <SelectCustom
+              options={personTypeOptions}
+              value={personTypeOptions.find((o) => o.value === personType) || personTypeOptions[0]}
+              onChange={(option) => setPersonType(option?.value || "all")}
+              name="person-type-v2"
+              inputId="person-type-v2"
+              className="tw-text-sm tw-w-56"
+              formatOptionLabel={(option) => <span className="tw-text-sm">{option.label}</span>}
+              isDisabled={personTypeDisabled}
+            />
+            <HelpButtonAndModal title="Personnes comptabilisées dans les statistiques" size="3xl">
+              <div className="tw-flex tw-flex-col tw-gap-4 tw-text-sm tw-text-zinc-700">
                 <p>
-                  Toutes les personnes assignées à au moins une des équipes sélectionnées pendant la période, qu'il y ait eu une interaction ou non.
+                  Ce filtre détermine quelles personnes sont comptabilisées dans les statistiques. Seules les personnes assignées à au moins{" "}
+                  <b>une des équipes sélectionnées pendant la période sélectionnée</b> sont prises en compte.
+                </p>
+                <div>
+                  <h4 className="tw-text-base !tw-mb-1">Toutes les personnes</h4>
+                  <p>
+                    Toutes les personnes assignées à au moins une des équipes sélectionnées pendant la période, qu'il y ait eu une interaction ou non.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="tw-text-base !tw-mb-1">Personnes mises à jour</h4>
+                  <p>
+                    Personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au moment
+                    de la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées : création,
+                    modification, commentaire, action, rencontre, passage, lieu fréquenté, consultation, traitement.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="tw-text-base !tw-mb-1">Personnes suivies</h4>
+                  <p>
+                    Personnes pour lesquelles il y a eu au moins une interaction durant la période, en excluant les interactions réalisées lorsque la
+                    personne était sortie de file active ou en dehors des équipes sélectionnées.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="tw-text-base !tw-mb-1">Nouvelles personnes</h4>
+                  <p>
+                    Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont le suivi a commencé durant la période
+                    sélectionnée.
+                  </p>
+                </div>
+                <p className="tw-text-zinc-500 tw-italic">
+                  Si aucune période n'est définie, l'ensemble des personnes présentes dans une des équipes sélectionnées à un moment ou un autre est
+                  considéré.
                 </p>
               </div>
-              <div>
-                <h4 className="tw-text-base !tw-mb-1">Personnes mises à jour</h4>
-                <p>
-                  Personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au moment de
-                  la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées : création,
-                  modification, commentaire, action, rencontre, passage, lieu fréquenté, consultation, traitement.
-                </p>
-              </div>
-              <div>
-                <h4 className="tw-text-base !tw-mb-1">Personnes suivies</h4>
-                <p>
-                  Personnes pour lesquelles il y a eu au moins une interaction durant la période, en excluant les interactions réalisées lorsque la
-                  personne était sortie de file active ou en dehors des équipes sélectionnées.
-                </p>
-              </div>
-              <div>
-                <h4 className="tw-text-base !tw-mb-1">Nouvelles personnes</h4>
-                <p>
-                  Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont le suivi a commencé durant la période
-                  sélectionnée.
-                </p>
-              </div>
-              <p className="tw-text-zinc-500 tw-italic">
-                Si aucune période n'est définie, l'ensemble des personnes présentes dans une des équipes sélectionnées à un moment ou un autre est
-                considéré.
-              </p>
-            </div>
-          </HelpButtonAndModal>
-        </div>
+            </HelpButtonAndModal>
+          </div>
+        )}
 
-        <label
-          className={[
-            "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0 tw-mt-2",
-            evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
-          ].join(" ")}
-        >
-          <div
-            onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
+        {!evolutifDisabled && (
+          <label
             className={[
-              "tw-relative tw-inline-flex tw-h-5 tw-w-9 tw-shrink-0 tw-rounded-full tw-transition-colors tw-duration-200",
-              !evolutifDisabled ? "tw-cursor-pointer" : "",
-              evolutivesStatsActivated && !evolutifDisabled ? "tw-bg-main" : "tw-bg-zinc-300",
+              "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0 tw-mt-2",
+              evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
             ].join(" ")}
           >
-            <span
+            <div
+              onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
               className={[
-                "tw-inline-block tw-h-4 tw-w-4 tw-rounded-full tw-bg-white tw-shadow tw-transform tw-transition-transform tw-duration-200 tw-mt-0.5",
-                evolutivesStatsActivated && !evolutifDisabled ? "tw-translate-x-4 tw-ml-0.5" : "tw-translate-x-0 tw-ml-0.5",
+                "tw-relative tw-inline-flex tw-h-5 tw-w-9 tw-shrink-0 tw-rounded-full tw-transition-colors tw-duration-200",
+                !evolutifDisabled ? "tw-cursor-pointer" : "",
+                evolutivesStatsActivated && !evolutifDisabled ? "tw-bg-main" : "tw-bg-zinc-300",
               ].join(" ")}
-            />
-          </div>
-          <span className="tw-text-sm tw-text-zinc-700">Affichage évolutif</span>
-        </label>
+            >
+              <span
+                className={[
+                  "tw-inline-block tw-h-4 tw-w-4 tw-rounded-full tw-bg-white tw-shadow tw-transform tw-transition-transform tw-duration-200 tw-mt-0.5",
+                  evolutivesStatsActivated && !evolutifDisabled ? "tw-translate-x-4 tw-ml-0.5" : "tw-translate-x-0 tw-ml-0.5",
+                ].join(" ")}
+              />
+            </div>
+            <span className="tw-text-sm tw-text-zinc-700">Affichage évolutif</span>
+          </label>
+        )}
       </div>
 
       {/* Line 4: Filter chips */}
@@ -981,14 +986,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}
-              v2
+              isStatsV2
             />
           )}
           {!!organisation.receptionEnabled && activeTab === "Services" && (
             <ServicesStats
               period={period}
               teamIds={selectedTeams.map((e) => e?._id)}
-              v2
+              isStatsV2
               servicesGroupFilter={servicesGroupFilter}
               setServicesGroupFilter={setServicesGroupFilter}
               servicesFilter={servicesFilter}
@@ -1010,7 +1015,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}
-              v2
+              isStatsV2
             />
           )}
           {activeTab === "Personnes" && (
@@ -1029,7 +1034,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               setEvolutiveStatsIndicators={setEvolutiveStatsIndicators}
               viewAllOrganisationData={viewAllOrganisationData}
               selectedTeamsObjectWithOwnPeriod={selectedTeamsObjectWithOwnPeriod}
-              v2
+              isStatsV2
             />
           )}
           {!!organisation.passagesEnabled && activeTab === "Passages" && (
@@ -1042,7 +1047,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}
-              v2
+              isStatsV2
             />
           )}
           {!!organisation.rencontresEnabled && activeTab === "Rencontres" && (
@@ -1058,7 +1063,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               selectedTerritories={rencontresTerritories}
               setSelectedTerritories={setRencontresTerritories}
               isTerritoriesEnabled={!!organisation.territoriesEnabled}
-              v2
+              isStatsV2
             />
           )}
           {activeTab === "Observations" && (
@@ -1070,7 +1075,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               customFieldsObs={customFieldsObs}
               period={period}
               selectedTeams={selectedTeams}
-              v2
+              isStatsV2
             />
           )}
           {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
@@ -1086,7 +1091,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               setConsultationsStatuses={setConsultationsStatuses}
               consultationsTypes={consultationsTypes}
               setConsultationsTypes={setConsultationsTypes}
-              v2
+              isStatsV2
             />
           )}
           {activeTab === "Dossiers médicaux" && (
@@ -1099,7 +1104,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}
-              v2
+              isStatsV2
             />
           )}
         </div>

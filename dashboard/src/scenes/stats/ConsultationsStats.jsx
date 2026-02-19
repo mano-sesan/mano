@@ -25,7 +25,7 @@ export default function ConsultationsStats({
   // type filtering props
   consultationsTypes = [],
   setConsultationsTypes = () => {},
-  v2,
+  isStatsV2,
 }) {
   const organisation = useAtomValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
@@ -53,13 +53,13 @@ export default function ConsultationsStats({
 
   return (
     <>
-      {!v2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>}
-      {!v2 && (
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>}
+      {!isStatsV2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
         </div>
       )}
-      {!v2 && (
+      {!isStatsV2 && (
         <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
             <label htmlFor="filter-by-status" className="tw-m-0">
@@ -102,7 +102,7 @@ export default function ConsultationsStats({
       <details
         open={
           window.localStorage.getItem("consultations-stats-general-open") === "true" ||
-          (v2 && window.localStorage.getItem("consultations-stats-general-open") !== "false")
+          (isStatsV2 && window.localStorage.getItem("consultations-stats-general-open") !== "false")
         }
         onToggle={(e) => {
           window.localStorage.setItem("consultations-stats-general-open", e.target.open ? "true" : "false");
@@ -158,7 +158,7 @@ export default function ConsultationsStats({
           <details
             open={
               window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
-              (v2 && window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
+              (isStatsV2 && window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
             }
             onToggle={(e) => {
               window.localStorage.setItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");

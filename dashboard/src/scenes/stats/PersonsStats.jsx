@@ -40,7 +40,7 @@ export default function PersonStats({
   setEvolutiveStatsIndicators,
   viewAllOrganisationData,
   selectedTeamsObjectWithOwnPeriod,
-  v2,
+  isStatsV2,
 }) {
   const allGroups = useAtomValue(groupsState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
@@ -83,8 +83,8 @@ export default function PersonStats({
   };
   return (
     <>
-      {!v2 && !evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
-      {!v2 && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />}
+      {!isStatsV2 && !evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
+      {!isStatsV2 && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />}
       {evolutivesStatsActivated ? (
         <>
           <EvolutiveStatsSelector
@@ -110,7 +110,7 @@ export default function PersonStats({
             open={
               import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
               window.localStorage.getItem("person-stats-general-open") === "true" ||
-              (v2 && window.localStorage.getItem("person-stats-general-open") !== "false")
+              (isStatsV2 && window.localStorage.getItem("person-stats-general-open") !== "false")
             }
             onToggle={(e) => {
               window.localStorage.setItem("person-stats-general-open", e.target.open ? "true" : "false");
@@ -245,7 +245,7 @@ export default function PersonStats({
                 open={
                   import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
                   window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
-                  (v2 && window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
+                  (isStatsV2 && window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
                 }
                 onToggle={(e) => {
                   window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");

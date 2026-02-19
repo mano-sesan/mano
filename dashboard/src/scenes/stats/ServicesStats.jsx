@@ -11,7 +11,7 @@ import { servicesSelector } from "../../atoms/reports";
 const ServicesStats = ({
   period,
   teamIds,
-  v2,
+  isStatsV2,
   servicesGroupFilter: propsGroupFilter,
   setServicesGroupFilter: propsSetGroupFilter,
   servicesFilter: propsFilter,
@@ -96,7 +96,7 @@ const ServicesStats = ({
 
   return (
     <>
-      {!v2 && (
+      {!isStatsV2 && (
         <>
           <h3 className="tw-my-5 tw-text-xl">Statistiques des services</h3>
           <div className="tw-mb-5 tw-flex tw-basis-full tw-items-center">

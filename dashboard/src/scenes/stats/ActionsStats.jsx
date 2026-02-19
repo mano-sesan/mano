@@ -30,7 +30,7 @@ const ActionsStats = ({
   filterPersons,
   setFilterPersons,
   personsUpdatedWithActions,
-  v2,
+  isStatsV2,
 }) => {
   const [actionsModalOpened, setActionsModalOpened] = useState(false);
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
@@ -166,13 +166,13 @@ const ActionsStats = ({
 
   return (
     <>
-      {!v2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des actions</h3>}
-      {!v2 && (
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des actions</h3>}
+      {!isStatsV2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
         </div>
       )}
-      {!v2 && (
+      {!isStatsV2 && (
         <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
             <label htmlFor="filter-by-status" className="tw-m-0">
