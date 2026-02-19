@@ -28,6 +28,11 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { v4 as uuidv4 } from "uuid";
+import { store } from "@/store";
+import { isOnlineState } from "./network";
+import { enqueue } from "./offlineQueue";
+import { processQueue } from "./syncProcessor";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -159,7 +164,33 @@ class ApiService {
     }
   };
 
-  post = (args) => this.execute({ method: "POST", ...args });
+  post = (args) => {
+    const isOnline = store.get(isOnlineState);
+    // Skip offline queueing for non-entity paths (auth, logs, etc.)
+    if (!isOnline && args.body && args.offlineEnabled !== false) {
+      const entityId = args.body._id || uuidv4();
+      if (!args.body._id) args.body._id = entityId;
+      const item = enqueue({
+        method: "POST",
+        path: args.path,
+        body: args.body,
+        entityType: args.entityType || this._extractEntityType(args.path),
+        entityId,
+      });
+      // Return optimistic response
+      return Promise.resolve({
+        ok: true,
+        data: { _id: entityId, ...args.body, _pendingSync: true },
+        decryptedData: { _id: entityId, ...args.body, _pendingSync: true },
+        _offlineQueued: true,
+        _queueItemId: item.id,
+      });
+    }
+    const result = this.execute({ method: "POST", ...args });
+    // If online, also try to process any pending queue
+    if (isOnline) processQueue().catch(() => {});
+    return result;
+  };
   get = async (args) => {
     if (args.batch) {
       let hasMore = true;
@@ -187,8 +218,61 @@ class ApiService {
       return this.execute({ method: "GET", ...args });
     }
   };
-  put = (args) => this.execute({ method: "PUT", ...args });
-  delete = (args) => this.execute({ method: "DELETE", ...args });
+  put = (args) => {
+    const isOnline = store.get(isOnlineState);
+    if (!isOnline && args.body && args.offlineEnabled !== false) {
+      const entityId = args.body._id || args.path.split("/").pop();
+      const item = enqueue({
+        method: "PUT",
+        path: args.path,
+        body: args.body,
+        entityType: args.entityType || this._extractEntityType(args.path),
+        entityId,
+        entityUpdatedAt: args.body.updatedAt || undefined,
+      });
+      return Promise.resolve({
+        ok: true,
+        data: { ...args.body, _pendingSync: true },
+        decryptedData: { ...args.body, _pendingSync: true },
+        _offlineQueued: true,
+        _queueItemId: item.id,
+      });
+    }
+    const result = this.execute({ method: "PUT", ...args });
+    if (isOnline) processQueue().catch(() => {});
+    return result;
+  };
+  delete = (args) => {
+    const isOnline = store.get(isOnlineState);
+    if (!isOnline && args.offlineEnabled !== false) {
+      const entityId = args.path.split("/").pop();
+      const item = enqueue({
+        method: "DELETE",
+        path: args.path,
+        body: args.body || null,
+        entityType: args.entityType || this._extractEntityType(args.path),
+        entityId,
+        entityUpdatedAt: args.body?.updatedAt || undefined,
+      });
+      return Promise.resolve({
+        ok: true,
+        _offlineQueued: true,
+        _queueItemId: item.id,
+      });
+    }
+    return this.execute({ method: "DELETE", ...args });
+  };
+
+  // Raw execute for sync processor — body is already the pre-encryption payload
+  executeRaw = async ({ method, path, body }) => {
+    return this.execute({ method, path, body });
+  };
+
+  _extractEntityType = (path) => {
+    // Extract entity type from path like "/person" or "/person/uuid"
+    const parts = path.split("/").filter(Boolean);
+    return parts[0] || "unknown";
+  };
 
   setOrgEncryptionKey = async (orgEncryptionKey) => {
     this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
@@ -296,10 +380,18 @@ class ApiService {
 
   // Upload a file to a path.
   upload = async ({ file, path }) => {
+    const isOnline = store.get(isOnlineState);
+
+    if (!isOnline) {
+      return this._queueFileUpload({ file, path });
+    }
+
+    return this._doUpload({ file, path });
+  };
+
+  _doUpload = async ({ file, path }) => {
     // Prepare file.
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
-
-    // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
 
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
@@ -313,30 +405,48 @@ class ApiService {
         version: VERSION,
       },
       [
-        // element with property `filename` will be transformed into `file` in form data
         { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-        // custom content type
-        // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
-        // // part file from storage
-        // { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: ReactNativeBlobUtil.wrap(path_to_a_file) },
-        // // elements without property `filename` will be sent as plain text
-        // { name: 'name', data: 'user' },
-        // {
-        //   name: 'info',
-        //   data: JSON.stringify({
-        //     mail: 'example@example.com',
-        //     tel: '12345678',
-        //   }),
-        // },
       ]
     );
 
     const json = await response.json();
-    // Si erreur (ok: false), on retourne les infos d'erreur du backend
     if (!json.ok) {
       return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
     }
     return { ...json, encryptedEntityKey };
+  };
+
+  _queueFileUpload = ({ file, path }) => {
+    // Save file locally for later upload
+    const offlineDir = new FileSystem.Directory(FileSystem.Paths.document, "offline-uploads");
+    if (!offlineDir.exists) {
+      offlineDir.create({ intermediates: true });
+    }
+    const localFileName = `${uuidv4()}-${file.fileName}`;
+    const localFile = new FileSystem.File(offlineDir, localFileName);
+    localFile.create();
+    localFile.write(file.base64, { encoding: "base64" });
+
+    enqueue({
+      method: "POST",
+      path,
+      body: null,
+      entityType: "file_upload",
+      entityId: localFileName,
+      fileUpload: {
+        localFilePath: localFile.uri,
+        fileName: file.fileName,
+        fileType: file.type,
+      },
+    });
+
+    // Return a placeholder — the caller builds document metadata from this
+    return {
+      ok: true,
+      data: { filename: `pending-${localFileName}` },
+      encryptedEntityKey: "pending",
+      _offlineQueued: true,
+    };
   };
   token = "";
   onLogIn = () => {};

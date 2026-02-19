@@ -14,6 +14,7 @@ import { organisationState, userState } from "../../recoil/auth";
 import { PersonInstance } from "@/types/person";
 import { RootStackParamList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import PendingSyncIndicator from "../../components/PendingSyncIndicator";
 
 type PersonRowProps = {
   onPress: () => void;
@@ -88,6 +89,7 @@ export default function PersonRow({ onPress, person, isPersonsSearchRow = false,
             </View>
           )}
           <PersonName person={person} />
+          <PendingSyncIndicator pendingSync={person._pendingSync} />
           {!isPersonsSearchRow && <ButtonTopPlus onPress={onMorePress} />}
         </CaptionsFirstLine>
         {formattedBirthDate && !outOfActiveList && <Birthdate>{formattedBirthDate}</Birthdate>}

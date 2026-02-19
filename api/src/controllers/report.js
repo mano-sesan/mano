@@ -82,6 +82,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
+        _id: z.optional(z.string().regex(looseUuidRegex)),
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
         team: z.string().regex(looseUuidRegex).optional(),
@@ -111,6 +112,7 @@ router.post(
     const [data] = await Report.findOrCreate({
       where: { organisation: req.user.organisation, team: req.body.team, date: req.body.date },
       defaults: {
+        _id: req.body._id || undefined,
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
         debug: {

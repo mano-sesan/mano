@@ -22,6 +22,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
+        _id: z.optional(z.string().regex(looseUuidRegex)),
         status: z.enum(STATUS),
         dueAt: z.preprocess((input) => new Date(input), z.date()),
         ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
@@ -34,8 +35,9 @@ router.post(
       return next(error);
     }
 
-    const { status, dueAt, completedAt, encrypted, encryptedEntityKey } = req.body;
+    const { _id, status, dueAt, completedAt, encrypted, encryptedEntityKey } = req.body;
     const action = {
+      _id: _id || undefined,
       organisation: req.user.organisation,
       status,
       dueAt,
@@ -72,6 +74,7 @@ router.post(
     try {
       z.array(
         z.object({
+          _id: z.optional(z.string().regex(looseUuidRegex)),
           status: z.enum(STATUS),
           dueAt: z.preprocess((input) => new Date(input), z.date()),
           ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
@@ -91,6 +94,7 @@ router.post(
       for (const action of req.body) {
         const { status, dueAt, completedAt, encrypted, encryptedEntityKey } = action;
         const actionToCreate = {
+          _id: action._id || undefined,
           organisation: req.user.organisation,
           status,
           dueAt,
