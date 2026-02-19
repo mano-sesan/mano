@@ -1020,6 +1020,7 @@ const Stats = ({ onSwitchVersion }) => {
             personFields={personFields}
             personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
             // filter by persons
+            personsUpdated={personsUpdated}
             filterBase={filterPersonsWithAllFields}
             filterPersons={filterPersons}
             setFilterPersons={setFilterPersons}

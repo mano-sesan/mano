@@ -774,27 +774,6 @@ const StatsV2 = ({ onSwitchVersion }) => {
         )}
       </div>
 
-      {/* Line 4: Filter chips */}
-      {!filtersDisabled && (
-        <div className="noprint tw-mt-4">
-          <FilterChipsV2
-            filters={filterPersons}
-            setFilters={setFilterPersons}
-            filterBase={filterPersonsWithAllFields}
-            onAddFilter={() => {
-              setEditingFilterIndex(null);
-              setFilterModalOpen(true);
-            }}
-            onEditFilter={(chipIndex) => {
-              const activeFilters = filterPersons.filter((f) => f.field && f.value);
-              const realIndex = filterPersons.findIndex((f) => f === activeFilters[chipIndex]);
-              setEditingFilterIndex(realIndex);
-              setFilterModalOpen(true);
-            }}
-          />
-        </div>
-      )}
-
       {/* Tab-specific filter chips */}
       {activeTab === "Actions" && (
         <div className="noprint tw-mt-4">
@@ -912,6 +891,27 @@ const StatsV2 = ({ onSwitchVersion }) => {
               const realIndex = filterObs.findIndex((f) => f === activeFilters[chipIndex]);
               setObsEditingFilterIndex(realIndex);
               setObsFilterModalOpen(true);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Person filter chips */}
+      {!filtersDisabled && (
+        <div className="noprint tw-mt-4">
+          <FilterChipsV2
+            filters={filterPersons}
+            setFilters={setFilterPersons}
+            filterBase={filterPersonsWithAllFields}
+            onAddFilter={() => {
+              setEditingFilterIndex(null);
+              setFilterModalOpen(true);
+            }}
+            onEditFilter={(chipIndex) => {
+              const activeFilters = filterPersons.filter((f) => f.field && f.value);
+              const realIndex = filterPersons.findIndex((f) => f === activeFilters[chipIndex]);
+              setEditingFilterIndex(realIndex);
+              setFilterModalOpen(true);
             }}
           />
         </div>
@@ -1058,6 +1058,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               territories={territories}
               personFields={personFields}
               personsInRencontresBeforePeriod={personsInRencontresBeforePeriod}
+              personsUpdated={personsForStats}
               filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
               setFilterPersons={setFilterPersons}
