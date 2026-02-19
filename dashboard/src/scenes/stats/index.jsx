@@ -18,6 +18,7 @@ import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
+import { ENV, MANO_TEST_ORG_ID } from "../../config";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ExportFormattedData from "../data-import-export/ExportFormattedData";
@@ -82,6 +83,9 @@ const StatsLoader = () => {
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
   const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
 
+  const organisation = useAtomValue(organisationState);
+  const canSwitchVersion = ENV !== "production" || organisation?._id === MANO_TEST_ORG_ID;
+
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
       setHasStartLoaded(true);
@@ -90,8 +94,8 @@ const StatsLoader = () => {
 
   if (!hasStartLoaded) return <Loading />;
 
-  if (statsVersion === "v2") return <StatsV2 onSwitchVersion={() => setStatsVersion("v1")} />;
-  return <Stats onSwitchVersion={() => setStatsVersion("v2")} />;
+  if (canSwitchVersion && statsVersion === "v2") return <StatsV2 onSwitchVersion={() => setStatsVersion("v1")} />;
+  return <Stats onSwitchVersion={canSwitchVersion ? () => setStatsVersion("v2") : null} />;
 };
 
 const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
