@@ -58,7 +58,7 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null, preserveRawData = false } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options = {
@@ -127,6 +127,9 @@ class ApiService {
           return res;
         }
         if (!!res.data && Array.isArray(res.data)) {
+          if (preserveRawData) {
+            res.rawData = res.data.map((item) => ({ ...item }));
+          }
           const decryptedData = [];
           for (const item of res.data) {
             const decryptedItem = await this.decryptDBItem(item, { debug, path });
@@ -167,6 +170,7 @@ class ApiService {
       let limit = args.batch;
       let data = [];
       let decryptedData = [];
+      let rawData = args.preserveRawData ? [] : undefined;
       while (hasMore) {
         let query = { ...args.query, limit, page };
         const response = await this.execute({ method: "GET", ...args, query });
@@ -176,13 +180,16 @@ class ApiService {
         }
         data.push(...response.data);
         decryptedData.push(...(response.decryptedData || []));
+        if (rawData && response.rawData) rawData.push(...response.rawData);
         hasMore = response.hasMore;
         page = response.hasMore ? page + 1 : page;
         // at least 1 for showing progress
         if (args.setProgress) args.setProgress(response.decryptedData.length || 1);
         await new Promise((res) => setTimeout(res, 50));
       }
-      return { ok: true, data, decryptedData };
+      const result = { ok: true, data, decryptedData };
+      if (rawData) result.rawData = rawData;
+      return result;
     } else {
       return this.execute({ method: "GET", ...args });
     }
