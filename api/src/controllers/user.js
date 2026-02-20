@@ -824,8 +824,8 @@ router.put(
     try {
       z.object({
         name: z.optional(z.string().min(1)),
-        phone: z.string().optional(),
-        email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
+        phone: z.string().nullable().optional(),
+        email: z.preprocess((email) => (typeof email === "string" ? email.trim().toLowerCase() : email), z.string().email().optional().or(z.literal(""))),
         currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
