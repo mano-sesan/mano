@@ -416,6 +416,7 @@ export const itemsForStatsV2Selector = ({
     if (person.rencontres?.length) {
       for (const rencontre of person.rencontres) {
         if (!filterItemByTeam(rencontre, "team")) continue;
+        if (filterByStartFollowBySelectedTeamDuringPeriod?.[0]?.value === "Oui" && !isFollowed) continue;
         if (noPeriodSelected) {
           rencontresFilteredByPersons.push({ ...rencontre, gender: person.gender });
           numberOfRencontres++;
