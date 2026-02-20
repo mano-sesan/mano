@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import API from "../services/api";
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
-import { appCurrentCacheKey, getData } from "../services/dataManagement";
+import { appCurrentCacheKey, getData, getDataWithRaw, getEncryptedCacheItem, setEncryptedCacheItem } from "../services/dataManagement";
 import { useMMKVNumber } from "react-native-mmkv";
 import { organisationState, userState } from "../recoil/auth";
 import { actionsState } from "../recoil/actions";
@@ -141,7 +141,7 @@ export const DataLoader = () => {
         organisation: organisationId,
         after: lastRefresh,
         withDeleted: true,
-        // Medical data is never saved in cache so we always have to download all at every page reload.
+        // Medical data is cached encrypted in MMKV, but we still reload all on initial load for safety.
         withAllMedicalData: initialLoad,
       },
     });
@@ -207,13 +207,25 @@ export const DataLoader = () => {
     */
     if (response.data.consultations || initialLoad) {
       setLoading("Chargement des consultations");
-      const refreshedConsultations: ConsultationInstance[] = await getData({
+      const { decryptedData: refreshedConsultations, rawData: rawConsultations } = await getDataWithRaw({
         collectionName: "consultation",
         setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
-        lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
+        lastRefresh: initialLoad ? 0 : lastRefresh,
       });
-      if (refreshedConsultations) {
+      if (initialLoad) {
+        const encryptedCache = getEncryptedCacheItem<any[]>("consultation", []);
+        const mergedEncrypted = rawConsultations.length ? mergeItems(encryptedCache, rawConsultations) : encryptedCache;
+        setEncryptedCacheItem("consultation", mergedEncrypted);
+        const allDecrypted = [];
+        for (const item of mergedEncrypted) {
+          const decryptedItem = await API.decryptDBItem({ ...item });
+          allDecrypted.push(decryptedItem);
+        }
+        setConsultations(allDecrypted.filter(Boolean).map(formatConsultation));
+      } else if (refreshedConsultations.length) {
         setConsultations((oldConsultations) => mergeItems(oldConsultations, refreshedConsultations, { formatNewItemsFunction: formatConsultation }));
+        const encryptedCache = getEncryptedCacheItem<any[]>("consultation", []);
+        setEncryptedCacheItem("consultation", mergeItems(encryptedCache, rawConsultations));
       }
     }
     /*
@@ -222,13 +234,25 @@ export const DataLoader = () => {
     if (["admin", "normal"].includes(user.role)) {
       if (response.data.treatments || initialLoad) {
         setLoading("Chargement des traitements");
-        const refreshedTreatments = await getData({
+        const { decryptedData: refreshedTreatments, rawData: rawTreatments } = await getDataWithRaw({
           collectionName: "treatment",
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
-          lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
+          lastRefresh: initialLoad ? 0 : lastRefresh,
         });
-        if (refreshedTreatments) {
+        if (initialLoad) {
+          const encryptedCache = getEncryptedCacheItem<any[]>("treatment", []);
+          const mergedEncrypted = rawTreatments.length ? mergeItems(encryptedCache, rawTreatments) : encryptedCache;
+          setEncryptedCacheItem("treatment", mergedEncrypted);
+          const allDecrypted = [];
+          for (const item of mergedEncrypted) {
+            const decryptedItem = await API.decryptDBItem({ ...item });
+            allDecrypted.push(decryptedItem);
+          }
+          setTreatments(allDecrypted.filter(Boolean));
+        } else if (refreshedTreatments.length) {
           setTreatments((oldTreatments) => mergeItems(oldTreatments, refreshedTreatments));
+          const encryptedCache = getEncryptedCacheItem<any[]>("treatment", []);
+          setEncryptedCacheItem("treatment", mergeItems(encryptedCache, rawTreatments));
         }
       }
       /*
@@ -236,13 +260,25 @@ export const DataLoader = () => {
       */
       if (response.data.medicalFiles || initialLoad) {
         setLoading("Chargement des dossiers médicaux");
-        const refreshedMedicalFiles = await getData({
+        const { decryptedData: refreshedMedicalFiles, rawData: rawMedicalFiles } = await getDataWithRaw({
           collectionName: "medical-file",
           setProgress: (batch) => setProgress((p) => (p * total + batch) / total),
-          lastRefresh: initialLoad ? 0 : lastRefresh, // because we never save medical data in cache
+          lastRefresh: initialLoad ? 0 : lastRefresh,
         });
-        if (refreshedMedicalFiles) {
+        if (initialLoad) {
+          const encryptedCache = getEncryptedCacheItem<any[]>("medical-file", []);
+          const mergedEncrypted = rawMedicalFiles.length ? mergeItems(encryptedCache, rawMedicalFiles) : encryptedCache;
+          setEncryptedCacheItem("medical-file", mergedEncrypted);
+          const allDecrypted = [];
+          for (const item of mergedEncrypted) {
+            const decryptedItem = await API.decryptDBItem({ ...item });
+            allDecrypted.push(decryptedItem);
+          }
+          setMedicalFiles(allDecrypted.filter(Boolean));
+        } else if (refreshedMedicalFiles.length) {
           setMedicalFiles((oldMedicalFiles) => mergeItems(oldMedicalFiles, refreshedMedicalFiles));
+          const encryptedCache = getEncryptedCacheItem<any[]>("medical-file", []);
+          setEncryptedCacheItem("medical-file", mergeItems(encryptedCache, rawMedicalFiles));
         }
       }
     }
