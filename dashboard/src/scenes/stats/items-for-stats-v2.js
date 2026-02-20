@@ -374,6 +374,7 @@ export const itemsForStatsV2Selector = ({
     if (person.passages?.length) {
       for (const passage of person.passages) {
         if (!filterItemByTeam(passage, "team")) continue;
+        if (filterByStartFollowBySelectedTeamDuringPeriod?.[0]?.value === "Oui" && !isFollowed) continue;
         if (noPeriodSelected) {
           passagesFilteredByPersons.push(passage);
           personsWithPassages[person._id] = person;
