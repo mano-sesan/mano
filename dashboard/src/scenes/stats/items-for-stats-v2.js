@@ -316,7 +316,7 @@ export const itemsForStatsV2Selector = ({
     let numberOfConsultations = 0;
     for (const consultation of person.consultations || []) {
       if (!filterItemByTeam(consultation, "teams")) continue;
-      if if (filterByStartFollowBySelectedTeamDuringPeriod?.[0]?.value === "Oui" && !isFollowed) continue;
+      if (filterByStartFollowBySelectedTeamDuringPeriod?.[0]?.value === "Oui" && !isFollowed) continue;
       if (noPeriodSelected) {
         consultationsFilteredByPersons.push(consultation);
         numberOfConsultations++;
