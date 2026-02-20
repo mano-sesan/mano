@@ -16,6 +16,7 @@ import TagTeam from "../../components/TagTeam";
 import SelectRole from "../../components/SelectRole";
 import { emailRegex, errorMessage } from "../../utils";
 import UserStatus from "../../components/UserStatus";
+import StethoscopeIcon from "../../components/StethoscopeIcon";
 
 const getUserStatus = (user) => {
   if (user.disabledAt) return "Désactivé";
@@ -134,7 +135,14 @@ const List = () => {
               return (
                 <>
                   <span>{user.role}</span>
-                  {user.healthcareProfessional ? <span className="tw-text-xs">🧑‍⚕️&nbsp;pro.&nbsp;de&nbsp;santé</span> : ""}
+                  {user.healthcareProfessional ? (
+                    <div className="tw-text-xs tw-flex tw-items-center">
+                      <StethoscopeIcon className="tw-w-3 tw-h-3 tw-text-sky-700" />
+                      &nbsp;pro.&nbsp;santé
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </>
               );
             },

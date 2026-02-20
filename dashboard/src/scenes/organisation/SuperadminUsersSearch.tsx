@@ -10,6 +10,7 @@ import { errorMessage } from "../../utils";
 import Search from "../../components/search";
 import UserStatus from "../../components/UserStatus";
 import { MoonIcon } from "@heroicons/react/24/outline";
+import StethoscopeIcon from "../../components/StethoscopeIcon";
 
 export default function SuperadminUsersSearch({
   open,
@@ -119,7 +120,14 @@ export default function SuperadminUsersSearch({
                     </td>
                     <td>
                       <div>{user.role}</div>
-                      {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
+                      {user.healthcareProfessional ? (
+                        <div className="tw-text-xs tw-flex tw-items-center">
+                          <StethoscopeIcon className="tw-w-3 tw-h-3 tw-text-sky-700" />
+                          &nbsp;pro.&nbsp;santé
+                        </div>
+                      ) : (
+                        ""
+                      )}
                     </td>
                     <td>
                       <div className="tw-grid tw-gap-1">
