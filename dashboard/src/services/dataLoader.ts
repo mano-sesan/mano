@@ -42,8 +42,10 @@ export const loadingTextState = atom(initialLoadingTextState);
 export const initialLoadIsDoneState = atom(false);
 
 // IMPORTANT:
-// - The entity caches (person, action, ...) are persisted in IndexedDB and shared across tabs.
-// - But the "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
+// - Non-medical entity caches (person, action, ...) are persisted DECRYPTED in IndexedDB via awaitSetAtomAndIDBCache.
+// - Medical entity caches (consultation, treatment, medical-file) are persisted ENCRYPTED in IndexedDB.
+//   Decryption only happens in memory when populating Jotai atoms.
+// - The "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
 //   cursor forward and make other tabs permanently miss updates (then mergeItems keeps stale entities).
 const perTabLastRefreshKey = `mano-last-refresh-local-${dashboardCurrentCacheKey}`;
 
@@ -126,6 +128,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
     const safePerTabLastLoadValue = getPerTabLastRefresh();
     let lastLoadValue = safePerTabLastLoadValue ?? globalLastLoadValue;
+
     // On vérifie s'il y a un autre identifiant d'organisation dans le cache pour le supprimer le cas échéant
     const otherOrganisationId = await getCacheItemDefaultValue("organisationId", null);
     if (otherOrganisationId && otherOrganisationId !== organisation._id) {
@@ -184,7 +187,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           organisation: organisationId,
           after: lastLoadValue,
           withDeleted: true,
-          // Medical data is never saved in cache so we always have to download all at every page reload.
+          // Medical data is cached encrypted in IndexedDB, but we still reload all on initial load for safety.
           withAllMedicalData: isStartingInitialLoad,
         },
       });
@@ -571,6 +574,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     let newConsultations = [];
+    let newConsultationsRaw = [];
     if (stats.consultations > 0) {
       setLoadingText("Chargement des consultations");
       async function loadConsultations(page = 0) {
@@ -581,6 +585,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           });
         });
         if (error) return resetLoaderOnError();
+        newConsultationsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newConsultations.push(...decryptedData);
@@ -591,20 +596,20 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!consultationsSuccess) return false;
     }
     if (isStartingInitialLoad) {
-      const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
-      if (newConsultations.length) {
-        await setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
-      } else {
-        await setConsultations(cacheConsultations);
-      }
+      const encryptedCache = await getCacheItemDefaultValue("consultation", []);
+      const mergedEncrypted = newConsultationsRaw.length ? mergeItems(encryptedCache, newConsultationsRaw) : encryptedCache;
+      await setCacheItem("consultation", mergedEncrypted);
+      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
+      setConsultations(allDecrypted.map(formatConsultation));
     } else if (newConsultations.length) {
-      await setConsultations((latestConsultations) =>
-        mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation })
-      );
+      setConsultations((prev) => mergeItems(prev, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      const encryptedCache = await getCacheItemDefaultValue("consultation", []);
+      await setCacheItem("consultation", mergeItems(encryptedCache, newConsultationsRaw));
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
       let newTreatments = [];
+      let newTreatmentsRaw = [];
       if (stats.treatments > 0) {
         setLoadingText("Chargement des traitements");
         async function loadTreatments(page = 0) {
@@ -615,6 +620,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
+          newTreatmentsRaw.push(...structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newTreatments.push(...decryptedData);
@@ -626,19 +632,21 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
-        if (newTreatments.length) {
-          await setTreatments(mergeItems(cacheTreatments, newTreatments));
-        } else {
-          await setTreatments(cacheTreatments);
-        }
+        const encryptedCache = await getCacheItemDefaultValue("treatment", []);
+        const mergedEncrypted = newTreatmentsRaw.length ? mergeItems(encryptedCache, newTreatmentsRaw) : encryptedCache;
+        await setCacheItem("treatment", mergedEncrypted);
+        const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
+        setTreatments(allDecrypted);
       } else if (newTreatments.length) {
-        await setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
+        setTreatments((prev) => mergeItems(prev, newTreatments));
+        const encryptedCache = await getCacheItemDefaultValue("treatment", []);
+        await setCacheItem("treatment", mergeItems(encryptedCache, newTreatmentsRaw));
       }
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
       let newMedicalFiles = [];
+      let newMedicalFilesRaw = [];
       if (stats.medicalFiles > 0) {
         setLoadingText("Chargement des fichiers médicaux");
         async function loadMedicalFiles(page = 0) {
@@ -649,6 +657,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
+          newMedicalFilesRaw.push(...structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newMedicalFiles.push(...decryptedData);
@@ -660,14 +669,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
-        if (newMedicalFiles.length) {
-          await setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
-        } else {
-          await setMedicalFiles(cacheMedicalFiles);
-        }
+        const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
+        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache;
+        await setCacheItem("medical-file", mergedEncrypted);
+        const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
+        setMedicalFiles(allDecrypted);
       } else if (newMedicalFiles.length) {
-        await setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
+        setMedicalFiles((prev) => mergeItems(prev, newMedicalFiles));
+        const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
+        await setCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw));
       }
     }
 
