@@ -12,6 +12,11 @@ interface GetPersonPeriodsArguments {
   filterByStartFollowBySelectedTeamDuringPeriod?: Array<Filter>;
 }
 
+// Sentinel value for "still ongoing" periods (null isoEndDate from extractInfosFromHistory).
+// Used to convert null to a concrete string so all original comparisons work unchanged.
+const FAR_FUTURE = "9999-01-01T00:00:00.000Z";
+const endOr = (end: string | null) => end ?? FAR_FUTURE;
+
 export function mergedPersonAssignedTeamPeriodsWithQueryPeriod({
   viewAllOrganisationData,
   isoStartDate,
@@ -21,7 +26,7 @@ export function mergedPersonAssignedTeamPeriodsWithQueryPeriod({
 }: GetPersonPeriodsArguments): Array<{ isoStartDate: string; isoEndDate: string }> {
   if (viewAllOrganisationData) {
     const personIsoStartDate = assignedTeamsPeriods.all[0].isoStartDate;
-    const personIsoEndDate = assignedTeamsPeriods.all[0].isoEndDate;
+    const personIsoEndDate = endOr(assignedTeamsPeriods.all[0].isoEndDate);
     if (isoStartDate > personIsoEndDate || isoEndDate < personIsoStartDate) {
       return [];
     } else if (isoStartDate < personIsoStartDate && isoEndDate > personIsoEndDate) {
@@ -38,7 +43,8 @@ export function mergedPersonAssignedTeamPeriodsWithQueryPeriod({
   for (const [teamId, teamPeriods] of Object.entries(assignedTeamsPeriods)) {
     if (!selectedTeamsObjectWithOwnPeriod[teamId]) continue;
     const { isoStartDate: teamIsoStartDate, isoEndDate: teamIsoEndDate } = selectedTeamsObjectWithOwnPeriod[teamId];
-    for (const { isoStartDate: periodIsoStartDate, isoEndDate: periodIsoEndDate } of teamPeriods) {
+    for (const { isoStartDate: periodIsoStartDate, isoEndDate: rawPeriodIsoEndDate } of teamPeriods) {
+      const periodIsoEndDate = endOr(rawPeriodIsoEndDate);
       if (periodIsoStartDate > teamIsoEndDate || periodIsoEndDate < teamIsoStartDate) continue;
       if (periodIsoStartDate < teamIsoStartDate && periodIsoEndDate > teamIsoEndDate) {
         eachTeamPeriods.push({ isoStartDate: teamIsoStartDate, isoEndDate: teamIsoEndDate });

@@ -27,6 +27,7 @@ const RencontresStats = ({
   selectedTerritories,
   setSelectedTerritories,
   isTerritoriesEnabled,
+  isStatsV2,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
@@ -130,11 +131,13 @@ const RencontresStats = ({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des rencontres</h3>
-      <div className="tw-flex tw-basis-full tw-items-center">
-        <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
-      </div>
-      {Boolean(isTerritoriesEnabled) && (
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des rencontres</h3>}
+      {!isStatsV2 && (
+        <div className="tw-flex tw-basis-full tw-items-center">
+          <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        </div>
+      )}
+      {Boolean(isTerritoriesEnabled) && !isStatsV2 && (
         <div className="tw-grid lg:tw-grid-cols-2 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
             <label htmlFor="filter-by-status" className="tw-m-0">
