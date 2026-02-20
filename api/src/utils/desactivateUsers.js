@@ -47,7 +47,7 @@ async function desactivateInactiveUsers() {
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
   const usersToDisable = await User.findAll({
-    attributes: ["_id", "email", "name"],
+    attributes: ["_id", "email", "name", "role"],
     where: {
       [Op.or]: [
         {
