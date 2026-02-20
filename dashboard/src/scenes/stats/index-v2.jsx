@@ -108,7 +108,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
   const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "all");
   const [filterPersons, setFilterPersons] = useLocalStorage("stats-v2-filterPersons", []);
-  const [filterObs, setFilterObs] = useLocalStorage("stats-filterObs-defaultEverybody", []);
+  const [filterObs, setFilterObs] = useLocalStorage("stats-v2-filterObs", []);
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("stats-viewAllOrganisationData", teams.length === 1);
   const [period, setPeriod] = useLocalStorage("period", { startDate: null, endDate: null });
   const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);

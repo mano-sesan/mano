@@ -73,6 +73,7 @@ export default function FilterChipsV2({
               type="button"
               onClick={() => removeFilter(index)}
               className={`tw-ml-0.5 tw-rounded ${chipHoverClass} tw-p-0.5 tw-cursor-pointer tw-transition-colors`}
+              aria-label="Supprimer le filtre"
             >
               <XMarkIcon className="tw-w-3.5 tw-h-3.5" />
             </button>
