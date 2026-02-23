@@ -230,8 +230,7 @@ export const itemsForStatsV2Selector = ({
           if (date >= defaultIsoDates.isoEndDate) continue;
           const isoDate = dayjsInstance(date).startOf("day").toISOString();
           if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
-          if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData))
-            continue;
+          if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
           isFollowed = true;
           break;
         }
@@ -276,6 +275,7 @@ export const itemsForStatsV2Selector = ({
     let numberOfActions = 0;
     for (const action of person.actions || []) {
       if (!filterItemByTeam(action, "teams")) continue;
+      if (filterByStartFollowBySelectedTeamDuringPeriod?.[0]?.value === "Oui" && !isFollowed) continue;
       if (noPeriodSelected) {
         actionsFilteredByPersons[action._id] = action;
         numberOfActions++;
