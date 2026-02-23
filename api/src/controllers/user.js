@@ -263,6 +263,7 @@ router.post(
     }
 
     user.lastLoginAt = new Date();
+    user.lastDeactivationWarningAt = null;
     user.nextLoginAttemptAt = null;
     user.loginAttempts = 0;
 
@@ -1203,6 +1204,7 @@ router.post(
 
     user.disabledAt = null;
     user.lastLoginAt = new Date();
+    user.lastDeactivationWarningAt = null;
     await user.save();
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
 

@@ -18,3 +18,5 @@ sql
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+tmp-email-previews/
