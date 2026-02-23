@@ -47,8 +47,15 @@ export const organisationAuthentifiedState = atom((get) => {
   return organisation;
 });
 
-// Simple atoms
-export const teamsState = atom<TeamInstance[]>([]);
+// Teams state: always sorted alphabetically
+const teamsBaseAtom = atom<TeamInstance[]>([]);
+export const teamsState: WritableAtom<TeamInstance[], [SetStateAction<TeamInstance[]>], void> = atom(
+  (get) => [...get(teamsBaseAtom)].sort((a, b) => (a.name || "").localeCompare(b.name || "")),
+  (get, set, update: SetStateAction<TeamInstance[]>) => {
+    const teams = typeof update === "function" ? (update as (prev: TeamInstance[]) => TeamInstance[])(get(teamsBaseAtom)) : update;
+    set(teamsBaseAtom as any, teams);
+  }
+);
 export const usersState = atom<UserInstance[]>([]);
 
 // Current team state with Sentry side effect
