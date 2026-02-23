@@ -188,7 +188,7 @@ export const itemsForStatsV2Selector = ({
     }
 
     // get persons for stats for period
-    const createdDate = person.followedSince;
+    const createdDate = person.followedSince ? dayjsInstance(person.followedSince).startOf("day").toISOString() : null;
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,
@@ -228,7 +228,7 @@ export const itemsForStatsV2Selector = ({
         for (const date of person.interactions) {
           if (date < defaultIsoDates.isoStartDate) continue;
           if (date >= defaultIsoDates.isoEndDate) continue;
-          const isoDate = dayjsInstance(date).startOf("day").toISOString();
+          const isoDate = dayjsInstance(date).toISOString();
           if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
           if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
           isFollowed = true;
@@ -301,7 +301,6 @@ export const itemsForStatsV2Selector = ({
       actionsFilteredByPersons[action._id] = action;
       if (personsForStats[person._id]) personsUpdatedWithActions[person._id] = person;
     }
-    if (isFollowed && numberOfActions > 0) countFollowedWithActions++;
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {
         delete personsForStats[person._id];
@@ -456,6 +455,8 @@ export const itemsForStatsV2Selector = ({
         continue;
       }
     }
+
+    if (isFollowed && numberOfActions > 0) countFollowedWithActions++;
   }
 
   return {
