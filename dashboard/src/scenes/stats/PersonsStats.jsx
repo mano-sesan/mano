@@ -40,6 +40,7 @@ export default function PersonStats({
   setEvolutiveStatsIndicators,
   viewAllOrganisationData,
   selectedTeamsObjectWithOwnPeriod,
+  isStatsV2,
 }) {
   const allGroups = useAtomValue(groupsState);
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector);
@@ -82,8 +83,8 @@ export default function PersonStats({
   };
   return (
     <>
-      {!evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
-      <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+      {!isStatsV2 && !evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
+      {!isStatsV2 && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />}
       {evolutivesStatsActivated ? (
         <>
           <EvolutiveStatsSelector
@@ -106,13 +107,13 @@ export default function PersonStats({
       ) : (
         <>
           <details
-            open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("person-stats-general-open") === "true"}
+            open={
+              import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
+              window.localStorage.getItem("person-stats-general-open") === "true" ||
+              (isStatsV2 && window.localStorage.getItem("person-stats-general-open") !== "false")
+            }
             onToggle={(e) => {
-              if (e.target.open) {
-                window.localStorage.setItem("person-stats-general-open", "true");
-              } else {
-                window.localStorage.removeItem("person-stats-general-open");
-              }
+              window.localStorage.setItem("person-stats-general-open", e.target.open ? "true" : "false");
             }}
           >
             <summary className="tw-mx-0 tw-my-8">
@@ -243,14 +244,11 @@ export default function PersonStats({
                 className="print:tw-break-before-page"
                 open={
                   import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
-                  window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"
+                  window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+                  (isStatsV2 && window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
                 }
                 onToggle={(e) => {
-                  if (e.target.open) {
-                    window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-                  } else {
-                    window.localStorage.removeItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-                  }
+                  window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");
                 }}
               >
                 <summary className="tw-mx-0 tw-my-8">

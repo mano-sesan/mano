@@ -60,7 +60,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
       acc[teamId] = [
         {
           isoStartDate: null,
-          isoEndDate: dayjsInstance().startOf("day").toISOString(),
+          isoEndDate: null,
         },
       ];
       return acc;
@@ -69,7 +69,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
       all: [
         {
           isoStartDate: dayjsInstance(person.followedSince).toISOString(),
-          isoEndDate: dayjsInstance().startOf("day").toISOString(),
+          isoEndDate: null,
         },
       ],
     }

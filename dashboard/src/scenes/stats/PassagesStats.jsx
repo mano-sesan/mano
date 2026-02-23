@@ -16,6 +16,7 @@ const PassagesStats = ({
   filterBase,
   filterPersons,
   setFilterPersons,
+  isStatsV2,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
@@ -45,10 +46,12 @@ const PassagesStats = ({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des passages</h3>
-      <div className="tw-flex tw-basis-full tw-items-center">
-        <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
-      </div>
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des passages</h3>}
+      {!isStatsV2 && (
+        <div className="tw-flex tw-basis-full tw-items-center">
+          <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        </div>
+      )}
       <div className="tw-flex tw-flex-col tw-gap-4">
         <CustomResponsivePie
           title="Nombre de passages"

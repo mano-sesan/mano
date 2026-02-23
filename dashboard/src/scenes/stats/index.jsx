@@ -18,6 +18,7 @@ import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
+import { ENV, MANO_TEST_ORG_ID } from "../../config";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ExportFormattedData from "../data-import-export/ExportFormattedData";
@@ -40,6 +41,8 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import StatsV2 from "./index-v2";
+import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabs = [
   "Général",
@@ -78,6 +81,10 @@ with StatsLoader:
 const StatsLoader = () => {
   const { isLoading } = useDataLoader({ refreshOnMount: true });
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
+  const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
+
+  const organisation = useAtomValue(organisationState);
+  const canSwitchVersion = ENV !== "production" || organisation?._id === MANO_TEST_ORG_ID;
 
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
@@ -86,7 +93,9 @@ const StatsLoader = () => {
   }, [isLoading, hasStartLoaded]);
 
   if (!hasStartLoaded) return <Loading />;
-  return <Stats />;
+
+  if (canSwitchVersion && statsVersion === "v2") return <StatsV2 onSwitchVersion={() => setStatsVersion("v1")} />;
+  return <Stats onSwitchVersion={canSwitchVersion ? () => setStatsVersion("v2") : null} />;
 };
 
 const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
@@ -497,7 +506,7 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
-const Stats = () => {
+const Stats = ({ onSwitchVersion }) => {
   const organisation = useAtomValue(organisationState);
   const currentTeam = useAtomValue(currentTeamState);
   const teams = useAtomValue(teamsState);
@@ -841,6 +850,16 @@ const Stats = () => {
           <h1 className="tw-block tw-text-xl tw-min-w-64 tw-full tw-font-normal">
             <span>Statistiques {viewAllOrganisationData ? <>globales</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}</span>
           </h1>
+          {!!onSwitchVersion && (
+            <button
+              type="button"
+              className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
+              onClick={onSwitchVersion}
+            >
+              <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
+              Essayer la nouvelle version
+            </button>
+          )}
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
               onChange={(teamsId) => {

@@ -25,6 +25,7 @@ export default function ConsultationsStats({
   // type filtering props
   consultationsTypes = [],
   setConsultationsTypes = () => {},
+  isStatsV2,
 }) {
   const organisation = useAtomValue(organisationState);
   const [consultationsModalOpened, setConsultationssModalOpened] = useState(false);
@@ -52,56 +53,59 @@ export default function ConsultationsStats({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>
-      <div className="tw-flex tw-basis-full tw-items-center">
-        <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
-      </div>
-      <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
-        <div>
-          <label htmlFor="filter-by-status" className="tw-m-0">
-            Filtrer par statut
-          </label>
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>}
+      {!isStatsV2 && (
+        <div className="tw-flex tw-basis-full tw-items-center">
+          <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        </div>
+      )}
+      {!isStatsV2 && (
+        <div className="tw-grid lg:tw-grid-cols-3 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
-            <SelectCustom
-              inputId="consultation-select-status-filter"
-              options={mappedIdsToLabels}
-              getOptionValue={(s) => s._id}
-              getOptionLabel={(s) => s.name}
-              name="consultation-status"
-              onChange={(s) => setConsultationsStatuses(s.map((s) => s._id))}
-              isClearable
-              isMulti
-              value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
-            />
+            <label htmlFor="filter-by-status" className="tw-m-0">
+              Filtrer par statut
+            </label>
+            <div>
+              <SelectCustom
+                inputId="consultation-select-status-filter"
+                options={mappedIdsToLabels}
+                getOptionValue={(s) => s._id}
+                getOptionLabel={(s) => s.name}
+                name="consultation-status"
+                onChange={(s) => setConsultationsStatuses(s.map((s) => s._id))}
+                isClearable
+                isMulti
+                value={mappedIdsToLabels.filter((s) => (consultationsStatuses || []).includes(s._id))}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="filter-by-type" className="tw-m-0">
+              Filtrer par type
+            </label>
+            <div>
+              <SelectCustom
+                inputId="consultation-select-type-filter"
+                options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
+                getOptionValue={(s) => s._id}
+                getOptionLabel={(s) => s.name}
+                name="consultation-type"
+                onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
+                isClearable
+                isMulti
+                value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
+              />
+            </div>
           </div>
         </div>
-        <div>
-          <label htmlFor="filter-by-type" className="tw-m-0">
-            Filtrer par type
-          </label>
-          <div>
-            <SelectCustom
-              inputId="consultation-select-type-filter"
-              options={organisation.consultations.map((e) => ({ _id: e.name, name: e.name }))}
-              getOptionValue={(s) => s._id}
-              getOptionLabel={(s) => s.name}
-              name="consultation-type"
-              onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
-              isClearable
-              isMulti
-              value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
-            />
-          </div>
-        </div>
-      </div>
+      )}
       <details
-        open={window.localStorage.getItem("consultations-stats-general-open") === "true"}
+        open={
+          window.localStorage.getItem("consultations-stats-general-open") === "true" ||
+          (isStatsV2 && window.localStorage.getItem("consultations-stats-general-open") !== "false")
+        }
         onToggle={(e) => {
-          if (e.target.open) {
-            window.localStorage.setItem("consultations-stats-general-open", "true");
-          } else {
-            window.localStorage.removeItem("consultations-stats-general-open");
-          }
+          window.localStorage.setItem("consultations-stats-general-open", e.target.open ? "true" : "false");
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
@@ -152,13 +156,12 @@ export default function ConsultationsStats({
       {organisation.consultations.map((c) => {
         return (
           <details
-            open={window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"}
+            open={
+              window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+              (isStatsV2 && window.localStorage.getItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
+            }
             onToggle={(e) => {
-              if (e.target.open) {
-                window.localStorage.setItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-              } else {
-                window.localStorage.removeItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-              }
+              window.localStorage.setItem(`person-stats-${c.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");
             }}
             key={c.name}
           >
