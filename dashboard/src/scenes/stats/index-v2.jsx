@@ -18,7 +18,7 @@ import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
-import ExportFormattedData from "../data-import-export/ExportFormattedData";
+import { useExportTransforms, exportXlsx, fetchUsers } from "../data-import-export/ExportFormattedData";
 import GeneralStats from "./GeneralStats";
 import ServicesStats from "./ServicesStats";
 import ActionsStats from "./ActionsStats";
@@ -592,6 +592,47 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   useRestoreScrollPosition();
 
+  const { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation } =
+    useExportTransforms();
+
+  const exportDisabled =
+    ["Général", "Services", "Comptes-rendus"].includes(activeTab) || (activeTab === "Dossiers médicaux" && !user.healthcareProfessional);
+
+  const handleExport = async () => {
+    const loadedUsers = await fetchUsers();
+    switch (activeTab) {
+      case "Personnes":
+        exportXlsx("Personnes", personsForStats.map(transformPerson(loadedUsers)));
+        break;
+      case "Dossiers médicaux":
+        exportXlsx("Dossiers médicaux", personsForStats.map(transformPersonMedical(loadedUsers)));
+        break;
+      case "Actions":
+        exportXlsx(
+          "Actions",
+          actionsWithDetailedGroupAndCategories
+            .reduce((uniqueActions, action) => {
+              if (!uniqueActions.find((a) => a._id === action._id)) uniqueActions.push(action);
+              return uniqueActions;
+            }, [])
+            .map(transformAction(loadedUsers))
+        );
+        break;
+      case "Consultations":
+        exportXlsx("Consultations", consultationsFilteredByStatus.map(transformConsultation(loadedUsers)));
+        break;
+      case "Passages":
+        exportXlsx("Passages", passagesFilteredByPersons.map(transformPassage(loadedUsers)));
+        break;
+      case "Rencontres":
+        exportXlsx("Rencontres", rencontresFilteredByPersons.map(transformRencontre(loadedUsers)));
+        break;
+      case "Observations":
+        exportXlsx("Observations", observations.map(transformObservation(loadedUsers)));
+        break;
+    }
+  };
+
   const filtersDisabled = ["Services", "Observations", "Comptes-rendus"].includes(activeTab);
   const personTypeDisabled = !["Personnes", "Dossiers médicaux"].includes(activeTab);
   const evolutifDisabled = activeTab !== "Personnes";
@@ -623,15 +664,9 @@ const StatsV2 = ({ onSwitchVersion }) => {
           <h1 className="tw-grow tw-text-xl tw-font-normal">Statistiques</h1>
           <div className="tw-flex tw-items-center tw-gap-4">
             <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
-            <ExportFormattedData
-              observations={observations}
-              passages={passagesFilteredByPersons}
-              rencontres={rencontresFilteredByPersons}
-              personCreated={personsForStats}
-              personUpdated={personsForStats}
-              actions={actionsWithDetailedGroupAndCategories}
-              consultations={consultationsFilteredByPersons}
-            />
+            {user.role === "admin" && (
+              <ButtonCustom title="Télécharger un export" onClick={handleExport} disabled={exportDisabled} />
+            )}
           </div>
         </div>
       </div>
@@ -689,6 +724,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             setPreset={setPreset}
             removePreset={removePreset}
             isStatsV2
+            pickerOffsetClassName={personTypeDisabled && evolutifDisabled ? "-tw-right-1" : "-tw-right-56"}
           />
         </div>
 

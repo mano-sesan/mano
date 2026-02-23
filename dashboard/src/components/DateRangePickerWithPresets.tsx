@@ -120,7 +120,17 @@ export const formatPeriod = ({ preset, period }: { preset: string | null; period
 };
 
 // https://reactdatepicker.com/#example-date-range
-const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset, isStatsV2 = false }) => {
+const DateRangePickerWithPresets = ({
+  period,
+  setPeriod,
+  preset,
+  setPreset,
+  removePreset,
+  presets,
+  defaultPreset,
+  isStatsV2 = false,
+  pickerOffsetClassName = "tw-left-0",
+}) => {
   const [showDatePicker, setShowDatepicker] = useState(false);
   const [numberOfMonths, setNumberOfMonths] = useState(() => (window.innerWidth < 1100 ? 1 : 2));
 
@@ -210,7 +220,7 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
       {!!showDatePicker && (
         <OutsideClickHandler onOutsideClick={closeDatePicker}>
           <div
-            className={`stats-datepicker tw-absolute tw-top-12 ${isStatsV2 ? "-tw-right-56" : "tw-left-0"} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
+            className={`stats-datepicker tw-absolute tw-top-12 ${pickerOffsetClassName} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
           >
             <div className="tw-absolute tw-bottom-0 tw-left-0 tw-top-0 tw-ml-2 tw-box-border tw-flex tw-max-h-full tw-w-56 tw-flex-1 tw-flex-col tw-items-start tw-justify-start tw-overflow-y-scroll">
               {presets.map((p) => (
