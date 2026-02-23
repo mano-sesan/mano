@@ -1,14 +1,16 @@
 import React from "react";
-import { Switch } from "react-router-dom";
+import { Redirect, Switch } from "react-router-dom";
 import { useAtomValue } from "jotai";
 
 import List from "./list";
 import SentryRoute from "../../components/Sentryroute";
-import { currentTeamState } from "../../atoms/auth";
+import { currentTeamState, userState } from "../../atoms/auth";
 
 const Router = () => {
+  const user = useAtomValue(userState);
   const currentTeam = useAtomValue(currentTeamState);
 
+  if (!["admin", "normal", "restricted-access"].includes(user.role)) return <Redirect to="/" />;
   if (!currentTeam) return null;
 
   return (

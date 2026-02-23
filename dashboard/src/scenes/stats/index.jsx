@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Redirect } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
@@ -79,12 +80,15 @@ with StatsLoader:
 
 */
 const StatsLoader = () => {
+  const user = useAtomValue(userState);
   const { isLoading } = useDataLoader({ refreshOnMount: true });
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
   const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
 
   const organisation = useAtomValue(organisationState);
   const canSwitchVersion = ENV !== "production" || organisation?._id === MANO_TEST_ORG_ID;
+
+  if (!["admin", "normal", "stats-only"].includes(user.role)) return <Redirect to="/" />;
 
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {

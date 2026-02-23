@@ -1,5 +1,5 @@
 import React, { useMemo, Fragment } from "react";
-import { useHistory } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import Table from "../../components/table";
 import dayjs from "dayjs";
 import UserName from "../../components/UserName";
@@ -260,6 +260,8 @@ const View = () => {
   useDataLoader({ refreshOnMount: true });
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
+
+  if (!["admin", "normal"].includes(user.role)) return <Redirect to="/" />;
 
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", "Actions");
