@@ -200,14 +200,14 @@ export const itemsForStatsV2Selector = ({
     });
 
     let isFollowed = false;
+    let isModified = false;
+    let isCreated = false;
 
     if (personIsInAssignedTeamDuringPeriod) {
-      // Always compute all 4 person type counts (for Général tab)
-      // 1. "all" — always included
-      countAll++;
+      // Compute all 4 person type flags (counts incremented at end of loop, after all filters)
+      // 1. "all" — always included (personIsInAssignedTeamDuringPeriod is true)
 
       // 2. "modified" — has any interaction in period
-      let isModified = false;
       if (noPeriodSelected) {
         isModified = true;
       } else {
@@ -218,7 +218,6 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
-      if (isModified) countModified++;
 
       // 3. "followed" — has valid interaction (not out-of-active-list, in assigned team)
       if (noPeriodSelected) {
@@ -235,10 +234,8 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
-      if (isFollowed) countFollowed++;
 
       // 4. "created" — followedSince in period OR first assignment to a selected team during period
-      let isCreated = false;
       if (noPeriodSelected) {
         isCreated = true;
       } else {
@@ -259,7 +256,6 @@ export const itemsForStatsV2Selector = ({
           }
         }
       }
-      if (isCreated) countCreated++;
 
       // Populate personsForStats based on the selected personType
       if (
@@ -456,6 +452,13 @@ export const itemsForStatsV2Selector = ({
       }
     }
 
+    // Increment person type counts after all filter guards have passed
+    if (personIsInAssignedTeamDuringPeriod) {
+      countAll++;
+      if (isModified) countModified++;
+      if (isFollowed) countFollowed++;
+      if (isCreated) countCreated++;
+    }
     if (isFollowed && numberOfActions > 0) countFollowedWithActions++;
   }
 
