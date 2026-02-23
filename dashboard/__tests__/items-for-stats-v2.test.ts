@@ -38,8 +38,8 @@ describe("extractOutOfActiveListPeriods", () => {
     const periods = extractOutOfActiveListPeriods(person as any);
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-06-15"));
-    // isoEndDate should be today
-    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().format("YYYY-MM-DD")));
+    // isoEndDate should be tomorrow (exclusive boundary so today's interactions are included)
+    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().add(1, "day").format("YYYY-MM-DD")));
   });
 
   test("personne sortie de file active puis revenue → une période fermée", () => {
@@ -85,7 +85,7 @@ describe("extractOutOfActiveListPeriods", () => {
     const periods = extractOutOfActiveListPeriods(person as any);
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-09-01"));
-    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().format("YYYY-MM-DD")));
+    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().add(1, "day").format("YYYY-MM-DD")));
   });
 
   test("multiples sorties et retours → plusieurs périodes", () => {

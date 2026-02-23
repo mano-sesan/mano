@@ -14,7 +14,7 @@ export function extractOutOfActiveListPeriods(person: PersonInstance): Array<{ i
     // We'll set the start date after walking history
     periods.push({
       isoStartDate: null, // placeholder, will be filled
-      isoEndDate: dayjsInstance().startOf("day").toISOString(),
+      isoEndDate: dayjsInstance().startOf("day").add(1, "day").toISOString(),
     });
   }
 
