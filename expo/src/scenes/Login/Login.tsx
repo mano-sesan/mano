@@ -49,6 +49,7 @@ const Login = ({ navigation }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showEncryptionKeyInput, setShowEncryptionKeyInput] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const setUser = useSetAtom(userState);
   // eslint-disable-next-line no-unused-vars
   const [_, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
@@ -266,9 +267,13 @@ const Login = ({ navigation }: Props) => {
                 <ButtonsContainer>
                   <Button
                     caption="Mettre à jour Mano"
-                    onPress={() => API.downloadAndInstallUpdate(API.updateLink)}
-                    loading={loading}
-                    disabled={loading}
+                    onPress={() => {
+                      setDownloading(true);
+                      setTimeout(() => setDownloading(false), 20_000);
+                      API.downloadAndInstallUpdate(API.updateLink);
+                    }}
+                    loading={downloading}
+                    disabled={downloading}
                     testID="button-connect"
                     backgroundColor={colors.app.color}
                     color={colors.app.colorWhite}
