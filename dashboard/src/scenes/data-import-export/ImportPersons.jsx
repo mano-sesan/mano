@@ -140,8 +140,11 @@ export default function ImportPersons() {
         }
       }
 
+      const importedNames = persons.map((p) => p.name.toLowerCase());
+      const duplicatesInFile = [...new Set(importedNames.filter((name, index) => importedNames.indexOf(name) !== index))];
       const existingNames = new Set(existingPersons.map((p) => p.name.toLowerCase()));
-      const duplicates = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
+      const duplicatesWithExisting = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
+      const duplicates = [...new Set([...duplicatesInFile.map((name) => persons.find((p) => p.name.toLowerCase() === name)?.name), ...duplicatesWithExisting])];
 
       setDuplicateNames(duplicates);
 
@@ -197,7 +200,8 @@ export default function ImportPersons() {
           {Boolean(duplicateNames.length) ? (
             <>
               <Alert color="danger">
-                Import impossible : certains noms sont déjà présents dans Mano. Veuillez modifier ces noms dans votre fichier avant d'importer.
+                Import impossible : certains noms sont en doublon dans votre fichier ou déjà présents dans Mano. Veuillez modifier ces noms dans votre
+                fichier avant d'importer.
               </Alert>
               <p>Liste des noms en doublon :</p>
               <ul>
