@@ -9,7 +9,7 @@
     "fix-libsodium": "tar -xzf node_modules/react-native-libsodium/libsodium/build.tgz --directory ./node_modules/react-native-libsodium/libsodium",
     "postinstall": "tar -xzf node_modules/react-native-libsodium/libsodium/build.tgz --directory ./node_modules/react-native-libsodium/libsodium",
     "build-dev-android": "npx expo run:android --device",
-    "start-from-scratch": "yarn install && yarn fix-libsodium && yarn prebuild && yarn build-dev-android && yarn start",
+    "start-from-scratch": "npm run get-ip && yarn install && yarn fix-libsodium && yarn prebuild && yarn build-dev-android && yarn start",
     "update-mobile-app-version": "npx tsx ./update-mobile-app-version.ts",
     "build-local:android-apk-standard": "eas build -p android --local --output ./mano-standard.apk --profile production",
     "build-local:android-apk-niort": "eas build -p android --local --output ./mano-niort.apk --profile production-niort",
