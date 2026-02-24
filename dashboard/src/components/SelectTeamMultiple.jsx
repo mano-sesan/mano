@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { teamsState } from "../atoms/auth";
 import SelectCustom from "./SelectCustom";
@@ -6,11 +6,12 @@ import { getTeamColors } from "./TagTeam";
 
 const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNamePrefix, isDisabled = false }) => {
   const teams = useAtomValue(teamsState);
+  const sortedTeams = useMemo(() => [...teams].sort((a, b) => (a.name || "").localeCompare(b.name || "")), [teams]);
 
   return (
     <SelectCustom
       name="name"
-      options={teams}
+      options={sortedTeams}
       onChange={(teams) => onChange(teams?.map((t) => t._id) || [])}
       value={teamIds.map((_teamId) => teams.find((_team) => _team._id === _teamId))}
       getOptionValue={(team) => team._id}
