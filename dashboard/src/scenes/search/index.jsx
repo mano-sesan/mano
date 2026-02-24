@@ -1,5 +1,5 @@
 import React, { useMemo, Fragment } from "react";
-import { useHistory } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import Table from "../../components/table";
 import dayjs from "dayjs";
 import UserName from "../../components/UserName";
@@ -356,6 +356,8 @@ const View = () => {
     const isValidTab = tabsConfig.some((tab) => tab.key === activeTab);
     return isValidTab ? activeTab : tabsConfig[0]?.key || "Actions";
   }, [activeTab, tabsConfig]);
+
+  if (!["admin", "normal"].includes(user.role)) return <Redirect to="/" />;
 
   // Update activeTab if it became invalid
   if (validActiveTab !== activeTab) {

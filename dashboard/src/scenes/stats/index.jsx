@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Redirect } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
@@ -79,6 +80,7 @@ with StatsLoader:
 
 */
 const StatsLoader = () => {
+  const user = useAtomValue(userState);
   const { isLoading } = useDataLoader({ refreshOnMount: true });
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
   const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
@@ -91,6 +93,8 @@ const StatsLoader = () => {
       setHasStartLoaded(true);
     }
   }, [isLoading, hasStartLoaded]);
+
+  if (!["admin", "normal", "stats-only"].includes(user.role)) return <Redirect to="/" />;
 
   if (!hasStartLoaded) return <Loading />;
 
