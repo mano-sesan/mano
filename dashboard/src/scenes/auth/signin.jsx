@@ -4,9 +4,11 @@ import { Link, useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { detect } from "detect-browser";
+import { MoonIcon } from "@heroicons/react/24/solid";
 import ButtonCustom from "../../components/ButtonCustom";
 import { DEFAULT_ORGANISATION_KEY } from "../../config";
 import PasswordInput from "../../components/PasswordInput";
+import { getTeamColors } from "../../components/TagTeam";
 import {
   currentTeamState,
   deletedUsersState,
@@ -467,12 +469,12 @@ const SignIn = () => {
     return (
       <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
         <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">Choisir son équipe pour commencer</h1>
-        <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-7 [&_>_*]:!tw-w-full">
-          {user.teams.map((team) => (
-            <ButtonCustom
-              type="button"
+        <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-3">
+          {user.teams.map((team, index) => (
+            <TeamButton
               key={team._id}
-              title={team.name}
+              team={team}
+              teamIndex={index}
               onClick={() => {
                 setCurrentTeam(team);
                 onSigninValidated();
@@ -607,6 +609,25 @@ const SignIn = () => {
         <p className="tw-mx-auto tw-mb-0 tw-mt-5 tw-block tw-text-center tw-text-xs tw-text-gray-500">Version&nbsp;: {deploymentCommit}</p>
       </form>
     </div>
+  );
+};
+
+const TeamButton = ({ team, teamIndex, onClick }) => {
+  const [hovered, setHovered] = useState(false);
+  const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="tw-flex tw-w-full tw-cursor-pointer tw-items-center tw-gap-3 tw-rounded-lg tw-border tw-px-4 tw-py-3 tw-text-left tw-text-base tw-font-medium tw-text-black tw-transition-all hover:tw-shadow-sm"
+      style={{ borderColor, backgroundColor: hovered ? `${borderColor}0a` : "white" }}
+    >
+      <span className="tw-inline-block tw-h-4 tw-w-4 tw-shrink-0 tw-rounded-full" style={{ backgroundColor, border: `1px solid ${borderColor}` }} />
+      <span className="tw-flex-1">{team.name}</span>
+      {team.nightSession && <MoonIcon className="tw-h-4 tw-w-4 tw-text-gray-400" />}
+    </button>
   );
 };
 
