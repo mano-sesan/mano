@@ -6,6 +6,7 @@ import API, { tryFetchExpectOk } from "../../services/api";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { toast } from "react-toastify";
 import DragAndDropSettings from "./DragAndDropSettings";
+import SelectCustom from "../../components/SelectCustom";
 import { useDataLoader } from "../../services/dataLoader";
 
 const ActionCategoriesSettings = () => {
@@ -179,6 +180,8 @@ const Category = ({ item: category, groupTitle }) => {
   const [isSelected, setIsSelected] = useState(false);
   const user = useAtomValue(userState);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [isMergingCategory, setIsMergingCategory] = useState(false);
+  const [targetCategory, setTargetCategory] = useState(null);
   const actions = useAtomValue(actionsState);
   const [organisation, setOrganisation] = useAtom(organisationState);
 
@@ -264,6 +267,49 @@ const Category = ({ item: category, groupTitle }) => {
     }
   };
 
+  const onMergeCategory = async () => {
+    if (!targetCategory) return toast.error("Vous devez choisir une catégorie cible");
+    const encryptedActions = await Promise.all(
+      actions
+        .filter((a) => a.categories?.includes(category))
+        .map((action) => ({
+          ...action,
+          categories: [...new Set(action.categories.map((cat) => (cat === category ? targetCategory : cat)))],
+        }))
+        .map((action) => encryptAction({ ...action, user: action.user || user._id }, { checkRequiredFields: false }))
+    );
+    const newActionsGroupedCategories = actionsGroupedCategories.map((group) => {
+      if (group.groupTitle !== groupTitle) return group;
+      return {
+        ...group,
+        categories: group.categories.filter((cat) => cat !== category),
+      };
+    });
+    const oldOrganisation = organisation;
+    setOrganisation({ ...organisation, actionsGroupedCategories: newActionsGroupedCategories }); // optimistic UI
+
+    const [error, res] = await tryFetchExpectOk(async () =>
+      API.put({
+        path: `/category`,
+        body: {
+          actionsGroupedCategories: newActionsGroupedCategories,
+          actions: encryptedActions,
+        },
+      })
+    );
+    if (!error) {
+      refresh();
+      setOrganisation(res.data);
+      setIsMergingCategory(false);
+      setTargetCategory(null);
+      toast.success("Catégorie fusionnée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
+    } else {
+      setOrganisation(oldOrganisation);
+    }
+  };
+
+  const impactedActionsCount = actions.filter((a) => a.categories?.includes(category)).length;
+
   return (
     <>
       <div
@@ -281,8 +327,16 @@ const Category = ({ item: category, groupTitle }) => {
         </p>
         <button
           type="button"
-          aria-label={`Modifier la catégorie ${category}`}
+          aria-label={`Fusionner la catégorie ${category}`}
           className="tw-ml-auto tw-hidden group-hover:tw-inline-flex"
+          onClick={() => setIsMergingCategory(true)}
+        >
+          🔀
+        </button>
+        <button
+          type="button"
+          aria-label={`Modifier la catégorie ${category}`}
+          className="tw-ml-1 tw-hidden group-hover:tw-inline-flex"
           onClick={() => setIsEditingCategory(true)}
         >
           ✏️
@@ -309,6 +363,49 @@ const Category = ({ item: category, groupTitle }) => {
           </button>
           <button type="submit" className="button-submit" form="edit-category-form">
             Enregistrer
+          </button>
+        </ModalFooter>
+      </ModalContainer>
+      <ModalContainer open={isMergingCategory} size="3xl">
+        <ModalHeader title={`Fusionner « ${category} »`} />
+        <ModalBody className="tw-py-4">
+          <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
+            <p>
+              Toutes les actions de «&nbsp;{category}&nbsp;» seront transférées vers la catégorie cible. La catégorie «&nbsp;{category}&nbsp;» sera
+              ensuite supprimée.
+            </p>
+            <p className="tw-text-sm tw-text-gray-500">
+              {impactedActionsCount} action{impactedActionsCount > 1 ? "s" : ""} concernée{impactedActionsCount > 1 ? "s" : ""}
+            </p>
+            <div>
+              <label htmlFor="targetCategory" className="tailwindui">
+                Catégorie cible
+              </label>
+              <SelectCustom
+                inputId="targetCategory"
+                name="targetCategory"
+                options={flattenedCategories.filter((cat) => cat !== category).map((cat) => ({ value: cat, label: cat }))}
+                value={targetCategory ? { value: targetCategory, label: targetCategory } : null}
+                onChange={(option) => setTargetCategory(option?.value || null)}
+                isClearable
+              />
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <button
+            type="button"
+            name="cancel"
+            className="button-cancel"
+            onClick={() => {
+              setIsMergingCategory(false);
+              setTargetCategory(null);
+            }}
+          >
+            Annuler
+          </button>
+          <button type="button" className="button-submit" onClick={onMergeCategory}>
+            Fusionner
           </button>
         </ModalFooter>
       </ModalContainer>
