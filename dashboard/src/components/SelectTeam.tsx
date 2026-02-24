@@ -4,6 +4,8 @@ import type { TeamInstance } from "../types/team";
 import type { SelectCustomProps } from "./SelectCustom";
 import type { GroupBase, SingleValue, ActionMeta } from "react-select";
 import { getTeamColors } from "./TagTeam";
+import { teamsState } from "../atoms/auth";
+import { useAtomValue } from "jotai";
 
 interface SelectTeamProps extends Omit<SelectCustomProps<TeamInstance, false, GroupBase<TeamInstance>>, "onChange"> {
   name: string;
@@ -15,6 +17,8 @@ interface SelectTeamProps extends Omit<SelectCustomProps<TeamInstance, false, Gr
 }
 
 const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefined, inputId = "", ...rest }: SelectTeamProps) => {
+  const allTeams = useAtomValue(teamsState);
+
   useEffect(() => {
     if (teams?.length === 1 && !teamId && onChange) onChange(teams[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -38,7 +42,7 @@ const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefin
         getOptionValue={(team) => team._id}
         getOptionLabel={(team) => team.name}
         formatOptionLabel={(team) => {
-          const teamIndex = teams.findIndex((t) => t._id === team._id);
+          const teamIndex = allTeams.findIndex((t) => t._id === team._id);
           const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
           return (
             <div className="tw-flex tw-items-center tw-gap-2">
