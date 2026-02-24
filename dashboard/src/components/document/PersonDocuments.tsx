@@ -78,7 +78,11 @@ export default function PersonDocuments({ person }: PersonDocumentsProps) {
       ...removeOldDefaultFolders([...(person.documentsForModule || []), ...(person.groupDocuments || [])], defaultFolders),
     ]
       .filter((e) => e)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => {
+        if (a.type === "folder" && b.type !== "folder") return -1;
+        if (a.type !== "folder" && b.type === "folder") return 1;
+        return a.name.localeCompare(b.name);
+      });
   }, [person, organisation.defaultPersonsFolders]);
 
   // Use extracted utility hooks

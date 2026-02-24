@@ -144,9 +144,11 @@ export default function MedicalFileDocuments({ person }: MedicalFileDocumentsPro
       otherDocs.push(docWithLinkedItem);
     }
 
-    return [...treatmentsDocs, ...consultationsDocs, ...removeOldDefaultFolders([...(otherDocs || [])], defaultFolders)].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return [...treatmentsDocs, ...consultationsDocs, ...removeOldDefaultFolders([...(otherDocs || [])], defaultFolders)].sort((a, b) => {
+      if (a.type === "folder" && b.type !== "folder") return -1;
+      if (a.type !== "folder" && b.type === "folder") return 1;
+      return a.name.localeCompare(b.name);
+    });
   }, [consultations, defaultFolders, medicalFile, treatments, user._id]);
 
   // Use extracted utility hooks
