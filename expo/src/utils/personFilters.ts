@@ -2,6 +2,10 @@ import { PersonPopulated } from "@/types/person";
 import { Filter, FilterableField } from "@/types/field";
 import { dayjsInstance } from "@/services/dateDayjs";
 
+export interface FilterContext {
+  teamNameToId?: Record<string, string>;
+}
+
 /**
  * Filters a single person according to the provided filters.
  * All filters must be satisfied (AND logic) for the person to pass.
@@ -10,9 +14,10 @@ import { dayjsInstance } from "@/services/dateDayjs";
  *
  * @param person - The person to filter
  * @param filters - Array of filters to apply
+ * @param context - Optional context for resolving names to IDs (e.g. team names)
  * @returns The person if it passes all filters, null otherwise
  */
-export function filterPerson(person: PersonPopulated, filters: Array<Filter>): PersonPopulated | null {
+export function filterPerson(person: PersonPopulated, filters: Array<Filter>, context?: FilterContext): PersonPopulated | null {
   // If no filters are active, the person passes
   const activeFilters = filters.filter((f) => Boolean(f?.value));
   if (!activeFilters.length) return person;
@@ -107,6 +112,21 @@ export function filterPerson(person: PersonPopulated, filters: Array<Filter>): P
     const arrayFilterValue = Array.isArray(filter.value) ? filter.value : [filter.value];
     if (!arrayFilterValue.length) continue;
 
+    // Special handling for "assignedTeams" filter
+    // Filter values are team names, but person.assignedTeams contains team IDs
+    if (filter.field === "assignedTeams" && context?.teamNameToId) {
+      const personTeamIds = (person.assignedTeams as string[] | undefined) || [];
+      // Handle "Non renseigné" case
+      if (arrayFilterValue.length === 1 && arrayFilterValue[0] === "Non renseigné") {
+        if (!personTeamIds.length) continue;
+        return null;
+      }
+      const selectedTeamIds = arrayFilterValue.map((name) => context.teamNameToId![name]).filter(Boolean);
+      const hasMatch = personTeamIds.some((id) => selectedTeamIds.includes(id));
+      if (!hasMatch) return null;
+      continue;
+    }
+
     // Special handling for "actionCategoriesCombined" filter
     // This filter checks if a person has at least one action that contains ALL selected categories
     if (filter.field === "actionCategoriesCombined") {
@@ -172,10 +192,11 @@ export function filterPerson(person: PersonPopulated, filters: Array<Filter>): P
  *
  * @param persons - Array of persons to filter
  * @param filters - Array of filters to apply
+ * @param context - Optional context for resolving names to IDs (e.g. team names)
  * @returns Filtered array of persons
  */
-export function filterPersons(persons: PersonPopulated[], filters: Array<Filter>): PersonPopulated[] {
-  return persons.map((person) => filterPerson(person, filters)).filter(Boolean) as PersonPopulated[];
+export function filterPersons(persons: PersonPopulated[], filters: Array<Filter>, context?: FilterContext): PersonPopulated[] {
+  return persons.map((person) => filterPerson(person, filters, context)).filter(Boolean) as PersonPopulated[];
 }
 
 /**
