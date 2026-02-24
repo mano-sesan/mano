@@ -88,13 +88,13 @@ const StatsLoader = () => {
   const organisation = useAtomValue(organisationState);
   const canSwitchVersion = ENV !== "production" || organisation?._id === MANO_TEST_ORG_ID;
 
-  if (!["admin", "normal", "stats-only"].includes(user.role)) return <Redirect to="/" />;
-
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
       setHasStartLoaded(true);
     }
   }, [isLoading, hasStartLoaded]);
+
+  if (!["admin", "normal", "stats-only"].includes(user.role)) return <Redirect to="/" />;
 
   if (!hasStartLoaded) return <Loading />;
 

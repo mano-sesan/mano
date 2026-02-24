@@ -261,8 +261,6 @@ const View = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
 
-  if (!["admin", "normal"].includes(user.role)) return <Redirect to="/" />;
-
   const [search, setSearch] = useLocalStorage("fullsearch", "");
   const [activeTab, setActiveTab] = useLocalStorage("fullsearch-tab", "Actions");
 
@@ -358,6 +356,8 @@ const View = () => {
     const isValidTab = tabsConfig.some((tab) => tab.key === activeTab);
     return isValidTab ? activeTab : tabsConfig[0]?.key || "Actions";
   }, [activeTab, tabsConfig]);
+
+  if (!["admin", "normal"].includes(user.role)) return <Redirect to="/" />;
 
   // Update activeTab if it became invalid
   if (validActiveTab !== activeTab) {
