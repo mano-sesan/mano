@@ -9,7 +9,7 @@ import View from "./view";
 const Router = () => {
   const user = useAtomValue(userState);
 
-  if (!["admin"].includes(user.role)) return <Redirect to="/" />;
+  if (!["admin", "superadmin"].includes(user.role)) return <Redirect to="/" />;
 
   return (
     <Switch>
