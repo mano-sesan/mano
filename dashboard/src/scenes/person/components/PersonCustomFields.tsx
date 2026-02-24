@@ -5,6 +5,7 @@ import EditModal from "./EditModal";
 import CustomFieldDisplay from "../../../components/CustomFieldDisplay";
 import type { PersonPopulated } from "../../../types/person";
 import type { CustomField } from "../../../types/field";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 
 interface PersonCustomFieldsProps {
   person: PersonPopulated;
@@ -32,7 +33,7 @@ export default function PersonCustomFields({ person, sectionName, fields, isMedi
             aria-label={`Éditer les ${sectionName.toLowerCase()}`}
             title={`Éditer les ${sectionName.toLowerCase()}`}
           >
-            ✏️
+            <PencilSquareIcon className="tw-h-5 tw-w-5 tw-text-main" />
           </button>
         </div>
       </div>
