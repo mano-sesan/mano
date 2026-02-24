@@ -5,13 +5,13 @@ import PersonsFilterScreen from "./PersonsFilterScreen";
 import FilterConfigModal from "./FilterConfigModal";
 import { TabsParamsList } from "@/types/navigation";
 import { useAtom, useAtomValue } from "jotai";
-import { userState } from "@/recoil/auth";
+import { teamsState, userState } from "@/recoil/auth";
 import { arrayOfitemsGroupedByPersonSelector } from "@/recoil/selectors";
 import { filterBySearch } from "@/utils/search";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import PersonNew from "./PersonNew";
 import { personsFiltersState } from "@/recoil/persons";
-import { filterPersons } from "@/utils/personFilters";
+import { filterPersons, FilterContext } from "@/utils/personFilters";
 import { Filter } from "@/types/field";
 
 type PersonsListStackParams = {
@@ -89,10 +89,19 @@ const emptyArray: string[] = [];
 function usePersonsFilteredBySearchSelector(filters: Array<any>, search: string) {
   const user = useAtomValue(userState)!;
   const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
+  const teams = useAtomValue(teamsState);
+
+  const filterContext: FilterContext = useMemo(() => {
+    const teamNameToId: Record<string, string> = {};
+    for (const team of teams) {
+      teamNameToId[team.name] = team._id;
+    }
+    return { teamNameToId };
+  }, [teams]);
 
   return useMemo(() => {
     // First apply filters
-    const personsFiltered = filterPersons(persons, filters);
+    const personsFiltered = filterPersons(persons, filters, filterContext);
 
     // Then apply search
     const restrictedFields =
@@ -101,5 +110,5 @@ function usePersonsFilteredBySearchSelector(filters: Array<any>, search: string)
     const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
     return personsfilteredBySearch;
-  }, [filters, search, persons, user.role]);
+  }, [filters, search, persons, user.role, filterContext]);
 }
