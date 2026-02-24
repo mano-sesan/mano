@@ -227,7 +227,7 @@ const GanttChart = ({
                 height: `${teamLinesCount * 38}px`,
                 background: `repeating-linear-gradient(-45deg, rgba(251, 191, 36, 0.08), rgba(251, 191, 36, 0.08) 4px, rgba(251, 191, 36, 0.18) 4px, rgba(251, 191, 36, 0.18) 8px)`,
               }}
-              title={`Hors file active${period.reasons.length ? ` : ${period.reasons.join(", ")}` : ""}`}
+              title={`Hors file active${period.reasons.length ? ` : ${period.reasons.join(", ")}` : ""}\nDu ${dayjsInstance(period.startDate).format("DD/MM/YY")} au ${dayjsInstance(period.endDate).format("DD/MM/YY")}`}
             />
           );
         })}
@@ -245,7 +245,7 @@ const GanttChart = ({
                 backgroundColor: item.backgroundColor || "#bbb",
                 border: "1px solid " + (item.borderColor || "#aaa"),
               }}
-              title={teamName}
+              title={`${teamName}\nDu ${dayjsInstance(item.startDate).format("DD/MM/YY")} au ${dayjsInstance(item.endDate).format("DD/MM/YY")}`}
             >
               <div className="text-white tw-text-xs tw-font-semibold tw-truncate tw-pl-1">{teamName}</div>
               <div className="text-white tw-text-[10px] tw-truncate tw-pl-1 tw-leading-3">
@@ -266,7 +266,7 @@ const GanttChart = ({
               background: `repeating-linear-gradient(-45deg, #fef3c7, #fef3c7 4px, #fde68a 4px, #fde68a 8px)`,
               border: "1px dashed #d97706",
             }}
-            title={`Hors file active${item.reasons.length ? ` : ${item.reasons.join(", ")}` : ""}`}
+            title={`Hors file active${item.reasons.length ? ` : ${item.reasons.join(", ")}` : ""}\nDu ${dayjsInstance(item.startDate).format("DD/MM/YY")} au ${dayjsInstance(item.endDate).format("DD/MM/YY")}`}
           >
             <div className="tw-text-xs tw-font-medium tw-text-orange-800 tw-truncate tw-pl-1">
               Hors file active{item.reasons.length ? ` : ${item.reasons.join(", ")}` : ""}
