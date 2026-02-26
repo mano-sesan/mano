@@ -238,7 +238,10 @@ class ApiService {
         JSON.parse(content);
       } catch (errorDecryptParsing) {
         if (this.handleError) this.handleError(errorDecryptParsing, "Désolé une erreur est survenue lors du déchiffrement");
-        capture("ERROR PARSING CONTENT", { extra: { errorDecryptParsing, content } });
+        capture("ERROR PARSING CONTENT", {
+          extra: { errorDecryptParsing, encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10) },
+          tags: { _id: item._id },
+        });
       }
 
       const decryptedItem = {

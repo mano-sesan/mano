@@ -220,7 +220,12 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
     );
     capture(new Error(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`), {
       fingerprint: [`error-decrypting-${type || "item"}`, item._id],
-      extra: { message: "ERROR DECRYPTING ITEM", item, type, error: errorDecrypt?.message || errorDecrypt },
+      extra: {
+        message: "ERROR DECRYPTING ITEM",
+        type,
+        error: errorDecrypt?.message || errorDecrypt,
+        encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10),
+      },
       tags: { _id: item._id, type: type || "item" },
     });
     return null;
@@ -236,7 +241,7 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
     toast.error("Une erreur est survenue lors de la récupération des données déchiffrées: " + errorDecryptParsing);
     capture(new Error("ERROR PARSING CONTENT"), {
       fingerprint: [`error-parsing-content`, item._id],
-      extra: { errorDecryptParsing: errorDecryptParsing?.message || errorDecryptParsing, content, item, type },
+      extra: { errorDecryptParsing: errorDecryptParsing?.message || errorDecryptParsing, type },
       tags: { _id: item._id, type: type || "item" },
     });
     return null;
