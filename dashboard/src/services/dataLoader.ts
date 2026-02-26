@@ -20,14 +20,7 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import {
-  clearCache,
-  dashboardCurrentCacheKey,
-  getCacheItemDefaultValue,
-  setCacheItem,
-  enableCacheWrites,
-  setExpectedOrganisationId,
-} from "./dataManagement";
+import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem, enableCacheWrites, broadcastLoadingOrg } from "./dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "./api";
 import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
@@ -149,7 +142,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // Écriture précoce de l'organisationId pour éviter qu'un chargement interrompu
     // laisse des données orphelines sans marqueur d'org
     await setCacheItem("organisationId", organisation._id);
-    setExpectedOrganisationId(organisation._id);
+    broadcastLoadingOrg(organisation._id);
 
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const [userError, userResponse] = await tryFetch(() => {
@@ -702,7 +695,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     if (!getHashedOrgEncryptionKey()) return false;
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setPerTabLastRefresh(serverDate);
-    setExpectedOrganisationId(null);
     setLoadingText("En attente de rafraichissement");
     // On ne reset pas les valeurs de progress et total si on est en initial load
     // Car on le fait après la redirection pour éviter un flash de chargement
@@ -717,7 +709,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   async function resetLoaderOnError(error?: string | Error) {
     // an error was thrown, the data was not downloaded,
     // this can result in data corruption, we need to reset the loader
-    setExpectedOrganisationId(null);
     await clearCache("resetLoaderOnError");
     setPerTabLastRefresh(0);
     // Pas de message d'erreur si la page est en train de se fermer

@@ -11,7 +11,6 @@ let customStore: UseStore | null = null;
 let storageFailureHandled = false;
 
 let cacheWritesEnabled = true;
-let expectedOrganisationId: string | null = null;
 
 export function disableCacheWrites() {
   cacheWritesEnabled = false;
@@ -21,11 +20,21 @@ export function enableCacheWrites() {
   cacheWritesEnabled = true;
 }
 
-export function setExpectedOrganisationId(orgId: string | null) {
-  expectedOrganisationId = orgId;
-}
-
 export const AUTH_TOAST_KEY = "mano-auth-toast";
+
+export const LOADING_ORG_BROADCAST_KEY = "mano-loading-org";
+
+export function broadcastLoadingOrg(organisationId: string) {
+  try {
+    window.localStorage.removeItem(LOADING_ORG_BROADCAST_KEY);
+    window.localStorage.setItem(
+      LOADING_ORG_BROADCAST_KEY,
+      JSON.stringify({ orgId: organisationId, ts: Date.now(), rand: Math.random() })
+    );
+  } catch (_e) {
+    // ignore
+  }
+}
 
 (async () => {
   try {
@@ -103,19 +112,6 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
 export async function setCacheItem(key: string, value: unknown) {
   try {
     if (!cacheWritesEnabled) return;
-    // Protection multi-onglets : vérifier que l'org en IDB correspond toujours
-    if (expectedOrganisationId && key !== "organisationId" && customStore) {
-      try {
-        const storedOrgId = await get("organisationId", customStore);
-        if (storedOrgId !== expectedOrganisationId) {
-          cacheWritesEnabled = false;
-          return;
-        }
-      } catch (orgCheckError) {
-        // Si la vérification échoue, on laisse l'écriture continuer (fail-open)
-        capture(orgCheckError, { tags: { key }, extra: { context: "setCacheItem org check failed" } });
-      }
-    }
     if (customStore) await set(key, value, customStore);
   } catch (error) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {
@@ -180,19 +176,6 @@ export async function setCacheItem(key: string, value: unknown) {
 export async function getCacheItem(key: string) {
   try {
     if (customStore === null) return null;
-    // Protection multi-onglets : vérifier que l'org en IDB correspond toujours avant de lire des données d'entité
-    if (expectedOrganisationId && key !== "organisationId" && key !== dashboardCurrentCacheKey && customStore) {
-      try {
-        const storedOrgId = await get("organisationId", customStore);
-        if (storedOrgId !== expectedOrganisationId) {
-          cacheWritesEnabled = false;
-          return null;
-        }
-      } catch (orgCheckError) {
-        // Si la vérification échoue, on laisse la lecture continuer (fail-open)
-        capture(orgCheckError, { tags: { key }, extra: { context: "getCacheItem org check failed" } });
-      }
-    }
     const data = await get(key, customStore);
     return data;
   } catch (error) {
