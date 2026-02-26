@@ -23,7 +23,7 @@ import Drawer from "./components/drawer";
 import Reception from "./scenes/reception";
 import ActionModal from "./components/ActionModal";
 import Charte from "./scenes/auth/charte";
-import { userState } from "./atoms/auth";
+import { organisationState, userState } from "./atoms/auth";
 import API, { tryFetch } from "./services/api";
 import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
@@ -48,6 +48,7 @@ import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
+import { disableCacheWrites, LOADING_ORG_BROADCAST_KEY } from "./services/dataManagement";
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -127,26 +128,59 @@ const App = () => {
   useEffect(() => {
     const onStorage = (e) => {
       if (!e) return;
-      if (e.key !== FORCE_LOGOUT_BROADCAST_KEY) return;
-      // Skip if this tab initiated the logout - it's already handling its own logout
-      if (isLogoutInitiatedByThisTab()) return;
-      // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
-      const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
-      abortRequests();
-      try {
-        // À garder en tête : tous les onglets déconnectés de force perdent leur session storage.
-        window.sessionStorage?.clear();
-      } catch (_err) {
-        // ignore
+
+      // Broadcast de déconnexion (existant, inchangé)
+      if (e.key === FORCE_LOGOUT_BROADCAST_KEY) {
+        // Skip if this tab initiated the logout - it's already handling its own logout
+        if (isLogoutInitiatedByThisTab()) return;
+        // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
+        const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
+        disableCacheWrites();
+        abortRequests();
+        try {
+          // À garder en tête : tous les onglets déconnectés de force perdent leur session storage.
+          window.sessionStorage?.clear();
+        } catch (_err) {
+          // ignore
+        }
+        resetOrgEncryptionKey();
+        try {
+          window.localStorage?.removeItem("previously-logged-in");
+        } catch (_err) {
+          // ignore
+        }
+        if (alreadyOnAuth) return;
+        window.location.href = "/auth";
       }
-      resetOrgEncryptionKey();
-      try {
-        window.localStorage?.removeItem("previously-logged-in");
-      } catch (_err) {
-        // ignore
+
+      // Broadcast de login : un autre onglet charge une org différente → on se déconnecte
+      if (e.key === LOADING_ORG_BROADCAST_KEY) {
+        try {
+          const data = JSON.parse(e.newValue);
+          const currentOrg = store.get(organisationState);
+          // Pas d'org = pas connecté (ex: sur /auth) → ignorer
+          if (!currentOrg?._id) return;
+          // Même org → ignorer
+          if (data.orgId === currentOrg._id) return;
+          // Org différente → déconnecter cet onglet
+          disableCacheWrites();
+          abortRequests();
+          try {
+            window.sessionStorage?.clear();
+          } catch (_err) {
+            // ignore
+          }
+          resetOrgEncryptionKey();
+          try {
+            window.localStorage?.removeItem("previously-logged-in");
+          } catch (_err) {
+            // ignore
+          }
+          window.location.href = "/auth";
+        } catch (_e) {
+          // JSON parse error → ignorer
+        }
       }
-      if (alreadyOnAuth) return;
-      window.location.href = "/auth";
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

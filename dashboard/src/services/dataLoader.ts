@@ -20,7 +20,14 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "./dataManagement";
+import {
+  clearCache,
+  dashboardCurrentCacheKey,
+  getCacheItemDefaultValue,
+  setCacheItem,
+  enableCacheWrites,
+  broadcastLoadingOrg,
+} from "./dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "./api";
 import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
@@ -112,6 +119,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // premier check du chiffrement activé: si pas de clé de chiffrement, pas de donnée à télécharger
     if (!getHashedOrgEncryptionKey()) return false;
     setIsLoading(true);
+    enableCacheWrites();
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
 
@@ -137,6 +145,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       lastLoadValue = 0;
       setPerTabLastRefresh(0);
     }
+
+    // Écriture précoce de l'organisationId pour éviter qu'un chargement interrompu
+    // laisse des données orphelines sans marqueur d'org
+    await setCacheItem("organisationId", organisation._id);
+    broadcastLoadingOrg(organisation._id);
 
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const [userError, userResponse] = await tryFetch(() => {
@@ -687,8 +700,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // 3. problème: on a téléchargé des éléments mais non déchiffrés DONC
     // => pour éviter des problèmes de cache on n'enrteigtre pas le `await setCacheItem(dashboardCurrentCacheKey, serverDate);`
     if (!getHashedOrgEncryptionKey()) return false;
-    // On enregistre également l'identifiant de l'organisation
-    await setCacheItem("organisationId", organisationId);
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setPerTabLastRefresh(serverDate);
     setLoadingText("En attente de rafraichissement");
