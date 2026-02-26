@@ -100,6 +100,37 @@ const ObservationsSettings = () => {
     }
   };
 
+  const onGroupTeamsChange = async (groupTitle, { enabled, enabledTeams }) => {
+    const newCustomFieldsObs = groupedCustomFieldsObs.map((group) => {
+      if (group.name !== groupTitle) return group;
+      return {
+        ...group,
+        fields: group.fields.map((field) => ({
+          ...field,
+          enabled,
+          enabledTeams: enabled ? [] : enabledTeams,
+        })),
+      };
+    });
+
+    const oldOrganisation = organisation;
+    setOrganisation({ ...organisation, groupedCustomFieldsObs: newCustomFieldsObs });
+    const [error, response] = await tryFetchExpectOk(async () =>
+      API.put({
+        path: `/organisation/${organisation._id}`,
+        body: { groupedCustomFieldsObs: newCustomFieldsObs },
+      })
+    );
+    if (!error) {
+      setOrganisation(response.data);
+      refresh();
+      toast.success("Visibilité appliquée à tous les champs du groupe");
+    } else {
+      setOrganisation(oldOrganisation);
+      toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
+    }
+  };
+
   const onDragAndDrop = useCallback(
     async (newCustomFieldsObs) => {
       newCustomFieldsObs = newCustomFieldsObs.map((group) => ({
@@ -132,6 +163,7 @@ const ObservationsSettings = () => {
       onAddGroup={onAddGroup}
       onGroupTitleChange={onGroupTitleChange}
       onDeleteGroup={onDeleteGroup}
+      onGroupTeamsChange={onGroupTeamsChange}
     />
   );
 };
