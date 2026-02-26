@@ -1,3 +1,4 @@
+import React from "react";
 import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 function getFilterDisplayValue(filter) {
@@ -61,23 +62,25 @@ export default function FilterChipsV2({
         const displayValue = getFilterDisplayValue(filter);
         if (!displayValue) return null;
         return (
-          <span
-            key={`${filter.field}-${index}`}
-            className={`tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-md ${chipBgClass} ${chipTextClass} tw-text-sm tw-pl-3 tw-pr-1.5 tw-py-1`}
-          >
-            <button type="button" onClick={() => onEditFilter?.(index)} className="tw-inline-flex tw-items-center tw-gap-1.5 tw-cursor-pointer">
-              <span className={chipLabelClass}>{label}&nbsp;:</span>
-              <span className="tw-font-medium tw-max-w-96 tw-truncate">{displayValue}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => removeFilter(index)}
-              className={`tw-ml-0.5 tw-rounded ${chipHoverClass} tw-p-0.5 tw-cursor-pointer tw-transition-colors`}
-              aria-label="Supprimer le filtre"
+          <React.Fragment key={`${filter.field}-${index}`}>
+            {index > 0 && <span className="tw-text-zinc-600 tw-text-sm tw-italic">et</span>}
+            <span
+              className={`tw-inline-flex tw-items-center tw-gap-1.5 tw-rounded-md ${chipBgClass} ${chipTextClass} tw-text-sm tw-pl-3 tw-pr-1.5 tw-py-1`}
             >
-              <XMarkIcon className="tw-w-3.5 tw-h-3.5" />
-            </button>
-          </span>
+              <button type="button" onClick={() => onEditFilter?.(index)} className="tw-inline-flex tw-items-center tw-gap-1.5 tw-cursor-pointer">
+                <span className={chipLabelClass}>{label}&nbsp;:</span>
+                <span className="tw-font-medium tw-max-w-96 tw-truncate">{displayValue}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => removeFilter(index)}
+                className={`tw-ml-0.5 tw-rounded ${chipHoverClass} tw-p-0.5 tw-cursor-pointer tw-transition-colors`}
+                aria-label="Supprimer le filtre"
+              >
+                <XMarkIcon className="tw-w-3.5 tw-h-3.5" />
+              </button>
+            </span>
+          </React.Fragment>
         );
       })}
       <button
