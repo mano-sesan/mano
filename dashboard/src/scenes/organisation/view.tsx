@@ -139,17 +139,17 @@ const View = () => {
     <div className="relative tw--m-12 tw--mt-4 tw-flex tw-h-[calc(100%+4rem)] tw-flex-col">
       <div className="tw-flex tw-flex-1 tw-overflow-hidden">
         <div className="tw-flex tw-h-full tw-w-58 tw-shrink-0 tw-flex-col tw-items-start tw-bg-main tw-px-2 tw-pt-2 tw-overflow-auto">
-          <div className="tw-text-white tw-font-bold tw-text-sm mt-4">Général</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-4">Général</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "infos"} text="Informations" onClick={() => setTab("infos")} />
             <MenuButton selected={tab === "encryption"} text="Chiffrement" onClick={() => setTab("encryption")} />
           </div>
-          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Personnes suivies</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-3">Personnes suivies</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "persons"} text="Personnes suivies" onClick={() => setTab("persons")} />
             <MenuButton selected={tab === "medicalFile"} text="Dossier Médical" onClick={() => setTab("medicalFile")} />
           </div>
-          <div className="tw-text-white tw-font-bold  tw-text-sm mt-3">Paramétrage de l'activité</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-3">Paramétrage de l'activité</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "reception"} text="Accueil de jour" onClick={() => setTab("reception")} />
             <MenuButton selected={tab === "actions"} text="Actions" onClick={() => setTab("actions")} />
@@ -159,7 +159,7 @@ const View = () => {
             <MenuButton selected={tab === "consultations"} text="Consultations" onClick={() => setTab("consultations")} />
             <MenuButton selected={tab === "collaborations"} text="Co-interventions" onClick={() => setTab("collaborations")} />
           </div>
-          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Import et export</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-3">Import et export</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "import"} text="Import de personnes suivies" onClick={() => setTab("import")} />
             <MenuButton selected={tab === "import-configuration"} text="Import de configuration" onClick={() => setTab("import-configuration")} />
@@ -167,7 +167,7 @@ const View = () => {
             <MenuButton selected={tab === "import-structures"} text="Import de contacts" onClick={() => setTab("import-structures")} />
             <MenuButton selected={tab === "export"} text="Export des données" onClick={() => setTab("export")} />
           </div>
-          <div className="tw-text-white tw-font-bold tw-text-sm mt-3">Maintenance</div>
+          <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-3">Maintenance</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "poubelle"} text="Données supprimées" onClick={() => setTab("poubelle")} />
             <MenuButton selected={tab === "errors"} text="Données en erreur" onClick={() => setTab("errors")} />
