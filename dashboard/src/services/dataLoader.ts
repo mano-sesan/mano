@@ -20,7 +20,7 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "./dataManagement";
+import { clearCache, dashboardCurrentCacheKey, getCacheItem, getCacheItemDefaultValue, setCacheItem } from "./dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "./api";
 import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
@@ -597,14 +597,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
     if (isStartingInitialLoad) {
       const encryptedCache = await getCacheItemDefaultValue("consultation", []);
-      const mergedEncrypted = newConsultationsRaw.length ? mergeItems(encryptedCache, newConsultationsRaw) : encryptedCache;
+      const cachedEncryptionLastUpdateAt = await getCacheItem("consultation-encryptionLastUpdateAt");
+      
+      // Validate that cached data was encrypted with the same key
+      const isCacheValid = cachedEncryptionLastUpdateAt && cachedEncryptionLastUpdateAt === latestOrganisation.encryptionLastUpdateAt?.toString();
+      const validEncryptedCache = isCacheValid ? encryptedCache : [];
+      
+      const mergedEncrypted = newConsultationsRaw.length ? mergeItems(validEncryptedCache, newConsultationsRaw) : validEncryptedCache;
       await setCacheItem("consultation", mergedEncrypted);
+      await setCacheItem("consultation-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
       const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
       setConsultations(allDecrypted.map(formatConsultation));
     } else if (newConsultations.length) {
       setConsultations((prev) => mergeItems(prev, newConsultations, { formatNewItemsFunction: formatConsultation }));
       const encryptedCache = await getCacheItemDefaultValue("consultation", []);
       await setCacheItem("consultation", mergeItems(encryptedCache, newConsultationsRaw));
+      await setCacheItem("consultation-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
@@ -633,14 +641,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
       if (isStartingInitialLoad) {
         const encryptedCache = await getCacheItemDefaultValue("treatment", []);
-        const mergedEncrypted = newTreatmentsRaw.length ? mergeItems(encryptedCache, newTreatmentsRaw) : encryptedCache;
+        const cachedEncryptionLastUpdateAt = await getCacheItem("treatment-encryptionLastUpdateAt");
+        
+        // Validate that cached data was encrypted with the same key
+        const isCacheValid = cachedEncryptionLastUpdateAt && cachedEncryptionLastUpdateAt === latestOrganisation.encryptionLastUpdateAt?.toString();
+        const validEncryptedCache = isCacheValid ? encryptedCache : [];
+        
+        const mergedEncrypted = newTreatmentsRaw.length ? mergeItems(validEncryptedCache, newTreatmentsRaw) : validEncryptedCache;
         await setCacheItem("treatment", mergedEncrypted);
+        await setCacheItem("treatment-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
         const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
         setTreatments(allDecrypted);
       } else if (newTreatments.length) {
         setTreatments((prev) => mergeItems(prev, newTreatments));
         const encryptedCache = await getCacheItemDefaultValue("treatment", []);
         await setCacheItem("treatment", mergeItems(encryptedCache, newTreatmentsRaw));
+        await setCacheItem("treatment-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
       }
     }
 
@@ -670,14 +686,22 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
       if (isStartingInitialLoad) {
         const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
-        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache;
+        const cachedEncryptionLastUpdateAt = await getCacheItem("medical-file-encryptionLastUpdateAt");
+        
+        // Validate that cached data was encrypted with the same key
+        const isCacheValid = cachedEncryptionLastUpdateAt && cachedEncryptionLastUpdateAt === latestOrganisation.encryptionLastUpdateAt?.toString();
+        const validEncryptedCache = isCacheValid ? encryptedCache : [];
+        
+        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(validEncryptedCache, newMedicalFilesRaw) : validEncryptedCache;
         await setCacheItem("medical-file", mergedEncrypted);
+        await setCacheItem("medical-file-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
         const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
         setMedicalFiles(allDecrypted);
       } else if (newMedicalFiles.length) {
         setMedicalFiles((prev) => mergeItems(prev, newMedicalFiles));
         const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
         await setCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw));
+        await setCacheItem("medical-file-encryptionLastUpdateAt", latestOrganisation.encryptionLastUpdateAt?.toString());
       }
     }
 
