@@ -29,6 +29,8 @@ import { errorMessage } from "../../utils";
 import KeyInput from "../../components/KeyInput";
 import { modalConfirmState } from "../../components/ModalConfirm";
 import { useDataLoader } from "../../services/dataLoader";
+import Alert from "../../components/tailwind/Alert";
+import { DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 
 const SignIn = () => {
   const [organisation, setOrganisation] = useAtom(organisationState);
@@ -489,6 +491,17 @@ const SignIn = () => {
   return (
     <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black sm:tw-drop-shadow-2xl">
       <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{userName ? `Bienvenue ${userName?.split(" ")?.[0]}` : "Bienvenue"}&nbsp;!</h1>
+      {isAndroid && (
+        <Alert color="warning">
+          <a href="https://mano.sesan.fr/download" className="tw-text-lg tw-font-bold hover:tw-underline" target="_blank" rel="noopener noreferrer">
+            Télécharger l'application mobile pour Android
+          </a>
+          <div className="tw-text-sm tw-flex tw-items-center tw-gap-2">
+            <DevicePhoneMobileIcon className="tw-h-10" />
+            Cette application est recommandée pour une meilleure expérience mobile
+          </div>
+        </Alert>
+      )}
       {!!storageWarning && (
         <div className="tw-mb-6 tw-rounded tw-border tw-border-orange-50 tw-bg-amber-100 tw-text-orange-900 tw-p-3 tw-text-sm">
           <p className="tw-m-0">
@@ -509,14 +522,7 @@ const SignIn = () => {
           </p>
         </div>
       )}
-      {isAndroid && (
-        <div className="tw-mb-6 tw-text-center">
-          <a href="https://mano.sesan.fr/download" className="tw-text-main hover:tw-underline" target="_blank" rel="noopener noreferrer">
-            👋 Télécharger l'application mobile pour Android
-          </a>
-          <p className="tw-text-xs tw-text-gray-500">Cette application est recommandée pour une meilleure expérience mobile</p>
-        </div>
-      )}
+
       <form onSubmit={handleSubmit} method="POST">
         {!authViaCookie && (
           <>
