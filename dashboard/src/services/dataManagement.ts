@@ -180,6 +180,19 @@ export async function setCacheItem(key: string, value: unknown) {
 export async function getCacheItem(key: string) {
   try {
     if (customStore === null) return null;
+    // Protection multi-onglets : vérifier que l'org en IDB correspond toujours avant de lire des données d'entité
+    if (expectedOrganisationId && key !== "organisationId" && key !== dashboardCurrentCacheKey && customStore) {
+      try {
+        const storedOrgId = await get("organisationId", customStore);
+        if (storedOrgId !== expectedOrganisationId) {
+          cacheWritesEnabled = false;
+          return null;
+        }
+      } catch (orgCheckError) {
+        // Si la vérification échoue, on laisse la lecture continuer (fail-open)
+        capture(orgCheckError, { tags: { key }, extra: { context: "getCacheItem org check failed" } });
+      }
+    }
     const data = await get(key, customStore);
     return data;
   } catch (error) {

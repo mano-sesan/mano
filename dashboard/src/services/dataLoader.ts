@@ -20,7 +20,14 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem, enableCacheWrites, setExpectedOrganisationId } from "./dataManagement";
+import {
+  clearCache,
+  dashboardCurrentCacheKey,
+  getCacheItemDefaultValue,
+  setCacheItem,
+  enableCacheWrites,
+  setExpectedOrganisationId,
+} from "./dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "./api";
 import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
