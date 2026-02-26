@@ -321,7 +321,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
             <SelectAndCreateCollaboration
               values={collaborations}
               onChange={(e) => setCollaborations(e.currentTarget.value)}
-              inputId={`modal-select-collaboration-${day}-${teamId}`}
+              inputId="modal-select-collaboration"
             />
           </div>
         </form>
