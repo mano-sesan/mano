@@ -211,11 +211,12 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
     decryptedItem = await decrypt(item.encrypted, item.encryptedEntityKey, getHashedOrgEncryptionKey());
   } catch (errorDecrypt) {
     toast.error(
-      "Un élément n'a pas pu être déchiffré. Peut-être est-il chiffré avec une ancienne clé ? Un admin peut essayer de le déchiffrer en allant dans Organisation > Données en erreur",
+      "Un ou plusieurs éléments n'ont pas pu être déchiffrés. Peut-être sont-ils chiffrés avec une ancienne clé ? Un admin peut essayer de les déchiffrer en allant dans Organisation > Données en erreur",
       {
         autoClose: false,
         closeOnClick: false,
         draggable: false,
+        toastId: "decrypt-error",
       }
     );
     capture(new Error(`ERROR DECRYPTING ${type || "ITEM"} ${item?._id} : ${errorDecrypt}`), {
