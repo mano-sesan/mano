@@ -10,6 +10,21 @@ const storeName = "store";
 let customStore: UseStore | null = null;
 let storageFailureHandled = false;
 
+let cacheWritesEnabled = true;
+let expectedOrganisationId: string | null = null;
+
+export function disableCacheWrites() {
+  cacheWritesEnabled = false;
+}
+
+export function enableCacheWrites() {
+  cacheWritesEnabled = true;
+}
+
+export function setExpectedOrganisationId(orgId: string | null) {
+  expectedOrganisationId = orgId;
+}
+
 export const AUTH_TOAST_KEY = "mano-auth-toast";
 
 (async () => {
@@ -87,6 +102,20 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
 
 export async function setCacheItem(key: string, value: unknown) {
   try {
+    if (!cacheWritesEnabled) return;
+    // Protection multi-onglets : vérifier que l'org en IDB correspond toujours
+    if (expectedOrganisationId && key !== "organisationId" && customStore) {
+      try {
+        const storedOrgId = await get("organisationId", customStore);
+        if (storedOrgId !== expectedOrganisationId) {
+          cacheWritesEnabled = false;
+          return;
+        }
+      } catch (orgCheckError) {
+        // Si la vérification échoue, on laisse l'écriture continuer (fail-open)
+        capture(orgCheckError, { tags: { key }, extra: { context: "setCacheItem org check failed" } });
+      }
+    }
     if (customStore) await set(key, value, customStore);
   } catch (error) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {

@@ -48,6 +48,7 @@ import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
+import { disableCacheWrites } from "./services/dataManagement";
 
 const ToastifyFastTransition = cssTransition({
   enter: "Toastify--animate Toastify__hack-force-fast Toastify__bounce-enter",
@@ -132,6 +133,7 @@ const App = () => {
       if (isLogoutInitiatedByThisTab()) return;
       // If we're already on the auth page, don't fight navigation; just ensure we drop local secrets.
       const alreadyOnAuth = typeof window !== "undefined" && window.location?.pathname?.includes?.("/auth");
+      disableCacheWrites();
       abortRequests();
       try {
         // À garder en tête : tous les onglets déconnectés de force perdent leur session storage.
