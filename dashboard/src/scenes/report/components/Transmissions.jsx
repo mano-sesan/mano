@@ -46,16 +46,13 @@ export default function Transmissions({ userId, period, selectedTeamsObject, rep
                 const key = team.name.replace(/[^a-zA-Z0-9]/g, "-") + day;
                 return (
                   <Transmission
-                    day={day}
                     onOpenTransmissionModal={() => {
                       setTransmissionForModal({ day, team, report: structuredClone(report) });
                       setIsTransmissionModalOpen(true);
                     }}
-                    teamId={teamId}
                     report={report}
                     team={selectedTeamsObject[teamId]}
                     key={key}
-                    reactSelectInputId={`report-select-collaboration-${key}`}
                   />
                 );
               })}
@@ -128,34 +125,8 @@ function TransmissionPrint({ report, team }) {
   );
 }
 
-function Transmission({ report, team, day, teamId, userId, reactSelectInputId, onOpenTransmissionModal }) {
-  const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
-  const { refresh } = useDataLoader();
-
-  const onSaveReport = async (body) => {
-    const [error] = await tryFetchExpectOk(async () =>
-      report?._id
-        ? API.put({
-            path: `/report/${report._id}`,
-            body: await encryptReport({
-              ...body,
-              updatedBy: userId,
-            }),
-          })
-        : API.post({
-            path: "/report",
-            body: await encryptReport({
-              ...body,
-              updatedBy: userId,
-            }),
-          })
-    );
-    if (error) {
-      toast.error(errorMessage(error));
-      return;
-    }
-    await refresh();
-  };
+function Transmission({ report, team, onOpenTransmissionModal }) {
+  const collaborations = report?.collaborations ?? [];
 
   return (
     <>
@@ -187,28 +158,15 @@ function Transmission({ report, team, day, teamId, userId, reactSelectInputId, o
               </button>
             </>
           )}
-          <hr />
-          <div className="tw-my-2">
-            {!!collaborations.length && (
-              <>
+          {!!collaborations.length && (
+            <>
+              <hr />
+              <div className="tw-my-2">
                 <p className="tw-mb-2">Co-interventions avec&nbsp;:</p>
-              </>
-            )}
-            <SelectAndCreateCollaboration
-              values={collaborations}
-              onChange={(e) => {
-                const nextCollabs = e.currentTarget.value;
-                setCollaborations(nextCollabs);
-                onSaveReport({
-                  ...report,
-                  collaborations: nextCollabs,
-                  team: teamId,
-                  date: day,
-                });
-              }}
-              inputId={reactSelectInputId}
-            />
-          </div>
+                <p className="tw-text-sm tw-text-gray-600">{collaborations.join(", ")}</p>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </>
@@ -237,12 +195,17 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
   const users = useAtomValue(usersState);
   const { refresh } = useDataLoader();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [collaborations, setCollaborations] = useState(report?.collaborations ?? []);
 
   const initialDescription = report?.description;
   const [remoteDescription, setRemoteDescription] = useState(initialDescription);
   const [remoteUpdatedAt, setRemoteUpdatedAt] = useState(report?.updatedAt);
   const [remoteUpdatedBy, setRemoteUpdatedBy] = useState(report?.updatedBy);
   const intervalRef = useRef(null);
+
+  useEffect(() => {
+    setCollaborations(report?.collaborations ?? []);
+  }, [report?.collaborations]);
 
   useEffect(() => {
     setRemoteDescription(initialDescription);
@@ -302,6 +265,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
             const body = {
               ...report,
               description,
+              collaborations,
               team: teamId,
               date: day,
               updatedBy: userId,
@@ -350,6 +314,14 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
               type="text"
               placeholder="Entrez ici votre transmission de la journée"
               defaultValue={report?.description}
+            />
+          </div>
+          <div>
+            <label className="tailwindui !tw-mb-1.5">Co-interventions</label>
+            <SelectAndCreateCollaboration
+              values={collaborations}
+              onChange={(e) => setCollaborations(e.currentTarget.value)}
+              inputId="modal-select-collaboration"
             />
           </div>
         </form>

@@ -67,13 +67,13 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await page.getByText("Création réussie !").click();
   await page.getByText("Fermer").click();
 
-  // Ajout d'une collaboration et d'une transmission
-  await page.locator(`.report-select-collaboration-Team-Test---1${date}__indicator`).click();
-  await page.locator(`#report-select-collaboration-Team-Test---1${date}`).fill("de");
-  await page.getByText('Créer "de"').click();
-  await page.getByText("Collaboration créée !").click();
+  // Ajout d'une transmission et d'une collaboration (via la modale de transmission)
   await page.getByRole("button", { name: "Ajouter une transmission" }).click();
   await page.getByPlaceholder("Entrez ici votre transmission").fill("tout va bien");
+  await page.locator(".modal-select-collaboration__dropdown-indicator").click();
+  await page.locator("#modal-select-collaboration").fill("de");
+  await page.getByText('Créer "de"').click();
+  await page.getByText("Collaboration créée !").click();
   await page.getByRole("button", { name: "Enregistrer" }).click();
 
   // Ajout d'une action
