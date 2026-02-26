@@ -26,6 +26,7 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex, detectAndLogRaceCondition } = require("../utils");
 const { capture } = require("../sentry");
+const { isAcceptedMimeType, isAcceptedExtension } = require("../utils/file-types");
 
 // Return the basedir to store persons' documents.
 function personDocumentBasedir(userOrganisation, personId) {
@@ -65,9 +66,36 @@ router.post(
         return cb(null, crypto.randomBytes(30).toString("hex"));
       },
     }),
+    fileFilter: (_req, file, cb) => {
+      const isValidMimeType = isAcceptedMimeType(file.mimetype);
+      const isValidExtension = isAcceptedExtension(file.originalname);
+
+      if (!isValidMimeType && !isValidExtension) {
+        const error = new Error(
+          `Type de fichier non autorisé : ${file.originalname} (${file.mimetype}). Seuls les PDF, images (JPG, JPEG, PNG) et documents Office (Excel, Word, PowerPoint) sont acceptés.`
+        );
+        error.code = "INVALID_FILE_TYPE";
+        return cb(error, false);
+      }
+      cb(null, true);
+    },
   }).single("file"),
+  (err, req, res, next) => {
+    // Gestion des erreurs Multer (notamment type de fichier invalide)
+    if (err) {
+      if (err.code === "INVALID_FILE_TYPE") {
+        return res.status(400).send({ ok: false, error: err.message });
+      }
+      // Autres erreurs multer (taille, etc.)
+      return res.status(400).send({ ok: false, error: "Erreur lors du téléchargement du fichier" });
+    }
+    next();
+  },
   catchErrors(async (req, res) => {
     const { file } = req;
+    if (!file) {
+      return res.status(400).send({ ok: false, error: "Aucun fichier fourni" });
+    }
     // Send back file information.
     res.send({
       ok: true,

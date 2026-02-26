@@ -19,6 +19,7 @@ import { ButtonDownloadAll } from "./ButtonDownloadAll";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../tailwind/Modal";
 import { DocumentsTreeWrapper, DocumentsDropzone, useDocumentTreeData, useFolderOptions, type DocumentOrFolder } from "./DocumentTree";
 import { CreateFolderModal, EditFolderModal } from "./FolderModals";
+import { HTML_ACCEPT_ATTRIBUTE } from "../../utils/file-types";
 
 interface MedicalFileDocumentsProps {
   person: PersonPopulated;
@@ -563,6 +564,7 @@ export default function MedicalFileDocuments({ person }: MedicalFileDocumentsPro
         <input
           ref={fileInputRef}
           type="file"
+          accept={HTML_ACCEPT_ATTRIBUTE}
           multiple
           key={resetFileInputKey}
           className="tw-hidden"
