@@ -4,7 +4,7 @@ import { organisationState } from "../../atoms/auth";
 import { download } from "../../utils";
 import { getHashedOrgEncryptionKey } from "../../services/encryption";
 import { BlobReader } from "@zip.js/zip.js";
-import { DocumentWithLinkedItem, FolderWithLinkedItem, LinkedItem } from "../../types/document";
+import { Document, DocumentWithLinkedItem, FolderWithLinkedItem, LinkedItem } from "../../types/document";
 import { BlobWriter } from "@zip.js/zip.js";
 import { ZipWriter } from "@zip.js/zip.js";
 import API, { tryFetchBlob } from "../../services/api";
@@ -12,11 +12,17 @@ import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import { decryptFile } from "../../services/encryption";
 import { arrayOfitemsGroupedByPersonSelector } from "../../atoms/selectors";
+import { DISABLED_FEATURES } from "../../config";
+import { territoryObservationsState } from "../../atoms/territoryObservations";
+import { territoriesState } from "../../atoms/territory";
+import { dayjsInstance } from "../../services/date";
 
 export default function ExportFiles() {
   const [isDownloading, setIsDownloading] = useState(false);
   const persons = useAtomValue(arrayOfitemsGroupedByPersonSelector);
   const organisation = useAtomValue(organisationState);
+  const territoryObservations = useAtomValue(territoryObservationsState);
+  const territories = useAtomValue(territoriesState);
 
   return (
     <>
@@ -125,6 +131,54 @@ export default function ExportFiles() {
                 }
               }
             }
+
+            // Export observation documents
+            if (!DISABLED_FEATURES["observation-documents"]) {
+              const territoriesMap = territories.reduce(
+                (map, t) => {
+                  map[t._id] = t.name;
+                  return map;
+                },
+                {} as Record<string, string>
+              );
+
+              const obsWithDocs = territoryObservations.filter((obs) => obs.documents?.some((d) => d.type === "document"));
+              for (let obsIdx = 0; obsIdx < obsWithDocs.length; obsIdx++) {
+                const obs = obsWithDocs[obsIdx];
+                const obsDocs = obs.documents?.filter((d): d is Document => d.type === "document");
+                if (!obsDocs?.length) continue;
+
+                const territoryName = territoriesMap[obs.territory] || "Territoire inconnu";
+                const date = dayjsInstance(obs.observedAt || obs.createdAt).format("YYYY-MM-DD HHmm");
+                const folderName = `Observations/${territoryName} - ${date}`;
+
+                for (const doc of obsDocs) {
+                  const [error, blob] = await tryFetchBlob(() => {
+                    return API.download({ path: doc.downloadPath });
+                  });
+                  if (error) {
+                    toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document d'observation");
+                    setIsDownloading(false);
+                    return;
+                  }
+                  try {
+                    const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
+                    await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                  } catch (err) {
+                    try {
+                      console.error("Une erreur est survenue lors du déchiffrement d'un document d'observation", err);
+                      await zipWriter.add(
+                        `${folderName}/${doc.name}.txt`,
+                        new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
+                      );
+                    } catch (err) {
+                      console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
+                    }
+                  }
+                }
+              }
+            }
+
             const zipBlob = await zipWriter.close();
             download(new File([zipBlob], "documents.zip", { type: "application/zip" }), "documents.zip");
             setIsDownloading(false);

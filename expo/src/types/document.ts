@@ -1,7 +1,7 @@
 import { PersonInstance } from "./person";
 import { UUIDV4 } from "./uuid";
 
-export type LinkedItemType = "medical-file" | "consultation" | "treatment" | "person" | "action";
+export type LinkedItemType = "medical-file" | "consultation" | "treatment" | "person" | "action" | "territory-observation";
 
 export type LinkedItem = {
   _id: UUIDV4;
