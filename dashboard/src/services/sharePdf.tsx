@@ -158,21 +158,32 @@ function SharePDFDocument({
     return t?.name || "Équipe inconnue";
   };
 
-  const actions = person.actions || [];
+  const sortByDate = <T extends Record<string, any>>(items: T[], dateField: string, fallback = "createdAt"): T[] =>
+    [...items].sort((a, b) => {
+      const dateA = new Date(a[dateField] || a[fallback] || 0).getTime();
+      const dateB = new Date(b[dateField] || b[fallback] || 0).getTime();
+      return dateB - dateA;
+    });
+
+  const actions = sortByDate(person.actions || [], "dueAt", "createdAt");
   const filteredActions =
     options.actionCategories.length > 0
       ? actions.filter((a) => a.categories?.some((c: string) => options.actionCategories.includes(c)))
       : actions;
 
-  const consultations = (person.consultations || []).filter((c) => !disableConsultationRow(c, user));
+  const consultations = sortByDate(
+    (person.consultations || []).filter((c) => !disableConsultationRow(c, user)),
+    "dueAt",
+    "createdAt"
+  );
   const filteredConsultations =
     options.consultationTypes.length > 0 ? consultations.filter((c) => options.consultationTypes.includes(c.type)) : consultations;
 
-  const treatments = person.treatments || [];
-  const comments = person.comments || [];
-  const commentsMedical = person.commentsMedical || [];
-  const passages = person.passages || [];
-  const rencontres = person.rencontres || [];
+  const treatments = sortByDate(person.treatments || [], "startDate", "createdAt");
+  const comments = sortByDate(person.comments || [], "date", "createdAt");
+  const commentsMedical = sortByDate(person.commentsMedical || [], "date", "createdAt");
+  const passages = sortByDate(person.passages || [], "date", "createdAt");
+  const rencontres = sortByDate(person.rencontres || [], "date", "createdAt");
 
   const footerText = `${options.footer ? options.footer + "\n" : ""}Extrait le ${formatDateTimeWithNameOfDay(dayjsInstance())} par ${user.name}`;
 
