@@ -296,8 +296,9 @@ const EncryptionKey = ({ isMain }) => {
       const encryptedPassages = await recrypt("/passage");
       const encryptedRencontres = await recrypt("/rencontre");
       const encryptedTerritories = await recrypt("/territory");
-      const encryptedTerritoryObservations = await recrypt("/territory-observation", async (decryptedData, item) =>
-        recryptEntityDocuments(
+      const encryptedTerritoryObservations = await recrypt("/territory-observation", async (decryptedData, _item) => {
+        if (!decryptedData.territory) return decryptedData;
+        return recryptEntityDocuments(
           decryptedData,
           decryptedData.territory,
           previousKey.current,
@@ -306,8 +307,8 @@ const EncryptionKey = ({ isMain }) => {
           orphanedFiles,
           `/territory/${decryptedData.territory}/document`,
           { entityType: "territory" }
-        )
-      );
+        );
+      });
       const encryptedPlaces = await recrypt("/place");
       const encryptedRelsPersonPlace = await recrypt("/relPersonPlace");
       const encryptedReports = await recrypt("/report");

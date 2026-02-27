@@ -283,6 +283,8 @@ router.post(
     } catch (e) {
       return res.status(400).send({ ok: false, error: "Invalid request" });
     }
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     next();
   }),
   multer({
@@ -301,6 +303,7 @@ router.post(
   }).single("file"),
   catchErrors(async (req, res) => {
     const { file } = req;
+    if (!file) return res.status(400).send({ ok: false, error: "No file provided" });
     res.send({
       ok: true,
       data: {
@@ -330,6 +333,8 @@ router.get(
       error.status = 400;
       return next(error);
     }
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
     const file = path.join(dir, req.params.filename);
     if (!fs.existsSync(file)) {
@@ -356,6 +361,8 @@ router.delete(
       error.status = 400;
       return next(error);
     }
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
     const file = path.join(dir, req.params.filename);
     if (!fs.existsSync(file)) {

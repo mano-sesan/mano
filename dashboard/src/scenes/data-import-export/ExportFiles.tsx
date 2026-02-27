@@ -4,7 +4,7 @@ import { organisationState } from "../../atoms/auth";
 import { download } from "../../utils";
 import { getHashedOrgEncryptionKey } from "../../services/encryption";
 import { BlobReader } from "@zip.js/zip.js";
-import { DocumentWithLinkedItem, FolderWithLinkedItem, LinkedItem } from "../../types/document";
+import { Document, DocumentWithLinkedItem, FolderWithLinkedItem, LinkedItem } from "../../types/document";
 import { BlobWriter } from "@zip.js/zip.js";
 import { ZipWriter } from "@zip.js/zip.js";
 import API, { tryFetchBlob } from "../../services/api";
@@ -142,16 +142,17 @@ export default function ExportFiles() {
                 {} as Record<string, string>
               );
 
-              for (const obs of territoryObservations) {
-                const obsDocs = obs.documents?.filter((d) => d.type === "document");
+              const obsWithDocs = territoryObservations.filter((obs) => obs.documents?.some((d) => d.type === "document"));
+              for (let obsIdx = 0; obsIdx < obsWithDocs.length; obsIdx++) {
+                const obs = obsWithDocs[obsIdx];
+                const obsDocs = obs.documents?.filter((d): d is Document => d.type === "document");
                 if (!obsDocs?.length) continue;
 
                 const territoryName = territoriesMap[obs.territory] || "Territoire inconnu";
-                const date = dayjsInstance(obs.observedAt || obs.createdAt).format("YYYY-MM-DD");
+                const date = dayjsInstance(obs.observedAt || obs.createdAt).format("YYYY-MM-DD HHmm");
                 const folderName = `Observations/${territoryName} - ${date}`;
 
                 for (const doc of obsDocs) {
-                  if (doc.type !== "document") continue;
                   const [error, blob] = await tryFetchBlob(() => {
                     return API.download({ path: doc.downloadPath });
                   });
