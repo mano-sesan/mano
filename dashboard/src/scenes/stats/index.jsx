@@ -867,11 +867,11 @@ const Stats = ({ onSwitchVersion }) => {
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
               onChange={(teamsId) => {
+                if (viewAllOrganisationData) setViewAllOrganisationData(false);
                 setSelectedTeams(teams.filter((t) => teamsId.includes(t._id)));
               }}
               value={selectedTeams.map((e) => e?._id)}
               colored
-              isDisabled={viewAllOrganisationData}
             />
             {teams.length > 1 && (
               <label htmlFor="viewAllOrganisationData" className="tw-flex tw-items-center tw-text-sm">
