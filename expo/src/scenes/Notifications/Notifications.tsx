@@ -125,12 +125,16 @@ const Notifications = ({ navigation }: NotificationsProps) => {
     }
     if (item.isComment) {
       const comment = item as UrgentComment;
-      const commentedItem = comment.type === "action" ? comment.actionPopulated : comment.personPopulated;
+      const actionName = comment.actionPopulated?.name?.trim() || comment.actionPopulated?.categories?.join(", ") || "Action";
+      const itemName =
+        comment.type === "action"
+          ? `Action : ${actionName}\nPour ${comment.personPopulated?.name}`
+          : `Personne suivie : ${comment.personPopulated?.name}`;
       return (
         <CommentRow
           key={comment._id}
           comment={comment}
-          itemName={`${comment.type === "action" ? "Action" : "Personne suivie"} : ${commentedItem?.name}`}
+          itemName={itemName}
           onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.actionPopulated!) : onPseudoPress(comment.personPopulated!))}
           canToggleUrgentCheck
           onDelete={async () => {
