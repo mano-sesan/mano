@@ -83,7 +83,7 @@ export const defaultCustomFields: Array<CustomField> = [
   },
 ];
 
-const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
+const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt", "documents"];
 
 export const prepareObsForEncryption =
   (customFields: Array<CustomField>) =>

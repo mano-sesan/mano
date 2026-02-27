@@ -11,6 +11,17 @@ function personDocumentBasedir(organisation, personId) {
   return path.join(uploadsBasedir, `${organisation}`, "persons", `${personId}`);
 }
 
+function observationDocumentBasedir(organisation, obsId) {
+  return path.join(uploadsBasedir, `${organisation}`, "observations", `${obsId}`);
+}
+
+function getDocumentBasedir(orphan) {
+  if (orphan.entityType === "observation") {
+    return observationDocumentBasedir(orphan.organisation, orphan.entityId);
+  }
+  return personDocumentBasedir(orphan.organisation, orphan.entityId);
+}
+
 async function cleanOrphanedFiles() {
   const ninetyDaysAgo = new Date();
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
@@ -23,12 +34,12 @@ async function cleanOrphanedFiles() {
 
   for (const orphan of orphans) {
     try {
-      if (!orphan.organisation || !orphan.personId || !orphan.filename) {
+      if (!orphan.organisation || !orphan.entityId || !orphan.filename) {
         capture("Orphaned file with missing fields", { extra: { orphanId: orphan._id } });
         await orphan.destroy();
         continue;
       }
-      const filePath = path.resolve(personDocumentBasedir(orphan.organisation, orphan.personId), orphan.filename);
+      const filePath = path.resolve(getDocumentBasedir(orphan), orphan.filename);
       if (!filePath.startsWith(resolvedUploadsBasedir + path.sep)) {
         capture("Orphaned file path traversal blocked", { extra: { orphanId: orphan._id, filePath } });
         await orphan.destroy();

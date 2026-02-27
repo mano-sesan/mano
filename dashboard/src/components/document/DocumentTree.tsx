@@ -239,12 +239,13 @@ export function DocumentsTreeWrapper({
 interface DocumentsDropzoneProps {
   setIsInDropzone: (val: boolean) => void;
   onAddDocuments: (docs: Array<Document | Folder>) => Promise<void>;
-  personId: string;
+  personId?: string;
   user: UserInstance | null;
   folderOptions: Array<FolderOption & { level: number }>;
+  uploadBasePath?: string;
 }
 
-export function DocumentsDropzone({ setIsInDropzone, onAddDocuments, personId, user, folderOptions }: DocumentsDropzoneProps) {
+export function DocumentsDropzone({ setIsInDropzone, onAddDocuments, personId, user, folderOptions, uploadBasePath }: DocumentsDropzoneProps) {
   return (
     <div
       className="tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-border-main tw-text-main tw-z-50"
@@ -270,6 +271,7 @@ export function DocumentsDropzone({ setIsInDropzone, onAddDocuments, personId, u
             user,
             folders: folderOptions,
             onSave: onAddDocuments,
+            uploadBasePath,
           });
         }
       }}

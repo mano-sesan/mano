@@ -221,8 +221,9 @@ router.post(
       z.object({
         files: z.array(
           z.object({
-            personId: z.string().regex(looseUuidRegex),
+            entityId: z.string().regex(looseUuidRegex),
             filename: z.string().regex(cryptoHexRegex),
+            entityType: z.optional(z.enum(["person", "observation"])),
           })
         ),
       }).parse(req.body);
@@ -236,8 +237,9 @@ router.post(
     await OrphanedFile.bulkCreate(
       req.body.files.map((f) => ({
         organisation: req.user.organisation,
-        personId: f.personId,
+        entityId: f.entityId,
         filename: f.filename,
+        entityType: f.entityType || "person",
         replacedAt: now,
       }))
     );

@@ -54,7 +54,7 @@ const DEFAULT_ORGANISATION_KEY =
 const MANO_TEST_ORG_ID = "00000000-5f5a-89e2-2e60-88fa20cc50bf";
 
 const DISABLED_FEATURES = {
-  // "feature-key": true,
+  "observation-documents": true,
 };
 
 export { theme, HOST, SCHEME, ENV, VERSION, DEFAULT_ORGANISATION_KEY, DISABLED_FEATURES, MANO_TEST_ORG_ID };
