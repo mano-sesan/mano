@@ -1,23 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const passport = require("passport");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const crypto = require("crypto");
 const { z } = require("zod");
-const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex } = require("../utils");
+const { looseUuidRegex, positiveIntegerRegex } = require("../utils");
 const { catchErrors } = require("../errors");
 const { TerritoryObservation } = require("../db/sequelize");
 const { Op } = require("sequelize");
-const { STORAGE_DIRECTORY } = require("../config");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const validateUser = require("../middleware/validateUser");
-
-function observationDocumentBasedir(userOrganisation, obsId) {
-  const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-  return path.join(basedir, `${userOrganisation}`, "observations", `${obsId}`);
-}
 
 router.post(
   "/",
@@ -149,103 +139,6 @@ router.put(
   })
 );
 
-// Upload a document for an observation.
-router.post(
-  "/:id/document",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
-  catchErrors(async (req, res, next) => {
-    try {
-      z.object({
-        id: z.string().regex(looseUuidRegex),
-      }).parse(req.params);
-    } catch (e) {
-      return res.status(400).send({ ok: false, error: "Invalid request" });
-    }
-    next();
-  }),
-  multer({
-    storage: multer.diskStorage({
-      destination: (req, _file, cb) => {
-        const dir = observationDocumentBasedir(req.user.organisation, req.params.id);
-        if (!fs.existsSync(dir)) {
-          fs.mkdirSync(dir, { recursive: true });
-        }
-        cb(null, dir);
-      },
-      filename: (_req, _file, cb) => {
-        return cb(null, crypto.randomBytes(30).toString("hex"));
-      },
-    }),
-  }).single("file"),
-  catchErrors(async (req, res) => {
-    const { file } = req;
-    res.send({
-      ok: true,
-      data: {
-        originalname: file.originalname,
-        filename: file.filename,
-        size: file.size,
-        encoding: file.encoding,
-        mimetype: file.mimetype,
-      },
-    });
-  })
-);
-
-// Download a file for an observation by its filename.
-router.get(
-  "/:id/document/:filename",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
-  catchErrors(async (req, res, next) => {
-    try {
-      z.object({
-        id: z.string().regex(looseUuidRegex),
-        filename: z.string().regex(cryptoHexRegex),
-      }).parse(req.params);
-    } catch (e) {
-      const error = new Error(`Invalid request in observation document get: ${e}`);
-      error.status = 400;
-      return next(error);
-    }
-    const dir = observationDocumentBasedir(req.user.organisation, req.params.id);
-    const file = path.join(dir, req.params.filename);
-    if (!fs.existsSync(file)) {
-      res.status(404).send({ ok: false, error: "Désolé, le fichier n'est plus disponible." });
-    } else {
-      res.sendFile(file);
-    }
-  })
-);
-
-// Delete a file for an observation by its filename.
-router.delete(
-  "/:id/document/:filename",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
-  catchErrors(async (req, res, next) => {
-    try {
-      z.object({
-        id: z.string().regex(looseUuidRegex),
-        filename: z.string().regex(cryptoHexRegex),
-      }).parse(req.params);
-    } catch (e) {
-      const error = new Error(`Invalid request in observation document delete: ${e}`);
-      error.status = 400;
-      return next(error);
-    }
-    const dir = observationDocumentBasedir(req.user.organisation, req.params.id);
-    const file = path.join(dir, req.params.filename);
-    if (!fs.existsSync(file)) {
-      res.send({ ok: true });
-    } else {
-      fs.unlinkSync(file);
-      res.send({ ok: true });
-    }
-  })
-);
-
 router.delete(
   "/:_id",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -264,12 +157,6 @@ router.delete(
 
     let observation = await TerritoryObservation.findOne(query);
     if (!observation) return res.status(404).send({ ok: false, error: "Not Found" });
-
-    // Clean up document directory if it exists
-    const docDir = observationDocumentBasedir(req.user.organisation, req.params._id);
-    if (fs.existsSync(docDir)) {
-      fs.rmSync(docDir, { recursive: true, force: true });
-    }
 
     await observation.destroy();
     res.status(200).send({ ok: true });

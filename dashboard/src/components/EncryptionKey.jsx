@@ -299,13 +299,13 @@ const EncryptionKey = ({ isMain }) => {
       const encryptedTerritoryObservations = await recrypt("/territory-observation", async (decryptedData, item) =>
         recryptEntityDocuments(
           decryptedData,
-          item._id,
+          decryptedData.territory,
           previousKey.current,
           hashedOrgEncryptionKey,
           () => bumpProcessed(1),
           orphanedFiles,
-          `/territory-observation/${item._id}/document`,
-          { entityType: "observation" }
+          `/territory/${decryptedData.territory}/document`,
+          { entityType: "territory" }
         )
       );
       const encryptedPlaces = await recrypt("/place");

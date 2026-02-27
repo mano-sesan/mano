@@ -11,13 +11,13 @@ function personDocumentBasedir(organisation, personId) {
   return path.join(uploadsBasedir, `${organisation}`, "persons", `${personId}`);
 }
 
-function observationDocumentBasedir(organisation, obsId) {
-  return path.join(uploadsBasedir, `${organisation}`, "observations", `${obsId}`);
+function territoryDocumentBasedir(organisation, territoryId) {
+  return path.join(uploadsBasedir, `${organisation}`, "territories", `${territoryId}`);
 }
 
 function getDocumentBasedir(orphan) {
-  if (orphan.entityType === "observation") {
-    return observationDocumentBasedir(orphan.organisation, orphan.entityId);
+  if (orphan.entityType === "territory") {
+    return territoryDocumentBasedir(orphan.organisation, orphan.entityId);
   }
   return personDocumentBasedir(orphan.organisation, orphan.entityId);
 }

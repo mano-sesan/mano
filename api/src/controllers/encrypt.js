@@ -223,7 +223,7 @@ router.post(
           z.object({
             entityId: z.string().regex(looseUuidRegex),
             filename: z.string().regex(cryptoHexRegex),
-            entityType: z.optional(z.enum(["person", "observation"])),
+            entityType: z.optional(z.enum(["person", "territory"])),
           })
         ),
       }).parse(req.body);
