@@ -15,9 +15,11 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
 
+const uploadsBasedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+const resolvedUploadsBasedir = path.resolve(uploadsBasedir);
+
 function territoryDocumentBasedir(userOrganisation, territoryId) {
-  const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-  return path.join(basedir, `${userOrganisation}`, "territories", `${territoryId}`);
+  return path.join(uploadsBasedir, `${userOrganisation}`, "territories", `${territoryId}`);
 }
 
 router.post(
@@ -336,7 +338,8 @@ router.get(
     const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
     if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
-    const file = path.join(dir, req.params.filename);
+    const file = path.resolve(dir, req.params.filename);
+    if (!file.startsWith(resolvedUploadsBasedir + path.sep)) return res.status(400).send({ ok: false, error: "Invalid path" });
     if (!fs.existsSync(file)) {
       res.status(404).send({ ok: false, error: "Désolé, le fichier n'est plus disponible." });
     } else {
@@ -364,7 +367,8 @@ router.delete(
     const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
     if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
-    const file = path.join(dir, req.params.filename);
+    const file = path.resolve(dir, req.params.filename);
+    if (!file.startsWith(resolvedUploadsBasedir + path.sep)) return res.status(400).send({ ok: false, error: "Invalid path" });
     if (!fs.existsSync(file)) {
       res.send({ ok: true });
     } else {
