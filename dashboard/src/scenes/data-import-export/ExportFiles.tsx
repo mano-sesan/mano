@@ -132,6 +132,40 @@ export default function ExportFiles() {
               }
             }
 
+            // Export territory direct documents
+            if (!DISABLED_FEATURES["observation-documents"]) {
+              for (const territory of territories) {
+                const territoryDocs = territory.documents?.filter((d): d is Document => d.type === "document");
+                if (!territoryDocs?.length) continue;
+
+                const folderName = `Territoires/${territory.name}`;
+                for (const doc of territoryDocs) {
+                  const [error, blob] = await tryFetchBlob(() => {
+                    return API.download({ path: doc.downloadPath });
+                  });
+                  if (error) {
+                    toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document de territoire");
+                    setIsDownloading(false);
+                    return;
+                  }
+                  try {
+                    const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
+                    await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                  } catch (err) {
+                    try {
+                      console.error("Une erreur est survenue lors du déchiffrement d'un document de territoire", err);
+                      await zipWriter.add(
+                        `${folderName}/${doc.name}.txt`,
+                        new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
+                      );
+                    } catch (err) {
+                      console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
+                    }
+                  }
+                }
+              }
+            }
+
             // Export observation documents
             if (!DISABLED_FEATURES["observation-documents"]) {
               const territoriesMap = territories.reduce(

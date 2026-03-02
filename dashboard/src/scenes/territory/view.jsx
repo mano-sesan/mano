@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { toast } from "react-toastify";
 import Observations from "../territory-observations/list";
@@ -17,6 +17,8 @@ import { errorMessage } from "../../utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectTerritory from "../../components/SelectTerritory";
 import ConfirmModal from "../../components/ConfirmModal";
+import { DISABLED_FEATURES } from "../../config";
+import TerritoryDocuments from "../../components/document/TerritoryDocuments";
 
 const View = () => {
   const { refresh } = useDataLoader();
@@ -35,7 +37,7 @@ const View = () => {
   const [transferSelectedTerritory, setTransferSelectedTerritory] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  const observations = territoryObservations.filter((obs) => obs.territory === territory?._id);
+  const observations = useMemo(() => territoryObservations.filter((obs) => obs.territory === territory?._id), [territoryObservations, territory?._id]);
 
   useTitle(`${territory?.name} - Territoire`);
 
@@ -50,41 +52,12 @@ const View = () => {
       <div>
         <BackButton />
       </div>
-      <div className="tw-grid tw-gap-4 tw-my-4">
-        <div className="tw-text-xl">
-          Territoire&nbsp;: <b>{territory.name}</b>
-        </div>
-        <div className="tw-grid tw-grid-cols-2">
-          <div>
-            Types&nbsp;:{" "}
-            <b>
-              <i>{(territory.types || []).join(", ")}</i>
-            </b>
-          </div>
-          <div>
-            Périmètre&nbsp;:{" "}
-            <b>
-              <i>{territory.perimeter || "..."}</i>
-            </b>
-          </div>
-        </div>
-        <div>
-          Description&nbsp;:{" "}
-          <i>
-            {territory.description?.split("\n").map((paragraph, i, description) => {
-              if (i === description.length - 1) return paragraph;
-              return (
-                <React.Fragment key={i}>
-                  {paragraph}
-                  <br />
-                </React.Fragment>
-              );
-            }) || "..."}
-          </i>
-        </div>
-        <div className="tw-flex tw-justify-end">
+      <div className="tw-my-4">
+        {/* Title row */}
+        <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
+          <h2 className="tw-text-2xl tw-font-bold tw-mb-0">{territory.name}</h2>
           {!["restricted-access"].includes(user.role) && (
-            <>
+            <div className="tw-flex tw-items-center tw-gap-2">
               <button
                 className="button-submit !tw-bg-blue-900"
                 onClick={() => {
@@ -93,7 +66,15 @@ const View = () => {
                   history.push("/stats");
                 }}
               >
-                Statistiques du territoire
+                Statistiques
+              </button>
+              <button
+                className="button-submit"
+                onClick={() => {
+                  setModalOpen(true);
+                }}
+              >
+                Modifier
               </button>
               {canTransferTerritory && (
                 <button
@@ -102,7 +83,7 @@ const View = () => {
                     setIsTransferModalOpen(true);
                   }}
                 >
-                  Transférer les données vers un autre territoire
+                  Transférer
                 </button>
               )}
               <DeleteButtonAndConfirmModal
@@ -132,20 +113,65 @@ const View = () => {
                   territoire, <b>y compris dans les statistiques</b>.
                 </div>
               </DeleteButtonAndConfirmModal>
-              <button
-                className="button-submit"
-                onClick={() => {
-                  setModalOpen(true);
-                }}
-              >
-                Modifier
-              </button>
-            </>
+            </div>
           )}
         </div>
+
+        {/* Type badges */}
+        {!!(territory.types || []).length && (
+          <div className="tw-flex tw-flex-wrap tw-gap-2 tw-mb-4">
+            {(territory.types || []).map((type) => (
+              <span key={type} className="tw-rounded-full tw-border tw-border-main tw-px-2.5 tw-py-0.5 tw-text-sm tw-text-main">
+                {type}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Two-column layout: info + documents */}
+        <div className="tw-flex tw-gap-4 tw-mb-4">
+          {/* Left: description + perimeter */}
+          <div className="tw-flex-1 tw-border tw-rounded-lg tw-p-4">
+            {territory.description && (
+              <div className="tw-mb-4">
+                <div className="tw-text-sm tw-font-semibold tw-text-gray-500 tw-mb-1">Description</div>
+                <div className="tw-text-gray-900">
+                  {territory.description.split("\n").map((paragraph, i, description) => {
+                    if (i === description.length - 1) return paragraph;
+                    return (
+                      <React.Fragment key={i}>
+                        {paragraph}
+                        <br />
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {territory.perimeter && (
+              <div>
+                <div className="tw-text-sm tw-font-semibold tw-text-gray-500 tw-mb-1">Périmètre</div>
+                <div className="tw-text-gray-900">{territory.perimeter}</div>
+              </div>
+            )}
+            {!territory.description && !territory.perimeter && (
+              <div className="tw-text-gray-400 tw-italic">Aucune description ni périmètre renseigné</div>
+            )}
+          </div>
+
+          {/* Right: documents */}
+          {!DISABLED_FEATURES["observation-documents"] && (
+            <div className="tw-w-96 tw-shrink-0 tw-border tw-rounded-lg tw-overflow-hidden">
+              <TerritoryDocuments territory={territory} observations={observations} />
+            </div>
+          )}
+        </div>
+
+        {/* Observations section */}
+        <div>
+          <Observations territory={territory || { _id: id }} />
+        </div>
       </div>
-      <hr />
-      <Observations territory={territory || { _id: id }} />
 
       <ModalContainer
         open={isTransferModalOpen}

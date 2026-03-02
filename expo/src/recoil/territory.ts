@@ -13,7 +13,7 @@ import { useMemo } from "react";
 
 export const territoriesState = atomWithCache<Array<TerritoryInstance>>("territory", []);
 
-const encryptedFields: Array<keyof TerritoryInstance> = ["name", "perimeter", "description", "types", "user"];
+const encryptedFields: Array<keyof TerritoryInstance> = ["name", "perimeter", "description", "types", "user", "documents"];
 
 export const prepareTerritoryForEncryption = (territory: Partial<TerritoryInstance>): ReadyToEncryptTerritoryInstance => {
   try {

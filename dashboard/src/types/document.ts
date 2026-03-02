@@ -1,6 +1,6 @@
 import { UUIDV4 } from "./uuid";
 
-export type LinkedItemType = "medical-file" | "consultation" | "treatment" | "person" | "action" | "territory-observation";
+export type LinkedItemType = "medical-file" | "consultation" | "treatment" | "person" | "action" | "territory-observation" | "territory";
 
 export type LinkedItem = {
   _id: UUIDV4;

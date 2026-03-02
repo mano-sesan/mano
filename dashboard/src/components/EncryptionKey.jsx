@@ -56,6 +56,7 @@ const totalNumberOfItemsSelector = atom((get) => {
   const rencontres = get(rencontresState);
   const reports = get(reportsState);
   const territories = get(territoriesState);
+  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
   const places = get(placesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const territoryObservations = get(territoryObservationsState);
@@ -71,7 +72,7 @@ const totalNumberOfItemsSelector = atom((get) => {
   const comments = get(commentsState);
 
   const documents =
-    personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments + territoryObservationsDocuments;
+    personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments + territoryObservationsDocuments + territoriesDocuments;
 
   return (
     persons.length +
@@ -295,7 +296,18 @@ const EncryptionKey = ({ isMain }) => {
       const encryptedComments = await recrypt("/comment");
       const encryptedPassages = await recrypt("/passage");
       const encryptedRencontres = await recrypt("/rencontre");
-      const encryptedTerritories = await recrypt("/territory");
+      const encryptedTerritories = await recrypt("/territory", async (decryptedData, _item) => {
+        return recryptEntityDocuments(
+          decryptedData,
+          decryptedData._id ?? _item._id,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles,
+          `/territory/${decryptedData._id ?? _item._id}/document`,
+          { entityType: "territory" }
+        );
+      });
       const encryptedTerritoryObservations = await recrypt("/territory-observation", async (decryptedData, _item) => {
         if (!decryptedData.territory) return decryptedData;
         return recryptEntityDocuments(

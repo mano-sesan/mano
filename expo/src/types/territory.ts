@@ -1,5 +1,6 @@
 // types/user.ts
 import { UUIDV4 } from "./uuid";
+import { Document, Folder } from "./document";
 
 export type TerritoryType =
   | "Lieu de conso"
@@ -28,6 +29,7 @@ export type TerritoryInstance = {
   description?: string;
   types: Array<TerritoryType>;
   user: UUIDV4;
+  documents?: Array<Document | Folder>;
 };
 
 export type ReadyToEncryptTerritoryInstance = {
@@ -45,5 +47,6 @@ export type ReadyToEncryptTerritoryInstance = {
     description?: string;
     types?: Array<TerritoryType>;
     user?: UUIDV4;
+    documents?: Array<Document | Folder>;
   };
 };
