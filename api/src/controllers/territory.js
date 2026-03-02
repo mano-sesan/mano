@@ -14,6 +14,15 @@ const { STORAGE_DIRECTORY } = require("../config");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
+const rateLimit = require("express-rate-limit");
+
+const documentRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 download requests per windowMs
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests, please try again later" },
+});
 
 const uploadsBasedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
 const resolvedUploadsBasedir = path.resolve(uploadsBasedir);
@@ -275,6 +284,7 @@ router.delete(
 // Upload a document for a territory.
 router.post(
   "/:id/document",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
@@ -322,6 +332,7 @@ router.post(
 // Download a file for a territory by its filename.
 router.get(
   "/:id/document/:filename",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
@@ -351,6 +362,7 @@ router.get(
 // Delete a file for a territory by its filename.
 router.delete(
   "/:id/document/:filename",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
