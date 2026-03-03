@@ -37,7 +37,10 @@ const View = () => {
   const [transferSelectedTerritory, setTransferSelectedTerritory] = useState(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  const observations = useMemo(() => territoryObservations.filter((obs) => obs.territory === territory?._id), [territoryObservations, territory?._id]);
+  const observations = useMemo(
+    () => territoryObservations.filter((obs) => obs.territory === territory?._id),
+    [territoryObservations, territory?._id]
+  );
 
   useTitle(`${territory?.name} - Territoire`);
 
@@ -131,7 +134,7 @@ const View = () => {
         {/* Two-column layout: info + documents */}
         <div className="tw-flex tw-gap-4 tw-mb-4">
           {/* Left: description + perimeter */}
-          <div className="tw-flex-1 tw-border tw-rounded-lg tw-p-4">
+          <div className="tw-flex-1 tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-p-4">
             {territory.description && (
               <div className="tw-mb-4">
                 <div className="tw-text-sm tw-font-semibold tw-text-gray-500 tw-mb-1">Description</div>
@@ -161,7 +164,7 @@ const View = () => {
 
           {/* Right: documents */}
           {!DISABLED_FEATURES["observation-documents"] && (
-            <div className="tw-w-96 tw-shrink-0 tw-border tw-rounded-lg tw-overflow-hidden">
+            <div className="tw-w-96 tw-shrink-0 tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-overflow-hidden">
               <TerritoryDocuments territory={territory} observations={observations} />
             </div>
           )}
