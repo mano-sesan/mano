@@ -13,7 +13,7 @@ import SelectRole from "../../components/SelectRole";
 import SelectCustom from "../../components/SelectCustom";
 import CitySelect from "../../components/CitySelect";
 import { ModalBody, ModalHeader, ModalFooter, ModalContainer } from "../../components/tailwind/Modal";
-import { checkEncryptedVerificationKey, derivedMasterKey } from "../../services/encryption";
+import { checkEncryptedVerificationKey, derivedMasterKey, decryptAndEncryptItem, reWrapDocumentEntityKeys } from "../../services/encryption";
 import SuperadminOrganisationSettings from "./SuperadminOrganisationSettings";
 import SuperadminOrganisationUsers from "./SuperadminOrgationsationUsers";
 import SuperadminUsersSearch from "./SuperadminUsersSearch";
@@ -943,11 +943,17 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
   );
 };
 
+const mergeEntityTypes = ["persons", "actions", "consultations", "treatments", "medicalFiles", "comments", "passages", "rencontres", "groups", "territories", "territoryObservations", "places", "relsPersonPlace", "reports"];
+const mergeEntityTypesWithDocuments = ["persons", "actions", "consultations", "treatments", "medicalFiles"];
+
 const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
   const [selectedOrganisationMain, setSelectedOrganisationMain] = useState(null);
   const [selectedOrganisationSecondary, setSelectedOrganisationSecondary] = useState(null);
   const [secretKey, setSecretKey] = useState("");
   const [loading, setLoading] = useState(false);
+  const [reEncryptingStatus, setReEncryptingStatus] = useState("");
+  const [reEncryptingProgress, setReEncryptingProgress] = useState(null);
+
   return (
     <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
       <ModalHeader title="Fusion" />
@@ -1004,6 +1010,24 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
             }}
           />
         </div>
+        {!!reEncryptingStatus && (
+          <div className="tw-py-4">
+            <p className="tw-text-sm tw-font-medium">{reEncryptingStatus}</p>
+            {!!reEncryptingProgress && (
+              <div className="tw-mt-2">
+                <div className="tw-h-2.5 tw-w-full tw-rounded-full tw-bg-gray-200">
+                  <div
+                    className="tw-h-2.5 tw-rounded-full tw-bg-main"
+                    style={{ width: `${Math.round((reEncryptingProgress.processed / Math.max(reEncryptingProgress.total, 1)) * 100)}%` }}
+                  />
+                </div>
+                <p className="tw-mt-1 tw-text-xs tw-text-gray-500">
+                  {reEncryptingProgress.processed} / {reEncryptingProgress.total}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         <div className="tw-mx-auto tw-flex tw-justify-center tw-py-4">
           <img src="/fusion.gif" />
         </div>
@@ -1018,51 +1042,129 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
           onClick={async () => {
             if (!confirm("AUCUN RETOUR EN ARRIERE POSSIBLE ! Voulez-vous vraiment fusionner ces deux organisations ?")) return;
             setLoading(true);
+            setReEncryptingStatus("");
+            setReEncryptingProgress(null);
 
-            if (!selectedOrganisationMain || !selectedOrganisationSecondary) {
+            try {
+              if (!selectedOrganisationMain || !selectedOrganisationSecondary) {
+                return toast.error("Veuillez sélectionner les 2 organisations à fusionner");
+              }
+
+              if (!secretKey) {
+                return toast.error("La clé de l'organisation est obligatoire");
+              }
+
+              if (selectedOrganisationMain._id === selectedOrganisationSecondary._id) {
+                return toast.error("Les deux organisations ne peuvent pas être les mêmes");
+              }
+
+              const needsReEncryption = selectedOrganisationMain.customSalt || selectedOrganisationSecondary.customSalt;
+
+              let mainKey;
+              let secondaryKey;
+
+              if (needsReEncryption) {
+                // Derive keys with per-org salts
+                setReEncryptingStatus("Dérivation des clés de chiffrement...");
+                const [mainSaltError, mainSaltRes] = await tryFetchExpectOk(async () =>
+                  API.get({ path: `/organisation/${selectedOrganisationMain._id}/encryption-salt` })
+                );
+                if (mainSaltError) {
+                  return toast.error("Impossible de récupérer le sel de l'organisation principale");
+                }
+                const [secondarySaltError, secondarySaltRes] = await tryFetchExpectOk(async () =>
+                  API.get({ path: `/organisation/${selectedOrganisationSecondary._id}/encryption-salt` })
+                );
+                if (secondarySaltError) {
+                  return toast.error("Impossible de récupérer le sel de l'organisation secondaire");
+                }
+
+                mainKey = await derivedMasterKey(secretKey, selectedOrganisationMain.customSalt ? mainSaltRes.salt : null);
+                secondaryKey = await derivedMasterKey(secretKey, selectedOrganisationSecondary.customSalt ? secondarySaltRes.salt : null);
+              } else {
+                // Both orgs use default salt
+                mainKey = await derivedMasterKey(secretKey);
+                secondaryKey = mainKey;
+              }
+
+              // Verify main key
+              const encryptionKeyIsValid = await checkEncryptedVerificationKey(selectedOrganisationMain.encryptedVerificationKey, mainKey);
+              if (!encryptionKeyIsValid) {
+                return toast.error("La clé de l'organisation principale n'est pas valide");
+              }
+
+              // Verify secondary key
+              const encryptionKeyIsValid2 = await checkEncryptedVerificationKey(selectedOrganisationSecondary.encryptedVerificationKey, secondaryKey);
+              if (!encryptionKeyIsValid2) {
+                return toast.error("La clé de l'organisation secondaire n'est pas valide");
+              }
+
+              let reEncryptedItems = undefined;
+
+              if (needsReEncryption) {
+                // Fetch encrypted data from secondary org
+                setReEncryptingStatus("Récupération des données chiffrées de l'organisation secondaire...");
+                const [dataError, dataRes] = await tryFetchExpectOk(async () =>
+                  API.get({ path: `/organisation/${selectedOrganisationSecondary._id}/encrypted-data` })
+                );
+                if (dataError) {
+                  return toast.error("Impossible de récupérer les données chiffrées de l'organisation secondaire");
+                }
+
+                const encryptedData = dataRes.data;
+                const totalItems = mergeEntityTypes.reduce((sum, type) => sum + (encryptedData[type]?.length || 0), 0);
+                let processed = 0;
+
+                setReEncryptingStatus("Rechiffrement des données en cours...");
+                setReEncryptingProgress({ processed: 0, total: totalItems });
+
+                reEncryptedItems = {};
+                for (const type of mergeEntityTypes) {
+                  const items = encryptedData[type] || [];
+                  const reEncrypted = [];
+                  const hasDocuments = mergeEntityTypesWithDocuments.includes(type);
+                  const callback = hasDocuments ? (content) => reWrapDocumentEntityKeys(content, secondaryKey, mainKey) : null;
+
+                  for (const item of items) {
+                    try {
+                      const recrypted = await decryptAndEncryptItem(item, secondaryKey, mainKey, callback);
+                      if (recrypted) reEncrypted.push({ _id: recrypted._id, encrypted: recrypted.encrypted, encryptedEntityKey: recrypted.encryptedEntityKey });
+                    } catch (e) {
+                      toast.error(`Erreur lors du rechiffrement (${type}): ${e.message}`);
+                      return;
+                    }
+                    processed++;
+                    if (processed % 50 === 0) {
+                      setReEncryptingProgress({ processed, total: totalItems });
+                    }
+                  }
+                  reEncryptedItems[type] = reEncrypted;
+                }
+                setReEncryptingProgress({ processed: totalItems, total: totalItems });
+                setReEncryptingStatus("Envoi de la fusion au serveur...");
+              }
+
+              const [error] = await tryFetchExpectOk(async () =>
+                API.post({
+                  path: `/organisation/merge`,
+                  body: { mainId: selectedOrganisationMain._id, secondaryId: selectedOrganisationSecondary._id, reEncryptedItems },
+                })
+              );
+
+              if (!error) {
+                toast.success("Fusion réussie, vérifiez quand même que tout est ok");
+                onChange();
+                setSelectedOrganisationMain(null);
+                setSelectedOrganisationSecondary(null);
+                setOpen(false);
+              } else {
+                toast.error(errorMessage(error));
+                toast.error("Catastrophe, la fusion d'organisation a échoué, appelez les devs");
+              }
+            } finally {
               setLoading(false);
-              return toast.error("Veuillez sélectionner les 2 organisations à fusionner");
-            }
-
-            if (!secretKey) {
-              setLoading(false);
-              return toast.error("La clé de l'organisation est obligatoire");
-            }
-
-            if (selectedOrganisationMain._id === selectedOrganisationSecondary._id) {
-              setLoading(false);
-              return toast.error("Les deux organisations ne peuvent pas être les mêmes");
-            }
-
-            const derived = await derivedMasterKey(secretKey);
-            const encryptionKeyIsValid = await checkEncryptedVerificationKey(selectedOrganisationMain.encryptedVerificationKey, derived);
-            if (!encryptionKeyIsValid) {
-              setLoading(false);
-              return toast.error("La clé de l'organisation principale n'est pas valide");
-            }
-
-            const encryptionKeyIsValid2 = await checkEncryptedVerificationKey(selectedOrganisationSecondary.encryptedVerificationKey, derived);
-            if (!encryptionKeyIsValid2) {
-              setLoading(false);
-              return toast.error("La clé de l'organisation secondaire n'est pas valide");
-            }
-
-            const [error] = await tryFetchExpectOk(async () =>
-              API.post({
-                path: `/organisation/merge`,
-                body: { mainId: selectedOrganisationMain._id, secondaryId: selectedOrganisationSecondary._id },
-              })
-            );
-            setSelectedOrganisationMain(null);
-            setSelectedOrganisationSecondary(null);
-            setLoading(false);
-            setOpen(false);
-            if (!error) {
-              toast.success("Fusion réussie, vérifiez quand même que tout est ok");
-              onChange();
-            } else {
-              toast.error(errorMessage(error));
-              toast.error("Catastrophe, la fusion d'organisation a échoué, appelez les devs");
+              setReEncryptingStatus("");
+              setReEncryptingProgress(null);
             }
           }}
         >

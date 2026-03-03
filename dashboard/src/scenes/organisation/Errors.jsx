@@ -1,4 +1,4 @@
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
@@ -457,18 +457,40 @@ export default function Errors() {
 
 function ModalRepair({ open, setOpen, setData, item }) {
   const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
   const [key, setKey] = useState("");
   const { refresh } = useDataLoader();
 
   async function testAndFixKey() {
     const itemData = structuredClone(item.data);
-    const derived = await derivedMasterKey(key);
-    try {
-      const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derived);
-      itemData.decrypted = JSON.parse(content);
-    } catch (_e) {
-      toast.error("La clé de chiffrement ne fonctionne pas pour cet élément");
-      return;
+
+    // L'item a pu être chiffré avec le sel personnalisé ou le sel par défaut.
+    // On essaie d'abord avec le sel personnalisé (si activé), puis avec le sel par défaut.
+    let derived;
+    let decrypted = false;
+    if (organisation.customSalt) {
+      const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+      if (!saltError && saltResponse?.ok && saltResponse?.salt) {
+        const derivedWithCustomSalt = await derivedMasterKey(key, saltResponse.salt);
+        try {
+          const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derivedWithCustomSalt);
+          itemData.decrypted = JSON.parse(content);
+          derived = derivedWithCustomSalt;
+          decrypted = true;
+        } catch (_e) {
+          // Le sel personnalisé n'a pas fonctionné, on essaie avec le sel par défaut ci-dessous
+        }
+      }
+    }
+    if (!decrypted) {
+      derived = await derivedMasterKey(key);
+      try {
+        const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derived);
+        itemData.decrypted = JSON.parse(content);
+      } catch (_e) {
+        toast.error("La clé de chiffrement ne fonctionne pas pour cet élément");
+        return;
+      }
     }
     toast.success("La clé de chiffrement est valide");
     delete itemData.encrypted;
