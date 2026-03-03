@@ -8,7 +8,7 @@ import { dayjsInstance } from "../../services/date";
  * Check if a given ISO date falls within a period when the person was assigned
  * to at least one of the selected teams.
  */
-function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, debug = false) {
+function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData) {
   if (viewAllOrganisationData) {
     const allPeriods = assignedTeamsPeriods?.all;
     if (!allPeriods?.length) return false;
@@ -18,7 +18,6 @@ function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeams
     return false;
   }
   for (const [teamId, periods] of Object.entries(assignedTeamsPeriods || {})) {
-    if (debug) console.log('teamId', teamId, 'periods', periods, 'isoDate', isoDate);
     if (teamId === "all") continue;
     if (!selectedTeamsObjectWithOwnPeriod[teamId]) continue;
     for (const period of periods) {
@@ -118,16 +117,9 @@ export const itemsForStatsV2Selector = ({
     : null;
 
     for (let person of allPersons) {
-    let debug = person._id === '5abe51fa-02e1-4225-ab26-8e50535a5c17';
-    if (debug) {
-      console.log(person);
-      console.log('personType', personType);
-    }
     // get the persons concerned by filters
     if (!filterItem(activeFilters)(person)) continue;
-    if (debug) console.log('not filtered by active filters');
     if (outOfActiveListFilter === "Oui" && !person.outOfActiveList) continue;
-    if (debug) console.log('not filtered by out of active list OUI');
     // Filter by team exit during period
     if (outOfTeamsDuringPeriodTeamIds) {
       let wasOutOfSelectedTeam = false;
@@ -148,11 +140,9 @@ export const itemsForStatsV2Selector = ({
         }
         if (wasOutOfSelectedTeam) break;
       }
-      if (debug) console.log('wasOutOfSelectedTeam', wasOutOfSelectedTeam);
       if (!wasOutOfSelectedTeam) continue;
     }
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
-    if (debug) console.log('not filtered by out of active list NON');
 
     if (filterByNumberOfTreatments.length) {
       let numberOfTreatments = 0;
@@ -198,7 +188,6 @@ export const itemsForStatsV2Selector = ({
 
     // get persons for stats for period
     const createdDate = person.followedSince ? dayjsInstance(person.followedSince).startOf("day").toISOString() : null;
-    if (debug) console.log('createdDate', createdDate);
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,
@@ -208,7 +197,6 @@ export const itemsForStatsV2Selector = ({
       isoStartDate: defaultIsoDates.isoStartDate,
       filterByStartFollowBySelectedTeamDuringPeriod,
     });
-    if (debug) console.log('personIsInAssignedTeamDuringPeriod', personIsInAssignedTeamDuringPeriod);
 
     let isFollowed = false;
     let isModified = false;
@@ -229,31 +217,22 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
-      if (debug) console.log('isModified', isModified);
 
       // 3. "followed" — has valid interaction (not out-of-active-list, in assigned team)
       if (noPeriodSelected) {
         isFollowed = true;
       } else {
-        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person, defaultIsoDates, debug);
-        if (debug) console.log('outOfActiveListPeriods', outOfActiveListPeriods);
-        if (debug) console.log('person.interactions', person.interactions);
+        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person, defaultIsoDates);
         for (const date of person.interactions) {
           if (date < defaultIsoDates.isoStartDate) continue;
           if (date >= defaultIsoDates.isoEndDate) continue;
           const isoDate = dayjsInstance(date).toISOString();
-          if (debug) console.log('isoDate', isoDate, 'isDateInOutOfActiveListPeriod', isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods));
           if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
-          const _isDateInAssignedTeamPeriod = isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, debug);
-          if (debug) console.log('!isDateInAssignedTeamPeriod ?', !_isDateInAssignedTeamPeriod);
-          if (debug && !_isDateInAssignedTeamPeriod) console.log('detail', isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod);
-          if (!_isDateInAssignedTeamPeriod) continue;
-          if (debug) console.log('isFollowed because of date', date);
+          if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
           isFollowed = true;
           break;
         }
       }
-      if (debug) console.log('isFollowed', isFollowed);
       
       // 4. "created" — followedSince in period OR first assignment to a selected team during period
       if (noPeriodSelected) {
@@ -277,7 +256,6 @@ export const itemsForStatsV2Selector = ({
         }
       }
 
-      if (debug) console.log('isCreated', isCreated);
       // Populate personsForStats based on the selected personType
       if (
         personType === "all" ||
