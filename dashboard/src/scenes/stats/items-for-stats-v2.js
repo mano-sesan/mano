@@ -85,8 +85,6 @@ export const itemsForStatsV2Selector = ({
     return !!selectedTeamsObjectWithOwnPeriod[item[key]];
   };
 
-  const today = dayjsInstance().startOf("day").toISOString();
-
   const personsForStats = {};
   const personsUpdatedWithActions = {};
   // Counts for the 4 person types (used by Général tab)
@@ -250,6 +248,7 @@ export const itemsForStatsV2Selector = ({
             if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
             if (teamPeriods.length > 0) {
               // edge case : si une équipe est assignée pendant une période hors file active
+              // et que la période d'assignation ne s'arrête pas avant la fin de la période hors file active
               // alors la personne n'est pas considérée comme créée
               let isOutOfActiveList = false;
               for (const period of outOfActiveListPeriods) {
@@ -257,7 +256,7 @@ export const itemsForStatsV2Selector = ({
                   let teamPeriodEndDate = teamPeriods[0].isoEndDate;
                   if (!teamPeriodEndDate) {
                     // if no end date it means the team is stillassigned until today
-                    if (today < period.isoEndDate) {
+                    if (defaultIsoDates.isoEndDate <= period.isoEndDate) {
                       isOutOfActiveList = true;
                       break;
                     }
