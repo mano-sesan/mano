@@ -235,7 +235,7 @@ export const itemsForStatsV2Selector = ({
       if (noPeriodSelected) {
         isFollowed = true;
       } else {
-        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);
+        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person, defaultIsoDates, debug);
         if (debug) console.log('outOfActiveListPeriods', outOfActiveListPeriods);
         if (debug) console.log('person.interactions', person.interactions);
         for (const date of person.interactions) {

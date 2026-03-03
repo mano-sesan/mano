@@ -6,7 +6,7 @@ import type { PersonInstance } from "../types/person";
  * Follows the same pattern as extractInfosFromHistory in person-history.ts
  * and uses the backdated outOfActiveListDate logic from person-snapshot.ts.
  */
-export function extractOutOfActiveListPeriods(person: PersonInstance): Array<{ isoStartDate: string; isoEndDate: string }> {
+export function extractOutOfActiveListPeriods(person: PersonInstance, defaultIsoDates: { isoStartDate: string; isoEndDate: string }, debug = false): Array<{ isoStartDate: string; isoEndDate: string }> {
   const periods: Array<{ isoStartDate: string; isoEndDate: string }> = [];
 
   if (person.outOfActiveList) {
@@ -14,7 +14,7 @@ export function extractOutOfActiveListPeriods(person: PersonInstance): Array<{ i
     // We'll set the start date after walking history
     periods.push({
       isoStartDate: null, // placeholder, will be filled
-      isoEndDate: dayjsInstance().startOf("day").add(1, "day").toISOString(),
+      isoEndDate: dayjsInstance(defaultIsoDates.isoEndDate).startOf("day").add(1, "day").toISOString(),
     });
   }
 
@@ -23,6 +23,7 @@ export function extractOutOfActiveListPeriods(person: PersonInstance): Array<{ i
     for (let i = person.history.length - 1; i >= 0; i--) {
       const historyEntry = person.history[i];
       const data = historyEntry.data as Record<string, unknown>;
+      
 
       if (!data.outOfActiveList) continue;
 
@@ -52,7 +53,9 @@ export function extractOutOfActiveListPeriods(person: PersonInstance): Array<{ i
         referenceDate = dayjsInstance(historyEntry.date).startOf("day").toISOString();
       }
 
-      if (outOfActiveListChange.oldValue === false && outOfActiveListChange.newValue === true) {
+      if (referenceDate < defaultIsoDates.isoStartDate) continue;
+      if (referenceDate >= defaultIsoDates.isoEndDate) continue;
+      if (!outOfActiveListChange.oldValue && outOfActiveListChange.newValue === true) {
         // Transition: in active list → out of active list (start of an out-period)
         // This sets the start date for the most recent unstarted period
         const unstarted = periods.find((p) => p.isoStartDate === null);

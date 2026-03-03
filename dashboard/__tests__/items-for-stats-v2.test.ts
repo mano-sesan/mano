@@ -26,7 +26,7 @@ describe("extractOutOfActiveListPeriods", () => {
       history: [],
       followedSince: "2023-01-01",
     };
-    expect(extractOutOfActiveListPeriods(person as any)).toEqual([]);
+    expect(extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") })).toEqual([]);
   });
 
   test("personne hors file active sans historique → une période depuis followedSince jusqu'à aujourd'hui", () => {
@@ -35,7 +35,7 @@ describe("extractOutOfActiveListPeriods", () => {
       history: [],
       followedSince: "2023-06-15",
     };
-    const periods = extractOutOfActiveListPeriods(person as any);
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-06-15"));
     // isoEndDate should be tomorrow (exclusive boundary so today's interactions are included)
@@ -63,7 +63,7 @@ describe("extractOutOfActiveListPeriods", () => {
         },
       ],
     };
-    const periods = extractOutOfActiveListPeriods(person as any);
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-03-01"));
     expect(periods[0].isoEndDate).toBe(isoDate("2023-06-01"));
@@ -82,7 +82,7 @@ describe("extractOutOfActiveListPeriods", () => {
         },
       ],
     };
-    const periods = extractOutOfActiveListPeriods(person as any);
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-09-01"));
     expect(periods[0].isoEndDate).toBe(isoDate(dayjs().add(1, "day").format("YYYY-MM-DD")));
@@ -114,7 +114,7 @@ describe("extractOutOfActiveListPeriods", () => {
         },
       ],
     };
-    const periods = extractOutOfActiveListPeriods(person as any);
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(2);
     expect(periods[0]).toEqual({
       isoStartDate: isoDate("2023-03-01"),
@@ -142,7 +142,7 @@ describe("extractOutOfActiveListPeriods", () => {
         },
       ],
     };
-    const periods = extractOutOfActiveListPeriods(person as any);
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") } );
     expect(periods).toHaveLength(1);
     // La date de début doit être la date antidatée, pas la date de l'historique
     expect(periods[0].isoStartDate).toBe(isoDate("2023-03-01"));
