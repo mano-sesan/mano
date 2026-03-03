@@ -188,6 +188,7 @@ const EncryptionKey = ({ isMain }) => {
       setEncryptionKey(values.encryptionKey.trim());
       const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
       if (saltError || !saltResponse?.ok || !saltResponse?.salt) {
+        setEncryptionKey("");
         return toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
       }
       const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim(), { salt: saltResponse.salt });

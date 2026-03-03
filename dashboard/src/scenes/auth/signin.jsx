@@ -261,7 +261,7 @@ const SignIn = () => {
         let salt = null;
         if (organisation.customSalt) {
           const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
-          if (saltError || !saltResponse?.ok) {
+          if (saltError || !saltResponse?.ok || !saltResponse?.salt) {
             toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
             return setIsSubmitting(false);
           }
