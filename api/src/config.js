@@ -44,6 +44,17 @@ if (process.env.DEPLOY_KEY_FILE && fs.existsSync(process.env.DEPLOY_KEY_FILE)) {
   DEPLOY_KEY = process.env.DEPLOY_KEY || null;
 }
 
+let VERIFICATION_SECRET = null;
+if (process.env.VERIFICATION_SECRET_FILE && fs.existsSync(process.env.VERIFICATION_SECRET_FILE)) {
+  VERIFICATION_SECRET = fs.readFileSync(process.env.VERIFICATION_SECRET_FILE, "utf8").trim().replace(/\n/g, "");
+} else {
+  if (ENVIRONMENT === "production") {
+    throw new Error("VERIFICATION_SECRET is not set or file not found in production");
+  }
+  console.warn("VERIFICATION_SECRET is not set, using default value");
+  VERIFICATION_SECRET = process.env.VERIFICATION_SECRET || "not_so_secret_verification";
+}
+
 const MOBILE_APP_VERSION = mobileAppVersion;
 
 const STORAGE_DIRECTORY = process.env.STORAGE_DIRECTORY;
@@ -59,6 +70,7 @@ module.exports = {
   PGPASSWORD,
   PGDATABASE,
   DEPLOY_KEY,
+  VERIFICATION_SECRET,
   MOBILE_APP_VERSION,
   STORAGE_DIRECTORY,
 };

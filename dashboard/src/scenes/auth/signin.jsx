@@ -258,7 +258,16 @@ const SignIn = () => {
     if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey && organisation.encryptionEnabled) {
       let organisationKey;
       try {
-        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true });
+        let salt = null;
+        if (organisation.customSalt) {
+          const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+          if (saltError || !saltResponse?.ok) {
+            toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+            return setIsSubmitting(false);
+          }
+          salt = saltResponse.salt;
+        }
+        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true, salt });
       } catch (e) {
         setIsSubmitting(false);
         // Si c'est une erreur de dom sur `window.btoa`, on ne peut pas continuer

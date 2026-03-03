@@ -186,7 +186,11 @@ const EncryptionKey = ({ isMain }) => {
       uploadStartedAtRef.current = null;
       setUploadNow(0);
       setEncryptionKey(values.encryptionKey.trim());
-      const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim());
+      const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+      if (saltError || !saltResponse?.ok || !saltResponse?.salt) {
+        return toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+      }
+      const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim(), { salt: saltResponse.salt });
       setEncryptionKeyLength(values.encryptionKey.trim().length);
       setEncryptingPhase("Préparation");
       setEncryptingStatus("Initialisation du chiffrement…");
@@ -321,6 +325,7 @@ const EncryptionKey = ({ isMain }) => {
             relsPersonPlace: encryptedRelsPersonPlace,
             reports: encryptedReports,
             encryptedVerificationKey,
+            customSalt: true,
           },
           query: {
             encryptionLastUpdateAt: organisation.encryptionLastUpdateAt,

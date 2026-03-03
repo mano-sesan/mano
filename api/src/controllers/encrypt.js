@@ -78,6 +78,7 @@ router.post(
       z.object({
         encryptionLastUpdateAt: z.optional(z.preprocess((input) => new Date(input), z.date())),
         encryptedVerificationKey: z.string(),
+        customSalt: z.optional(z.boolean()),
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in encryption parameters: ${e}`);
@@ -120,10 +121,15 @@ router.post(
           relsPersonPlace = [],
           encryptionLastUpdateAt,
           encryptedVerificationKey,
+          customSalt,
         } = req.body;
 
         if (Date.parse(new Date(encryptionLastUpdateAt)) < Date.parse(new Date(organisation.encryptionLastUpdateAt))) {
           throw new Error("La clé de chiffrement a changé. Veuillez vous déconnecter et vous reconnecter avec la nouvelle clé.");
+        }
+
+        if (organisation.customSalt && !customSalt) {
+          throw new Error("Le sel personnalisé ne peut pas être désactivé une fois activé.");
         }
 
         // Why paranoid false everywhere?
@@ -193,6 +199,7 @@ router.post(
           lockedForEncryption: false,
           lockedBy: null,
           encryptedVerificationKey,
+          ...(customSalt ? { customSalt: true } : {}),
         });
         await organisation.save({
           transaction: tx,

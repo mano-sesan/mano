@@ -48,6 +48,7 @@ services:
       PGDATABASE_FILE: /run/secrets/database
       STORAGE_DIRECTORY: /data
       SECRET: /run/secrets/secret
+      VERIFICATION_SECRET_FILE: /run/secrets/verification_secret
       MANO_API_IS_PRODUCTION: "true"
       no_proxy: ad.sesan.fr,.gcsidf.local,localhost,127.0.0.1
       https_proxy: http://sesclaprx-vip.grita.fr:3128
@@ -60,6 +61,7 @@ services:
       - pguser
       - secret
       - database
+      - verification_secret
   metabase:
     restart: always
     image: metabase/metabase
@@ -99,6 +101,8 @@ secrets:
     file: ./.secrets/secret
   database:
     file: ./.secrets/database
+  verification_secret:
+    file: ./.secrets/verification_secret
   mb_db_user:
     file: ./.secrets/mb_db_user
   mb_db_password:

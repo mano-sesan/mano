@@ -30,6 +30,7 @@ function serializeOrganisation(organisation) {
     lockedBy: organisation.lockedBy,
     rencontresEnabled: organisation.rencontresEnabled,
     encryptedVerificationKey: organisation.encryptedVerificationKey,
+    customSalt: !!organisation.customSalt,
     migrations: organisation.migrations,
     migrationLastUpdateAt: organisation.migrationLastUpdateAt,
     disabledAt: organisation.disabledAt,
