@@ -424,6 +424,67 @@ describe("itemsForStatsV2Selector", () => {
       const result = callSelector([person], "followed", { startDate: null, endDate: null });
       expect(result.personsForStats).toHaveLength(1);
     });
+
+    // Tests for extractOutOfActiveListPeriods respecting query period boundaries (fix 746f0863)
+    test("exclut une interaction avant la date de sortie mais hors de la query period", () => {
+      // Personne sortie le 2024-03-01, query period 2025-01-01 à 2025-12-31
+      // Interaction en 2024-06-15 (pendant sortie mais avant la query period)
+      const person = makeBasePerson({
+        _id: "p1",
+        outOfActiveList: true,
+        interactions: ["2024-06-15T10:00:00.000Z"], // avant la query period
+        history: [
+          {
+            date: "2024-03-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+        ],
+      });
+      const result = callSelector([person], "followed", { startDate: "2025-01-01", endDate: "2025-12-31" });
+      // Interaction est hors period, donc exclue
+      expect(result.personsForStats).toHaveLength(0);
+    });
+
+    test("inclut une interaction pendant sortie qui chevauche la query period (fix 746f0863)", () => {
+      // Personne sortie le 2024-06-15 (avant period), interaction 2025-06-15 (dans period et dans sortie)
+      // Le period end (2025-12-31) est utilisé pour borner la période de sortie, pas "today"
+      const person = makeBasePerson({
+        _id: "p1",
+        outOfActiveList: true, // toujours hors file active
+        interactions: ["2025-06-15T10:00:00.000Z"],
+        history: [
+          {
+            date: "2024-06-15T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+        ],
+      });
+      const result = callSelector([person], "followed", { startDate: "2025-01-01", endDate: "2025-12-31" });
+      // L'interaction est pendant la sortie ET pendant la query period, donc exclue
+      expect(result.personsForStats).toHaveLength(0);
+    });
+
+    test("inclut une interaction APRÈS retour en file active si retour est dans la query period", () => {
+      // Personne sortie 2025-02-01, retour 2025-06-01, interaction 2025-07-15 (après retour)
+      const person = makeBasePerson({
+        _id: "p1",
+        outOfActiveList: false, // revenue
+        interactions: ["2025-07-15T10:00:00.000Z"],
+        history: [
+          {
+            date: "2025-02-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-06-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "followed");
+      // Interaction est après le retour, donc inclue
+      expect(result.personsForStats).toHaveLength(1);
+    });
   });
 
   // ─── Mode "created" (Nouvelles personnes) ───
@@ -475,6 +536,155 @@ describe("itemsForStatsV2Selector", () => {
       });
       const result = callSelector([person], "created", { startDate: null, endDate: null });
       expect(result.personsForStats).toHaveLength(1);
+    });
+
+    // Edge case: Team assignment during out-of-active-list period should NOT count as created
+    // when both the start and end of assignment are within the out-of-active-list period
+    test("exclut une personne assignée entièrement pendant sortie de file active avec dates fermées (edge case #1434)", () => {
+      // Sortie de file active: 2025-02-01 à 2025-04-01
+      // Assignée le 2025-02-05 au 2025-03-15 (complètement pendant la sortie)
+      const person = makeBasePerson({
+        _id: "p1",
+        followedSince: "2024-01-01",
+        outOfActiveList: false, // revenue après sortie
+        interactions: ["2025-05-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: null }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2025-02-05"), isoEndDate: isoDate("2025-03-15") }],
+        },
+        history: [
+          {
+            date: "2025-02-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-04-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "created");
+      // Exclue car assignation start ET end sont pendant la sortie de file active
+      expect(result.personsForStats).toHaveLength(0);
+      expect(result.personTypeCounts.created).toBe(0);
+    });
+
+    test("inclut une personne assignée à l'équipe AVANT sa sortie de file active (edge case #1434)", () => {
+      // Personne assignée le 1er février 2025
+      // Sortie de file active le 15 février 2025
+      // Revenue en file active le 1er avril 2025
+      const person = makeBasePerson({
+        _id: "p1",
+        followedSince: "2024-01-01",
+        outOfActiveList: false, // actuellement en file active
+        interactions: ["2025-05-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: null }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2025-02-01"), isoEndDate: null }], // assignée AVANT la sortie
+        },
+        history: [
+          {
+            date: "2025-02-15T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-04-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "created");
+      // Doit être compté comme créé car l'assignation est AVANT la sortie
+      expect(result.personsForStats).toHaveLength(1);
+      expect(result.personTypeCounts.created).toBe(1);
+    });
+
+    test("inclut personne avec assignation partielle hors sortie file active (edge case #1434)", () => {
+      // Sortie de file active: 2025-02-15 à 2025-04-01
+      // Assignée le 2025-02-10 (AVANT sortie) au 2025-03-15 (pendant sortie)
+      // Assignation démarre avant la sortie, donc incluse
+      const person = makeBasePerson({
+        _id: "p1",
+        followedSince: "2024-01-01",
+        outOfActiveList: false,
+        interactions: ["2025-05-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: null }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2025-02-10"), isoEndDate: isoDate("2025-03-15") }],
+        },
+        history: [
+          {
+            date: "2025-02-15T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-04-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "created");
+      // Inclue car assignation start date est AVANT la sortie
+      expect(result.personsForStats).toHaveLength(1);
+      expect(result.personTypeCounts.created).toBe(1);
+    });
+
+    test("inclut une personne dont l'assignation se termine AVANT la fin de la sortie de file active", () => {
+      // Assignée du 1er mars au 15 mars (pendant sortie du 1er février au 1er avril)
+      // Assignation prend fin avant la fin de la sortie
+      const person = makeBasePerson({
+        _id: "p1",
+        followedSince: "2024-01-01",
+        outOfActiveList: false,
+        interactions: ["2025-05-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: null }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2025-03-01"), isoEndDate: isoDate("2025-03-15") }],
+        },
+        history: [
+          {
+            date: "2025-02-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-04-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "created");
+      // Assignation est complètement dans la sortie de file active, donc exclue
+      expect(result.personsForStats).toHaveLength(0);
+      expect(result.personTypeCounts.created).toBe(0);
+    });
+
+    test("inclut une personne dont l'assignation redémarre après le retour en file active", () => {
+      // Sortie de file active 1er février au 1er avril 2025
+      // Assignée le 1er mai 2025 (APRÈS le retour)
+      const person = makeBasePerson({
+        _id: "p1",
+        followedSince: "2024-01-01",
+        outOfActiveList: false,
+        interactions: ["2025-06-15T10:00:00.000Z"],
+        assignedTeamsPeriods: {
+          all: [{ isoStartDate: isoDate("2024-01-01"), isoEndDate: null }],
+          [TEAM_A_ID]: [{ isoStartDate: isoDate("2025-05-01"), isoEndDate: null }],
+        },
+        history: [
+          {
+            date: "2025-02-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: false, newValue: true } },
+          },
+          {
+            date: "2025-04-01T10:00:00.000Z",
+            data: { outOfActiveList: { oldValue: true, newValue: false } },
+          },
+        ],
+      });
+      const result = callSelector([person], "created");
+      // Assignation est APRÈS le retour en file active, donc incluse
+      expect(result.personsForStats).toHaveLength(1);
+      expect(result.personTypeCounts.created).toBe(1);
     });
   });
 
