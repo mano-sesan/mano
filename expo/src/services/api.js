@@ -191,7 +191,22 @@ class ApiService {
   delete = (args) => this.execute({ method: "DELETE", ...args });
 
   setOrgEncryptionKey = async (orgEncryptionKey) => {
-    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
+    let salt = null;
+    if (this.organisation?.customSalt) {
+      try {
+        const response = await this.get({ path: "/user/encryption-salt" });
+        if (response?.ok && response.salt) {
+          salt = response.salt;
+        } else {
+          this.handleError?.(null, "Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+          return false;
+        }
+      } catch (_e) {
+        this.handleError?.(_e, "Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+        return false;
+      }
+    }
+    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey, salt);
     const { encryptedVerificationKey } = this.organisation;
     if (!encryptedVerificationKey) {
       capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
