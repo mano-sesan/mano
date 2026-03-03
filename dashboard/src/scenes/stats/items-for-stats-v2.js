@@ -234,15 +234,17 @@ export const itemsForStatsV2Selector = ({
       if (noPeriodSelected) {
         isFollowed = true;
       } else {
-        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);)
+        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);
         if (debug) console.log('outOfActiveListPeriods', outOfActiveListPeriods);
         if (debug) console.log('person.interactions', person.interactions);
         for (const date of person.interactions) {
           if (date < defaultIsoDates.isoStartDate) continue;
           if (date >= defaultIsoDates.isoEndDate) continue;
           const isoDate = dayjsInstance(date).toISOString();
+          if (debug) console.log('isoDate', isoDate, 'isDateInOutOfActiveListPeriod', isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods));
           if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
           if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
+          if (debug) console.log('isFollowed because of date', date);
           isFollowed = true;
           break;
         }
