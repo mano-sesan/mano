@@ -39,7 +39,7 @@ describe("extractOutOfActiveListPeriods", () => {
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-06-15"));
     // isoEndDate should be tomorrow (exclusive boundary so today's interactions are included)
-    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().add(1, "day").format("YYYY-MM-DD")));
+    expect(periods[0].isoEndDate).toBe(isoDate(dayjs(isoDate("2023-12-31")).add(1, "day").format("YYYY-MM-DD")));
   });
 
   test("personne sortie de file active puis revenue → une période fermée", () => {
@@ -85,7 +85,7 @@ describe("extractOutOfActiveListPeriods", () => {
     const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(1);
     expect(periods[0].isoStartDate).toBe(isoDate("2023-09-01"));
-    expect(periods[0].isoEndDate).toBe(isoDate(dayjs().add(1, "day").format("YYYY-MM-DD")));
+    expect(periods[0].isoEndDate).toBe(isoDate(dayjs(isoDate("2023-12-31")).add(1, "day").format("YYYY-MM-DD")));
   });
 
   test("multiples sorties et retours → plusieurs périodes", () => {
@@ -142,7 +142,7 @@ describe("extractOutOfActiveListPeriods", () => {
         },
       ],
     };
-    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") } );
+    const periods = extractOutOfActiveListPeriods(person as any, { isoStartDate: isoDate("2023-01-01"), isoEndDate: isoDate("2023-12-31") });
     expect(periods).toHaveLength(1);
     // La date de début doit être la date antidatée, pas la date de l'historique
     expect(periods[0].isoStartDate).toBe(isoDate("2023-03-01"));
@@ -286,10 +286,7 @@ describe("itemsForStatsV2Selector", () => {
     });
 
     test("inclut toutes les personnes quand aucune période n'est sélectionnée", () => {
-      const persons = [
-        makeBasePerson({ _id: "p1", interactions: [] }),
-        makeBasePerson({ _id: "p2", interactions: [] }),
-      ];
+      const persons = [makeBasePerson({ _id: "p1", interactions: [] }), makeBasePerson({ _id: "p2", interactions: [] })];
       const result = callSelector(persons, "all", { startDate: null, endDate: null });
       expect(result.personsForStats).toHaveLength(2);
     });
@@ -333,10 +330,7 @@ describe("itemsForStatsV2Selector", () => {
     });
 
     test("inclut toutes les personnes quand aucune période n'est sélectionnée", () => {
-      const persons = [
-        makeBasePerson({ _id: "p1", interactions: [] }),
-        makeBasePerson({ _id: "p2", interactions: ["2024-01-01T10:00:00.000Z"] }),
-      ];
+      const persons = [makeBasePerson({ _id: "p1", interactions: [] }), makeBasePerson({ _id: "p2", interactions: ["2024-01-01T10:00:00.000Z"] })];
       const result = callSelector(persons, "modified", { startDate: null, endDate: null });
       expect(result.personsForStats).toHaveLength(2);
     });
@@ -591,7 +585,6 @@ describe("itemsForStatsV2Selector", () => {
         created: 2, // personA (followedSince en 2025), personE (première assignation en 2025)
       });
     });
-
   });
 
   // ─── countFollowedWithActions ───

@@ -6,7 +6,11 @@ import type { PersonInstance } from "../types/person";
  * Follows the same pattern as extractInfosFromHistory in person-history.ts
  * and uses the backdated outOfActiveListDate logic from person-snapshot.ts.
  */
-export function extractOutOfActiveListPeriods(person: PersonInstance, defaultIsoDates: { isoStartDate: string; isoEndDate: string }, debug = false): Array<{ isoStartDate: string; isoEndDate: string }> {
+export function extractOutOfActiveListPeriods(
+  person: PersonInstance,
+  defaultIsoDates: { isoStartDate: string; isoEndDate: string },
+  debug = false
+): Array<{ isoStartDate: string; isoEndDate: string }> {
   const periods: Array<{ isoStartDate: string; isoEndDate: string }> = [];
 
   if (person.outOfActiveList) {
@@ -23,7 +27,6 @@ export function extractOutOfActiveListPeriods(person: PersonInstance, defaultIso
     for (let i = person.history.length - 1; i >= 0; i--) {
       const historyEntry = person.history[i];
       const data = historyEntry.data as Record<string, unknown>;
-      
 
       if (!data.outOfActiveList) continue;
 
@@ -31,10 +34,7 @@ export function extractOutOfActiveListPeriods(person: PersonInstance, defaultIso
 
       // Determine reference date (use backdated outOfActiveListDate when available, like person-snapshot.ts)
       let referenceDate: string;
-      if (
-        data.outOfActiveListDate &&
-        outOfActiveListChange.newValue === true
-      ) {
+      if (data.outOfActiveListDate && outOfActiveListChange.newValue === true) {
         // Sortie de file active with a backdated date
         const outOfActiveListDateEntry = data.outOfActiveListDate as { oldValue?: unknown; newValue?: unknown };
         if (outOfActiveListDateEntry?.newValue) {
@@ -99,10 +99,7 @@ export function extractOutOfActiveListPeriods(person: PersonInstance, defaultIso
 /**
  * Check if a given ISO date falls within any out-of-active-list period.
  */
-export function isDateInOutOfActiveListPeriod(
-  isoDate: string,
-  outOfActiveListPeriods: Array<{ isoStartDate: string; isoEndDate: string }>
-): boolean {
+export function isDateInOutOfActiveListPeriod(isoDate: string, outOfActiveListPeriods: Array<{ isoStartDate: string; isoEndDate: string }>): boolean {
   for (const period of outOfActiveListPeriods) {
     if (isoDate >= period.isoStartDate && isoDate < period.isoEndDate) {
       return true;
