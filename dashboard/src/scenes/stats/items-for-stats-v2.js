@@ -247,6 +247,7 @@ export const itemsForStatsV2Selector = ({
             if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
             if (teamPeriods.length > 0) {
               const firstPeriodStart = teamPeriods[0].isoStartDate;
+              if (isDateInOutOfActiveListPeriod(firstPeriodStart, outOfActiveListPeriods)) continue;
               if (firstPeriodStart >= defaultIsoDates.isoStartDate && firstPeriodStart < defaultIsoDates.isoEndDate) {
                 isCreated = true;
                 break;
