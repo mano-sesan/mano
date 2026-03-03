@@ -116,11 +116,17 @@ export const itemsForStatsV2Selector = ({
     ? new Set(territories.filter((t) => filterByTerritories.value.includes(t.name)).map((t) => t._id))
     : null;
 
-  for (let person of allPersons) {
+    for (let person of allPersons) {
+    let debug = person._id === '5abe51fa-02e1-4225-ab26-8e50535a5c17';
+    if (debug) {
+      console.log(person);
+      console.log('personType', personType);
+    }
     // get the persons concerned by filters
     if (!filterItem(activeFilters)(person)) continue;
+    if (debug) console.log('not filtered by active filters');
     if (outOfActiveListFilter === "Oui" && !person.outOfActiveList) continue;
-
+    if (debug) console.log('not filtered by out of active list OUI');
     // Filter by team exit during period
     if (outOfTeamsDuringPeriodTeamIds) {
       let wasOutOfSelectedTeam = false;
@@ -141,9 +147,11 @@ export const itemsForStatsV2Selector = ({
         }
         if (wasOutOfSelectedTeam) break;
       }
+      if (debug) console.log('wasOutOfSelectedTeam', wasOutOfSelectedTeam);
       if (!wasOutOfSelectedTeam) continue;
     }
     if (outOfActiveListFilter === "Non" && !!person.outOfActiveList) continue;
+    if (debug) console.log('not filtered by out of active list NON');
 
     if (filterByNumberOfTreatments.length) {
       let numberOfTreatments = 0;
@@ -189,6 +197,7 @@ export const itemsForStatsV2Selector = ({
 
     // get persons for stats for period
     const createdDate = person.followedSince ? dayjsInstance(person.followedSince).startOf("day").toISOString() : null;
+    if (debug) console.log('createdDate', createdDate);
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,
@@ -198,6 +207,7 @@ export const itemsForStatsV2Selector = ({
       isoStartDate: defaultIsoDates.isoStartDate,
       filterByStartFollowBySelectedTeamDuringPeriod,
     });
+    if (debug) console.log('personIsInAssignedTeamDuringPeriod', personIsInAssignedTeamDuringPeriod);
 
     let isFollowed = false;
     let isModified = false;
@@ -218,12 +228,15 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
+      if (debug) console.log('isModified', isModified);
 
       // 3. "followed" — has valid interaction (not out-of-active-list, in assigned team)
       if (noPeriodSelected) {
         isFollowed = true;
       } else {
-        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);
+        const outOfActiveListPeriods = extractOutOfActiveListPeriods(person);)
+        if (debug) console.log('outOfActiveListPeriods', outOfActiveListPeriods);
+        if (debug) console.log('person.interactions', person.interactions);
         for (const date of person.interactions) {
           if (date < defaultIsoDates.isoStartDate) continue;
           if (date >= defaultIsoDates.isoEndDate) continue;
@@ -234,7 +247,8 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
-
+      if (debug) console.log('isFollowed', isFollowed);
+      
       // 4. "created" — followedSince in period OR first assignment to a selected team during period
       if (noPeriodSelected) {
         isCreated = true;
@@ -257,6 +271,7 @@ export const itemsForStatsV2Selector = ({
         }
       }
 
+      if (debug) console.log('isCreated', isCreated);
       // Populate personsForStats based on the selected personType
       if (
         personType === "all" ||
