@@ -116,7 +116,7 @@ export const itemsForStatsV2Selector = ({
     ? new Set(territories.filter((t) => filterByTerritories.value.includes(t.name)).map((t) => t._id))
     : null;
 
-    for (let person of allPersons) {
+  for (let person of allPersons) {
     // get the persons concerned by filters
     if (!filterItem(activeFilters)(person)) continue;
     if (outOfActiveListFilter === "Oui" && !person.outOfActiveList) continue;
@@ -233,7 +233,7 @@ export const itemsForStatsV2Selector = ({
           break;
         }
       }
-      
+
       // 4. "created" — followedSince in period OR first assignment to a selected team during period
       if (noPeriodSelected) {
         isCreated = true;
@@ -242,12 +242,18 @@ export const itemsForStatsV2Selector = ({
           isCreated = true;
         }
         if (!isCreated && person.assignedTeamsPeriods) {
+          const outOfActiveListPeriods = extractOutOfActiveListPeriods(person, defaultIsoDates);
           for (const [teamId, teamPeriods] of Object.entries(person.assignedTeamsPeriods)) {
             if (teamId === "all") continue;
             if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
             if (teamPeriods.length > 0) {
+              if (
+                isDateInOutOfActiveListPeriod(teamPeriods[0].isoStartDate, outOfActiveListPeriods) &&
+                isDateInOutOfActiveListPeriod(teamPeriods[0].isoEndDate, outOfActiveListPeriods)
+              ) {
+                continue;
+              }
               const firstPeriodStart = teamPeriods[0].isoStartDate;
-              if (isDateInOutOfActiveListPeriod(firstPeriodStart, outOfActiveListPeriods)) continue;
               if (firstPeriodStart >= defaultIsoDates.isoStartDate && firstPeriodStart < defaultIsoDates.isoEndDate) {
                 isCreated = true;
                 break;
