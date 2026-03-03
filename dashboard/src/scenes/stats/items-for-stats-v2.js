@@ -8,7 +8,7 @@ import { dayjsInstance } from "../../services/date";
  * Check if a given ISO date falls within a period when the person was assigned
  * to at least one of the selected teams.
  */
-function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData) {
+function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, debug = false) {
   if (viewAllOrganisationData) {
     const allPeriods = assignedTeamsPeriods?.all;
     if (!allPeriods?.length) return false;
@@ -18,6 +18,7 @@ function isDateInAssignedTeamPeriod(isoDate, assignedTeamsPeriods, selectedTeams
     return false;
   }
   for (const [teamId, periods] of Object.entries(assignedTeamsPeriods || {})) {
+    if (debug) console.log('teamId', teamId, 'periods', periods, 'isoDate', isoDate);
     if (teamId === "all") continue;
     if (!selectedTeamsObjectWithOwnPeriod[teamId]) continue;
     for (const period of periods) {
@@ -243,7 +244,10 @@ export const itemsForStatsV2Selector = ({
           const isoDate = dayjsInstance(date).toISOString();
           if (debug) console.log('isoDate', isoDate, 'isDateInOutOfActiveListPeriod', isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods));
           if (isDateInOutOfActiveListPeriod(isoDate, outOfActiveListPeriods)) continue;
-          if (!isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData)) continue;
+          const _isDateInAssignedTeamPeriod = isDateInAssignedTeamPeriod(isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod, viewAllOrganisationData, debug);
+          if (debug) console.log('!isDateInAssignedTeamPeriod ?', !_isDateInAssignedTeamPeriod);
+          if (debug && !_isDateInAssignedTeamPeriod) console.log('detail', isoDate, person.assignedTeamsPeriods, selectedTeamsObjectWithOwnPeriod);
+          if (!_isDateInAssignedTeamPeriod) continue;
           if (debug) console.log('isFollowed because of date', date);
           isFollowed = true;
           break;
