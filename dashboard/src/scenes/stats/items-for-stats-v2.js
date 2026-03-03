@@ -241,31 +241,34 @@ export const itemsForStatsV2Selector = ({
         if (createdDate >= defaultIsoDates.isoStartDate && createdDate < defaultIsoDates.isoEndDate) {
           isCreated = true;
         }
-        const debug = person._id === "d3b79b7d-586c-4ad9-bafb-7b965536c5c0";
-        if (debug) console.log("person", person);
         if (!isCreated && person.assignedTeamsPeriods) {
           const outOfActiveListPeriods = extractOutOfActiveListPeriods(person, defaultIsoDates);
           for (const [teamId, teamPeriods] of Object.entries(person.assignedTeamsPeriods)) {
-            if (debug) console.log("teamId", teamId, teamPeriods, outOfActiveListPeriods);
             if (teamId === "all") continue;
             if (!viewAllOrganisationData && !selectedTeamsObjectWithOwnPeriod[teamId]) continue;
             if (teamPeriods.length > 0) {
-              if (debug)
-                console.log(
-                  "isDateInOutOfActiveListPeriod(teamPeriods[0].isoStartDate, outOfActiveListPeriods)",
-                  isDateInOutOfActiveListPeriod(teamPeriods[0].isoStartDate, outOfActiveListPeriods)
-                );
-              if (debug)
-                console.log(
-                  "isDateInOutOfActiveListPeriod(teamPeriods[0].isoEndDate, outOfActiveListPeriods)",
-                  isDateInOutOfActiveListPeriod(teamPeriods[0].isoEndDate, outOfActiveListPeriods)
-                );
-              if (
-                isDateInOutOfActiveListPeriod(teamPeriods[0].isoStartDate, outOfActiveListPeriods) &&
-                isDateInOutOfActiveListPeriod(teamPeriods[0].isoEndDate, outOfActiveListPeriods)
-              ) {
-                continue;
+              // edge case : si une équipe est assignée pendant une période hors file active
+              // et que la période d'assignation ne s'arrête pas avant la fin de la période hors file active
+              // alors la personne n'est pas considérée comme créée
+              let isOutOfActiveList = false;
+              for (const period of outOfActiveListPeriods) {
+                if (isDateInOutOfActiveListPeriod(teamPeriods[0].isoStartDate, [period])) {
+                  let teamPeriodEndDate = teamPeriods[0].isoEndDate;
+                  if (!teamPeriodEndDate) {
+                    // if no end date it means the team is stillassigned until today
+                    if (defaultIsoDates.isoEndDate <= period.isoEndDate) {
+                      isOutOfActiveList = true;
+                      break;
+                    }
+                  } else {
+                    if (isDateInOutOfActiveListPeriod(teamPeriodEndDate, [period])) {
+                      isOutOfActiveList = true;
+                      break;
+                    }
+                  }
+                }
               }
+              if (isOutOfActiveList) continue;
               const firstPeriodStart = teamPeriods[0].isoStartDate;
               if (firstPeriodStart >= defaultIsoDates.isoStartDate && firstPeriodStart < defaultIsoDates.isoEndDate) {
                 isCreated = true;
