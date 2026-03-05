@@ -1161,12 +1161,6 @@ router.delete(
   })
 );
 
-const encryptedItemSchema = z.object({
-  _id: z.string(),
-  encrypted: z.string(),
-  encryptedEntityKey: z.string(),
-});
-
 router.post(
   "/merge",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -1176,24 +1170,6 @@ router.post(
       z.object({
         mainId: z.string().regex(looseUuidRegex),
         secondaryId: z.string().regex(looseUuidRegex),
-        reEncryptedItems: z.optional(
-          z.object({
-            persons: z.array(encryptedItemSchema),
-            actions: z.array(encryptedItemSchema),
-            consultations: z.array(encryptedItemSchema),
-            treatments: z.array(encryptedItemSchema),
-            medicalFiles: z.array(encryptedItemSchema),
-            comments: z.array(encryptedItemSchema),
-            passages: z.array(encryptedItemSchema),
-            rencontres: z.array(encryptedItemSchema),
-            groups: z.array(encryptedItemSchema),
-            territories: z.array(encryptedItemSchema),
-            territoryObservations: z.array(encryptedItemSchema),
-            places: z.array(encryptedItemSchema),
-            relsPersonPlace: z.array(encryptedItemSchema),
-            reports: z.array(encryptedItemSchema),
-          })
-        ),
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in organisation merge`);
@@ -1201,36 +1177,9 @@ router.post(
       return next(error);
     }
 
-    const { mainId, secondaryId, reEncryptedItems } = req.body;
+    const { mainId, secondaryId } = req.body;
     await sequelize.transaction(async (t) => {
       t.userId = req.user._id;
-
-      // If re-encrypted items are provided, update them before moving data
-      if (reEncryptedItems) {
-        const modelMap = {
-          persons: Person,
-          actions: Action,
-          consultations: Consultation,
-          treatments: Treatment,
-          medicalFiles: MedicalFile,
-          comments: Comment,
-          passages: Passage,
-          rencontres: Rencontre,
-          groups: Group,
-          territories: Territory,
-          territoryObservations: TerritoryObservation,
-          places: Place,
-          relsPersonPlace: RelPersonPlace,
-          reports: Report,
-        };
-        for (const [key, Model] of Object.entries(modelMap)) {
-          const items = reEncryptedItems[key] || [];
-          for (const item of items) {
-            await Model.update({ encrypted: item.encrypted, encryptedEntityKey: item.encryptedEntityKey }, { where: { _id: item._id, organisation: secondaryId }, transaction: t, paranoid: false });
-          }
-        }
-      }
-
       await sequelize.query(`UPDATE "mano"."Action" SET "organisation" = :mainId WHERE "organisation" = :secondaryId;`, {
         replacements: { mainId, secondaryId },
         transaction: t,
@@ -1526,54 +1475,10 @@ router.get(
       error.status = 404;
       return next(error);
     }
-    const hmac = crypto.createHmac("sha256", VERIFICATION_SECRET).update(organisation._id).digest();
+    const saltSourceId = organisation.mergeWithOrgId || organisation._id;
+    const hmac = crypto.createHmac("sha256", VERIFICATION_SECRET).update(saltSourceId).digest();
     const salt = hmac.subarray(0, 16).toString("hex");
     return res.status(200).send({ ok: true, salt });
-  })
-);
-
-router.get(
-  "/:id/encrypted-data",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["superadmin"]),
-  catchErrors(async (req, res, next) => {
-    try {
-      z.object({ id: z.string().regex(looseUuidRegex) }).parse(req.params);
-    } catch (e) {
-      const error = new Error(`Invalid request in organisation encrypted-data`);
-      error.status = 400;
-      return next(error);
-    }
-    const orgId = req.params.id;
-    const organisation = await Organisation.findOne({ where: { _id: orgId } });
-    if (!organisation) {
-      const error = new Error("Organisation not found");
-      error.status = 404;
-      return next(error);
-    }
-    const encryptedFields = ["_id", "encrypted", "encryptedEntityKey"];
-    const where = { organisation: orgId };
-    const [persons, actions, consultations, treatments, medicalFiles, comments, passages, rencontres, groups, territories, territoryObservations, places, relsPersonPlace, reports] =
-      await Promise.all([
-        Person.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Action.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Consultation.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Treatment.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        MedicalFile.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Comment.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Passage.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Rencontre.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Group.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Territory.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        TerritoryObservation.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Place.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        RelPersonPlace.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-        Report.findAll({ where, attributes: encryptedFields, paranoid: false, raw: true }),
-      ]);
-    return res.status(200).send({
-      ok: true,
-      data: { persons, actions, consultations, treatments, medicalFiles, comments, passages, rencontres, groups, territories, territoryObservations, places, relsPersonPlace, reports },
-    });
   })
 );
 

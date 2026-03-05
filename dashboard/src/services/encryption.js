@@ -254,21 +254,6 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
   };
 };
 
-export async function reWrapDocumentEntityKeys(decryptedContent, oldMasterKey, newMasterKey) {
-  if (!decryptedContent.documents?.length) return decryptedContent;
-  const updatedDocuments = [];
-  for (const doc of decryptedContent.documents) {
-    if (doc.type === "folder" || !doc.encryptedEntityKey) {
-      updatedDocuments.push(doc);
-      continue;
-    }
-    const docEntityKey = await _decrypt_after_extracting_nonce(doc.encryptedEntityKey, oldMasterKey);
-    const newEncryptedEntityKey = await _encrypt_and_prepend_nonce(docEntityKey, newMasterKey);
-    updatedDocuments.push({ ...doc, encryptedEntityKey: newEncryptedEntityKey });
-  }
-  return { ...decryptedContent, documents: updatedDocuments };
-}
-
 export async function decryptAndEncryptItem(item, oldHashedOrgEncryptionKey, newHashedOrgEncryptionKey, updateContentCallback = null) {
   // Some old (mostly deleted) items don't have encrypted content. We ignore them forever to avoid crash.
   if (!item.encrypted) return null;

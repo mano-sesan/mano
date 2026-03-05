@@ -652,7 +652,10 @@ router.get(
   catchErrors(async (req, res) => {
     const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
     if (!organisation) return res.status(404).send({ ok: false, error: "Organisation not found" });
-    const hmac = crypto.createHmac("sha256", config.VERIFICATION_SECRET).update(organisation._id).digest();
+    // Si l'org a un mergeWithOrgId, on dérive le sel à partir de cet ID cible
+    // pour que les deux orgs partagent le même sel (et donc la même clé dérivée).
+    const saltSourceId = organisation.mergeWithOrgId || organisation._id;
+    const hmac = crypto.createHmac("sha256", config.VERIFICATION_SECRET).update(saltSourceId).digest();
     // 16 bytes = crypto_pwhash_SALTBYTES requis par Argon2id
     const salt = hmac.subarray(0, 16).toString("hex");
     return res.status(200).send({ ok: true, salt });
