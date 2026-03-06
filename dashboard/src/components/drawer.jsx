@@ -170,7 +170,6 @@ const Drawer = () => {
             </Link>
           </div>
         )}
-        x
         <button
           type="button"
           aria-label="Cacher la navigation latérale"

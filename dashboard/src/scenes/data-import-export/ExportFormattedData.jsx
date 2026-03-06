@@ -261,51 +261,61 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         )}
       </div>
 
-      <MenuItems
+      <MenuItem
+        as="div"
+        s
         anchor="top"
         transition
         className={`tw-absolute tw-right-0 tw-z-50 tw-mt-2 ${user.healthcareProfessional ? "tw-w-72" : "tw-w-56"} tw-origin-top-right tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95 tw-transition`}
       >
         <div className="tw-py-1">
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Personnes suivies"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Personnes suivies", personUpdated.map(transformPerson(loadedUsers)));
             }}
-          />
+          >
+            Personnes suivies
+          </MenuItem>
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Personnes créées"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Personnes créées", personCreated.map(transformPerson(loadedUsers)));
             }}
-          />
+          >
+            Personnes créées
+          </MenuItem>
           {user.healthcareProfessional ? (
             <>
               <MenuItem
+                as="div"
                 className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-                text="Dossier médical des personnes suivies"
                 onClick={async () => {
                   const loadedUsers = await fetchUsersWithCache();
                   exportXlsx("Personnes suivies", personUpdated.map(transformPersonMedical(loadedUsers)));
                 }}
-              />
+              >
+                Dossier médical des personnes suivies
+              </MenuItem>
               <MenuItem
+                as="div"
                 className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-                text="Dossier médical des personnes créées"
                 onClick={async () => {
                   const loadedUsers = await fetchUsersWithCache();
                   exportXlsx("Personnes créées", personCreated.map(transformPersonMedical(loadedUsers)));
                 }}
-              />
+              >
+                Dossier médical des personnes créées
+              </MenuItem>
             </>
           ) : null}
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Actions"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx(
@@ -318,41 +328,51 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
                   .map(transformAction(loadedUsers))
               );
             }}
-          />
+          >
+            Actions
+          </MenuItem>
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Consultations"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Consultations", consultations.map(transformConsultation(loadedUsers)));
             }}
-          />
+          >
+            Consultations
+          </MenuItem>
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Rencontres"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Rencontres", rencontres.map(transformRencontre(loadedUsers)));
             }}
-          />
+          >
+            Rencontres
+          </MenuItem>
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Passages"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Passages", passages.map(transformPassage(loadedUsers)));
             }}
-          />
+          >
+            Passages
+          </MenuItem>
           <MenuItem
+            as="div"
             className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-            text="Observations"
             onClick={async () => {
               const loadedUsers = await fetchUsersWithCache();
               exportXlsx("Observations", observations.map(transformObservation(loadedUsers)));
             }}
-          />
+          >
+            Observations
+          </MenuItem>
         </div>
-      </MenuItems>
+      </MenuItem>
     </Menu>
   );
 }
