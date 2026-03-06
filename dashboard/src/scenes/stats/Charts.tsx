@@ -13,13 +13,12 @@ function CopyChartButton({ chartRef }: { chartRef: React.RefObject<HTMLDivElemen
     if (!chartRef.current) return;
     try {
       const canvas = await html2canvas(chartRef.current, { backgroundColor: "#ffffff" });
-      canvas.toBlob(async (blob) => {
-        if (!blob) return;
-        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-        setCopied(true);
-        toast.success("Graphique copié dans le presse-papier");
-        setTimeout(() => setCopied(false), 2000);
-      });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
+      if (!blob) return;
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied(true);
+      toast.success("Graphique copié dans le presse-papier");
+      setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Impossible de copier le graphique");
     }
