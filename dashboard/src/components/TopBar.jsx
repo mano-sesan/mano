@@ -9,6 +9,7 @@ import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
+import { ArrowPathIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
 
 const TopBar = ({ onLogoClick }) => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
@@ -50,31 +51,36 @@ const TopBar = ({ onLogoClick }) => {
   return (
     <div className="tw-hidden tw-w-full sm:tw-block">
       <aside
-        className="noprint tw-flex tw-w-full tw-shrink-0 tw-items-center tw-justify-between tw-bg-[#E1E3E3] tw-px-5 print:tw-relative print:tw-hidden tw-py-2"
-        title="Choix de l'équipe et menu déroulant pour le Profil"
+        className="noprint tw-flex tw-w-full tw-shrink-0 tw-items-center tw-justify-between tw-bg-[#E1E3E3] print:tw-relative print:tw-hidden tw-py-2"
+        title="Rafraîchir les données, afficher les notifications, nom de l'organisation, compteur de session, bouton de déconnexion"
       >
-        <div className="tw-flex tw-flex-1 tw-items-center tw-justify-start">
-          <div className="tw-mr-4 tw-w-max tw-text-left tw-text-sm tw-font-semibold tw-tracking-tighter">
-            {["superadmin"].includes(user.role) ? "🤖 Mano Superadmin Console" : organisation?.name}
+        <div className="tw-flex tw-items-center tw-justify-start tw-w-52 tw-bg-white tw-ml-2 tw-min-h-12 tw-px-2 tw-rounded-xl tw-border-2 tw-border-main25">
+          <div className="tw-w-max tw-text-left tw-text-sm tw-font-semibold tw-tracking-tighter">
+            {["superadmin"].includes(user.role) ? "🤖 Mano Superadmin Console" : <span className="tw-line-clamp-2">{organisation?.name}</span>}
           </div>
         </div>
-        <div className="tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
+        <div className="tw-ml-2 tw-flex tw-items-center tw-justify-center">
           <SessionCountDownLimiter />
         </div>
-        <div className="tw-hidden tw-flex-1 lg:tw-flex">
-          <button
-            className="tw-mx-auto tw-my-0 tw-h-9 tw-w-14 tw-bg-center tw-bg-no-repeat disabled:tw-opacity-30 tw-bg-contain"
-            type="button"
-            title="Cliquez ici pour rafraîchir les données"
-            aria-label="Cliquez ici pour rafraîchir les données"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            style={{
-              backgroundImage: `url(${logo})`,
-            }}
-          />
+        <div className="tw-hidden tw-flex-1 lg:tw-flex tw-items-center tw-justify-center">
+          <div className="tw-flex tw-items-center tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5 tw-border-2 tw-border-main tw-relative">
+            <button
+              className="tw-my-0 tw-size-9 tw-bg-center tw-bg-no-repeat disabled:tw-opacity-30 tw-bg-contain"
+              type="button"
+              title="Cliquez ici pour rafraîchir les données"
+              aria-label="Cliquez ici pour rafraîchir les données"
+              onClick={handleRefresh}
+              disabled={isLoading}
+              style={{
+                backgroundImage: `url(${logo})`,
+              }}
+            />
+            <div className="tw-absolute -tw-top-1 -tw-right-1 tw-bg-white tw-rounded-full tw-border-2 tw-border-main tw-p-0.5">
+              <ArrowPathIcon className={["tw-size-2 tw-text-main", isLoading ? "tw-animate-spin" : ""].join(" ")} />
+            </div>
+          </div>
         </div>
-        <div className="tw-flex tw-flex-1 tw-justify-end tw-gap-x-4">
+        <div className="tw-flex tw-justify-end tw-gap-x-4">
           {!["stats-only", "restricted-access"].includes(user.role) ? <Notification /> : null}
           <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} />
         </div>

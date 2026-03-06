@@ -10,6 +10,7 @@ import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionK
 import { toast } from "react-toastify";
 import KeyInput from "./KeyInput";
 import { logout } from "../services/logout";
+import { EyeSlashIcon } from "@heroicons/react/24/solid";
 
 dayjs.extend(utc);
 dayjs.extend(duration);
@@ -57,11 +58,8 @@ const SessionCountDownLimiter = () => {
 
   return (
     <>
-      <div className={[remainingSession < warnBeforeEndOfSession ? "tw-font-bold tw-text-red-500" : ""].join(" ")}>
-        <div>Temps de session restant</div>
-        <div>{timeString}</div>
-      </div>
-      {/* <button type="button"
+      <button
+        type="button"
         onClick={() => {
           resetOrgEncryptionKey();
           setReloadModalOpen(true);
@@ -71,8 +69,14 @@ const SessionCountDownLimiter = () => {
           remainingSession < warnBeforeEndOfSession ? "!tw-font-bold !tw-text-red-500" : "",
         ].join(" ")}
       >
-        Verrouiller/Recharger
-      </button> */}
+        <EyeSlashIcon className="tw-size-6 tw-text-main" />
+      </button>
+      <div className="tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main ml-2">
+        <div className={[remainingSession < warnBeforeEndOfSession ? "tw-font-bold tw-text-red-500" : ""].join(" ")}>
+          <div>Temps de session restant&nbsp;:</div>
+          <div>{timeString}</div>
+        </div>
+      </div>
       {remainingTimeBeforeDeconnection <= 60 && (
         <div className="tw-fixed tw-bottom-0 tw-left-0 tw-right-0 tw-z-50 tw-mt-4 tw-flex tw-justify-center tw-bg-white tw-p-10">
           <p className="tw-mx-auto tw-mb-0 tw-text-xl tw-font-bold tw-text-red-500">
