@@ -20,9 +20,10 @@ import {
   UsersIcon,
   UserIcon,
   MapPinIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/20/solid";
-import SelectTeam from "./SelectTeam";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { getTeamColors } from "./TagTeam";
 import MenuUser from "./MenuUser";
 
@@ -133,9 +134,9 @@ const Drawer = () => {
             </li>
           </divx>
         )}
-        <MenuUser />
+        <MenuUser isDrawerCollapsed={isCollapsed} className={["tw-mt-auto tw-mb-4", isCollapsed ? "tw-w-full" : ""].join(" ")} />
         {!collapsed && (
-          <div className="tw-mb-4 tw-mt-2 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
+          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
             <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
@@ -179,57 +180,65 @@ function TeamSelector() {
   const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
   const teams = useAtomValue(teamsState);
   const user = useAtomValue(userState);
+  const availableTeams = user.role === "admin" ? teams : user.teams;
   const { backgroundColor, borderColor } = getTeamColors(
     currentTeam,
-    teams.findIndex((t) => t._id === currentTeam?._id)
+    availableTeams.findIndex((t) => t._id === currentTeam?._id)
   );
+  const isDrawerCollapsed = useAtomValue(isDrawerCollapsedState);
+
   return (
-    <SelectTeam
-      style={{
-        maxWidth: "250px",
-        fontSize: "13px",
-        marginTop: 1, // to make it beautiful when focused
-        backgroundColor: backgroundColor,
-        borderColor: borderColor,
-        borderRadius: "0.75rem",
-      }}
-      onChange={setCurrentTeam}
-      teamId={currentTeam?._id}
-      teams={user.role === "admin" ? teams : user.teams}
-      inputId="team-selector-topBar"
-      className="tw-rounded-xl"
-      noPill
-      styles={{
-        menuPortal: (baseStyles) => ({
-          ...baseStyles,
-          zIndex: 10000,
-        }),
-        control: (baseStyles) => ({
-          ...baseStyles,
-          backgroundColor: backgroundColor,
-          borderColor: borderColor,
-          border: "none",
-          borderRadius: "0.75rem",
-        }),
-        container: (baseStyles) => ({
-          ...baseStyles,
-          backgroundColor: backgroundColor,
-          borderColor: borderColor,
-        }),
-        dropdownIndicator: (baseStyles) => ({
-          ...baseStyles,
-          color: "white",
-        }),
-        indicatorSeparator: (baseStyles) => ({
-          ...baseStyles,
-          backgroundColor: "transparent",
-        }),
-        singleValue: (baseStyles) => ({
-          ...baseStyles,
-          color: "white",
-        }),
-      }}
-    />
+    <Menu as="div" className="tw-relative tw-w-full">
+      {({ open }) => (
+        <>
+          <MenuButton
+            style={{
+              backgroundColor: backgroundColor,
+              borderColor: borderColor,
+            }}
+            className={[
+              "tw-rounded-xl tw-border tw-px-3 tw-py-2 tw-text-white tw-flex tw-items-center tw-transition-colors tw-text-sm",
+              isDrawerCollapsed ? "tw-w-full tw-justify-center" : "tw-w-52 tw-justify-between",
+            ].join(" ")}
+          >
+            {!isDrawerCollapsed && <span className="tw-truncate">{currentTeam?.name}</span>}
+            <ChevronDownIcon className={`tw-h-4 tw-w-4 tw-transition-transform ${open ? "tw-rotate-180" : ""}`} />
+          </MenuButton>
+          <MenuItems
+            anchor="bottom start"
+            className="tw-z-50 tw-rounded tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto"
+          >
+            {availableTeams.map((team) => {
+              const _teamColors = getTeamColors(
+                team,
+                availableTeams.findIndex((t) => t._id === team._id)
+              );
+              return (
+                <MenuItem key={team._id}>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentTeam(team)}
+                    className={[
+                      "tw-block tw-w-full tw-px-4 tw-py-2 tw-text-sm tw-text-left tw-whitespace-nowrap",
+                      currentTeam?._id === team._id ? "tw-bg-gray-100" : "",
+                      currentTeam?._id === team._id ? "tw-font-semibold tw-text-main" : "tw-text-gray-700",
+                    ].join(" ")}
+                  >
+                    <span className="tw-flex tw-items-center tw-gap-2">
+                      <span
+                        className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
+                        style={{ backgroundColor: _teamColors.backgroundColor, border: `1px solid ${_teamColors.borderColor}` }}
+                      />
+                      {team.name}
+                    </span>
+                  </button>
+                </MenuItem>
+              );
+            })}
+          </MenuItems>
+        </>
+      )}
+    </Menu>
   );
 }
 

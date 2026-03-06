@@ -8,7 +8,7 @@ import { clearCache } from "../services/dataManagement";
 import { logout } from "../services/logout";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
-const MenuUser = () => {
+const MenuUser = ({ isDrawerCollapsed, className = "" }) => {
   const user = useAtomValue(userState);
 
   function resetCacheAndLogout() {
@@ -33,12 +33,13 @@ const MenuUser = () => {
   }
 
   return (
-    <Menu as="div" className="tw-relative tw-inline-block tw-text-left mt-auto tw-z-50">
+    <Menu as="div" className={["tw-relative tw-inline-block tw-text-left tw-z-50", className].join(" ")}>
       {({ open }) => (
         <>
           <MenuButton
             className={[
-              "tw-inline-flex tw-flex-1 tw-items-center tw-justify-start tw-gap-x-1.5 tw-rounded-lg tw-border tw-px-1.5 tw-text-xs tw-font-normal tw-text-white tw-text-left focus:tw-outline-none tw-w-full py-2 tw-max-w-full",
+              "tw-inline-flex tw-flex-1 tw-items-center tw-justify-start tw-gap-x-1.5 tw-rounded-lg tw-border tw-px-1.5 tw-text-xs tw-font-normal tw-text-white tw-text-left focus:tw-outline-none py-2 tw-max-w-full",
+              isDrawerCollapsed ? "tw-w-full tw-justify-center" : "",
               open
                 ? "tw-border-[#545b62] tw-bg-[#5a6268]" // Keep this style when open
                 : "tw-border-[#6c757d] tw-bg-[#6c757d] hover:tw-border-[#545b62] hover:tw-bg-[#5a6268]",
@@ -47,13 +48,7 @@ const MenuUser = () => {
             <div className="tw-flex tw-flex-col tw-items-start tw-justify-start">
               <UserCircleIcon className="tw-size-6" />
             </div>
-            {/* one line only */}
-            <span className="tw-truncate tw-max-w-40">{user?.name}</span>
-            {/* <div className="tw-inline-flex tw-h-4 tw-w-4 tw-flex-1 tw-flex-col tw-justify-between">
-              <div className="tw-block tw-h-px tw-w-full tw-bg-white" />
-              <div className="tw-block tw-h-px tw-w-full tw-bg-white" />
-              <div className="tw-block tw-h-px tw-w-full tw-bg-white" />
-            </div> */}
+            {!isDrawerCollapsed && <span className="tw-truncate tw-max-w-40">{user?.name}</span>}
           </MenuButton>
           <Transition
             as={Fragment}
