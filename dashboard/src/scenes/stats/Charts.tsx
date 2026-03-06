@@ -1,10 +1,62 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
+import html2canvas from "html2canvas";
+import { toast } from "react-toastify";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
 import { useStatsContext } from "./StatsContext";
 
-function ChartTitle({ title, help, settingsButton }: { title: string | React.ReactNode; help?: string; settingsButton?: React.ReactNode }) {
+function CopyChartButton({ chartRef }: { chartRef: React.RefObject<HTMLDivElement> }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!chartRef.current) return;
+    try {
+      const canvas = await html2canvas(chartRef.current, { backgroundColor: "#ffffff" });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
+      if (!blob) return;
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied(true);
+      toast.success("Graphique copié dans le presse-papier");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Impossible de copier le graphique");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      title="Copier le graphique"
+      aria-label="Copier le graphique"
+      className="noprint tw-p-1 tw-rounded hover:tw-bg-white/20 tw-transition-colors tw-flex tw-items-center"
+      onClick={handleCopy}
+    >
+      {copied ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function ChartTitle({
+  title,
+  help,
+  settingsButton,
+  chartRef,
+}: {
+  title: string | React.ReactNode;
+  help?: string;
+  settingsButton?: React.ReactNode;
+  chartRef?: React.RefObject<HTMLDivElement>;
+}) {
   const { isStatsV2 } = useStatsContext();
   return (
     <div
@@ -17,7 +69,8 @@ function ChartTitle({ title, help, settingsButton }: { title: string | React.Rea
         <>
           <div className="tw-flex-1">{title}</div>
           {!!settingsButton && <span className="tw-ml-auto tw-pl-4 tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
-          <div className="tw-flex-none -tw-mt-1">
+          <div className="tw-flex-none tw-flex tw-items-center">
+            {!!chartRef && <CopyChartButton chartRef={chartRef} />}
             {!!help && <HelpButtonAndModal questionMarkColor="violet" title={typeof title === "string" ? title : ""} help={help} />}
           </div>
         </>
@@ -68,6 +121,7 @@ export const CustomResponsivePie = ({
   settingsButton?: React.ReactNode;
 }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const onClick = ({ id }) => {
     if (!onItemClick) return;
@@ -78,7 +132,7 @@ export const CustomResponsivePie = ({
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} settingsButton={settingsButton} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} chartRef={chartRef} />
       <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-pl-4 tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
@@ -119,6 +173,7 @@ export const CustomResponsivePie = ({
         </table>
       </div>
       <div
+        ref={chartRef}
         className={[
           "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_path]:tw-cursor-pointer" : "",
@@ -199,6 +254,8 @@ export const CustomResponsiveBar = ({
   showTotal?: boolean;
   settingsButton?: React.ReactNode;
 }) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+
   // if we have too many categories with small data, we see nothing in the chart
   // so we filter by keeping the first 15 categories whatever
   const chartData = data.filter((c) => c.name !== "Non renseigné").filter((_, index) => index < 15);
@@ -230,7 +287,7 @@ export const CustomResponsiveBar = ({
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} settingsButton={settingsButton} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} chartRef={chartRef} />
       <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
@@ -281,6 +338,7 @@ export const CustomResponsiveBar = ({
         </table>
       </div>
       <div
+        ref={chartRef}
         className={[
           "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",
