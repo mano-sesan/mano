@@ -320,7 +320,7 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
       {!!user && <TopBar />}
       <div className="main">
         {!!user && !["stats-only"].includes(user.role) && <Drawer />}
-        <div className="tw-bg-white tw-rounded-xl mb-2 mr-2 tw-basis-full tw-overflow-hidden">
+        <div className="tw-bg-white tw-rounded-xl tw-mb-2 tw-mr-2 tw-basis-full tw-overflow-hidden">
           <main
             id="main-content"
             className="tw-relative tw-flex tw-grow tw-basis-full tw-max-h-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible"
