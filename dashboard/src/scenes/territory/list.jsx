@@ -88,7 +88,14 @@ const List = () => {
           <label htmlFor="search" style={{ marginRight: 20, width: 250, flexShrink: 0 }}>
             Recherche&nbsp;:{" "}
           </label>
-          <Search placeholder="Par mot clé, présent dans le nom, une observation, ..." value={search} onChange={setSearch} />
+          <Search
+            placeholder="Par mot clé, présent dans le nom, une observation, ..."
+            value={search}
+            onChange={(v) => {
+              setSearch(v);
+              setPage(0);
+            }}
+          />
         </div>
       </div>
       <Table
