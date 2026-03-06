@@ -167,7 +167,6 @@ const Drawer = () => {
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
           </div>
         )}
-        x
         <button
           type="button"
           aria-label="Cacher la navigation latérale"
