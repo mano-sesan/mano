@@ -443,7 +443,7 @@ const SignIn = () => {
 
   if (showSelectName) {
     return (
-      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
+      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black">
         <h1 className="tw-mb-6 tw-text-center tw-text-2xl tw-font-bold">Renseignez votre prénom et nom</h1>
         <form onSubmit={handleSubmitName} method="POST">
           <div className="tw-mb-6 tw-flex tw-flex-col tw-py-2">
@@ -470,7 +470,7 @@ const SignIn = () => {
 
   if (showSelectTeam) {
     return (
-      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black tw-shadow-[0_0_20px_0_rgba(0,0,0,0.2)]">
+      <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black">
         <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">Choisir son équipe pour commencer</h1>
         <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-3">
           {user.teams.map((team, index) => (
@@ -490,7 +490,7 @@ const SignIn = () => {
   }
 
   return (
-    <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black sm:tw-drop-shadow-2xl">
+    <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-pb-2 tw-pt-10 tw-text-black">
       <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">{userName ? `Bienvenue ${userName?.split(" ")?.[0]}` : "Bienvenue"}&nbsp;!</h1>
       {isAndroid && (
         <Alert color="warning">
