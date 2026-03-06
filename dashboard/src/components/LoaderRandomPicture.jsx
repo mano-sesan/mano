@@ -10,7 +10,7 @@ function getRandomPicture() {
 
 export function RandomPicturePreloader() {
   return (
-    <div className="fixed top-0 left-0 tw-size-0">
+    <div className="tw-fixed tw-top-0 tw-left-0 tw-size-0">
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture1})` }} />
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture2})` }} />
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture3})` }} />

@@ -31,7 +31,7 @@ import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 import { recurrencesState } from "../atoms/recurrences";
 import ActionStatusSelect from "./ActionStatusSelect";
@@ -1078,44 +1078,36 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
             <div>
               <MenuButton className="button-submit">Modifier</MenuButton>
             </div>
-            <Transition
-              as={Fragment}
-              enter="tw-transition tw-ease-out tw-duration-100"
-              enterFrom="tw-transform tw-opacity-0 tw-scale-95"
-              enterTo="tw-transform tw-opacity-100 tw-scale-100"
-              leave="tw-transition tw-ease-in tw-duration-75"
-              leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
-              leaveTo="tw-transform tw-opacity-0 tw-scale-95"
+
+            <MenuItems
+              transition
+              className={`tw-absolute tw-bottom-full tw-right-0 tw-z-[105] tw-mb-2 tw-w-72 tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95 tw-transition`}
             >
-              <MenuItems
-                className={`tw-absolute tw-bottom-full tw-right-0 tw-z-[105] tw-mb-2 tw-w-72 tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none`}
-              >
-                <div className="tw-py-1">
-                  <MenuItem>
-                    <div
-                      className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: true }));
-                      }}
-                    >
-                      Cette action et toutes les suivantes
-                    </div>
-                  </MenuItem>
-                  <MenuItem>
-                    <div
-                      className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: false }));
-                      }}
-                    >
-                      Cette action uniquement
-                    </div>
-                  </MenuItem>
-                </div>
-              </MenuItems>
-            </Transition>
+              <div className="tw-py-1">
+                <MenuItem>
+                  <div
+                    className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: true }));
+                    }}
+                  >
+                    Cette action et toutes les suivantes
+                  </div>
+                </MenuItem>
+                <MenuItem>
+                  <div
+                    className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setModalAction((modalAction) => ({ ...modalAction, isEditing: true, isEditingAllNextOccurences: false }));
+                    }}
+                  >
+                    Cette action uniquement
+                  </div>
+                </MenuItem>
+              </div>
+            </MenuItems>
           </Menu>
         )}
       </ModalFooter>

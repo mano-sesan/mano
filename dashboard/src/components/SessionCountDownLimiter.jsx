@@ -70,7 +70,7 @@ const SessionCountDownLimiter = () => {
       >
         <EyeSlashIcon className="tw-size-6 tw-text-main" />
       </button>
-      <div className="tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main ml-2">
+      <div className="tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main tw-ml-2">
         <div className={[remainingSession < warnBeforeEndOfSession ? "tw-font-bold tw-text-red-500" : ""].join(" ")}>
           <div>Temps de session restant&nbsp;:</div>
           <div>{timeString}</div>

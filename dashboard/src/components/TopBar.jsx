@@ -9,7 +9,7 @@ import { clearCache } from "../services/dataManagement";
 import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
-import { ArrowPathIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const TopBar = ({ onLogoClick }) => {
   const [modalCacheOpen, setModalCacheOpen] = useState(false);
