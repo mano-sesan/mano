@@ -3,7 +3,6 @@ import { atom, useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
-import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../atoms/version";
 import AddPersons from "./AddPersons";
@@ -20,7 +19,6 @@ import {
   UsersIcon,
   UserIcon,
   MapPinIcon,
-  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/20/solid";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
@@ -49,6 +47,7 @@ const Drawer = () => {
   const [isCollapsed, setIsCollapsed] = useAtom(isDrawerCollapsedState);
 
   const isDesktop = useMinimumWidth("sm");
+  const isStatsOnly = ["stats-only"].includes(user.role);
 
   const collapsed = isCollapsed && isDesktop;
 
@@ -83,6 +82,21 @@ const Drawer = () => {
     );
   };
 
+  if (isStatsOnly) {
+    return (
+      <nav
+        title="Navigation principale"
+        className={[
+          "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent",
+          showDrawer ? "tw-visible tw-z-30 tw-translate-x-0 tw-transition-all" : "tw-pointer-events-none tw-invisible tw-z-[-1] -tw-translate-x-full",
+        ].join(" ")}
+      >
+        {!["superadmin"].includes(user.role) && <TeamSelector />}
+        <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : ""].join(" ")} />
+      </nav>
+    );
+  }
+
   return (
     <nav
       title="Navigation principale"
@@ -99,7 +113,7 @@ const Drawer = () => {
         ].join(" ")}
       >
         {!["superadmin"].includes(user.role) && <TeamSelector />}
-        <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+        <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
             <NavItem to="/reception" icon={HomeIcon} label="Accueil" />
@@ -118,7 +132,7 @@ const Drawer = () => {
           )}
           {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />}
         </div>
-        <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+        <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin"].includes(role) && isDesktop && (
             <>
               <NavItem to={`/organisation/${organisation._id}`} icon={BuildingOfficeIcon} label="Organisation" id="show-on-onboarding" />
@@ -128,13 +142,13 @@ const Drawer = () => {
           )}
         </div>
         {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
-          <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
             <li>
               <AddPersons />
             </li>
           </div>
         )}
-        <MenuUser isDrawerCollapsed={isCollapsed} className={["tw-mt-auto tw-mb-4", isCollapsed ? "tw-w-full" : ""].join(" ")} />
+        <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
           <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
@@ -144,6 +158,7 @@ const Drawer = () => {
             </Link>
           </div>
         )}
+        x
         <button
           type="button"
           aria-label="Cacher la navigation latérale"
@@ -189,67 +204,63 @@ function TeamSelector() {
 
   return (
     <Menu as="div" className="tw-relative tw-w-full">
-      {({ open }) => (
-        <>
-          <MenuButton
-            style={{
-              backgroundColor: backgroundColor,
-              borderColor: borderColor,
-            }}
-            className={[
-              "tw-rounded-xl tw-border tw-px-3 tw-py-2 tw-text-white tw-flex tw-items-center tw-transition-colors tw-text-sm",
-              isDrawerCollapsed ? "tw-w-full tw-justify-center" : "tw-w-52 tw-justify-between",
-            ].join(" ")}
+      <MenuButton
+        style={{
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+        }}
+        className={[
+          "tw-rounded-xl tw-border tw-px-3 tw-py-2 tw-text-white tw-flex tw-items-center tw-transition-colors tw-text-sm",
+          isDrawerCollapsed ? "tw-w-full tw-justify-center" : "tw-w-52 tw-justify-between",
+        ].join(" ")}
+      >
+        {!isDrawerCollapsed && <span className="tw-truncate">{currentTeam?.name}</span>}
+        <div className="tw-flex tw-items-end tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="3"
+            className="tw-size-4 tw-transition-transform data-[open]:tw-rotate-180"
+            stroke={backgroundColor}
           >
-            {!isDrawerCollapsed && <span className="tw-truncate">{currentTeam?.name}</span>}
-            <div className="tw-flex tw-items-end tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="3"
-                className={["tw-size-4 tw-transition-transform", open ? "tw-rotate-180" : ""].join(" ")}
-                stroke={backgroundColor}
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+      </MenuButton>
+      <MenuItems
+        anchor="bottom start"
+        transition
+        className="tw-z-50 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
+      >
+        {availableTeams.map((team) => {
+          const _teamColors = getTeamColors(
+            team,
+            availableTeams.findIndex((t) => t._id === team._id)
+          );
+          return (
+            <MenuItem key={team._id}>
+              <button
+                type="button"
+                onClick={() => setCurrentTeam(team)}
+                className={[
+                  "tw-block tw-w-full tw-px-4 tw-py-2 tw-text-sm tw-text-left tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900",
+                  currentTeam?._id === team._id ? "tw-bg-gray-100" : "",
+                  currentTeam?._id === team._id ? "tw-font-semibold tw-text-main" : "tw-text-gray-700",
+                ].join(" ")}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-              </svg>
-            </div>
-          </MenuButton>
-          <MenuItems
-            anchor="bottom start"
-            transition
-            className="tw-z-50 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
-          >
-            {availableTeams.map((team) => {
-              const _teamColors = getTeamColors(
-                team,
-                availableTeams.findIndex((t) => t._id === team._id)
-              );
-              return (
-                <MenuItem key={team._id}>
-                  <button
-                    type="button"
-                    onClick={() => setCurrentTeam(team)}
-                    className={[
-                      "tw-block tw-w-full tw-px-4 tw-py-2 tw-text-sm tw-text-left tw-whitespace-nowrap",
-                      currentTeam?._id === team._id ? "tw-bg-gray-100" : "",
-                      currentTeam?._id === team._id ? "tw-font-semibold tw-text-main" : "tw-text-gray-700",
-                    ].join(" ")}
-                  >
-                    <span className="tw-flex tw-items-center tw-gap-2">
-                      <span
-                        className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
-                        style={{ backgroundColor: _teamColors.backgroundColor, border: `1px solid ${_teamColors.borderColor}` }}
-                      />
-                      {team.name}
-                    </span>
-                  </button>
-                </MenuItem>
-              );
-            })}
-          </MenuItems>
-        </>
-      )}
+                <span className="tw-flex tw-items-center tw-gap-2">
+                  <span
+                    className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
+                    style={{ backgroundColor: _teamColors.backgroundColor, border: `1px solid ${_teamColors.borderColor}` }}
+                  />
+                  {team.name}
+                </span>
+              </button>
+            </MenuItem>
+          );
+        })}
+      </MenuItems>
     </Menu>
   );
 }
