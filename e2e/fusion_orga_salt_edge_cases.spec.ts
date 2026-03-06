@@ -96,7 +96,7 @@ test.describe.serial("Fusion d'organisations - edge cases de sel de chiffrement"
     await loginAsSuperadmin(page);
     // Orga 5 a mergeWithOrgId → ne peut pas être l'org principale
     await attemptMerge(page, "Orga Test - 5 (Id: undefined)", "Orga Test - 3 (Id: undefined)", "plouf");
-    await expect(page.getByText("mergeWithOrgId")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("L'organisation principale a un mergeWithOrgId")).toBeVisible({ timeout: 10000 });
   });
 
   test("Fusion réussie : deux orgas avec customSalt et même sel via mergeWithOrgId", async ({ page }) => {
