@@ -464,21 +464,24 @@ function ModalRepair({ open, setOpen, setData, item }) {
   async function testAndFixKey() {
     const itemData = structuredClone(item.data);
 
-    // L'item a pu être chiffré avec le sel personnalisé ou le sel par défaut.
-    // On essaie d'abord avec le sel personnalisé (si activé), puis avec le sel par défaut.
+    // L'item a pu être chiffré avec le sel personnalisé, le sel de merge ou le sel par défaut.
+    // On essaie dans l'ordre : sel personnalisé, sel de merge (si mergeWithOrgId), sel par défaut.
     let derived;
     let decrypted = false;
     if (organisation.customSalt) {
       const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
       if (!saltError && saltResponse?.ok && saltResponse?.salt) {
-        const derivedWithCustomSalt = await derivedMasterKey(key, saltResponse.salt);
-        try {
-          const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derivedWithCustomSalt);
-          itemData.decrypted = JSON.parse(content);
-          derived = derivedWithCustomSalt;
-          decrypted = true;
-        } catch (_e) {
-          // Le sel personnalisé n'a pas fonctionné, on essaie avec le sel par défaut ci-dessous
+        for (const saltToTry of [saltResponse.salt, saltResponse.mergeSalt].filter(Boolean)) {
+          if (decrypted) break;
+          const derivedWithSalt = await derivedMasterKey(key, saltToTry);
+          try {
+            const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derivedWithSalt);
+            itemData.decrypted = JSON.parse(content);
+            derived = derivedWithSalt;
+            decrypted = true;
+          } catch (_e) {
+            // Ce sel n'a pas fonctionné, on essaie le suivant
+          }
         }
       }
     }

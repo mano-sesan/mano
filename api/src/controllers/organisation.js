@@ -337,6 +337,7 @@ router.post(
           },
         ],
         consultations: defaultConsultationsFields,
+        customSalt: true,
         migrations: ["custom-fields-persons-setup", "custom-fields-persons-refacto-regroup"],
       },
       { returning: true }
@@ -398,6 +399,7 @@ router.get(
         "encryptionLastUpdateAt",
         "encryptedVerificationKey",
         "customSalt",
+        "mergeWithOrgId",
         "disabledAt",
         "updatedAt",
         "createdAt",
@@ -1475,8 +1477,7 @@ router.get(
       error.status = 404;
       return next(error);
     }
-    const saltSourceId = organisation.mergeWithOrgId || organisation._id;
-    const hmac = crypto.createHmac("sha256", VERIFICATION_SECRET).update(saltSourceId).digest();
+    const hmac = crypto.createHmac("sha256", VERIFICATION_SECRET).update(organisation._id).digest();
     const salt = hmac.subarray(0, 16).toString("hex");
     return res.status(200).send({ ok: true, salt });
   })

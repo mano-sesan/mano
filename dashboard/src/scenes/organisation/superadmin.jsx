@@ -22,6 +22,7 @@ import { userState } from "../../atoms/auth";
 import { Redirect } from "react-router-dom";
 import TopBar from "../../components/TopBar";
 import ReactDiffViewer from "react-diff-viewer-continued";
+import Alert from "../../components/tailwind/Alert";
 
 const SuperAdmin = () => {
   const user = useAtomValue(userState);
@@ -951,7 +952,11 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
   return (
     <ModalContainer open={open} onClose={() => setOpen(false)} size="3xl" blurryBackground>
       <ModalHeader title="Fusion" />
-      <ModalBody className="tw-px-4 tw-py-2 tw-pb-20">
+      <ModalBody className="tw-px-4 tw-py-2 tw-pb-2">
+        <Alert color="danger">
+          <b>ATTENTION</b>&nbsp;: Demandez toujours la confirmation d'un dev, en indiquant les orgas concernées, qui pourra faire les vérifications
+          nécessaires et même simuler en local avant de lancer la fusion.
+        </Alert>
         <div className="tw-py-4">
           Organisation <b>principale</b> (celle qui reste)
           <SelectCustom
@@ -1004,8 +1009,17 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
             }}
           />
         </div>
-        <div className="tw-mx-auto tw-flex tw-justify-center tw-py-4">
-          <img src="/fusion.gif" />
+        <div className="tw-mx-auto tw-flex tw-justify-center tw-pt-4 tw-gap-4">
+          <div className="tw-flex tw-items-center tw-justify-center tw-w-96">
+            <img src="/fusion.gif" />
+          </div>
+          <Alert color="warning">
+            <ol className="tw-list-decimal tw-list-inside tw-mb-2 tw-space-y-1 tw-text-sm">
+              <li>Les deux organisations doivent avoir changé leur clé de chiffrement au moins une fois (pour activer le sel personnalisé)</li>
+              <li>Demander ensuite à un dev de définir mergeWithOrgId sur l'org secondaire (= l'ID de l'org principale)</li>
+              <li>Enfin, demander à un admin de l'org secondaire de changer la clé de chiffrement avec la même passphrase que l'org principale</li>
+            </ol>
+          </Alert>
         </div>
       </ModalBody>
       <ModalFooter>
@@ -1034,12 +1048,18 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
               return toast.error("Les deux organisations ne peuvent pas être les mêmes");
             }
 
-            const useCustomSalt = selectedOrganisationMain.customSalt || selectedOrganisationSecondary.customSalt;
+            if (selectedOrganisationMain.mergeWithOrgId) {
+              setLoading(false);
+              return toast.error(
+                "L'organisation principale a un mergeWithOrgId configuré, ce qui signifie que son sel de chiffrement est dérivé d'une autre organisation. " +
+                  "Retirez le mergeWithOrgId de l'organisation principale avant de fusionner, ou inversez les rôles principal/secondaire."
+              );
+            }
 
-            // Si l'une des orgs utilise un sel personnalisé, on récupère le sel de l'org principale.
-            // Les deux orgs doivent partager le même sel grâce à mergeWithOrgId configuré en amont.
+            // On dérive la clé comme le ferait un utilisateur de l'org principale.
+            // C'est cette clé qui sera utilisée après la fusion.
             let salt = null;
-            if (useCustomSalt) {
+            if (selectedOrganisationMain.customSalt) {
               const [saltError, saltRes] = await tryFetchExpectOk(async () =>
                 API.get({ path: `/organisation/${selectedOrganisationMain._id}/encryption-salt` })
               );
@@ -1057,17 +1077,18 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
               return toast.error("La clé de l'organisation principale n'est pas valide");
             }
 
+            // On vérifie que la même clé dérivée fonctionne aussi pour l'org secondaire.
+            // Si ce n'est pas le cas, les deux orgs n'ont pas le même sel/clé et la fusion est impossible.
             const encryptionKeyIsValid2 = await checkEncryptedVerificationKey(selectedOrganisationSecondary.encryptedVerificationKey, derived);
             if (!encryptionKeyIsValid2) {
               setLoading(false);
-              if (useCustomSalt) {
-                return toast.error(
-                  "La clé de l'organisation secondaire n'est pas valide. " +
-                    "Avant la fusion, il faut : 1) définir mergeWithOrgId sur l'org secondaire (= l'ID de l'org principale), " +
-                    "2) qu'un admin de l'org secondaire change la clé de chiffrement avec la même passphrase que l'org principale."
-                );
-              }
-              return toast.error("La clé de l'organisation secondaire n'est pas valide");
+              return toast.error(
+                "La clé de l'organisation secondaire ne correspond pas à celle de l'organisation principale. " +
+                  "Avant la fusion, il faut : " +
+                  "1) s'assurer que les deux organisations ont changé leur clé de chiffrement au moins une fois (pour activer le sel personnalisé), " +
+                  "2) définir mergeWithOrgId sur l'org secondaire (= l'ID de l'org principale), " +
+                  "3) qu'un admin de l'org secondaire change la clé de chiffrement avec la même passphrase que l'org principale."
+              );
             }
 
             const [error] = await tryFetchExpectOk(async () =>

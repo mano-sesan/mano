@@ -257,6 +257,7 @@ const SignIn = () => {
     setSessionInitialTimestamp(Date.now());
     if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey && organisation.encryptionEnabled) {
       let organisationKey;
+      let mergeSalt = null;
       try {
         let salt = null;
         if (organisation.customSalt) {
@@ -266,6 +267,7 @@ const SignIn = () => {
             return setIsSubmitting(false);
           }
           salt = saltResponse.salt;
+          mergeSalt = saltResponse.mergeSalt || null;
         }
         organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true, salt });
       } catch (e) {
@@ -278,7 +280,13 @@ const SignIn = () => {
         }
         throw e;
       }
-      const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      let encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      // Si la vérification échoue et qu'un mergeSalt est disponible, on réessaie avec le sel cible.
+      // Cela arrive quand un admin a déjà changé la clé pour préparer une fusion (mergeWithOrgId).
+      if (!encryptionIsValid && mergeSalt) {
+        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true, salt: mergeSalt });
+        encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      }
       if (!encryptionIsValid) {
         resetOrgEncryptionKey();
         toast.error(

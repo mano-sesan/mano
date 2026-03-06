@@ -191,7 +191,9 @@ const EncryptionKey = ({ isMain }) => {
         setEncryptionKey("");
         return toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
       }
-      const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim(), { salt: saltResponse.salt });
+      // Si mergeSalt est disponible (mergeWithOrgId configuré), on l'utilise pour dériver la nouvelle clé
+      // afin d'aligner le sel avec l'org de destination avant une fusion.
+      const hashedOrgEncryptionKey = await setOrgEncryptionKey(values.encryptionKey.trim(), { salt: saltResponse.mergeSalt || saltResponse.salt });
       setEncryptionKeyLength(values.encryptionKey.trim().length);
       setEncryptingPhase("Préparation");
       setEncryptingStatus("Initialisation du chiffrement…");
