@@ -240,7 +240,7 @@ const App = () => {
   }
 
   return (
-    <div className="main-container">
+    <div className="main-container tw-bg-[#E1E3E3]">
       <ToastContainer transition={import.meta.env.VITE_TEST_PLAYWRIGHT !== "true" ? Bounce : ToastifyFastTransition} />
       <VersionOutdatedAlert />
       {import.meta.env.VITE_TEST_PLAYWRIGHT === "true" && <DuplicatedReportsTestChecker />}
@@ -311,16 +311,18 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
     <>
       {!!user && <TopBar />}
       <div className="main">
-        {!!user && !["stats-only"].includes(user.role) && <Drawer />}
-        <main
-          id="main-content"
-          className="tw-relative tw-flex tw-grow tw-basis-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible"
-        >
-          {!!user && <EncryptionWarnings />}
-          <div className="tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-p-0">
-            <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
-          </div>
-        </main>
+        {!!user && <Drawer />}
+        <div className="tw-bg-white tw-rounded-xl tw-mb-2 tw-mr-2 tw-basis-full tw-overflow-hidden">
+          <main
+            id="main-content"
+            className="tw-relative tw-flex tw-grow tw-basis-full tw-max-h-full tw-flex-col tw-overflow-auto tw-overflow-x-hidden tw-overflow-y-scroll print:tw-h-auto print:tw-max-w-full print:tw-overflow-visible"
+          >
+            {!!user && <EncryptionWarnings />}
+            <div className="tw-px-2 sm:tw-px-12 sm:tw-pb-12 sm:tw-pt-4 print:!tw-ml-0 print:tw-p-0">
+              <SentryRoute {...rest} render={(props) => (user ? <Component {...props} /> : <Redirect to={{ pathname: "/auth" }} />)} />
+            </div>
+          </main>
+        </div>
       </div>
       {!!user && !["stats-only"].includes(user.role) && <BottomBar />}
     </>
