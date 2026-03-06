@@ -47,7 +47,7 @@ const Drawer = () => {
   const [isCollapsed, setIsCollapsed] = useAtom(isDrawerCollapsedState);
 
   const isDesktop = useMinimumWidth("sm");
-  const isStatsOnly = !["stats-only"].includes(user.role);
+  const isStatsOnly = ["stats-only"].includes(user.role);
 
   const collapsed = isCollapsed && isDesktop;
 
