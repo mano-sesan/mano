@@ -98,8 +98,23 @@ const ReloadModal = ({ open, onSuccess }) => {
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
-    const organisationKey = await setOrgEncryptionKey(encryptionKey.trim());
-    const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+    let salt = null;
+    let mergeSalt = null;
+    if (organisation.customSalt) {
+      const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+      if (saltError || !saltResponse?.ok || !saltResponse?.salt) {
+        toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+        return;
+      }
+      salt = saltResponse.salt;
+      mergeSalt = saltResponse.mergeSalt || null;
+    }
+    let organisationKey = await setOrgEncryptionKey(encryptionKey.trim(), { salt });
+    let encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+    if (!encryptionIsValid && mergeSalt) {
+      organisationKey = await setOrgEncryptionKey(encryptionKey.trim(), { salt: mergeSalt });
+      encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+    }
     if (!encryptionIsValid) {
       toast.error("Clé de chiffrement invalide");
       setEncryptionKey("");

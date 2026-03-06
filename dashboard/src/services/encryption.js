@@ -9,8 +9,8 @@ export function getHashedOrgEncryptionKey() {
   return hashedOrgEncryptionKey;
 }
 
-export const setOrgEncryptionKey = async (orgEncryptionKey, { needDerivation = true } = {}) => {
-  const newHashedOrgEncryptionKey = needDerivation ? await derivedMasterKey(orgEncryptionKey) : orgEncryptionKey;
+export const setOrgEncryptionKey = async (orgEncryptionKey, { needDerivation = true, salt = null } = {}) => {
+  const newHashedOrgEncryptionKey = needDerivation ? await derivedMasterKey(orgEncryptionKey, salt) : orgEncryptionKey;
   hashedOrgEncryptionKey = newHashedOrgEncryptionKey;
   return newHashedOrgEncryptionKey;
 };
@@ -36,13 +36,13 @@ Master key
 
 */
 
-export const derivedMasterKey = async (password) => {
+export const derivedMasterKey = async (password, customSaltHex = null) => {
   await libsodium.ready;
   const sodium = libsodium;
 
   const password_base64 = window.btoa(password);
 
-  let salt = Buffer.from("808182838485868788898a8b8c8d8e8f", "hex");
+  let salt = customSaltHex ? Buffer.from(customSaltHex, "hex") : Buffer.from("808182838485868788898a8b8c8d8e8f", "hex");
   const crypted = sodium.crypto_pwhash(32, password_base64, salt, 2, 65536 << 10, 2);
 
   // Uint8Array

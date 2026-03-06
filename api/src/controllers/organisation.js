@@ -38,7 +38,7 @@ const { looseUuidRegex, customFieldSchema, positiveIntegerRegex, customFieldGrou
 const { serializeOrganisation } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
-const { STORAGE_DIRECTORY } = require("../config");
+const { STORAGE_DIRECTORY, VERIFICATION_SECRET } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
 
 // Check for duplicate field names in customFieldsPersons across all organisations
@@ -337,6 +337,7 @@ router.post(
           },
         ],
         consultations: defaultConsultationsFields,
+        customSalt: true,
         migrations: ["custom-fields-persons-setup", "custom-fields-persons-refacto-regroup"],
       },
       { returning: true }
@@ -397,6 +398,8 @@ router.get(
         "territoriesEnabled",
         "encryptionLastUpdateAt",
         "encryptedVerificationKey",
+        "customSalt",
+        "mergeWithOrgId",
         "disabledAt",
         "updatedAt",
         "createdAt",
@@ -1453,6 +1456,30 @@ router.post(
       });
 
     res.status(200).send({ ok: true });
+  })
+);
+
+router.get(
+  "/:id/encryption-salt",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({ id: z.string().regex(looseUuidRegex) }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation encryption-salt`);
+      error.status = 400;
+      return next(error);
+    }
+    const organisation = await Organisation.findOne({ where: { _id: req.params.id } });
+    if (!organisation) {
+      const error = new Error("Organisation not found");
+      error.status = 404;
+      return next(error);
+    }
+    const hmac = crypto.createHmac("sha256", VERIFICATION_SECRET).update(organisation._id).digest();
+    const salt = hmac.subarray(0, 16).toString("hex");
+    return res.status(200).send({ ok: true, salt });
   })
 );
 
