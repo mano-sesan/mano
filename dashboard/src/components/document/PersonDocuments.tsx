@@ -20,6 +20,7 @@ import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../tailwind
 import { groupsState } from "../../atoms/groups";
 import { DocumentsTreeWrapper, DocumentsDropzone, useDocumentTreeData, useFolderOptions, type DocumentOrFolder } from "./DocumentTree";
 import { CreateFolderModal, EditFolderModal } from "./FolderModals";
+import { HTML_ACCEPT_ATTRIBUTE } from "../../utils/file-types";
 
 interface PersonDocumentsProps {
   person: PersonPopulated;
@@ -376,6 +377,7 @@ export default function PersonDocuments({ person }: PersonDocumentsProps) {
           data-testid="person-documents-upload-input"
           ref={fileInputRef}
           type="file"
+          accept={HTML_ACCEPT_ATTRIBUTE}
           multiple
           key={resetFileInputKey}
           className="tw-hidden"
