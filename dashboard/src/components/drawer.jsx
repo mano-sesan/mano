@@ -202,7 +202,18 @@ function TeamSelector() {
             ].join(" ")}
           >
             {!isDrawerCollapsed && <span className="tw-truncate">{currentTeam?.name}</span>}
-            <ChevronDownIcon className={`tw-h-4 tw-w-4 tw-transition-transform ${open ? "tw-rotate-180" : ""}`} />
+            <div className="tw-flex tw-items-end tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="3"
+                className={["tw-size-4 tw-transition-transform", open ? "tw-rotate-180" : ""].join(" ")}
+                stroke={backgroundColor}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
           </MenuButton>
           <MenuItems
             anchor="bottom start"
