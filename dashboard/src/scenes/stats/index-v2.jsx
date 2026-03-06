@@ -587,6 +587,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
     if (["Services"].includes(tabCaption)) return !!organisation.receptionEnabled;
     if (["Rencontres"].includes(tabCaption)) return !!organisation.rencontresEnabled;
     if (["Passages"].includes(tabCaption)) return !!organisation.passagesEnabled;
+    if (["Consultations", "Dossiers médicaux"].includes(tabCaption)) return !!user.healthcareProfessional;
     return true;
   });
 
