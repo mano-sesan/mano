@@ -1,5 +1,5 @@
 import { Fragment, forwardRef, useRef } from "react";
-import { Dialog, Transition } from "@headlessui/react";
+import { Dialog, DialogPanel, Transition, TransitionChild } from "@headlessui/react";
 
 // inspired by https://tailwindui.com/components/application-ui/overlays/modals#component-47a5888a08838ad98779d50878d359b3
 
@@ -45,14 +45,14 @@ const ModalContainer = ({
 
   return (
     <>
-      <Transition.Root show={open} as={Fragment}>
+      <Transition show={open} as={Fragment}>
         <Dialog
           as="div"
           className={["tw-relative tw-z-[100]", className].join(" ")}
           // onClose={setOpen} // uncomment this if you want backdrop click to close modal
           onClose={nullFunction} // uncomment this if you want backdrop click to NOT close modal
         >
-          <Transition.Child
+          <TransitionChild
             as={Fragment}
             enter="tw-ease-out tw-duration-300"
             enterFrom="tw-opacity-0"
@@ -62,14 +62,14 @@ const ModalContainer = ({
             leaveTo="tw-opacity-0"
           >
             <div className={["tw-fixed tw-inset-0 tw-bg-black/70 tw-transition-opacity ", blurryBackground ? "tw-backdrop-blur-xl" : ""].join(" ")} />
-          </Transition.Child>
+          </TransitionChild>
 
           <div className="tw-fixed tw-inset-0 tw-z-[101] tw-overflow-y-auto" ref={backgroundRef}>
             <div
               className="tw-flex tw-min-h-full tw-items-end tw-justify-center tw-p-4 tw-text-center sm:tw-items-center sm:tw-p-0"
               data-test-id={dataTestId}
             >
-              <Transition.Child
+              <TransitionChild
                 as={Fragment}
                 enter="tw-ease-out tw-duration-300"
                 enterFrom="tw-opacity-0 tw-translate-y-4 sm:tw-translate-y-0 sm:tw-scale-95"
@@ -84,7 +84,7 @@ const ModalContainer = ({
                 beforeLeave={onBeforeLeave}
                 afterLeave={onAfterLeave}
               >
-                <Dialog.Panel
+                <DialogPanel
                   className={[
                     "tw-relative tw-flex tw-max-h-[90vh] tw-transform tw-flex-col tw-rounded-lg tw-bg-white tw-text-left tw-shadow-xl tw-transition-all sm:tw-my-8 sm:tw-w-full",
                     size === "lg" ? "sm:tw-max-w-lg" : "",
@@ -115,12 +115,12 @@ const ModalContainer = ({
                       </svg>
                     </button>
                   )}
-                </Dialog.Panel>
-              </Transition.Child>
+                </DialogPanel>
+              </TransitionChild>
             </div>
           </div>
         </Dialog>
-      </Transition.Root>
+      </Transition>
     </>
   );
 };

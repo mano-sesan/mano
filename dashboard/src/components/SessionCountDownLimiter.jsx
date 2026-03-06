@@ -57,11 +57,11 @@ const SessionCountDownLimiter = () => {
 
   return (
     <>
-      <div className={["tw-mt-4", remainingSession < warnBeforeEndOfSession ? "tw-font-bold tw-text-red-500" : ""].join(" ")}>
+      <div className={[remainingSession < warnBeforeEndOfSession ? "tw-font-bold tw-text-red-500" : ""].join(" ")}>
         <div>Temps de session restant</div>
         <div>{timeString}</div>
       </div>
-      <button
+      {/* <button
         onClick={() => {
           resetOrgEncryptionKey();
           setReloadModalOpen(true);
@@ -72,7 +72,7 @@ const SessionCountDownLimiter = () => {
         ].join(" ")}
       >
         Verrouiller/Recharger
-      </button>
+      </button> */}
       {remainingTimeBeforeDeconnection <= 60 && (
         <div className="tw-fixed tw-bottom-0 tw-left-0 tw-right-0 tw-z-50 tw-mt-4 tw-flex tw-justify-center tw-bg-white tw-p-10">
           <p className="tw-mx-auto tw-mb-0 tw-text-xl tw-font-bold tw-text-red-500">

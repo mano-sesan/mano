@@ -31,7 +31,7 @@ import { defaultModalActionState, modalActionState } from "../atoms/modal";
 import { decryptItem } from "../services/encryption";
 import Recurrence from "./Recurrence";
 import { getNthWeekdayInMonth, getOccurrences, recurrenceAsText } from "../utils/recurrence";
-import { Menu, Transition } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 import RepeatIcon from "../assets/icons/RepeatIcon";
 import { recurrencesState } from "../atoms/recurrences";
 import ActionStatusSelect from "./ActionStatusSelect";
@@ -1076,7 +1076,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
         {!isEditing && initialExistingAction?.recurrence && (
           <Menu as="div" className="tw-relative tw-inline-block tw-text-left">
             <div>
-              <Menu.Button className="button-submit">Modifier</Menu.Button>
+              <MenuButton className="button-submit">Modifier</MenuButton>
             </div>
             <Transition
               as={Fragment}
@@ -1087,11 +1087,11 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
               leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
               leaveTo="tw-transform tw-opacity-0 tw-scale-95"
             >
-              <Menu.Items
+              <MenuItems
                 className={`tw-absolute tw-bottom-full tw-right-0 tw-z-[105] tw-mb-2 tw-w-72 tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none`}
               >
                 <div className="tw-py-1">
-                  <Menu.Item>
+                  <MenuItem>
                     <div
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
@@ -1101,8 +1101,8 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                     >
                       Cette action et toutes les suivantes
                     </div>
-                  </Menu.Item>
-                  <Menu.Item>
+                  </MenuItem>
+                  <MenuItem>
                     <div
                       className={`tw-text-gray-700 hover:tw-bg-gray-100 hover:tw-text-gray-900 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm`}
                       onClick={(e) => {
@@ -1112,9 +1112,9 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                     >
                       Cette action uniquement
                     </div>
-                  </Menu.Item>
+                  </MenuItem>
                 </div>
-              </Menu.Items>
+              </MenuItems>
             </Transition>
           </Menu>
         )}
