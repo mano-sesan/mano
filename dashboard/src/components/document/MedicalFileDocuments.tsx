@@ -180,7 +180,7 @@ export default function MedicalFileDocuments({ person }: MedicalFileDocumentsPro
           const { children, ...itemWithoutChildren } = item;
           updatedDocs.push({
             ...itemWithoutChildren,
-            parentId: parentId === "root" ? undefined : parentId,
+            parentId: parentId ?? "root",
             position,
           } as DocumentOrFolder);
 
