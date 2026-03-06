@@ -37,11 +37,6 @@ const Drawer = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const teams = useAtomValue(teamsState);
-  const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
-  const { backgroundColor, borderColor } = getTeamColors(
-    currentTeam,
-    teams.findIndex((t) => t._id === currentTeam?._id)
-  );
   const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
 
   const onboardingForEncryption = !organisation.encryptionEnabled;
@@ -102,44 +97,7 @@ const Drawer = () => {
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
       >
-        {!["superadmin"].includes(user.role) && (
-          <SelectTeam
-            style={{ maxWidth: "250px", fontSize: "13px", backgroundColor: backgroundColor, borderColor: borderColor }}
-            onChange={setCurrentTeam}
-            teamId={currentTeam?._id}
-            teams={user.role === "admin" ? teams : user.teams}
-            inputId="team-selector-topBar"
-            className="tw-rounded-xl tw-px-2"
-            noPill
-            menuIsOpen
-            menuPosition="fixed"
-            styles={{
-              control: (state) => ({
-                ...state,
-                backgroundColor: backgroundColor,
-                borderColor: borderColor,
-                border: "none",
-              }),
-              container: (state) => ({
-                ...state,
-                backgroundColor: backgroundColor,
-                borderColor: borderColor,
-              }),
-              dropdownIndicator: (state) => ({
-                ...state,
-                color: "white",
-              }),
-              indicatorSeparator: (state) => ({
-                ...state,
-                backgroundColor: "white",
-              }),
-              singleValue: (state) => ({
-                ...state,
-                color: "white",
-              }),
-            }}
-          />
-        )}
+        {!["superadmin"].includes(user.role) && <TeamSelector />}
         <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
@@ -216,5 +174,63 @@ const Drawer = () => {
     </nav>
   );
 };
+
+function TeamSelector() {
+  const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
+  const teams = useAtomValue(teamsState);
+  const user = useAtomValue(userState);
+  const { backgroundColor, borderColor } = getTeamColors(
+    currentTeam,
+    teams.findIndex((t) => t._id === currentTeam?._id)
+  );
+  return (
+    <SelectTeam
+      style={{
+        maxWidth: "250px",
+        fontSize: "13px",
+        marginTop: 1, // to make it beautiful when focused
+        backgroundColor: backgroundColor,
+        borderColor: borderColor,
+        borderRadius: "0.75rem",
+      }}
+      onChange={setCurrentTeam}
+      teamId={currentTeam?._id}
+      teams={user.role === "admin" ? teams : user.teams}
+      inputId="team-selector-topBar"
+      className="tw-rounded-xl"
+      noPill
+      styles={{
+        menuPortal: (baseStyles) => ({
+          ...baseStyles,
+          zIndex: 10000,
+        }),
+        control: (baseStyles) => ({
+          ...baseStyles,
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+          border: "none",
+          borderRadius: "0.75rem",
+        }),
+        container: (baseStyles) => ({
+          ...baseStyles,
+          backgroundColor: backgroundColor,
+          borderColor: borderColor,
+        }),
+        dropdownIndicator: (baseStyles) => ({
+          ...baseStyles,
+          color: "white",
+        }),
+        indicatorSeparator: (baseStyles) => ({
+          ...baseStyles,
+          backgroundColor: "transparent",
+        }),
+        singleValue: (baseStyles) => ({
+          ...baseStyles,
+          color: "white",
+        }),
+      }}
+    />
+  );
+}
 
 export default Drawer;
