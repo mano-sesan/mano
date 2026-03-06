@@ -97,6 +97,37 @@ const PersonCustomFieldsSettings = () => {
     }
   };
 
+  const onGroupTeamsChange = async (groupTitle, { enabled, enabledTeams }) => {
+    const newCustomFieldsPersons = customFieldsPersons.map((group) => {
+      if (group.name !== groupTitle) return group;
+      return {
+        ...group,
+        fields: group.fields.map((field) => ({
+          ...field,
+          enabled,
+          enabledTeams: enabled ? [] : enabledTeams,
+        })),
+      };
+    });
+
+    const oldOrganisation = organisation;
+    setOrganisation({ ...organisation, customFieldsPersons: newCustomFieldsPersons });
+    const [error, response] = await tryFetchExpectOk(async () =>
+      API.put({
+        path: `/organisation/${organisation._id}`,
+        body: { customFieldsPersons: newCustomFieldsPersons },
+      })
+    );
+    if (!error) {
+      setOrganisation(response.data);
+      refresh();
+      toast.success("Visibilité appliquée à tous les champs du groupe");
+    } else {
+      setOrganisation(oldOrganisation);
+      toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
+    }
+  };
+
   const onDragAndDrop = useCallback(
     async (newCustomFieldsPersons) => {
       newCustomFieldsPersons = newCustomFieldsPersons.map((group) => ({
@@ -129,6 +160,7 @@ const PersonCustomFieldsSettings = () => {
       NewItemComponent={AddField}
       onDeleteGroup={onDeleteGroup}
       onDragAndDrop={onDragAndDrop}
+      onGroupTeamsChange={onGroupTeamsChange}
     />
   );
 };
