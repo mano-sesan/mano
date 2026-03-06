@@ -161,7 +161,7 @@ const Drawer = () => {
           type="button"
           aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
           className="tw-absolute tw-top-12 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
-          style={{ left: isCollapsed ? "4rem" : "13rem" }}
+          style={{ left: isCollapsed ? "4rem" : "14rem" }}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
           {isCollapsed ? <ChevronDoubleRightIcon className="tw-h-4 tw-w-4" /> : <ChevronDoubleLeftIcon className="tw-h-4 tw-w-4" />}
