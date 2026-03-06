@@ -12,11 +12,12 @@ interface SelectTeamProps extends Omit<SelectCustomProps<TeamInstance, false, Gr
   onChange?: (team: TeamInstance) => void;
   teamId?: TeamInstance["_id"] | null;
   teams?: Array<TeamInstance>;
+  noPill?: boolean;
   style?: React.CSSProperties;
   inputId?: string;
 }
 
-const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefined, inputId = "", ...rest }: SelectTeamProps) => {
+const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefined, inputId = "", noPill = false, ...rest }: SelectTeamProps) => {
   const allTeams = useAtomValue(teamsState);
 
   useEffect(() => {
@@ -46,10 +47,12 @@ const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefin
           const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
           return (
             <div className="tw-flex tw-items-center tw-gap-2">
-              <span
-                className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
-                style={{ backgroundColor, border: `1px solid ${borderColor}` }}
-              />
+              {!noPill && (
+                <span
+                  className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
+                  style={{ backgroundColor, border: `1px solid ${borderColor}` }}
+                />
+              )}
               {team.name}
             </div>
           );

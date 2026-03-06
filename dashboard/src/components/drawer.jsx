@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { atom, useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import { organisationState, teamsState, userState } from "../atoms/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import useMinimumWidth from "../services/useMinimumWidth";
@@ -22,6 +22,9 @@ import {
   MapPinIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/20/solid";
+import SelectTeam from "./SelectTeam";
+import { getTeamColors } from "./TagTeam";
+import MenuUser from "./MenuUser";
 
 export const showDrawerState = atom({
   key: "showDrawerState",
@@ -34,6 +37,11 @@ const Drawer = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const teams = useAtomValue(teamsState);
+  const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
+  const { backgroundColor, borderColor } = getTeamColors(
+    currentTeam,
+    teams.findIndex((t) => t._id === currentTeam?._id)
+  );
   const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
 
   const onboardingForEncryption = !organisation.encryptionEnabled;
@@ -83,24 +91,57 @@ const Drawer = () => {
     <nav
       title="Navigation principale"
       className={[
-        "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-bg-gray-900/80 tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:!tw-z-30 sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent",
+        "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent",
         showDrawer ? "tw-visible tw-z-30 tw-translate-x-0 tw-transition-all" : "tw-pointer-events-none tw-invisible tw-z-[-1] -tw-translate-x-full",
       ].join(" ")}
     >
       <div
         className={[
-          "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-r tw-border-black tw-border-opacity-10 tw-bg-white tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
-          isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-p-2" : "tw-w-64 tw-basis-52 tw-p-4",
+          "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-opacity-10 tw-bg-[#E1E3E3] tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
+          isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-px-2" : "tw-w-64 tw-basis-52 tw-px-2",
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
       >
-        <div className="tw-pl-0 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none">
-          {["admin", "normal"].includes(role) && isDesktop && (
-            <>
-              <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />
-              <hr />
-            </>
-          )}
+        {!["superadmin"].includes(user.role) && (
+          <SelectTeam
+            style={{ maxWidth: "250px", fontSize: "13px", backgroundColor: backgroundColor, borderColor: borderColor }}
+            onChange={setCurrentTeam}
+            teamId={currentTeam?._id}
+            teams={user.role === "admin" ? teams : user.teams}
+            inputId="team-selector-topBar"
+            className="tw-rounded-xl tw-px-2"
+            noPill
+            menuIsOpen
+            menuPosition="fixed"
+            styles={{
+              control: (state) => ({
+                ...state,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                border: "none",
+              }),
+              container: (state) => ({
+                ...state,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+              }),
+              dropdownIndicator: (state) => ({
+                ...state,
+                color: "white",
+              }),
+              indicatorSeparator: (state) => ({
+                ...state,
+                backgroundColor: "white",
+              }),
+              singleValue: (state) => ({
+                ...state,
+                color: "white",
+              }),
+            }}
+          />
+        )}
+        <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+          {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />}
           {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
             <NavItem to="/reception" icon={HomeIcon} label="Accueil" />
           )}
@@ -112,38 +153,36 @@ const Drawer = () => {
           {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/report" icon={DocumentTextIcon} label="Comptes rendus" />}
           {["admin", "normal", "restricted-access"].includes(role) && (
             <>
-              <hr />
               <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
               <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
-              <hr />
             </>
           )}
           {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />}
+        </div>
+        <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin"].includes(role) && isDesktop && (
             <>
-              <hr />
               <NavItem to={`/organisation/${organisation._id}`} icon={BuildingOfficeIcon} label="Organisation" id="show-on-onboarding" />
               <NavItem to="/team" icon={UsersIcon} label="Équipes" id="show-on-onboarding" />
               <NavItem to="/user" icon={UserCircleIcon} label="Utilisateurs" />
-              {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
-                <>
-                  <hr />
-                  <li>
-                    <AddPersons />
-                  </li>
-                </>
-              )}
             </>
           )}
         </div>
+        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
+          <divx className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+            <li>
+              <AddPersons />
+            </li>
+          </divx>
+        )}
+        <MenuUser />
         {!collapsed && (
-          <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
+          <div className="tw-mb-4 tw-mt-2 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
             <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
               Plan du site
             </Link>
-            <SessionCountDownLimiter />
           </div>
         )}
         <button
@@ -167,7 +206,7 @@ const Drawer = () => {
           type="button"
           aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
           aria-expanded={!isCollapsed}
-          className="tw-absolute tw-top-3 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
+          className="tw-absolute tw-top-12 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
           style={{ left: isCollapsed ? "4rem" : "13rem" }}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >
