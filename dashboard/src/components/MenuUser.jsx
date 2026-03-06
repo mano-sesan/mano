@@ -1,6 +1,5 @@
-import { Fragment } from "react";
 import { Link } from "react-router-dom";
-import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { userState } from "../atoms/auth";
 import { useAtomValue } from "jotai";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
@@ -50,113 +49,90 @@ const MenuUser = ({ isDrawerCollapsed, className = "" }) => {
             </div>
             {!isDrawerCollapsed && <span className="tw-truncate tw-max-w-40">{user?.name}</span>}
           </MenuButton>
-          <Transition
-            as={Fragment}
-            enter="tw-transition tw-ease-out tw-duration-100"
-            enterFrom="tw-transform tw-opacity-0 tw-scale-95"
-            enterTo="tw-transform tw-opacity-100 tw-scale-100"
-            leave="tw-transition tw-ease-in tw-duration-75"
-            leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
-            leaveTo="tw-transform tw-opacity-0 tw-scale-95"
+          <MenuItems
+            anchor="bottom start"
+            transition
+            className="tw-z-50 tw-mt-2 tw-max-w-max tw-origin-top tw-rounded tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95 tw-transition"
           >
-            <MenuItems
-              anchor="bottom start"
-              className="tw-z-50 tw-mt-2 tw-max-w-max tw-origin-top-right tw-rounded tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none"
-            >
-              <div className="tw-py-2 tw-px-6 tw-text-base tw-font-normal tw-text-[#6c757d] tw-border-b tw-border-gray-200 tw-whitespace-nowrap">
-                {user?.name} - {user.role}
-              </div>
-              <div className="tw-py-1">
-                <MenuItem>
-                  {({ active }) => (
-                    <a
-                      href="/charte.pdf"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Charte des Utilisateurs <OpenNewWindowIcon />
-                    </a>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <a
-                      href="/legal.pdf"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Mentions Légales <OpenNewWindowIcon />
-                    </a>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <a
-                      href="/cgu.pdf"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Conditions générales d'utilisation <OpenNewWindowIcon />
-                    </a>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <a
-                      href="/privacy.pdf"
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Politique de Confidentialité <OpenNewWindowIcon />
-                    </a>
-                  )}
-                </MenuItem>
-              </div>
-              <div className="tw-border-t tw-border-gray-200 tw-py-1">
-                <MenuItem>
-                  {({ active }) => (
-                    <Link
-                      to="/account"
-                      className={`tw-block tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Mon compte
-                    </Link>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        logout().then(() => {
-                          window.localStorage.removeItem("previously-logged-in");
-                          window.location.href = "/auth";
-                        });
-                      }}
-                      className={`tw-block tw-w-full tw-text-left tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Se déconnecter
-                    </button>
-                  )}
-                </MenuItem>
-                <MenuItem>
-                  {({ active }) => (
-                    <button
-                      type="button"
-                      onClick={resetCacheAndLogout}
-                      className={`tw-block tw-w-full tw-text-left tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap ${active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700"}`}
-                    >
-                      Se déconnecter et vider le cache
-                    </button>
-                  )}
-                </MenuItem>
-              </div>
-            </MenuItems>
-          </Transition>
+            <div className="tw-py-2 tw-px-6 tw-text-base tw-font-normal tw-text-[#6c757d] tw-border-b tw-border-gray-200 tw-whitespace-nowrap">
+              {user?.name} - {user.role}
+            </div>
+            <div className="tw-py-1">
+              <MenuItem>
+                <a
+                  href="/charte.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Charte des Utilisateurs <OpenNewWindowIcon />
+                </a>
+              </MenuItem>
+              <MenuItem>
+                <a
+                  href="/legal.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Mentions Légales <OpenNewWindowIcon />
+                </a>
+              </MenuItem>
+              <MenuItem>
+                <a
+                  href="/cgu.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Conditions générales d'utilisation <OpenNewWindowIcon />
+                </a>
+              </MenuItem>
+              <MenuItem>
+                <a
+                  href="/privacy.pdf"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Politique de Confidentialité <OpenNewWindowIcon />
+                </a>
+              </MenuItem>
+            </div>
+            <div className="tw-border-t tw-border-gray-200 tw-py-1">
+              <MenuItem>
+                <Link
+                  to="/account"
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Mon compte
+                </Link>
+              </MenuItem>
+              <MenuItem>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout().then(() => {
+                      window.localStorage.removeItem("previously-logged-in");
+                      window.location.href = "/auth";
+                    });
+                  }}
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Se déconnecter
+                </button>
+              </MenuItem>
+              <MenuItem>
+                <button
+                  type="button"
+                  onClick={resetCacheAndLogout}
+                  className="tw-flex tw-items-center tw-px-4 tw-py-2 tw-text-sm tw-whitespace-nowrap data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900"
+                >
+                  Se déconnecter et vider le cache
+                </button>
+              </MenuItem>
+            </div>
+          </MenuItems>
         </>
       )}
     </Menu>

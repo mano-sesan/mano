@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import styled from "styled-components";
 
 import picture1 from "../assets/loader-1.png";
 import picture2 from "../assets/loader-2.png";
@@ -11,7 +10,7 @@ function getRandomPicture() {
 
 export function RandomPicturePreloader() {
   return (
-    <div className="fixed tw-inset-0">
+    <div className="fixed top-0 left-0 tw-size-0">
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture1})` }} />
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture2})` }} />
       <div className="tw-size-full tw-bg-contain tw-bg-center" style={{ backgroundImage: `url(${picture3})` }} />
@@ -26,20 +25,3 @@ export function RandomPicture() {
   }, []);
   return <div className="tw-size-full tw-bg-contain tw-bg-center tw-bg-no-repeat" style={{ backgroundImage: `url(${picture})` }} />;
 }
-
-const Hidden = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-`;
-
-const Picture = styled.div`
-  background-image: url(${(props) => props.src});
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  width: 100%;
-  height: 80%;
-`;

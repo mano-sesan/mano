@@ -128,11 +128,11 @@ const Drawer = () => {
           )}
         </div>
         {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
-          <divx className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+          <div className="mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
             <li>
               <AddPersons />
             </li>
-          </divx>
+          </div>
         )}
         <MenuUser isDrawerCollapsed={isCollapsed} className={["tw-mt-auto tw-mb-4", isCollapsed ? "tw-w-full" : ""].join(" ")} />
         {!collapsed && (
@@ -217,7 +217,8 @@ function TeamSelector() {
           </MenuButton>
           <MenuItems
             anchor="bottom start"
-            className="tw-z-50 tw-rounded tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto"
+            transition
+            className="tw-z-50 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
           >
             {availableTeams.map((team) => {
               const _teamColors = getTeamColors(
