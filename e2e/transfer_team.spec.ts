@@ -29,7 +29,7 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("personne test");
   await page.locator(".person-select-assigned-team__input-container").click();
-  await page.getByText("ancienne", { exact: true }).click();
+  await page.locator(".person-select-assigned-team__menu").getByText("ancienne", { exact: true }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
   // Action avec commentaire
