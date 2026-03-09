@@ -147,14 +147,9 @@ test("merging normal user with health data", async ({ page }) => {
     await clickOnEmptyReactSelect(page, "person-to-merge-with-select", "3");
     await expect(page.locator(".person-to-merge-with-select__value-container")).toHaveText("3");
     await expect(page.getByRole("cell", { name: "Multi-champ" })).not.toBeVisible();
-    const mergeListener = async (dialog) => {
-      expect(dialog.message()).toBe("Cette opération est irréversible, êtes-vous sûr ?");
-      await dialog.accept();
-    };
-    page.on("dialog", mergeListener);
-    await page.getByRole("button", { name: "Fusionner", exact: true }).click();
+    await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Fusionner" }).click();
+    await page.getByLabel("Confirmer la fusion").getByRole("button", { name: "Fusionner" }).click();
     await page.getByText("Fusion réussie !").click();
-    page.off("dialog", mergeListener);
   });
 
   await test.step("login as health professional and try to merge", async () => {
@@ -185,7 +180,8 @@ test("merging normal user with health data", async ({ page }) => {
     await clickOnEmptyReactSelect(page, "person-to-merge-with-select", "2");
     await expect(page.locator(".person-to-merge-with-select__value-container")).toHaveText("2");
     await page.locator('input[name="numeroSecuriteSociale"]').fill("456");
-    await page.getByRole("button", { name: "Fusionner", exact: true }).click();
+    await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Fusionner" }).click();
+    await page.getByLabel("Confirmer la fusion").getByRole("button", { name: "Fusionner" }).click();
     await page.getByText("Fusion réussie !").click();
     await page.getByRole("button", { name: "Dossier Médical" }).click();
     await page.getByText("456").click();
