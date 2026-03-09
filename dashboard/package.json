@@ -51,7 +51,7 @@
     "urijs": "1.19.11",
     "use-debounce": "10.0.2",
     "uuid": "9.0.0",
-    "validator": "13.15.20",
+    "validator": "13.15.22",
     "web-vitals": "3.0.2"
   },
   "devDependencies": {
@@ -137,7 +137,11 @@
   "resolutions": {
     "socks": "2.8.7",
     "react-router/path-to-regexp": "1.9.0",
-    "react-js-pagination/tar": "6.2.0"
+    "react-js-pagination/tar": "6.2.0",
+    "glob": "10.5.0",
+    "@npmcli/fs/semver": "7.5.2",
+    "fork-ts-checker-webpack-plugin/semver": "7.5.2",
+    "node-gyp/semver": "7.5.2"
   },
   "packageManager": "yarn@4.0.2"
 }

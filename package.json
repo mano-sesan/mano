@@ -6,7 +6,7 @@
   "author": "Raphaël Huchet <raph@selego.co>, Arnaud Ambroselli <arnaud@ambroselli.io>",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.47.2",
+    "@playwright/test": "^1.55.1",
     "@types/node": "^25.2.2",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
@@ -38,7 +38,8 @@
     "printWidth": 150
   },
   "resolutions": {
-    "form-data": "2.5.5"
+    "form-data": "2.5.5",
+    "glob": "10.5.0"
   },
   "packageManager": "yarn@4.0.2"
 }
