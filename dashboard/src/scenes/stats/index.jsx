@@ -831,6 +831,9 @@ const Stats = ({ onSwitchVersion }) => {
     if (["Passages"].includes(tabCaption)) {
       return !!organisation.passagesEnabled;
     }
+    if (["Consultations", "Dossiers médicaux des personnes créées", "Dossiers médicaux des personnes suivies"].includes(tabCaption)) {
+      return !!user.healthcareProfessional;
+    }
     return true;
   });
 
