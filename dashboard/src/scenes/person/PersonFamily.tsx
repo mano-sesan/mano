@@ -226,7 +226,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
               const { description, persons, createdAt, user } = _relation;
               return (
                 <tr key={JSON.stringify(persons)}>
-                  <td>
+                  <td data-testid="family-relation-persons">
                     <PersonName item={{ person: persons[0] }} />
                     {" et "}
                     <PersonName item={{ person: persons[1] }} />

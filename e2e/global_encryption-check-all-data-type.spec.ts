@@ -149,7 +149,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Territoires et lieux fréquentés" }).click();
   await page.locator('[data-test-id="test lieu"]').click();
   await page.getByRole("button", { name: "Liens familiaux (1)" }).click();
-  await page.getByRole("cell", { name: premier + " et " + deuxieme }).click();
+  await page.getByTestId("family-relation-persons").filter({ hasText: premier }).filter({ hasText: deuxieme }).click();
   await page.getByRole("button", { name: "Résumé" }).click();
   await page.getByText("SUIVI HOP").click();
   await page.getByText("MDEIDAL").click();
