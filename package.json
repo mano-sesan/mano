@@ -37,5 +37,8 @@
   "prettier": {
     "printWidth": 150
   },
+  "resolutions": {
+    "form-data": "2.5.5"
+  },
   "packageManager": "yarn@4.0.2"
 }

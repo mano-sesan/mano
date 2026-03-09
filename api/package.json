@@ -29,7 +29,7 @@
     "multer": "^2.1.1",
     "nodemailer": "^7.0.7",
     "passport": "^0.6.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "password-validator": "^5.1.0",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
@@ -43,6 +43,13 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "nodemon": "^2.0.15"
+  },
+  "resolutions": {
+    "socks": "2.8.7",
+    "path-to-regexp": "0.1.12",
+    "make-dir/semver": "6.3.1",
+    "package-json/semver": "6.3.1",
+    "semver-diff/semver": "6.3.1"
   },
   "packageManager": "yarn@4.0.2"
 }
