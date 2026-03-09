@@ -695,6 +695,7 @@ router.put(
           responsible: z.optional(z.string()),
           emailDirection: z.optional(z.string().email()),
           emailDpo: z.optional(z.string().email()),
+          statsV2Enabled: z.optional(z.boolean()),
         }),
       }).parse(req);
     } catch (e) {
@@ -715,6 +716,7 @@ router.put(
     if (req.body.hasOwnProperty("orgId")) updateOrg.orgId = req.body.orgId;
     if (req.body.hasOwnProperty("emailDirection")) updateOrg.emailDirection = req.body.emailDirection;
     if (req.body.hasOwnProperty("emailDpo")) updateOrg.emailDpo = req.body.emailDpo;
+    if (req.body.hasOwnProperty("statsV2Enabled")) updateOrg.statsV2Enabled = req.body.statsV2Enabled;
 
     await sequelize.transaction(async (t) => {
       t.userId = req.user._id;

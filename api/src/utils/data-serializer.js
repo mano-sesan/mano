@@ -29,6 +29,7 @@ function serializeOrganisation(organisation) {
     lockedForEncryption: organisation.lockedForEncryption,
     lockedBy: organisation.lockedBy,
     rencontresEnabled: organisation.rencontresEnabled,
+    statsV2Enabled: organisation.statsV2Enabled,
     encryptedVerificationKey: organisation.encryptedVerificationKey,
     migrations: organisation.migrations,
     migrationLastUpdateAt: organisation.migrationLastUpdateAt,

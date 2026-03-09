@@ -19,7 +19,7 @@ import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
-import { ENV, MANO_TEST_ORG_ID } from "../../config";
+import { ENV } from "../../config";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ExportFormattedData from "../data-import-export/ExportFormattedData";
@@ -86,7 +86,7 @@ const StatsLoader = () => {
   const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
 
   const organisation = useAtomValue(organisationState);
-  const canSwitchVersion = ENV !== "production" || organisation?._id === MANO_TEST_ORG_ID;
+  const canSwitchVersion = organisation?.statsV2Enabled || ENV !== "production";
 
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
