@@ -60,7 +60,7 @@ test("Transfer territory", async ({ page }) => {
   await expect(page.getByText("Commentaire :Deuxième observation")).toBeVisible();
 
   // Transfer territory data
-  await page.getByRole("button", { name: "Transférer les données vers" }).click();
+  await page.getByRole("button", { name: "Transférer" }).click();
   await page.locator(".transfer-data-selected-territory__indicator").click();
   await page.locator("#react-select-territory-option-0").click();
   page.once("dialog", (dialog) => {

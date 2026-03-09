@@ -81,7 +81,7 @@ export const defaultCustomFields = [
   },
 ];
 
-const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt"];
+const compulsoryEncryptedFields = ["territory", "user", "team", "observedAt", "documents"];
 
 export const prepareObsForEncryption = (customFields: CustomField[]) => (obs: Partial<TerritoryObservationInstance>) => {
   try {

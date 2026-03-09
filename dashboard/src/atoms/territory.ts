@@ -11,7 +11,7 @@ import { organisationState } from "./auth";
 const collectionName = "territory";
 export const territoriesState = atomWithCache<Array<TerritoryInstance>>(collectionName, []);
 
-const encryptedFields = ["name", "perimeter", "description", "types", "user"];
+const encryptedFields = ["name", "perimeter", "description", "types", "user", "documents"];
 
 export const prepareTerritoryForEncryption = (territory: TerritoryInstance, { checkRequiredFields = true } = {}): ReadyToEncryptTerritoryInstance => {
   if (checkRequiredFields) {
