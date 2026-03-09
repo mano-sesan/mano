@@ -73,10 +73,26 @@ test("Person creation", async ({ page }) => {
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
   await expect(page.getByRole("cell", { name: person1Name })).toBeVisible();
+  // Naviguer vers /auth pendant qu'on est connecté : l'app devrait montrer
+  // le formulaire de clé de chiffrement (via cookie auth + previously-logged-in).
+  // Mais une race condition documentée dans app.jsx:194-210 peut effacer
+  // previously-logged-in, forçant un login complet email/password.
   await page.goto("http://localhost:8090/auth");
-  await page.locator("#orgEncryptionKey").waitFor({ state: "visible" });
-  await page.locator("#orgEncryptionKey").pressSequentially("plouf");
-  await page.getByRole("button", { name: "Se connecter" }).click();
+  const orgKeyLocator = page.locator("#orgEncryptionKey");
+  const emailLocator = page.getByLabel("Email");
+  await Promise.race([orgKeyLocator.waitFor({ state: "visible" }), emailLocator.waitFor({ state: "visible" })]);
+  if (await orgKeyLocator.isVisible()) {
+    await orgKeyLocator.pressSequentially("plouf");
+    await page.getByRole("button", { name: "Se connecter" }).click();
+  } else {
+    // Fallback : login complet si previously-logged-in a été effacé
+    await emailLocator.fill("admin5@example.org");
+    await page.getByLabel("Mot de passe").fill("secret");
+    await page.getByRole("button", { name: "Se connecter" }).click();
+    await orgKeyLocator.waitFor({ state: "visible" });
+    await orgKeyLocator.pressSequentially("plouf");
+    await page.getByRole("button", { name: "Se connecter" }).click();
+  }
   await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");

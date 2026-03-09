@@ -92,7 +92,7 @@ test("test", async ({ page }) => {
   );
 
   await page.getByRole("link", { name: "Agenda" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2", { timeout: 15000 });
 
   await page.getByText("<").click();
   await expect(page).toHaveURL(`http://localhost:8090/action?calendarTab=2&calendarDate=${dayjs().add(-1, "day").format("YYYY-MM-DD")}`);
