@@ -18,7 +18,9 @@ const rateLimit = require("express-rate-limit");
 
 const documentRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 download requests per windowMs
+  max: 100,
+  keyGenerator: (req) => req.user?._id ?? req.ip,
+  skip: (req) => req.user?.role === "admin",
   standardHeaders: "draft-7",
   legacyHeaders: false,
   message: { ok: false, error: "Too many requests, please try again later" },
