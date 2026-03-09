@@ -6,6 +6,7 @@ const { looseUuidRegex } = require("../utils");
 const { catchErrors } = require("../errors");
 const { Team, RelUserTeam, sequelize } = require("../db/sequelize");
 const validateUser = require("../middleware/validateUser");
+const { serializeTeam } = require("../utils/data-serializer");
 
 router.post(
   "/",
@@ -38,8 +39,8 @@ router.get(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
-    const data = await Team.findAll({ where: { organisation: req.user.organisation }, include: ["Organisation"] });
-    return res.status(200).send({ ok: true, data });
+    const teams = await Team.findAll({ where: { organisation: req.user.organisation } });
+    return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
 );
 
