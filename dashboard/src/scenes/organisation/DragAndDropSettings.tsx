@@ -316,14 +316,24 @@ const Group: React.FC<GroupProps> = ({
               <span className="group-title tw-pl-2">
                 {groupTitle} ({items.length})
               </span>
-              {!!onGroupTitleChange && !!editable && (
+              {(!!onGroupTitleChange && !!editable || !!onGroupTeamsChange) && (
                 <button
                   type="button"
                   aria-label={`Modifier le groupe ${groupTitle}`}
                   className="tw-ml-auto tw-hidden group-hover:tw-inline-flex"
                   onClick={() => {
-                    setGroupTeamsEnabled(true);
-                    setGroupTeamsEnabledTeams([]);
+                    // Compute current visibility state from the group's fields
+                    const groupItems = items.filter((item): item is CustomField => typeof item !== "string");
+                    const allEnabled = groupItems.length === 0 || groupItems.every((field) => field.enabled !== false);
+                    const allSameTeams =
+                      groupItems.length > 0 &&
+                      groupItems.every(
+                        (field) =>
+                          field.enabled === false &&
+                          JSON.stringify(field.enabledTeams?.slice().sort()) === JSON.stringify(groupItems[0].enabledTeams?.slice().sort())
+                      );
+                    setGroupTeamsEnabled(allEnabled);
+                    setGroupTeamsEnabledTeams(allSameTeams && !allEnabled ? groupItems[0].enabledTeams || [] : []);
                     setIsEditingGroupTitle(true);
                   }}
                 >
@@ -348,21 +358,23 @@ const Group: React.FC<GroupProps> = ({
           <NewItemComponent groupTitle={groupTitle} />
         </details>
       </div>
-      {!!onGroupTitleChange && (
+      {(!!onGroupTitleChange || !!onGroupTeamsChange) && (
         <ModalContainer open={isEditingGroupTitle}>
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
-            <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditGroupTitle}>
-              <div>
-                <label htmlFor="newGroupTitle" className="tailwindui">
-                  Nouveau nom du groupe
-                </label>
-                <input type="text" id="newGroupTitle" name="newGroupTitle" placeholder={groupTitle} autoComplete="off" className="tailwindui" />
-              </div>
-            </form>
+            {!!onGroupTitleChange && !!editable && (
+              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditGroupTitle}>
+                <div>
+                  <label htmlFor="newGroupTitle" className="tailwindui">
+                    Nouveau nom du groupe
+                  </label>
+                  <input type="text" id="newGroupTitle" name="newGroupTitle" placeholder={groupTitle} autoComplete="off" className="tailwindui" />
+                </div>
+              </form>
+            )}
             {!!onGroupTeamsChange && (
               <>
-                <hr className="tw-mx-8 tw-my-4" />
+                {!!editable && <hr className="tw-mx-8 tw-my-4" />}
                 <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
                   <p className="tw-m-0 tw-text-sm tw-font-bold">Appliquer une visibilité à tous les champs du groupe</p>
                   <div>
@@ -414,7 +426,7 @@ const Group: React.FC<GroupProps> = ({
             <button type="button" name="cancel" className="button-cancel" onClick={() => setIsEditingGroupTitle(false)}>
               Annuler
             </button>
-            {!!onDeleteGroup && (
+            {!!onDeleteGroup && !!editable && (
               <DeleteButtonAndConfirmModal
                 title={`Voulez-vous vraiment supprimer le groupe ${groupTitle}`}
                 textToConfirm={groupTitle}
@@ -430,9 +442,11 @@ const Group: React.FC<GroupProps> = ({
                 </span>
               </DeleteButtonAndConfirmModal>
             )}
-            <button type="submit" className="button-submit" form="edit-category-group-form">
-              Enregistrer
-            </button>
+            {!!onGroupTitleChange && !!editable && (
+              <button type="submit" className="button-submit" form="edit-category-group-form">
+                Enregistrer
+              </button>
+            )}
           </ModalFooter>
         </ModalContainer>
       )}
