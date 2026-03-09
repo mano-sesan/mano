@@ -111,34 +111,43 @@ export async function handleFilesUpload({
   user,
   folders = null,
   onSave = null,
+  uploadBasePath = null,
 }: {
   files: FileList | null;
-  personId: string | string[];
+  personId?: string | string[];
   user: UserInstance | null;
   folders?: FolderOption[] | null;
   onSave?: ((documents: Document[]) => Promise<void>) | null;
+  uploadBasePath?: string | null;
 }) {
   if (!files?.length) return;
-  // Accept `personId` as string OR array (actions can be linked to multiple persons).
-  // Keep the legacy behavior: only allow upload when exactly one person is selected.
-  let resolvedPersonId = personId;
-  if (Array.isArray(resolvedPersonId)) {
-    if (resolvedPersonId.length === 0) {
+
+  let resolvedUploadPath: string;
+  if (uploadBasePath) {
+    resolvedUploadPath = uploadBasePath;
+  } else {
+    // Accept `personId` as string OR array (actions can be linked to multiple persons).
+    // Keep the legacy behavior: only allow upload when exactly one person is selected.
+    let resolvedPersonId = personId;
+    if (Array.isArray(resolvedPersonId)) {
+      if (resolvedPersonId.length === 0) {
+        toast.error("Veuillez sélectionner une personne auparavant");
+        return;
+      }
+      if (resolvedPersonId.length > 1) {
+        toast.error(
+          "Ajouter un document pour une action concernant plusieurs personnes n'est pas possible. Veuillez sélectionner uniquement une personne."
+        );
+        return;
+      }
+      resolvedPersonId = resolvedPersonId[0];
+    }
+
+    if (!resolvedPersonId) {
       toast.error("Veuillez sélectionner une personne auparavant");
       return;
     }
-    if (resolvedPersonId.length > 1) {
-      toast.error(
-        "Ajouter un document pour une action concernant plusieurs personnes n'est pas possible. Veuillez sélectionner uniquement une personne."
-      );
-      return;
-    }
-    resolvedPersonId = resolvedPersonId[0];
-  }
-
-  if (!resolvedPersonId) {
-    toast.error("Veuillez sélectionner une personne auparavant");
-    return;
+    resolvedUploadPath = `/person/${resolvedPersonId}/document`;
   }
 
   const uploadFiles: UploadProgress[] = Array.from(files).map((file) => ({
@@ -162,7 +171,7 @@ export async function handleFilesUpload({
     try {
       const { encryptedEntityKey, encryptedFile } = await encryptFile(fileToUpload, getHashedOrgEncryptionKey());
       const [docResponseError, docResponse] = await tryFetch(() => {
-        return API.upload({ path: `/person/${resolvedPersonId}/document`, encryptedFile });
+        return API.upload({ path: resolvedUploadPath, encryptedFile });
       });
 
       if (docResponseError || !docResponse.ok || !docResponse.data) {
@@ -180,7 +189,7 @@ export async function handleFilesUpload({
         encryptedEntityKey,
         createdAt: new Date(),
         createdBy: user?._id ?? "",
-        downloadPath: `/person/${resolvedPersonId}/document/${fileUploaded.filename}`,
+        downloadPath: `${resolvedUploadPath}/${fileUploaded.filename}`,
         file: fileUploaded,
         group: false,
         parentId: undefined,

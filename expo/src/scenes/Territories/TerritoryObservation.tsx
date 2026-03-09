@@ -169,6 +169,7 @@ const TerritoryObservation = ({
         createdAt: territoryObservation.createdAt,
         user: territoryObservation.user || "",
         entityKey: territoryObservation.entityKey || "",
+        documents: territoryObservation.documents || [],
       };
     },
     [customFieldsObs]

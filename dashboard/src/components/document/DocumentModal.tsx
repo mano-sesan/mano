@@ -18,13 +18,13 @@ import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../tailwind
 
 interface DocumentModalProps<T extends DocumentWithLinkedItem> {
   document: T;
-  personId: UUIDV4;
+  personId?: UUIDV4;
   onClose: () => void;
   onSubmit: (document: T) => Promise<void>;
   onDelete: (document: T) => Promise<boolean>;
   canToggleGroupCheck: boolean;
   showAssociatedItem: boolean;
-  color: string;
+  color?: string;
   externalIsUpdating?: boolean;
   externalIsDeleting?: boolean;
 }
@@ -37,7 +37,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
   onSubmit,
   showAssociatedItem,
   canToggleGroupCheck,
-  color,
+  color = "main",
   externalIsUpdating,
   externalIsDeleting,
 }: DocumentModalProps<T>) {
