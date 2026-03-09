@@ -73,7 +73,8 @@ test("Person creation", async ({ page }) => {
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
   await expect(page.getByRole("cell", { name: person1Name })).toBeVisible();
-  await page.goto("http://localhost:8090/auth");
+  await page.goto("http://localhost:8090/auth", { waitUntil: "networkidle" });
+  await page.locator("#orgEncryptionKey").waitFor({ state: "visible" });
   await page.locator("#orgEncryptionKey").pressSequentially("plouf");
   await page.getByRole("button", { name: "Se connecter" }).click();
   await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");

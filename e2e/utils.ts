@@ -11,10 +11,11 @@ export async function changeReactSelectValue(page: Page, name: string, text: str
 }
 
 export async function loginWith(page: Page, email: string, password: string = "secret", orgKey: string = "plouf") {
-  await page.goto("http://localhost:8090/auth");
+  await page.goto("http://localhost:8090/auth", { waitUntil: "networkidle" });
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
+  await page.locator("#orgEncryptionKey").waitFor({ state: "visible" });
   await page.locator("#orgEncryptionKey").pressSequentially(orgKey);
   await page.getByRole("button", { name: "Se connecter" }).click();
 }
