@@ -11,10 +11,14 @@ export async function changeReactSelectValue(page: Page, name: string, text: str
 }
 
 export async function loginWith(page: Page, email: string, password: string = "secret", orgKey: string = "plouf") {
-  await page.goto("http://localhost:8090/auth");
+  // Le goto peut échouer avec NS_BINDING_ABORTED si une navigation est déjà en cours
+  // (ex: redirect après "Se déconnecter"), on catch et on attend que la page se stabilise.
+  await page.goto("http://localhost:8090/auth").catch(() => {});
+  await page.getByLabel("Email").waitFor({ state: "visible" });
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Mot de passe").fill(password);
   await page.getByRole("button", { name: "Se connecter" }).click();
+  await page.locator("#orgEncryptionKey").waitFor({ state: "visible" });
   await page.locator("#orgEncryptionKey").pressSequentially(orgKey);
   await page.getByRole("button", { name: "Se connecter" }).click();
 }
