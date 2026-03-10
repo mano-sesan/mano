@@ -187,6 +187,7 @@ const MergeTwoPersons = ({ person }) => {
             },
           ],
         },
+        onAfterLeave: () => resolve(false),
       });
     });
     if (!confirmed) return;

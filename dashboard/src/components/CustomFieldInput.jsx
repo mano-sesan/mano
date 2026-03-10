@@ -78,7 +78,7 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
               name={field.name}
               rows={5}
               required={field.required}
-              value={values[field.name] || ""}
+              value={values[field.name]}
               onChange={handleChange}
               id={id}
             />
