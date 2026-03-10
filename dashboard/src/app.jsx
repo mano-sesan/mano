@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Provider, useAtomValue } from "jotai";
 import { store } from "./store";
 import { Router, Switch, Redirect } from "react-router-dom";
@@ -242,7 +243,6 @@ const App = () => {
 
   return (
     <div className="main-container tw-bg-[#E1E3E3]">
-      <ToastContainer transition={import.meta.env.VITE_TEST_PLAYWRIGHT !== "true" ? Bounce : ToastifyFastTransition} />
       <VersionOutdatedAlert />
       {import.meta.env.VITE_TEST_PLAYWRIGHT === "true" && <DuplicatedReportsTestChecker />}
       <Router history={history}>
@@ -343,6 +343,10 @@ export default function ContextedApp() {
   return (
     <Provider store={store}>
       <App />
+      {createPortal(
+        <ToastContainer closeOnClick transition={import.meta.env.VITE_TEST_PLAYWRIGHT !== "true" ? Bounce : ToastifyFastTransition} />,
+        document.body
+      )}
     </Provider>
   );
 }

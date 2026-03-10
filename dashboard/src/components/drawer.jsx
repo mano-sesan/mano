@@ -1,6 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
-import { atom, useAtom, useAtomValue } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { useAtom, useAtomValue } from "jotai";
 import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
 import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import useMinimumWidth from "../services/useMinimumWidth";
@@ -24,13 +23,7 @@ import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { getTeamColors } from "./TagTeam";
 import MenuUser from "./MenuUser";
-
-export const showDrawerState = atom({
-  key: "showDrawerState",
-  default: false,
-});
-
-export const isDrawerCollapsedState = atomWithStorage("drawer-collapsed", false);
+import { isDrawerCollapsedState, showDrawerState } from "../utils/drawerState";
 
 const Drawer = () => {
   const user = useAtomValue(userState);
@@ -113,7 +106,7 @@ const Drawer = () => {
     <nav
       title="Navigation principale"
       className={[
-        "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent",
+        "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent sm:!tw-z-30",
         showDrawer ? "tw-visible tw-z-30 tw-translate-x-0 tw-transition-all" : "tw-pointer-events-none tw-invisible tw-z-[-1] -tw-translate-x-full",
       ].join(" ")}
     >
@@ -136,14 +129,18 @@ const Drawer = () => {
             <NavItem to="/territory" icon={MapIcon} label="Territoires" />
           )}
           {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/report" icon={DocumentTextIcon} label="Comptes rendus" />}
-          {["admin", "normal", "restricted-access"].includes(role) && (
-            <>
-              <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
-              <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
-            </>
-          )}
-          {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />}
         </div>
+        {["admin", "normal", "restricted-access"].includes(role) && (
+          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+            <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
+            <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
+          </div>
+        )}
+        {["admin", "normal"].includes(role) && isDesktop && (
+          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+            <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />
+          </div>
+        )}
         <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin"].includes(role) && isDesktop && (
             <>

@@ -3,15 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --toastify-z-index: 9999;
+  --toastify-z-index: 99999;
 }
 
+<<<<<<< HEAD
 /* RGAA 10.7 — indicateur de focus visible pour la navigation clavier */
 *:focus-visible {
   outline: 2px solid #226854;
   outline-offset: 2px;
 }
 
+=======
+.Toastify__toast {
+  z-index: 99999 !important;
+}
+>>>>>>> 4db162cb (fix react toastify portal)
 .Toastify__hack-force-fast {
   animation-duration: 1ms !important;
 }
