@@ -48,9 +48,9 @@ function personDocumentBasedir(userOrganisation, personId) {
 // Upload a document for a person.
 router.post(
   "/:id/document",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -97,9 +97,9 @@ router.post(
 // Download a file for a person by its filename.
 router.get(
   "/:id/document/:filename",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -125,9 +125,9 @@ router.get(
 // Delete a file for a person by its filename.
 router.delete(
   "/:id/document/:filename",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
