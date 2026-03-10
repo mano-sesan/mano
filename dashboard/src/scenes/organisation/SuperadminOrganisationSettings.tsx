@@ -153,7 +153,9 @@ export default function SuperadminOrganisationSettings({
                   checked={data.statsV2Enabled || false}
                   onChange={(e) => setData({ ...data, statsV2Enabled: e.target.checked })}
                 />
-                <label htmlFor="statsV2Enabled">Activer les statistiques v2</label>
+                <label className="!tw-mb-0" htmlFor="statsV2Enabled">
+                  Activer les statistiques v2
+                </label>
               </div>
             </div>
           </form>
