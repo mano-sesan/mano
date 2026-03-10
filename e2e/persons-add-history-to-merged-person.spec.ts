@@ -72,6 +72,7 @@ test("Add history to merged person", async ({ page }) => {
 
   await page.locator('[data-test-id="otherNames"] input[name="otherNames"]').fill(mergedPersonOtherName);
 
+  await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Fusionner" }).click();
   await page.getByLabel("Confirmer la fusion").getByRole("button", { name: "Fusionner" }).click();
 
   await page.locator(".Toastify__close-button").last().click();
