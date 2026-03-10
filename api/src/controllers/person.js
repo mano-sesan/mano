@@ -26,6 +26,17 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex, detectAndLogRaceCondition } = require("../utils");
 const { capture } = require("../sentry");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+const documentRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
+  skip: (req) => req.user?.role === "admin",
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests, please try again later" },
+});
 
 // Return the basedir to store persons' documents.
 function personDocumentBasedir(userOrganisation, personId) {
@@ -37,6 +48,7 @@ function personDocumentBasedir(userOrganisation, personId) {
 // Upload a document for a person.
 router.post(
   "/:id/document",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
@@ -85,6 +97,7 @@ router.post(
 // Download a file for a person by its filename.
 router.get(
   "/:id/document/:filename",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
@@ -112,6 +125,7 @@ router.get(
 // Delete a file for a person by its filename.
 router.delete(
   "/:id/document/:filename",
+  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
   catchErrors(async (req, res, next) => {
