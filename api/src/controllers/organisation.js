@@ -40,6 +40,16 @@ const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../ut
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+const tableSizesRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests, please try again later" },
+});
 
 // Check for duplicate field names in customFieldsPersons across all organisations
 router.get(
@@ -1545,6 +1555,7 @@ router.get(
   "/:id/table-sizes",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
+  tableSizesRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
