@@ -14,12 +14,12 @@ const { STORAGE_DIRECTORY } = require("../config");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const validateUser = require("../middleware/validateUser");
 const { serializeOrganisation } = require("../utils/data-serializer");
-const rateLimit = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 
 const documentRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
-  keyGenerator: (req) => req.user?._id ?? req.ip,
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
   skip: (req) => req.user?.role === "admin",
   standardHeaders: "draft-7",
   legacyHeaders: false,
