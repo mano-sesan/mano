@@ -35,7 +35,7 @@ const {
 const mailservice = require("../utils/mailservice");
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, customFieldSchema, positiveIntegerRegex, customFieldGroupSchema, folderSchema } = require("../utils");
-const { serializeOrganisation } = require("../utils/data-serializer");
+const { serializeOrganisation, serializeTeam } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
@@ -809,8 +809,8 @@ router.get(
       error.status = 400;
       return next(error);
     }
-    const data = await Team.findAll({ where: { organisation: req.params.id }, include: ["Organisation"] });
-    return res.status(200).send({ ok: true, data });
+    const teams = await Team.findAll({ where: { organisation: req.params.id } });
+    return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
 );
 
