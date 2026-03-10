@@ -84,9 +84,12 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
               loading={submitting}
               onPress={async () => {
                 setSubmitting(true);
-                if (isNewRencontre) await createRencontre();
-                else await updateRencontre();
+                const response = isNewRencontre ? await createRencontre() : await updateRencontre();
                 setSubmitting(false);
+                if (!response.ok) {
+                  Alert.alert("Erreur", response.error || response.code || "Une erreur est survenue lors de l'enregistrement de la rencontre");
+                  return;
+                }
                 setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
                 navigation.goBack();
               }}
