@@ -844,6 +844,20 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
               ) : tableSizes && tableSizes.tablesSizes && tableSizes.tablesSizes.length === 0 ? (
                 <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune donnée trouvée pour cette organisation.</div>
               ) : null}
+              {tableSizes && tableSizes.documentsFolderSize !== null && tableSizes.documentsFolderSize !== undefined && (
+                <div className="tw-mt-4 tw-p-4 tw-bg-blue-50 tw-rounded tw-border tw-border-blue-200">
+                  <span className="tw-font-semibold">Documents (fichiers sur disque)&nbsp;: </span>
+                  <span className="tw-text-blue-800">
+                    {tableSizes.documentsFolderSize < 1024
+                      ? `${tableSizes.documentsFolderSize} octets`
+                      : tableSizes.documentsFolderSize < 1024 * 1024
+                        ? `${(tableSizes.documentsFolderSize / 1024).toFixed(1)} Ko`
+                        : tableSizes.documentsFolderSize < 1024 * 1024 * 1024
+                          ? `${(tableSizes.documentsFolderSize / (1024 * 1024)).toFixed(1)} Mo`
+                          : `${(tableSizes.documentsFolderSize / (1024 * 1024 * 1024)).toFixed(2)} Go`}
+                  </span>
+                </div>
+              )}
               {loadingTableSizes && <div className="tw-text-center tw-text-gray-500 tw-py-8">Chargement des tailles de tables...</div>}
             </div>
           ) : (

@@ -1734,6 +1734,36 @@ router.get(
       type: sequelize.QueryTypes.SELECT,
     });
 
+    // Calculate document folder size on disk
+    let documentsFolderSize = null;
+    try {
+      const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+      const orgStorageDir = path.join(basedir, id);
+      const dirExists = await fs.promises.access(orgStorageDir).then(
+        () => true,
+        () => false
+      );
+      if (dirExists) {
+        let totalSize = 0;
+        const walkDir = async (dir) => {
+          const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              await walkDir(fullPath);
+            } else {
+              const stat = await fs.promises.stat(fullPath);
+              totalSize += stat.size;
+            }
+          }
+        };
+        await walkDir(orgStorageDir);
+        documentsFolderSize = totalSize;
+      }
+    } catch (_err) {
+      // Ignore errors (directory not found, permissions, etc.)
+    }
+
     return res.status(200).send({
       ok: true,
       data: {
@@ -1743,6 +1773,7 @@ router.get(
           orgId: organisation.orgId,
         },
         tablesSizes,
+        documentsFolderSize,
       },
     });
   })
