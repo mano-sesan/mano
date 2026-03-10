@@ -64,14 +64,14 @@ test("Familles", async ({ page }) => {
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Le lien familial a été ajouté").click();
 
-    await expect(page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name })).toBeVisible();
+    await expect(page.getByRole("cell", { name: `${person1Name} et ${person2Name}` })).toBeVisible();
     await expect(page.getByRole("cell", { name: "rel", exact: true })).toBeVisible();
     await expect(page.getByRole("cell", { name: "User Admin Test - 1" })).toBeVisible();
   });
 
   await test.step("Can update relation", async () => {
     await page
-      .locator("tr", { has: page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name }) })
+      .locator("tr", { has: page.getByRole("cell", { name: `${person1Name} et ${person2Name}` }) })
       .getByRole("button", { name: "Modifier" })
       .click();
 
@@ -86,10 +86,10 @@ test("Familles", async ({ page }) => {
   await test.step("Can delete relation", async () => {
     page.once("dialog", (dialog) => dialog.accept());
     await page
-      .locator("tr", { has: page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name }) })
+      .locator("tr", { has: page.getByRole("cell", { name: `${person1Name} et ${person2Name}` }) })
       .getByRole("button", { name: "Supprimer" })
       .click();
-    await expect(page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name })).not.toBeVisible();
+    await expect(page.getByRole("cell", { name: `${person1Name} et ${person2Name}` })).not.toBeVisible();
     await expect(page.getByRole("cell", { name: "je suis ton père" })).not.toBeVisible();
     await expect(page.getByRole("cell", { name: "User Admin Test - 1" })).not.toBeVisible();
     await page.getByText("Le lien familial a été supprimé").click();
@@ -104,7 +104,7 @@ test("Familles", async ({ page }) => {
     await page.getByRole("button", { name: "Enregistrer" }).click();
     await page.getByText("Le lien familial a été ajouté").click();
 
-    await expect(page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name })).toBeVisible();
+    await expect(page.getByRole("cell", { name: `${person1Name} et ${person2Name}` })).toBeVisible();
     await expect(page.getByRole("cell", { name: "je suis ton père" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "User Admin Test - 1" })).toBeVisible();
   });
@@ -141,7 +141,7 @@ test("Familles", async ({ page }) => {
     await page.getByRole("cell", { name: person2Name }).click();
     await page.getByRole("button", { name: "Liens familiaux (1)" }).click();
 
-    await expect(page.getByTestId("family-relation-persons").filter({ hasText: person1Name }).filter({ hasText: person2Name })).toBeVisible();
+    await expect(page.getByRole("cell", { name: `${person1Name} et ${person2Name}` })).toBeVisible();
     await expect(page.getByRole("cell", { name: "je suis ton père" })).toBeVisible();
     await expect(page.getByRole("cell", { name: "User Admin Test - 1" })).toBeVisible();
   });

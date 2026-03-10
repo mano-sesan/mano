@@ -44,7 +44,7 @@ test("Documents organizer", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Le lien familial a été ajouté").click();
 
-  await expect(page.getByTestId("family-relation-persons").filter({ hasText: person2Name }).filter({ hasText: person1Name })).toBeVisible();
+  await expect(page.getByRole("cell", { name: `${person2Name} et ${person1Name}` })).toBeVisible();
   await expect(page.getByRole("cell", { name: "je suis ton père", exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "User Admin Test - 1" })).toBeVisible();
 
