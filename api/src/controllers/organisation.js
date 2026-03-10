@@ -1737,8 +1737,12 @@ router.get(
     // Calculate document folder size on disk
     let documentsFolderSize = null;
     try {
-      const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-      const orgStorageDir = path.join(basedir, id);
+      const basedir = path.resolve(STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads"));
+      const orgStorageDir = path.resolve(basedir, id);
+      // Prevent path traversal: ensure the resolved path stays within basedir
+      if (!orgStorageDir.startsWith(basedir + path.sep)) {
+        throw new Error("Invalid storage path");
+      }
       const dirExists = await fs.promises.access(orgStorageDir).then(
         () => true,
         () => false
