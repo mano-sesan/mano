@@ -19,7 +19,7 @@ const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const documentRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
-  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req),
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
   skip: (req) => req.user?.role === "admin",
   standardHeaders: "draft-7",
   legacyHeaders: false,
