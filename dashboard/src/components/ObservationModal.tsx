@@ -180,48 +180,50 @@ function ObservationContent({
     }
     setIsSubmitting(true);
     const [error, response] = observation?._id ? await updateTerritoryObs(body) : await addTerritoryObs(body);
-    if (!error) {
-      if (observation?._id) {
-        // When updating an existing observation, synchronize the team of all associated rencontres
-        // with the observation's team to maintain consistency
-        const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
-        let rencontreUpdateSuccess = true;
-        for (const r of rencontresToUpdate) {
-          const [error] = await tryFetchExpectOk(async () =>
-            API.put({
-              path: `/rencontre/${r._id}`,
-              body: await encryptRencontre({ ...r, team: observation.team }),
-            })
-          );
-          if (error) {
-            rencontreUpdateSuccess = false;
-          }
-        }
-        if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
-          toast.error("Une ou plusieurs rencontres n'ont pas pu être mises à jour");
+    if (error) {
+      toast.error("Erreur lors de l'enregistrement de l'observation");
+      setIsSubmitting(false);
+      return;
+    }
+    if (observation?._id) {
+      // When updating an existing observation, synchronize the team of all associated rencontres
+      // with the observation's team to maintain consistency
+      const rencontresToUpdate = rencontresForObs.filter((r) => r.team !== observation.team);
+      let rencontreUpdateSuccess = true;
+      for (const r of rencontresToUpdate) {
+        const [error] = await tryFetchExpectOk(async () =>
+          API.put({
+            path: `/rencontre/${r._id}`,
+            body: await encryptRencontre({ ...r, team: observation.team }),
+          })
+        );
+        if (error) {
+          rencontreUpdateSuccess = false;
         }
       }
-      await refresh();
-      toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
-      onClose();
-      if (response.data._id && rencontresInProgress.length > 0) {
-        let rencontreSuccess = true;
-        for (const rencontre of rencontresInProgress) {
-          const [error] = await tryFetchExpectOk(async () =>
-            API.post({
-              path: "/rencontre",
-              body: await encryptRencontre({ ...rencontre, observation: response.data._id, team: observation.team }),
-            })
-          );
-          if (error) {
-            rencontreSuccess = false;
-          }
-        }
-        if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
-        else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
-        await refresh();
+      if (!rencontreUpdateSuccess && rencontresToUpdate.length > 0) {
+        toast.error("Une ou plusieurs rencontres n'ont pas pu être mises à jour");
       }
     }
+    toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
+    if (response.data._id && rencontresInProgress.length > 0) {
+      let rencontreSuccess = true;
+      for (const rencontre of rencontresInProgress) {
+        const [error] = await tryFetchExpectOk(async () =>
+          API.post({
+            path: "/rencontre",
+            body: await encryptRencontre({ ...rencontre, observation: response.data._id, team: observation.team }),
+          })
+        );
+        if (error) {
+          rencontreSuccess = false;
+        }
+      }
+      if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
+      else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
+    }
+    await refresh();
+    onClose();
     // We do not set isSubmitting to false here because the modal will be closed
     // and the onAfterLeave will be called, which will set it to false
   }
@@ -318,11 +320,13 @@ function ObservationContent({
                   uploadBasePath={observation.territory ? `/territory/${observation.territory}/document` : undefined}
                   showAssociatedItem={false}
                   showAddDocumentButton={!!observation.territory}
-                  documents={(observation.documents || []).map((doc) => ({
-                    ...doc,
-                    type: doc.type ?? ("document" as const),
-                    linkedItem: { _id: observation?._id, type: "territory-observation" as const },
-                  })) as Array<DocumentWithLinkedItem>}
+                  documents={
+                    (observation.documents || []).map((doc) => ({
+                      ...doc,
+                      type: doc.type ?? ("document" as const),
+                      linkedItem: { _id: observation?._id, type: "territory-observation" as const },
+                    })) as Array<DocumentWithLinkedItem>
+                  }
                   onAddDocuments={async (nextDocuments) => {
                     const newData = {
                       ...observation,
