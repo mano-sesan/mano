@@ -40,6 +40,16 @@ const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../ut
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+const tableSizesRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10,
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests, please try again later" },
+});
 
 // Check for duplicate field names in customFieldsPersons across all organisations
 router.get(
@@ -1545,6 +1555,7 @@ router.get(
   "/:id/table-sizes",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
+  tableSizesRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -1734,6 +1745,40 @@ router.get(
       type: sequelize.QueryTypes.SELECT,
     });
 
+    // Calculate document folder size on disk
+    let documentsFolderSize = null;
+    try {
+      const basedir = path.resolve(STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads"));
+      const orgStorageDir = path.resolve(basedir, id);
+      // Prevent path traversal: ensure the resolved path stays within basedir
+      if (!orgStorageDir.startsWith(basedir + path.sep)) {
+        throw new Error("Invalid storage path");
+      }
+      const dirExists = await fs.promises.access(orgStorageDir).then(
+        () => true,
+        () => false
+      );
+      if (dirExists) {
+        let totalSize = 0;
+        const walkDir = async (dir) => {
+          const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              await walkDir(fullPath);
+            } else {
+              const stat = await fs.promises.stat(fullPath);
+              totalSize += stat.size;
+            }
+          }
+        };
+        await walkDir(orgStorageDir);
+        documentsFolderSize = totalSize;
+      }
+    } catch (_err) {
+      // Ignore errors (directory not found, permissions, etc.)
+    }
+
     return res.status(200).send({
       ok: true,
       data: {
@@ -1743,6 +1788,7 @@ router.get(
           orgId: organisation.orgId,
         },
         tablesSizes,
+        documentsFolderSize,
       },
     });
   })
