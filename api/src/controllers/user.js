@@ -1147,6 +1147,8 @@ router.post(
       return next(error);
     }
 
+    const _id = req.body._id;
+
     UserLog.create({
       organisation: req.user.organisation,
       user: req.user._id,
@@ -1154,7 +1156,6 @@ router.post(
       action: `release-user-${_id}`,
     });
 
-    const _id = req.body._id;
     const query = { where: { _id } };
     if (req.user.role !== "superadmin") query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
