@@ -261,7 +261,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
         )}
       </div>
 
-      <MenuItem
+      <MenuItems
         as="div"
         s
         anchor="top"
@@ -372,7 +372,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
             Observations
           </MenuItem>
         </div>
-      </MenuItem>
+      </MenuItems>
     </Menu>
   );
 }
