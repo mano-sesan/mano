@@ -98,7 +98,10 @@ const CustomFieldInput = ({ field, values, handleChange, model, colWidth = null,
           )}
           {!!["boolean"].includes(field.type) && (
             <div className="tw-basis-full tw-pt-1">
-              <label htmlFor={id} className="tw-flex tw-items-center tw-cursor-pointer tw-select-none tw-gap-2 tw-text-sm tw-font-semibold tw-text-gray-600">
+              <label
+                htmlFor={id}
+                className="tw-flex tw-items-center tw-cursor-pointer tw-select-none tw-gap-2 tw-text-sm tw-font-semibold tw-text-gray-600"
+              >
                 <input
                   type="checkbox"
                   id={id}

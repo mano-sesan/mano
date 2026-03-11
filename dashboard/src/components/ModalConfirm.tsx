@@ -12,6 +12,7 @@ type ModalConfirmState = {
       style?: string;
       className?: string;
     }[];
+    onClose?: () => void;
   };
 };
 
@@ -45,12 +46,15 @@ const ModalConfirm = () => {
   const [
     {
       open,
-      options: { title, subTitle, buttons },
+      options: { title, subTitle, buttons, onClose },
     },
     setModalConfirmState,
   ] = useAtom(modalConfirmState);
 
-  const close = () => setModalConfirmState((prevState) => ({ ...prevState, open: false }));
+  const close = () => {
+    onClose?.();
+    setModalConfirmState((prevState) => ({ ...prevState, open: false }));
+  };
 
   return (
     <ModalContainer
