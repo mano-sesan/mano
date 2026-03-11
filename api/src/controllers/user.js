@@ -153,7 +153,7 @@ router.get(
       ok: true,
       user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams),
     });
-  })
+  }),
 );
 
 router.post(
@@ -169,7 +169,7 @@ router.post(
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -284,7 +284,7 @@ router.post(
     res.cookie("jwt", token, cookieOptions());
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  })
+  }),
 );
 
 router.get(
@@ -348,7 +348,7 @@ router.get(
     createUserLog(req, user);
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  })
+  }),
 );
 
 router.post(
@@ -400,7 +400,7 @@ Si vous en êtes à l'origine, vous pouvez cliquer sur ce lien: ${link}`;
     await mailservice.sendEmail(user.email, subject, body);
 
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -458,7 +458,7 @@ router.post(
     if (name) user.set({ name: sanitizeAll(name) });
     await user.save();
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -514,7 +514,7 @@ router.post(
     const tx = await User.sequelize.transaction();
     await RelUserTeam.bulkCreate(
       teams.map((t) => ({ user: data._id, team: t._id, organisation: organisationId })),
-      { transaction: tx }
+      { transaction: tx },
     );
     await tx.commit();
     await user.save({ transaction: tx });
@@ -524,7 +524,7 @@ router.post(
       data.email,
       "Bienvenue dans Mano",
       null,
-      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible)
+      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible),
     );
 
     return res.status(200).send({
@@ -541,7 +541,7 @@ router.post(
         updatedAt: data.updatedAt,
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -601,7 +601,7 @@ router.post(
         gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025,
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -623,7 +623,7 @@ router.post(
       action: "decrypt-attempt-failure",
     });
     return res.status(200).send({ ok: false, error: "" });
-  })
+  }),
 );
 
 router.post(
@@ -642,7 +642,7 @@ router.post(
       action: "decrypt-attempt-success",
     });
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.get(
@@ -688,7 +688,7 @@ router.get(
       ok: true,
       data,
     });
-  })
+  }),
 );
 
 router.get(
@@ -703,7 +703,7 @@ router.get(
       paranoid: false,
     });
     return res.status(200).send({ ok: true, data: users });
-  })
+  }),
 );
 
 router.get(
@@ -748,7 +748,7 @@ router.get(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 router.get(
@@ -814,7 +814,7 @@ router.get(
     });
 
     return res.status(200).send({ ok: true, data });
-  })
+  }),
 );
 
 router.put(
@@ -826,7 +826,10 @@ router.put(
       z.object({
         name: z.optional(z.string().min(1)),
         phone: z.string().nullable().optional(),
-        email: z.preprocess((email) => (typeof email === "string" ? email.trim().toLowerCase() : email), z.string().email().optional().or(z.literal(""))),
+        email: z.preprocess(
+          (email) => (typeof email === "string" ? email.trim().toLowerCase() : email),
+          z.string().email().optional().or(z.literal("")),
+        ),
         currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
@@ -882,7 +885,7 @@ router.put(
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx }
+        { transaction: tx },
       );
     }
     await user.save({ transaction: tx });
@@ -905,7 +908,7 @@ router.put(
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
       },
     });
-  })
+  }),
 );
 
 router.put(
@@ -967,7 +970,7 @@ router.put(
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx }
+        { transaction: tx },
       );
     }
 
@@ -992,7 +995,7 @@ router.put(
         team: (await user.getTeams({ raw: true, attributes: ["_id"] })).map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 const clearUserData = async (user) => {
@@ -1051,7 +1054,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.delete(
@@ -1096,7 +1099,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -1126,7 +1129,7 @@ router.post(
     await user.save();
 
     return res.status(200).send({ ok: true, data: { link } });
-  })
+  }),
 );
 
 router.post(
@@ -1143,6 +1146,13 @@ router.post(
       error.status = 400;
       return next(error);
     }
+
+    UserLog.create({
+      organisation: req.user.organisation,
+      user: req.user._id,
+      platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
+      action: `release-user-${_id}`,
+    });
 
     const _id = req.body._id;
     const query = { where: { _id } };
@@ -1178,7 +1188,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -1230,7 +1240,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 module.exports = router;
