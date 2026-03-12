@@ -205,6 +205,15 @@ router.post(
       });
     }
 
+    const userOrganisation = await Organisation.findOne({ where: { _id: user.organisation }, attributes: ["_id", "disabledAt"] });
+    if (!userOrganisation || userOrganisation.disabledAt) {
+      return res.status(403).send({
+        ok: false,
+        error: "Cette organisation a été temporairement désactivée",
+        code: "ORGANISATION_DISABLED",
+      });
+    }
+
     if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
@@ -315,6 +324,11 @@ router.get(
 
     if (user.disabledAt) {
       return res.status(403).send({ ok: false, error: "Ce compte a été désactivé", code: "ACCOUNT_DISABLED" });
+    }
+
+    const userOrg = await Organisation.findOne({ where: { _id: user.organisation }, attributes: ["_id", "disabledAt"] });
+    if (!userOrg || userOrg.disabledAt) {
+      return res.status(403).send({ ok: false, error: "Cette organisation a été temporairement désactivée", code: "ORGANISATION_DISABLED" });
     }
 
     if (["superadmin"].includes(user.role)) {
@@ -611,6 +625,10 @@ router.post(
   catchErrors(async (req, res) => {
     const _id = req.user._id;
     const user = await User.findOne({ where: { _id } });
+
+    if (user.decryptAttempts >= 12) {
+      return res.status(403).send({ ok: false, error: "Trop de tentatives de déchiffrement infructueuses, le compte n'est plus accessible" });
+    }
 
     const decryptAttempts = (user.decryptAttempts || 0) + 1;
 
