@@ -205,7 +205,7 @@ export default function SuperadminOrganisationUsers({
                                 if (!window.confirm(`Voulez-vous vraiment désactiver le compte de ${user.name || user.email} ?`)) return;
                                 setIsDisablingUser(user._id);
                                 (async () => {
-                                  const [error] = await tryFetchExpectOk(async () =>
+                                  const [error, response] = await tryFetchExpectOk(async () =>
                                     API.post({ path: `/user/disable-user`, body: { _id: user._id } })
                                   );
                                   if (error) {
@@ -214,7 +214,7 @@ export default function SuperadminOrganisationUsers({
                                   }
                                   toast.success("Utilisateur désactivé");
                                   setIsDisablingUser(false);
-                                  const updatedUser = { ...user, disabledAt: new Date().toISOString() };
+                                  const updatedUser = { ...user, disabledAt: response.user.disabledAt };
                                   setUsers((prev) => prev.map((u) => (u._id === user._id ? updatedUser : u)));
                                 })();
                               }}
