@@ -272,6 +272,7 @@ router.delete(
           _id: req.params._id,
           organisation: req.user.organisation,
         },
+        attributes: ["_id"],
       });
       if (territory) await territory.destroy({ transaction: tx });
       for (let _id of req.body.observationIds || []) {
@@ -297,7 +298,7 @@ router.post(
     } catch (e) {
       return res.status(400).send({ ok: false, error: "Invalid request" });
     }
-    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation }, attributes: ["_id"] });
     if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     next();
   }),
@@ -348,7 +349,7 @@ router.get(
       error.status = 400;
       return next(error);
     }
-    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation }, attributes: ["_id"] });
     if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
     const file = path.resolve(dir, req.params.filename);
@@ -378,7 +379,7 @@ router.delete(
       error.status = 400;
       return next(error);
     }
-    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation } });
+    const territory = await Territory.findOne({ where: { _id: req.params.id, organisation: req.user.organisation }, attributes: ["_id"] });
     if (!territory) return res.status(404).send({ ok: false, error: "Not found" });
     const dir = territoryDocumentBasedir(req.user.organisation, req.params.id);
     const file = path.resolve(dir, req.params.filename);

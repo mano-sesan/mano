@@ -482,7 +482,7 @@ router.delete(
         relsPersonPlaceIdsToDelete,
       } = req.body;
 
-      let person = await Person.findOne({ where: { _id: req.params._id, organisation: req.user.organisation } });
+      let person = await Person.findOne({ where: { _id: req.params._id, organisation: req.user.organisation }, attributes: ["_id"] });
       if (person) {
         await Person.update(
           { deletedBy: req.user._id },

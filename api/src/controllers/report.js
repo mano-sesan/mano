@@ -205,7 +205,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const report = await Report.findOne(query);
+    const report = await Report.findOne({ ...query, attributes: ["_id"] });
     if (!report) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await report.destroy();

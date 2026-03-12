@@ -129,7 +129,7 @@ router.put(
     await sequelize.transaction(async (t) => {
       for (const treatment of req.body.treatments) {
         const query = { where: { _id: treatment._id, organisation: req.user.organisation } };
-        if (!(await Treatment.findOne(query))) {
+        if (!(await Treatment.findOne({ ...query, attributes: ["_id"] }))) {
           const error = new Error(`Treatment not found`);
           error.status = 404;
           throw error;
@@ -145,7 +145,7 @@ router.put(
       }
       for (const consultation of req.body.consultations) {
         const query = { where: { _id: consultation._id, organisation: req.user.organisation } };
-        if (!(await Consultation.findOne(query))) {
+        if (!(await Consultation.findOne({ ...query, attributes: ["_id"] }))) {
           const error = new Error(`Consultation not found`);
           error.status = 404;
           throw error;
@@ -160,7 +160,7 @@ router.put(
         await Consultation.update(updateConsultation, query, { silent: false, transaction: t });
       }
       const query = { where: { _id: req.body.medicalFile._id, organisation: req.user.organisation } };
-      if (!(await MedicalFile.findOne(query))) {
+      if (!(await MedicalFile.findOne({ ...query, attributes: ["_id"] }))) {
         const error = new Error(`MedicalFile not found`);
         error.status = 404;
         throw error;
@@ -201,7 +201,7 @@ router.put(
       return next(error);
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const medicalFile = await MedicalFile.findOne(query);
+    const medicalFile = await MedicalFile.findOne({ ...query, attributes: ["_id"] });
     if (!medicalFile) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -245,7 +245,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const medicalFile = await MedicalFile.findOne(query);
+    const medicalFile = await MedicalFile.findOne({ ...query, attributes: ["_id"] });
     if (!medicalFile) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await medicalFile.destroy();
