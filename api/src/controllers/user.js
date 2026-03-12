@@ -43,6 +43,13 @@ function logoutCookieOptions() {
   }
 }
 
+function getClientInfo(req) {
+  return {
+    ip: req.ip || null,
+    userAgent: req.headers["user-agent"] || null,
+  };
+}
+
 function createUserLog(req, user) {
   if (req.headers.platform === "android") {
     try {
@@ -77,6 +84,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "app",
       action: "login",
+      ...getClientInfo(req),
       debugApp: {
         version: req.headers.version,
         apilevel: req.body.apilevel,
@@ -122,6 +130,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "dashboard",
       action: "login",
+      ...getClientInfo(req),
       debugDashboard: {
         browserType: req.body.browsertype,
         browserName: req.body.browsername,
@@ -136,6 +145,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "unknown",
       action: "login",
+      ...getClientInfo(req),
     });
   }
 }
@@ -166,6 +176,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "logout",
+      ...getClientInfo(req),
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
@@ -370,6 +381,7 @@ router.post(
     UserLog.create({
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `forgot-password-${email}`,
+      ...getClientInfo(req),
     });
 
     if (!email) return res.status(403).send({ ok: false, error: "Veuillez fournir un email", code: EMAIL_OR_PASSWORD_INVALID });
@@ -430,6 +442,7 @@ router.post(
       UserLog.create({
         platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
         action: `forgot-password-reset-failed-${token}`,
+        ...getClientInfo(req),
       });
       return res.status(400).send({ ok: false, error: "Le lien est non valide ou expiré" });
     }
@@ -448,6 +461,7 @@ router.post(
       user: user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "forgot-password-reset",
+      ...getClientInfo(req),
     });
     user.set({
       password: password,
@@ -502,6 +516,7 @@ router.post(
       user: req.user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `create-user-${sanitizeAll(email.trim().toLowerCase())}`,
+      ...getClientInfo(req),
     });
 
     const prevUser = await User.findOne({ where: { email: newUser.email } });
@@ -621,6 +636,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-failure",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: false, error: "" });
   }),
@@ -640,6 +656,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-success",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: true });
   }),
@@ -1035,6 +1052,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-me`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, organisation: req.user.organisation } };
@@ -1079,6 +1097,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-user-${userId}`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, role: { [Op.ne]: "superadmin" } } };
@@ -1154,6 +1173,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `release-user-${_id}`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id } };
@@ -1219,6 +1239,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `disable-user-${_id}`,
+      ...getClientInfo(req),
     });
 
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });

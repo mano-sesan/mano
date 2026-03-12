@@ -759,6 +759,8 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-organisation-${req.params._id}`,
+      ip: req.ip || null,
+      userAgent: req.headers["user-agent"] || null,
     });
 
     // Super admin can delete any organisation. Admin can delete only their organisation.

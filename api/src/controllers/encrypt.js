@@ -99,6 +99,8 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "change-encryption-key",
+      ip: req.ip || null,
+      userAgent: req.headers["user-agent"] || null,
     });
 
     try {
