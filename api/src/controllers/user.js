@@ -387,7 +387,7 @@ router.post(
 
     const token = crypto.randomBytes(20).toString("hex");
     user.forgotPasswordResetToken = token;
-    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 24 * 30 * 1000); // 30 days
+    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 2 * 1000); // 2 hours
 
     let link = `https://espace-mano.sesan.fr/auth/reset?token=${token}`;
     if (!user.name) link += `&newUser=true`;
@@ -1123,7 +1123,7 @@ router.post(
 
     const token = crypto.randomBytes(20).toString("hex");
     user.forgotPasswordResetToken = token;
-    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 24 * 30 * 1000); // 30 days
+    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 2 * 1000); // 2 hours
     let link = `https://espace-mano.sesan.fr/auth/reset?token=${token}`;
     if (!user.name) link += `&newUser=true`;
     await user.save();
