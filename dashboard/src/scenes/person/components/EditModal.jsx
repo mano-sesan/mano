@@ -269,7 +269,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
           if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
         }
         if (Object.keys(historyEntry.data).length) {
-          bodySocial.history = [...(latestPersonHistory || []), historyEntry];
+          bodySocial.history = [...cleanHistory(latestPersonHistory || []), historyEntry];
 
           const [personError, legacyResponse] = await tryFetchExpectOk(async () =>
             API.put({
