@@ -1208,6 +1208,9 @@ router.post(
     }
 
     const _id = req.body._id;
+    if (_id === req.user._id) {
+      return res.status(403).send({ ok: false, error: "Vous ne pouvez pas désactiver votre propre compte" });
+    }
     const user = await User.findOne({ where: { _id } });
     if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
 

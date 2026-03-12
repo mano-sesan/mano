@@ -179,11 +179,14 @@ export default function SuperadminOrganisationUsers({
                                   const [error] = await tryFetchExpectOk(async () =>
                                     API.post({ path: `/user/reactivate-user`, body: { _id: user._id } })
                                   );
-                                  if (error) return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                                  if (error) {
+                                    setIsReactivatingUser(false);
+                                    return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                                  }
                                   toast.success("Utilisateur réactivé");
                                   setIsReactivatingUser(false);
                                   const updatedUser = { ...user, disabledAt: null };
-                                  setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+                                  setUsers((prev) => prev.map((u) => (u._id === user._id ? updatedUser : u)));
                                 })();
                               }}
                             >
@@ -205,11 +208,14 @@ export default function SuperadminOrganisationUsers({
                                   const [error] = await tryFetchExpectOk(async () =>
                                     API.post({ path: `/user/disable-user`, body: { _id: user._id } })
                                   );
-                                  if (error) return toast.error("Erreur lors de la désactivation de l'utilisateur");
+                                  if (error) {
+                                    setIsDisablingUser(false);
+                                    return toast.error("Erreur lors de la désactivation de l'utilisateur");
+                                  }
                                   toast.success("Utilisateur désactivé");
                                   setIsDisablingUser(false);
                                   const updatedUser = { ...user, disabledAt: new Date().toISOString() };
-                                  setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+                                  setUsers((prev) => prev.map((u) => (u._id === user._id ? updatedUser : u)));
                                 })();
                               }}
                             >
