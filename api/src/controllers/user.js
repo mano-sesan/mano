@@ -1193,6 +1193,61 @@ router.post(
 );
 
 router.post(
+  "/disable-user",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        _id: z.string().regex(looseUuidRegex),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in disable user: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const _id = req.body._id;
+    const user = await User.findOne({ where: { _id } });
+    if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    user.disabledAt = new Date();
+    await user.save();
+
+    UserLog.create({
+      organisation: user.organisation,
+      user: req.user._id,
+      platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
+      action: `disable-user-${_id}`,
+    });
+
+    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+
+    return res.status(200).send({
+      ok: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        role: user.role,
+        healthcareProfessional: user.healthcareProfessional,
+        lastChangePasswordAt: user.lastChangePasswordAt,
+        termsAccepted: user.termsAccepted,
+        cgusAccepted: user.cgusAccepted,
+        lastLoginAt: user.lastLoginAt,
+        decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
+        team: team.map((t) => t._id),
+      },
+    });
+  }),
+);
+
+router.post(
   "/reactivate-user",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin"]),
