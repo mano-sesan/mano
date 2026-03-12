@@ -16,8 +16,8 @@
     "printWidth": 150
   },
   "dependencies": {
-    "@sentry/node": "^7.14.0",
-    "@sentry/tracing": "^7.14.0",
+    "@sentry/node": "^7.120.4",
+    "@sentry/tracing": "^7.120.4",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
@@ -28,7 +28,7 @@
     "helmet": "^4.0.0",
     "morgan": "^1.10.0",
     "multer": "^2.1.1",
-    "nodemailer": "^7.0.7",
+    "nodemailer": "^8.0.2",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "password-validator": "^5.1.0",
@@ -43,14 +43,12 @@
     "@types/jsonwebtoken": "^9.0.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
-    "nodemon": "^2.0.15"
+    "nodemon": "^3.1.14"
   },
   "resolutions": {
     "socks": "2.8.7",
     "path-to-regexp": "0.1.12",
     "make-dir/semver": "6.3.1",
-    "package-json/semver": "6.3.1",
-    "semver-diff/semver": "6.3.1",
     "glob": "10.5.0",
     "sequelize/validator": "13.15.22"
   },

@@ -10,7 +10,7 @@
     "@types/node": "^25.2.2",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
-    "node-talisman": "^1.29.3"
+    "node-talisman": "^1.29.22"
   },
   "scripts": {
     "test:start-dashboard-for-record": "VITE_HOST=127.0.0.1:8091 VITE_SCHEME=http VITE_TEST=true VITE_TEST_PLAYWRIGHT=true PORT=8090 yarn --cwd ./dashboard dev-test",
