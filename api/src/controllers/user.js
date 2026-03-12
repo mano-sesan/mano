@@ -205,7 +205,16 @@ router.post(
       });
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
+      return res.status(403).send({
+        ok: false,
+        error: "Cette organisation a été temporairement désactivée",
+        code: "ORGANISATION_DISABLED",
+      });
+    }
+
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -275,7 +284,6 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
@@ -317,13 +325,18 @@ router.get(
       return res.status(403).send({ ok: false, error: "Ce compte a été désactivé", code: "ACCOUNT_DISABLED" });
     }
 
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
+      return res.status(403).send({ ok: false, error: "Cette organisation a été temporairement désactivée", code: "ORGANISATION_DISABLED" });
+    }
+
     if (["superadmin"].includes(user.role)) {
       if (!user.lastOtpAt || dayjs(user.lastOtpAt).isBefore(dayjs().subtract(1, "month"))) {
         return res.status(401).send({ ok: false });
       }
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -340,7 +353,6 @@ router.get(
       });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
@@ -611,6 +623,10 @@ router.post(
   catchErrors(async (req, res) => {
     const _id = req.user._id;
     const user = await User.findOne({ where: { _id } });
+
+    if (user.decryptAttempts >= 12) {
+      return res.status(403).send({ ok: false, error: "Trop de tentatives de déchiffrement infructueuses, le compte n'est plus accessible" });
+    }
 
     const decryptAttempts = (user.decryptAttempts || 0) + 1;
 
