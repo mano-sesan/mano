@@ -115,7 +115,7 @@ router.put(
       return next(error);
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const passage = await Passage.findOne(query);
+    const passage = await Passage.findOne({ ...query, attributes: ["_id"] });
     if (!passage) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -159,7 +159,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const passage = await Passage.findOne(query);
+    const passage = await Passage.findOne({ ...query, attributes: ["_id"] });
     if (!passage) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await passage.destroy();

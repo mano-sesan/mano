@@ -114,7 +114,7 @@ router.put(
       return next(error);
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const comment = await Group.findOne(query);
+    const comment = await Group.findOne({ ...query, attributes: ["_id"] });
     if (!comment) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -158,7 +158,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const group = await Group.findOne(query);
+    const group = await Group.findOne({ ...query, attributes: ["_id"] });
     if (!group) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await group.destroy();

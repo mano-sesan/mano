@@ -112,7 +112,7 @@ router.put(
     }
 
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const territoryObservation = await TerritoryObservation.findOne(query);
+    const territoryObservation = await TerritoryObservation.findOne({ ...query, attributes: ["_id"] });
     if (!territoryObservation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -155,7 +155,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    let observation = await TerritoryObservation.findOne(query);
+    let observation = await TerritoryObservation.findOne({ ...query, attributes: ["_id"] });
     if (!observation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await observation.destroy();

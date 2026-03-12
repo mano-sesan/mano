@@ -114,7 +114,7 @@ router.put(
       return next(error);
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const treatment = await Treatment.findOne(query);
+    const treatment = await Treatment.findOne({ ...query, attributes: ["_id"] });
     if (!treatment) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -158,7 +158,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const treatment = await Treatment.findOne(query);
+    const treatment = await Treatment.findOne({ ...query, attributes: ["_id"] });
     if (!treatment) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await treatment.destroy();

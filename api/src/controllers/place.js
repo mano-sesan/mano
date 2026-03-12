@@ -168,6 +168,7 @@ router.delete(
           _id: req.params._id,
           organisation: req.user.organisation,
         },
+        attributes: ["_id"],
       });
       if (place) await place.destroy({ transaction: tx });
       for (let _id of req.body.relsPersonPlaceIds || []) {
