@@ -8,6 +8,24 @@ Mano is a French social services management platform for tracking vulnerable pop
 
 **Key feature**: Client-side encryption using libsodium for sensitive personal data.
 
+## ⚠️ Dépôt public — Confidentialité
+
+Ce dépôt est **open source et public**. Tout ce qui est committé, commenté dans une issue ou une PR est visible par n'importe qui sur Internet.
+
+**Ne jamais inclure** dans le code, les commits, les messages de commit, les commentaires d'issues ou de PR :
+- Des URLs d'environnements de production ou de staging (noms de domaine, IPs, endpoints)
+- Des noms d'organisations, d'utilisateurs réels ou de structures partenaires
+- Des secrets, tokens, clés API, mots de passe (même expirés)
+- Des données personnelles ou métier, même anonymisées partiellement
+- Des extraits de logs de production
+- Des informations sur l'infrastructure (noms de serveurs, configurations réseau, versions de services en production)
+
+**Bonnes pratiques** :
+- Utiliser des données fictives ou les credentials de test documentés ci-dessous pour les exemples
+- Dans les issues/PR, décrire les problèmes de manière générique sans référencer d'environnement réel
+- Pour les corrections de failles de sécurité ou de bugs sensibles : rester volontairement vague dans les messages de commit et les PR. Ne pas détailler la nature exacte de la vulnérabilité ni comment elle était exploitable. Un correctif publié sur un dépôt public est aussi un mode d'emploi pour quiconque lit l'historique — même une faille corrigée peut nuire si elle est documentée trop précisément (ex : utilisateurs sur des versions antérieures)
+- En cas de doute, demander avant de publier
+
 ## Common Commands
 
 ### Root (E2E Tests with Playwright)
