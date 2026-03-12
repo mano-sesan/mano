@@ -147,7 +147,7 @@ const MergeTwoPersons = ({ person }) => {
           const _doc = _docOrFolder;
           return {
             ..._doc,
-            downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
+            downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file?.filename}`,
           };
         }),
       ],
@@ -324,7 +324,7 @@ const MergeTwoPersons = ({ person }) => {
               ...(originPersonMedicalFile.documents || []),
               ...((personToMergeMedicalFile || {}).documents || []).map((_doc) => ({
                 ..._doc,
-                downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
+                downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file?.filename}`,
               })),
             ],
             comments: [
@@ -348,7 +348,7 @@ const MergeTwoPersons = ({ person }) => {
             person: originPerson._id,
             documents: (personToMergeMedicalFile.documents || []).map((_doc) => ({
               ..._doc,
-              downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
+              downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file?.filename}`,
             })),
             comments: [
               ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
