@@ -108,8 +108,9 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
     let personSuccess = true;
     let medicalFileSuccess = true;
 
-    // Track the most recent updatedAt timestamp for race condition detection
+    // Track the most recent person state for race condition prevention across sequential saves
     let latestPersonUpdatedAt = person.updatedAt;
+    let latestPersonHistory = person.history;
 
     // Save person data if it has changed
     if (personHasChanged) {
@@ -202,9 +203,11 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
       if (personError) {
         personSuccess = false;
         success = false;
-      } else if (personResponse?.data?.updatedAt) {
-        // Update the latest timestamp from the response
-        latestPersonUpdatedAt = personResponse.data.updatedAt;
+      } else {
+        if (personResponse?.data?.updatedAt) {
+          latestPersonUpdatedAt = personResponse.data.updatedAt;
+        }
+        latestPersonHistory = body.history || latestPersonHistory;
       }
     }
 
@@ -265,24 +268,26 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
           if (!allowedFieldsInHistory.includes(key)) continue;
           if (bodySocial[key] !== person[key]) historyEntry.data[key] = { oldValue: person[key], newValue: bodySocial[key] };
         }
-        if (Object.keys(historyEntry.data).length) bodySocial.history = [...(person.history || []), historyEntry];
+        if (Object.keys(historyEntry.data).length) {
+          bodySocial.history = [...cleanHistory(latestPersonHistory || []), historyEntry];
 
-        const [personError, legacyResponse] = await tryFetchExpectOk(async () =>
-          API.put({
-            path: `/person/${person._id}`,
-            body: await encryptPerson(bodySocial),
-            raceDetection: {
-              originalUpdatedAt: latestPersonUpdatedAt,
-              component: "EditModal-LegacyFields",
-            },
-          })
-        );
+          const [personError, legacyResponse] = await tryFetchExpectOk(async () =>
+            API.put({
+              path: `/person/${person._id}`,
+              body: await encryptPerson(bodySocial),
+              raceDetection: {
+                originalUpdatedAt: latestPersonUpdatedAt,
+                component: "EditModal-LegacyFields",
+              },
+            })
+          );
 
-        if (personError) {
-          success = false;
-        } else if (legacyResponse?.data?.updatedAt) {
-          // Update the latest timestamp from the response
-          latestPersonUpdatedAt = legacyResponse.data.updatedAt;
+          if (personError) {
+            success = false;
+          } else if (legacyResponse?.data?.updatedAt) {
+            // Update the latest timestamp from the response
+            latestPersonUpdatedAt = legacyResponse.data.updatedAt;
+          }
         }
       }
     }
