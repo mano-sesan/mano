@@ -26,6 +26,17 @@ const validateEncryptionAndMigrations = require("../middleware/validateEncryptio
 const validateUser = require("../middleware/validateUser");
 const { looseUuidRegex, cryptoHexRegex, positiveIntegerRegex, detectAndLogRaceCondition } = require("../utils");
 const { capture } = require("../sentry");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+const documentRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,
+  keyGenerator: (req) => req.user?._id ?? ipKeyGenerator(req.ip),
+  skip: (req) => req.user?.role === "admin",
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Too many requests, please try again later" },
+});
 
 // Return the basedir to store persons' documents.
 function personDocumentBasedir(userOrganisation, personId) {
@@ -39,6 +50,7 @@ router.post(
   "/:id/document",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -87,6 +99,7 @@ router.get(
   "/:id/document/:filename",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -114,6 +127,7 @@ router.delete(
   "/:id/document/:filename",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({

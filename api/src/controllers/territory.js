@@ -286,9 +286,9 @@ router.delete(
 // Upload a document for a territory.
 router.post(
   "/:id/document",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -334,9 +334,9 @@ router.post(
 // Download a file for a territory by its filename.
 router.get(
   "/:id/document/:filename",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -364,9 +364,9 @@ router.get(
 // Delete a file for a territory by its filename.
 router.delete(
   "/:id/document/:filename",
-  documentRateLimiter,
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "normal"]),
+  documentRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
