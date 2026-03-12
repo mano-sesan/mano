@@ -17,8 +17,7 @@
     "@nivo/stream": "0.85.1",
     "@react-hookz/web": "24.0.4",
     "@react-pdf/renderer": "^4.3.2",
-    "@sentry/browser": "6.19.7",
-    "@sentry/react": "7.116.0",
+    "@sentry/react": "7.120.4",
     "@sentry/vite-plugin": "2.17.0",
     "@ungap/structured-clone": "1.2.0",
     "@zip.js/zip.js": "2.7.48",
@@ -137,11 +136,12 @@
   "resolutions": {
     "socks": "2.8.7",
     "react-router/path-to-regexp": "1.9.0",
-    "react-js-pagination/tar": "6.2.0",
+    "tar": "6.2.1",
     "glob": "10.5.0",
     "@npmcli/fs/semver": "7.5.2",
     "fork-ts-checker-webpack-plugin/semver": "7.5.2",
-    "node-gyp/semver": "7.5.2"
+    "node-gyp/semver": "7.5.2",
+    "js-yaml": "4.1.1"
   },
   "packageManager": "yarn@4.0.2"
 }
