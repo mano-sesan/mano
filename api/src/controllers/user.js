@@ -205,8 +205,8 @@ router.post(
       });
     }
 
-    const userOrganisation = await Organisation.findOne({ where: { _id: user.organisation }, attributes: ["_id", "disabledAt"] });
-    if (!userOrganisation || userOrganisation.disabledAt) {
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
       return res.status(403).send({
         ok: false,
         error: "Cette organisation a été temporairement désactivée",
@@ -214,7 +214,7 @@ router.post(
       });
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -284,7 +284,6 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
@@ -326,8 +325,8 @@ router.get(
       return res.status(403).send({ ok: false, error: "Ce compte a été désactivé", code: "ACCOUNT_DISABLED" });
     }
 
-    const userOrg = await Organisation.findOne({ where: { _id: user.organisation }, attributes: ["_id", "disabledAt"] });
-    if (!userOrg || userOrg.disabledAt) {
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
       return res.status(403).send({ ok: false, error: "Cette organisation a été temporairement désactivée", code: "ORGANISATION_DISABLED" });
     }
 
@@ -337,7 +336,7 @@ router.get(
       }
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -354,7 +353,6 @@ router.get(
       });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));

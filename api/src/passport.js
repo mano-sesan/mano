@@ -22,7 +22,7 @@ module.exports = (app) => {
         const user = await User.findOne({ where: { _id } });
         if (user) {
           if (user.disabledAt) return done(null, false);
-          if (user.loginAttempts > 12 || user.decryptAttempts > 12) return done(null, false);
+          if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) return done(null, false);
 
           if (user.organisation) {
             const org = await Organisation.findOne({ where: { _id: user.organisation }, attributes: ["_id", "disabledAt"] });
