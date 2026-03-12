@@ -9,6 +9,7 @@ const crypto = require("crypto");
 const { z } = require("zod");
 const { v4: uuidv4 } = require("uuid");
 const { catchErrors } = require("../errors");
+const getClientInfo = require("../utils/getClientInfo");
 const {
   Organisation,
   Person,
@@ -759,8 +760,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-organisation-${req.params._id}`,
-      ip: req.ip || null,
-      userAgent: req.headers["user-agent"] || null,
+      ...getClientInfo(req),
     });
 
     // Super admin can delete any organisation. Admin can delete only their organisation.
