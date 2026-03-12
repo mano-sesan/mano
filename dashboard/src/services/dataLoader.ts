@@ -36,6 +36,7 @@ import { errorMessage } from "../utils";
 import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
 import { awaitSetAtomAndIDBCache } from "../store";
+import structuredClone from "@ungap/structured-clone";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
