@@ -38,7 +38,7 @@
       "extends": "production",
       "env": {
         "PACKAGE_ID": "com.sesan.mano.nantes",
-        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-nantes "
+        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-nantes"
       }
     }
   },
