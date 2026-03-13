@@ -33,9 +33,8 @@ router.get("/version", async (req, res) => {
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
-- Documents multipages (plusieurs photos pour un seul document PDF)
-- Couleurs d'équipe personnalisables
-- Date d'observation modifiable dès la création
+- Retour du filtre par équipe dans les personnes suivies
+- Compatibilité avec les documents pour les territoires (seulement sur le web pour le moment)
 - Quelques bugs mineurs corrigés`,
       [
         { text: "Télécharger", link: downloadLink },
