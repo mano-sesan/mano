@@ -34,7 +34,7 @@ router.get("/version", async (req, res) => {
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
 - Retour du filtre par équipe dans les personnes suivies
-- Compatiblité avec les documents pour les territoires (seulement sur le web pour le moment)
+- Compatibilité avec les documents pour les territoires (seulement sur le web pour le moment)
 - Quelques bugs mineurs corrigés`,
       [
         { text: "Télécharger", link: downloadLink },
