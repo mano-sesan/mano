@@ -61,8 +61,11 @@ const Passage = ({ passage, personId, onFinished }) => {
           if (outOfBoundariesDate(body.date)) return toast.error("La date est hors limites (entre 1900 et 2100)");
           if (!body.team) return toast.error("L'équipe est obligatoire");
           if (body.anonymous && !body.anonymousNumberOfPassages) return toast.error("Veuillez spécifier le nombre de passages anonymes");
-          if (!body.anonymous && (showMultiSelect ? !body.persons?.length : !body.person?.length) && !isEditingAnonymous)
+          let noPerson = !body.persons?.length && !body.person?.length;
+          if (!body.anonymous && noPerson && !isEditingAnonymous) {
+            console.log("Veuillez spécifier une personne");
             return toast.error("Veuillez spécifier une personne");
+          }
 
           if (isNew) {
             const newPassage = {
@@ -94,10 +97,11 @@ const Passage = ({ passage, personId, onFinished }) => {
                 }
               }
             } else {
+              let person = body.person || body.persons?.[0];
               const [passageError] = await tryFetchExpectOk(async () =>
                 API.post({
                   path: "/passage",
-                  body: await encryptPassage({ ...newPassage, person: body.person }),
+                  body: await encryptPassage({ ...newPassage, person }),
                 })
               );
               if (passageError) {
