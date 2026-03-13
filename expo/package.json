@@ -1,6 +1,6 @@
 {
   "name": "mano",
-  "version": "3.19.0",
+  "version": "3.20.0",
   "main": "index.tsx",
   "scripts": {
     "start": "npm run get-ip && expo start --dev-client --clear",
@@ -13,6 +13,7 @@
     "update-mobile-app-version": "npx tsx ./update-mobile-app-version.ts",
     "build-local:android-apk-standard": "eas build -p android --local --output ./mano-standard.apk --profile production",
     "build-local:android-apk-niort": "eas build -p android --local --output ./mano-niort.apk --profile production-niort",
+    "build-local:android-apk-nantes": "eas build -p android --local --output ./mano-nantes.apk --profile production-nantes",
     "build-local:android-apks": "npm run build-local:android-apk-standard && npm run build-local:android-apk-niort",
     "publish-releases-to-github": "node publish-releases-to-github.js",
     "typecheck": "tsc -b",
