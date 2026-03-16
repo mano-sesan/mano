@@ -82,7 +82,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -149,7 +149,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -217,7 +217,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -254,9 +254,9 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByRole("list").getByText("Rencontres")).toBeVisible();
     await expect(page.getByRole("list").getByText("Observations")).toBeVisible();
     await expect(page.getByRole("list").getByText("Comptes-rendus")).toBeVisible();
-    await expect(page.getByRole("list").getByText("Consultations")).toBeVisible();
-    await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes suivies", { exact: true })).toBeVisible();
-    await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes créées", { exact: true })).toBeVisible();
+    await expect(page.getByRole("list").getByText("Consultations")).not.toBeVisible();
+    await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes suivies", { exact: true })).not.toBeVisible();
+    await expect(page.getByRole("list").getByText("Dossiers médicaux des personnes créées", { exact: true })).not.toBeVisible();
 
     await expect(page.getByRole("link", { name: "Organisation" })).not.toBeVisible();
     await expect(page.getByRole("link", { name: "Équipes" })).not.toBeVisible();
@@ -277,7 +277,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -324,11 +324,8 @@ test("test restricted accesses", async ({ page }) => {
     await page.getByRole("button", { name: "Fusionner avec un autre dossier" }).click();
     await clickOnEmptyReactSelect(page, "person-to-merge-with-select", person1Name);
 
-    page.on("dialog", async (dialog) => {
-      await dialog.accept();
-    });
-
-    await page.getByRole("dialog").getByRole("button", { name: "Fusionner" }).click();
+    await page.locator('[data-test-id="modal"]').getByRole("button", { name: "Fusionner" }).click();
+    await page.getByLabel("Confirmer la fusion").getByRole("button", { name: "Fusionner" }).click();
     await page.getByText("Fusion réussie !").click();
   });
 
@@ -343,7 +340,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person2Name }).click();
 
@@ -379,7 +376,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
     ).toBeVisible();
     await page.getByRole("cell", { name: person2Name }).click();
 

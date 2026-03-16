@@ -11,6 +11,7 @@ import MergeTwoPersons from "../MergeTwoPersons";
 import { customFieldsPersonsSelector } from "../../../atoms/persons";
 import { SummaryPrint } from "./SummaryPrint";
 import PersonDocuments from "../../../components/document/PersonDocuments";
+import ShareModal from "./ShareModal";
 
 export default function Summary({ person }) {
   const user = useAtomValue(userState);
@@ -20,6 +21,7 @@ export default function Summary({ person }) {
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && user.role !== "restricted-access" && <SummaryPrint person={person} />}
+      <ShareModal />
       <div className="noprint tw-grid tw-grid-cols-12 tw-gap-4 tw-pt-4">
         <div className="tw-col-span-3">
           <InfosMain person={person} />

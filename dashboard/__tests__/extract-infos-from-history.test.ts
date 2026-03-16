@@ -20,19 +20,21 @@ describe("Extract infos from history", () => {
   test("no team change, only one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [],
     });
     expect(assignedTeamsPeriods).toEqual({
-      TEAM_ID_A: [{ isoEndDate: today, isoStartDate: "2022-01-01T00:00:00.000Z" }],
-      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      TEAM_ID_A: [{ isoEndDate: null, isoStartDate: "2022-01-01T00:00:00.000Z" }],
+      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
     });
     expect(interactions).toEqual([new Date("2022-01-01T00:00:00.000Z")]);
   });
   test("one team change, from one team to another", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [
@@ -47,15 +49,16 @@ describe("Extract infos from history", () => {
       ],
     });
     expect(assignedTeamsPeriods).toEqual({
-      TEAM_ID_A: [{ isoStartDate: "2022-01-02T00:00:00.000Z", isoEndDate: today }],
+      TEAM_ID_A: [{ isoStartDate: "2022-01-02T00:00:00.000Z", isoEndDate: null }],
       TEAM_ID_B: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: "2022-01-02T00:00:00.000Z" }],
-      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
     });
     expect(interactions).toEqual([new Date("2022-01-01T00:00:00.000Z"), new Date("2022-01-02T00:00:00.000Z")]);
   });
   test("one team change, adding one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_B", "TEAM_ID_A"],
       history: [
@@ -70,15 +73,16 @@ describe("Extract infos from history", () => {
       ],
     });
     expect(assignedTeamsPeriods).toEqual({
-      TEAM_ID_A: [{ isoStartDate: "2022-01-02T00:00:00.000Z", isoEndDate: today }],
-      TEAM_ID_B: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
-      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      TEAM_ID_A: [{ isoStartDate: "2022-01-02T00:00:00.000Z", isoEndDate: null }],
+      TEAM_ID_B: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
+      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
     });
     expect(interactions).toEqual([new Date("2022-01-01T00:00:00.000Z"), new Date("2022-01-02T00:00:00.000Z")]);
   });
   test("one team change, removing one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [
@@ -93,15 +97,16 @@ describe("Extract infos from history", () => {
       ],
     });
     expect(assignedTeamsPeriods).toEqual({
-      TEAM_ID_A: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      TEAM_ID_A: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
       TEAM_ID_B: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: "2022-01-02T00:00:00.000Z" }],
-      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
     });
     expect(interactions).toEqual([new Date("2022-01-01T00:00:00.000Z"), new Date("2022-01-02T00:00:00.000Z")]);
   });
   test("two team changes", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
+      followedSince: new Date("2022-01-01T00:00:00.000Z"),
       createdAt: new Date("2022-01-01T00:00:00.000Z"),
       assignedTeams: ["TEAM_ID_A"],
       history: [
@@ -135,13 +140,13 @@ describe("Extract infos from history", () => {
     expect(assignedTeamsPeriods).toEqual({
       TEAM_ID_A: [
         { isoStartDate: "2022-01-02T00:00:00.000Z", isoEndDate: "2022-01-03T00:00:00.000Z" },
-        { isoStartDate: "2022-01-04T00:00:00.000Z", isoEndDate: today },
+        { isoStartDate: "2022-01-04T00:00:00.000Z", isoEndDate: null },
       ],
       TEAM_ID_B: [
         { isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: "2022-01-02T00:00:00.000Z" },
         { isoStartDate: "2022-01-03T00:00:00.000Z", isoEndDate: "2022-01-04T00:00:00.000Z" },
       ],
-      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: today }],
+      all: [{ isoStartDate: "2022-01-01T00:00:00.000Z", isoEndDate: null }],
     });
     expect(interactions).toEqual([
       new Date("2022-01-01T00:00:00.000Z"),

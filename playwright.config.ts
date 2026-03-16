@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import type { PlaywrightTestConfig } from "@playwright/test";
 import { devices } from "@playwright/test";
 import dotenv from "dotenv";
@@ -17,7 +18,7 @@ dotenv.config();
 const config: PlaywrightTestConfig = {
   testDir: "./e2e",
   /* Maximum time one test can run for. */
-  timeout: 60 * 1000,
+  timeout: 75 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.

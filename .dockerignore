@@ -5,3 +5,10 @@
 **/.gitignore
 **/.vscode
 **/README.md
+**/.env
+**/.env.*
+.git
+.github
+.husky
+e2e
+expo

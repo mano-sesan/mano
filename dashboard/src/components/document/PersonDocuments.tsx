@@ -74,12 +74,23 @@ export default function PersonDocuments({ person }: PersonDocumentsProps) {
       } as LinkedItem,
     }));
 
+    // Séparer les documents d'actions des autres documents pour éviter que
+    // la gestion des orphelins dans removeOldDefaultFolders ne les promeuve à la racine
+    // (car le dossier virtuel "actions" n'est pas connu de cette fonction)
+    const actionDocs = (person.documentsForModule || []).filter((d) => d.parentId === "actions");
+    const nonActionDocs = (person.documentsForModule || []).filter((d) => d.parentId !== "actions");
+
     return [
       needsActionsFolder ? actionsFolder : undefined,
-      ...removeOldDefaultFolders([...(person.documentsForModule || []), ...(person.groupDocuments || [])], defaultFolders),
+      ...actionDocs,
+      ...removeOldDefaultFolders([...nonActionDocs, ...(person.groupDocuments || [])], defaultFolders),
     ]
       .filter((e) => e)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      .sort((a, b) => {
+        if (a.type === "folder" && b.type !== "folder") return -1;
+        if (a.type !== "folder" && b.type === "folder") return 1;
+        return a.name.localeCompare(b.name);
+      });
   }, [person, organisation.defaultPersonsFolders]);
 
   // Use extracted utility hooks
@@ -117,7 +128,7 @@ export default function PersonDocuments({ person }: PersonDocumentsProps) {
         const { children, ...itemWithoutChildren } = item;
         updatedDocs.push({
           ...itemWithoutChildren,
-          parentId: parentId === "root" ? undefined : parentId,
+          parentId: parentId ?? "root",
           position,
         } as DocumentOrFolder);
 

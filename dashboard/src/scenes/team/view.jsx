@@ -27,6 +27,7 @@ import { encryptReport, reportsState } from "../../atoms/reports";
 import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 import ConfirmModal from "../../components/ConfirmModal";
+import { borderColors } from "../../components/TagTeam";
 
 const View = () => {
   const [team, setTeam] = useState(null);
@@ -116,7 +117,10 @@ const View = () => {
           }
         }}
       >
-        {({ values, handleChange, handleSubmit, isSubmitting }) => (
+        {({ values, handleChange, handleSubmit, isSubmitting }) => {
+          const teamIndex = teams.findIndex((t) => t._id === id);
+          const fallbackColor = borderColors[teamIndex % borderColors.length];
+          return (
           <React.Fragment>
             <div className="tw-flex tw-flex-col tw-gap-4">
               <div className="tw-max-w-96">
@@ -129,6 +133,22 @@ const View = () => {
                 <input type="checkbox" name="nightSession" id="nightSession" checked={values.nightSession} onChange={handleChange} />
                 <label htmlFor="nightSession">Équipe de nuit</label>
                 <NightSessionModale />
+              </div>
+              <div className="tw-max-w-96">
+                <label htmlFor="color" className="tw-m-0">
+                  Couleur de l'équipe
+                </label>
+                <div className="tw-flex tw-items-center tw-gap-2 tw-mt-2">
+                  <input
+                    type="color"
+                    name="color"
+                    id="color"
+                    value={values.color || fallbackColor}
+                    onChange={handleChange}
+                    className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
+                  />
+                  <span className="tw-text-sm tw-text-gray-500">{values.color || "Automatique"}</span>
+                </div>
               </div>
             </div>
             <div className="tw-flex tw-justify-end">
@@ -176,7 +196,7 @@ const View = () => {
               </div>
             </div>
           </React.Fragment>
-        )}
+        );}}
       </Formik>
       <ModalContainer
         open={isTransferModalOpen}
@@ -237,11 +257,20 @@ const View = () => {
                 if (passagesInTeam.length) items.push(`${passagesInTeam.length} passages`);
                 if (rencontresInTeam.length) items.push(`${rencontresInTeam.length} rencontres`);
                 if (reportsInTeam.length) items.push(`${reportsInTeam.length} rapports`);
-                const text = items.length
-                  ? `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${teams.find((t) => t._id === transferSelectedTeam)?.name} et supprimer l'équipe ${team.name}.`
-                  : null;
+                if (!items.length) {
+                  toast.error(
+                    `Il n'y a rien à transférer depuis l'équipe "${team.name}" : aucune action, consultation, commentaire, observation, personne, passage, rencontre ou compte-rendu. Vous pouvez la supprimer sans problème.`
+                  );
+                  return;
+                }
+                const targetTeam = teams.find((t) => t._id === transferSelectedTeam);
+                if (!transferSelectedTeam || !targetTeam) {
+                  toast.error("Veuillez sélectionner une équipe de destination avant de transférer les données.");
+                  return;
+                }
+                const text = `Voulez-vous transférer ${items.join(", ")} dans l'équipe ${targetTeam.name} et supprimer l'équipe ${team.name}.`;
 
-                if (!text || !confirm(text)) return;
+                if (!confirm(text)) return;
                 setIsConfirmModalOpen(true);
               }}
             >
@@ -348,6 +377,8 @@ const View = () => {
           );
           if (transferTeamError) return toast.error(errorMessage(transferTeamError));
           setTeams(teams.filter((t) => t._id !== id));
+          setCurrentTeam(teams.find((t) => t._id === transferSelectedTeam));
+          if (currentTeam._id === id) setCurrentTeam(teams.find((t) => t._id === transferSelectedTeam));
           refresh();
           toast.success("Données transférées avec succès");
           history.goBack();

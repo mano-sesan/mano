@@ -20,6 +20,7 @@ import type { CustomField, CustomFieldsGroup } from "../../../types/field";
 import Constantes from "./Constantes";
 import { useDataLoader } from "../../../services/dataLoader";
 import { toast } from "react-toastify";
+import ShareModal from "./ShareModal";
 
 interface MedicalFileProps {
   person: PersonPopulated;
@@ -88,6 +89,7 @@ export default function MedicalFile({ person }: MedicalFileProps) {
   return (
     <>
       {!import.meta.env.VITE_TEST_PLAYWRIGHT && <MedicalFilePrint person={person} />}
+      <ShareModal />
       <div className="noprint tw-grid tw-grid-cols-12 tw-gap-4 tw-pt-4">
         <div className="tw-col-span-3">
           <InfosMain person={person} isMedicalFile />

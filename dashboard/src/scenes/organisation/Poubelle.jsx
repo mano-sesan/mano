@@ -394,7 +394,7 @@ export default function Poubelle() {
               render: (p) => {
                 return (
                   <>
-                    {formatDateWithFullMonth(p.followedSince || p.createdAt || "")}
+                    {formatDateWithFullMonth(p.followedSince)}
                     <div className="tw-text-gray-500 tw-text-xs">il y a {p.createdAt ? formatAge(p.createdAt) : "un certain temps"}</div>
                   </>
                 );

@@ -7,6 +7,7 @@ import { SelectedPersonsModal } from "./PersonsStats";
 import { userState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 import SelectCustom from "../../components/SelectCustom";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 
 const NO_TERRITORY_KEY = "__NO_TERRITORY__";
 
@@ -26,11 +27,13 @@ const RencontresStats = ({
   selectedTerritories,
   setSelectedTerritories,
   isTerritoriesEnabled,
+  isStatsV2,
 }) => {
   const [isPersonsModalOpened, setIsPersonsModalOpened] = useState(false);
   const [isOnlyNewPersons, setIsOnlyNewPersons] = useState(false);
   const [genderSlice, setGenderSlice] = useState(null);
   const [territoriesSlice, setTerritoriesSlice] = useState(null);
+  const allPersonsObject = useAtomValue(itemsGroupedByPersonSelector);
   // const [selectedTerritories, setSelectedTerritories] = useState([]);
   const user = useAtomValue(userState);
   const filterTitle = useMemo(() => {
@@ -60,10 +63,14 @@ const RencontresStats = ({
     for (const r of rencontres) {
       const territoryKey = r.territoryObject?.name || NO_TERRITORY_KEY;
       if (isFilteredByTerritories && !territoriesObject[territoryKey]) continue;
-      if (!personObject[r.person]) continue;
+      if (filterPersons.length && !personObject[r.person]) continue;
 
       if (!filteredPersonsObject[r.person]) {
-        filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
+        if (filterPersons.length) {
+          filteredPersonsObject[r.person] = { ...personObject[r.person], territories: [] };
+        } else {
+          filteredPersonsObject[r.person] = { ...allPersonsObject[r.person], territories: [] };
+        }
       }
       filteredPersonsObject[r.person].territories.push(territoryKey);
 
@@ -88,7 +95,7 @@ const RencontresStats = ({
     const filteredPersons = Object.values(filteredPersonsObject);
     const filteredRencontresByTerritoriesUniquePersons = Object.values(rencontresGroupedByTerritoriesUniquePersonsObject).flat();
     return { filteredRencontresByTerritories, filteredPersons, filteredRencontresByTerritoriesUniquePersons };
-  }, [rencontres, selectedTerritories, personObject]);
+  }, [rencontres, selectedTerritories, personObject, filterPersons]);
 
   const filteredPersonsBySlice = useMemo(() => {
     if (genderSlice) {
@@ -124,11 +131,13 @@ const RencontresStats = ({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des rencontres</h3>
-      <div className="tw-flex tw-basis-full tw-items-center">
-        <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
-      </div>
-      {Boolean(isTerritoriesEnabled) && (
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des rencontres</h3>}
+      {!isStatsV2 && (
+        <div className="tw-flex tw-basis-full tw-items-center">
+          <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
+        </div>
+      )}
+      {Boolean(isTerritoriesEnabled) && !isStatsV2 && (
         <div className="tw-grid lg:tw-grid-cols-2 tw-grid-cols-1 tw-gap-2 tw-mb-8">
           <div>
             <label htmlFor="filter-by-status" className="tw-m-0">

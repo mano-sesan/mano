@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Redirect } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import {
@@ -18,6 +19,7 @@ import { arrayOfitemsGroupedByPersonSelector, populatedPassagesSelector } from "
 import useTitle from "../../services/useTitle";
 import DateRangePickerWithPresets, { formatPeriod, statsPresets } from "../../components/DateRangePickerWithPresets";
 import { useDataLoader } from "../../services/dataLoader";
+import { ENV } from "../../config";
 import Loading from "../../components/loading";
 import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import ExportFormattedData from "../data-import-export/ExportFormattedData";
@@ -40,6 +42,8 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import StatsV2 from "./index-v2";
+import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
 const tabs = [
   "Général",
@@ -76,8 +80,13 @@ with StatsLoader:
 
 */
 const StatsLoader = () => {
+  const user = useAtomValue(userState);
   const { isLoading } = useDataLoader({ refreshOnMount: true });
   const [hasStartLoaded, setHasStartLoaded] = useState(false);
+  const [statsVersion, setStatsVersion] = useLocalStorage("stats-version", "v1");
+
+  const organisation = useAtomValue(organisationState);
+  const canSwitchVersion = organisation?.statsV2Enabled || ENV !== "production";
 
   useEffect(() => {
     if (!isLoading && !hasStartLoaded) {
@@ -85,8 +94,12 @@ const StatsLoader = () => {
     }
   }, [isLoading, hasStartLoaded]);
 
+  if (!["admin", "normal", "stats-only"].includes(user.role)) return <Redirect to="/" />;
+
   if (!hasStartLoaded) return <Loading />;
-  return <Stats />;
+
+  if (canSwitchVersion && statsVersion === "v2") return <StatsV2 onSwitchVersion={() => setStatsVersion("v1")} />;
+  return <Stats onSwitchVersion={canSwitchVersion ? () => setStatsVersion("v2") : null} />;
 };
 
 const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames) => {
@@ -100,7 +113,7 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
     });
     return {
       ...snapshotAtDate,
-      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince || person.createdAt, "months"),
+      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince, "months"),
     };
   });
 
@@ -256,7 +269,7 @@ const itemsForStatsSelector = ({
     }
 
     // get persons for stats for period
-    const createdDate = person.followedSince || person.createdAt;
+    const createdDate = person.followedSince;
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,
@@ -497,7 +510,7 @@ const filterMakingThingsClearAboutOutOfActiveListStatus = {
 
 const initFilters = [filterMakingThingsClearAboutOutOfActiveListStatus];
 
-const Stats = () => {
+const Stats = ({ onSwitchVersion }) => {
   const organisation = useAtomValue(organisationState);
   const currentTeam = useAtomValue(currentTeamState);
   const teams = useAtomValue(teamsState);
@@ -818,6 +831,9 @@ const Stats = () => {
     if (["Passages"].includes(tabCaption)) {
       return !!organisation.passagesEnabled;
     }
+    if (["Consultations", "Dossiers médicaux des personnes créées", "Dossiers médicaux des personnes suivies"].includes(tabCaption)) {
+      return !!user.healthcareProfessional;
+    }
     return true;
   });
 
@@ -841,14 +857,24 @@ const Stats = () => {
           <h1 className="tw-block tw-text-xl tw-min-w-64 tw-full tw-font-normal">
             <span>Statistiques {viewAllOrganisationData ? <>globales</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}</span>
           </h1>
+          {!!onSwitchVersion && (
+            <button
+              type="button"
+              className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
+              onClick={onSwitchVersion}
+            >
+              <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
+              Essayer la nouvelle version
+            </button>
+          )}
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
               onChange={(teamsId) => {
+                if (viewAllOrganisationData) setViewAllOrganisationData(false);
                 setSelectedTeams(teams.filter((t) => teamsId.includes(t._id)));
               }}
               value={selectedTeams.map((e) => e?._id)}
               colored
-              isDisabled={viewAllOrganisationData}
             />
             {teams.length > 1 && (
               <label htmlFor="viewAllOrganisationData" className="tw-flex tw-items-center tw-text-sm">

@@ -3,14 +3,38 @@ import { capture } from "./sentry";
 import { logout } from "./logout";
 
 // If you need users to force refresh their cache, change the value of `dashboardCurrentCacheKey` and push to main
-export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_06_1";
+export const dashboardCurrentCacheKey = "mano_last_refresh_2026_01_29_1";
 const manoDB = "mano";
 const storeName = "store";
 
 let customStore: UseStore | null = null;
 let storageFailureHandled = false;
 
+let cacheWritesEnabled = true;
+
+export function disableCacheWrites() {
+  cacheWritesEnabled = false;
+}
+
+export function enableCacheWrites() {
+  cacheWritesEnabled = true;
+}
+
 export const AUTH_TOAST_KEY = "mano-auth-toast";
+
+export const LOADING_ORG_BROADCAST_KEY = "mano-loading-org";
+
+export function broadcastLoadingOrg(organisationId: string) {
+  try {
+    window.localStorage.removeItem(LOADING_ORG_BROADCAST_KEY);
+    window.localStorage.setItem(
+      LOADING_ORG_BROADCAST_KEY,
+      JSON.stringify({ orgId: organisationId, ts: Date.now(), rand: Math.random() })
+    );
+  } catch (_e) {
+    // ignore
+  }
+}
 
 (async () => {
   try {
@@ -87,6 +111,7 @@ export async function clearCache(calledFrom = "not defined", iteration = 0) {
 
 export async function setCacheItem(key: string, value: unknown) {
   try {
+    if (!cacheWritesEnabled) return;
     if (customStore) await set(key, value, customStore);
   } catch (error) {
     if (error instanceof Error && error?.message?.includes("connection is closing")) {

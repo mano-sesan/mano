@@ -1,5 +1,5 @@
 import React, { useMemo, Fragment } from "react";
-import { useHistory } from "react-router-dom";
+import { Redirect, useHistory } from "react-router-dom";
 import Table from "../../components/table";
 import dayjs from "dayjs";
 import UserName from "../../components/UserName";
@@ -357,6 +357,8 @@ const View = () => {
     return isValidTab ? activeTab : tabsConfig[0]?.key || "Actions";
   }, [activeTab, tabsConfig]);
 
+  if (!["admin", "normal"].includes(user.role)) return <Redirect to="/" />;
+
   // Update activeTab if it became invalid
   if (validActiveTab !== activeTab) {
     setActiveTab(validActiveTab);
@@ -486,7 +488,7 @@ const Persons = ({ persons }) => {
           onSortBy: setSortBy,
           sortOrder,
           sortBy,
-          render: (p) => formatDateWithFullMonth(p.followedSince || p.createdAt || ""),
+          render: (p) => formatDateWithFullMonth(p.followedSince),
         },
       ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
     />

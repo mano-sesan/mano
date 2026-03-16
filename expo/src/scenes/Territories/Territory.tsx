@@ -30,6 +30,7 @@ const castToTerritory = (
   perimeter: territory.perimeter?.trim() || "",
   description: territory.description?.trim() || "",
   entityKey: territory.entityKey || "",
+  documents: territory.documents || [],
 });
 
 type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;

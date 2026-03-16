@@ -1,7 +1,7 @@
 {
   "name": "website",
   "version": "2.1.0",
-  "mobileAppVersion": "3.17.0",
+  "mobileAppVersion": "3.20.0",
   "private": true,
   "engines": {
     "npm": "please-use-yarn",
@@ -28,6 +28,10 @@
     "eslint-config-next": "14.1.4",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3"
+  },
+  "resolutions": {
+    "socks": "2.8.7",
+    "glob": "10.5.0"
   },
   "packageManager": "yarn@4.0.2"
 }

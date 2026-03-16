@@ -1,12 +1,86 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveBar } from "@nivo/bar";
+import html2canvas from "html2canvas";
+import { toast } from "react-toastify";
 import HelpButtonAndModal from "../../components/HelpButtonAndModal";
+import { useStatsContext } from "./StatsContext";
 
-function ChartTitle({ title, help }) {
+function CopyChartButton({ chartRef }: { chartRef: React.RefObject<HTMLDivElement> }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    if (!chartRef.current) return;
+    try {
+      const canvas = await html2canvas(chartRef.current, { backgroundColor: "#ffffff" });
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve));
+      if (!blob) return;
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopied(true);
+      toast.success("Graphique copié dans le presse-papier");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Impossible de copier le graphique");
+    }
+  };
+
   return (
-    <div className="tw-w-full tw-flex tw-bg-[#707597] px-4 py-2 tw-text-lg tw-font-medium tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black print:tw-bg-white tw-rounded-t-2xl">
-      {title} {!!help && <HelpButtonAndModal title={title} help={help} questionMarkColor="violet" />}
+    <button
+      type="button"
+      title="Copier le graphique"
+      aria-label="Copier le graphique"
+      className="noprint tw-p-1 tw-rounded hover:tw-bg-white/20 tw-transition-colors tw-flex tw-items-center"
+      onClick={handleCopy}
+    >
+      {copied ? (
+        <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-4 tw-w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function ChartTitle({
+  title,
+  help,
+  settingsButton,
+  chartRef,
+}: {
+  title: string | React.ReactNode;
+  help?: string;
+  settingsButton?: React.ReactNode;
+  chartRef?: React.RefObject<HTMLDivElement>;
+}) {
+  const { isStatsV2 } = useStatsContext();
+  return (
+    <div
+      className={[
+        "tw-w-full tw-flex tw-items-center tw-col-span-7 print:tw-col-span-1 tw-text-white print:tw-text-black tw-bg-[#707597] print:tw-bg-white tw-rounded-t-2xl",
+        isStatsV2 ? "tw-px-3 tw-py-1.5 tw-text-base tw-font-normal" : "tw-px-4 tw-py-2 tw-text-lg tw-font-medium",
+      ].join(" ")}
+    >
+      {isStatsV2 ? (
+        <>
+          <div className="tw-flex-1">{title}</div>
+          {!!settingsButton && <span className="tw-ml-auto tw-pl-4 tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
+          <div className="tw-flex-none tw-flex tw-items-center">
+            {!!chartRef && <CopyChartButton chartRef={chartRef} />}
+            {!!help && <HelpButtonAndModal questionMarkColor="violet" title={typeof title === "string" ? title : ""} help={help} />}
+          </div>
+        </>
+      ) : (
+        <>
+          {title}
+          {!!help && <HelpButtonAndModal title={typeof title === "string" ? title : ""} help={help} questionMarkColor="violet" />}
+          {!!settingsButton && <span className="tw-ml-auto tw-flex tw-items-center tw-gap-2 print:tw-hidden">{settingsButton}</span>}
+        </>
+      )}
     </div>
   );
 }
@@ -33,9 +107,10 @@ export const CustomResponsivePie = ({
   onItemClick = null,
   help,
   tableHeaderTitles,
+  settingsButton,
 }: {
   data: PieData;
-  title: string;
+  title: string | React.ReactNode;
   onItemClick?: (id: string) => void;
   help?: string;
   tableHeaderTitles?: {
@@ -43,25 +118,27 @@ export const CustomResponsivePie = ({
     value: string;
     percentage: string;
   };
+  settingsButton?: React.ReactNode;
 }) => {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const onClick = ({ id }) => {
     if (!onItemClick) return;
     onItemClick(id);
   };
 
-  if (data.length === 0) return <EmptyData title={title} help={help} />;
+  if (data.length === 0) return <EmptyData title={typeof title === "string" ? title : ""} help={help} />;
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} chartRef={chartRef} />
       <div className="tw-flex tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-pl-4 tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || (typeof title === "string" ? title : "")}</div>
               </th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
               {total ? <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th> : <></>}
@@ -96,6 +173,7 @@ export const CustomResponsivePie = ({
         </table>
       </div>
       <div
+        ref={chartRef}
         className={[
           "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_path]:tw-cursor-pointer" : "",
@@ -156,8 +234,9 @@ export const CustomResponsiveBar = ({
   help,
   tableHeaderTitles,
   showTotal = true,
+  settingsButton,
 }: {
-  title: string;
+  title: string | React.ReactNode;
   data: BarData;
   categories?: string[];
   onItemClick?: (id: string) => void;
@@ -173,7 +252,10 @@ export const CustomResponsiveBar = ({
     percentage: string;
   };
   showTotal?: boolean;
+  settingsButton?: React.ReactNode;
 }) => {
+  const chartRef = useRef<HTMLDivElement>(null);
+
   // if we have too many categories with small data, we see nothing in the chart
   // so we filter by keeping the first 15 categories whatever
   const chartData = data.filter((c) => c.name !== "Non renseigné").filter((_, index) => index < 15);
@@ -201,17 +283,17 @@ export const CustomResponsiveBar = ({
     onItemClick(id);
   };
 
-  if (data.length === 0) return <EmptyData title={title} help={help} />;
+  if (data.length === 0) return <EmptyData title={typeof title === "string" ? title : ""} help={help} />;
 
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
-      <ChartTitle title={title} help={help} />
+      <ChartTitle title={title} help={help} settingsButton={settingsButton} chartRef={chartRef} />
       <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
               <th className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-max-w-32">
-                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || title}</div>
+                <div className="tw-truncate tw-max-w-full">{tableHeaderTitles?.name || (typeof title === "string" ? title : "")}</div>
               </th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.value || "Nb"}</th>
               <th className="tw-text-right tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{tableHeaderTitles?.percentage || "%"}</th>
@@ -256,6 +338,7 @@ export const CustomResponsiveBar = ({
         </table>
       </div>
       <div
+        ref={chartRef}
         className={[
           "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",

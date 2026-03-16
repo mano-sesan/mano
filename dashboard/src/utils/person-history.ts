@@ -51,7 +51,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
   interactions: Array<Date>;
   assignedTeamsPeriods: AssignedTeamsPeriods;
 } {
-  const interactions = [person.followedSince || person.createdAt];
+  const interactions = [person.followedSince];
   // assignedTeamsPeriods
   // final format example, after looping the whole history: { teamIdA: [{ endDate: startDate: }, { endDate: startDate: }] }
   // current format: { teamIdA: [{ endDate: now,  startDate: undefined }] }
@@ -60,7 +60,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
       acc[teamId] = [
         {
           isoStartDate: null,
-          isoEndDate: dayjsInstance().startOf("day").toISOString(),
+          isoEndDate: null,
         },
       ];
       return acc;
@@ -68,8 +68,8 @@ export function extractInfosFromHistory(person: PersonInstance): {
     {
       all: [
         {
-          isoStartDate: dayjsInstance(person.followedSince || person.createdAt).toISOString(),
-          isoEndDate: dayjsInstance().startOf("day").toISOString(),
+          isoStartDate: dayjsInstance(person.followedSince).toISOString(),
+          isoEndDate: null,
         },
       ],
     }
@@ -81,6 +81,10 @@ export function extractInfosFromHistory(person: PersonInstance): {
     // we want to loop it from the newest to the oldest (descending order)
     for (let i = person.history.length - 1; i >= 0; i--) {
       const historyEntry = person.history[i];
+      // @ts-expect-error Property 'outOfActiveList' does not exist on type 'MergeData'
+      if (historyEntry.data?.outOfActiveList?.newValue === true) {
+        continue;
+      }
       interactions.push(historyEntry.date);
       const data = historyEntry.data as FieldChangeData;
       if (!data.assignedTeams) continue;
@@ -112,7 +116,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
     assignedTeamsPeriods[teamId] = (assignedTeamsPeriods[teamId] || []).map((period) => {
       if (period.isoStartDate) return period;
       return {
-        isoStartDate: dayjsInstance(person.followedSince || person.createdAt).toISOString(),
+        isoStartDate: dayjsInstance(person.followedSince).toISOString(),
         isoEndDate: period.isoEndDate,
       };
     });

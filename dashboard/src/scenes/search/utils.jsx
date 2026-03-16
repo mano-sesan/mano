@@ -10,6 +10,7 @@ const excludeFields = new Set([
   "person", // because it is an id
   "team", // because it is an id
   "item", // because it is an id
+  "history", // because it makes no sense
 ]);
 const isObject = (variable) => typeof variable === "object" && variable !== null && !Array.isArray(variable);
 

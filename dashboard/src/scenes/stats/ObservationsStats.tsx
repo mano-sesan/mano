@@ -32,6 +32,7 @@ interface ObservationsStatsProps {
   customFieldsObs: Array<CustomField>;
   period: Period;
   selectedTeams: Array<TeamInstance>;
+  isStatsV2?: boolean;
 }
 
 const ObservationsStats = ({
@@ -42,6 +43,7 @@ const ObservationsStats = ({
   customFieldsObs,
   period,
   selectedTeams,
+  isStatsV2,
 }: ObservationsStatsProps) => {
   const currentTeam = useAtomValue(currentTeamState);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
@@ -104,17 +106,17 @@ const ObservationsStats = ({
 
   return (
     <>
-      <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>
-      <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />
+      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>}
+      {!isStatsV2 && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
 
       <details
-        open={import.meta.env.VITE_TEST_PLAYWRIGHT === "true" || window.localStorage.getItem("observation-stats-general-open") === "true"}
+        open={
+          import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
+          window.localStorage.getItem("observation-stats-general-open") === "true" ||
+          (isStatsV2 && window.localStorage.getItem("observation-stats-general-open") !== "false")
+        }
         onToggle={(e) => {
-          if ((e.target as HTMLDetailsElement).open) {
-            window.localStorage.setItem("observation-stats-general-open", "true");
-          } else {
-            window.localStorage.removeItem("observation-stats-general-open");
-          }
+          window.localStorage.setItem("observation-stats-general-open", (e.target as HTMLDetailsElement).open ? "true" : "false");
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
@@ -150,14 +152,14 @@ const ObservationsStats = ({
               className="print:tw-break-before-page"
               open={
                 import.meta.env.VITE_TEST_PLAYWRIGHT === "true" ||
-                window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true"
+                window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) === "true" ||
+                (isStatsV2 && window.localStorage.getItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
               }
               onToggle={(e) => {
-                if ((e.target as HTMLDetailsElement).open) {
-                  window.localStorage.setItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`, "true");
-                } else {
-                  window.localStorage.removeItem(`observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`);
-                }
+                window.localStorage.setItem(
+                  `observation-stats-${group.name.replace(" ", "-").toLocaleLowerCase()}-open`,
+                  (e.target as HTMLDetailsElement).open ? "true" : "false"
+                );
               }}
             >
               <summary className="tw-mx-0 tw-my-8">

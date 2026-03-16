@@ -5,6 +5,7 @@ import ButtonCustom from "../../components/ButtonCustom";
 import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import { capture } from "../../services/sentry";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
+import SelectTeamMultiple from "../../components/SelectTeamMultiple";
 import { CustomField } from "../../types/field";
 
 type Item = CustomField | string;
@@ -27,6 +28,7 @@ interface DragAndDropSettingsProps {
   sectionId?: string;
   onAddGroup?: (groupTitle: string) => Promise<void>;
   onDeleteGroup?: (groupTitle: string) => Promise<void>;
+  onGroupTeamsChange?: (groupTitle: string, update: { enabled: boolean; enabledTeams: string[] }) => Promise<void>;
 }
 
 const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
@@ -41,6 +43,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
   sectionId = "drag-and-drop-setting",
   onAddGroup = null,
   onDeleteGroup = null,
+  onGroupTeamsChange,
 }) => {
   if (!title) throw new Error("title is required");
   if (!data) throw new Error("data is required");
@@ -76,15 +79,10 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
 
     const groups = Array.from(groupsElements).map((group) => {
       const groupTitle = (group as HTMLElement).dataset.group!;
-      return { groupTitle, items: [] as string[] };
+      const categoriesElements = group.querySelectorAll("[data-item]");
+      const items = Array.from(categoriesElements).map((category) => (category as HTMLElement).dataset.item!);
+      return { groupTitle, items };
     });
-
-    for (const group of groups) {
-      const categoriesElements = gridRef.current?.querySelectorAll(`[data-group="${group.groupTitle}"] [data-item]`);
-      if (categoriesElements) {
-        group.items = Array.from(categoriesElements).map((category) => (category as HTMLElement).dataset.item!);
-      }
-    }
 
     if (groups.length !== data.length) {
       capture(new Error("Drag and drop group error"), { extra: { groups, data, title } });
@@ -173,6 +171,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
               dataItemKey={dataItemKey}
               onGroupTitleChange={onGroupTitleChange}
               onDeleteGroup={onDeleteGroup}
+              onGroupTeamsChange={onGroupTeamsChange}
               NewItemComponent={NewItemComponent}
               sectionId={sectionId}
               isAlone={data.length === 1}
@@ -223,6 +222,7 @@ interface GroupProps {
   groupTitles: string[];
   onGroupTitleChange?: (oldTitle: string, newTitle: string) => Promise<void>;
   onDeleteGroup?: (groupTitle: string) => Promise<void>;
+  onGroupTeamsChange?: (groupTitle: string, update: { enabled: boolean; enabledTeams: string[] }) => Promise<void>;
   ItemComponent: React.ComponentType<{ item: any; groupTitle: string }>;
   sectionId: string;
   NewItemComponent: React.ComponentType<{ groupTitle: string }>;
@@ -240,6 +240,7 @@ const Group: React.FC<GroupProps> = ({
   groupTitles,
   onGroupTitleChange,
   onDeleteGroup,
+  onGroupTeamsChange,
   ItemComponent,
   sectionId,
   NewItemComponent,
@@ -258,6 +259,9 @@ const Group: React.FC<GroupProps> = ({
   const listRef = useRef<HTMLDivElement>(null);
   const sortableRef = useRef<SortableJS | null>(null);
   const [isEditingGroupTitle, setIsEditingGroupTitle] = useState(false);
+  const [groupTeamsEnabled, setGroupTeamsEnabled] = useState(true);
+  const [groupTeamsEnabledTeams, setGroupTeamsEnabledTeams] = useState<string[]>([]);
+  const [isApplyingTeams, setIsApplyingTeams] = useState(false);
 
   useEffect(() => {
     if (listRef.current) {
@@ -312,12 +316,26 @@ const Group: React.FC<GroupProps> = ({
               <span className="group-title tw-pl-2">
                 {groupTitle} ({items.length})
               </span>
-              {!!onGroupTitleChange && !!editable && (
+              {(!!onGroupTitleChange && !!editable || !!onGroupTeamsChange) && (
                 <button
                   type="button"
                   aria-label={`Modifier le groupe ${groupTitle}`}
                   className="tw-ml-auto tw-hidden group-hover:tw-inline-flex"
-                  onClick={() => setIsEditingGroupTitle(true)}
+                  onClick={() => {
+                    // Compute current visibility state from the group's fields
+                    const groupItems = items.filter((item): item is CustomField => typeof item !== "string");
+                    const allEnabled = groupItems.length === 0 || groupItems.every((field) => field.enabled !== false);
+                    const allSameTeams =
+                      groupItems.length > 0 &&
+                      groupItems.every(
+                        (field) =>
+                          field.enabled === false &&
+                          JSON.stringify(field.enabledTeams?.slice().sort()) === JSON.stringify(groupItems[0].enabledTeams?.slice().sort())
+                      );
+                    setGroupTeamsEnabled(allEnabled);
+                    setGroupTeamsEnabledTeams(allSameTeams && !allEnabled ? groupItems[0].enabledTeams || [] : []);
+                    setIsEditingGroupTitle(true);
+                  }}
                 >
                   ✏️
                 </button>
@@ -340,24 +358,75 @@ const Group: React.FC<GroupProps> = ({
           <NewItemComponent groupTitle={groupTitle} />
         </details>
       </div>
-      {!!onGroupTitleChange && (
+      {(!!onGroupTitleChange || !!onGroupTeamsChange) && (
         <ModalContainer open={isEditingGroupTitle}>
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
-            <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditGroupTitle}>
-              <div>
-                <label htmlFor="newGroupTitle" className="tailwindui">
-                  Nouveau nom du groupe
-                </label>
-                <input type="text" id="newGroupTitle" name="newGroupTitle" placeholder={groupTitle} autoComplete="off" className="tailwindui" />
-              </div>
-            </form>
+            {!!onGroupTitleChange && !!editable && (
+              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditGroupTitle}>
+                <div>
+                  <label htmlFor="newGroupTitle" className="tailwindui">
+                    Nouveau nom du groupe
+                  </label>
+                  <input type="text" id="newGroupTitle" name="newGroupTitle" placeholder={groupTitle} autoComplete="off" className="tailwindui" />
+                </div>
+              </form>
+            )}
+            {!!onGroupTeamsChange && (
+              <>
+                {!!editable && <hr className="tw-mx-8 tw-my-4" />}
+                <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
+                  <p className="tw-m-0 tw-text-sm tw-font-bold">Appliquer une visibilité à tous les champs du groupe</p>
+                  <div>
+                    <label htmlFor="groupEnabledTeams" className="tailwindui">
+                      Activé pour
+                    </label>
+                    <SelectTeamMultiple
+                      inputId="groupEnabledTeams"
+                      classNamePrefix="groupEnabledTeams"
+                      onChange={(teamIds: string[]) => setGroupTeamsEnabledTeams(teamIds)}
+                      value={groupTeamsEnabled ? [] : groupTeamsEnabledTeams}
+                      isDisabled={groupTeamsEnabled}
+                    />
+                    <div>
+                      <label className="tw-text-sm">
+                        <input
+                          type="checkbox"
+                          className="tw-mr-2 tw-mt-2"
+                          checked={groupTeamsEnabled}
+                          onChange={(e) => setGroupTeamsEnabled(e.target.checked)}
+                        />
+                        <span>Activé pour toute l'organisation</span>
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="button-submit !tw-bg-main"
+                    disabled={isApplyingTeams || (!groupTeamsEnabled && groupTeamsEnabledTeams.length === 0)}
+                    onClick={async () => {
+                      setIsApplyingTeams(true);
+                      try {
+                        await onGroupTeamsChange(groupTitle, {
+                          enabled: groupTeamsEnabled,
+                          enabledTeams: groupTeamsEnabled ? [] : groupTeamsEnabledTeams,
+                        });
+                      } finally {
+                        setIsApplyingTeams(false);
+                      }
+                    }}
+                  >
+                    Appliquer à tous les champs du groupe
+                  </button>
+                </div>
+              </>
+            )}
           </ModalBody>
           <ModalFooter>
             <button type="button" name="cancel" className="button-cancel" onClick={() => setIsEditingGroupTitle(false)}>
               Annuler
             </button>
-            {!!onDeleteGroup && (
+            {!!onDeleteGroup && !!editable && (
               <DeleteButtonAndConfirmModal
                 title={`Voulez-vous vraiment supprimer le groupe ${groupTitle}`}
                 textToConfirm={groupTitle}
@@ -373,9 +442,11 @@ const Group: React.FC<GroupProps> = ({
                 </span>
               </DeleteButtonAndConfirmModal>
             )}
-            <button type="submit" className="button-submit" form="edit-category-group-form">
-              Enregistrer
-            </button>
+            {!!onGroupTitleChange && !!editable && (
+              <button type="submit" className="button-submit" form="edit-category-group-form">
+                Enregistrer
+              </button>
+            )}
           </ModalFooter>
         </ModalContainer>
       )}

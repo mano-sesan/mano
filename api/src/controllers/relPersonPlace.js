@@ -155,7 +155,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const relPersonPlace = await RelPersonPlace.findOne(query);
+    const relPersonPlace = await RelPersonPlace.findOne({ ...query, attributes: ["_id"] });
     if (!relPersonPlace) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await relPersonPlace.destroy();

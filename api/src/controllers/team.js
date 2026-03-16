@@ -6,6 +6,7 @@ const { looseUuidRegex } = require("../utils");
 const { catchErrors } = require("../errors");
 const { Team, RelUserTeam, sequelize } = require("../db/sequelize");
 const validateUser = require("../middleware/validateUser");
+const { serializeTeam } = require("../utils/data-serializer");
 
 router.post(
   "/",
@@ -16,6 +17,7 @@ router.post(
       z.object({
         name: z.string(),
         nightSession: z.optional(z.boolean()),
+        color: z.optional(z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in team creation: ${e}`);
@@ -24,7 +26,10 @@ router.post(
     }
 
     let organisation = req.user.organisation;
-    const team = await Team.create({ organisation, name: req.body.name, nightSession: req.body.nightSession || false }, { returning: true });
+    const team = await Team.create(
+      { organisation, name: req.body.name, nightSession: req.body.nightSession || false, color: req.body.color || null },
+      { returning: true }
+    );
     res.status(200).send({ ok: true, data: team });
   })
 );
@@ -34,8 +39,8 @@ router.get(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
-    const data = await Team.findAll({ where: { organisation: req.user.organisation }, include: ["Organisation"] });
-    return res.status(200).send({ ok: true, data });
+    const teams = await Team.findAll({ where: { organisation: req.user.organisation } });
+    return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
 );
 
@@ -73,6 +78,7 @@ router.put(
         body: z.object({
           name: z.string(),
           nightSession: z.optional(z.boolean()),
+          color: z.optional(z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
         }),
       }).parse(req);
     } catch (e) {
@@ -85,6 +91,8 @@ router.put(
     if (req.body.hasOwnProperty("name")) updateTeam.name = req.body.name;
     // eslint-disable-next-line no-prototype-builtins
     if (req.body.hasOwnProperty("nightSession")) updateTeam.nightSession = req.body.nightSession;
+    // eslint-disable-next-line no-prototype-builtins
+    if (req.body.hasOwnProperty("color")) updateTeam.color = req.body.color;
 
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 

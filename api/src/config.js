@@ -10,6 +10,9 @@ let SECRET = null;
 if (process.env.SECRET && fs.existsSync(process.env.SECRET)) {
   SECRET = fs.readFileSync(process.env.SECRET, "utf8").trim().replace(/\n/g, "");
 } else {
+  if (ENVIRONMENT === "production") {
+    throw new Error("SECRET is not set or file not found in production");
+  }
   console.warn("SECRET is not set, using default value");
   SECRET = process.env.SECRET || "not_so_secret_4";
 }

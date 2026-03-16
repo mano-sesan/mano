@@ -5,22 +5,6 @@ export default {
   safelist: ["tw-min-w-0"],
   theme: {
     extend: {
-      animation: {
-        coucou: "coucou 2s ease-in-out 0s infinite",
-        brrrr: "brrrr 5s ease-in-out 0s infinite",
-      },
-      keyframes: {
-        coucou: {
-          "0%, 20%, 40%": { transform: "rotate(-30deg)" },
-          "10%, 30%": { transform: "rotate(30deg)" },
-          "50%": { transform: "rotate(0deg)" },
-        },
-        brrrr: {
-          "0%, 2%, 4%, 6%, 8%, 10%, 12%, 14%, 16%, 18%": { transform: "rotate(-2deg)" },
-          "1%, 3%, 5%, 7%, 9%, 11%, 13%, 15%, 17%, 19%": { transform: "rotate(2deg)" },
-          "20%": { transform: "rotate(0deg)" },
-        },
-      },
       gridTemplateColumns: {
         "new-report-squares": "repeat(auto-fit, minmax(40%, 1fr))",
       },

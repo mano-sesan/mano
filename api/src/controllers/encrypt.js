@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
+const getClientInfo = require("../utils/getClientInfo");
 const {
   Organisation,
   Person,
@@ -21,11 +22,12 @@ const {
   TerritoryObservation,
   sequelize,
   UserLog,
+  OrphanedFile,
 } = require("../db/sequelize");
 
 const { capture } = require("../sentry");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex } = require("../utils");
+const { looseUuidRegex, cryptoHexRegex } = require("../utils");
 const { serializeOrganisation } = require("../utils/data-serializer");
 
 // This controller is required because:
@@ -98,6 +100,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "change-encryption-key",
+      ...getClientInfo(req),
     });
 
     try {
@@ -128,60 +131,62 @@ router.post(
         // Why paranoid false everywhere?
         // Because we want to recrypt deleted items too. Otherwise, they would be lost forever.
 
+        const orgWhere = { organisation: req.user.organisation };
+
         for (let { encrypted, encryptedEntityKey, _id } of persons) {
-          await Person.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Person.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of groups) {
-          await Group.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Group.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of actions) {
-          await Action.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Action.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of consultations) {
-          await Consultation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Consultation.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of treatments) {
-          await Treatment.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Treatment.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of medicalFiles) {
-          await MedicalFile.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await MedicalFile.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of comments) {
-          await Comment.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Comment.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of passages) {
-          await Passage.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Passage.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of rencontres) {
-          await Rencontre.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Rencontre.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of territories) {
-          await Territory.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Territory.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of observations) {
-          await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await TerritoryObservation.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of places) {
-          await Place.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Place.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of relsPersonPlace) {
-          await RelPersonPlace.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await RelPersonPlace.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
 
         for (let { encrypted, encryptedEntityKey, _id } of reports) {
-          await Report.update({ encrypted, encryptedEntityKey }, { where: { _id }, transaction: tx, paranoid: false });
+          await Report.update({ encrypted, encryptedEntityKey }, { where: { _id, ...orgWhere }, transaction: tx, paranoid: false });
         }
         organisation.set({
           encryptionEnabled: "true",
@@ -206,6 +211,42 @@ router.post(
     }
 
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
+  })
+);
+
+router.post(
+  "/orphaned-files",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser("admin"),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        files: z.array(
+          z.object({
+            entityId: z.string().regex(looseUuidRegex),
+            filename: z.string().regex(cryptoHexRegex),
+            entityType: z.optional(z.enum(["person", "territory"])),
+          })
+        ),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in orphaned-files: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const now = new Date();
+    await OrphanedFile.bulkCreate(
+      req.body.files.map((f) => ({
+        organisation: req.user.organisation,
+        entityId: f.entityId,
+        filename: f.filename,
+        entityType: f.entityType || "person",
+        replacedAt: now,
+      }))
+    );
+
+    return res.status(200).send({ ok: true });
   })
 );
 

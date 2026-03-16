@@ -9,15 +9,19 @@ import { toast } from "react-toastify";
 import { errorMessage } from "../../utils";
 import Search from "../../components/search";
 import UserStatus from "../../components/UserStatus";
+import { MoonIcon } from "@heroicons/react/24/outline";
+import StethoscopeIcon from "../../components/StethoscopeIcon";
 
 export default function SuperadminUsersSearch({
   open,
   setOpen,
   setSelectedOrganisation,
+  refresh,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
   setSelectedOrganisation: (organisation: OrganisationInstance) => void;
+  refresh: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [users, setUsers] = useState([]);
@@ -40,7 +44,7 @@ export default function SuperadminUsersSearch({
       setUsers(response.data);
       setIsLoading(false);
     });
-  }, [open, search]);
+  }, [open, search, refresh]);
 
   return (
     <ModalContainer
@@ -116,7 +120,14 @@ export default function SuperadminUsersSearch({
                     </td>
                     <td>
                       <div>{user.role}</div>
-                      {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
+                      {user.healthcareProfessional ? (
+                        <div className="tw-text-xs tw-flex tw-items-center">
+                          <StethoscopeIcon className="tw-w-3 tw-h-3 tw-text-sky-700" />
+                          &nbsp;pro.&nbsp;santé
+                        </div>
+                      ) : (
+                        ""
+                      )}
                     </td>
                     <td>
                       <div className="tw-grid tw-gap-1">
@@ -129,7 +140,7 @@ export default function SuperadminUsersSearch({
                             }}
                             className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
                           >
-                            {team.nightSession && <span>🌒</span>}
+                            {team.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
                             {team.name}
                           </div>
                         ))}

@@ -68,6 +68,7 @@ import ActionsFilter from "./scenes/Actions/ActionsFilter";
 import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
+import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -291,6 +292,7 @@ const App = () => {
               <AppStack.Screen name="TERRITORY_OBSERVATIONS_FOR_REPORT" component={ObservationsForReport} />
               {/* Rencontres */}
               <AppStack.Screen name="RENCONTRE" component={Rencontre} />
+              <AppStack.Screen name="RENCONTRE_NEW_STACK" component={RencontreNewScreen} />
               <AppStack.Screen name="RENCONTRES_FOR_REPORT" component={RencontresForReport} />
               {/* Passages */}
               <AppStack.Screen name="PASSAGE" component={Passage} />

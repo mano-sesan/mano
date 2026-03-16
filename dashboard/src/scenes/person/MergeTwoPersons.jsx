@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import {  useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import styled from "styled-components";
 import ButtonCustom from "../../components/ButtonCustom";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -32,6 +32,7 @@ import { formatAge } from "../../services/date";
 import { encryptItem } from "../../services/encryption";
 import { isEmptyValue } from "../../utils";
 import { awaitSetAtomAndIDBCache } from "../../store";
+import { modalConfirmState } from "../../components/ModalConfirm";
 
 const getRawValue = (field, value) => {
   try {
@@ -77,7 +78,7 @@ const MergeTwoPersons = ({ person }) => {
   const treatments = useAtomValue(treatmentsState);
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
-
+  const setModalConfirmState = useSetAtom(modalConfirmState);
   const { refresh } = useDataLoader();
 
   const [originPerson, setOriginPerson] = useState(person);
@@ -146,7 +147,7 @@ const MergeTwoPersons = ({ person }) => {
           const _doc = _docOrFolder;
           return {
             ..._doc,
-            downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
+            downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
           };
         }),
       ],
@@ -167,7 +168,29 @@ const MergeTwoPersons = ({ person }) => {
   };
 
   const handleSubmit = async () => {
-    if (!window.confirm("Cette opération est irréversible, êtes-vous sûr ?")) return;
+    const confirmed = await new Promise((resolve) => {
+      setModalConfirmState({
+        open: true,
+        options: {
+          title: "Confirmer la fusion",
+          subTitle: "Cette opération est irréversible, êtes-vous sûr ?",
+          buttons: [
+            {
+              text: "Fusionner",
+              className: "button-submit",
+              onClick: () => resolve(true),
+            },
+            {
+              text: "Annuler",
+              className: "button-cancel",
+              onClick: () => resolve(false),
+            },
+          ],
+        },
+        onClose: () => resolve(false),
+      });
+    });
+    if (!confirmed) return;
 
     setIsSubmitting(true);
 
@@ -299,9 +322,20 @@ const MergeTwoPersons = ({ person }) => {
             person: originPerson._id,
             documents: [
               ...(originPersonMedicalFile.documents || []),
-              ...((personToMergeMedicalFile || {}).documents || []).map((_doc) => ({
-                ..._doc,
-                downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
+              ...((personToMergeMedicalFile || {}).documents || []).map((_doc) => {
+                if (_doc.type === "folder") return _doc;
+                return {
+                  ..._doc,
+                  downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
+                };
+              }),
+            ],
+            comments: [
+              ...((originPersonMedicalFile || {}).comments || []),
+              ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
+                ...comment,
+                person: originPerson._id,
+                type: "medical-file",
               })),
             ],
           }),
@@ -315,10 +349,20 @@ const MergeTwoPersons = ({ person }) => {
             _id: personToMergeMedicalFile._id,
             organisation: organisation._id,
             person: originPerson._id,
-            documents: (personToMergeMedicalFile.documents || []).map((_doc) => ({
-              ..._doc,
-              downloadPath: _doc.downloadPath ?? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}`,
-            })),
+            documents: (personToMergeMedicalFile.documents || []).map((_doc) => {
+              if (_doc.type === "folder") return _doc;
+              return {
+                ..._doc,
+                downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
+              };
+            }),
+            comments: [
+              ...((personToMergeMedicalFile || {}).comments || []).map((comment) => ({
+                ...comment,
+                person: originPerson._id,
+                type: "medical-file",
+              })),
+            ],
           }),
         };
       }
@@ -353,9 +397,7 @@ const MergeTwoPersons = ({ person }) => {
     }
     toast.success("Fusion réussie !");
 
-    setPersons((persons) => persons.filter((p) => p._id !== personToMergeAndDelete._id));
-
-    refresh();
+    await refresh();
 
     handleClose();
     // We do not set isSubmitting to false here because the modal will be closed

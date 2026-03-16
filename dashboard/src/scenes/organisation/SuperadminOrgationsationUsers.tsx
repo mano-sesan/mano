@@ -8,9 +8,13 @@ import { ModalContainer, ModalBody, ModalHeader, ModalFooter } from "../../compo
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { toast } from "react-toastify";
 import UserStatus from "../../components/UserStatus";
+import { DocumentDuplicateIcon, ArrowPathIcon, LinkIcon, ArrowTopRightOnSquareIcon, MoonIcon } from "@heroicons/react/24/outline";
+import StethoscopeIcon from "../../components/StethoscopeIcon";
 
 export default function SuperadminOrganisationUsers({
   organisation,
+  refresh,
+  setRefresh,
   setOpen,
   setOpenCreateUserModal,
   setOpenEditUserModal,
@@ -20,6 +24,8 @@ export default function SuperadminOrganisationUsers({
   openEditUserModal,
 }: {
   organisation: OrganisationInstance;
+  refresh: boolean;
+  setRefresh: (refresh: boolean) => void;
   setOpen: (open: boolean) => void;
   setOpenCreateUserModal: (open: boolean) => void;
   setEditUser: (user: UserInstance) => void;
@@ -33,6 +39,7 @@ export default function SuperadminOrganisationUsers({
   const [generatedLink, setGeneratedLink] = useState<[string, string] | undefined>();
   const [isReleasingUser, setIsReleasingUser] = useState<false | string>(false);
   const [isReactivatingUser, setIsReactivatingUser] = useState<false | string>(false);
+  const [isDisablingUser, setIsDisablingUser] = useState<false | string>(false);
 
   const onClose = useCallback(() => {
     setOpen(false);
@@ -50,7 +57,7 @@ export default function SuperadminOrganisationUsers({
     } else {
       onClose();
     }
-  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose]);
+  }, [organisation?._id, open, openCreateUserModal, openEditUserModal, onClose, refresh]);
 
   return (
     <ModalContainer open={open} onClose={onClose} size="full">
@@ -83,7 +90,21 @@ export default function SuperadminOrganisationUsers({
                       ) : (
                         <>
                           {generatedLink && generatedLink[0] === user._id && (
-                            <div className="tw-flex tw-cursor-default tw-items-center tw-text-green-700">✅ {generatedLink[1]}</div>
+                            <div>
+                              <div className="tw-flex tw-cursor-default tw-items-start tw-text-green-700">
+                                <LinkIcon className="tw-h-4 tw-w-4 tw-mr-2 tw-mt-1" /> {generatedLink[1]}
+                              </div>
+                              <button
+                                className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline tw-flex tw-items-center tw-gap-1"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(generatedLink[1]);
+                                  toast.success("Lien de connexion copié dans le presse-papiers");
+                                }}
+                              >
+                                <DocumentDuplicateIcon className="tw-h-4 tw-w-4" />
+                                Copier le lien de connexion
+                              </button>
+                            </div>
                           )}
                           <button
                             className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
@@ -100,7 +121,14 @@ export default function SuperadminOrganisationUsers({
                               })();
                             }}
                           >
-                            {generatedLink && generatedLink[0] === user._id ? "🔄 Régénérer" : "Générer un lien de connexion"}
+                            {generatedLink && generatedLink[0] === user._id ? (
+                              <div className="tw-flex tw-items-center tw-gap-1">
+                                <ArrowPathIcon className="tw-h-4 tw-w-4" />
+                                Régénérer
+                              </div>
+                            ) : (
+                              "Générer un lien de connexion"
+                            )}
                           </button>
                         </>
                       )}
@@ -138,7 +166,7 @@ export default function SuperadminOrganisationUsers({
                       )}
                     </div>
                     <div>
-                      {user.disabledAt && (
+                      {user.disabledAt ? (
                         <>
                           {isReactivatingUser === user._id ? (
                             <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Réactivation de l'utilisateur en cours…</div>
@@ -151,16 +179,47 @@ export default function SuperadminOrganisationUsers({
                                   const [error] = await tryFetchExpectOk(async () =>
                                     API.post({ path: `/user/reactivate-user`, body: { _id: user._id } })
                                   );
-                                  if (error) return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                                  if (error) {
+                                    setIsReactivatingUser(false);
+                                    return toast.error("Erreur lors de la réactivation de l'utilisateur");
+                                  }
                                   toast.success("Utilisateur réactivé");
                                   setIsReactivatingUser(false);
-                                  // Refresh user data
                                   const updatedUser = { ...user, disabledAt: null };
-                                  setUsers(users.map((u) => (u._id === user._id ? updatedUser : u)));
+                                  setUsers((prev) => prev.map((u) => (u._id === user._id ? updatedUser : u)));
                                 })();
                               }}
                             >
                               Réactiver l'utilisateur
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {isDisablingUser === user._id ? (
+                            <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Désactivation en cours…</div>
+                          ) : (
+                            <button
+                              className="tw-cursor-pointer tw-text-red-600 hover:tw-underline focus:tw-underline"
+                              onClick={() => {
+                                if (!window.confirm(`Voulez-vous vraiment désactiver le compte de ${user.name || user.email} ?`)) return;
+                                setIsDisablingUser(user._id);
+                                (async () => {
+                                  const [error, response] = await tryFetchExpectOk(async () =>
+                                    API.post({ path: `/user/disable-user`, body: { _id: user._id } })
+                                  );
+                                  if (error) {
+                                    setIsDisablingUser(false);
+                                    return toast.error("Erreur lors de la désactivation de l'utilisateur");
+                                  }
+                                  toast.success("Utilisateur désactivé");
+                                  setIsDisablingUser(false);
+                                  const updatedUser = { ...user, disabledAt: response.user.disabledAt };
+                                  setUsers((prev) => prev.map((u) => (u._id === user._id ? updatedUser : u)));
+                                })();
+                              }}
+                            >
+                              Désactiver le compte
                             </button>
                           )}
                         </>
@@ -172,12 +231,27 @@ export default function SuperadminOrganisationUsers({
                   <UserStatus user={user} />
                 </td>
                 <td>
-                  {user.email}
+                  <a
+                    href={`mailto:${user.email}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="tw-text-main tw-flex tw-items-center tw-gap-1 hover:tw-underline focus:tw-underline"
+                  >
+                    {user.email}
+                    <ArrowTopRightOnSquareIcon className="tw-h-4 tw-w-4" />
+                  </a>
                   {user.phone ? <div>{user.phone}</div> : ""}
                 </td>
                 <td>
                   <div>{user.role}</div>
-                  {user.healthcareProfessional ? <div>🧑‍⚕️ professionnel·le de santé</div> : ""}
+                  {user.healthcareProfessional ? (
+                    <div className="tw-text-xs tw-flex tw-items-center">
+                      <StethoscopeIcon className="tw-w-3 tw-h-3 tw-text-sky-700" />
+                      &nbsp;pro.&nbsp;santé
+                    </div>
+                  ) : (
+                    ""
+                  )}
                 </td>
                 <td>
                   <div className="tw-grid tw-gap-1">
@@ -190,7 +264,7 @@ export default function SuperadminOrganisationUsers({
                         }}
                         className="tw-inline-flex tw-justify-center tw-gap-4 tw-rounded tw-border tw-px-2.5 tw-py-0.5 tw-text-center tw-text-xs tw-text-white"
                       >
-                        {team.nightSession && <span>🌒</span>}
+                        {team.nightSession && <MoonIcon className="tw-h-3.5 tw-w-3.5" />}
                         {team.name}
                       </div>
                     ))}
@@ -206,6 +280,7 @@ export default function SuperadminOrganisationUsers({
                         if (error) return;
                         toast.success("Suppression réussie");
                         setUsers(users.filter((u) => u._id !== user._id));
+                        setRefresh(true);
                       }}
                     >
                       <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>

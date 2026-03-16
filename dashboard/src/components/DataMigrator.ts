@@ -59,6 +59,55 @@ export default function useDataMigrator() {
         // migrations faites pour les organisations affectées par le bug
         // on garde encore ici si y'en a d'autres qui arriveraient
       }
+      if (!organisation.migrations?.includes("set-followed-since-from-created-at")) {
+        setLoadingText(LOADING_TEXT);
+        const personsRes = await API.get({
+          path: "/person",
+          query: { organisation: organisationId, after: "0", withDeleted: false },
+        });
+        if (!personsRes.ok) {
+          return false;
+        }
+        const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "person" })))).filter((e) => e);
+
+        const personsToUpdate: typeof decryptedPersons = [];
+        for (const person of decryptedPersons) {
+          if (!person.followedSince && person.createdAt) {
+            personsToUpdate.push({
+              ...person,
+              followedSince: person.createdAt,
+            });
+          }
+        }
+
+        if (personsToUpdate.length > 0) {
+          const encryptedPersonsToUpdate = await Promise.all(personsToUpdate.map((p) => preparePersonForEncryption(p)).map(encryptItem));
+          const response = await API.put({
+            path: `/migration/set-followed-since-from-created-at`,
+            body: { encryptedPersons: encryptedPersonsToUpdate },
+            query: { migrationLastUpdateAt },
+          });
+          if (response.ok) {
+            setOrganisation(response.organisation);
+            migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
+          } else {
+            return false;
+          }
+        } else {
+          // No persons to update, but still mark the migration as done
+          const response = await API.put({
+            path: `/migration/set-followed-since-from-created-at`,
+            body: { encryptedPersons: [] },
+            query: { migrationLastUpdateAt },
+          });
+          if (response.ok) {
+            setOrganisation(response.organisation);
+            migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
+          } else {
+            return false;
+          }
+        }
+      }
       return true;
     },
   };

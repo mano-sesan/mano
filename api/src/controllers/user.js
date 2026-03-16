@@ -17,6 +17,7 @@ const { ExtractJwt } = require("passport-jwt");
 const { serializeUserWithTeamsAndOrganisation, serializeTeam } = require("../utils/data-serializer");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const dayjs = require("dayjs");
+const getClientInfo = require("../utils/getClientInfo");
 
 const EMAIL_OR_PASSWORD_INVALID = "EMAIL_OR_PASSWORD_INVALID";
 const PASSWORD_NOT_VALIDATED = "PASSWORD_NOT_VALIDATED";
@@ -77,6 +78,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "app",
       action: "login",
+      ...getClientInfo(req),
       debugApp: {
         version: req.headers.version,
         apilevel: req.body.apilevel,
@@ -122,6 +124,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "dashboard",
       action: "login",
+      ...getClientInfo(req),
       debugDashboard: {
         browserType: req.body.browsertype,
         browserName: req.body.browsername,
@@ -136,6 +139,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "unknown",
       action: "login",
+      ...getClientInfo(req),
     });
   }
 }
@@ -166,6 +170,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "logout",
+      ...getClientInfo(req),
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
@@ -205,7 +210,16 @@ router.post(
       });
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
+      return res.status(403).send({
+        ok: false,
+        error: "Cette organisation a été temporairement désactivée",
+        code: "ORGANISATION_DISABLED",
+      });
+    }
+
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -263,6 +277,7 @@ router.post(
     }
 
     user.lastLoginAt = new Date();
+    user.lastDeactivationWarningAt = null;
     user.nextLoginAttemptAt = null;
     user.loginAttempts = 0;
 
@@ -274,7 +289,6 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
@@ -316,13 +330,18 @@ router.get(
       return res.status(403).send({ ok: false, error: "Ce compte a été désactivé", code: "ACCOUNT_DISABLED" });
     }
 
+    const organisation = user.organisation ? await Organisation.findOne({ where: { _id: user.organisation } }) : null;
+    if (user.organisation && (!organisation || organisation.disabledAt)) {
+      return res.status(403).send({ ok: false, error: "Cette organisation a été temporairement désactivée", code: "ORGANISATION_DISABLED" });
+    }
+
     if (["superadmin"].includes(user.role)) {
       if (!user.lastOtpAt || dayjs(user.lastOtpAt).isBefore(dayjs().subtract(1, "month"))) {
         return res.status(401).send({ ok: false });
       }
     }
 
-    if (user.loginAttempts > 12 || user.decryptAttempts > 12) {
+    if (user.loginAttempts >= 12 || user.decryptAttempts >= 12) {
       return res.status(403).send({ ok: false, error: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible" });
     }
 
@@ -339,7 +358,6 @@ router.get(
       });
     }
 
-    const organisation = await user.getOrganisation();
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
     const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
@@ -369,6 +387,7 @@ router.post(
     UserLog.create({
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `forgot-password-${email}`,
+      ...getClientInfo(req),
     });
 
     if (!email) return res.status(403).send({ ok: false, error: "Veuillez fournir un email", code: EMAIL_OR_PASSWORD_INVALID });
@@ -386,7 +405,7 @@ router.post(
 
     const token = crypto.randomBytes(20).toString("hex");
     user.forgotPasswordResetToken = token;
-    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 24 * 30 * 1000); // 30 days
+    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 2 * 1000); // 2 hours
 
     let link = `https://espace-mano.sesan.fr/auth/reset?token=${token}`;
     if (!user.name) link += `&newUser=true`;
@@ -429,6 +448,7 @@ router.post(
       UserLog.create({
         platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
         action: `forgot-password-reset-failed-${token}`,
+        ...getClientInfo(req),
       });
       return res.status(400).send({ ok: false, error: "Le lien est non valide ou expiré" });
     }
@@ -447,6 +467,7 @@ router.post(
       user: user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "forgot-password-reset",
+      ...getClientInfo(req),
     });
     user.set({
       password: password,
@@ -501,6 +522,7 @@ router.post(
       user: req.user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `create-user-${sanitizeAll(email.trim().toLowerCase())}`,
+      ...getClientInfo(req),
     });
 
     const prevUser = await User.findOne({ where: { email: newUser.email } });
@@ -519,7 +541,12 @@ router.post(
     await user.save({ transaction: tx });
 
     const organisation = await Organisation.findOne({ where: { _id: organisationId } });
-    await mailservice.sendEmail(data.email, "Bienvenue dans Mano", null, mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible));
+    await mailservice.sendEmail(
+      data.email,
+      "Bienvenue dans Mano",
+      null,
+      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible)
+    );
 
     return res.status(200).send({
       ok: true,
@@ -606,6 +633,10 @@ router.post(
     const _id = req.user._id;
     const user = await User.findOne({ where: { _id } });
 
+    if (user.decryptAttempts >= 12) {
+      return res.status(403).send({ ok: false, error: "Trop de tentatives de déchiffrement infructueuses, le compte n'est plus accessible" });
+    }
+
     const decryptAttempts = (user.decryptAttempts || 0) + 1;
 
     user.decryptAttempts = decryptAttempts;
@@ -615,6 +646,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-failure",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: false, error: "" });
   })
@@ -634,6 +666,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-success",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: true });
   })
@@ -718,6 +751,7 @@ router.get(
     const query = { where: { _id: req.params._id } };
     query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
+    if (!user) return res.status(404).send({ ok: false, error: "User not found" });
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
     return res.status(200).send({
       ok: true,
@@ -818,14 +852,17 @@ router.put(
     try {
       z.object({
         name: z.optional(z.string().min(1)),
-        phone: z.string().optional(),
-        email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
+        phone: z.string().nullable().optional(),
+        email: z.preprocess(
+          (email) => (typeof email === "string" ? email.trim().toLowerCase() : email),
+          z.string().email().optional().or(z.literal(""))
+        ),
         currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
         ...(req.body.termsAccepted ? { termsAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
         ...(req.body.cgusAccepted ? { cgusAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
-      });
+      }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in put user by id: ${e}`);
       error.status = 400;
@@ -845,7 +882,9 @@ router.put(
       // Security: require current password verification when changing email (CWE-620 fix)
       if (newEmail !== user.email) {
         if (!currentPassword) {
-          return res.status(400).send({ ok: false, error: "Le mot de passe actuel est requis pour modifier l'email", code: "CURRENT_PASSWORD_REQUIRED" });
+          return res
+            .status(400)
+            .send({ ok: false, error: "Le mot de passe actuel est requis pour modifier l'email", code: "CURRENT_PASSWORD_REQUIRED" });
         }
         const { password: expectedPassword } = await User.scope("withPassword").findOne({ where: { _id }, attributes: ["password"] });
         const auth = await comparePassword(currentPassword, expectedPassword);
@@ -1023,6 +1062,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-me`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, organisation: req.user.organisation } };
@@ -1067,6 +1107,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-user-${userId}`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, role: { [Op.ne]: "superadmin" } } };
@@ -1111,7 +1152,7 @@ router.post(
 
     const token = crypto.randomBytes(20).toString("hex");
     user.forgotPasswordResetToken = token;
-    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 24 * 30 * 1000); // 30 days
+    user.forgotPasswordResetExpires = new Date(Date.now() + 60 * 60 * 2 * 1000); // 2 hours
     let link = `https://espace-mano.sesan.fr/auth/reset?token=${token}`;
     if (!user.name) link += `&newUser=true`;
     await user.save();
@@ -1136,6 +1177,15 @@ router.post(
     }
 
     const _id = req.body._id;
+
+    UserLog.create({
+      organisation: req.user.organisation,
+      user: req.user._id,
+      platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
+      action: `release-user-${_id}`,
+      ...getClientInfo(req),
+    });
+
     const query = { where: { _id } };
     if (req.user.role !== "superadmin") query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
@@ -1173,6 +1223,62 @@ router.post(
 );
 
 router.post(
+  "/disable-user",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        _id: z.string().regex(looseUuidRegex),
+      }).parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request in disable user: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const _id = req.body._id;
+    const user = await User.findOne({ where: { _id, role: { [Op.ne]: "superadmin" } } });
+    if (!user) return res.status(404).send({ ok: false, error: "Not Found" });
+
+    user.disabledAt = new Date();
+    await user.save();
+
+    UserLog.create({
+      organisation: user.organisation,
+      user: req.user._id,
+      platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
+      action: `disable-user-${_id}`,
+      ...getClientInfo(req),
+    });
+
+    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+
+    return res.status(200).send({
+      ok: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        role: user.role,
+        healthcareProfessional: user.healthcareProfessional,
+        lastChangePasswordAt: user.lastChangePasswordAt,
+        termsAccepted: user.termsAccepted,
+        cgusAccepted: user.cgusAccepted,
+        lastLoginAt: user.lastLoginAt,
+        decryptAttempts: user.decryptAttempts,
+        disabledAt: user.disabledAt,
+        loginAttempts: user.loginAttempts,
+        team: team.map((t) => t._id),
+      },
+    });
+  })
+);
+
+router.post(
   "/reactivate-user",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin"]),
@@ -1195,6 +1301,7 @@ router.post(
 
     user.disabledAt = null;
     user.lastLoginAt = new Date();
+    user.lastDeactivationWarningAt = null;
     await user.save();
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
 

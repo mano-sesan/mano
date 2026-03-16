@@ -26,7 +26,7 @@ fs.writeFileSync("package.json", newPackageJson);
 const appJson = fs.readFileSync("app.config.ts", "utf8");
 const newAppJson = appJson
   .replace(/version = "[^"]+"/, `version = "${newVersion}"`)
-  .replace(/buildNumber = "[^"]+"/, `buildNumber = ${newBuildNumber}`);
+  .replace(/buildNumber = [^"]+;/, `buildNumber = ${newBuildNumber};`);
 fs.writeFileSync("app.config.ts", newAppJson);
 
 // Replace the mobileAppVersion in the ../api/package.json file via regex and save it

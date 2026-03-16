@@ -9,6 +9,8 @@ module.exports = (sequelize, DataTypes) => {
     action: DataTypes.TEXT, // login, logout, change-encryption-key
     debugApp: DataTypes.JSONB,
     debugDashboard: DataTypes.JSONB,
+    ip: DataTypes.TEXT,
+    userAgent: DataTypes.TEXT,
   };
 
   class UserLog extends Model {}

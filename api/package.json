@@ -1,13 +1,14 @@
 {
   "name": "api_mano",
   "version": "2.1.0",
-  "mobileAppVersion": "3.17.0",
+  "mobileAppVersion": "3.20.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "NODE_ENV=development sequelize-cli db:migrate && NODE_ENV=development nodemon ./src/index.js",
     "start": "NODE_ENV=production sequelize-cli db:migrate && NODE_ENV=production node ./src/index.js",
-    "start:test": "NODE_ENV=test sequelize-cli db:migrate && NODE_ENV=test node ./src/index.js"
+    "start:test": "NODE_ENV=test sequelize-cli db:migrate && NODE_ENV=test node ./src/index.js",
+    "preview-emails": "node ./src/utils/preview-emails.js"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -15,25 +16,26 @@
     "printWidth": 150
   },
   "dependencies": {
-    "@sentry/node": "^7.14.0",
-    "@sentry/tracing": "^7.14.0",
+    "@sentry/node": "^7.120.4",
+    "@sentry/tracing": "^7.120.4",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
     "dotenv": "^16.0.0",
     "express": "^4.20.0",
+    "express-rate-limit": "^8.2.2",
     "helmet": "^4.0.0",
     "morgan": "^1.10.0",
-    "multer": "^2.0.2",
-    "nodemailer": "^7.0.7",
+    "multer": "^2.1.1",
+    "nodemailer": "^8.0.2",
     "passport": "^0.6.0",
-    "passport-jwt": "^4.0.0",
+    "passport-jwt": "^4.0.1",
     "password-validator": "^5.1.0",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
     "sanitize-html": "^2.12.1",
-    "sequelize": "^6.28.0",
+    "sequelize": "^6.37.8",
     "sequelize-cli": "^6.6.1",
     "zod": "^3.22.4"
   },
@@ -41,7 +43,14 @@
     "@types/jsonwebtoken": "^9.0.0",
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
-    "nodemon": "^2.0.15"
+    "nodemon": "^3.1.14"
+  },
+  "resolutions": {
+    "socks": "2.8.7",
+    "path-to-regexp": "0.1.12",
+    "make-dir/semver": "6.3.1",
+    "glob": "10.5.0",
+    "sequelize/validator": "13.15.22"
   },
   "packageManager": "yarn@4.0.2"
 }

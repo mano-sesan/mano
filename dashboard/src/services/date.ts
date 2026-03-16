@@ -131,8 +131,8 @@ export function now(): Dayjs {
   return dayjs();
 }
 
-export function dateForDatePicker(date: PossibleDate): Date | null {
-  return date && dayjs(date).isValid() ? dayjs(date).toDate() : null;
+export function dateForDatePicker(date: PossibleDate, type: "start" | "end" = "start"): Date | null {
+  return date && dayjs(date).isValid() ? (type === "start" ? dayjs(date).startOf("day").toDate() : dayjs(date).endOf("day").toDate()) : null;
 }
 
 export function dateForInputDate(date: PossibleDate, withTime = false): string {

@@ -14,6 +14,7 @@ import { customFieldsPersonsSelector } from "../../recoil/persons";
 import { FoldersStackParams, RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PersonInstance } from "@/types/person";
+import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 const FoldersStack = createStackNavigator<FoldersStackParams>();
 
@@ -44,7 +45,11 @@ const FoldersNavigator = (props: FoldersNavigatorProps) => {
       })}
       <FoldersStack.Screen name="DOCUMENTS_MANO">{(stackProps) => <Documents {...props} {...stackProps} />}</FoldersStack.Screen>
       <FoldersStack.Screen name="GROUP">{(stackProps) => <Group {...props} {...stackProps} />}</FoldersStack.Screen>
-      {!!user?.healthcareProfessional && <FoldersStack.Screen name="MEDICAL_FILE">{() => <MedicalFile {...props} />}</FoldersStack.Screen>}
+      {!!user?.healthcareProfessional && (
+        <FoldersStack.Screen name="MEDICAL_FILE">
+          {(stackProps) => <MedicalFile {...props} onBack={() => stackProps.navigation.goBack()} />}
+        </FoldersStack.Screen>
+      )}
     </FoldersStack.Navigator>
   );
 };
@@ -59,9 +64,9 @@ const FoldersSummary = ({ navigation, backgroundColor }: FoldersSummaryProps) =>
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
   const customFieldsPersons = useAtomValue(customFieldsPersonsSelector)!;
-
+  useEditButtonStatusOnFocused("hide");
   return (
-    <ScrollContainer noPadding backgroundColor={backgroundColor || colors.app.color}>
+    <ScrollContainer noPadding backgroundColor={backgroundColor || colors.app.color} contentContainerStyle={{ paddingBottom: 100 }}>
       <Spacer />
       {customFieldsPersons.map(({ name }) => {
         return <Row key={name} withNextButton caption={name} onPress={() => navigation.navigate(name)} />;

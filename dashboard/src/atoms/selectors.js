@@ -75,8 +75,8 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     const { interactions, assignedTeamsPeriods } = extractInfosFromHistory(person);
     personsObject[person._id] = {
       ...person,
-      followedSince: person.followedSince || person.createdAt,
-      followSinceMonths: dayjsInstance().diff(person.followedSince || person.createdAt, "months"),
+      followedSince: person.followedSince,
+      followSinceMonths: dayjsInstance().diff(person.followedSince, "months"),
       userPopulated: usersObject[person.user],
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
@@ -84,7 +84,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
       interactions,
       assignedTeamsPeriods,
-      lastUpdateCheckForGDPR: person.followedSince || person.createdAt,
+      lastUpdateCheckForGDPR: person.followedSince,
       numberOfActions: 0,
       numberOfConsultations: 0,
       numberOfTreatments: 0,

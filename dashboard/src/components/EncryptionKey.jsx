@@ -56,6 +56,7 @@ const totalNumberOfItemsSelector = atom((get) => {
   const rencontres = get(rencontresState);
   const reports = get(reportsState);
   const territories = get(territoriesState);
+  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
   const places = get(placesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const territoryObservations = get(territoryObservationsState);
@@ -64,9 +65,14 @@ const totalNumberOfItemsSelector = atom((get) => {
     (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
     0
   );
+  const territoryObservationsDocuments = territoryObservations.reduce(
+    (acc, obs) => acc + (obs.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    0
+  );
   const comments = get(commentsState);
 
-  const documents = personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments;
+  const documents =
+    personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments + territoryObservationsDocuments + territoriesDocuments;
 
   return (
     persons.length +
@@ -240,31 +246,81 @@ const EncryptionKey = ({ isMain }) => {
         return encryptedItems;
       }
 
+      const orphanedFiles = [];
       const encryptedPersons = await recrypt("/person", async (decryptedData, item) =>
-        recryptPersonRelatedDocuments(decryptedData, item._id, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1))
+        recryptPersonRelatedDocuments(decryptedData, item._id, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1), orphanedFiles)
       );
       const encryptedConsultations = await recrypt("/consultation", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1))
+        recryptPersonRelatedDocuments(
+          decryptedData,
+          decryptedData.person,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles
+        )
       );
       const encryptedTreatments = await recrypt("/treatment", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1))
+        recryptPersonRelatedDocuments(
+          decryptedData,
+          decryptedData.person,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles
+        )
       );
       const encryptedMedicalFiles = await recrypt("/medical-file", async (decryptedData) =>
-        recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () => bumpProcessed(1))
+        recryptPersonRelatedDocuments(
+          decryptedData,
+          decryptedData.person,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles
+        )
       );
       const encryptedGroups = await recrypt("/group");
       const encryptedActions = await recrypt("/action", async (decryptedData) => {
         // Action documents are uploaded under `/person/:personId/document`, so we need to recrypt files too.
         if (!decryptedData?.person) return decryptedData;
-        return recryptPersonRelatedDocuments(decryptedData, decryptedData.person, previousKey.current, hashedOrgEncryptionKey, () =>
-          bumpProcessed(1)
+        return recryptPersonRelatedDocuments(
+          decryptedData,
+          decryptedData.person,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles
         );
       });
       const encryptedComments = await recrypt("/comment");
       const encryptedPassages = await recrypt("/passage");
       const encryptedRencontres = await recrypt("/rencontre");
-      const encryptedTerritories = await recrypt("/territory");
-      const encryptedTerritoryObservations = await recrypt("/territory-observation");
+      const encryptedTerritories = await recrypt("/territory", async (decryptedData, _item) => {
+        return recryptEntityDocuments(
+          decryptedData,
+          decryptedData._id ?? _item._id,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles,
+          `/territory/${decryptedData._id ?? _item._id}/document`,
+          { entityType: "territory" }
+        );
+      });
+      const encryptedTerritoryObservations = await recrypt("/territory-observation", async (decryptedData, _item) => {
+        if (!decryptedData.territory) return decryptedData;
+        return recryptEntityDocuments(
+          decryptedData,
+          decryptedData.territory,
+          previousKey.current,
+          hashedOrgEncryptionKey,
+          () => bumpProcessed(1),
+          orphanedFiles,
+          `/territory/${decryptedData.territory}/document`,
+          { entityType: "territory" }
+        );
+      });
       const encryptedPlaces = await recrypt("/place");
       const encryptedRelsPersonPlace = await recrypt("/relPersonPlace");
       const encryptedReports = await recrypt("/report");
@@ -304,7 +360,13 @@ const EncryptionKey = ({ isMain }) => {
       );
 
       if (!encryptError) {
-        // TODO: clean unused person documents
+        if (orphanedFiles.length) {
+          try {
+            await tryFetch(() => API.post({ path: "/encrypt/orphaned-files", body: { files: orphanedFiles } }));
+          } catch (_e) {
+            // Non-blocking: orphaned file tracking is best-effort
+          }
+        }
         setEncryptingProgress({ processed: totalNumberOfItems || processedRef.current, total: totalNumberOfItems || processedRef.current || 1 });
         setEncryptingPhase("Terminé");
         setEncryptingStatus("Données chiffrées !");
@@ -541,12 +603,14 @@ const EncryptionKey = ({ isMain }) => {
   );
 };
 
-const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
-  if (doc.type === "folder") return doc;
+const recryptDocument = async (doc, entityId, { fromKey, toKey, uploadBasePath }) => {
+  if (doc.type === "folder") return { document: doc, orphanedFile: null };
   if (!doc?.file?.filename) {
-    capture("no file filename in document", { extra: { doc, personId } });
+    capture("no file filename in document", { extra: { doc, entityId } });
   }
-  const initialPath = doc.downloadPath ?? `/person/${personId}/document/${doc.file.filename}`;
+  const resolvedUploadPath = uploadBasePath ?? `/person/${entityId}/document`;
+  const oldFilename = doc.file?.filename;
+  const initialPath = doc.downloadPath ?? `${resolvedUploadPath}/${oldFilename}`;
   const [error, blob] = await tryFetchBlob(() =>
     API.download(
       {
@@ -565,7 +629,7 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   const [docResponseError, docResponse] = await tryFetch(() =>
     API.upload(
       {
-        path: `/person/${personId}/document`,
+        path: resolvedUploadPath,
         encryptedFile,
       },
       toKey
@@ -573,26 +637,34 @@ const recryptDocument = async (doc, personId, { fromKey, toKey }) => {
   );
   if (docResponseError || !docResponse.ok || !docResponse.data) {
     toast.error(errorMessage(docResponseError || docResponse.error));
-    capture("recryptDocument error updating document", { extra: { personId, error: docResponseError || docResponse.error, initialPath } });
-    return;
+    capture("recryptDocument error updating document", { extra: { entityId, error: docResponseError || docResponse.error, initialPath } });
+    return { document: undefined, orphanedFile: null };
   }
   const { data: file } = docResponse;
   return {
-    // We keep the original document, but we update the encryptedEntityKey, downloadPath and file
-    ...doc,
-    _id: file.filename,
-    encryptedEntityKey,
-    downloadPath: `/person/${personId}/document/${file.filename}`,
-    file,
+    document: {
+      // We keep the original document, but we update the encryptedEntityKey, downloadPath and file
+      ...doc,
+      _id: file.filename,
+      encryptedEntityKey,
+      downloadPath: `${resolvedUploadPath}/${file.filename}`,
+      file,
+    },
+    orphanedFile: oldFilename ? { entityId, filename: oldFilename } : null,
   };
 };
 
-const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumentProcessed) => {
+const recryptEntityDocuments = async (item, entityId, oldKey, newKey, onDocumentProcessed, orphanedFilesAccumulator, uploadBasePath, orphanedFileExtra) => {
   if (!item.documents || !item.documents.length) return item;
   const updatedDocuments = [];
   for (const doc of item.documents) {
     try {
-      const recryptedDocument = await recryptDocument(doc, id, { fromKey: oldKey, toKey: newKey });
+      const { document: recryptedDocument, orphanedFile } = await recryptDocument(doc, entityId, {
+        fromKey: oldKey,
+        toKey: newKey,
+        uploadBasePath,
+      });
+      if (orphanedFile && orphanedFilesAccumulator) orphanedFilesAccumulator.push({ ...orphanedFile, ...orphanedFileExtra });
       if (!recryptedDocument) continue;
       updatedDocuments.push(recryptedDocument);
     } catch (e) {
@@ -611,6 +683,10 @@ const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumen
     }
   }
   return { ...item, documents: updatedDocuments };
+};
+
+const recryptPersonRelatedDocuments = async (item, id, oldKey, newKey, onDocumentProcessed, orphanedFilesAccumulator) => {
+  return recryptEntityDocuments(item, id, oldKey, newKey, onDocumentProcessed, orphanedFilesAccumulator, `/person/${id}/document`);
 };
 
 export default EncryptionKey;

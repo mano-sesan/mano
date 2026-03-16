@@ -29,7 +29,7 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("button", { name: "Créer une personne" }).click();
   await page.getByLabel("Nom").fill("personne test");
   await page.locator(".person-select-assigned-team__input-container").click();
-  await page.getByText("ancienne", { exact: true }).click();
+  await page.locator(".person-select-assigned-team__menu").getByText("ancienne", { exact: true }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
   // Action avec commentaire
@@ -91,7 +91,7 @@ test("Transfer team", async ({ page }) => {
   // Comptes rendus
   await page.getByRole("link", { name: "Comptes rendus" }).click();
   // On ajoute d'abord une transmission dans l'équipe nouvelle pour vérifier la fusion
-  await page.getByLabel("Remove Team Test -").click();
+  await page.locator(".report-team-select__multi-value").filter({ hasText: "Team Test" }).locator(".report-team-select__multi-value__remove").click();
   await page.locator(".report-team-select__indicator").click();
   await page.getByText("nouvelle", { exact: true }).click();
   await page.getByRole("button", { name: "Ajouter une transmission" }).click();
@@ -99,7 +99,7 @@ test("Transfer team", async ({ page }) => {
   await page.getByPlaceholder("Entrez ici votre transmission").fill("ligne1");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   // Puis on refait une transmission sur l'ancienne équipe
-  await page.getByLabel("Remove nouvelle").click();
+  await page.locator(".report-team-select__multi-value").filter({ hasText: "nouvelle" }).locator(".report-team-select__multi-value__remove").click();
   await page.locator(".report-team-select__indicator").click();
   await page.getByText("ancienne", { exact: true }).click();
   await page
@@ -117,8 +117,8 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("button", { name: "Créer un utilisateur" }).click();
   await page.getByPlaceholder("email@truc.fr").click();
   await page.getByPlaceholder("email@truc.fr").fill("test@example.org");
-  await page.getByLabel("Remove Team Test -").click();
-  await page.getByLabel("Remove nouvelle").click();
+  await page.locator(".user-team-select__multi-value").filter({ hasText: "nouvelle" }).locator(".user-team-select__multi-value__remove").click();
+  await page.locator(".user-team-select__multi-value").filter({ hasText: "Team Test" }).locator(".user-team-select__multi-value__remove").click();
   await page.getByRole("button", { name: "Créer et fermer" }).click();
   await page.getByText("Création réussie !").click();
 
@@ -142,7 +142,7 @@ test("Transfer team", async ({ page }) => {
   // Vérification
   await page.getByRole("link", { name: "Comptes rendus" }).click();
   await page.locator(".report-team-select__indicator").click();
-  await page.getByText("nouvelle", { exact: true }).click();
+  await page.getByText("nouvelle", { exact: true }).nth(1).click();
   await page.getByText("1passagePassages (1)Ajouter").click();
   await page.getByText("1rencontreRencontres (1)").click();
   await page.getByText("1personne crééePersonnes créé").click();
@@ -155,5 +155,5 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("button", { name: "Commentaires (1)" }).click();
   await page.getByRole("link", { name: "Utilisateurs" }).click();
   await page.getByText("test@example.org").click();
-  await page.getByText("nouvelle").click();
+  await page.getByText("nouvelle").nth(1).click();
 });

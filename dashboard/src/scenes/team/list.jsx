@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import { useHistory } from "react-router-dom";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -15,6 +15,8 @@ import { formatDateWithFullMonth } from "../../services/date";
 import useTitle from "../../services/useTitle";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import { errorMessage } from "../../utils";
+import { getTeamColors } from "../../components/TagTeam";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
@@ -62,6 +64,19 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
+            render: (team) => {
+              const teamIndex = teams.findIndex((t) => t._id === team._id);
+              const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+              return (
+                <div className="tw-flex tw-items-center tw-gap-2">
+                  <span
+                    className="tw-inline-block tw-h-3 tw-w-3 tw-rounded-full tw-shrink-0"
+                    style={{ backgroundColor, border: `1px solid ${borderColor}` }}
+                  />
+                  {team.name}
+                </div>
+              );
+            },
           },
           {
             title: "Créée le",
@@ -80,7 +95,8 @@ const List = () => {
             onSortBy: setSortBy,
             sortOrder,
             sortBy,
-            render: (i) => (i.nightSession ? "🌒" : "☀️"),
+            render: (i) =>
+              i.nightSession ? <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" /> : <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />,
           },
         ]}
       />
@@ -104,11 +120,12 @@ const Create = () => {
   return (
     <div className="tw-flex tw-w-full tw-justify-end">
       <ButtonCustom type="button" color="primary" onClick={() => setOpen(true)} title="Créer une équipe" padding="12px 24px" />
-      <Modal isOpen={open} toggle={() => setOpen(false)} size="lg" backdrop="static">
-        <ModalHeader close={onboardingForTeams ? <></> : null} toggle={() => setOpen(false)}>
-          {onboardingForTeams ? "Dernière étape !" : "Créer une équipe"}
-        </ModalHeader>
-        <ModalBody>
+      <ModalContainer open={open} onClose={onboardingForTeams ? null : () => setOpen(false)} size="3xl">
+        <ModalHeader
+          title={onboardingForTeams ? "Dernière étape !" : "Créer une équipe"}
+          onClose={onboardingForTeams ? null : () => setOpen(false)}
+        />
+        <ModalBody className="tw-p-4">
           {Boolean(onboardingForTeams) && (
             <span>
               Veuillez créer une première équipe avant de commencer à utiliser la plateforme <br />
@@ -116,7 +133,7 @@ const Create = () => {
             </span>
           )}
           <Formik
-            initialValues={{ name: "" }}
+            initialValues={{ name: "", color: "#255c99" }}
             onSubmit={async (values, actions) => {
               if (!values.name) {
                 toast.error("Vous devez choisir un nom");
@@ -126,7 +143,12 @@ const Create = () => {
               const [newTeamError, newTeamRes] = await tryFetchExpectOk(async () =>
                 API.post({
                   path: "/team",
-                  body: { name: values.name, organisation: organisation._id, nightSession: values.nightSession === "true" },
+                  body: {
+                    name: values.name,
+                    organisation: organisation._id,
+                    nightSession: values.nightSession === "true",
+                    color: values.color || null,
+                  },
                 })
               );
               if (newTeamError) {
@@ -173,8 +195,17 @@ const Create = () => {
                   <div className="tw-flex tw-flex-wrap -tw-mx-2">
                     <div className="tw-w-full md:tw-w-1/2 tw-px-2">
                       <div className="tw-mb-4">
-                        <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
-                        <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
+                        <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                          Nom
+                        </label>
+                        <input
+                          autoComplete="off"
+                          name="name"
+                          id="name"
+                          value={values.name}
+                          onChange={handleChange}
+                          className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main"
+                        />
                       </div>
                     </div>
                     <div className="tw-w-full md:tw-w-1/2 tw-px-2">
@@ -208,6 +239,24 @@ const Create = () => {
                         </div>
                       </div>
                     </div>
+                    <div className="tw-w-full md:tw-w-1/2 tw-px-2">
+                      <div className="tw-mb-4">
+                        <label htmlFor="color" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                          Couleur de l'équipe
+                        </label>
+                        <div className="tw-flex tw-items-center tw-gap-2">
+                          <input
+                            type="color"
+                            name="color"
+                            id="color"
+                            value={values.color || "#255c99"}
+                            onChange={handleChange}
+                            className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
+                          />
+                          <span className="tw-text-sm tw-text-gray-500">{values.color}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <br />
                   <div className="tw-flex tw-flex-wrap -tw-mx-2">
@@ -220,7 +269,7 @@ const Create = () => {
             }}
           </Formik>
         </ModalBody>
-      </Modal>
+      </ModalContainer>
       <OnboardingEndModal open={onboardingEndModalOpen} setOpen={setOnboardingEndModalOpen} />
     </div>
   );

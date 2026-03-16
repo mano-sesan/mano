@@ -41,7 +41,7 @@
 }
 
 .my-tooltip::after {
-  content: attr(data-tooltip);
+  content: attr(data-tooltip) / "";
   position: absolute;
   font-weight: 400;
   bottom: 100%;

@@ -4,7 +4,7 @@ import { personsState, usePreparePersonForEncryption } from "../atoms/persons";
 import { atom, useAtom, useAtomValue } from "jotai";
 import AsyncSelect from "react-select/async-creatable";
 import API, { tryFetchExpectOk } from "../services/api";
-import { formatBirthDate } from "../services/date";
+import { formatBirthDate, formatDateWithFullMonth } from "../services/date";
 import { currentTeamState, userState } from "../atoms/auth";
 import dayjs from "dayjs";
 import { useDataLoader } from "../services/dataLoader";
@@ -110,20 +110,10 @@ const SelectAndCreatePerson = ({ value, onChange }) => {
       formatOptionLabel={(person, options) => {
         if (options.context === "menu") {
           if (person.__isNew__) return <span>Créer "{person.value}"</span>;
-          return (
-            <div className="tw-flex tw-items-center">
-              {person?.name}
-              {Boolean(person?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{person?.otherNames}</span>}
-            </div>
-          );
+          return <PersonLabel person={person} />;
         }
         if (person.__isNew__) return <span>Création de {person.name}...</span>;
-        return (
-          <div className="tw-flex tw-items-center">
-            {person?.name}
-            {Boolean(person?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{person?.otherNames}</span>}
-          </div>
-        );
+        return <PersonLabel person={person} />;
       }}
       format
       creatable
@@ -136,5 +126,21 @@ const SelectAndCreatePerson = ({ value, onChange }) => {
     />
   );
 };
+
+function PersonLabel({ person }) {
+  return (
+    <div className={person?.outOfActiveList ? "tw-flex tw-flex-col" : "tw-flex tw-items-center"}>
+      <div className={`tw-flex tw-items-center ${person?.outOfActiveList ? "tw-text-black50" : ""}`}>
+        {person?.name}
+        {Boolean(person?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{person?.otherNames}</span>}
+      </div>
+      {person?.outOfActiveList && (
+        <div className="tw-text-xs tw-text-black50">
+          Sortie de file active{person?.outOfActiveListDate && ` - ${formatDateWithFullMonth(person.outOfActiveListDate)}`}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default SelectAndCreatePerson;

@@ -9,7 +9,7 @@ import { CANCEL, DONE, sortActionsOrConsultations, TODO } from "../atoms/actions
 import { currentTeamState, organisationState, userState } from "../atoms/auth";
 import ExclamationMarkButton from "./tailwind/ExclamationMarkButton";
 import useTitle from "../services/useTitle";
-import ConsultationButton from "./ConsultationButton";
+import StethoscopeIcon from "./StethoscopeIcon";
 import { disableConsultationRow } from "../atoms/consultations";
 import TagTeam from "./TagTeam";
 import { useLocalStorage } from "../services/useLocalStorage";
@@ -105,7 +105,7 @@ const ActionsSortableList = ({
                     {!!organisation.groupsEnabled && !!actionOrConsult.group && (
                       <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
                     )}
-                    {!!actionOrConsult.isConsultation && <ConsultationButton />}
+                    {!!actionOrConsult.isConsultation && <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" />}
                   </div>
                 </div>
               );

@@ -42,6 +42,18 @@ export type HistoryEntryForOutOfTeamsInformations = {
   outOfTeamsInformations: Array<OutOfTeamsInformation>;
 };
 
+export type OutOfActiveListData = {
+  outOfActiveList: {
+    newValue: boolean;
+  };
+  outOfActiveListReasons: {
+    newValue: string[];
+  };
+  outOfActiveListDate: {
+    newValue: Date;
+  };
+};
+
 export type FieldChangeData = {
   [key: string]: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,7 +63,7 @@ export type FieldChangeData = {
   };
 };
 
-type PersonHistoryData = MergeData | FieldChangeData | HistoryEntryForOutOfTeamsInformations;
+type PersonHistoryData = MergeData | FieldChangeData | HistoryEntryForOutOfTeamsInformations | OutOfActiveListData;
 
 export interface PersonHistoryEntry {
   date: Date;

@@ -84,7 +84,7 @@ const SuperAdmin = () => {
 
   return (
     <>
-      <TopBar />
+      <TopBar onLogoClick={() => setRefresh(true)} />
       <div className="tw-bg-white tw-z-10 tw-pb-4 tw-pt-2 tw-px-8 tw-flex tw-justify-between tw-shadow tw-w-full">
         <div>
           <h2 className="tw-text-xl tw-mb-0">
@@ -141,6 +141,8 @@ const SuperAdmin = () => {
             openEditUserModal={openEditUserModal}
             organisation={selectedOrganisation}
             setSelectedOrganisation={setSelectedOrganisation}
+            refresh={refresh}
+            setRefresh={setRefresh}
           />
           <SuperadminUsersSearch
             open={searchUserModal}
@@ -149,6 +151,7 @@ const SuperAdmin = () => {
               setSelectedOrganisation(o);
               setOpenUserListModal(true);
             }}
+            refresh={refresh}
           />
           <SuperadminOrganisationSettings
             key={selectedOrganisation?._id}
@@ -841,6 +844,20 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
               ) : tableSizes && tableSizes.tablesSizes && tableSizes.tablesSizes.length === 0 ? (
                 <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune donnée trouvée pour cette organisation.</div>
               ) : null}
+              {tableSizes && tableSizes.documentsFolderSize !== null && tableSizes.documentsFolderSize !== undefined && (
+                <div className="tw-mt-4 tw-p-4 tw-bg-blue-50 tw-rounded tw-border tw-border-blue-200">
+                  <span className="tw-font-semibold">Documents (fichiers sur disque)&nbsp;: </span>
+                  <span className="tw-text-blue-800">
+                    {tableSizes.documentsFolderSize < 1024
+                      ? `${tableSizes.documentsFolderSize} octets`
+                      : tableSizes.documentsFolderSize < 1024 * 1024
+                        ? `${(tableSizes.documentsFolderSize / 1024).toFixed(1)} Ko`
+                        : tableSizes.documentsFolderSize < 1024 * 1024 * 1024
+                          ? `${(tableSizes.documentsFolderSize / (1024 * 1024)).toFixed(1)} Mo`
+                          : `${(tableSizes.documentsFolderSize / (1024 * 1024 * 1024)).toFixed(2)} Go`}
+                  </span>
+                </div>
+              )}
               {loadingTableSizes && <div className="tw-text-center tw-text-gray-500 tw-py-8">Chargement des tailles de tables...</div>}
             </div>
           ) : (

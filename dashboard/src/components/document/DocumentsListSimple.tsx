@@ -16,7 +16,8 @@ type Color = "main" | "blue-900";
 
 interface DocumentsListSimpleProps {
   documents: Array<DocumentWithLinkedItem | FolderWithLinkedItem>;
-  personId: UUIDV4 | UUIDV4[];
+  personId?: UUIDV4 | UUIDV4[];
+  uploadBasePath?: string;
   color?: Color;
   showAddDocumentButton?: boolean;
   showAssociatedItem?: boolean;
@@ -29,6 +30,7 @@ interface DocumentsListSimpleProps {
 export default function DocumentsListSimple({
   documents,
   personId,
+  uploadBasePath,
   color = "main",
   showAddDocumentButton = true,
   showAssociatedItem = true,
@@ -87,6 +89,7 @@ export default function DocumentsListSimple({
               files: e.dataTransfer.files,
               personId,
               user,
+              uploadBasePath,
             });
             if (Array.isArray(docsResponses) && docsResponses.length) await onAddDocuments(docsResponses);
           }}
@@ -135,6 +138,7 @@ export default function DocumentsListSimple({
             key={resetFileInputKey}
             className="tw-hidden"
             onClick={(e) => {
+              if (uploadBasePath) return; // skip person validation when using uploadBasePath
               // Match legacy behavior (actions can have multiple persons).
               if (!personId || (Array.isArray(personId) && personId.length === 0)) {
                 e.preventDefault();
@@ -154,6 +158,7 @@ export default function DocumentsListSimple({
                 files: e.target.files,
                 personId,
                 user,
+                uploadBasePath,
               });
               if (Array.isArray(docsResponses) && docsResponses.length) await onAddDocuments(docsResponses);
               setResetFileInputKey((k) => k + 1);

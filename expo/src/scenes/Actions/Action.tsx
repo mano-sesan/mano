@@ -90,7 +90,7 @@ const ActionScreen = (props: ActionProps) => {
     if (props.route.params?.duplicate) {
       Alert.alert(
         "L'action est dupliquée, vous pouvez la modifier !",
-        "Les commentaires de l'action aussi sont dupliqués. L'action originale est annulée"
+        "Les commentaires de l'action aussi sont dupliqués. L'action originale est annulée",
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,6 +155,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   const groups = useAtomValue(groupsState);
   const [comments, setComments] = useAtom(commentsState);
   const currentTeam = useAtomValue(currentTeamState)!;
+  const [hideEditButton, setHideEditButton] = useState(false);
 
   const multipleActions = route?.params?.actions;
   const isMultipleActions = multipleActions ? multipleActions.length > 1 : false;
@@ -299,7 +300,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             _id: a._id,
             person: a.person,
             teams: Array.isArray(a.teams) && a.teams.length ? a.teams : [a.team],
-          })
+          }),
         );
         if (!response.ok) {
           Alert.alert(response.error);
@@ -315,7 +316,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       Object.assign({}, castToAction(action), {
         _id: actionDB._id,
         teams: Array.isArray(actionDB.teams) && actionDB.teams.length ? actionDB.teams : [actionDB.team],
-      })
+      }),
     );
     setUpdating(false);
     if (!response.ok) {
@@ -457,7 +458,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             : displayActionName
         }
         onBack={onGoBackRequested}
-        onEdit={!editable ? () => setEditable(true) : undefined}
+        onEdit={hideEditButton ? undefined : !editable ? () => setEditable(true) : undefined}
         onSave={!editable || isUpdateDisabled ? undefined : onUpdateRequest}
         saving={updating}
         testID="action"
@@ -468,6 +469,14 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             // we NEED this custom tab bar because there is a bug in the underline of the default tab bar
             // https://github.com/react-navigation/react-navigation/issues/12052
             tabBar={MyTabBar}
+            onTabSelect={({ index }) => {
+              const actionInformationTabIndex = 0;
+              if (index === actionInformationTabIndex) {
+                setHideEditButton(false);
+              } else {
+                setHideEditButton(true);
+              }
+            }}
             screenOptions={{
               tabBarItemStyle: {
                 flexShrink: 1,
@@ -685,7 +694,6 @@ const ActionInformation = ({
 }: ActionInformationProps) => {
   const { name, dueAt, withTime, description, categories, status, urgent, group, completedAt } = action;
 
-
   return (
     <ScrollContainer noRadius>
       <View className="items-center -mt-5">
@@ -861,7 +869,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                         comments.map((c) => {
                           if (c._id === comment._id) return response.decryptedData;
                           return c;
-                        })
+                        }),
                       );
                       return true;
                     }

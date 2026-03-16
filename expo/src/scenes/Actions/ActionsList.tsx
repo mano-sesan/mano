@@ -65,13 +65,15 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const onPressFloatingButton = async () => {
     const isConsultationButtonEnabled = user.healthcareProfessional;
     const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
-    if (!isConsultationButtonEnabled && !isServiceButtonEnabled) {
+    const isRencontreButtonEnabled = organisation.rencontresEnabled;
+    if (!isConsultationButtonEnabled && !isServiceButtonEnabled && !isRencontreButtonEnabled) {
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
       return;
     }
 
     const options = ["Ajouter une action"];
     if (isConsultationButtonEnabled) options.push("Ajouter une consultation");
+    if (isRencontreButtonEnabled) options.push("Ajouter une rencontre");
     if (isServiceButtonEnabled) options.push("Ajouter un service");
     options.push("Annuler");
     showActionSheetWithOptions(
@@ -85,6 +87,9 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
         }
         if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK");
+        }
+        if (isRencontreButtonEnabled && options[buttonIndex!] === "Ajouter une rencontre") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("RENCONTRE_NEW_STACK");
         }
         if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });

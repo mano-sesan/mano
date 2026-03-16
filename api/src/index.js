@@ -17,11 +17,13 @@ const requestContextMiddleware = require("./middleware/requestContext");
 require("./db/sequelize");
 require("./utils/userLogClean");
 require("./utils/desactivateUsers");
+require("./utils/cleanOrphanedFiles");
 
 const versionCheck = require("./middleware/versionCheck");
 
 // Put together a schema
 const app = express();
+app.set("trust proxy", 1);
 if (["development", "test"].includes(process.env.NODE_ENV)) {
   app.use(logger("dev"));
 }
@@ -42,7 +44,7 @@ if (process.env.NODE_ENV === "production") {
     cors({
       credentials: true,
       origin: ["http://localhost:1420", "http://localhost:4145", "http://localhost:8083", "http://localhost:8090", "http://localhost:3000"],
-    })
+    }),
   );
 }
 
@@ -68,7 +70,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   // if you change these values, you need to change them also in
   // https://github.com/mano-sesan/mano/blob/main/.server/vhost/api-mano.sesan.fr#L1
-  const limitedSize = req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") || req.path.startsWith("/transfer-territory") ? "350mb" : "50mb";
+  const limitedSize =
+    req.path.startsWith("/encrypt") || req.path.startsWith("/transfer-team") || req.path.startsWith("/transfer-territory") ? "350mb" : "50mb";
   express.json({ limit: limitedSize })(req, res, next);
 });
 app.use(helmet());

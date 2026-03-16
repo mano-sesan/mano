@@ -2,14 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import OutsideClickHandler from "react-outside-click-handler";
 import { dayjsInstance, dateForDatePicker } from "../services/date";
 import DatePicker from "react-datepicker";
-import type { Dayjs, ManipulateType } from "dayjs";
 import type { Period, Preset } from "../types/date";
-
-const getOffsetFromToday = (value: number, unit: ManipulateType, end = false): Dayjs => {
-  const a = dayjsInstance();
-  const b = a.subtract(value, unit);
-  return end ? b.endOf("day") : b.startOf("day");
-};
+import { CalendarDaysIcon } from "@heroicons/react/24/outline";
 
 export const statsPresets: Array<Preset> = [
   {
@@ -22,7 +16,7 @@ export const statsPresets: Array<Preset> = [
   },
   {
     label: "Hier",
-    period: { startDate: getOffsetFromToday(1, "day"), endDate: getOffsetFromToday(1, "day", true) },
+    period: { startDate: dayjsInstance().subtract(1, "day").startOf("day"), endDate: dayjsInstance().subtract(1, "day").endOf("day") },
   },
   {
     label: "Cette semaine",
@@ -42,11 +36,11 @@ export const statsPresets: Array<Preset> = [
   },
   {
     label: "Les trois derniers mois glissants",
-    period: { startDate: dayjsInstance().subtract(3, "month"), endDate: dayjsInstance() },
+    period: { startDate: dayjsInstance().subtract(3, "month").startOf("day"), endDate: dayjsInstance().endOf("day") },
   },
   {
     label: "Les six derniers mois glissants",
-    period: { startDate: dayjsInstance().subtract(6, "month"), endDate: dayjsInstance() },
+    period: { startDate: dayjsInstance().subtract(6, "month").startOf("day"), endDate: dayjsInstance().endOf("day") },
   },
   {
     label: "Ce semestre",
@@ -79,11 +73,11 @@ export const statsPresets: Array<Preset> = [
 if (import.meta.env.VITE_TEST_PLAYWRIGHT) {
   statsPresets.push({
     label: "2020",
-    period: { startDate: dayjsInstance("2020-01-01"), endDate: dayjsInstance("2020-12-31") },
+    period: { startDate: dayjsInstance("2020-01-01").startOf("day"), endDate: dayjsInstance("2020-12-31").endOf("day") },
   });
   statsPresets.push({
     label: "2021",
-    period: { startDate: dayjsInstance("2021-01-01"), endDate: dayjsInstance("2021-12-31") },
+    period: { startDate: dayjsInstance("2021-01-01").startOf("day"), endDate: dayjsInstance("2021-12-31").endOf("day") },
   });
 }
 
@@ -94,7 +88,7 @@ export const reportsPresets: Array<Preset> = [
   },
   {
     label: "Hier",
-    period: { startDate: getOffsetFromToday(1, "day"), endDate: getOffsetFromToday(1, "day", true) },
+    period: { startDate: dayjsInstance().subtract(1, "day").startOf("day"), endDate: dayjsInstance().subtract(1, "day").endOf("day") },
   },
   {
     label: "Cette semaine",
@@ -126,7 +120,17 @@ export const formatPeriod = ({ preset, period }: { preset: string | null; period
 };
 
 // https://reactdatepicker.com/#example-date-range
-const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, removePreset, presets, defaultPreset }) => {
+const DateRangePickerWithPresets = ({
+  period,
+  setPeriod,
+  preset,
+  setPreset,
+  removePreset,
+  presets,
+  defaultPreset,
+  isStatsV2 = false,
+  pickerOffsetClassName = "tw-left-0",
+}) => {
   const [showDatePicker, setShowDatepicker] = useState(false);
   const [numberOfMonths, setNumberOfMonths] = useState(() => (window.innerWidth < 1100 ? 1 : 2));
 
@@ -150,8 +154,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
       if (defaultPreset) {
         setPreset(defaultPreset.label);
         setPeriod({
-          startDate: dateForDatePicker(defaultPreset.period.startDate),
-          endDate: dateForDatePicker(defaultPreset.period.endDate),
+          startDate: dateForDatePicker(defaultPreset.period.startDate, "start"),
+          endDate: dateForDatePicker(defaultPreset.period.endDate, "end"),
         });
       } else {
         setPeriod({ startDate: null, endDate: null });
@@ -174,8 +178,8 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
     if (!endDate) return setLocalStartDate(startDate);
     setLocalStartDate(null);
     setPeriod({
-      startDate: dateForDatePicker(startDate),
-      endDate: dateForDatePicker(endDate),
+      startDate: dateForDatePicker(startDate, "start"),
+      endDate: dateForDatePicker(endDate, "end"),
     });
     removePreset();
   };
@@ -187,29 +191,42 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
   const setPresetRequest = (preset) => {
     setPreset(preset.label);
     setPeriod({
-      startDate: dateForDatePicker(preset.period.startDate),
-      endDate: dateForDatePicker(preset.period.endDate),
+      startDate: dateForDatePicker(preset.period.startDate, "start"),
+      endDate: dateForDatePicker(preset.period.endDate, "end"),
     });
     closeDatePicker();
   };
 
   return (
-    <div className="noprint tw-relative tw-min-w-[15rem]">
-      <button
-        type="button"
-        className="tw-min-w-[15rem] tw-rounded-lg tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1 tw-shadow-none"
-        onClick={openDatePicker}
-      >
-        {formatPeriod({ preset, period })}
-      </button>
+    <div className={`noprint tw-relative ${isStatsV2 ? "tw-min-w-0" : "tw-min-w-[15rem]"}`}>
+      {isStatsV2 ? (
+        <button
+          type="button"
+          className="button-classic !tw-ml-0 !tw-font-normal !tw-px-3 tw-flex tw-items-center tw-gap-2 tw-whitespace-nowrap"
+          onClick={openDatePicker}
+        >
+          <CalendarDaysIcon className="tw-w-4 tw-h-4" />
+          {formatPeriod({ preset, period })}
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="tw-min-w-[15rem] tw-rounded-lg tw-border tw-border-gray-300 tw-bg-transparent tw-px-4 tw-py-1 tw-shadow-none"
+          onClick={openDatePicker}
+        >
+          {formatPeriod({ preset, period })}
+        </button>
+      )}
       {!!showDatePicker && (
         <OutsideClickHandler onOutsideClick={closeDatePicker}>
-          <div className="stats-datepicker tw-absolute tw-top-12 tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]">
+          <div
+            className={`stats-datepicker tw-absolute tw-top-12 ${pickerOffsetClassName} tw-z-20 tw-flex tw-flex-nowrap tw-items-center tw-justify-end tw-overflow-x-auto tw-rounded-lg tw-border tw-border-gray-300 tw-bg-white tw-pl-56 lg:tw-min-w-[45rem]`}
+          >
             <div className="tw-absolute tw-bottom-0 tw-left-0 tw-top-0 tw-ml-2 tw-box-border tw-flex tw-max-h-full tw-w-56 tw-flex-1 tw-flex-col tw-items-start tw-justify-start tw-overflow-y-scroll">
               {presets.map((p) => (
                 <button
                   type="button"
-                  className="tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 tw-text-center hover:tw-bg-main25"
+                  className={`tw-w-full tw-rounded-lg tw-border-0 tw-bg-white tw-p-1 hover:tw-bg-main25 ${isStatsV2 ? "tw-text-sm tw-text-left" : "tw-text-center"}`}
                   key={p.label}
                   onClick={() => setPresetRequest(p)}
                 >
@@ -223,10 +240,10 @@ const DateRangePickerWithPresets = ({ period, setPeriod, preset, setPreset, remo
               inline
               locale="fr"
               name="date"
-              selected={dateForDatePicker(localStartDate || period.startDate)}
+              selected={dateForDatePicker(localStartDate || period.startDate, "start")}
               onChange={onChange}
-              startDate={dateForDatePicker(localStartDate || period.startDate)}
-              endDate={dateForDatePicker(localStartDate ? null : period.endDate)}
+              startDate={dateForDatePicker(localStartDate || period.startDate, "start")}
+              endDate={dateForDatePicker(localStartDate ? null : period.endDate, "end")}
             />
           </div>
         </OutsideClickHandler>

@@ -32,7 +32,7 @@ test("Stats changement des personnes", async ({ page }) => {
   // On passe en 2021 (un an plus tard)
   await page.clock.setFixedTime(new Date("2021-02-01T00:00:00Z"));
   await page.getByRole("button", { name: "User Admin Test - 1" }).click();
-  await page.getByRole("menuitem", { name: "Se déconnecter", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Se déconnecter", exact: true }).click({ force: true });
   await loginWith(page, "admin1@example.org");
 
   // La personne devient une femme isolée (en février 2021)

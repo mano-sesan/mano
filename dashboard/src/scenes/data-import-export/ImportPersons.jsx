@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { read } from "@e965/xlsx";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
-import { Modal, ModalBody, ModalHeader } from "reactstrap";
+import { ModalContainer, ModalHeader, ModalBody } from "../../components/tailwind/Modal";
 import Alert from "../../components/tailwind/Alert";
 import ButtonCustom from "../../components/ButtonCustom";
 import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryption, personsState } from "../../atoms/persons";
@@ -140,8 +140,11 @@ export default function ImportPersons() {
         }
       }
 
+      const importedNames = persons.map((p) => p.name.toLowerCase());
+      const duplicatesInFile = [...new Set(importedNames.filter((name, index) => importedNames.indexOf(name) !== index))];
       const existingNames = new Set(existingPersons.map((p) => p.name.toLowerCase()));
-      const duplicates = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
+      const duplicatesWithExisting = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
+      const duplicates = [...new Set([...duplicatesInFile.map((name) => persons.find((p) => p.name.toLowerCase() === name)?.name), ...duplicatesWithExisting])];
 
       setDuplicateNames(duplicates);
 
@@ -191,13 +194,14 @@ export default function ImportPersons() {
         style={{ display: "none" }}
         onChange={onParseData}
       />
-      <Modal isOpen={showImportSummary} toggle={() => setShowImportSummary(false)} size="lg" backdrop="static">
-        <ModalHeader toggle={() => setShowImportSummary(false)}>Résumé de l'import de personnes</ModalHeader>
-        <ModalBody>
+      <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="3xl">
+        <ModalHeader title="Résumé de l'import de personnes" onClose={() => setShowImportSummary(false)} />
+        <ModalBody className="tw-p-4">
           {Boolean(duplicateNames.length) ? (
             <>
               <Alert color="danger">
-                Import impossible : certains noms sont déjà présents dans Mano. Veuillez modifier ces noms dans votre fichier avant d'importer.
+                Import impossible : certains noms sont en doublon dans votre fichier ou déjà présents dans Mano. Veuillez modifier ces noms dans votre
+                fichier avant d'importer.
               </Alert>
               <p>Liste des noms en doublon :</p>
               <ul>
@@ -254,7 +258,7 @@ export default function ImportPersons() {
             </>
           )}
         </ModalBody>
-      </Modal>
+      </ModalContainer>
     </>
   );
 }

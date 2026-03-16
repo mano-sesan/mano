@@ -20,7 +20,14 @@ import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { commentsState } from "../atoms/comments";
 import { organisationState, teamsState, userState } from "../atoms/auth";
 
-import { clearCache, dashboardCurrentCacheKey, getCacheItemDefaultValue, setCacheItem } from "./dataManagement";
+import {
+  clearCache,
+  dashboardCurrentCacheKey,
+  getCacheItemDefaultValue,
+  setCacheItem,
+  enableCacheWrites,
+  broadcastLoadingOrg,
+} from "./dataManagement";
 import API, { tryFetch, tryFetchExpectOk } from "./api";
 import { logout } from "./logout";
 import useDataMigrator from "../components/DataMigrator";
@@ -29,6 +36,7 @@ import { errorMessage } from "../utils";
 import { recurrencesState } from "../atoms/recurrences";
 import { capture } from "./sentry";
 import { awaitSetAtomAndIDBCache } from "../store";
+import structuredClone from "@ungap/structured-clone";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -42,8 +50,10 @@ export const loadingTextState = atom(initialLoadingTextState);
 export const initialLoadIsDoneState = atom(false);
 
 // IMPORTANT:
-// - The entity caches (person, action, ...) are persisted in IndexedDB and shared across tabs.
-// - But the "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
+// - Non-medical entity caches (person, action, ...) are persisted DECRYPTED in IndexedDB via awaitSetAtomAndIDBCache.
+// - Medical entity caches (consultation, treatment, medical-file) are persisted ENCRYPTED in IndexedDB.
+//   Decryption only happens in memory when populating Jotai atoms.
+// - The "after" cursor used for delta sync MUST be per-tab, otherwise one tab can move the global
 //   cursor forward and make other tabs permanently miss updates (then mergeItems keeps stale entities).
 const perTabLastRefreshKey = `mano-last-refresh-local-${dashboardCurrentCacheKey}`;
 
@@ -81,7 +91,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
 
   const setPersons = awaitSetAtomAndIDBCache(personsState);
   const setGroups = awaitSetAtomAndIDBCache(groupsState);
-  const setReports = useSetAtom(reportsState);
+  const setReports = awaitSetAtomAndIDBCache(reportsState);
   const setPassages = awaitSetAtomAndIDBCache(passagesState);
   const setRencontres = awaitSetAtomAndIDBCache(rencontresState);
   const setActions = awaitSetAtomAndIDBCache(actionsState);
@@ -110,6 +120,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // premier check du chiffrement activé: si pas de clé de chiffrement, pas de donnée à télécharger
     if (!getHashedOrgEncryptionKey()) return false;
     setIsLoading(true);
+    enableCacheWrites();
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
 
@@ -126,6 +137,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
     const safePerTabLastLoadValue = getPerTabLastRefresh();
     let lastLoadValue = safePerTabLastLoadValue ?? globalLastLoadValue;
+
     // On vérifie s'il y a un autre identifiant d'organisation dans le cache pour le supprimer le cas échéant
     const otherOrganisationId = await getCacheItemDefaultValue("organisationId", null);
     if (otherOrganisationId && otherOrganisationId !== organisation._id) {
@@ -134,6 +146,11 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       lastLoadValue = 0;
       setPerTabLastRefresh(0);
     }
+
+    // Écriture précoce de l'organisationId pour éviter qu'un chargement interrompu
+    // laisse des données orphelines sans marqueur d'org
+    await setCacheItem("organisationId", organisation._id);
+    broadcastLoadingOrg(organisation._id);
 
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const [userError, userResponse] = await tryFetch(() => {
@@ -184,7 +201,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           organisation: organisationId,
           after: lastLoadValue,
           withDeleted: true,
-          // Medical data is never saved in cache so we always have to download all at every page reload.
+          // Medical data is cached encrypted in IndexedDB, but we still reload all on initial load for safety.
           withAllMedicalData: isStartingInitialLoad,
         },
       });
@@ -571,6 +588,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     }
 
     let newConsultations = [];
+    let newConsultationsRaw = [];
     if (stats.consultations > 0) {
       setLoadingText("Chargement des consultations");
       async function loadConsultations(page = 0) {
@@ -581,6 +599,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           });
         });
         if (error) return resetLoaderOnError();
+        newConsultationsRaw.push(...structuredClone(res.data));
         const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newConsultations.push(...decryptedData);
@@ -591,20 +610,20 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       if (!consultationsSuccess) return false;
     }
     if (isStartingInitialLoad) {
-      const cacheConsultations = await getCacheItemDefaultValue("consultation", []);
-      if (newConsultations.length) {
-        await setConsultations(mergeItems(cacheConsultations, newConsultations, { formatNewItemsFunction: formatConsultation }));
-      } else {
-        await setConsultations(cacheConsultations);
-      }
+      const encryptedCache = await getCacheItemDefaultValue("consultation", []);
+      const mergedEncrypted = newConsultationsRaw.length ? mergeItems(encryptedCache, newConsultationsRaw) : encryptedCache;
+      await setCacheItem("consultation", mergedEncrypted);
+      const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "consultations" })))).filter((e) => e);
+      setConsultations(allDecrypted.map(formatConsultation));
     } else if (newConsultations.length) {
-      await setConsultations((latestConsultations) =>
-        mergeItems(latestConsultations, newConsultations, { formatNewItemsFunction: formatConsultation })
-      );
+      setConsultations((prev) => mergeItems(prev, newConsultations, { formatNewItemsFunction: formatConsultation }));
+      const encryptedCache = await getCacheItemDefaultValue("consultation", []);
+      await setCacheItem("consultation", mergeItems(encryptedCache, newConsultationsRaw));
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
       let newTreatments = [];
+      let newTreatmentsRaw = [];
       if (stats.treatments > 0) {
         setLoadingText("Chargement des traitements");
         async function loadTreatments(page = 0) {
@@ -615,6 +634,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
+          newTreatmentsRaw.push(...structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newTreatments.push(...decryptedData);
@@ -626,19 +646,21 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheTreatments = await getCacheItemDefaultValue("treatment", []);
-        if (newTreatments.length) {
-          await setTreatments(mergeItems(cacheTreatments, newTreatments));
-        } else {
-          await setTreatments(cacheTreatments);
-        }
+        const encryptedCache = await getCacheItemDefaultValue("treatment", []);
+        const mergedEncrypted = newTreatmentsRaw.length ? mergeItems(encryptedCache, newTreatmentsRaw) : encryptedCache;
+        await setCacheItem("treatment", mergedEncrypted);
+        const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "treatments" })))).filter((e) => e);
+        setTreatments(allDecrypted);
       } else if (newTreatments.length) {
-        await setTreatments((latestTreatments) => mergeItems(latestTreatments, newTreatments));
+        setTreatments((prev) => mergeItems(prev, newTreatments));
+        const encryptedCache = await getCacheItemDefaultValue("treatment", []);
+        await setCacheItem("treatment", mergeItems(encryptedCache, newTreatmentsRaw));
       }
     }
 
     if (["admin", "normal"].includes(latestUser.role)) {
       let newMedicalFiles = [];
+      let newMedicalFilesRaw = [];
       if (stats.medicalFiles > 0) {
         setLoadingText("Chargement des fichiers médicaux");
         async function loadMedicalFiles(page = 0) {
@@ -649,6 +671,7 @@ export function useDataLoader(options = { refreshOnMount: false }) {
             });
           });
           if (error) return resetLoaderOnError();
+          newMedicalFilesRaw.push(...structuredClone(res.data));
           const decryptedData = (await Promise.all(res.data.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newMedicalFiles.push(...decryptedData);
@@ -660,14 +683,15 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       }
 
       if (isStartingInitialLoad) {
-        const cacheMedicalFiles = await getCacheItemDefaultValue("medical-file", []);
-        if (newMedicalFiles.length) {
-          await setMedicalFiles(mergeItems(cacheMedicalFiles, newMedicalFiles));
-        } else {
-          await setMedicalFiles(cacheMedicalFiles);
-        }
+        const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
+        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache;
+        await setCacheItem("medical-file", mergedEncrypted);
+        const allDecrypted = (await Promise.all(mergedEncrypted.map((p) => decryptItem(p, { type: "medicalFiles" })))).filter((e) => e);
+        setMedicalFiles(allDecrypted);
       } else if (newMedicalFiles.length) {
-        await setMedicalFiles((latestMedicalFiles) => mergeItems(latestMedicalFiles, newMedicalFiles));
+        setMedicalFiles((prev) => mergeItems(prev, newMedicalFiles));
+        const encryptedCache = await getCacheItemDefaultValue("medical-file", []);
+        await setCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw));
       }
     }
 
@@ -677,8 +701,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     // 3. problème: on a téléchargé des éléments mais non déchiffrés DONC
     // => pour éviter des problèmes de cache on n'enrteigtre pas le `await setCacheItem(dashboardCurrentCacheKey, serverDate);`
     if (!getHashedOrgEncryptionKey()) return false;
-    // On enregistre également l'identifiant de l'organisation
-    await setCacheItem("organisationId", organisationId);
     await setCacheItem(dashboardCurrentCacheKey, serverDate);
     setPerTabLastRefresh(serverDate);
     setLoadingText("En attente de rafraichissement");

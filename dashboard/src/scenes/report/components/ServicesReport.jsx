@@ -9,6 +9,7 @@ import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
 import { servicesSelector } from "../../../atoms/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
+import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 import { ModalHeader, ModalBody, ModalContainer, ModalFooter } from "../../../components/tailwind/Modal";
 
 const ErrorOnGetServices = () => (
@@ -189,9 +190,14 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
                     .filter(Boolean)
                     .join(" ")}
                 >
-                  <p className="tw-mb-0">
-                    <b>
-                      {selectedTeamsObject[teamId].nightSession ? "🌒" : "☀️ "} {selectedTeamsObject[teamId]?.name || ""}
+                  <p className="tw-mb-0 tw-flex tw-items-center tw-gap-1">
+                    <b className="tw-flex tw-items-center tw-gap-1">
+                      {selectedTeamsObject[teamId].nightSession ? (
+                        <MoonIcon className="tw-h-5 tw-w-5 tw-text-blue-900" />
+                      ) : (
+                        <SunIcon className="tw-h-5 tw-w-5 tw-text-yellow-500" />
+                      )}{" "}
+                      {selectedTeamsObject[teamId]?.name || ""}
                     </b>{" "}
                     - {formatPeriod({ period })}
                   </p>

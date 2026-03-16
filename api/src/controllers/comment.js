@@ -114,7 +114,7 @@ router.put(
       return next(error);
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
-    const comment = await Comment.findOne(query);
+    const comment = await Comment.findOne({ ...query, attributes: ["_id"] });
     if (!comment) return res.status(404).send({ ok: false, error: "Not Found" });
 
     const { encrypted, encryptedEntityKey } = req.body;
@@ -158,7 +158,7 @@ router.delete(
     }
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
-    const comment = await Comment.findOne(query);
+    const comment = await Comment.findOne({ ...query, attributes: ["_id"] });
     if (!comment) return res.status(404).send({ ok: false, error: "Not Found" });
 
     await comment.destroy();

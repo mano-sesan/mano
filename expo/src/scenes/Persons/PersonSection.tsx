@@ -11,6 +11,7 @@ import CustomFieldInput from "../../components/CustomFieldInput";
 import { currentTeamState } from "../../recoil/auth";
 import { PersonInstance } from "@/types/person";
 import { CustomField } from "@/types/field";
+import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 type PersonSectionProps = {
   onBack: () => void;
@@ -42,7 +43,7 @@ const PersonSection = ({
 }: PersonSectionProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const scrollViewRef = useRef<ScrollView>(null);
-
+  useEditButtonStatusOnFocused("show");
   return (
     <>
       <SubHeader backgroundColor={backgroundColor || colors.app.color} onBack={onBack} caption={sectionName} />

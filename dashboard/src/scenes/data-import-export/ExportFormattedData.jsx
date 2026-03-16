@@ -11,36 +11,38 @@ import { territoriesState } from "../../atoms/territory";
 import { consultationFieldsSelector } from "../../atoms/consultations";
 import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 
-// Source: https://tailwindui.com/components/application-ui/elements/dropdowns
-export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
+// Helper function to safely truncate text values for Excel export
+function truncateForExcel(value, maxLength = 32000) {
+  if (value == null) return value;
+  const stringValue = String(value);
+  if (stringValue.length <= maxLength) return stringValue;
+  return stringValue.substring(0, maxLength) + "... [TRONQUÉ]";
+}
+
+export async function exportXlsx(name, json) {
+  const wb = utils.book_new();
+  const ws = utils.json_to_sheet(json);
+  utils.book_append_sheet(wb, ws, name);
+  writeFile(wb, name + ".xlsx");
+}
+
+export async function fetchUsers() {
+  const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/user" }));
+  if (!error && response?.data) {
+    return response.data;
+  }
+  return [];
+}
+
+export function useExportTransforms() {
   const teams = useAtomValue(teamsState);
   const currentTeam = useAtomValue(currentTeamState);
   const persons = useAtomValue(personsState);
   const territories = useAtomValue(territoriesState);
-  const user = useAtomValue(userState);
   const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
   const customFieldsMedicalFile = useAtomValue(customFieldsMedicalFileSelector);
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const consultationsFields = useAtomValue(consultationFieldsSelector);
-  const [users, setUsers] = useState([]);
-
-  // Helper function to safely truncate text values for Excel export
-  const truncateForExcel = (value, maxLength = 32000) => {
-    if (value == null) return value;
-    const stringValue = String(value);
-    if (stringValue.length <= maxLength) return stringValue;
-    return stringValue.substring(0, maxLength) + "... [TRONQUÉ]";
-  };
-
-  async function fetchUsers() {
-    if (users.length) return users;
-    const [error, response] = await tryFetchExpectOk(async () => API.get({ path: "/user" }));
-    if (!error && response?.data) {
-      setUsers(response.data);
-      return response.data;
-    }
-    return [];
-  }
 
   const transformPerson = (loadedUsers) => (person) => {
     return {
@@ -214,11 +216,21 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
     };
   };
 
-  async function exportXlsx(name, json) {
-    const wb = utils.book_new();
-    const ws = utils.json_to_sheet(json);
-    utils.book_append_sheet(wb, ws, name);
-    writeFile(wb, name + ".xlsx");
+  return { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation };
+}
+
+// Source: https://tailwindui.com/components/application-ui/elements/dropdowns
+export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
+  const user = useAtomValue(userState);
+  const { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation } =
+    useExportTransforms();
+  const [cachedUsers, setCachedUsers] = useState([]);
+
+  async function fetchUsersWithCache() {
+    if (cachedUsers.length) return cachedUsers;
+    const loadedUsers = await fetchUsers();
+    setCachedUsers(loadedUsers);
+    return loadedUsers;
   }
 
   return (
@@ -249,14 +261,14 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
             <MenuItem
               text="Personnes suivies"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Personnes suivies", personUpdated.map(transformPerson(loadedUsers)));
               }}
             />
             <MenuItem
               text="Personnes créées"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Personnes créées", personCreated.map(transformPerson(loadedUsers)));
               }}
             />
@@ -265,14 +277,14 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
                 <MenuItem
                   text="Dossier médical des personnes suivies"
                   onClick={async () => {
-                    const loadedUsers = await fetchUsers();
+                    const loadedUsers = await fetchUsersWithCache();
                     exportXlsx("Personnes suivies", personUpdated.map(transformPersonMedical(loadedUsers)));
                   }}
                 />
                 <MenuItem
                   text="Dossier médical des personnes créées"
                   onClick={async () => {
-                    const loadedUsers = await fetchUsers();
+                    const loadedUsers = await fetchUsersWithCache();
                     exportXlsx("Personnes créées", personCreated.map(transformPersonMedical(loadedUsers)));
                   }}
                 />
@@ -281,7 +293,7 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
             <MenuItem
               text="Actions"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx(
                   "Actions",
                   actions
@@ -296,28 +308,28 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
             <MenuItem
               text="Consultations"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Consultations", consultations.map(transformConsultation(loadedUsers)));
               }}
             />
             <MenuItem
               text="Rencontres"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Rencontres", rencontres.map(transformRencontre(loadedUsers)));
               }}
             />
             <MenuItem
               text="Passages"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Passages", passages.map(transformPassage(loadedUsers)));
               }}
             />
             <MenuItem
               text="Observations"
               onClick={async () => {
-                const loadedUsers = await fetchUsers();
+                const loadedUsers = await fetchUsersWithCache();
                 exportXlsx("Observations", observations.map(transformObservation(loadedUsers)));
               }}
             />

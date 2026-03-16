@@ -44,6 +44,7 @@ export interface OrganisationInstance {
   passagesEnabled?: boolean;
   rencontresEnabled?: boolean;
   checkboxShowAllOrgaPersons?: boolean;
+  statsV2Enabled?: boolean;
 
   groupedServices?: GroupedServices[];
 
