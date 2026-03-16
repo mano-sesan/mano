@@ -42,6 +42,7 @@ const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const { STORAGE_DIRECTORY } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+const { capture } = require("../sentry");
 
 const tableSizesRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -1777,8 +1778,8 @@ router.get(
         await walkDir(orgStorageDir);
         documentsFolderSize = totalSize;
       }
-    } catch (_err) {
-      // Ignore errors (directory not found, permissions, etc.)
+    } catch (err) {
+      capture(err, { extra: { organisationId: id } });
     }
 
     return res.status(200).send({
