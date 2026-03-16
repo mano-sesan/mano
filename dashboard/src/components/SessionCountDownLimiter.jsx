@@ -94,10 +94,13 @@ const SessionCountDownLimiter = () => {
 
 const ReloadModal = ({ open, onSuccess }) => {
   const [encryptionKey, setEncryptionKey] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const organisation = useAtomValue(organisationState);
 
   async function handleSubmit(e) {
     if (e) e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     const organisationKey = await setOrgEncryptionKey(encryptionKey.trim());
     const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
     if (!encryptionIsValid) {
@@ -105,10 +108,12 @@ const ReloadModal = ({ open, onSuccess }) => {
       setEncryptionKey("");
       resetOrgEncryptionKey();
       await tryFetch(() => API.post({ path: "/user/decrypt-attempt-failure" }));
+      setIsSubmitting(false);
       return;
     }
 
     await tryFetch(() => API.post({ path: "/user/decrypt-attempt-success" }));
+    setIsSubmitting(false);
     onSuccess(false);
   }
 
@@ -135,7 +140,7 @@ const ReloadModal = ({ open, onSuccess }) => {
         </form>
       </ModalBody>
       <ModalFooter>
-        <button form="reconnect-encryption-key-form" type="submit" name="cancel" disabled={!encryptionKey.length} className="button-submit">
+        <button form="reconnect-encryption-key-form" type="submit" name="cancel" disabled={!encryptionKey.length || isSubmitting} className="button-submit">
           Se reconnecter
         </button>
       </ModalFooter>
