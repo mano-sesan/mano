@@ -4,11 +4,16 @@ const OPENABLE_FILE_TYPES = {
   "image/jpeg": [".jpg", ".jpeg"],
   "image/jpg": [".jpg", ".jpeg"],
   "image/png": [".png"],
+  "image/gif": [".gif"],
+  "image/webp": [".webp"],
 };
 
 // Fichiers qui peuvent être téléchargés (inclut les openable + Office)
 const DOWNLOADABLE_FILE_TYPES = {
   ...OPENABLE_FILE_TYPES,
+  "application/vnd.oasis.opendocument.text": [".odt"],
+  "application/vnd.oasis.opendocument.spreadsheet": [".ods"],
+  "application/vnd.oasis.opendocument.presentation": [".odp"],
   "application/vnd.ms-excel": [".xls"],
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "application/msword": [".doc"],

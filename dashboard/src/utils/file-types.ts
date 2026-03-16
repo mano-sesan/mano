@@ -4,11 +4,16 @@ export const OPENABLE_FILE_TYPES = {
   "image/jpeg": [".jpg", ".jpeg"],
   "image/jpg": [".jpg", ".jpeg"],
   "image/png": [".png"],
+  "image/gif": [".gif"],
+  "image/webp": [".webp"],
 } as const;
 
 // Fichiers qui peuvent être téléchargés (inclut les openable + Office)
 export const DOWNLOADABLE_FILE_TYPES = {
   ...OPENABLE_FILE_TYPES,
+  "application/vnd.oasis.opendocument.text": [".odt"],
+  "application/vnd.oasis.opendocument.spreadsheet": [".ods"],
+  "application/vnd.oasis.opendocument.presentation": [".odp"],
   "application/vnd.ms-excel": [".xls"],
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
   "application/msword": [".doc"],
@@ -50,4 +55,4 @@ export function isAcceptedExtension(filename: string): boolean {
 
 // Message d'erreur pour type de fichier non accepté
 export const FILE_TYPE_ERROR_MESSAGE =
-  "Type de fichier non autorisé. Seuls les PDF, images (JPG, JPEG, PNG) et documents Office (Excel, Word, PowerPoint) sont acceptés.";
+  "Type de fichier non autorisé. Seuls les PDF, images (JPG, PNG, GIF, WebP) et documents Office/LibreOffice (Excel, Word, PowerPoint, ODT, ODS, ODP) sont acceptés.";
