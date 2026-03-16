@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
+const getClientInfo = require("../utils/getClientInfo");
 const {
   Organisation,
   Person,
@@ -99,6 +100,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "change-encryption-key",
+      ...getClientInfo(req),
     });
 
     try {

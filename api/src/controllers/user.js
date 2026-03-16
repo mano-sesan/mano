@@ -17,6 +17,7 @@ const { ExtractJwt } = require("passport-jwt");
 const { serializeUserWithTeamsAndOrganisation, serializeTeam } = require("../utils/data-serializer");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const dayjs = require("dayjs");
+const getClientInfo = require("../utils/getClientInfo");
 
 const EMAIL_OR_PASSWORD_INVALID = "EMAIL_OR_PASSWORD_INVALID";
 const PASSWORD_NOT_VALIDATED = "PASSWORD_NOT_VALIDATED";
@@ -77,6 +78,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "app",
       action: "login",
+      ...getClientInfo(req),
       debugApp: {
         version: req.headers.version,
         apilevel: req.body.apilevel,
@@ -122,6 +124,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "dashboard",
       action: "login",
+      ...getClientInfo(req),
       debugDashboard: {
         browserType: req.body.browsertype,
         browserName: req.body.browsername,
@@ -136,6 +139,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "unknown",
       action: "login",
+      ...getClientInfo(req),
     });
   }
 }
@@ -153,7 +157,7 @@ router.get(
       ok: true,
       user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams),
     });
-  }),
+  })
 );
 
 router.post(
@@ -166,10 +170,11 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "logout",
+      ...getClientInfo(req),
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -292,7 +297,7 @@ router.post(
     res.cookie("jwt", token, cookieOptions());
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  }),
+  })
 );
 
 router.get(
@@ -360,7 +365,7 @@ router.get(
     createUserLog(req, user);
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  }),
+  })
 );
 
 router.post(
@@ -382,6 +387,7 @@ router.post(
     UserLog.create({
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `forgot-password-${email}`,
+      ...getClientInfo(req),
     });
 
     if (!email) return res.status(403).send({ ok: false, error: "Veuillez fournir un email", code: EMAIL_OR_PASSWORD_INVALID });
@@ -412,7 +418,7 @@ Si vous en êtes à l'origine, vous pouvez cliquer sur ce lien: ${link}`;
     await mailservice.sendEmail(user.email, subject, body);
 
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -442,6 +448,7 @@ router.post(
       UserLog.create({
         platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
         action: `forgot-password-reset-failed-${token}`,
+        ...getClientInfo(req),
       });
       return res.status(400).send({ ok: false, error: "Le lien est non valide ou expiré" });
     }
@@ -460,6 +467,7 @@ router.post(
       user: user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "forgot-password-reset",
+      ...getClientInfo(req),
     });
     user.set({
       password: password,
@@ -470,7 +478,7 @@ router.post(
     if (name) user.set({ name: sanitizeAll(name) });
     await user.save();
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -514,6 +522,7 @@ router.post(
       user: req.user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `create-user-${sanitizeAll(email.trim().toLowerCase())}`,
+      ...getClientInfo(req),
     });
 
     const prevUser = await User.findOne({ where: { email: newUser.email } });
@@ -526,7 +535,7 @@ router.post(
     const tx = await User.sequelize.transaction();
     await RelUserTeam.bulkCreate(
       teams.map((t) => ({ user: data._id, team: t._id, organisation: organisationId })),
-      { transaction: tx },
+      { transaction: tx }
     );
     await tx.commit();
     await user.save({ transaction: tx });
@@ -536,7 +545,7 @@ router.post(
       data.email,
       "Bienvenue dans Mano",
       null,
-      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible),
+      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible)
     );
 
     return res.status(200).send({
@@ -553,7 +562,7 @@ router.post(
         updatedAt: data.updatedAt,
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -613,7 +622,7 @@ router.post(
         gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025,
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -637,9 +646,10 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-failure",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: false, error: "" });
-  }),
+  })
 );
 
 router.post(
@@ -656,9 +666,10 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-success",
+      ...getClientInfo(req),
     });
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.get(
@@ -704,7 +715,7 @@ router.get(
       ok: true,
       data,
     });
-  }),
+  })
 );
 
 router.get(
@@ -719,7 +730,7 @@ router.get(
       paranoid: false,
     });
     return res.status(200).send({ ok: true, data: users });
-  }),
+  })
 );
 
 router.get(
@@ -764,7 +775,7 @@ router.get(
         team: team.map((t) => t._id),
       },
     });
-  }),
+  })
 );
 
 router.get(
@@ -830,7 +841,7 @@ router.get(
     });
 
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.put(
@@ -844,7 +855,7 @@ router.put(
         phone: z.string().nullable().optional(),
         email: z.preprocess(
           (email) => (typeof email === "string" ? email.trim().toLowerCase() : email),
-          z.string().email().optional().or(z.literal("")),
+          z.string().email().optional().or(z.literal(""))
         ),
         currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
@@ -901,7 +912,7 @@ router.put(
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx },
+        { transaction: tx }
       );
     }
     await user.save({ transaction: tx });
@@ -924,7 +935,7 @@ router.put(
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
       },
     });
-  }),
+  })
 );
 
 router.put(
@@ -986,7 +997,7 @@ router.put(
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx },
+        { transaction: tx }
       );
     }
 
@@ -1011,7 +1022,7 @@ router.put(
         team: (await user.getTeams({ raw: true, attributes: ["_id"] })).map((t) => t._id),
       },
     });
-  }),
+  })
 );
 
 const clearUserData = async (user) => {
@@ -1051,6 +1062,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-me`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, organisation: req.user.organisation } };
@@ -1070,7 +1082,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.delete(
@@ -1095,6 +1107,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-user-${userId}`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id: userId, role: { [Op.ne]: "superadmin" } } };
@@ -1115,7 +1128,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1145,7 +1158,7 @@ router.post(
     await user.save();
 
     return res.status(200).send({ ok: true, data: { link } });
-  }),
+  })
 );
 
 router.post(
@@ -1170,6 +1183,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `release-user-${_id}`,
+      ...getClientInfo(req),
     });
 
     const query = { where: { _id } };
@@ -1205,7 +1219,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -1235,6 +1249,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `disable-user-${_id}`,
+      ...getClientInfo(req),
     });
 
     const team = await user.getTeams({ raw: true, attributes: ["_id"] });
@@ -1260,7 +1275,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -1312,7 +1327,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  }),
+  })
 );
 
 module.exports = router;
