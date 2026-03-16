@@ -17,7 +17,7 @@ ENV HTTP_PROXY=http://sesclaprx-vip.grita.fr:3128
 ENV HTTPS_PROXY=http://sesclaprx-vip.grita.fr:3128
 
 WORKDIR /usr/src/app
-COPY yarn.lock .yarnrc.yml ./
+COPY yarn.lock .yarnrc.yml package.json ./
 COPY .yarn .yarn
 RUN yarn config set httpProxy http://sesclaprx-vip.grita.fr:3128
 RUN yarn config set httpsProxy http://sesclaprx-vip.grita.fr:3128
