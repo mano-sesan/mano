@@ -257,8 +257,19 @@ const SignIn = () => {
     setSessionInitialTimestamp(Date.now());
     if (!["superadmin"].includes(user.role) && !!signinForm.orgEncryptionKey && organisation.encryptionEnabled) {
       let organisationKey;
+      let mergeSalt = null;
       try {
-        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true });
+        let salt = null;
+        if (organisation.customSalt) {
+          const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+          if (saltError || !saltResponse?.ok || !saltResponse?.salt) {
+            toast.error("Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+            return setIsSubmitting(false);
+          }
+          salt = saltResponse.salt;
+          mergeSalt = saltResponse.mergeSalt || null;
+        }
+        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true, salt });
       } catch (e) {
         setIsSubmitting(false);
         // Si c'est une erreur de dom sur `window.btoa`, on ne peut pas continuer
@@ -269,7 +280,13 @@ const SignIn = () => {
         }
         throw e;
       }
-      const encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      let encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      // Si la vérification échoue et qu'un mergeSalt est disponible, on réessaie avec le sel cible.
+      // Cela arrive quand un admin a déjà changé la clé pour préparer une fusion (mergeWithOrgId).
+      if (!encryptionIsValid && mergeSalt) {
+        organisationKey = await setOrgEncryptionKey(signinForm.orgEncryptionKey.trim(), { needDerivation: true, salt: mergeSalt });
+        encryptionIsValid = await checkEncryptedVerificationKey(organisation.encryptedVerificationKey, organisationKey);
+      }
       if (!encryptionIsValid) {
         resetOrgEncryptionKey();
         toast.error(

@@ -31,6 +31,8 @@ function serializeOrganisation(organisation) {
     rencontresEnabled: organisation.rencontresEnabled,
     statsV2Enabled: organisation.statsV2Enabled,
     encryptedVerificationKey: organisation.encryptedVerificationKey,
+    customSalt: Boolean(organisation.customSalt),
+    mergeWithOrgId: organisation.mergeWithOrgId || null,
     migrations: organisation.migrations,
     migrationLastUpdateAt: organisation.migrationLastUpdateAt,
     disabledAt: organisation.disabledAt,

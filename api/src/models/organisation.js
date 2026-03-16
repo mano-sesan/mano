@@ -28,6 +28,8 @@ module.exports = (sequelize, DataTypes) => {
     encryptionEnabled: { type: DataTypes.BOOLEAN },
     encryptionLastUpdateAt: DataTypes.DATE,
     encryptedVerificationKey: DataTypes.TEXT,
+    customSalt: { type: DataTypes.BOOLEAN, defaultValue: false },
+    mergeWithOrgId: { type: DataTypes.UUID, defaultValue: null },
     encrypting: { type: DataTypes.BOOLEAN, default: false },
     lockedForEncryption: { type: DataTypes.BOOLEAN, default: false },
     lockedBy: DataTypes.TEXT,

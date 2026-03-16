@@ -1,4 +1,4 @@
-import API, { tryFetchExpectOk } from "../../services/api";
+import API, { tryFetch, tryFetchExpectOk } from "../../services/api";
 import { decrypt, derivedMasterKey, encryptItem, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { useAtomValue } from "jotai";
 import structuredClone from "@ungap/structured-clone";
@@ -457,18 +457,43 @@ export default function Errors() {
 
 function ModalRepair({ open, setOpen, setData, item }) {
   const user = useAtomValue(userState);
+  const organisation = useAtomValue(organisationState);
   const [key, setKey] = useState("");
   const { refresh } = useDataLoader();
 
   async function testAndFixKey() {
     const itemData = structuredClone(item.data);
-    const derived = await derivedMasterKey(key);
-    try {
-      const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derived);
-      itemData.decrypted = JSON.parse(content);
-    } catch (_e) {
-      toast.error("La clé de chiffrement ne fonctionne pas pour cet élément");
-      return;
+
+    // L'item a pu être chiffré avec le sel personnalisé, le sel de merge ou le sel par défaut.
+    // On essaie dans l'ordre : sel personnalisé, sel de merge (si mergeWithOrgId), sel par défaut.
+    let derived;
+    let decrypted = false;
+    if (organisation.customSalt) {
+      const [saltError, saltResponse] = await tryFetch(() => API.get({ path: "/user/encryption-salt" }));
+      if (!saltError && saltResponse?.ok && saltResponse?.salt) {
+        for (const saltToTry of [saltResponse.salt, saltResponse.mergeSalt].filter(Boolean)) {
+          if (decrypted) break;
+          const derivedWithSalt = await derivedMasterKey(key, saltToTry);
+          try {
+            const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derivedWithSalt);
+            itemData.decrypted = JSON.parse(content);
+            derived = derivedWithSalt;
+            decrypted = true;
+          } catch (_e) {
+            // Ce sel n'a pas fonctionné, on essaie le suivant
+          }
+        }
+      }
+    }
+    if (!decrypted) {
+      derived = await derivedMasterKey(key);
+      try {
+        const { content } = await decrypt(item.data.encrypted, item.data.encryptedEntityKey, derived);
+        itemData.decrypted = JSON.parse(content);
+      } catch (_e) {
+        toast.error("La clé de chiffrement ne fonctionne pas pour cet élément");
+        return;
+      }
     }
     toast.success("La clé de chiffrement est valide");
     delete itemData.encrypted;

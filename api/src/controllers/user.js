@@ -673,6 +673,28 @@ router.post(
 );
 
 router.get(
+  "/encryption-salt",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
+  catchErrors(async (req, res) => {
+    const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
+    if (!organisation) return res.status(404).send({ ok: false, error: "Organisation not found" });
+    // Le sel est toujours dérivé de l'ID propre de l'org (pour le login).
+    const hmac = crypto.createHmac("sha256", config.VERIFICATION_SECRET).update(organisation._id).digest();
+    // 16 bytes = crypto_pwhash_SALTBYTES requis par Argon2id
+    const salt = hmac.subarray(0, 16).toString("hex");
+    // Si mergeWithOrgId est configuré, on fournit aussi le sel cible (pour le changement de clé).
+    // Cela permet de dériver la nouvelle clé avec le sel de l'org de destination.
+    const response = { ok: true, salt };
+    if (organisation.mergeWithOrgId) {
+      const mergeHmac = crypto.createHmac("sha256", config.VERIFICATION_SECRET).update(organisation.mergeWithOrgId).digest();
+      response.mergeSalt = mergeHmac.subarray(0, 16).toString("hex");
+    }
+    return res.status(200).send(response);
+  })
+);
+
+router.get(
   "/search",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
