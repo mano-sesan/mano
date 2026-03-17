@@ -31,6 +31,8 @@ import MedicalFileSettings from "./MedicalFileSettings";
 import PersonCustomFieldsSettings from "./PersonCustomFieldsSettings";
 import StructuresCategoriesSettings from "./StructuresCategoriesSettings";
 import Poubelle from "./Poubelle";
+import OrphanedFiles from "./OrphanedFiles";
+import { ENV, MANO_TEST_ORG_ID } from "../../config";
 import CollaborationsSettings from "./CollaborationsSettings";
 import { customFieldsMedicalFileSelector } from "../../atoms/medicalFiles";
 import { encryptItem } from "../../services/encryption";
@@ -65,6 +67,7 @@ const getSettingTitle = (tabId) => {
   if (tabId === "export") return "Export des données";
   if (tabId === "poubelle") return "Données supprimées";
   if (tabId === "errors") return "Données en erreur";
+  if (tabId === "orphaned-files") return "Fichiers orphelins";
   return "";
 };
 
@@ -92,6 +95,7 @@ const View = () => {
 
   const persons = useAtomValue(personsState);
   const { preparePersonForEncryption } = usePreparePersonForEncryption();
+  const isOrphanedFilesAvailable = ENV !== "production" || organisation._id === MANO_TEST_ORG_ID;
   const [refreshErrorKey, setRefreshErrorKey] = useState(0);
   const { refresh } = useDataLoader();
 
@@ -171,6 +175,9 @@ const View = () => {
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "poubelle"} text="Données supprimées" onClick={() => setTab("poubelle")} />
             <MenuButton selected={tab === "errors"} text="Données en erreur" onClick={() => setTab("errors")} />
+            {isOrphanedFilesAvailable && (
+              <MenuButton selected={tab === "orphaned-files"} text="Fichiers orphelins" onClick={() => setTab("orphaned-files")} />
+            )}
           </div>
         </div>
         <div ref={scrollContainer} className="tw-basis-full tw-overflow-auto tw-px-6 tw-py-4">
@@ -522,6 +529,15 @@ const View = () => {
                       <TabTitle>Données en erreur</TabTitle>
                       <div>
                         <Errors />
+                      </div>
+                    </>
+                  );
+                case "orphaned-files":
+                  return (
+                    <>
+                      <TabTitle>Fichiers orphelins</TabTitle>
+                      <div>
+                        <OrphanedFiles />
                       </div>
                     </>
                   );

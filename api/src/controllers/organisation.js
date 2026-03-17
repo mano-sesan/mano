@@ -32,17 +32,20 @@ const {
   Team,
   sequelize,
   Recurrence,
+  OrphanedFile,
 } = require("../db/sequelize");
 const mailservice = require("../utils/mailservice");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex, customFieldSchema, positiveIntegerRegex, customFieldGroupSchema, folderSchema } = require("../utils");
+const { looseUuidRegex, cryptoHexRegex, customFieldSchema, positiveIntegerRegex, customFieldGroupSchema, folderSchema } = require("../utils");
 const { serializeOrganisation, serializeTeam } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
-const { STORAGE_DIRECTORY } = require("../config");
+const { STORAGE_DIRECTORY, ENVIRONMENT } = require("../config");
 const { defaultConsultationsFields } = require("../utils/custom-fields/consultations");
 const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const { capture } = require("../sentry");
+
+const MANO_TEST_ORG_ID = "00000000-5f5a-89e2-2e60-88fa20cc50bf";
 
 const tableSizesRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -1172,6 +1175,185 @@ router.delete(
     });
 
     res.status(200).send({ ok: true });
+  })
+);
+
+// Liste tous les fichiers physiques sur le disque pour une organisation
+router.get(
+  "/:id/files-on-disk",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin"], { healthcareProfessional: true }),
+  tableSizesRateLimiter,
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in files-on-disk get`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const orgId = req.params.id;
+    if (req.user.organisation !== orgId) {
+      const error = new Error("Forbidden");
+      error.status = 403;
+      return next(error);
+    }
+    if (ENVIRONMENT === "production" && orgId !== MANO_TEST_ORG_ID) {
+      const error = new Error("Cette fonctionnalité n'est pas disponible pour cette organisation");
+      error.status = 403;
+      return next(error);
+    }
+
+    const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+    const orgDir = path.join(basedir, orgId);
+    const resolvedBasedir = path.resolve(basedir);
+    const files = [];
+
+    const entityTypes = [
+      { type: "person", subdir: "persons", model: Person },
+      { type: "territory", subdir: "territories", model: Territory },
+    ];
+
+    for (const { type, subdir, model } of entityTypes) {
+      const typeDir = path.join(orgDir, subdir);
+      let entityDirs;
+      try {
+        entityDirs = await fs.promises.readdir(typeDir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+
+      // Collecter tous les entityIds valides et charger leurs statuts en une seule requête
+      const validEntityIds = entityDirs.filter((e) => e.isDirectory() && looseUuidRegex.test(e.name)).map((e) => e.name);
+      if (!validEntityIds.length) continue;
+
+      const entities = await model.findAll({
+        where: { _id: { [Op.in]: validEntityIds }, organisation: orgId },
+        paranoid: false,
+        attributes: ["_id", "deletedAt"],
+      });
+      const entityStatusMap = new Map();
+      for (const entity of entities) {
+        entityStatusMap.set(entity._id, entity.deletedAt ? "deleted" : "active");
+      }
+
+      for (const entityId of validEntityIds) {
+        const entityDir = path.join(typeDir, entityId);
+        let fileEntries;
+        try {
+          fileEntries = await fs.promises.readdir(entityDir, { withFileTypes: true });
+        } catch {
+          continue;
+        }
+
+        const entityStatus = entityStatusMap.get(entityId) || "missing";
+
+        for (const fileEntry of fileEntries) {
+          if (!fileEntry.isFile()) continue;
+          const filename = fileEntry.name;
+          if (!cryptoHexRegex.test(filename)) continue;
+
+          const filePath = path.resolve(entityDir, filename);
+          if (!filePath.startsWith(resolvedBasedir + path.sep)) continue;
+
+          let stat;
+          try {
+            stat = await fs.promises.lstat(filePath);
+          } catch {
+            continue;
+          }
+          if (!stat.isFile()) continue;
+
+          files.push({
+            filename,
+            entityType: type,
+            entityId,
+            size: stat.size,
+            createdAt: stat.birthtime,
+            entityStatus,
+          });
+        }
+      }
+    }
+
+    // Récupérer les fichiers en attente de nettoyage automatique (table OrphanedFile)
+    const pendingOrphanedFiles = await OrphanedFile.findAll({
+      where: { organisation: orgId },
+      attributes: ["filename"],
+    });
+    const pendingFilenames = pendingOrphanedFiles.map((o) => o.filename);
+
+    return res.status(200).send({ ok: true, data: { files, pendingOrphanedFilenames: pendingFilenames } });
+  })
+);
+
+// Supprime un fichier orphelin du disque
+router.delete(
+  "/:id/orphaned-files",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["admin"], { healthcareProfessional: true }),
+  tableSizesRateLimiter,
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({
+        id: z.string().regex(looseUuidRegex),
+      }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in orphaned-files delete`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const orgId = req.params.id;
+    if (req.user.organisation !== orgId) {
+      const error = new Error("Forbidden");
+      error.status = 403;
+      return next(error);
+    }
+    if (ENVIRONMENT === "production" && orgId !== MANO_TEST_ORG_ID) {
+      const error = new Error("Cette fonctionnalité n'est pas disponible pour cette organisation");
+      error.status = 403;
+      return next(error);
+    }
+
+    const fileSchema = z.object({
+      entityType: z.enum(["person", "territory"]),
+      entityId: z.string().regex(looseUuidRegex),
+      filename: z.string().regex(cryptoHexRegex),
+    });
+
+    let file;
+    try {
+      file = fileSchema.parse(req.body);
+    } catch (e) {
+      const error = new Error(`Invalid request body in orphaned-files delete`);
+      error.status = 400;
+      return next(error);
+    }
+
+    const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
+    const resolvedBasedir = path.resolve(basedir);
+    const subdir = file.entityType === "territory" ? "territories" : "persons";
+    const filePath = path.resolve(basedir, orgId, subdir, file.entityId, file.filename);
+
+    if (!filePath.startsWith(resolvedBasedir + path.sep)) {
+      const error = new Error("Invalid file path");
+      error.status = 400;
+      return next(error);
+    }
+
+    try {
+      await fs.promises.unlink(filePath);
+    } catch (e) {
+      if (e.code !== "ENOENT") {
+        capture("Error deleting orphaned file", { extra: { filePath, error: e.message } });
+      }
+    }
+
+    return res.status(200).send({ ok: true });
   })
 );
 
