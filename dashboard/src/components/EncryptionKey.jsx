@@ -38,18 +38,18 @@ import Alert from "./tailwind/Alert";
 
 const totalNumberOfItemsSelector = atom((get) => {
   const persons = get(personsState);
-  const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const groups = get(groupsState);
   const treatments = get(treatmentsState);
   const treatmentsDocuments = treatments.reduce(
-    (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const actions = get(actionsState);
-  const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const medicalFiles = get(medicalFileState);
   const medicalFilesDocuments = medicalFiles.reduce(
-    (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const passages = get(passagesState);
