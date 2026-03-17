@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
-import API, { tryFetchBlob, tryFetchExpectOk } from "../../services/api";
+import API, { tryFetchExpectOk } from "../../services/api";
 import Table from "../../components/table";
 import Loading from "../../components/loading";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -71,7 +71,8 @@ export default function OrphanedFiles() {
   const [pendingOrphanedFilenames, setPendingOrphanedFilenames] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [testingFile, setTestingFile] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState("size");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
 
   const isHealthcareProfessional = Boolean(user?.healthcareProfessional);
   const isFeatureAvailable = ENV !== "production" || organisation._id === MANO_TEST_ORG_ID;
@@ -120,6 +121,22 @@ export default function OrphanedFiles() {
 
   const totalSize = useMemo(() => orphanedFiles.reduce((acc, f) => acc + f.size, 0), [orphanedFiles]);
 
+  const sortedOrphanedFiles = useMemo(() => {
+    return [...orphanedFiles].sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === "size") {
+        comparison = a.size - b.size;
+      } else if (sortBy === "createdAt") {
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else if (sortBy === "entityType") {
+        comparison = a.entityType.localeCompare(b.entityType);
+      } else if (sortBy === "entityStatus") {
+        comparison = a.entityStatus.localeCompare(b.entityStatus);
+      }
+      return sortOrder === "ASC" ? comparison : -comparison;
+    });
+  }, [orphanedFiles, sortBy, sortOrder]);
+
   const searchOrphanedFiles = async () => {
     setLoading(true);
     const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/organisation/${organisation._id}/files-on-disk` }));
@@ -146,18 +163,6 @@ export default function OrphanedFiles() {
       setFilesOnDisk((prev) => (prev ? prev.filter((f) => f.filename !== file.filename) : prev));
     } else {
       toast.error("Erreur lors de la suppression");
-    }
-  };
-
-  const testFile = async (file: FileOnDisk) => {
-    setTestingFile(file.filename);
-    const downloadPath = file.entityType === "territory" ? `/territory/${file.entityId}/document/${file.filename}` : `/person/${file.entityId}/document/${file.filename}`;
-    const [error, blob] = await tryFetchBlob(async () => API.download({ path: downloadPath }));
-    setTestingFile(null);
-    if (!error && blob && blob.size > 0) {
-      toast.success(`Fichier lisible (${formatFileSize(blob.size)})`);
-    } else {
-      toast.error("Fichier illisible ou introuvable sur le serveur");
     }
   };
 
@@ -203,18 +208,26 @@ export default function OrphanedFiles() {
           </div>
 
           <Table
-            data={orphanedFiles}
+            data={sortedOrphanedFiles}
             rowKey="filename"
             noData="Aucun fichier orphelin détecté"
             columns={[
               {
                 title: "Type d'entité",
                 dataKey: "entityType",
+                onSortBy: setSortBy,
+                onSortOrder: setSortOrder,
+                sortBy,
+                sortOrder,
                 render: (file: FileOnDisk) => entityTypeLabels[file.entityType] || file.entityType,
               },
               {
                 title: "Entité",
-                dataKey: "entityName",
+                dataKey: "entityStatus",
+                onSortBy: setSortBy,
+                onSortOrder: setSortOrder,
+                sortBy,
+                sortOrder,
                 render: (file: FileOnDisk) => {
                   const status = entityStatusLabels[file.entityStatus] ?? { label: file.entityStatus, className: "tw-bg-gray-100 tw-text-gray-800" };
                   return (
@@ -238,25 +251,20 @@ export default function OrphanedFiles() {
               {
                 title: "Taille",
                 dataKey: "size",
+                onSortBy: setSortBy,
+                onSortOrder: setSortOrder,
+                sortBy,
+                sortOrder,
                 render: (file: FileOnDisk) => formatFileSize(file.size),
               },
               {
                 title: "Date de création",
                 dataKey: "createdAt",
+                onSortBy: setSortBy,
+                onSortOrder: setSortOrder,
+                sortBy,
+                sortOrder,
                 render: (file: FileOnDisk) => new Date(file.createdAt).toLocaleDateString("fr-FR"),
-              },
-              {
-                title: "Tester",
-                dataKey: "action-test",
-                render: (file: FileOnDisk) => (
-                  <button
-                    className="button-classic ml-0"
-                    disabled={testingFile !== null}
-                    onClick={() => testFile(file)}
-                  >
-                    {testingFile === file.filename ? "Test..." : "Tester"}
-                  </button>
-                ),
               },
               {
                 title: "Supprimer",
