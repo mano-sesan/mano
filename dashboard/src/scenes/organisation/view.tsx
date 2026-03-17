@@ -102,7 +102,11 @@ const View = () => {
   const [tab, setTab] = useState(() => {
     if (!organisation.encryptionEnabled) return "encryption";
     const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.has("tab")) return searchParams.get("tab");
+    if (searchParams.has("tab")) {
+      const requestedTab = searchParams.get("tab");
+      if (requestedTab === "orphaned-files" && !isOrphanedFilesAvailable) return "infos";
+      return requestedTab;
+    }
     return "infos";
   });
   const scrollContainer = useRef(null);

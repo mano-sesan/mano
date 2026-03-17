@@ -1348,9 +1348,13 @@ router.delete(
     try {
       await fs.promises.unlink(filePath);
     } catch (e) {
-      if (e.code !== "ENOENT") {
-        capture("Error deleting orphaned file", { extra: { filePath, error: e.message } });
+      if (e.code === "ENOENT") {
+        return res.status(200).send({ ok: true });
       }
+      capture("Error deleting orphaned file", { extra: { filePath, error: e.message } });
+      const error = new Error("Impossible de supprimer le fichier");
+      error.status = 500;
+      return next(error);
     }
 
     return res.status(200).send({ ok: true });
