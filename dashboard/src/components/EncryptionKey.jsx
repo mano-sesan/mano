@@ -56,17 +56,17 @@ const totalNumberOfItemsSelector = atom((get) => {
   const rencontres = get(rencontresState);
   const reports = get(reportsState);
   const territories = get(territoriesState);
-  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const places = get(placesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const territoryObservations = get(territoryObservationsState);
   const consultations = get(consultationsState);
   const consultationsDocuments = consultations.reduce(
-    (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const territoryObservationsDocuments = territoryObservations.reduce(
-    (acc, obs) => acc + (obs.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, obs) => acc + (obs.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const comments = get(commentsState);
