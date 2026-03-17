@@ -220,9 +220,8 @@ function ObservationContent({
       }
       if (rencontreSuccess) toast.success("Les rencontres ont également été sauvegardées");
       else toast.error("Une ou plusieurs rencontres n'ont pas pu être sauvegardées");
-    } else {
-      toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
     }
+    toast.success(observation?._id ? "Observation mise à jour" : "Création réussie !");
     await refresh();
     onClose();
     // We do not set isSubmitting to false here because the modal will be closed
