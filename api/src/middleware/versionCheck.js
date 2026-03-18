@@ -3,7 +3,7 @@ const { sequelize } = require("../db/sequelize");
 const { MOBILE_APP_VERSION } = require("../config");
 const { getAppLinks } = require("../utils/appLinks");
 
-const MINIMUM_MOBILE_APP_VERSION = [3, 9, 0];
+const MINIMUM_MOBILE_APP_VERSION = [3, 20, 0];
 
 let deploymentCommit = null;
 let deploymentDate = null;
