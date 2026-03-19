@@ -53,7 +53,7 @@ export default function ConsultationsStats({
 
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des consultations</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques des consultations</h2>}
       {!isStatsV2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />
@@ -109,7 +109,7 @@ export default function ConsultationsStats({
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
-          <h4 className="tw-inline tw-text-xl tw-text-black75">Global</h4>
+          <h3 className="tw-inline tw-text-xl tw-text-black75">Global</h3>
         </summary>
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div className="tw-flex tw-gap-4 tw-justify-center">
@@ -166,9 +166,9 @@ export default function ConsultationsStats({
             key={c.name}
           >
             <summary className="tw-mx-0 tw-my-8">
-              <h4 className="tw-inline tw-text-xl tw-text-black75">
+              <h3 className="tw-inline tw-text-xl tw-text-black75">
                 Statistiques des consultations de type « {c.name} » ({consultationsByType[c.name]?.data?.length ?? 0})
-              </h4>
+              </h3>
             </summary>
             <div className="tw-flex tw-flex-col tw-gap-4">
               <div className="tw-gap-4 tw-flex tw-justify-center">

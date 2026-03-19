@@ -83,12 +83,12 @@ export default function PersonStats({
   };
   return (
     <>
-      {!isStatsV2 && !evolutivesStatsActivated && <h3 className="tw-my-5 tw-text-xl">Statistiques des {title}</h3>}
+      {!isStatsV2 && !evolutivesStatsActivated && <h2 className="tw-my-5 tw-text-xl">Statistiques des {title}</h2>}
       {!isStatsV2 && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} />}
       {evolutivesStatsActivated ? (
         <>
           <EvolutiveStatsSelector
-            title={<h4 className="tw-inline tw-text-lg tw-text-black75">Évolution des indicateurs</h4>}
+            title={<h3 className="tw-inline tw-text-lg tw-text-black75">Évolution des indicateurs</h3>}
             filterBase={filterBase}
             selection={evolutiveStatsIndicators}
             onChange={setEvolutiveStatsIndicators}
@@ -117,7 +117,7 @@ export default function PersonStats({
             }}
           >
             <summary className="tw-mx-0 tw-my-8">
-              <h4 className="tw-inline tw-text-xl tw-text-black75">Général</h4>
+              <h3 className="tw-inline tw-text-xl tw-text-black75">Général</h3>
             </summary>
             <div className="tw-flex tw-flex-col tw-gap-4">
               <div className="tw-grid tw-grid-cols-2 tw-gap-4">
@@ -252,7 +252,7 @@ export default function PersonStats({
                 }}
               >
                 <summary className="tw-mx-0 tw-my-8">
-                  <h4 className="tw-inline tw-text-xl tw-text-black75">{section.name}</h4>
+                  <h3 className="tw-inline tw-text-xl tw-text-black75">{section.name}</h3>
                 </summary>
                 <CustomFieldsStats
                   data={personsForStats}

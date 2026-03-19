@@ -166,7 +166,7 @@ const ActionsStats = ({
 
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des actions</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques des actions</h2>}
       {!isStatsV2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title={filterTitle} base={filterBase} filters={filterPersons} onChange={setFilterPersons} />

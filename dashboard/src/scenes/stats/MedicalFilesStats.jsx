@@ -54,7 +54,7 @@ const MedicalFilesStats = ({
   };
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des dossiers médicaux des {title}</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques des dossiers médicaux des {title}</h2>}
       <div className="tw-flex tw-flex-col tw-gap-4">
         {!isStatsV2 && <Filters base={filterBase} filters={filterPersons} onChange={setFilterPersons} title={filterTitle} />}
         <AgeRangeBar

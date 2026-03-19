@@ -20,7 +20,7 @@ const GeneralStats = ({
   const organisation = useAtomValue(organisationState);
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques générales</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques générales</h2>}
       {!isStatsV2 && (
         <div className="tw-flex tw-basis-full tw-items-center">
           <Filters title="Filtrer par personnes suivies:" base={filterBase} filters={filterPersons} onChange={setFilterPersons} />

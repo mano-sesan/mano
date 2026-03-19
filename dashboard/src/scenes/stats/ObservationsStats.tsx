@@ -106,7 +106,7 @@ const ObservationsStats = ({
 
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques des observations de territoire</h2>}
       {!isStatsV2 && <Filters base={filterBase} filters={filterObs} onChange={setFilterObs} />}
 
       <details
@@ -120,7 +120,7 @@ const ObservationsStats = ({
         }}
       >
         <summary className="tw-mx-0 tw-my-8">
-          <h4 className="tw-inline tw-text-xl tw-text-black75">Général</h4>
+          <h3 className="tw-inline tw-text-xl tw-text-black75">Général</h3>
         </summary>
         <div className="tw-flex tw-flex-col tw-gap-4">
           <Card
@@ -163,7 +163,7 @@ const ObservationsStats = ({
               }}
             >
               <summary className="tw-mx-0 tw-my-8">
-                <h4 className="tw-inline tw-text-xl tw-text-black75">{group.name}</h4>
+                <h3 className="tw-inline tw-text-xl tw-text-black75">{group.name}</h3>
               </summary>
               <CustomFieldsStats
                 data={observations}
