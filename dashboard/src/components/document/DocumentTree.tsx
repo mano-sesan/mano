@@ -77,6 +77,7 @@ export function DocumentTree({ treeData, onSaveOrder, expandedItems, onDocumentC
         const isGroupDocument = !isFolder && (itemData as DocumentWithLinkedItem).group;
 
         return (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- props injectées par la lib d'arbre (react-complex-tree)
           <div
             key={item.getId()}
             {...item.getProps()}

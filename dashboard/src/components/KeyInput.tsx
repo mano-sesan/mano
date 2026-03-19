@@ -37,10 +37,12 @@ const KeyInput = ({
 
   return (
     <div className="tw-relative tw-mb-1.5 tw-block tw-w-full tw-rounded tw-border tw-border-main75 tw-bg-transparent tw-outline-main tw-transition-all">
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- div contentEditable volontaire pour la saisie sécurisée de la clé de chiffrement */}
       <div
         id={id}
         contentEditable
         // L'auto-focus ne semble pas fonctionner ici, donc on utilise un useEffect pour forcer le focus.
+        // eslint-disable-next-line jsx-a11y/no-autofocus -- autoFocus légitime : ce champ est le seul élément interactif de la page
         autoFocus
         ref={inputRef}
         onPaste={(e) => {
