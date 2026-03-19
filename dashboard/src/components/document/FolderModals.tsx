@@ -65,6 +65,7 @@ export function CreateFolderModal({ open, onClose, onCreateFolder, userId }: Cre
                 handleCreate();
               }
             }}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- autoFocus légitime : le champ est le seul élément de la modale
             autoFocus
             placeholder="Entrez le nom du dossier"
           />
@@ -138,6 +139,7 @@ export function EditFolderModal({ folder, onClose, onUpdateFolder, onDeleteFolde
               }
             }}
             disabled={isDisabled}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- autoFocus légitime : le champ est le seul élément de la modale
             autoFocus
             placeholder="Nom du dossier"
           />

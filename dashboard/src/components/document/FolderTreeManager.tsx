@@ -125,6 +125,7 @@ function FolderTree({
         const isDraggingOver = (item.isDraggingOver?.() && item.isUnorderedDragTarget?.()) || false;
 
         return (
+          // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions -- props injectées par la lib d'arbre (react-complex-tree)
           <div
             key={item.getId()}
             {...item.getProps()}
