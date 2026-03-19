@@ -146,6 +146,7 @@ const Drawer = () => {
         <button
           type="button"
           aria-label="Cacher la navigation latérale"
+          aria-expanded={showDrawer}
           className="tw-absolute tw-right-2 tw-top-2 tw-text-gray-900 sm:tw-hidden sm:tw-px-6"
           onClick={() => setShowDrawer(!showDrawer)}
         >
@@ -162,6 +163,7 @@ const Drawer = () => {
         <button
           type="button"
           aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
+          aria-expanded={!isCollapsed}
           className="tw-absolute tw-top-3 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
           style={{ left: isCollapsed ? "4rem" : "13rem" }}
           onClick={() => setIsCollapsed(!isCollapsed)}

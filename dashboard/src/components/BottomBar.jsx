@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import AgendaIcon from "../assets/icons/AgendaIcon";
 import TerritoryIcon from "../assets/icons/TerritoryIcon";
 import PersonIcon from "../assets/icons/PersonIcon";
@@ -10,7 +10,7 @@ import { userState } from "../atoms/auth";
 
 export default function BottomBar() {
   const user = useAtomValue(userState);
-  const setShowDrawer = useSetAtom(showDrawerState);
+  const [showDrawer, setShowDrawer] = useAtom(showDrawerState);
   return (
     <nav
       title="Tab bar pour navigation sur mobile"
@@ -51,6 +51,8 @@ export default function BottomBar() {
       )}
       <button
         type="button"
+        aria-expanded={showDrawer}
+        aria-label="Ouvrir le menu de navigation"
         className="tw-flex tw-shrink-0 tw-grow tw-basis-0 tw-flex-col tw-items-center tw-justify-between tw-gap-2 tw-uppercase"
         onClick={() => setShowDrawer(true)}
       >
