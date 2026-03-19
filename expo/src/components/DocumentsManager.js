@@ -96,7 +96,7 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 };
 
 // La liste des documents en tant que telle.
-const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
+const DocumentsManager = ({ personDB, uploadPath, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
   documents = documents || [];
   const [selectedFolder, setSelectedFolder] = useState(defaultParent);
   const user = useAtomValue(userState);
@@ -227,6 +227,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
     }
     const extension = asset.fileName.split(".").reverse()[0];
     const newName = `${name}.${extension}`;
+    const basePath = uploadPath || `/person/${personDB?._id}/document`;
     const uploadResponse = await API.upload({
       file: {
         uri: asset.uri,
@@ -234,7 +235,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
         fileName: newName,
         type: asset.type,
       },
-      path: `/person/${personDB._id}/document`,
+      path: basePath,
     });
     if (!uploadResponse.ok || !uploadResponse.data) {
       // Si le backend a renvoyé un message d'erreur, on l'affiche
@@ -254,7 +255,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
       createdAt: new Date(),
       createdBy: user._id,
       parentId: selectedFolder,
-      downloadPath: `/person/${personDB._id}/document/${file.filename}`,
+      downloadPath: `${basePath}/${file.filename}`,
       file,
     });
     reset();
@@ -282,7 +283,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
   return (
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
-      {documents.length ? <View className="mb-4">{renderTree(tree, personDB._id, onDelete, onUpdateDocument)}</View> : null}
+      {documents.length ? <View className="mb-4">{renderTree(tree, personDB?._id, onDelete, onUpdateDocument)}</View> : null}
       <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} />
       <Modal animationType="fade" visible={!!asset}>
         <SceneContainer>
