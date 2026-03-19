@@ -323,13 +323,15 @@ export const CustomResponsiveBar = ({
                 <tr>
                   <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2">{totalTitleForMultiChoice}</td>
                   <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold">{totalForMultiChoice}</td>
-                  <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2"></td>
+                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                  <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2" />
                 </tr>
                 {showTotal && (
                   <tr>
                     <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-font-bold">Total des valeurs</td>
                     <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2 tw-text-right tw-font-bold">{total}</td>
-                    <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2"></td>
+                    {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                    <td className="tw-border tw-border-zinc-200 tw-py-1 tw-px-2" />
                   </tr>
                 )}
               </>

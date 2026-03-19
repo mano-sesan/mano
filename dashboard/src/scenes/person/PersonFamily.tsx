@@ -236,6 +236,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
                     <UserName id={user} />
                   </td>
                   <td width="15%">{dayjsInstance(createdAt).format("DD/MM/YYYY HH:mm")}</td>
+                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
                   <td width="15%">
                     <div className="tw-flex tw-flex-col tw-items-center tw-gap-2">
                       <button
