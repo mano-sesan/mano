@@ -295,7 +295,7 @@ function TransmissionModal({ onClose, onClosed, report, day, team, isOpen, userI
                   {dayjsInstance(remoteUpdatedAt).fromNow()}
                 </span>
                 <br />
-                <span className="tw-opacity-50">
+                <span className="tw-text-gray-500">
                   Votre transmission sera enregistrée à la suite. Vous pouvez l'enregistrer et la réouvrir pour voir les modifications.
                 </span>
               </div>

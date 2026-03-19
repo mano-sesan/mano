@@ -387,7 +387,7 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
                   </div>
                 )}
               </div>
-              <span className="tw-opacity-50">{p.formattedBirthDate}</span>
+              <span className="tw-text-gray-500">{p.formattedBirthDate}</span>
               <div className="tw-flex tw-w-full tw-flex-wrap tw-gap-2">
                 {p.assignedTeams?.map((teamId) => (
                   <TagTeam key={teamId} teamId={teamId} />

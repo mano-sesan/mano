@@ -12,7 +12,7 @@ const Page = ({ page = 0, limit = 20, total = 0, onChange = (_args: { page: numb
       pageRangeDisplayed={5}
       onChange={(page: number) => onChange({ page: page - 1 })}
     />
-    <i className="tw-opacity-50 tw-ml-2">(Total: {total})</i>
+    <i className="tw-text-gray-500 tw-ml-2">(Total: {total})</i>
   </div>
 );
 

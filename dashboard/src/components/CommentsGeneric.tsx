@@ -268,7 +268,7 @@ interface CommentsTableProps {
 
 export function NoComments() {
   return (
-    <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+    <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="tw-mx-auto tw-h-16 tw-w-16 tw-text-gray-200"
@@ -412,7 +412,7 @@ function CommentsTable({
                     <div className="tw-mx-auto tw-flex tw-w-full tw-max-w-prose tw-flex-col tw-gap-2 tw-overflow-hidden">
                       <div className="tw-mb-4 tw-flex tw-items-center tw-align-middle">
                         {!!comment.urgent && <ExclamationMarkButton className="tw-mr-4" />}
-                        <div className="tw-text-xs tw-opacity-50 tw-grow">{formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</div>
+                        <div className="tw-text-xs tw-text-gray-500 tw-grow">{formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</div>
                         {comment.isMedicalCommentShared ? (
                           <div>
                             <StethoscopeIcon className="tw-w-5 tw-h-5 tw-text-sky-700" />
@@ -488,7 +488,7 @@ function CommentsTable({
                         )}
                       </div>
                       <div className="small tw-flex tw-items-end tw-justify-between">
-                        <p className="tw-mb-0 tw-basis-1/2 tw-opacity-50">
+                        <p className="tw-mb-0 tw-basis-1/2 tw-text-gray-500">
                           Créé par <UserName id={comment.user} />
                         </p>
                         <div className="tw-max-w-fit tw-basis-1/2">
