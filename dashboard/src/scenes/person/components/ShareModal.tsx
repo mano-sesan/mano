@@ -294,8 +294,9 @@ export default function ShareModal() {
             {/* En-têtes */}
             <div className="tw-space-y-4">
               <div>
-                <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page de résumé</label>
+                <label htmlFor="share-header-summary" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page de résumé</label>
                 <textarea
+                  id="share-header-summary"
                   className="tailwindui tw-w-full"
                   rows={2}
                   placeholder="Texte optionnel à afficher en haut du résumé..."
@@ -305,8 +306,9 @@ export default function ShareModal() {
               </div>
               {isHealthcareProfessional && (
                 <div>
-                  <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page médicale</label>
+                  <label htmlFor="share-header-medical" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page médicale</label>
                   <textarea
+                    id="share-header-medical"
                     className="tailwindui tw-w-full"
                     rows={2}
                     placeholder="Texte optionnel à afficher en haut du dossier médical..."
@@ -320,7 +322,8 @@ export default function ShareModal() {
             {/* Informations générales */}
             <Accordion
               title={
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={options.includeGeneralInfo && hasSelectedFields(options.generalInfoFields)}
@@ -365,7 +368,8 @@ export default function ShareModal() {
                 <Accordion
                   key={section.name}
                   title={
-                    <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                       <input
                         type="checkbox"
                         checked={sectionChecked}
@@ -396,7 +400,8 @@ export default function ShareModal() {
             {/* Actions */}
             <Accordion
               title={
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={options.includeActions && hasSelectedFields(options.actionFields)}
@@ -430,6 +435,7 @@ export default function ShareModal() {
                   ))}
                 </div>
                 <div className="tw-pt-2 tw-border-t">
+                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                   <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par catégories (optionnel)</label>
                   <SelectCustom
                     isMulti
@@ -447,7 +453,8 @@ export default function ShareModal() {
             {isHealthcareProfessional && (
               <Accordion
                 title={
-                  <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={options.includeConsultations}
@@ -460,6 +467,7 @@ export default function ShareModal() {
               >
                 <div className="tw-space-y-4 tw-ml-4">
                   <div>
+                    {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                     <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par types (optionnel)</label>
                     <SelectCustom
                       isMulti
@@ -514,7 +522,8 @@ export default function ShareModal() {
             {isHealthcareProfessional && (
               <Accordion
                 title={
-                  <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                     <input
                       type="checkbox"
                       checked={options.includeTreatments && hasSelectedFields(options.treatmentFields)}
@@ -552,7 +561,8 @@ export default function ShareModal() {
             {/* Commentaires */}
             <Accordion
               title={
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={options.includeComments}
@@ -582,7 +592,8 @@ export default function ShareModal() {
             {/* Passages */}
             <Accordion
               title={
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={options.includePassages && hasSelectedFields(options.passageFields)}
@@ -619,7 +630,8 @@ export default function ShareModal() {
             {/* Rencontres */}
             <Accordion
               title={
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={options.includeRencontres && hasSelectedFields(options.rencontreFields)}
@@ -655,8 +667,9 @@ export default function ShareModal() {
 
             {/* Pied de page */}
             <div>
-              <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Pied de page</label>
+              <label htmlFor="share-footer" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Pied de page</label>
               <textarea
+                id="share-footer"
                 className="tailwindui tw-w-full"
                 rows={2}
                 placeholder="Texte optionnel en bas du document..."
