@@ -270,6 +270,7 @@ export default function SuperadminOrganisationUsers({
                     ))}
                   </div>
                 </td>
+                {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
                 <td>
                   <div className="tw-grid tw-gap-2">
                     <DeleteButtonAndConfirmModal

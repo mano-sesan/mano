@@ -407,6 +407,7 @@ function CommentsTable({
                     .filter(Boolean)
                     .join(" ")}
                 >
+                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
                   <td onClick={() => onCommentClick(comment)}>
                     <div className="tw-mx-auto tw-flex tw-w-full tw-max-w-prose tw-flex-col tw-gap-2 tw-overflow-hidden">
                       <div className="tw-mb-4 tw-flex tw-items-center tw-align-middle">

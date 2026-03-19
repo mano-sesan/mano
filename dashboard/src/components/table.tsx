@@ -126,6 +126,7 @@ const Table = <T extends { [key: string]: any } & RootItem>({
               <th scope="col" className="tw-whitespace-nowrap tw-cursor-default">
                 <input
                   type="checkbox"
+                  aria-label="Tout sélectionner"
                   className="tw-border-2 tw-mx-2"
                   checked={checked.length === data.length}
                   onClick={() => {
@@ -199,6 +200,7 @@ const Table = <T extends { [key: string]: any } & RootItem>({
                     <td className="tw-whitespace-nowrap tw-cursor-default">
                       <input
                         type="checkbox"
+                        aria-label="Sélectionner cette ligne"
                         className="tw-border-2 tw-mx-2"
                         checked={checked.includes(item._id)}
                         id={item._id}
