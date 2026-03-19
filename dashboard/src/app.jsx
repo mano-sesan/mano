@@ -309,6 +309,12 @@ const RestrictedRoute = ({ component: Component, _isLoggedIn, ...rest }) => {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="tw-sr-only focus:tw-not-sr-only focus:tw-fixed focus:tw-top-2 focus:tw-left-2 focus:tw-z-[200] focus:tw-rounded focus:tw-bg-white focus:tw-px-4 focus:tw-py-2 focus:tw-text-main focus:tw-shadow-lg focus:tw-ring-2 focus:tw-ring-main"
+      >
+        Aller au contenu principal
+      </a>
       {!!user && <TopBar />}
       <div className="main">
         {!!user && !["stats-only"].includes(user.role) && <Drawer />}
