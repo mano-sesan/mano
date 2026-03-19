@@ -70,7 +70,7 @@ export default function SuperadminUsersSearch({
                 {search.length < 3 ? " (minimum 3 caractères)" : ""}
                 {isLoading ? <span className="tw-animate-pulse"> (recherche en cours...)</span> : ""}
               </div>
-              <img src="https://gifsec.com/wp-content/uploads/2022/09/waiting-gif-13-1.gif" className="tw-h-72 tw-w-96 tw-m-4 tw-object-cover" />
+              <img src="https://gifsec.com/wp-content/uploads/2022/09/waiting-gif-13-1.gif" className="tw-h-72 tw-w-96 tw-m-4 tw-object-cover" alt="Recherche en cours" />
             </div>
           )}
           {users.length > 0 && (

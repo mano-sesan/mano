@@ -1019,7 +1019,7 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
           />
         </div>
         <div className="tw-mx-auto tw-flex tw-justify-center tw-py-4">
-          <img src="/fusion.gif" />
+          <img src="/fusion.gif" alt="Animation de fusion en cours" />
         </div>
       </ModalBody>
       <ModalFooter>
