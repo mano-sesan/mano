@@ -30,10 +30,11 @@ export const TimeModalButton = ({ title, help, children = null, size = "lg" }) =
 
   return (
     <>
-      <div
+      <button
+        type="button"
         title={help}
         aria-label={help}
-        className="tw-text-main tw-w-4 tw-h-4 hover:tw-scale-110 tw-cursor-pointer tw-rounded tw-flex tw-items-center tw-justify-center"
+        className="tw-border-none tw-bg-transparent tw-p-0 tw-text-main tw-w-4 tw-h-4 hover:tw-scale-110 tw-cursor-pointer tw-rounded tw-flex tw-items-center tw-justify-center"
         onClick={() => setHelpOpen(true)}
       >
         <svg
@@ -50,7 +51,7 @@ export const TimeModalButton = ({ title, help, children = null, size = "lg" }) =
           <path d="M3 3v5h5" />
           <path d="M12 7v5l4 2" />
         </svg>
-      </div>
+      </button>
       <HelpModal open={helpOpen} setOpen={setHelpOpen} title={title} help={help} size={size}>
         {children}
       </HelpModal>
