@@ -21,7 +21,7 @@ const Account = () => {
       <h1 className="tw-text-xl tw-my-8 tw-font-normal">
         Mon compte: <strong>{user.name}</strong>
       </h1>
-      <h3 className="tw-my-10 tw-flex tw-justify-between tw-text-xl tw-font-extrabold">Informations</h3>
+      <h2 className="tw-my-10 tw-flex tw-justify-between tw-text-xl tw-font-extrabold">Informations</h2>
       <Formik
         initialValues={{ ...user, currentPassword: "" }}
         onSubmit={async (body, { setFieldValue }) => {

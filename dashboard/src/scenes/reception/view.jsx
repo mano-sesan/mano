@@ -262,9 +262,9 @@ const Reception = () => {
         <div className="tw-flex tw-basis-4/12 tw-flex-col">
           {!!organisation.passagesEnabled && (
             <div className="tw-mb-4 tw-flex tw-flex-col tw-items-center tw-gap-4 tw-rounded-lg tw-bg-gray-100 tw-px-2 tw-py-8 tw-text-center">
-              <h5 id="passages-title">
+              <h2 className="tw-text-xl" id="passages-title">
                 {passages.length} passage{passages.length > 1 ? "s" : ""}
-              </h5>
+              </h2>
               <ButtonCustom
                 onClick={onAddAnonymousPassage}
                 type="button"
@@ -289,7 +289,7 @@ const Reception = () => {
           )}
           {Boolean(flattenedServices?.length) && (
             <div className="tw-mb-4 tw-flex tw-flex-col tw-items-center tw-gap-4 tw-rounded-lg tw-bg-gray-100 tw-px-2 tw-py-8 tw-text-center">
-              <h5>Services</h5>
+              <h2 className="tw-text-xl">Services</h2>
               <div className="tw-mt-4 tw-text-left">
                 <ReceptionService
                   services={services}

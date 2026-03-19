@@ -10,7 +10,7 @@ const ReportsStats = ({ reports }) => {
   const organisation = useAtomValue(organisationState);
   return (
     <>
-      {!isStatsV2 && <h3 className="tw-my-5 tw-text-xl">Statistiques des comptes-rendus</h3>}
+      {!isStatsV2 && <h2 className="tw-my-5 tw-text-xl">Statistiques des comptes-rendus</h2>}
       <div className="tw-flex tw-flex-col tw-gap-4">
         <CustomResponsivePie
           title="Répartition des comptes-rendus par collaboration"

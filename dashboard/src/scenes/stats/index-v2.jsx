@@ -748,13 +748,13 @@ const StatsV2 = ({ onSwitchVersion }) => {
                   <b>une des équipes sélectionnées pendant la période sélectionnée</b> sont prises en compte.
                 </p>
                 <div>
-                  <h4 className="tw-text-base !tw-mb-1">Toutes les personnes</h4>
+                  <h2 className="tw-text-base !tw-mb-1">Toutes les personnes</h2>
                   <p>
                     Toutes les personnes assignées à au moins une des équipes sélectionnées pendant la période, qu'il y ait eu une interaction ou non.
                   </p>
                 </div>
                 <div>
-                  <h4 className="tw-text-base !tw-mb-1">Personnes mises à jour</h4>
+                  <h2 className="tw-text-base !tw-mb-1">Personnes mises à jour</h2>
                   <p>
                     Personnes pour lesquelles il y a eu au moins une interaction durant la période sélectionnée, quel que soit leur statut au moment
                     de la modification, y compris pendant qu'elles sont en dehors de la file active ou en dehors des équipes sélectionnées : création,
@@ -762,14 +762,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
                   </p>
                 </div>
                 <div>
-                  <h4 className="tw-text-base !tw-mb-1">Personnes suivies</h4>
+                  <h2 className="tw-text-base !tw-mb-1">Personnes suivies</h2>
                   <p>
                     Personnes pour lesquelles il y a eu au moins une interaction durant la période, en excluant les interactions réalisées lorsque la
                     personne était sortie de file active ou en dehors des équipes sélectionnées.
                   </p>
                 </div>
                 <div>
-                  <h4 className="tw-text-base !tw-mb-1">Nouvelles personnes</h4>
+                  <h2 className="tw-text-base !tw-mb-1">Nouvelles personnes</h2>
                   <p>
                     Personnes qui ont rejoint une des équipes sélectionnées pour la première fois ou dont le suivi a commencé durant la période
                     sélectionnée.

@@ -98,7 +98,7 @@ const ServicesStats = ({
     <>
       {!isStatsV2 && (
         <>
-          <h3 className="tw-my-5 tw-text-xl">Statistiques des services</h3>
+          <h2 className="tw-my-5 tw-text-xl">Statistiques des services</h2>
           <div className="tw-mb-5 tw-flex tw-basis-full tw-items-center">
             <label htmlFor="filter-by-status" className="tw-mx-5 tw-w-64 tw-shrink-0">
               Filtrer par groupe de services :
