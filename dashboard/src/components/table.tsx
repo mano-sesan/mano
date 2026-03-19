@@ -123,7 +123,7 @@ const Table = <T extends { [key: string]: any } & RootItem>({
           )}
           <tr>
             {withCheckbox && (
-              <td className="tw-whitespace-nowrap tw-cursor-default">
+              <th scope="col" className="tw-whitespace-nowrap tw-cursor-default">
                 <input
                   type="checkbox"
                   className="tw-border-2 tw-mx-2"
@@ -136,7 +136,7 @@ const Table = <T extends { [key: string]: any } & RootItem>({
                     }
                   }}
                 />
-              </td>
+              </th>
             )}
             {columns.map((column) => {
               const { onSortBy, onSortOrder, sortBy, sortOrder, sortableKey, dataKey } = column;
@@ -148,7 +148,8 @@ const Table = <T extends { [key: string]: any } & RootItem>({
                 onSortBy(sortableKey || dataKey);
               };
               return (
-                <td
+                <th
+                  scope="col"
                   className={["tw-whitespace-nowrap", column.className || "", onSortBy ? "tw-cursor-pointer" : "tw-cursor-default"].join(" ")}
                   style={column.style || {}}
                   key={String(dataKey) + String(column.title)}
@@ -167,7 +168,7 @@ const Table = <T extends { [key: string]: any } & RootItem>({
                       {sortOrder === "DESC" && <span className="tw-mx-1" onClick={() => onSortOrder("ASC")}>{`\u00A0\u2191`}</span>}
                     </button>
                   )}
-                </td>
+                </th>
               );
             })}
           </tr>

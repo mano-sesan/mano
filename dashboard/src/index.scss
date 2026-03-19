@@ -109,14 +109,17 @@ table.table-selego {
     background-color: #b9b9b9;
   }
 
-  thead td {
+  thead td,
+  thead th {
     color: #008e7f;
     text-align: left;
     padding: 0.5rem 0.5rem;
   }
 
   thead td,
-  thead td * {
+  thead td *,
+  thead th,
+  thead th * {
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
