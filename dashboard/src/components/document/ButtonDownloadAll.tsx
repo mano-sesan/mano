@@ -10,7 +10,7 @@ import { capture } from "../../services/sentry";
 export function ButtonDownloadAll({ documents }: { documents: DocumentWithLinkedItem[] }) {
   const [isDownloading, setIsDownloading] = useState(false);
 
-  if (!documents.filter((doc) => doc.type === "document").length) return null;
+  if (!documents.filter((doc) => doc?.type === "document").length) return null;
 
   return (
     <button

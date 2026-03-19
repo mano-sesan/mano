@@ -38,35 +38,35 @@ import Alert from "./tailwind/Alert";
 
 const totalNumberOfItemsSelector = atom((get) => {
   const persons = get(personsState);
-  const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const personsDocuments = persons.reduce((acc, person) => acc + (person.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const groups = get(groupsState);
   const treatments = get(treatmentsState);
   const treatmentsDocuments = treatments.reduce(
-    (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, treatment) => acc + (treatment.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const actions = get(actionsState);
-  const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const actionsDocuments = actions.reduce((acc, action) => acc + (action.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const medicalFiles = get(medicalFileState);
   const medicalFilesDocuments = medicalFiles.reduce(
-    (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, medicalFile) => acc + (medicalFile.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const passages = get(passagesState);
   const rencontres = get(rencontresState);
   const reports = get(reportsState);
   const territories = get(territoriesState);
-  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc.type !== "folder")?.length || 0), 0);
+  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
   const places = get(placesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const territoryObservations = get(territoryObservationsState);
   const consultations = get(consultationsState);
   const consultationsDocuments = consultations.reduce(
-    (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, consultation) => acc + (consultation.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const territoryObservationsDocuments = territoryObservations.reduce(
-    (acc, obs) => acc + (obs.documents?.filter((doc) => doc.type !== "folder")?.length || 0),
+    (acc, obs) => acc + (obs.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
     0
   );
   const comments = get(commentsState);
