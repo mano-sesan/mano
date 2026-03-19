@@ -72,7 +72,7 @@ const Drawer = () => {
 
     return (
       <li id={id}>
-        <NavLink to={to} activeClassName="active" title={collapsed ? label : undefined}>
+        <NavLink to={to} activeClassName="active" aria-current="page" title={collapsed ? label : undefined}>
           {linkContent}
         </NavLink>
       </li>
