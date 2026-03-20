@@ -1,4 +1,9 @@
 import React, { useMemo, useState } from "react";
+
+const COLOR_CLASSES = {
+  main: { bg: "tw-bg-main", bgImportant: "!tw-bg-main", text: "tw-text-main" },
+  "blue-900": { bg: "tw-bg-blue-900", bgImportant: "!tw-bg-blue-900", text: "tw-text-blue-900" },
+} as const;
 import { useAtomValue, useSetAtom } from "jotai";
 import { useHistory, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -106,7 +111,7 @@ export function CommentsModule({
             <div className="flex-col tw-flex tw-items-center tw-gap-2">
               <button
                 aria-label="Ajouter un commentaire"
-                className={`tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-${color} tw-font-bold tw-text-white tw-transition hover:tw-scale-125`}
+                className={`tw-text-md tw-h-8 tw-w-8 tw-rounded-full ${COLOR_CLASSES[color].bg} tw-font-bold tw-text-white tw-transition hover:tw-scale-125`}
                 onClick={() => setModalCreateOpen(true)}
               >
                 ＋
@@ -114,7 +119,7 @@ export function CommentsModule({
               {Boolean(comments.length) && (
                 <button
                   title="Passer les commentaires en plein écran"
-                  className={`tw-h-6 tw-w-6 tw-rounded-full tw-text-${color} tw-transition hover:tw-scale-125`}
+                  className={`tw-h-6 tw-w-6 tw-rounded-full ${COLOR_CLASSES[color].text} tw-transition hover:tw-scale-125`}
                   onClick={() => setFullScreen(true)}
                 >
                   <FullScreenIcon />
@@ -245,7 +250,7 @@ function CommentsFullScreen({
         <button type="button" name="cancel" className="button-cancel" onClick={onClose}>
           Fermer
         </button>
-        <button type="button" className={`button-submit !tw-bg-${color}`} onClick={onAddComment}>
+        <button type="button" className={`button-submit ${COLOR_CLASSES[color].bgImportant}`} onClick={onAddComment}>
           ＋ Ajouter un commentaire
         </button>
       </ModalFooter>
@@ -359,7 +364,7 @@ function CommentsTable({
       <div className="tw-flex tw-flex-col tw-items-center tw-gap-6">
         <NoComments />
         {showAddCommentButton && (
-          <button type="button" className={`button-submit !tw-bg-${color}`} onClick={onAddComment}>
+          <button type="button" className={`button-submit ${COLOR_CLASSES[color].bgImportant}`} onClick={onAddComment}>
             ＋ Ajouter un commentaire
           </button>
         )}
@@ -371,7 +376,7 @@ function CommentsTable({
     <>
       {showAddCommentButton && (
         <div className="tw-my-1.5 tw-flex tw-justify-center tw-self-center">
-          <button type="button" className={`button-submit !tw-bg-${color}`} onClick={onAddComment}>
+          <button type="button" className={`button-submit ${COLOR_CLASSES[color].bgImportant}`} onClick={onAddComment}>
             ＋ Ajouter un commentaire
           </button>
         </div>
@@ -400,7 +405,7 @@ function CommentsTable({
                   title={isNotEditable ? "Ce commentaire peut seulement être modifié par l'utilisateur qui l'a créé" : ""}
                   className={[
                     "tw-w-full",
-                    comment.isMedicalCommentShared ? "tw-bg-blue-900" : `tw-bg-${color}`,
+                    comment.isMedicalCommentShared ? "tw-bg-blue-900" : COLOR_CLASSES[color].bg,
                     i % 2 && !comment.isMedicalCommentShared ? "tw-bg-opacity-0" : "tw-bg-opacity-5",
                     isNotEditable && "!tw-cursor-not-allowed",
                   ]
@@ -588,7 +593,7 @@ function CommentDisplay({ comment, onClose, onEditComment, color = "main" }: Com
           >
             Fermer
           </button>
-          <button type="submit" onClick={onEditComment} className={`button-submit !tw-bg-${color}`} disabled={!isEditable}>
+          <button type="submit" onClick={onEditComment} className={`button-submit ${COLOR_CLASSES[color].bgImportant}`} disabled={!isEditable}>
             Modifier
           </button>
         </ModalFooter>
@@ -832,7 +837,7 @@ function CommentModal({
                 <button
                   type="submit"
                   onClick={handleSubmit as (e: unknown) => void}
-                  className={`button-submit !tw-bg-${color}`}
+                  className={`button-submit ${COLOR_CLASSES[color].bgImportant}`}
                   disabled={isSubmitting || isDeleting}
                 >
                   {isSubmitting ? "Enregistrement en cours..." : "Enregistrer"}

@@ -14,6 +14,11 @@ import { HTML_ACCEPT_ATTRIBUTE } from "../../utils/file-types";
 
 type Color = "main" | "blue-900";
 
+const COLOR_CLASSES: Record<Color, { bg: string; bgImportant: string; border: string; text: string }> = {
+  main: { bg: "tw-bg-main", bgImportant: "!tw-bg-main", border: "tw-border-main", text: "tw-text-main" },
+  "blue-900": { bg: "tw-bg-blue-900", bgImportant: "!tw-bg-blue-900", border: "tw-border-blue-900", text: "tw-text-blue-900" },
+};
+
 interface DocumentsListSimpleProps {
   documents: Array<DocumentWithLinkedItem | FolderWithLinkedItem>;
   personId?: UUIDV4 | UUIDV4[];
@@ -71,7 +76,7 @@ export default function DocumentsListSimple({
         <div
           className={[
             "tw-absolute tw-inset-0 tw-bg-white tw-flex tw-items-center tw-justify-center tw-border-dashed tw-border-4 tw-z-50",
-            `tw-border-${color} tw-text-${color}`,
+            `${COLOR_CLASSES[color].border} ${COLOR_CLASSES[color].text}`,
           ].join(" ")}
           onDragOver={(e) => {
             if (!e.dataTransfer.types.includes("Files")) return;
@@ -123,7 +128,7 @@ export default function DocumentsListSimple({
           <div className="tw-my-1.5 tw-flex tw-justify-center tw-self-center">
             <button
               type="button"
-              className={`button-submit mb-0 !tw-bg-${color}`}
+              className={`button-submit mb-0 ${COLOR_CLASSES[color].bgImportant}`}
               onClick={() => fileInputRef.current?.click()}
               aria-label="Ajouter des documents"
             >
@@ -181,7 +186,10 @@ export default function DocumentsListSimple({
                   key={doc._id}
                   data-test-id={doc.downloadPath}
                   aria-label={`Document ${doc.name}`}
-                  className={[`tw-w-full tw-border-t tw-border-zinc-200 tw-bg-${color}`, index % 2 ? "tw-bg-opacity-0" : "tw-bg-opacity-5"].join(" ")}
+                  className={[
+                    `tw-w-full tw-border-t tw-border-zinc-200 ${COLOR_CLASSES[color].bg}`,
+                    index % 2 ? "tw-bg-opacity-0" : "tw-bg-opacity-5",
+                  ].join(" ")}
                   onClick={() => setDocumentToEdit(doc)}
                 >
                   <td className="tw-p-3">
