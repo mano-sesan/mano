@@ -1,137 +1,80 @@
 import { MouseEventHandler } from "react";
-import styled from "styled-components";
-import { theme } from "../config";
 import Spinner from "./tailwind/Spinner";
+
+const COLOR_CLASSES = {
+  primary: "tw-bg-main tw-text-white hover:tw-bg-main75",
+  secondary: "tw-bg-black tw-text-white hover:tw-bg-black75",
+  link: "tw-bg-transparent tw-text-main tw-font-semibold hover:tw-underline",
+  cancel: "tw-bg-transparent tw-text-main hover:tw-underline",
+  danger: "tw-bg-redLight tw-text-redDark hover:tw-opacity-80",
+  warning: "tw-bg-orangeLight tw-text-orangeDark hover:tw-opacity-80",
+} as const;
 
 const ButtonCustom = ({
   color = "primary",
-  onClick = () => {},
-  style,
-  noWrap,
+  onClick,
   className = "",
   loading,
   title = "ButtonCustom",
   type,
-  width,
   disabled,
   icon,
-  padding = "",
+  padding,
+  style,
   ...rest
 }: {
   type: "button" | "submit" | "reset";
-  color?: "primary" | "secondary" | "link" | "cancel" | "danger" | "warning";
+  color?: keyof typeof COLOR_CLASSES;
   onClick?: MouseEventHandler<HTMLButtonElement>;
-  style?: any;
-  noWrap?: boolean;
   className?: string;
   loading?: boolean;
   title?: string;
-  width?: number;
   disabled?: boolean;
   icon?: string;
   padding?: string;
+  style?: React.CSSProperties;
+  id?: string;
 }) => {
+  const isDisabled = loading || disabled;
+
   return (
-    <ButtonWrapper
-      className={[className, "noprint"].join(" ")}
+    <button
+      className={[
+        "noprint tw-relative tw-grid tw-max-w-[450px] tw-items-center tw-justify-center tw-rounded-lg tw-border-none tw-text-sm tw-shadow-none",
+        "disabled:tw-cursor-not-allowed disabled:tw-opacity-50",
+        COLOR_CLASSES[color] || COLOR_CLASSES.primary,
+        className,
+      ].join(" ")}
       onClick={onClick}
-      color={color}
-      style={style}
-      width={width}
-      disabled={loading || disabled}
+      disabled={isDisabled}
       type={type}
+      aria-busy={loading || undefined}
+      style={style}
       {...rest}
     >
-      <SpinnerContainer visibility={!loading ? "hidden" : "visible"}>
-        <Spinner color="white" size="sm" />
-      </SpinnerContainer>
-      <Content padding={padding}>
-        {!!icon && <Icon color={color} icon={icon} />}
-        <Title transparent={Boolean(loading)} noWrap={Boolean(noWrap)}>
-          {title}
-        </Title>
-      </Content>
-    </ButtonWrapper>
+      {loading && (
+        <span className="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center">
+          <Spinner color="white" size="sm" />
+        </span>
+      )}
+      <span
+        className={[
+          "tw-flex tw-items-center",
+          padding === "0px" ? "tw-p-0" : padding === "12px 24px" ? "tw-px-6 tw-py-3" : "tw-px-4 tw-py-2",
+          loading ? "tw-invisible" : "",
+        ].join(" ")}
+      >
+        {!!icon && (
+          <span
+            className="tw-mr-2 tw-inline-block tw-h-5 tw-w-5 tw-bg-contain tw-bg-center tw-bg-no-repeat"
+            style={{ backgroundImage: `url("${icon}")` }}
+            aria-hidden="true"
+          />
+        )}
+        {title}
+      </span>
+    </button>
   );
 };
-
-const STYLES = {
-  primary: `background: ${theme.main}; color: ${theme.white};`,
-  secondary: `background: ${theme.black}; color: ${theme.white};`,
-  link: `background: transparent; color: ${theme.main};`,
-  cancel: `background: transparent; color: ${theme.main};`,
-  danger: `background: ${theme.redLight}; color: ${theme.redDark};`,
-  warning: `background: ${theme.orangeLight}; color: ${theme.orangeDark};`,
-};
-
-const ButtonWrapper = styled.button<{
-  color: "primary" | "secondary" | "link" | "cancel" | "danger" | "warning";
-  width?: number;
-}>`
-  border-radius: 8px;
-  font-size: 14px;
-  ${(p) => p.color === "link" && "font-weight: 600;"}
-  width: ${(p) => (p.width ? `${p.width}px` : "auto")};
-  max-width: 450px;
-  display: grid;
-  align-items: center;
-  justify-content: center;
-  box-shadow: none;
-  border: none;
-  position: relative;
-  ${(props) => props.disabled && "pointer-events: none;"}
-  ${(p) => STYLES[p.color] || `background: ${theme.main}; color: ${theme.white};`};
-
-  &:disabled {
-    opacity: 0.2;
-  }
-
-  &:hover {
-    cursor: pointer;
-    ${(p) => p.color === "link" && "text-decoration: underline;"}
-  }
-`;
-
-const Icon = styled.div<{
-  icon: string;
-}>`
-  color: currentColor;
-  background-image: url("${(props) => props.icon}");
-  background-size: 20px;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-right: 7px;
-`;
-
-const Title = styled.p<{
-  transparent: boolean;
-  noWrap: boolean;
-}>`
-  ${(props) => props.transparent && "color: transparent"};
-  margin-bottom: 0;
-  ${(props) => props.noWrap && "white-space: nowrap;"}
-`;
-
-const Content = styled.div<{
-  padding: string;
-}>`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  padding: 8px 15px;
-  ${(props) => `padding: ${props.padding}`}
-`;
-const SpinnerContainer = styled.div<{
-  visibility: "visible" | "hidden";
-}>`
-  visibility: ${(props) => props.visibility};
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
 
 export default ButtonCustom;
