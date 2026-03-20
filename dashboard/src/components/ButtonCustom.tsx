@@ -60,7 +60,7 @@ const ButtonCustom = ({
       <span
         className={[
           "tw-flex tw-items-center",
-          padding === "0px" ? "tw-p-0" : padding === "12px 24px" ? "tw-px-6 tw-py-3" : "tw-px-4 tw-py-2",
+          padding === "0px" ? "tw-p-0" : padding === "12px 24px" ? "tw-px-6 tw-py-3" : padding === "8px 14px" ? "tw-px-3.5 tw-py-2" : "tw-px-4 tw-py-2",
           loading ? "tw-invisible" : "",
         ].join(" ")}
       >
