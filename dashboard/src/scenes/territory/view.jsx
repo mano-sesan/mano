@@ -158,7 +158,7 @@ const View = () => {
               </div>
             )}
             {!territory.description && !territory.perimeter && (
-              <div className="tw-text-gray-400 tw-italic">Aucune description ni périmètre renseigné</div>
+              <div className="tw-text-gray-500 tw-italic">Aucune description ni périmètre renseigné</div>
             )}
           </div>
 

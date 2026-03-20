@@ -238,11 +238,11 @@ export default function OrphanedFiles() {
                       {file.entityName && (
                         <span className="tw-ml-2">
                           {file.entityName}
-                          <span className="tw-ml-1 tw-text-xs tw-text-gray-400">({file.entityId.slice(0, 8)})</span>
+                          <span className="tw-ml-1 tw-text-xs tw-text-gray-500">({file.entityId.slice(0, 8)})</span>
                         </span>
                       )}
                       {!file.entityName && file.entityStatus !== "missing" && (
-                        <span className="tw-ml-2 tw-text-xs tw-text-gray-400">({file.entityId.slice(0, 8)})</span>
+                        <span className="tw-ml-2 tw-text-xs tw-text-gray-500">({file.entityId.slice(0, 8)})</span>
                       )}
                     </div>
                   );

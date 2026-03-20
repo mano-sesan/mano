@@ -89,7 +89,7 @@ function EmptyData({ title, help }) {
   return (
     <div className="tw-m-0 tw-grid tw-gap-y-8 tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-center tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
       <ChartTitle title={title} help={help} />
-      <div className="mx-auto tw-pb-4 tw-max-w-[450px] tw-text-center tw-text-gray-400 tw-col-span-7 print:tw-col-span-1">
+      <div className="mx-auto tw-pb-4 tw-max-w-[450px] tw-text-center tw-text-gray-500 tw-col-span-7 print:tw-col-span-1">
         <p className="tw-text-lg tw-font-bold">Aucun élément à afficher</p>
         <p className="tw-mt-2 tw-text-sm">
           Pour afficher des données pour ce graphique, vérifiez le contexte sélectionné (dates, équipe, filtres, etc.)
