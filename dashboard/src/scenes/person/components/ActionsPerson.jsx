@@ -75,7 +75,8 @@ export const Actions = ({ person }) => {
       <div className="tw-sticky tw-top-0 tw-z-10 tw-flex tw-bg-white tw-p-3 tw-shadow-sm">
         <h4 className="tw-flex-1 tw-text-xl">Actions {filteredData.length ? `(${filteredData.length})` : ""}</h4>
         <div className="flex-col tw-flex tw-items-center tw-gap-2">
-          <button type="button"
+          <button
+            type="button"
             aria-label="Ajouter une action"
             className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
             onClick={() => {
@@ -97,7 +98,8 @@ export const Actions = ({ person }) => {
             ＋
           </button>
           {Boolean(filteredData.length) && (
-            <button type="button"
+            <button
+              type="button"
               title="Passer les actions en plein écran"
               className="tw-h-6 tw-w-6 tw-rounded-full tw-text-main tw-transition hover:tw-scale-125"
               onClick={() => setFullScreen(true)}
@@ -194,7 +196,7 @@ const ActionsFilters = ({ data, setFilterCategories, setFilterTeamIds, setFilter
             </div>
           </div>
           <div className="tw-shrink-0 tw-grow tw-basis-1/3 tw-px-1">
-            <label htmlFor="action-select-categories-filter" className="tw-text-xs">
+            <label htmlFor="action-team-select" className="tw-text-xs">
               Filtrer par équipe
             </label>
             <SelectTeamMultiple onChange={(teamIds) => setFilterTeamIds(teamIds)} value={filterTeamIds} colored inputId="action-team-select" />
