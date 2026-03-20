@@ -8,6 +8,11 @@ import type { UUIDV4 } from "../../types/uuid";
 import API, { tryFetchBlob } from "../../services/api";
 import { decryptFile, getHashedOrgEncryptionKey } from "../../services/encryption";
 import { download, errorMessage } from "../../utils";
+
+const BG_IMPORTANT_CLASSES = {
+  main: "!tw-bg-main",
+  "blue-900": "!tw-bg-blue-900",
+} as const;
 import { itemsGroupedByActionSelector } from "../../atoms/selectors";
 import { defaultModalActionState, modalActionState } from "../../atoms/modal";
 import { organisationState } from "../../atoms/auth";
@@ -24,7 +29,7 @@ interface DocumentModalProps<T extends DocumentWithLinkedItem> {
   onDelete: (document: T) => Promise<boolean>;
   canToggleGroupCheck: boolean;
   showAssociatedItem: boolean;
-  color?: string;
+  color?: "main" | "blue-900";
   externalIsUpdating?: boolean;
   externalIsDeleting?: boolean;
 }
@@ -77,7 +82,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
                 setIsEditing(false);
               }}
             >
-              <label className={isEditing ? "" : `tw-text-sm tw-font-semibold tw-blue-${color}`} htmlFor="document-name">
+              <label className={isEditing ? "" : "tw-text-sm tw-font-semibold"} htmlFor="document-name">
                 Nom
               </label>
               <input
@@ -94,7 +99,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             <div className="tw-flex tw-w-full tw-items-center tw-justify-center tw-gap-2">
               <button
                 type="button"
-                className={`button-submit !tw-bg-${color}`}
+                className={`button-submit ${BG_IMPORTANT_CLASSES[color]}`}
                 onClick={async () => {
                   const [error, blob] = await tryFetchBlob(() => {
                     return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
@@ -113,7 +118,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
               {(contentType === "application/pdf" || contentType.startsWith("image/")) && (
                 <button
                   type="button"
-                  className={`button-submit tw-inline-flex tw-flex-col tw-items-center !tw-bg-${color}`}
+                  className={`button-submit tw-inline-flex tw-flex-col tw-items-center ${BG_IMPORTANT_CLASSES[color]}`}
                   onClick={async () => {
                     const [error, blob] = await tryFetchBlob(() => {
                       return API.download({ path: document.downloadPath ?? `/person/${personId}/document/${document.file.filename}` });
@@ -267,7 +272,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
           <button
             title="Sauvegarder ce document"
             type="submit"
-            className={`button-submit !tw-bg-${color}`}
+            className={`button-submit ${BG_IMPORTANT_CLASSES[color]}`}
             form="edit-document-form"
             disabled={isUpdating || isDeleting}
           >
@@ -278,7 +283,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
           <button
             title="Modifier le nom de ce document"
             type="button"
-            className={`button-submit !tw-bg-${color}`}
+            className={`button-submit ${BG_IMPORTANT_CLASSES[color]}`}
             disabled={isUpdating || isDeleting || isLinkedToOtherPerson}
             onClick={(e) => {
               e.preventDefault();
