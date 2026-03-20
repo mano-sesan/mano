@@ -33,7 +33,7 @@ const OnboardingEndModal = ({ open, setOpen }) => {
             bien ajouter des <Link to={`/territory`}>territoires</Link> que vous suivez, et enregistrer vos observations jour après jour.
           </li>
         </ul>
-        <ButtonCustom onClick={() => setOpen(false)} title="C'est noté" style={{ margin: "20px auto" }} type="submit" />
+        <ButtonCustom onClick={() => setOpen(false)} title="C'est noté" className="tw-mx-auto tw-my-5" type="submit" />
       </ModalBody>
     </ModalContainer>
   );
