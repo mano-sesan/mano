@@ -2,7 +2,7 @@ import { MouseEventHandler } from "react";
 import Spinner from "./tailwind/Spinner";
 
 const COLOR_CLASSES = {
-  primary: "tw-bg-main tw-text-white hover:tw-bg-main75",
+  primary: "tw-bg-main tw-text-white hover:tw-bg-mainDark",
   secondary: "tw-bg-black tw-text-white hover:tw-bg-black75",
   link: "tw-bg-transparent tw-text-main tw-font-semibold hover:tw-underline",
   cancel: "tw-bg-transparent tw-text-main hover:tw-underline",

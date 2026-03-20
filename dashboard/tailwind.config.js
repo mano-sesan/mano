@@ -9,7 +9,8 @@ export default {
         "new-report-squares": "repeat(auto-fit, minmax(40%, 1fr))",
       },
       colors: {
-        main: "#226854", // higher contrast
+        main: "#226854",
+        mainDark: "#1b5443",
         main75: "#617e71",
         main50: "#95a9a0",
         main25: "#cad4cf",
