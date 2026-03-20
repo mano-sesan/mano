@@ -103,7 +103,7 @@ export function LineChart({ data, name, scheme, unit }: { data: Datum[]; name: s
             {String(d.y)} {unit}
           </div>
           <div className=" tw-mb-4 tw-text-sm tw-text-gray-600">constante relevée le {dayjsInstance(d.x).format("DD/MM/YYYY")}</div>
-          <div className="tw-text-sm tw-text-gray-400">{TEXT_NOT_ENOUGH_DATA}</div>
+          <div className="tw-text-sm tw-text-gray-500">{TEXT_NOT_ENOUGH_DATA}</div>
         </div>
       </CardText>
     );
@@ -137,7 +137,7 @@ export function LineChart({ data, name, scheme, unit }: { data: Datum[]; name: s
           tooltip={({ point }) => {
             return (
               <div className="tw-rounded tw-bg-white tw-p-1 tw-shadow">
-                <div className="tw-text-xs tw-text-gray-400">{dayjsInstance(point.data.x).format("DD/MM")}</div>
+                <div className="tw-text-xs tw-text-gray-500">{dayjsInstance(point.data.x).format("DD/MM")}</div>
                 <div className="tw-text-base tw-font-bold">
                   {String(point.data.y)} {unit}
                 </div>
@@ -158,7 +158,7 @@ function LineChartTensionArterielle({ systolique, diastolique }: { systolique: D
         <div>
           <div className=" tw-text-4xl tw-font-bold tw-text-gray-600">{String(systolique[0].y)} (sys)</div>
           <div className=" tw-mb-4 tw-text-sm tw-text-gray-600">constante relevée le {dayjsInstance(systolique[0].x).format("DD/MM/YYYY")}</div>
-          <div className="tw-text-sm tw-text-gray-400">{TEXT_NOT_ENOUGH_DATA}</div>
+          <div className="tw-text-sm tw-text-gray-500">{TEXT_NOT_ENOUGH_DATA}</div>
         </div>
       </CardText>
     );
@@ -169,7 +169,7 @@ function LineChartTensionArterielle({ systolique, diastolique }: { systolique: D
         <div>
           <div className=" tw-text-4xl tw-font-bold tw-text-gray-600">{String(diastolique[0].y)} (dia)</div>
           <div className=" tw-mb-4 tw-text-sm tw-text-gray-600">constante relevée le {dayjsInstance(diastolique[0].x).format("DD/MM/YYYY")}</div>
-          <div className="tw-text-sm tw-text-gray-400">{TEXT_NOT_ENOUGH_DATA}</div>
+          <div className="tw-text-sm tw-text-gray-500">{TEXT_NOT_ENOUGH_DATA}</div>
         </div>
       </CardText>
     );
@@ -182,7 +182,7 @@ function LineChartTensionArterielle({ systolique, diastolique }: { systolique: D
             {String(systolique[0].y)} (sys) / {String(diastolique[0].y)} (dia) mmHg
           </div>
           <div className=" tw-mb-4 tw-text-sm tw-text-gray-600">constante relevée le {dayjsInstance(systolique[0].x).format("DD/MM/YYYY")}</div>
-          <div className="tw-text-sm tw-text-gray-400">{TEXT_NOT_ENOUGH_DATA}</div>
+          <div className="tw-text-sm tw-text-gray-500">{TEXT_NOT_ENOUGH_DATA}</div>
         </div>
       </CardText>
     );
@@ -213,7 +213,7 @@ function LineChartTensionArterielle({ systolique, diastolique }: { systolique: D
           tooltip={({ point }) => {
             return (
               <div className="tw-rounded tw-bg-white tw-p-1 tw-shadow">
-                <div className="tw-text-xs tw-text-gray-400">{dayjsInstance(point.data.x).format("DD/MM")}</div>
+                <div className="tw-text-xs tw-text-gray-500">{dayjsInstance(point.data.x).format("DD/MM")}</div>
                 <div className="tw-text-base tw-font-bold">{String(point.data.y)} mmHg</div>
               </div>
             );

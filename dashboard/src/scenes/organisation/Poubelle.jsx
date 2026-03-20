@@ -605,7 +605,7 @@ export default function Poubelle() {
                       <span className="tw-text-gray-600">
                         {deletedPerson.name}
                         {deletedPerson.otherNames ? <em className="tw-inline tw-text-main"> - {deletedPerson.otherNames}</em> : null}
-                        <span className="tw-ml-1 tw-text-xs tw-text-gray-400">(personne supprimée)</span>
+                        <span className="tw-ml-1 tw-text-xs tw-text-gray-500">(personne supprimée)</span>
                       </span>
                     );
                   return <span className="tw-text-gray-500 tw-italic">-</span>;

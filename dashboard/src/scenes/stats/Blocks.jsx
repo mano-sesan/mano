@@ -9,7 +9,7 @@ export const BlockDateWithTime = ({ data, field, help }) => {
   if (!data.filter((item) => Boolean(item[field.name])).length) {
     return (
       <Card title={field.label} unit="" help={help}>
-        <div className="mx-auto tw-pb-4 tw-text-center tw-text-gray-400">
+        <div className="mx-auto tw-pb-4 tw-text-center tw-text-gray-500">
           <p className="tw-text-lg tw-font-bold">Pas de donnée à afficher</p>
         </div>
       </Card>
@@ -32,7 +32,7 @@ export const BlockTotal = ({ title, unit, data, field, help }) => {
   if (!data.length) {
     return (
       <Card title={title} unit={unit} help={help}>
-        <div className="mx-auto tw-pb-4 tw-text-center tw-text-gray-400">
+        <div className="mx-auto tw-pb-4 tw-text-center tw-text-gray-500">
           <p className="tw-text-lg tw-font-bold">Pas de donnée à afficher</p>
         </div>
       </Card>

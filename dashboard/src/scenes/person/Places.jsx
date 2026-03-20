@@ -65,7 +65,7 @@ const PersonPlaces = ({ person }) => {
             Territoires {rencontresByTerritory?.length ? `(${rencontresByTerritory?.length})` : ""}{" "}
           </h3>
           {!rencontresByTerritory.length ? (
-            <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-400">
+            <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-500">
               <p className="tw-text-lg tw-font-bold">Aucune rencontre liée à un territoire</p>
               <p className="tw-mt-2 tw-text-sm">
                 Pour ajouter une rencontre liée à un territoire, ajoutez une <b>observation de territoire</b> et sélectionnez l'onglet{" "}
@@ -108,7 +108,7 @@ const PersonPlaces = ({ person }) => {
         />
       </div>
       {!person.relsPersonPlace?.length ? (
-        <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-400">
+        <div className="mx-auto tw-py-4 tw-max-w-[450px] tw-text-center tw-text-gray-500">
           <p className="tw-text-lg tw-font-bold">Cette personne n'a pas encore de lieu fréquenté</p>
           <p className="tw-mt-2 tw-text-sm">
             Pour ajouter un lieu fréquenté par {person.name}, cliquez sur le bouton <span className="tw-font-bold">Ajouter un lieu</span> ci-dessus.

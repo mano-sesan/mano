@@ -330,7 +330,7 @@ const AdditionalInfo = ({ label, value }) => {
   if (!value) return null;
   return (
     <div>
-      <p className="tw-m-0 tw-mr-2 tw-text-gray-400">{label}</p>
+      <p className="tw-m-0 tw-mr-2 tw-text-gray-500">{label}</p>
       {value}
     </div>
   );

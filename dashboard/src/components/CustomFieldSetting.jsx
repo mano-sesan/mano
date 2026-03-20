@@ -9,11 +9,11 @@ const CustomFieldSetting = ({ customField }) => {
     <div className="tw-flex tw-flex-col tw-items-start tw-justify-start" id={label} data-test-id={label}>
       <p className="tw-m-0 tw-break-keep">{label}</p>
       {!showInStats && <p className="tw-m-0 tw-break-keep tw-pl-4 tw-text-xs tw-italic tw-text-gray-600">Ne pas voir dans les statistiques</p>}
-      <p className="tw-m-0 tw-break-keep tw-pl-8 tw-text-xs tw-text-gray-400">
+      <p className="tw-m-0 tw-break-keep tw-pl-8 tw-text-xs tw-text-gray-500">
         {typeOptions.find((opt) => opt.value === type)?.label}
         {!options?.length ? "" : `: ${options.join(", ")}`}
       </p>
-      <p className="tw-m-0 tw-break-keep tw-pl-8 tw-text-xs tw-text-gray-400">
+      <p className="tw-m-0 tw-break-keep tw-pl-8 tw-text-xs tw-text-gray-500">
         <VisibleBy customField={customField} />
       </p>
     </div>
