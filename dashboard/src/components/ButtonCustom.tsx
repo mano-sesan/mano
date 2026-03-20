@@ -2,12 +2,12 @@ import { MouseEventHandler } from "react";
 import Spinner from "./tailwind/Spinner";
 
 const COLOR_CLASSES = {
-  primary: "tw-bg-main tw-text-white hover:tw-bg-mainDark",
-  secondary: "tw-bg-black tw-text-white hover:tw-bg-black75",
-  link: "tw-bg-transparent tw-text-main tw-font-semibold hover:tw-underline",
-  cancel: "tw-bg-transparent tw-text-main hover:tw-underline",
-  danger: "tw-bg-redLight tw-text-redDark hover:tw-opacity-80",
-  warning: "tw-bg-orangeLight tw-text-orangeDark hover:tw-opacity-80",
+  primary: "tw-bg-main tw-text-white enabled:hover:tw-bg-mainDark",
+  secondary: "tw-bg-black tw-text-white enabled:hover:tw-bg-black75",
+  link: "tw-bg-transparent tw-text-main tw-font-semibold enabled:hover:tw-underline",
+  cancel: "tw-bg-transparent tw-text-main enabled:hover:tw-underline",
+  danger: "tw-bg-redLight tw-text-redDark enabled:hover:tw-opacity-80",
+  warning: "tw-bg-orangeLight tw-text-orangeDark enabled:hover:tw-opacity-80",
 } as const;
 
 const ButtonCustom = ({
