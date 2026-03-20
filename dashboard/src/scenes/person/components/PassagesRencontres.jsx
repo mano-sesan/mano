@@ -70,7 +70,7 @@ export default function PassagesRencontres({ person }) {
       <div className="tw-sticky tw-top-0 tw-z-10 tw-flex tw-bg-white tw-p-2 tw-text-main">
         <div className="tw-flex tw-flex-1">
           {organisation.passagesEnabled && (
-            <button
+            <button type="button"
               className={
                 selected === "passages"
                   ? "tw-rounded-t tw-border-l tw-border-r tw-border-t tw-border-slate-300 tw-p-1.5"
@@ -82,7 +82,7 @@ export default function PassagesRencontres({ person }) {
             </button>
           )}
           {organisation.rencontresEnabled && (
-            <button
+            <button type="button"
               className={
                 selected === "rencontres"
                   ? "tw-rounded-t tw-border-l tw-border-r tw-border-t tw-border-slate-300 tw-p-1.5"
@@ -95,7 +95,7 @@ export default function PassagesRencontres({ person }) {
           )}
         </div>
         <div className="flex-col tw-flex tw-items-center tw-gap-2">
-          <button
+          <button type="button"
             className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-main tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
             aria-label={selected === "passages" ? "Ajouter un passage" : "Ajouter une rencontre"}
             onClick={() => {
@@ -106,7 +106,7 @@ export default function PassagesRencontres({ person }) {
             ＋
           </button>
           {(selected === "passages" ? Boolean(personPassages.length) : Boolean(personRencontres.length)) && (
-            <button
+            <button type="button"
               title={`Passer les ${selected} en plein écran`}
               className="tw-h-6 tw-w-6 tw-rounded-full tw-text-main tw-transition hover:tw-scale-125"
               onClick={() => setFullScreen(true)}

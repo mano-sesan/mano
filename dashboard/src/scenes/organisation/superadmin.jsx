@@ -672,7 +672,7 @@ const Create = ({ onChange, open, setOpen }) => {
                 <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
                   Annuler
                 </button>
-                <button className="button-submit" onClick={handleSubmit}>
+                <button type="button" className="button-submit" onClick={handleSubmit}>
                   Créer
                 </button>
               </ModalFooter>
@@ -1026,7 +1026,7 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
         <button type="button" name="cancel" disabled={loading} className="button-cancel" onClick={() => setOpen(false)}>
           Annuler
         </button>
-        <button
+        <button type="button"
           className="button-submit"
           disabled={loading}
           onClick={async () => {
@@ -1221,7 +1221,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
                 <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
                   Annuler
                 </button>
-                <button className="button-submit" onClick={handleSubmit}>
+                <button type="button" className="button-submit" onClick={handleSubmit}>
                   Créer
                 </button>
               </ModalFooter>
@@ -1377,7 +1377,7 @@ const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
                 <button type="button" name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
                   Annuler
                 </button>
-                <button className="button-submit" onClick={handleSubmit}>
+                <button type="button" className="button-submit" onClick={handleSubmit}>
                   Enregistrer
                 </button>
               </ModalFooter>

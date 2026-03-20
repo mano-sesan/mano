@@ -27,7 +27,7 @@ export default function PersonCustomFields({ person, sectionName, fields, isMedi
       <div className="tw-flex">
         <h4 className="tw-flex-1 tw-text-xl">{sectionName}</h4>
         <div>
-          <button
+          <button type="button"
             className="tw-transition hover:tw-scale-125"
             onClick={() => setEditModal(sectionName)}
             aria-label={`Éditer les ${sectionName.toLowerCase()}`}

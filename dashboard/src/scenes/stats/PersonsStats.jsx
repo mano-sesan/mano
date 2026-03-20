@@ -923,7 +923,7 @@ export const SelectedPersonsModal = ({ open, onClose, persons, title, onAfterLea
         title={
           <div className="tw-flex tw-w-full tw-items-center tw-justify-between">
             {title}{" "}
-            <button onClick={exportXlsx} className="button-submit tw-ml-auto">
+            <button type="button" onClick={exportXlsx} className="button-submit tw-ml-auto">
               Télécharger un export
             </button>
           </div>

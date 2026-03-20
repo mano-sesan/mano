@@ -162,10 +162,10 @@ export default function SuperadminOrganisationSettings({
         )}
       </ModalBody>
       <ModalFooter>
-        <button className="button-cancel" onClick={onClose}>
+        <button type="button" className="button-cancel" onClick={onClose}>
           Fermer
         </button>
-        <button form="organisation-settings" className="button-submit">
+        <button type="submit" form="organisation-settings" className="button-submit">
           Enregistrer
         </button>
       </ModalFooter>

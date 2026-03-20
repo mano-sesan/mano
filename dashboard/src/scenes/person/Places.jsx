@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {  useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import ButtonCustom from "../../components/ButtonCustom";
 import UserName from "../../components/UserName";
 import { organisationState, userState } from "../../atoms/auth";
@@ -133,11 +133,11 @@ const PersonPlaces = ({ person }) => {
                   <td className="tw-group" data-test-id={place?.name}>
                     {place.name}
                     <button
+                      type="button"
                       aria-label={`Modifier le nom du lieu ${place?.name}`}
                       title={`Modifier le nom du lieu ${place?.name}`}
                       className="noprint tw-invisible tw-z-10 tw-ml-4 tw-cursor-pointer tw-p-0 tw-text-sm tw-text-main hover:tw-underline group-hover:tw-visible"
                       onClick={() => setPlaceToEdit(place)}
-                      type="button"
                     >
                       Modifier le nom du lieu
                     </button>

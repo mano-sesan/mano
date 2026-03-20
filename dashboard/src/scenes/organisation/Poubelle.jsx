@@ -433,7 +433,7 @@ export default function Poubelle() {
               render: (p) => {
                 return (
                   <>
-                    <button className="button-classic ml-0" onClick={() => restorePerson(p._id)}>
+                    <button type="button" className="button-classic ml-0" onClick={() => restorePerson(p._id)}>
                       Restaurer
                     </button>
                   </>
@@ -646,13 +646,13 @@ export default function Poubelle() {
                         ? "Impossible : l'utilisateur créateur a été supprimé."
                         : "Impossible : l'utilisateur créateur est introuvable.";
                     return (
-                      <button className="button-classic ml-0" disabled title={reason}>
+                      <button type="button" className="button-classic ml-0" disabled title={reason}>
                         Restaurer
                       </button>
                     );
                   }
                   return (
-                    <button className="button-classic ml-0" onClick={() => restoreTreatment(t)}>
+                    <button type="button" className="button-classic ml-0" onClick={() => restoreTreatment(t)}>
                       Restaurer
                     </button>
                   );

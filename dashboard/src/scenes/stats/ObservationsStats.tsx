@@ -257,7 +257,7 @@ const SelectedObsModal = ({ open, onClose, observations, territories, title, onA
           title={
             <div className="tw-flex tw-w-full tw-items-center tw-justify-between">
               {title}{" "}
-              <button onClick={exportXlsx} className="button-submit tw-ml-auto tw-mr-20">
+              <button type="button" onClick={exportXlsx} className="button-submit tw-ml-auto tw-mr-20">
                 Télécharger un export
               </button>
             </div>

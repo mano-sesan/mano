@@ -40,7 +40,7 @@ export const CommentsSocialAndMedical = ({ comments, commentsMedical }) => {
             activeTabIndex={activeTab.includes("Commentaires médicaux") ? 1 : 0}
           />
           <div className="flex-col tw-flex tw-items-center tw-gap-2">
-            <button
+            <button type="button"
               title="Passer les commentaires en plein écran"
               className={[
                 "tw-h-6 tw-w-6 tw-rounded-full tw-transition hover:tw-scale-125 disabled:tw-cursor-not-allowed disabled:tw-opacity-30",

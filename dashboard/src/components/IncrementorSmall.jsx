@@ -39,12 +39,12 @@ export default function IncrementorSmall({ service, team, date, count: initialVa
         {service}
       </p>
       <button
+        type="button"
         className="tw-my-auto tw-flex tw-w-8 tw-flex-shrink-0 tw-items-center tw-justify-center tw-rounded-md tw-border tw-border-main tw-bg-none tw-text-main hover:tw-bg-main hover:tw-text-white disabled:tw-cursor-not-allowed disabled:tw-border-gray-400 disabled:tw-bg-none disabled:tw-text-gray-400"
         aria-label="moins"
         disabled={disabled || value === 0}
         onClick={() => setValue(value - 1)}
         id={`${service}-remove`}
-        type="button"
       >
         -
       </button>
@@ -64,12 +64,12 @@ export default function IncrementorSmall({ service, team, date, count: initialVa
         }}
       />
       <button
+        type="button"
         className="tw-my-auto tw-flex tw-w-8 tw-flex-shrink-0 tw-items-center tw-justify-center tw-rounded-md tw-border tw-border-main tw-bg-none tw-text-main hover:tw-bg-main hover:tw-text-white disabled:tw-cursor-not-allowed disabled:tw-border-gray-400 disabled:tw-bg-none disabled:tw-text-gray-400"
         aria-label="plus"
         onClick={() => setValue(value + 1)}
         id={`${service}-add`}
         disabled={disabled}
-        type="button"
       >
         +
       </button>

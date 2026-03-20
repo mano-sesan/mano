@@ -70,7 +70,11 @@ export default function SuperadminUsersSearch({
                 {search.length < 3 ? " (minimum 3 caractères)" : ""}
                 {isLoading ? <span className="tw-animate-pulse"> (recherche en cours...)</span> : ""}
               </div>
-              <img src="https://gifsec.com/wp-content/uploads/2022/09/waiting-gif-13-1.gif" className="tw-h-72 tw-w-96 tw-m-4 tw-object-cover" alt="Recherche en cours" />
+              <img
+                src="https://gifsec.com/wp-content/uploads/2022/09/waiting-gif-13-1.gif"
+                className="tw-h-72 tw-w-96 tw-m-4 tw-object-cover"
+                alt="Recherche en cours"
+              />
             </div>
           )}
           {users.length > 0 && (
@@ -149,11 +153,11 @@ export default function SuperadminUsersSearch({
 
                     <td>
                       <button
+                        type="button"
                         onClick={() => {
                           setSelectedOrganisation(user.organisationPopulated);
                           setOpen(true);
                         }}
-                        type="button"
                         className="hover:tw-underline focus:tw-underline tw-text-left"
                       >
                         {user.organisationPopulated?.name}
@@ -167,7 +171,7 @@ export default function SuperadminUsersSearch({
         </div>
       </ModalBody>
       <ModalFooter>
-        <button className="button-cancel" onClick={onClose}>
+        <button type="button" className="button-cancel" onClick={onClose}>
           Fermer
         </button>
       </ModalFooter>

@@ -61,7 +61,7 @@ const SessionCountDownLimiter = () => {
         <div>Temps de session restant</div>
         <div>{timeString}</div>
       </div>
-      <button
+      <button type="button"
         onClick={() => {
           resetOrgEncryptionKey();
           setReloadModalOpen(true);
