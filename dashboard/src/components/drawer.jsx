@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { atom, useAtom, useAtomValue } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { organisationState, teamsState, userState } from "../atoms/auth";
@@ -140,6 +140,9 @@ const Drawer = () => {
           <div className="tw-mb-4 tw-mt-auto tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
+            <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
+              Plan du site
+            </Link>
             <SessionCountDownLimiter />
           </div>
         )}

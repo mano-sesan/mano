@@ -46,6 +46,7 @@ import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import OrganisationDesactivee from "./scenes/organisation-desactivee";
+import PlanDuSite from "./scenes/plan-du-site";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
 import { disableCacheWrites, LOADING_ORG_BROADCAST_KEY } from "./services/dataManagement";
@@ -263,6 +264,7 @@ const App = () => {
           <RestrictedRoute path="/reception" component={Reception} />
           <RestrictedRoute path="/search" component={SearchView} />
           <RestrictedRoute path="/report" component={Report} />
+          <RestrictedRoute path="/plan-du-site" component={PlanDuSite} />
           <RestrictedRoute path="*" component={() => <Redirect to={"stats"} />} />
         </Switch>
         <ObservationModal />
