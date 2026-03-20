@@ -51,7 +51,7 @@ const SelectPerson = ({
             <div className={i?.outOfActiveList ? "tw-flex tw-flex-col" : "tw-flex tw-items-center"}>
               <div className={`tw-flex tw-items-center ${i?.outOfActiveList ? "tw-text-black50" : ""}`}>
                 {i?.name}
-                {Boolean(i?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{i?.otherNames}</span>}
+                {Boolean(i?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-text-gray-500">{i?.otherNames}</span>}
                 {!disableAccessToPerson && options.context !== "menu" && (
                   <button
                     type="button"

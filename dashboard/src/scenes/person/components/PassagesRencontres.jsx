@@ -152,7 +152,7 @@ export default function PassagesRencontres({ person }) {
         }}
       />
       {selected === "passages" && !personPassages.length && (
-        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="tw-mx-auto tw-mb-2 tw-h-16 tw-w-16 tw-text-gray-200"
@@ -173,7 +173,7 @@ export default function PassagesRencontres({ person }) {
         </div>
       )}
       {selected === "rencontres" && !personRencontres.length && (
-        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="tw-mx-auto tw-mb-2 tw-h-16 tw-w-16 tw-text-gray-200"

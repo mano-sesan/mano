@@ -204,7 +204,7 @@ const PersonFamily = ({ person }: PersonFamilyProps) => {
         />
       </div>
       {!personGroup.persons.length ? (
-        <div className="tw-py-10 tw-text-center tw-text-gray-300">
+        <div className="tw-py-10 tw-text-center tw-text-gray-500">
           <p className="tw-text-lg tw-font-bold">Cette personne n'a pas encore de lien familial</p>
           <p className="tw-mt-2 tw-text-sm">
             Pour ajouter un lien familial, cliquez sur le bouton <span className="tw-font-bold">Ajouter un lien</span> ci-dessus.

@@ -48,7 +48,7 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
     <div>
       {!!isNightSession && (
         <div className="-tw-mt-8 tw-mb-8">
-          <p className="tw-m-0 tw-text-center tw-text-xs tw-opacity-50">
+          <p className="tw-m-0 tw-text-center tw-text-xs tw-text-gray-500">
             On affiche les actions faites/à faire entre midi de ce jour et 11h59 du jour suivant
           </p>
         </div>

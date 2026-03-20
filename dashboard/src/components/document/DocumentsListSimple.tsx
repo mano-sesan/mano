@@ -169,7 +169,7 @@ export default function DocumentsListSimple({
 
       {!onlyDocuments.length ? (
         <div className="tw-flex tw-flex-col tw-items-center tw-gap-6 tw-pb-6">
-          <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">Aucun document pour le moment</div>
+          <div className="tw-mb-2 tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">Aucun document pour le moment</div>
         </div>
       ) : (
         <table className="tw-w-full tw-table-fixed">

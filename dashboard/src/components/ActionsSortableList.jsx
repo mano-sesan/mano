@@ -60,7 +60,7 @@ const ActionsSortableList = ({
 
   if (total <= 0) {
     return (
-      <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+      <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
         <AgendaMutedIcon />
         Aucun élément pour le moment
       </div>

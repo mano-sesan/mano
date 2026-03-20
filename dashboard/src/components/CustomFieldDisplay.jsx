@@ -15,7 +15,7 @@ const showBoolean = (value) => {
 };
 
 export default function CustomFieldDisplay({ type, value, name = null, showHistory = false, person = null }) {
-  if (value === undefined || value === null) return <span className="tw-text-gray-300">Non renseigné</span>;
+  if (value === undefined || value === null) return <span className="tw-text-gray-500">Non renseigné</span>;
   return (
     <div className="tw-flex tw-gap-2 tw-relative">
       {!!["text", "number"].includes(type) && <span>{value}</span>}

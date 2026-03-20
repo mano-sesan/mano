@@ -161,7 +161,7 @@ const ConsultationsFilters = ({ data, setConsultationTypes, setConsultationStatu
           </div>
         </div>
       ) : (
-        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-300">
+        <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
           <AgendaMutedIcon />
           Aucune consultation pour le moment
         </div>
@@ -227,7 +227,7 @@ const ConsultationsTable = ({ filteredData }) => {
                         )}
                       </div>
                     </div>
-                    <div className="-tw-mb-2 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-opacity-50 [overflow-wrap:anywhere]">
+                    <div className="-tw-mb-2 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-text-gray-500 [overflow-wrap:anywhere]">
                       <span>Créée par</span>
                       <UserName id={consultation.user} />
                     </div>

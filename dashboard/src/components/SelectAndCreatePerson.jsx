@@ -132,7 +132,7 @@ function PersonLabel({ person }) {
     <div className={person?.outOfActiveList ? "tw-flex tw-flex-col" : "tw-flex tw-items-center"}>
       <div className={`tw-flex tw-items-center ${person?.outOfActiveList ? "tw-text-black50" : ""}`}>
         {person?.name}
-        {Boolean(person?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-opacity-50">{person?.otherNames}</span>}
+        {Boolean(person?.otherNames) && <span className="tw-ml-2 tw-text-xs tw-text-gray-500">{person?.otherNames}</span>}
       </div>
       {person?.outOfActiveList && (
         <div className="tw-text-xs tw-text-black50">

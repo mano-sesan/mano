@@ -177,7 +177,7 @@ const TreatmentsTable = ({ filteredData }) => {
 
   if (!filteredData.length) {
     return (
-      <div className="tw-p-4 tw-text-center tw-text-gray-300">
+      <div className="tw-p-4 tw-text-center tw-text-gray-500">
         <AgendaMutedIcon />
         Aucun traitement
       </div>
@@ -212,7 +212,7 @@ const TreatmentsTable = ({ filteredData }) => {
                   </div>
                   <div className="tw-mt-2 tw-font-semibold">{displayTreatment(treatment)}</div>
                   <div className="tw-flex tw-w-full tw-justify-between">
-                    <p className="tw-mb-0 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-opacity-50 [overflow-wrap:anywhere]">
+                    <p className="tw-mb-0 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-text-gray-500 [overflow-wrap:anywhere]">
                       <span>Créé par</span>
                       <UserName id={treatment.user} />
                     </p>
