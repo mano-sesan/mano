@@ -538,10 +538,16 @@ const SignIn = () => {
                   placeholder="Cliquez ici pour entrer votre email"
                   value={signinForm.email}
                   onChange={handleChangeRequest}
+                  aria-invalid={(showErrors && !!signinFormErrors.email) || undefined}
+                  aria-describedby={showErrors && signinFormErrors.email ? "error-email" : undefined}
                 />
                 <label htmlFor="email">Email </label>
               </div>
-              {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.email}</p>}
+              {!!showErrors && !!signinFormErrors.email && (
+                <p className="tw-text-xs tw-text-red-500" id="error-email" role="alert">
+                  {signinFormErrors.email}
+                </p>
+              )}
             </div>
             <div className="tw-mb-6">
               <div className="tw-flex tw-flex-col-reverse">
@@ -555,10 +561,16 @@ const SignIn = () => {
                   onChange={handleChangeRequest}
                   setShowPassword={setShowPassword}
                   showPassword={showPassword}
+                  aria-invalid={(showErrors && !!signinFormErrors.password) || undefined}
+                  aria-describedby={showErrors && signinFormErrors.password ? "error-password" : undefined}
                 />
                 <label htmlFor="password">Mot de passe</label>
               </div>
-              {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.password}</p>}
+              {!!showErrors && !!signinFormErrors.password && (
+                <p className="tw-text-xs tw-text-red-500" id="error-password" role="alert">
+                  {signinFormErrors.password}
+                </p>
+              )}
             </div>
             <div className="-tw-mt-5 tw-mb-5 tw-text-right tw-text-sm">
               <Link to="/auth/forgot">Première connexion ou mot de passe oublié&nbsp;?</Link>
@@ -576,10 +588,16 @@ const SignIn = () => {
                     maxLength={6}
                     value={signinForm.otp}
                     onChange={handleChangeRequest}
+                    aria-invalid={(showErrors && !!signinFormErrors.otp) || undefined}
+                    aria-describedby={showErrors && signinFormErrors.otp ? "error-otp" : undefined}
                   />
-                  <label htmlFor="email">Code reçu par email </label>
+                  <label htmlFor="otp">Code reçu par email </label>
                 </div>
-                {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.otp}</p>}
+                {!!showErrors && !!signinFormErrors.otp && (
+                  <p className="tw-text-xs tw-text-red-500" id="error-otp" role="alert">
+                    {signinFormErrors.otp}
+                  </p>
+                )}
               </div>
             )}
           </>
@@ -593,7 +611,11 @@ const SignIn = () => {
             <p className="tw-text-xs">
               Votre clé de chiffrement est uniquement connue par les membres de votre organisation, les équipes de Mano ne la connaissent pas
             </p>
-            {!!showErrors && <p className="tw-text-xs tw-text-red-500">{signinFormErrors.orgEncryptionKey}</p>}
+            {!!showErrors && !!signinFormErrors.orgEncryptionKey && (
+              <p className="tw-text-xs tw-text-red-500" id="error-orgEncryptionKey" role="alert">
+                {signinFormErrors.orgEncryptionKey}
+              </p>
+            )}
           </div>
         )}
         <ButtonCustom
