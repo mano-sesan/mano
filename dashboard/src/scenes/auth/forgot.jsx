@@ -83,10 +83,16 @@ const View = () => {
                   placeholder="Cliquez ici pour entrer votre email"
                   value={resetForm.email}
                   onChange={handleChange}
+                  aria-invalid={(showErrors && !!resetFormErrors.email) || undefined}
+                  aria-describedby={showErrors && resetFormErrors.email ? "error-email" : undefined}
                 />
                 <label htmlFor="email">Email </label>
               </div>
-              {!!showErrors && <p className="tw-text-xs tw-text-red-500">{resetFormErrors.email}</p>}
+              {!!showErrors && !!resetFormErrors.email && (
+                <p className="tw-text-xs tw-text-red-500" id="error-email" role="alert">
+                  {resetFormErrors.email}
+                </p>
+              )}
             </div>
             <ButtonCustom
               loading={isSubmitting}
