@@ -232,7 +232,7 @@ const PersonSelected = ({ person, showLinkToPerson }) => {
         </small>
       ) : null}
       {showLinkToPerson ? (
-        <button
+        <button type="button"
           onMouseUp={onClick}
           // onTouchEnd required to work on tablet
           // see https://github.com/JedWatson/react-select/issues/3117#issuecomment-1286232693 for similar issue

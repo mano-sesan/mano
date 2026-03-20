@@ -58,6 +58,7 @@ const SelectDraggableAndEditable = ({ onChange, classNamePrefix, value, onEditCh
                 />
                 {!!onEditChoice && (
                   <button
+                    type="button"
                     aria-label={`Modifier le choix ${props.children}`}
                     title={`Modifier le choix ${props.children}`}
                     className={`tw-ml-2 ${classNamePrefix}__multi-value__edit tw-rounded-sm tw-px-1 hover:tw-bg-[#FFBDAD] hover:tw-text-[#DE350B]`}
@@ -72,7 +73,6 @@ const SelectDraggableAndEditable = ({ onChange, classNamePrefix, value, onEditCh
                       e.preventDefault();
                       setEditingChoice(props.children);
                     }}
-                    type="button"
                   >
                     &#9998;
                   </button>

@@ -219,7 +219,7 @@ export const NotificationActionList = ({ setShowModal, actions, setSortOrder, se
               className: "!tw-min-w-0 !tw-w-4",
               render: (action) => {
                 return (
-                  <button
+                  <button type="button"
                     className="button-destructive !tw-ml-0"
                     onClick={async (e) => {
                       e.preventDefault();
@@ -392,7 +392,7 @@ export const NotificationCommentList = ({ setShowModal, comments, title, showTea
               className: "!tw-min-w-0 !tw-w-4",
               render: (comment) => {
                 return (
-                  <button
+                  <button type="button"
                     className="button-destructive !tw-ml-0"
                     onClick={async (e) => {
                       e.preventDefault();

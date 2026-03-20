@@ -7,7 +7,7 @@ function ErrorFallback() {
       <img src={picture} alt="Mano" className="tw-mb-4 tw-h-64" />
       <h1 className="tw-mb-4 tw-text-2xl tw-font-bold tw-text-main">Une erreur inattendue est survenue</h1>
       <p className="tw-mb-8 tw-text-center tw-text-gray-600">L&apos;équipe technique a été informée. Vous pouvez essayer de recharger la page.</p>
-      <button
+      <button type="button"
         className="tw-rounded tw-bg-main tw-px-4 tw-py-2 tw-text-white tw-transition hover:tw-bg-opacity-90"
         onClick={() => {
           try {

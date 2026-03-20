@@ -9,7 +9,7 @@ export default function OrganisationDesactivee() {
         <p className="tw-mb-8 tw-text-center tw-text-gray-600">
           Cette organisation a été temporairement désactivée. Veuillez contacter votre administrateur pour plus d'informations.
         </p>
-        <button
+        <button type="button"
           className="tw-rounded tw-bg-main tw-px-4 tw-py-2 tw-text-white tw-transition hover:tw-bg-opacity-90"
           onClick={() => {
             window.location.href = "/";

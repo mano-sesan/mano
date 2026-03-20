@@ -675,7 +675,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
       {/* Line 2: Tabs */}
       <div className="noprint tw-flex tw-flex-row tw-flex-wrap tw-border-b tw-border-zinc-200 tw-mb-6">
         {availableTabs.map((tab) => (
-          <button
+          <button type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={[

@@ -138,7 +138,7 @@ function Transmission({ report, team, onOpenTransmissionModal }) {
         <div>
           {!report?.description ? (
             <>
-              <button onClick={() => onOpenTransmissionModal()} className="tw-mx-auto tw-rounded-lg tw-border tw-border-main tw-px-3 tw-py-1">
+              <button type="button" onClick={() => onOpenTransmissionModal()} className="tw-mx-auto tw-rounded-lg tw-border tw-border-main tw-px-3 tw-py-1">
                 Ajouter une transmission
               </button>
             </>
@@ -153,7 +153,7 @@ function Transmission({ report, team, onOpenTransmissionModal }) {
                   </React.Fragment>
                 ))}
               </p>
-              <button onClick={() => onOpenTransmissionModal()} className="tw-mx-auto tw-rounded-lg tw-border tw-border-main tw-px-3 tw-py-1">
+              <button type="button" onClick={() => onOpenTransmissionModal()} className="tw-mx-auto tw-rounded-lg tw-border tw-border-main tw-px-3 tw-py-1">
                 Modifier la transmission
               </button>
             </>

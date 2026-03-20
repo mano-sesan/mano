@@ -193,7 +193,7 @@ export default function OrphanedFiles() {
       )}
 
       <div className="tw-flex tw-items-center tw-gap-4 tw-mb-6">
-        <button className="button-submit" onClick={searchOrphanedFiles} disabled={loading || !initialLoadIsDone}>
+        <button type="button" className="button-submit" onClick={searchOrphanedFiles} disabled={loading || !initialLoadIsDone}>
           {loading ? "Recherche en cours..." : "Rechercher les fichiers orphelins"}
         </button>
       </div>

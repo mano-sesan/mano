@@ -77,7 +77,7 @@ function TabTitle({ children }) {
 
 function MenuButton({ selected, text, onClick }: { selected: boolean; text: string; onClick: () => void }) {
   return (
-    <button className={["tw-text-sm ", selected ? "tw-text-main tw-font-semibold" : "tw-text-zinc-800"].join(" ")} onClick={onClick}>
+    <button type="button" className={["tw-text-sm ", selected ? "tw-text-main tw-font-semibold" : "tw-text-zinc-800"].join(" ")} onClick={onClick}>
       {text}
     </button>
   );

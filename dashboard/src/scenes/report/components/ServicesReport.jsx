@@ -82,7 +82,7 @@ export default function ServicesReport({ period, selectedTeamsObject }) {
       <section className="noprint tw-py-2 print:tw-mb-4">
         <div className="tw-flex tw-items-center tw-justify-between tw-px-3">
           <h3 className="tw-w-full tw-py-2 tw-text-base tw-font-medium tw-text-black">Services effectués</h3>
-          <button
+          <button type="button"
             title="Passer les actions/consultations en plein écran"
             className="tw-h-6 tw-w-6 tw-rounded-full tw-text-main tw-transition hover:tw-scale-125 disabled:tw-opacity-30"
             onClick={() => setFullScreen(true)}
@@ -251,7 +251,7 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
     <div>
       <div className="tw-mb-4 tw-border-b tw-border-slate-300 tw-px-2">
         {groupedServices.map((group, index) => (
-          <button
+          <button type="button"
             key={group + index}
             className={[
               selected === group.groupTitle ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",

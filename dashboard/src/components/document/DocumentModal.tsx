@@ -196,7 +196,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             </div>
           )}
           {!!showAssociatedItem && document?.linkedItem?.type === "treatment" && (
-            <button
+            <button type="button"
               onClick={() => {
                 const searchParams = new URLSearchParams(history.location.search);
                 searchParams.set("treatmentId", document.linkedItem._id);
@@ -209,7 +209,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             </button>
           )}
           {!!showAssociatedItem && document?.linkedItem?.type === "action" && (
-            <button
+            <button type="button"
               onClick={() => {
                 setModalAction({
                   ...defaultModalActionState(),
@@ -225,7 +225,7 @@ export function DocumentModal<T extends DocumentWithLinkedItem>({
             </button>
           )}
           {!!showAssociatedItem && document?.linkedItem?.type === "consultation" && (
-            <button
+            <button type="button"
               onClick={() => {
                 const searchParams = new URLSearchParams(history.location.search);
                 searchParams.set("consultationId", document.linkedItem._id);

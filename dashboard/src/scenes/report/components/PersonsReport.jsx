@@ -19,7 +19,7 @@ export const PersonsReport = ({ personsCreated, period, selectedTeams }) => {
         <p className="tw-m-0 tw-w-full tw-text-center tw-text-sm tw-font-normal tw-text-white">
           personne{personsCreated.length > 1 ? "s" : ""} créée{personsCreated.length > 1 ? "s" : ""}
         </p>
-        <button
+        <button type="button"
           title="Passer les personnes créées en plein écran"
           className="tw-absolute -tw-right-1.5 -tw-top-1.5 tw-h-6 tw-w-6 tw-rounded-full tw-text-white tw-transition hover:tw-scale-125 disabled:tw-cursor-not-allowed disabled:tw-opacity-30"
           onClick={() => setFullScreen(true)}

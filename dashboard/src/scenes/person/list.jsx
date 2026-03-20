@@ -194,7 +194,7 @@ const List = () => {
           {lastPersonsViewed.map((personId) => (
             <div key={personId} className="tw-bg-slate-100 tw-border tw-border-slate-300 tw-rounded-md tw-px-1.5 tw-py-0.5">
               <PersonName item={{ person: personId }} />
-              <button
+              <button type="button"
                 className="tw-text-xs tw-border-slate-300 tw-border-l tw-pl-1 tw-ml-1"
                 onClick={() => setLastPersonsViewed(lastPersonsViewed.filter((id) => id !== personId))}
               >

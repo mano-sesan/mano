@@ -155,7 +155,7 @@ export default function Errors() {
               title: "Déchiffrer",
               dataKey: "action-dechiffrer",
               render: (row) => (
-                <button
+                <button type="button"
                   className="button-classic"
                   onClick={() => {
                     setItem(row);
@@ -170,7 +170,7 @@ export default function Errors() {
               title: "Supprimer définitivement",
               dataKey: "action-supprimer",
               render: (item) => (
-                <button
+                <button type="button"
                   className="button-destructive"
                   onClick={async () => {
                     if (!confirm("Voulez-vous vraiment supprimer DEFINITIVEMENT cette donnée ?")) return;
@@ -544,10 +544,10 @@ function ModalRepair({ open, setOpen, setData, item }) {
         </div>
       </ModalBody>
       <ModalFooter>
-        <button className="button-classic" onClick={() => setOpen(false)}>
+        <button type="button" className="button-classic" onClick={() => setOpen(false)}>
           Fermer
         </button>
-        <button className="button-submit" onClick={() => testAndFixKey()}>
+        <button type="button" className="button-submit" onClick={() => testAndFixKey()}>
           Tester la clé
         </button>
       </ModalFooter>

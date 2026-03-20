@@ -56,7 +56,10 @@ const totalNumberOfItemsSelector = atom((get) => {
   const rencontres = get(rencontresState);
   const reports = get(reportsState);
   const territories = get(territoriesState);
-  const territoriesDocuments = territories.reduce((acc, territory) => acc + (territory.documents?.filter((doc) => doc?.type !== "folder")?.length || 0), 0);
+  const territoriesDocuments = territories.reduce(
+    (acc, territory) => acc + (territory.documents?.filter((doc) => doc?.type !== "folder")?.length || 0),
+    0
+  );
   const places = get(placesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const territoryObservations = get(territoryObservationsState);
@@ -72,7 +75,13 @@ const totalNumberOfItemsSelector = atom((get) => {
   const comments = get(commentsState);
 
   const documents =
-    personsDocuments + treatmentsDocuments + actionsDocuments + medicalFilesDocuments + consultationsDocuments + territoryObservationsDocuments + territoriesDocuments;
+    personsDocuments +
+    treatmentsDocuments +
+    actionsDocuments +
+    medicalFilesDocuments +
+    consultationsDocuments +
+    territoryObservationsDocuments +
+    territoriesDocuments;
 
   return (
     persons.length +
@@ -456,6 +465,7 @@ const EncryptionKey = ({ isMain }) => {
         <div className="tw-flex tw-flex-col tw-items-center">
           <div className="tw-mb-4 tw-text-red-600">Notez la clé avant de vous reconnecter</div>
           <button
+            type="button"
             className="button-submit !tw-bg-black"
             onClick={() => {
               logout().then(() => {
@@ -463,7 +473,6 @@ const EncryptionKey = ({ isMain }) => {
                 window.location.href = "/auth";
               });
             }}
-            type="button"
           >
             Se déconnecter
           </button>
@@ -534,13 +543,13 @@ const EncryptionKey = ({ isMain }) => {
             <br />
             <div className="tw-border-t tw-border-t-gray-50 tw-flex tw-justify-center">
               <button
+                type="submit"
                 disabled={isLoading || isSubmitting}
                 className="button-submit !tw-bg-black disabled:tw-opacity-50"
                 onClick={() => {
                   if (isSubmitting) return;
                   handleSubmit();
                 }}
-                type="submit"
               >
                 {isLoading ? "Chiffrement en cours..." : organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
               </button>
@@ -579,7 +588,7 @@ const EncryptionKey = ({ isMain }) => {
 
   return (
     <>
-      <button className="button-submit !tw-bg-black" onClick={() => setOpen(true)} type="button">
+      <button type="button" className="button-submit !tw-bg-black" onClick={() => setOpen(true)}>
         {organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
       </button>
       <ModalContainer
@@ -654,7 +663,16 @@ const recryptDocument = async (doc, entityId, { fromKey, toKey, uploadBasePath }
   };
 };
 
-const recryptEntityDocuments = async (item, entityId, oldKey, newKey, onDocumentProcessed, orphanedFilesAccumulator, uploadBasePath, orphanedFileExtra) => {
+const recryptEntityDocuments = async (
+  item,
+  entityId,
+  oldKey,
+  newKey,
+  onDocumentProcessed,
+  orphanedFilesAccumulator,
+  uploadBasePath,
+  orphanedFileExtra
+) => {
   if (!item.documents || !item.documents.length) return item;
   const updatedDocuments = [];
   for (const doc of item.documents) {

@@ -24,7 +24,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
           <ModalBody className="tw-p-4 tw-text-gray-700">
             <ol className="tw-list-decimal tw-space-y-3 tw-ml-8">
               <li>
-                <button className={"tw-text-main tw-underline tw-font-bold"} onClick={onResetCacheAndLogout}>
+                <button type="button" className={"tw-text-main tw-underline tw-font-bold"} onClick={onResetCacheAndLogout}>
                   Videz le cache de mano
                 </button>
               </li>

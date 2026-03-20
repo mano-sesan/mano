@@ -67,7 +67,7 @@ export const Treatments = ({ person }) => {
         <div className="tw-sticky tw-top-0 tw-z-10 tw-flex tw-bg-white tw-p-3 tw-shadow-sm">
           <h4 className="tw-flex-1 tw-text-xl">Traitements {filteredData.length ? `(${filteredData.length})` : ""}</h4>
           <div className="flex-col tw-flex tw-items-center tw-gap-2">
-            <button
+            <button type="button"
               aria-label="Ajouter un traitement"
               className="tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-blue-900 tw-font-bold tw-text-white tw-transition hover:tw-scale-125"
               onClick={() => {
@@ -80,7 +80,7 @@ export const Treatments = ({ person }) => {
               ＋
             </button>
             {Boolean(filteredData.length) && (
-              <button
+              <button type="button"
                 title="Passer les traitements en plein écran"
                 className="tw-h-6 tw-w-6 tw-rounded-full tw-text-blue-900 tw-transition hover:tw-scale-125"
                 onClick={() => setFullScreen(true)}

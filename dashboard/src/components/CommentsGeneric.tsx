@@ -104,7 +104,7 @@ export function CommentsModule({
               {title} {comments.length ? `(${comments.length})` : ""}
             </h4>
             <div className="flex-col tw-flex tw-items-center tw-gap-2">
-              <button
+              <button type="button"
                 aria-label="Ajouter un commentaire"
                 className={`tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-bg-${color} tw-font-bold tw-text-white tw-transition hover:tw-scale-125`}
                 onClick={() => setModalCreateOpen(true)}
@@ -112,7 +112,7 @@ export function CommentsModule({
                 ＋
               </button>
               {Boolean(comments.length) && (
-                <button
+                <button type="button"
                   title="Passer les commentaires en plein écran"
                   className={`tw-h-6 tw-w-6 tw-rounded-full tw-text-${color} tw-transition hover:tw-scale-125`}
                   onClick={() => setFullScreen(true)}

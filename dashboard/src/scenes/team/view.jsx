@@ -152,7 +152,7 @@ const View = () => {
               </div>
             </div>
             <div className="tw-flex tw-justify-end">
-              <button
+              <button type="button"
                 className="button-classic"
                 onClick={() => {
                   setIsTransferModalOpen(true);
@@ -161,7 +161,7 @@ const View = () => {
                 Transférer les données vers une autre équipe
               </button>
               {cantDeleteMessage ? (
-                <button
+                <button type="button"
                   className="button-destructive"
                   onClick={() => {
                     toast.error(cantDeleteMessage);
@@ -228,7 +228,7 @@ const View = () => {
         </ModalBody>
         <ModalFooter>
           <div>
-            <button
+            <button type="button"
               className="button-destructive"
               onClick={() => {
                 setIsTransferModalOpen(false);
@@ -236,7 +236,7 @@ const View = () => {
             >
               Annuler
             </button>
-            <button
+            <button type="button"
               className="button-submit"
               onClick={() => {
                 const actionsInTeam = actions.filter((a) => a.teams?.includes(id));
