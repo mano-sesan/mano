@@ -50,17 +50,17 @@ const TopBar = ({ onLogoClick }) => {
             </div>
           </div>
         </div>
-        <div className="tw-flex tw-items-center tw-justify-start tw-w-52 tw-bg-white tw-ml-2 tw-min-h-12 tw-px-2 tw-rounded-xl tw-border-2 tw-border-main25">
+        <div className="tw-z-10 tw-flex tw-items-center tw-justify-start tw-w-52 tw-bg-white tw-ml-2 tw-min-h-12 tw-px-2 tw-rounded-xl tw-border-2 tw-border-main25">
           <div className="tw-w-max tw-text-left tw-text-sm tw-font-semibold tw-tracking-tighter">
             {["superadmin"].includes(user.role) ? "🤖 Mano Superadmin Console" : <span className="tw-line-clamp-2">{organisation?.name}</span>}
           </div>
         </div>
         {!["superadmin"].includes(user.role) ? (
-          <div className="tw-ml-2 tw-mr-auto tw-flex tw-items-center tw-justify-center">
+          <div className="tw-z-10 tw-ml-2 tw-mr-auto tw-flex tw-items-center tw-justify-center">
             <SessionCountDownLimiter />
           </div>
         ) : null}
-        <div className="tw-flex tw-justify-end tw-gap-x-4 tw-mr-2">
+        <div className="tw-z-10 tw-flex tw-justify-end tw-gap-x-4 tw-mr-2">
           {!["stats-only", "restricted-access"].includes(user.role) ? <Notification /> : null}
           {!["superadmin"].includes(user.role) ? <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} /> : <MenuUser />}
         </div>
