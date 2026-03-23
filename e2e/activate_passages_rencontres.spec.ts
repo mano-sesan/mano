@@ -55,7 +55,10 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "Anonyme" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "test passage", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter un passage" }).click();
-  await clickOnEmptyReactSelect(page, "person", "test1");
+  await page.locator(".person__dropdown-indicator").click();
+  await page.locator("#react-select-persons-option-0").click();
+  // await page.locator(".person__dropdown-indicator").click();
+  // await page.locator("#react-select-persons-option-0").click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passages enregistrés !").click();
@@ -132,7 +135,9 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Passer les rencontres en plein écran" }).click();
   await page.getByRole("button", { name: "Ajouter une rencontre" }).click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("test ajoute nouvelle rencontre");
-  await clickOnEmptyReactSelect(page, "person", "testrencontres");
+  await page.locator(".person__dropdown-indicator").click();
+  await expect(page.locator("#react-select-persons-option-0")).toBeVisible();
+  await page.locator("#react-select-persons-option-0").click();
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("cell", { name: "test ajoute nouvelle rencontre", exact: true }).click();
   page.once("dialog", (dialog) => {
