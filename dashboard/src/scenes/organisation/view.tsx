@@ -145,8 +145,8 @@ const View = () => {
 
   return (
     <div className="relative tw--m-12 tw--mt-4 tw-flex tw-h-[calc(100%+4rem)] tw-flex-col">
-      <div className="tw-flex tw-flex-1 tw-overflow-hidden">
-        <div className="tw-flex tw-h-full tw-w-58 tw-shrink-0 tw-flex-col tw-items-start tw-bg-main tw-px-2 tw-pt-2 tw-overflow-auto">
+      <div className="tw-flex tw-flex-1 tw-overflow-hidden tw-h-full">
+        <div className="tw-flex tw-min-h-screen tw-w-58 tw-shrink-0 tw-flex-col tw-items-start tw-bg-main tw-px-2 tw-pt-2 tw-overflow-auto">
           <div className="tw-text-white tw-font-bold tw-text-sm tw-mx-auto mt-4">Général</div>
           <div className="rounded tw-mx-auto tw-w-full tw-p-2 my-2 tw-flex tw-bg-main25 tw-flex-col tw-gap-2 tw-items-start tw">
             <MenuButton selected={tab === "infos"} text="Informations" onClick={() => setTab("infos")} />

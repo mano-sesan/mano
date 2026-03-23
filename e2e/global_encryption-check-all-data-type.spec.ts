@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { logOut, loginWith } from "./utils";
+import { clickOnEmptyReactSelect, logOut, loginWith } from "./utils";
 import dayjs from "dayjs";
 
 test.beforeAll(async () => {
@@ -32,7 +32,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Personnes suivies", exact: true }).click();
   await page
     .getByLabel(
-      'Activer la possibilité d\'ajouter des liens familiaux entre personnes. Un onglet "Famille" sera rajouté dans les personnes, et vous pourrez créer des actions, des commentaires et des documents visibles pour toute la famille.'
+      'Activer la possibilité d\'ajouter des liens familiaux entre personnes. Un onglet "Famille" sera rajouté dans les personnes, et vous pourrez créer des actions, des commentaires et des documents visibles pour toute la famille.',
     )
     .check();
   await page.getByRole("button", { name: "Mettre à jour" }).first().click();
@@ -71,8 +71,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Dossier Médical" }).click();
   await page.getByRole("button", { name: "Ajouter une consultation" }).click();
   await page.getByLabel("Nom (facultatif)").fill("La consultation");
-  await page.locator(".consultation-modal-type__input-container").click();
-  await page.locator("#react-select-type-option-0").click();
+  await clickOnEmptyReactSelect(page, "consultation-modal-type", "Médicale");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByRole("button", { name: "Ajouter un traitement" }).click();
   await page.getByPlaceholder("Amoxicilline").click();
@@ -98,9 +97,7 @@ test("test", async ({ page }) => {
   await page.getByText("Le lieu a été ajouté").click();
   await page.getByRole("button", { name: "Liens familiaux (0)" }).click();
   await page.getByRole("button", { name: "Ajouter un lien" }).click();
-  await page.locator(".person-family-relation__input-container").click();
-  await page.locator("#person-family-relation").fill("deu");
-  await page.locator("#react-select-personId-option-0").click();
+  await clickOnEmptyReactSelect(page, "person-family-relation", deuxieme);
   await page.getByPlaceholder("Père/fille, mère/fils...").fill("père");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Le lien familial a été ajouté").click();

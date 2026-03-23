@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --toastify-z-index: 9999;
+  --toastify-z-index: 99999;
 }
+
 
 /* RGAA 10.7 — indicateur de focus visible pour la navigation clavier */
 *:focus-visible {
@@ -12,6 +13,9 @@
   outline-offset: 2px;
 }
 
+.Toastify__toast {
+  z-index: 99999 !important;
+}
 .Toastify__hack-force-fast {
   animation-duration: 1ms !important;
 }

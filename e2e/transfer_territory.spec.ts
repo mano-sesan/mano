@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { populate } from "./scripts/populate-db";
-import { loginWith } from "./utils";
+import { clickOnEmptyReactSelect, loginWith } from "./utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
@@ -61,8 +61,7 @@ test("Transfer territory", async ({ page }) => {
 
   // Transfer territory data
   await page.getByRole("button", { name: "Transférer" }).click();
-  await page.locator(".transfer-data-selected-territory__indicator").click();
-  await page.locator("#react-select-territory-option-0").click();
+  await clickOnEmptyReactSelect(page, "transfer-data-selected-territory", "nouveau territoire");
   page.once("dialog", (dialog) => {
     console.log(`Dialog message: ${dialog.message()}`);
     dialog.accept();

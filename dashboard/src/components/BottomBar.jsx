@@ -5,8 +5,8 @@ import TerritoryIcon from "../assets/icons/TerritoryIcon";
 import PersonIcon from "../assets/icons/PersonIcon";
 import Notification from "./Notification";
 import DotsIcon from "../assets/icons/DotsIcon";
-import { showDrawerState } from "./drawer";
 import { userState } from "../atoms/auth";
+import { showDrawerState } from "../atoms/drawerState";
 
 export default function BottomBar() {
   const user = useAtomValue(userState);

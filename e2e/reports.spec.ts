@@ -42,21 +42,18 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await page.getByLabel("Passage(s) anonyme(s) Cochez").check();
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passages enregistrés !").click();
-  await page.getByText("Fermer").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   // Ajout d'une rencontre
   await page.getByRole("button", { name: "Passer les rencontres en" }).click();
   await page.getByRole("button", { name: "Ajouter une rencontre" }).click();
   await changeReactSelectValue(page, "person", "Toto");
   await page.getByRole("button", { name: "Enregistrer" }).click();
-  await page.getByLabel("Fermer").first().click();
+  await page.getByText("Rencontres enregistrées").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   // Ajout d'un service
-  await page
-    .locator("div")
-    .filter({ hasText: /^Café-\+$/ })
-    .getByLabel("plus")
-    .click();
+  await page.locator('[id="Café-add"]').click();
 
   // Ajout d'une observation
   await page.getByRole("button", { name: "Passer les observations en" }).click();
@@ -65,7 +62,7 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await changeReactSelectValue(page, "observation-select-territory", "mon territoire");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
-  await page.getByText("Fermer").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   // Ajout d'une transmission et d'une collaboration (via la modale de transmission)
   await page.getByRole("button", { name: "Ajouter une transmission" }).click();

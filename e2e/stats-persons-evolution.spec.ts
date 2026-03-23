@@ -1,6 +1,6 @@
 import { test } from "@playwright/test";
 import { populate } from "./scripts/populate-db";
-import { loginWith } from "./utils";
+import { clickOnEmptyReactSelect, loginWith } from "./utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
@@ -24,8 +24,7 @@ test("Stats changement des personnes", async ({ page }) => {
   await page.getByText("Création réussie !").click();
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.locator('[data-test-id="modal"]').getByText("Informations sociales").click();
-  await page.locator(".person-custom-select-situation-personnelle__indicator").click();
-  await page.getByText("Homme isolé", { exact: true }).click();
+  await clickOnEmptyReactSelect(page, "person-custom-select-situation-personnelle", "Homme isolé");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Mis à jour !").click();
 
@@ -40,8 +39,7 @@ test("Stats changement des personnes", async ({ page }) => {
   await page.getByRole("cell", { name: "Personne Test" }).click();
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.locator('[data-test-id="modal"]').getByText("Informations sociales").click();
-  await page.locator(".person-custom-select-situation-personnelle__input-container").click();
-  await page.getByText("Femme isolée", { exact: true }).click();
+  await clickOnEmptyReactSelect(page, "person-custom-select-situation-personnelle", "Femme isolée");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Mis à jour !").click();
 
@@ -58,23 +56,17 @@ test("Stats changement des personnes", async ({ page }) => {
   await page.getByRole("button", { name: "Personnes suivies", exact: true }).click();
   await page.locator('[data-test-id="nombre-de-personnes-suivies-1"]').click();
   await page.getByRole("button", { name: "+ Ajouter un filtre" }).click();
-  await page.locator(".filter-field-1__input-container").click();
-  await page.locator("#filter-field-1").fill("Situation personnelle");
-  await page.locator("#react-select-10-option-26").click();
-  await page.locator(".filter-value-1__indicator").click();
-  await page.locator("#react-select-12-option-1").click();
+  await clickOnEmptyReactSelect(page, "filter-field-1", "Situation personnelle");
+  await clickOnEmptyReactSelect(page, "filter-value-1", "Homme isolé");
   await page.locator('[data-test-id="nombre-de-personnes-suivies-1"]').click();
   await page.getByLabel("Remove Homme isolé").click();
-  await page.locator(".filter-value-1__indicator").click();
-  await page.locator("#react-select-12-option-8").click();
+  await clickOnEmptyReactSelect(page, "filter-value-1", "Non renseigné");
   await page.getByLabel("Remove Non renseigné").click();
   await page.getByRole("button", { name: "2020" }).click();
   await page.getByRole("button", { name: "2021" }).click();
-  await page.locator(".filter-value-1__indicator").click();
-  await page.locator("#react-select-12-option-2").click();
+  await clickOnEmptyReactSelect(page, "filter-value-1", "Femme isolée");
   await page.locator('[data-test-id="nombre-de-personnes-suivies-1"]').click();
   await page.getByLabel("Remove Femme isolée").click();
-  await page.locator(".filter-value-1__indicator").click();
-  await page.locator("#react-select-12-option-1").click();
+  await clickOnEmptyReactSelect(page, "filter-value-1", "Non renseigné");
   await page.locator('[data-test-id="nombre-de-personnes-suivies-0"]').click();
 });

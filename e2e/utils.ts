@@ -1,5 +1,10 @@
 import { expect, Page } from "@playwright/test";
 
+export async function clickOnEmptyReactSelectAndCreate(page: Page, name: string, text: string, createText: string) {
+  await page.locator(`#${name}`).fill(text);
+  await page.getByText(createText).click();
+}
+
 export async function clickOnEmptyReactSelect(page: Page, name: string, text: string) {
   await page.locator(`.${name}__dropdown-indicator`).click();
   await page.locator(`.${name}__menu`).getByText(text, { exact: true }).click();
@@ -8,6 +13,15 @@ export async function clickOnEmptyReactSelect(page: Page, name: string, text: st
 export async function changeReactSelectValue(page: Page, name: string, text: string) {
   await page.locator(`.${name}__dropdown-indicator`).click();
   await page.locator(`.${name}__menu`).getByText(text, { exact: true }).click();
+}
+
+export async function clickOnOpenedReactSelectValue(page: Page, name: string, text: string) {
+  await page.locator(`.${name}__menu`).getByText(text, { exact: true }).click();
+}
+
+export async function changeTeamSelectorValue(page: Page, text: string) {
+  await page.locator(`#team-selector`).click();
+  await page.getByRole("menuitem", { name: text }).click();
 }
 
 export async function loginWith(page: Page, email: string, password: string = "secret", orgKey: string = "plouf") {
@@ -36,7 +50,7 @@ export async function createAction(
   options: {
     categories?: Array<{ group: string; category: string }>;
     group?: boolean;
-  } = { categories: [], group: false }
+  } = { categories: [], group: false },
 ) {
   await page.getByRole("link", { name: "Agenda" }).click();
   await page.getByRole("button", { name: "Créer une action" }).click();

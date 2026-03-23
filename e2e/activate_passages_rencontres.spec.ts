@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { populate } from "./scripts/populate-db";
-import { loginWith, logOut } from "./utils";
+import { clickOnEmptyReactSelect, clickOnEmptyReactSelectAndCreate, loginWith, logOut } from "./utils";
 import dayjs from "dayjs";
 
 test.beforeAll(async () => {
@@ -26,11 +26,8 @@ test("test", async ({ page }) => {
   /* ***** accueil ***** */
 
   await page.getByRole("link", { name: "Accueil" }).click();
-  await page.locator(".person-select-and-create-reception__input-container").click();
-  await page.locator("#person-select-and-create-reception").press("Home");
-  await page.locator("#person-select-and-create-reception").press("Home");
-  await page.locator("#person-select-and-create-reception").fill("test1");
-  await page.locator("#react-select-5-option-0").click();
+
+  await clickOnEmptyReactSelectAndCreate(page, "person-select-and-create-reception", "test1", 'Créer "test1"');
   await page.getByText("Nouvelle personne ajoutée !").click();
   await page.getByRole("button", { name: "Passage", exact: true }).click();
   await expect(page.getByText("1 passage", { exact: true })).toBeVisible();
@@ -58,17 +55,17 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "Anonyme" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "test passage", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter un passage" }).click();
-  await page.locator(".person__input-container").click();
-  await page.locator("#react-select-persons-option-0").click();
+  await clickOnEmptyReactSelect(page, "person", "test1");
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passages enregistrés !").click();
 
+  await expect(page.getByRole("cell", { name: "ajout passage", exact: true })).toBeVisible();
   await page.getByRole("cell", { name: "ajout passage", exact: true }).click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage modification");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passage mis à jour").click();
-  await page.getByText("Fermer").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   /* ***** statistiques ***** */
 
@@ -136,8 +133,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Passer les rencontres en plein écran" }).click();
   await page.getByRole("button", { name: "Ajouter une rencontre" }).click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("test ajoute nouvelle rencontre");
-  await page.locator(".person__input-container").click();
-  await page.locator("#react-select-persons-option-0").click();
+  await clickOnEmptyReactSelect(page, "person", "testpassage");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("cell", { name: "test ajoute nouvelle rencontre", exact: true }).click();
   page.once("dialog", (dialog) => {
@@ -147,7 +143,7 @@ test("test", async ({ page }) => {
 
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Rencontre mise à jour").click();
-  await page.getByText("Fermer").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   /* ***** statistiques ***** */
 

@@ -1,5 +1,5 @@
-import { Fragment, useState } from "react";
-import { Menu, Transition } from "@headlessui/react";
+import { useState } from "react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { useAtomValue } from "jotai";
 import { personFieldsIncludingCustomFieldsSelector, personsState } from "../../atoms/persons";
 import { utils, writeFile } from "@e965/xlsx";
@@ -216,14 +216,29 @@ export function useExportTransforms() {
     };
   };
 
-  return { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation };
+  return {
+    transformPerson,
+    transformPersonMedical,
+    transformAction,
+    transformConsultation,
+    transformRencontre,
+    transformPassage,
+    transformObservation,
+  };
 }
 
 // Source: https://tailwindui.com/components/application-ui/elements/dropdowns
 export default function ExportFormattedData({ personCreated, personUpdated, actions, rencontres, passages, observations, consultations }) {
   const user = useAtomValue(userState);
-  const { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation } =
-    useExportTransforms();
+  const {
+    transformPerson,
+    transformPersonMedical,
+    transformAction,
+    transformConsultation,
+    transformRencontre,
+    transformPassage,
+    transformObservation,
+  } = useExportTransforms();
   const [cachedUsers, setCachedUsers] = useState([]);
 
   async function fetchUsersWithCache() {
@@ -237,127 +252,126 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
     <Menu as="div" className="tw-relative tw-inline-block tw-text-left">
       <div>
         {["admin"].includes(user.role) && (
-          <Menu.Button className="tw-inline-flex tw-w-full tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-main tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white focus:tw-outline-none">
+          <MenuButton className="tw-inline-flex tw-w-full tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-main tw-px-4 tw-py-2 tw-text-sm tw-font-medium tw-text-white focus:tw-outline-none">
             Télécharger un export
             <div className="-tw-mr-1 -tw-mt-1 tw-ml-2 tw-h-5 tw-w-5" aria-hidden="true">
               ⌄
             </div>
-          </Menu.Button>
+          </MenuButton>
         )}
       </div>
-      <Transition
-        as={Fragment}
-        enter="tw-transition tw-ease-out tw-duration-100"
-        enterFrom="tw-transform tw-opacity-0 tw-scale-95"
-        enterTo="tw-transform tw-opacity-100 tw-scale-100"
-        leave="tw-transition tw-ease-in tw-duration-75"
-        leaveFrom="tw-transform tw-opacity-100 tw-scale-100"
-        leaveTo="tw-transform tw-opacity-0 tw-scale-95"
+
+      <MenuItems
+        as="div"
+        anchor="top"
+        transition
+        className={`tw-absolute tw-right-0 tw-z-50 tw-mt-2 ${user.healthcareProfessional ? "tw-w-72" : "tw-w-56"} tw-origin-top-right tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95 tw-transition`}
       >
-        <Menu.Items
-          className={`tw-absolute tw-right-0 tw-z-50 tw-mt-2 ${user.healthcareProfessional ? "tw-w-72" : "tw-w-56"} tw-origin-top-right tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none`}
-        >
-          <div className="tw-py-1">
-            <MenuItem
-              text="Personnes suivies"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Personnes suivies", personUpdated.map(transformPerson(loadedUsers)));
-              }}
-            />
-            <MenuItem
-              text="Personnes créées"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Personnes créées", personCreated.map(transformPerson(loadedUsers)));
-              }}
-            />
-            {user.healthcareProfessional ? (
-              <>
-                <MenuItem
-                  text="Dossier médical des personnes suivies"
-                  onClick={async () => {
-                    const loadedUsers = await fetchUsersWithCache();
-                    exportXlsx("Personnes suivies", personUpdated.map(transformPersonMedical(loadedUsers)));
-                  }}
-                />
-                <MenuItem
-                  text="Dossier médical des personnes créées"
-                  onClick={async () => {
-                    const loadedUsers = await fetchUsersWithCache();
-                    exportXlsx("Personnes créées", personCreated.map(transformPersonMedical(loadedUsers)));
-                  }}
-                />
-              </>
-            ) : null}
-            <MenuItem
-              text="Actions"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx(
-                  "Actions",
-                  actions
-                    .reduce((uniqueActions, action) => {
-                      if (!uniqueActions.find((a) => a._id === action._id)) uniqueActions.push(action);
-                      return uniqueActions;
-                    }, [])
-                    .map(transformAction(loadedUsers))
-                );
-              }}
-            />
-            <MenuItem
-              text="Consultations"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Consultations", consultations.map(transformConsultation(loadedUsers)));
-              }}
-            />
-            <MenuItem
-              text="Rencontres"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Rencontres", rencontres.map(transformRencontre(loadedUsers)));
-              }}
-            />
-            <MenuItem
-              text="Passages"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Passages", passages.map(transformPassage(loadedUsers)));
-              }}
-            />
-            <MenuItem
-              text="Observations"
-              onClick={async () => {
-                const loadedUsers = await fetchUsersWithCache();
-                exportXlsx("Observations", observations.map(transformObservation(loadedUsers)));
-              }}
-            />
-          </div>
-        </Menu.Items>
-      </Transition>
-    </Menu>
-  );
-}
-
-function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
-}
-
-function MenuItem({ text = "Account settings", onClick = () => {} }) {
-  return (
-    <Menu.Item>
-      {({ active }) => (
-        <div
-          onClick={onClick}
-          className={classNames(
-            active ? "tw-bg-gray-100 tw-text-gray-900" : "tw-text-gray-700",
-            "tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
-          )}
-        >
-          {text}
+        <div className="tw-py-1">
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Personnes suivies", personUpdated.map(transformPerson(loadedUsers)));
+            }}
+          >
+            Personnes suivies
+          </MenuItem>
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Personnes créées", personCreated.map(transformPerson(loadedUsers)));
+            }}
+          >
+            Personnes créées
+          </MenuItem>
+          {user.healthcareProfessional ? (
+            <>
+              <MenuItem
+                as="div"
+                className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+                onClick={async () => {
+                  const loadedUsers = await fetchUsersWithCache();
+                  exportXlsx("Personnes suivies", personUpdated.map(transformPersonMedical(loadedUsers)));
+                }}
+              >
+                Dossier médical des personnes suivies
+              </MenuItem>
+              <MenuItem
+                as="div"
+                className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+                onClick={async () => {
+                  const loadedUsers = await fetchUsersWithCache();
+                  exportXlsx("Personnes créées", personCreated.map(transformPersonMedical(loadedUsers)));
+                }}
+              >
+                Dossier médical des personnes créées
+              </MenuItem>
+            </>
+          ) : null}
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx(
+                "Actions",
+                actions
+                  .reduce((uniqueActions, action) => {
+                    if (!uniqueActions.find((a) => a._id === action._id)) uniqueActions.push(action);
+                    return uniqueActions;
+                  }, [])
+                  .map(transformAction(loadedUsers))
+              );
+            }}
+          >
+            Actions
+          </MenuItem>
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Consultations", consultations.map(transformConsultation(loadedUsers)));
+            }}
+          >
+            Consultations
+          </MenuItem>
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Rencontres", rencontres.map(transformRencontre(loadedUsers)));
+            }}
+          >
+            Rencontres
+          </MenuItem>
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Passages", passages.map(transformPassage(loadedUsers)));
+            }}
+          >
+            Passages
+          </MenuItem>
+          <MenuItem
+            as="div"
+            className="data-[focus]:tw-bg-gray-100 data-[focus]:tw-text-gray-900 tw-text-gray-700 tw-block tw-cursor-pointer tw-px-4 tw-py-2 tw-text-sm"
+            onClick={async () => {
+              const loadedUsers = await fetchUsersWithCache();
+              exportXlsx("Observations", observations.map(transformObservation(loadedUsers)));
+            }}
+          >
+            Observations
+          </MenuItem>
         </div>
-      )}
-    </Menu.Item>
+      </MenuItems>
+    </Menu>
   );
 }

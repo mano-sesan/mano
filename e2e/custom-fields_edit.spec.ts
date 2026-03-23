@@ -20,8 +20,7 @@ test("test", async ({ page }) => {
   await page.getByText("Mise à jour !").click();
   await page.getByRole("button", { name: "Ajouter un champ" }).nth(1).click();
   await page.getByLabel("Nom").fill("Champ utilisé");
-  await page.locator(".type__input-container").click();
-  await page.locator("#react-select-type-option-8").click();
+  await clickOnEmptyReactSelect(page, "type", "Choix multiple dans une liste");
   await page.locator(".options__input-container").click();
   await page.getByLabel("Choix", { exact: true }).fill("choix 1");
   await page.keyboard.press("Enter");

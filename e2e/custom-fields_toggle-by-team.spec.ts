@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { nanoid } from "nanoid";
 import { populate } from "./scripts/populate-db";
-import { changeReactSelectValue, clickOnEmptyReactSelect, loginWith } from "./utils";
+import { changeReactSelectValue, changeTeamSelectorValue, clickOnEmptyReactSelect, loginWith } from "./utils";
 test.beforeAll(async () => {
   await populate();
 });
@@ -97,8 +97,7 @@ test("Create custom fields filtered by team", async ({ page }) => {
   await page.getByRole("dialog").getByLabel("Nom").fill(personName);
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.locator(".Toastify__close-button").last().click();
-  await changeReactSelectValue(page, "team-selector-topBar", "Team Test - 4");
-
+  await changeTeamSelectorValue(page, "Team Test - 4");
   await page.getByRole("button", { name: "Modifier" }).click();
   await page.getByRole("dialog").getByText("Informations sociales").click();
   await page.getByLabel(testPersonSocialField).click();
@@ -243,7 +242,7 @@ test("Create custom fields filtered by team", async ({ page }) => {
   Test with the unallowed team
   */
 
-  await changeReactSelectValue(page, "team-selector-topBar", teamExcludeCustomFieldName);
+  await changeTeamSelectorValue(page, teamExcludeCustomFieldName);
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");

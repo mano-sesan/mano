@@ -11,7 +11,7 @@ export default function UnBugButton({ onResetCacheAndLogout }) {
     <>
       <button
         type="button"
-        className="button-link !tw-ml-0"
+        className="button-link !tw-ml-0 tw-text-sm"
         onClick={() => {
           setIsModalOpen(true);
         }}
