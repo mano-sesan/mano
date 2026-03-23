@@ -10,6 +10,7 @@ import { useDataLoader } from "../services/dataLoader";
 import { logout } from "../services/logout";
 import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
+import MenuUser from "./MenuUser";
 
 const TopBar = ({ onLogoClick }) => {
   const user = useAtomValue(userState);
@@ -31,15 +32,7 @@ const TopBar = ({ onLogoClick }) => {
         className="noprint tw-flex tw-w-full tw-shrink-0 tw-items-center tw-justify-between tw-bg-[#E1E3E3] print:tw-relative print:tw-hidden tw-py-2"
         title="Rafraîchir les données, afficher les notifications, nom de l'organisation, compteur de session, bouton de déconnexion"
       >
-        <div className="tw-flex tw-items-center tw-justify-start tw-w-52 tw-bg-white tw-ml-2 tw-min-h-12 tw-px-2 tw-rounded-xl tw-border-2 tw-border-main25">
-          <div className="tw-w-max tw-text-left tw-text-sm tw-font-semibold tw-tracking-tighter">
-            {["superadmin"].includes(user.role) ? "🤖 Mano Superadmin Console" : <span className="tw-line-clamp-2">{organisation?.name}</span>}
-          </div>
-        </div>
-        <div className="tw-ml-2 tw-flex tw-items-center tw-justify-center">
-          <SessionCountDownLimiter />
-        </div>
-        <div className="tw-hidden tw-flex-1 lg:tw-flex tw-items-center tw-justify-center">
+        <div className="tw-hidden tw-flex-1 lg:tw-flex tw-items-center tw-justify-center tw-absolute tw-left-0 tw-right-0">
           <div className="tw-flex tw-items-center tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5 tw-border-2 tw-border-main tw-relative">
             <button
               className="tw-my-0 tw-size-9 tw-bg-center tw-bg-no-repeat disabled:tw-opacity-30 tw-bg-contain"
@@ -57,9 +50,19 @@ const TopBar = ({ onLogoClick }) => {
             </div>
           </div>
         </div>
-        <div className="tw-flex tw-justify-end tw-gap-x-4">
+        <div className="tw-flex tw-items-center tw-justify-start tw-w-52 tw-bg-white tw-ml-2 tw-min-h-12 tw-px-2 tw-rounded-xl tw-border-2 tw-border-main25">
+          <div className="tw-w-max tw-text-left tw-text-sm tw-font-semibold tw-tracking-tighter">
+            {["superadmin"].includes(user.role) ? "🤖 Mano Superadmin Console" : <span className="tw-line-clamp-2">{organisation?.name}</span>}
+          </div>
+        </div>
+        {!["superadmin"].includes(user.role) ? (
+          <div className="tw-ml-2 tw-mr-auto tw-flex tw-items-center tw-justify-center">
+            <SessionCountDownLimiter />
+          </div>
+        ) : null}
+        <div className="tw-flex tw-justify-end tw-gap-x-4 tw-mr-2">
           {!["stats-only", "restricted-access"].includes(user.role) ? <Notification /> : null}
-          <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} />
+          {!["superadmin"].includes(user.role) ? <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} /> : <MenuUser />}
         </div>
       </aside>
     </div>
