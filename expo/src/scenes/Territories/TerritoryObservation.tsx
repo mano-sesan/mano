@@ -463,7 +463,9 @@ const TerritoryObservation = ({
                   onAddDocument={(doc: any) => onChange({ documents: [...(obs.documents || []), doc] })}
                   onDelete={(doc: any) =>
                     onChange({
-                      documents: (obs.documents || []).filter((d: any) => d.type === "folder" || d.file.filename !== doc.file.filename),
+                      documents: (obs.documents || []).filter((d: any) => d.type === "folder" || d.file?.filename !== doc.file?.filename),
+                    })
+                  }
                     })
                   }
                   onUpdateDocument={(doc: any) =>
