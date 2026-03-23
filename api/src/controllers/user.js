@@ -67,7 +67,7 @@ function createUserLog(req, user) {
         totaldiskcapacity: z.optional(z.number()),
         totalmemory: z.optional(z.number()),
         useragent: z.optional(z.string()),
-        tablet: z.optional(z.boolean()),
+        tablet: z.optional(z.boolean())
       }).parse(req.body);
     } catch (e) {
       capture(e, { extra: { body: req.body }, user });
@@ -99,8 +99,8 @@ function createUserLog(req, user) {
         totaldiskcapacity: req.body.totaldiskcapacity,
         totalmemory: req.body.totalmemory,
         useragent: req.body.useragent,
-        tablet: req.body.tablet,
-      },
+        tablet: req.body.tablet
+      }
     });
   } else if (req.headers.platform === "dashboard") {
     try {
@@ -109,11 +109,11 @@ function createUserLog(req, user) {
           browsertype: z.optional(z.string()),
           browsername: z.optional(z.string()),
           browserversion: z.optional(z.string()),
-          browseros: z.optional(z.string()),
+          browseros: z.optional(z.string())
         }),
         headers: z.object({
-          version: z.optional(z.string()),
-        }),
+          version: z.optional(z.string())
+        })
       }).parse(req);
     } catch (e) {
       capture(e, { extra: { body: req.body }, user });
@@ -130,8 +130,8 @@ function createUserLog(req, user) {
         browserName: req.body.browsername,
         browserVersion: req.body.browserversion,
         browserOs: req.body.browseros,
-        version: req.headers.version,
-      },
+        version: req.headers.version
+      }
     });
   } else {
     UserLog.create({
@@ -139,7 +139,7 @@ function createUserLog(req, user) {
       organisation: user.organisation,
       platform: "unknown",
       action: "login",
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
   }
 }
@@ -150,12 +150,12 @@ router.get(
   validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
     const user = await User.findOne({ where: { _id: req.user._id } });
-    const teams = await user.getTeams();
+    const teams = await user.getTeams({ order: [["createdAt", "ASC"]] });
     const organisation = await user.getOrganisation();
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     return res.status(200).send({
       ok: true,
-      user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams),
+      user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams)
     });
   })
 );
@@ -170,7 +170,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "logout",
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
@@ -184,7 +184,7 @@ router.post(
       z.object({
         password: z.string(),
         email: z.preprocess((email) => email.trim().toLowerCase(), z.string().email().optional().or(z.literal(""))),
-        otp: z.optional(z.string().length(6)),
+        otp: z.optional(z.string().length(6))
       }).parse(req.body);
     } catch (e) {
       if (e.errors?.some((err) => err.path[0] === "email")) {
@@ -206,7 +206,7 @@ router.post(
       return res.status(403).send({
         ok: false,
         error: "Votre compte a été désactivé, veuillez contacter l'administrateur de votre organisation",
-        code: "ACCOUNT_DISABLED",
+        code: "ACCOUNT_DISABLED"
       });
     }
 
@@ -215,7 +215,7 @@ router.post(
       return res.status(403).send({
         ok: false,
         error: "Cette organisation a été temporairement désactivée",
-        code: "ORGANISATION_DISABLED",
+        code: "ORGANISATION_DISABLED"
       });
     }
 
@@ -231,7 +231,7 @@ router.post(
         ok: false,
         error:
           "Trop de tentatives de connexions infructueuses, vous pourrez vous reconnecter à partir de " +
-          displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
+          displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" })
       });
     }
     const { password: expectedPassword } = await User.scope("withPassword").findOne({ where: { email }, attributes: ["password"] });
@@ -289,9 +289,9 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
+    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     const token = jwt.sign({ _id: user._id }, config.SECRET, { expiresIn: JWT_MAX_AGE });
     res.cookie("jwt", token, cookieOptions());
@@ -308,12 +308,12 @@ router.get(
     try {
       z.object({
         cookies: z.object({
-          jwt: z.optional(z.string().regex(jwtRegex)),
+          jwt: z.optional(z.string().regex(jwtRegex))
         }),
         headers: z.object({
           auth: z.optional(z.string().regex(headerJwtRegex)),
-          platform: z.enum(["android", "dashboard"]),
-        }),
+          platform: z.enum(["android", "dashboard"])
+        })
       }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in signin token: ${e}`);
@@ -354,13 +354,13 @@ router.get(
         ok: false,
         error:
           "Trop de tentatives de connexions infructueuses, vous pourrez vous reconnecter à partir de " +
-          displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" }),
+          displayTime.toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", timeStyle: "short" })
       });
     }
 
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id } });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team));
+    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     createUserLog(req, user);
 
@@ -372,7 +372,7 @@ router.post(
   "/forgot_password",
   catchErrors(async (req, res, next) => {
     const {
-      body: { email },
+      body: { email }
     } = req;
     try {
       z.string()
@@ -387,7 +387,7 @@ router.post(
     UserLog.create({
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `forgot-password-${email}`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
     if (!email) return res.status(403).send({ ok: false, error: "Veuillez fournir un email", code: EMAIL_OR_PASSWORD_INVALID });
@@ -428,7 +428,7 @@ router.post(
       z.object({
         name: z.string().optional(),
         token: z.string().min(1),
-        password: z.string().min(1),
+        password: z.string().min(1)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in forget password reset: ${e}`);
@@ -436,7 +436,7 @@ router.post(
       return next(error);
     }
     const {
-      body: { token, password, name },
+      body: { token, password, name }
     } = req;
 
     if (!validatePassword(password)) {
@@ -448,7 +448,7 @@ router.post(
       UserLog.create({
         platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
         action: `forgot-password-reset-failed-${token}`,
-        ...getClientInfo(req),
+        ...getClientInfo(req)
       });
       return res.status(400).send({ ok: false, error: "Le lien est non valide ou expiré" });
     }
@@ -457,7 +457,7 @@ router.post(
       if (organisation && organisation.disabledAt) {
         return res.status(403).send({
           ok: false,
-          error: "Cette organisation a été temporairement désactivée. Veuillez contacter votre administrateur pour plus d'informations.",
+          error: "Cette organisation a été temporairement désactivée. Veuillez contacter votre administrateur pour plus d'informations."
         });
       }
     }
@@ -467,13 +467,13 @@ router.post(
       user: user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: "forgot-password-reset",
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
     user.set({
       password: password,
       forgotPasswordResetToken: null,
       forgotPasswordResetExpires: null,
-      lastChangePasswordAt: Date.now(),
+      lastChangePasswordAt: Date.now()
     });
     if (name) user.set({ name: sanitizeAll(name) });
     await user.save();
@@ -494,7 +494,7 @@ router.post(
         healthcareProfessional: z.boolean(),
         team: z.array(z.string().regex(looseUuidRegex)),
         role: z.enum(["admin", "normal", "restricted-access", "stats-only"]),
-        ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
+        ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {})
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in user creation: ${e}`);
@@ -514,7 +514,7 @@ router.post(
       password: crypto.randomBytes(60).toString("hex"), // A useless password.
       organisation: organisationId,
       forgotPasswordResetToken: token,
-      forgotPasswordResetExpires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000), // 30 days
+      forgotPasswordResetExpires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000) // 30 days
     };
 
     UserLog.create({
@@ -522,7 +522,7 @@ router.post(
       user: req.user.id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `create-user-${sanitizeAll(email.trim().toLowerCase())}`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
     const prevUser = await User.findOne({ where: { email: newUser.email } });
@@ -531,7 +531,7 @@ router.post(
     const data = await User.create(newUser, { returning: true });
 
     const user = await User.findOne({ where: { _id: data._id } });
-    const teams = await Team.findAll({ where: { organisation: organisationId, _id: { [Op.in]: team } } });
+    const teams = await Team.findAll({ where: { organisation: organisationId, _id: { [Op.in]: team } }, order: [["createdAt", "ASC"]] });
     const tx = await User.sequelize.transaction();
     await RelUserTeam.bulkCreate(
       teams.map((t) => ({ user: data._id, team: t._id, organisation: organisationId })),
@@ -559,8 +559,8 @@ router.post(
         healthcareProfessional: data.healthcareProfessional,
         organisation: data.organisation,
         createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
-      },
+        updatedAt: data.updatedAt
+      }
     });
   })
 );
@@ -577,7 +577,7 @@ router.post(
       z.object({
         password: z.string().min(1),
         newPassword: z.string().min(1),
-        verifyPassword: z.string().min(1),
+        verifyPassword: z.string().min(1)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in reset password: ${e}`);
@@ -599,7 +599,7 @@ router.post(
 
     user.set({
       password: newPassword,
-      lastChangePasswordAt: Date.now(),
+      lastChangePasswordAt: Date.now()
     });
     await user.save();
 
@@ -619,8 +619,8 @@ router.post(
         lastChangePasswordAt: userWithoutPassword.lastChangePasswordAt,
         termsAccepted: userWithoutPassword.termsAccepted,
         cgusAccepted: userWithoutPassword.cgusAccepted,
-        gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025,
-      },
+        gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025
+      }
     });
   })
 );
@@ -646,7 +646,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-failure",
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
     return res.status(200).send({ ok: false, error: "" });
   })
@@ -666,7 +666,7 @@ router.post(
       organisation: user.organisation,
       platform: "unknown",
       action: "decrypt-attempt-success",
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
     return res.status(200).send({ ok: true });
   })
@@ -680,12 +680,12 @@ router.get(
     const search = req.query.search || "";
     const users = await User.findAll({
       where: {
-        [Op.or]: [{ name: { [Op.iLike]: `%${search}%` } }, { email: { [Op.iLike]: `%${search}%` } }],
+        [Op.or]: [{ name: { [Op.iLike]: `%${search}%` } }, { email: { [Op.iLike]: `%${search}%` } }]
       },
       include: [
         { model: Team, as: "Teams" },
-        { model: Organisation, as: "Organisation", attributes: ["_id", "name"] },
-      ],
+        { model: Organisation, as: "Organisation", attributes: ["_id", "name"] }
+      ]
     });
 
     const data = users.map((user) => {
@@ -707,13 +707,13 @@ router.get(
         decryptAttempts: user.decryptAttempts,
         loginAttempts: user.loginAttempts,
         teams: user.Teams ? user.Teams.map(serializeTeam) : [],
-        organisationPopulated: user.Organisation,
+        organisationPopulated: user.Organisation
       };
     });
 
     return res.status(200).send({
       ok: true,
-      data,
+      data
     });
   })
 );
@@ -727,7 +727,7 @@ router.get(
     const users = await User.findAll({
       attributes: ["_id", "name"],
       where: { organisation: organisationId, deletedAt: { [Op.ne]: null } },
-      paranoid: false,
+      paranoid: false
     });
     return res.status(200).send({ ok: true, data: users });
   })
@@ -740,7 +740,7 @@ router.get(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.params);
     } catch (e) {
       const error = new Error(`Invalid request in get user by id: ${e}`);
@@ -752,7 +752,7 @@ router.get(
     query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
     if (!user) return res.status(404).send({ ok: false, error: "User not found" });
-    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
     return res.status(200).send({
       ok: true,
       data: {
@@ -772,8 +772,8 @@ router.get(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        team: team.map((t) => t._id),
-      },
+        team: team.map((t) => t._id)
+      }
     });
   })
 );
@@ -786,7 +786,7 @@ router.get(
     try {
       z.object({
         minimal: z.optional(z.literal("true")),
-        ...(req.user.role === "superadmin" ? { organisation: z.optional(z.string().regex(looseUuidRegex)) } : {}),
+        ...(req.user.role === "superadmin" ? { organisation: z.optional(z.string().regex(looseUuidRegex)) } : {})
       }).parse(req.query);
     } catch (e) {
       const error = new Error(`Invalid request in get users: ${e}`);
@@ -800,14 +800,14 @@ router.get(
 
     const users = await User.findAll({
       where: { organisation: organisationId },
-      include: includeTeams ? [{ model: Team, as: "Teams" }] : [],
+      include: includeTeams ? [{ model: Team, as: "Teams" }] : []
     });
 
     const data = users.map((user) => {
       if (req.user.role !== "admin" && req.user.role !== "superadmin") {
         return {
           name: user.name,
-          _id: user._id,
+          _id: user._id
         };
       } else if (req.query.minimal === "true") {
         return {
@@ -815,7 +815,7 @@ router.get(
           _id: user._id,
           lastLoginAt: user.lastLoginAt,
           createdAt: user.createdAt,
-          decryptAttempts: user.decryptAttempts,
+          decryptAttempts: user.decryptAttempts
         };
       }
 
@@ -836,7 +836,7 @@ router.get(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        teams: user.Teams ? user.Teams.map(serializeTeam) : [],
+        teams: user.Teams ? user.Teams.map(serializeTeam) : []
       };
     });
 
@@ -861,7 +861,7 @@ router.put(
         gaveFeedbackSep2025: z.optional(z.boolean()),
         team: z.optional(z.array(z.string().regex(looseUuidRegex))),
         ...(req.body.termsAccepted ? { termsAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
-        ...(req.body.cgusAccepted ? { cgusAccepted: z.preprocess((input) => new Date(input), z.date()) } : {}),
+        ...(req.body.cgusAccepted ? { cgusAccepted: z.preprocess((input) => new Date(input), z.date()) } : {})
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in put user by id: ${e}`);
@@ -905,9 +905,10 @@ router.put(
       const existingTeams = await Team.findAll({
         where: {
           organisation: user.organisation,
-          _id: { [Op.in]: team },
+          _id: { [Op.in]: team }
         },
-        transaction: tx,
+        order: [["createdAt", "ASC"]],
+        transaction: tx
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
@@ -932,8 +933,8 @@ router.put(
         lastChangePasswordAt: user.lastChangePasswordAt,
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
-        gaveFeedbackSep2025: user.gaveFeedbackSep2025,
-      },
+        gaveFeedbackSep2025: user.gaveFeedbackSep2025
+      }
     });
   })
 );
@@ -946,7 +947,7 @@ router.put(
     try {
       z.object({
         params: z.object({
-          _id: z.string().regex(looseUuidRegex),
+          _id: z.string().regex(looseUuidRegex)
         }),
         body: z.object({
           name: z.optional(z.string().min(1)),
@@ -955,8 +956,8 @@ router.put(
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
           role: z.optional(z.enum(["admin", "normal", "restricted-access", "stats-only"])),
-          ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
-        }),
+          ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {})
+        })
       }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in put user by id: ${e}`);
@@ -990,9 +991,10 @@ router.put(
       const existingTeams = await Team.findAll({
         where: {
           organisation: organisationId,
-          _id: { [Op.in]: team },
+          _id: { [Op.in]: team }
         },
-        transaction: tx,
+        order: [["createdAt", "ASC"]],
+        transaction: tx
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
@@ -1019,8 +1021,8 @@ router.put(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
-        team: (await user.getTeams({ raw: true, attributes: ["_id"] })).map((t) => t._id),
-      },
+        team: (await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] })).map((t) => t._id)
+      }
     });
   })
 );
@@ -1046,7 +1048,7 @@ const clearUserData = async (user) => {
     decryptAttempts: null,
     otp: null,
     lastOtpAt: null,
-    disabledAt: null,
+    disabledAt: null
   });
   return user;
 };
@@ -1062,7 +1064,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-me`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
     const query = { where: { _id: userId, organisation: req.user.organisation } };
@@ -1092,7 +1094,7 @@ router.delete(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.params);
     } catch (e) {
       const error = new Error(`Invalid request in delete user by id: ${e}`);
@@ -1107,7 +1109,7 @@ router.delete(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `delete-user-${userId}`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
     const query = { where: { _id: userId, role: { [Op.ne]: "superadmin" } } };
@@ -1138,7 +1140,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in generate token: ${e}`);
@@ -1168,7 +1170,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in release user: ${e}`);
@@ -1183,7 +1185,7 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `release-user-${_id}`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
     const query = { where: { _id } };
@@ -1195,7 +1197,7 @@ router.post(
     user.decryptAttempts = 0;
     user.nextLoginAttemptAt = null;
     await user.save();
-    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1216,8 +1218,8 @@ router.post(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        team: team.map((t) => t._id),
-      },
+        team: team.map((t) => t._id)
+      }
     });
   })
 );
@@ -1229,7 +1231,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in disable user: ${e}`);
@@ -1249,10 +1251,10 @@ router.post(
       user: req.user._id,
       platform: req.headers.platform === "android" ? "app" : req.headers.platform === "dashboard" ? "dashboard" : "unknown",
       action: `disable-user-${_id}`,
-      ...getClientInfo(req),
+      ...getClientInfo(req)
     });
 
-    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1272,8 +1274,8 @@ router.post(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        team: team.map((t) => t._id),
-      },
+        team: team.map((t) => t._id)
+      }
     });
   })
 );
@@ -1285,7 +1287,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in reactivate user: ${e}`);
@@ -1303,7 +1305,7 @@ router.post(
     user.lastLoginAt = new Date();
     user.lastDeactivationWarningAt = null;
     await user.save();
-    const team = await user.getTeams({ raw: true, attributes: ["_id"] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1324,8 +1326,8 @@ router.post(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        team: team.map((t) => t._id),
-      },
+        team: team.map((t) => t._id)
+      }
     });
   })
 );

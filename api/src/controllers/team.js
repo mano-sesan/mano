@@ -17,7 +17,12 @@ router.post(
       z.object({
         name: z.string(),
         nightSession: z.optional(z.boolean()),
-        color: z.optional(z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
+        color: z.optional(
+          z
+            .string()
+            .regex(/^#[0-9a-fA-F]{6}$/)
+            .nullable()
+        )
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in team creation: ${e}`);
@@ -39,7 +44,7 @@ router.get(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
-    const teams = await Team.findAll({ where: { organisation: req.user.organisation } });
+    const teams = await Team.findAll({ where: { organisation: req.user.organisation }, order: [["createdAt", "ASC"]] });
     return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
 );
@@ -51,7 +56,7 @@ router.get(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.params);
     } catch (e) {
       const error = new Error(`Invalid request in team get by id: ${e}`);
@@ -73,13 +78,18 @@ router.put(
     try {
       z.object({
         params: z.object({
-          _id: z.string().regex(looseUuidRegex),
+          _id: z.string().regex(looseUuidRegex)
         }),
         body: z.object({
           name: z.string(),
           nightSession: z.optional(z.boolean()),
-          color: z.optional(z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable()),
-        }),
+          color: z.optional(
+            z
+              .string()
+              .regex(/^#[0-9a-fA-F]{6}$/)
+              .nullable()
+          )
+        })
       }).parse(req);
     } catch (e) {
       const error = new Error(`Invalid request in team put: ${e}`);
@@ -110,7 +120,7 @@ router.delete(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        _id: z.string().regex(looseUuidRegex),
+        _id: z.string().regex(looseUuidRegex)
       }).parse(req.params);
     } catch (e) {
       const error = new Error(`Invalid request in team delete: ${e}`);
@@ -120,11 +130,11 @@ router.delete(
     const usersWithOnlyThisTeam = await RelUserTeam.findAll({
       attributes: [
         [sequelize.fn("COUNT", sequelize.col("team")), "teamCount"],
-        ["user", "user"],
+        ["user", "user"]
       ],
       group: ["user"],
       having: sequelize.literal("COUNT(team) = 1 AND bool_or(team = :teamId)"),
-      replacements: { teamId: req.params._id },
+      replacements: { teamId: req.params._id }
     });
     if (usersWithOnlyThisTeam.length > 0) {
       return res.status(400).send({ ok: false, error: "Impossible de supprimer l'équipe car certains utilisateurs n'ont que cette équipe." });
