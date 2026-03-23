@@ -49,6 +49,7 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await page.getByRole("button", { name: "Ajouter une rencontre" }).click();
   await changeReactSelectValue(page, "person", "Toto");
   await page.getByRole("button", { name: "Enregistrer" }).click();
+  await page.getByText("Rencontres enregistrées").click();
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   // Ajout d'un service
