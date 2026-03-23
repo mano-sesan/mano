@@ -60,6 +60,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passages enregistrés !").click();
 
+  await expect(page.getByRole("cell", { name: "ajout passage", exact: true })).toBeVisible();
   await page.getByRole("cell", { name: "ajout passage", exact: true }).click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage modification");
   await page.getByRole("button", { name: "Enregistrer" }).click();

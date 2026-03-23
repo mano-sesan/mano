@@ -52,11 +52,7 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   // Ajout d'un service
-  await page
-    .locator("div")
-    .filter({ hasText: /^Café-\+$/ })
-    .getByLabel("plus")
-    .click();
+  await page.locator('[id="Café-add"]').click();
 
   // Ajout d'une observation
   await page.getByRole("button", { name: "Passer les observations en" }).click();
