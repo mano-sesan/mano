@@ -63,7 +63,6 @@ const Passage = ({ passage, personId, onFinished }) => {
           if (body.anonymous && !body.anonymousNumberOfPassages) return toast.error("Veuillez spécifier le nombre de passages anonymes");
           let noPerson = !body.persons?.length && !body.person?.length;
           if (!body.anonymous && noPerson && !isEditingAnonymous) {
-            console.log("Veuillez spécifier une personne");
             return toast.error("Veuillez spécifier une personne");
           }
 

@@ -23,7 +23,7 @@ import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { getTeamColors } from "./TagTeam";
 import MenuUser from "./MenuUser";
-import { isDrawerCollapsedState, showDrawerState } from "../utils/drawerState";
+import { isDrawerCollapsedState, showDrawerState } from "../atoms/drawerState";
 
 const Drawer = () => {
   const user = useAtomValue(userState);
@@ -150,13 +150,17 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" && !onboardingForTeams && !collapsed && (
-          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
-            <li>
-              <AddPersons />
-            </li>
-          </div>
-        )}
+        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
+          !onboardingForTeams &&
+          !collapsed &&
+          ["admin"].includes(role) &&
+          isDesktop && (
+            <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+              <li>
+                <AddPersons />
+              </li>
+            </div>
+          )}
         <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
           <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">

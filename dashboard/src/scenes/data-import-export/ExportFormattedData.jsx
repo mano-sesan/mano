@@ -263,7 +263,6 @@ export default function ExportFormattedData({ personCreated, personUpdated, acti
 
       <MenuItems
         as="div"
-        s
         anchor="top"
         transition
         className={`tw-absolute tw-right-0 tw-z-50 tw-mt-2 ${user.healthcareProfessional ? "tw-w-72" : "tw-w-56"} tw-origin-top-right tw-rounded-md tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black tw-ring-opacity-5 focus:tw-outline-none data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95 tw-transition`}
