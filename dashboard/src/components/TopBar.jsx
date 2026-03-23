@@ -30,7 +30,7 @@ const TopBar = ({ onLogoClick }) => {
     <div className="tw-hidden tw-w-full sm:tw-block">
       <aside
         className="noprint tw-flex tw-w-full tw-shrink-0 tw-items-center tw-justify-between tw-bg-[#E1E3E3] print:tw-relative print:tw-hidden tw-py-2"
-        title="Rafraîchir les données, afficher les notifications, nom de l'organisation, compteur de session, bouton de déconnexion"
+        aria-label="Barre d'outils"
       >
         <div className="tw-hidden tw-flex-1 lg:tw-flex tw-items-center tw-justify-center tw-absolute tw-left-0 tw-right-0">
           <div className="tw-flex tw-items-center tw-justify-center tw-bg-white tw-rounded-full tw-p-0.5 tw-border-2 tw-border-main tw-relative">
