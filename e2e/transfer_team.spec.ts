@@ -27,9 +27,8 @@ test("Transfer team", async ({ page }) => {
   // Personne suivie
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("button", { name: "Créer une personne" }).click();
+  await changeReactSelectValue(page, "person-select-assigned-team", "ancienne");
   await page.getByLabel("Nom").fill("personne test");
-  await page.locator(".person-select-assigned-team__input-container").click();
-  await page.locator(".person-select-assigned-team__menu").getByText("ancienne", { exact: true }).click();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
   // Action avec commentaire

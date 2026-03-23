@@ -11,7 +11,7 @@ module.exports = (app) => {
       if (!token) token = req.cookies.jwt;
       return token;
     },
-    secretOrKey: SECRET,
+    secretOrKey: SECRET
   };
 
   passport.use(
@@ -29,7 +29,7 @@ module.exports = (app) => {
             if (!org || org.disabledAt) return done(null, false);
           }
 
-          const t = await user.getTeams();
+          const t = await user.getTeams({ order: [["createdAt", "ASC"]] });
           const teams = t.map((t) => t.toJSON());
           return done(null, { ...user.toJSON(), teams });
         }
