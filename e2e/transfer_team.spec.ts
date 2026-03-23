@@ -24,12 +24,10 @@ test("Transfer team", async ({ page }) => {
   await page.getByText("Non").click();
   await page.getByRole("button", { name: "Créer", exact: true }).click();
   await page.getByText("Création réussie !").click();
-  // now the current team is ancienne because teams are sorted by name when a new team is created
   // Personne suivie
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("button", { name: "Créer une personne" }).click();
-  // default assigned team is current team : anciennce
-  // await clickOnEmptyReactSelect(page, "person-select-assigned-team", "ancienne");
+  await changeReactSelectValue(page, "person-select-assigned-team", "ancienne");
   await page.getByLabel("Nom").fill("personne test");
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Création réussie !").click();
