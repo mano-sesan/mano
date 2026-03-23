@@ -96,11 +96,10 @@ const Passage = ({ passage, personId, onFinished }) => {
                 }
               }
             } else {
-              let person = body.person || body.persons?.[0];
               const [passageError] = await tryFetchExpectOk(async () =>
                 API.post({
                   path: "/passage",
-                  body: await encryptPassage({ ...newPassage, person }),
+                  body: await encryptPassage({ ...newPassage, person: body.person }),
                 })
               );
               if (passageError) {

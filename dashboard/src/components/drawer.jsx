@@ -93,7 +93,7 @@ const Drawer = () => {
         >
           {!["superadmin"].includes(user.role) && <TeamSelector />}
           <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
+          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
           </div>
@@ -141,7 +141,7 @@ const Drawer = () => {
             <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />
           </div>
         )}
-        <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+        <div className="tw-my-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
           {["admin"].includes(role) && isDesktop && (
             <>
               <NavItem to={`/organisation/${organisation._id}`} icon={BuildingOfficeIcon} label="Organisation" id="show-on-onboarding" />
@@ -150,20 +150,20 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
+        {/* {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
           !onboardingForTeams &&
           !collapsed &&
           ["admin"].includes(role) &&
           isDesktop && (
-            <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+            <div className="tw-mb-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
               <li>
                 <AddPersons />
               </li>
             </div>
-          )}
+          )} */}
         <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.5rem] tw-text-main">
+          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
             <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
@@ -192,7 +192,7 @@ const Drawer = () => {
           type="button"
           aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
           aria-expanded={!isCollapsed}
-          className="tw-absolute tw-top-12 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
+          className="tw-absolute tw-top-5 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
           style={{ left: isCollapsed ? "4rem" : "14rem" }}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >

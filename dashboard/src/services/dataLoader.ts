@@ -40,6 +40,7 @@ import structuredClone from "@ungap/structured-clone";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
+export const modalCacheOpenState = atom(false);
 export const fullScreenState = atom(true);
 export const progressState = atom(-1);
 export const totalState = atom(-1);
@@ -77,6 +78,7 @@ function setPerTabLastRefresh(value: number) {
 }
 
 export function useDataLoader(options = { refreshOnMount: false }) {
+  const [modalCacheOpen, setModalCacheOpen] = useAtom(modalCacheOpenState);
   const [fullScreen, setFullScreen] = useAtom(fullScreenState);
   const [isLoading, setIsLoading] = useAtom(isLoadingState);
   const setLoadingText = useSetAtom(loadingTextState);
@@ -734,6 +736,28 @@ export function useDataLoader(options = { refreshOnMount: false }) {
     return false;
   }
 
+  function resetCacheAndLogout() {
+    // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
+    setModalCacheOpen(true);
+    // Logout first, then clear cache:
+    // clearing cache wipes IndexedDB for all tabs; other tabs might still be active and could refresh
+    // during that window. Logging out first reduces the chance of another tab re-advancing the cursor
+    // while the shared cache is empty.
+    logout()
+      .catch(() => {
+        // Even if logout fails, we still want to clear local data to recover from corrupted cache.
+      })
+      .then(() => clearCache("resetCacheAndLogout"))
+      .then(() => {
+        // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
+        // Il n'a donc aucune utilité d'un point de vue code.
+        setTimeout(() => {
+          window.localStorage.removeItem("previously-logged-in");
+          window.location.href = "/auth";
+        }, 1000);
+      });
+  }
+
   const cleanupLoader = () => {
     setProgress(-1);
     setTotal(-1);
@@ -756,6 +780,8 @@ export function useDataLoader(options = { refreshOnMount: false }) {
           capture(error);
         }),
     cleanupLoader,
+    resetCacheAndLogout,
+    modalCacheOpen: Boolean(modalCacheOpen),
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
   };

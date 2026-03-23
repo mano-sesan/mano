@@ -12,11 +12,10 @@ import SessionCountDownLimiter from "./SessionCountDownLimiter";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 const TopBar = ({ onLogoClick }) => {
-  const [modalCacheOpen, setModalCacheOpen] = useState(false);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
 
-  const { refresh, isLoading } = useDataLoader();
+  const { refresh, isLoading, resetCacheAndLogout } = useDataLoader();
 
   const handleRefresh = () => {
     if (onLogoClick) {
@@ -25,28 +24,6 @@ const TopBar = ({ onLogoClick }) => {
       refresh();
     }
   };
-
-  function resetCacheAndLogout() {
-    // On affiche une fenêtre pendant notre vidage du cache pour éviter toute manipulation de la part des utilisateurs.
-    setModalCacheOpen(true);
-    // Logout first, then clear cache:
-    // clearing cache wipes IndexedDB for all tabs; other tabs might still be active and could refresh
-    // during that window. Logging out first reduces the chance of another tab re-advancing the cursor
-    // while the shared cache is empty.
-    logout()
-      .catch(() => {
-        // Even if logout fails, we still want to clear local data to recover from corrupted cache.
-      })
-      .then(() => clearCache("resetCacheAndLogout"))
-      .then(() => {
-        // On met un timeout pour laisser le temps aux personnes de lire si jamais ça va trop vite.
-        // Il n'a donc aucune utilité d'un point de vue code.
-        setTimeout(() => {
-          window.localStorage.removeItem("previously-logged-in");
-          window.location.href = "/auth";
-        }, 1000);
-      });
-  }
 
   return (
     <div className="tw-hidden tw-w-full sm:tw-block">
@@ -85,7 +62,6 @@ const TopBar = ({ onLogoClick }) => {
           <UnBugButton onResetCacheAndLogout={resetCacheAndLogout} />
         </div>
       </aside>
-      {modalCacheOpen ? <ModalCacheResetLoader /> : null}
     </div>
   );
 };

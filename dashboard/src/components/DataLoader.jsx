@@ -2,7 +2,8 @@ import { useAtomValue } from "jotai";
 
 import { RandomPicture, RandomPicturePreloader } from "./LoaderRandomPicture";
 import ProgressBar from "./LoaderProgressBar";
-import { fullScreenState, isLoadingState, loadingTextState, progressState, totalState } from "../services/dataLoader";
+import { fullScreenState, isLoadingState, loadingTextState, progressState, totalState, modalCacheOpenState } from "../services/dataLoader";
+import ModalCacheResetLoader from "./ModalCacheResetLoader";
 
 export default function DataLoader() {
   const isLoading = useAtomValue(isLoadingState);
@@ -10,7 +11,11 @@ export default function DataLoader() {
   const loadingText = useAtomValue(loadingTextState);
   const progress = useAtomValue(progressState);
   const total = useAtomValue(totalState);
+  const modalCacheOpen = useAtomValue(modalCacheOpenState);
 
+  console.log("modalCacheOpen", modalCacheOpen);
+
+  if (modalCacheOpen) return <ModalCacheResetLoader />;
   if (!isLoading) return <RandomPicturePreloader />;
   if (!total && !fullScreen) return null;
 
