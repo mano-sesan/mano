@@ -8,6 +8,12 @@ test.beforeAll(async () => {
 });
 test.setTimeout(90000);
 
+test.use({
+  launchOptions: {
+    slowMo: 300,
+  },
+});
+
 test("test", async ({ page }) => {
   /* ************************************************************************* */
   /* ****** PARTIE 1 TEST ADMIN 1 PASSAGE ACTIVE ET RENCONTRE DESACTIVE ****** */
