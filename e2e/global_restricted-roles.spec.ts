@@ -32,8 +32,7 @@ test("test restricted accesses", async ({ page }) => {
     await page.getByText("Création réussie !").click();
 
     await page.getByRole("button", { name: "Modifier" }).click();
-    await page.locator(".person-select-gender__value-container").click();
-    await page.locator("#react-select-gender-option-1").click();
+    await clickOnEmptyReactSelect(page, "person-select-gender", "Homme");
     await page.getByLabel("Date de naissance").fill("2001-11-11");
     await page.getByLabel("En rue depuis le").fill("2001-11-12");
     await page.getByLabel("Suivi(e) depuis le / Créé(e) le").fill("2001-11-13");
