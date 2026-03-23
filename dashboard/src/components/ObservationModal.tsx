@@ -108,11 +108,10 @@ function ObservationContent({
   const { refresh } = useDataLoader();
   const observation = modalObservation.observation;
   const rencontresInProgress = modalObservation.rencontresInProgress;
-  const showDocumentsTab = !DISABLED_FEATURES["observation-documents"];
   const resolvedActiveTab =
     activeTab === "_rencontres" || activeTab === "_documents" || (activeTab && fieldsGroupNames.includes(activeTab))
       ? activeTab
-      : fieldsGroupNames[0] || (organisation.rencontresEnabled ? "_rencontres" : showDocumentsTab ? "_documents" : undefined);
+      : fieldsGroupNames[0] || (organisation.rencontresEnabled ? "_rencontres" : "_documents");
 
   const rencontresForObs = useMemo(() => {
     return rencontres?.filter((r) => observation?._id && r.observation === observation?._id) || [];
@@ -277,27 +276,25 @@ function ObservationContent({
                   </button>
                 </li>
               )}
-              {showDocumentsTab && (
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab("_documents");
-                    }}
-                    className={[
-                      resolvedActiveTab === "_documents" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
-                      "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    Documents{" "}
-                    {observation.documents?.filter((d) => d.type !== "folder")?.length
-                      ? `(${observation.documents.filter((d) => d.type !== "folder").length})`
-                      : ""}
-                  </button>
-                </li>
-              )}
+              <li>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("_documents");
+                  }}
+                  className={[
+                    resolvedActiveTab === "_documents" ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
+                    "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  Documents{" "}
+                  {observation.documents?.filter((d) => d.type !== "folder")?.length
+                    ? `(${observation.documents.filter((d) => d.type !== "folder").length})`
+                    : ""}
+                </button>
+              </li>
             </ul>
           </nav>
           <form
@@ -315,7 +312,7 @@ function ObservationContent({
                   ))}
                 </div>
               ))}
-              {resolvedActiveTab === "_documents" && showDocumentsTab && (
+              {resolvedActiveTab === "_documents" && (
                 <DocumentsListSimple
                   uploadBasePath={observation.territory ? `/territory/${observation.territory}/document` : undefined}
                   showAssociatedItem={false}

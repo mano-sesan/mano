@@ -133,81 +133,77 @@ export default function ExportFiles() {
             }
 
             // Export territory direct documents
-            if (!DISABLED_FEATURES["observation-documents"]) {
-              for (const territory of territories) {
-                const territoryDocs = territory.documents?.filter((d): d is Document => d.type === "document");
-                if (!territoryDocs?.length) continue;
+            for (const territory of territories) {
+              const territoryDocs = territory.documents?.filter((d): d is Document => d.type === "document");
+              if (!territoryDocs?.length) continue;
 
-                const folderName = `Territoires/${territory.name}`;
-                for (const doc of territoryDocs) {
-                  const [error, blob] = await tryFetchBlob(() => {
-                    return API.download({ path: doc.downloadPath });
-                  });
-                  if (error) {
-                    toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document de territoire");
-                    setIsDownloading(false);
-                    return;
-                  }
+              const folderName = `Territoires/${territory.name}`;
+              for (const doc of territoryDocs) {
+                const [error, blob] = await tryFetchBlob(() => {
+                  return API.download({ path: doc.downloadPath });
+                });
+                if (error) {
+                  toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document de territoire");
+                  setIsDownloading(false);
+                  return;
+                }
+                try {
+                  const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
+                  await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                } catch (err) {
                   try {
-                    const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
-                    await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                    console.error("Une erreur est survenue lors du déchiffrement d'un document de territoire", err);
+                    await zipWriter.add(
+                      `${folderName}/${doc.name}.txt`,
+                      new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
+                    );
                   } catch (err) {
-                    try {
-                      console.error("Une erreur est survenue lors du déchiffrement d'un document de territoire", err);
-                      await zipWriter.add(
-                        `${folderName}/${doc.name}.txt`,
-                        new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
-                      );
-                    } catch (err) {
-                      console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
-                    }
+                    console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
                   }
                 }
               }
             }
 
             // Export observation documents
-            if (!DISABLED_FEATURES["observation-documents"]) {
-              const territoriesMap = territories.reduce(
-                (map, t) => {
-                  map[t._id] = t.name;
-                  return map;
-                },
-                {} as Record<string, string>
-              );
+            const territoriesMap = territories.reduce(
+              (map, t) => {
+                map[t._id] = t.name;
+                return map;
+              },
+              {} as Record<string, string>
+            );
 
-              const obsWithDocs = territoryObservations.filter((obs) => obs.documents?.some((d) => d.type === "document"));
-              for (let obsIdx = 0; obsIdx < obsWithDocs.length; obsIdx++) {
-                const obs = obsWithDocs[obsIdx];
-                const obsDocs = obs.documents?.filter((d): d is Document => d.type === "document");
-                if (!obsDocs?.length) continue;
+            const obsWithDocs = territoryObservations.filter((obs) => obs.documents?.some((d) => d.type === "document"));
+            for (let obsIdx = 0; obsIdx < obsWithDocs.length; obsIdx++) {
+              const obs = obsWithDocs[obsIdx];
+              const obsDocs = obs.documents?.filter((d): d is Document => d.type === "document");
+              if (!obsDocs?.length) continue;
 
-                const territoryName = territoriesMap[obs.territory] || "Territoire inconnu";
-                const date = dayjsInstance(obs.observedAt || obs.createdAt).format("YYYY-MM-DD HHmm");
-                const folderName = `Observations/${territoryName} - ${date}`;
+              const territoryName = territoriesMap[obs.territory] || "Territoire inconnu";
+              const date = dayjsInstance(obs.observedAt || obs.createdAt).format("YYYY-MM-DD HHmm");
+              const folderName = `Observations/${territoryName} - ${date}`;
 
-                for (const doc of obsDocs) {
-                  const [error, blob] = await tryFetchBlob(() => {
-                    return API.download({ path: doc.downloadPath });
-                  });
-                  if (error) {
-                    toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document d'observation");
-                    setIsDownloading(false);
-                    return;
-                  }
+              for (const doc of obsDocs) {
+                const [error, blob] = await tryFetchBlob(() => {
+                  return API.download({ path: doc.downloadPath });
+                });
+                if (error) {
+                  toast.error(errorMessage(error) || "Une erreur est survenue lors du téléchargement d'un document d'observation");
+                  setIsDownloading(false);
+                  return;
+                }
+                try {
+                  const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
+                  await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                } catch (err) {
                   try {
-                    const file = await decryptFile(blob, doc.encryptedEntityKey, getHashedOrgEncryptionKey());
-                    await zipWriter.add(`${folderName}/${doc.name}`, new BlobReader(file));
+                    console.error("Une erreur est survenue lors du déchiffrement d'un document d'observation", err);
+                    await zipWriter.add(
+                      `${folderName}/${doc.name}.txt`,
+                      new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
+                    );
                   } catch (err) {
-                    try {
-                      console.error("Une erreur est survenue lors du déchiffrement d'un document d'observation", err);
-                      await zipWriter.add(
-                        `${folderName}/${doc.name}.txt`,
-                        new BlobReader(new Blob(["Erreur lors du déchiffrement"], { type: "text/plain" }))
-                      );
-                    } catch (err) {
-                      console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
-                    }
+                    console.error("Une erreur est survenue pendant le traitement de l'erreur de déchiffrement", err);
                   }
                 }
               }

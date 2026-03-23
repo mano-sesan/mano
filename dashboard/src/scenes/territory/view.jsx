@@ -163,11 +163,9 @@ const View = () => {
           </div>
 
           {/* Right: documents */}
-          {!DISABLED_FEATURES["observation-documents"] && (
-            <div className="tw-w-96 tw-shrink-0 tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-overflow-hidden">
-              <TerritoryDocuments territory={territory} observations={observations} />
-            </div>
-          )}
+          <div className="tw-w-96 tw-shrink-0 tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow tw-overflow-hidden">
+            <TerritoryDocuments territory={territory} observations={observations} />
+          </div>
         </div>
 
         {/* Observations section */}
