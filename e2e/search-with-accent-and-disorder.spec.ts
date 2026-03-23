@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { deleteAllPersons, populate } from "./scripts/populate-db";
-import { loginWith } from "./utils";
+import { clickOnOpenedReactSelectValue, loginWith } from "./utils";
 
 test.beforeAll(async () => {
   await populate();
@@ -42,7 +42,7 @@ test("search in reception and user list using different order and accent", async
   await page.getByRole("link", { name: "Accueil" }).click();
   await page.locator(".person-select-and-create-reception__input-container").click();
   await page.locator("#person-select-and-create-reception").fill("qsdfghç azertyé");
-  await page.locator("#react-select-10-option-0").getByText("azertyé qsdfghç").click();
+  await clickOnOpenedReactSelectValue(page, "person-select-and-create-reception", "azertyé qsdfghç");
   await page.locator("#person-select-and-create-reception").fill("az");
-  await page.locator("#react-select-10-option-1").getByText("azertyé wxcvbn").click();
+  await clickOnOpenedReactSelectValue(page, "person-select-and-create-reception", "azertyé wxcvbn");
 });

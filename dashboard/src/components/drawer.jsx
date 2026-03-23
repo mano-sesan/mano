@@ -211,7 +211,7 @@ function TeamSelector() {
   const isDrawerCollapsed = useAtomValue(isDrawerCollapsedState);
 
   return (
-    <Menu as="div" className="tw-relative tw-w-full">
+    <Menu as="div" className="tw-relative tw-w-full" id="team-selector">
       <MenuButton
         style={{
           backgroundColor: backgroundColor,

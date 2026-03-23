@@ -14,7 +14,7 @@ test.beforeAll(async () => {
 // Le but de ce test est de vérifier qu'on ne peut pas déverrouiller avec n'importe quelle clé
 test("Verrouiller et déverrouiller la session", async ({ page }) => {
   await loginWith(page, "admin4@example.org");
-  await page.getByRole("button", { name: "Verrouiller/Recharger" }).click();
+  await page.getByLabel("Verrouiller/Recharger").click();
   await page.locator("#orgEncryptionKey").pressSequentially("pas la bonne");
   await page.getByRole("button", { name: "Se reconnecter" }).click();
   await page.getByText("Clé de chiffrement invalide").click();

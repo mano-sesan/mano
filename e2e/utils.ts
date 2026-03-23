@@ -15,6 +15,15 @@ export async function changeReactSelectValue(page: Page, name: string, text: str
   await page.locator(`.${name}__menu`).getByText(text, { exact: true }).click();
 }
 
+export async function clickOnOpenedReactSelectValue(page: Page, name: string, text: string) {
+  await page.locator(`.${name}__menu`).getByText(text, { exact: true }).click();
+}
+
+export async function changeTeamSelectorValue(page: Page, text: string) {
+  await page.locator(`#team-selector`).click();
+  await page.getByRole("menuitem", { name: text }).click();
+}
+
 export async function loginWith(page: Page, email: string, password: string = "secret", orgKey: string = "plouf") {
   // Le goto peut échouer avec NS_BINDING_ABORTED si une navigation est déjà en cours
   // (ex: redirect après "Se déconnecter"), on catch et on attend que la page se stabilise.

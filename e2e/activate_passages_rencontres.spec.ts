@@ -55,10 +55,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "Anonyme" })).toBeVisible();
   await expect(page.getByRole("dialog", { name: "Passages (3)" }).getByRole("cell", { name: "test passage", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Ajouter un passage" }).click();
-  await page.locator(".person__dropdown-indicator").click();
-  await page.locator("#react-select-persons-option-0").click();
-  // await page.locator(".person__dropdown-indicator").click();
-  // await page.locator("#react-select-persons-option-0").click();
+  await clickOnEmptyReactSelect(page, "person", "test1");
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passages enregistrés !").click();
@@ -67,8 +64,9 @@ test("test", async ({ page }) => {
   await page.getByRole("dialog").getByLabel("Commentaire").fill("ajout passage modification");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Passage mis à jour").click();
-  await page.getByText("Fermer").nth(1).click();
-  await page.getByRole("button", { name: "Enregistrer" }).click(); /* ***** statistiques ***** */
+  await page.getByRole("button", { name: "Fermer" }).first().click();
+
+  /* ***** statistiques ***** */
 
   await page.getByRole("link", { name: "Statistiques" }).click();
   await page.getByRole("button", { name: "Passages", exact: true }).click();
@@ -134,8 +132,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Passer les rencontres en plein écran" }).click();
   await page.getByRole("button", { name: "Ajouter une rencontre" }).click();
   await page.getByRole("dialog").getByLabel("Commentaire").fill("test ajoute nouvelle rencontre");
-  await page.locator(".person__dropdown-indicator").click();
-  await page.locator("#react-select-persons-option-0").click();
+  await clickOnEmptyReactSelect(page, "person", "testrencontres");
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByRole("cell", { name: "test ajoute nouvelle rencontre", exact: true }).click();
   page.once("dialog", (dialog) => {
@@ -145,7 +142,7 @@ test("test", async ({ page }) => {
 
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.getByText("Rencontre mise à jour").click();
-  await page.getByText("Fermer").click();
+  await page.getByRole("button", { name: "Fermer" }).first().click();
 
   /* ***** statistiques ***** */
 

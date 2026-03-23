@@ -15,7 +15,7 @@ import { encryptRencontre } from "../atoms/rencontres";
 import SelectAndCreatePerson from "./SelectAndCreatePerson";
 import { useDataLoader } from "../services/dataLoader";
 
-const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToPerson = false }) => {
+const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToPerson = false, calledFrom = undefined }) => {
   const user = useAtomValue(userState);
   const teams = useAtomValue(teamsState);
   const currentTeam = useAtomValue(currentTeamState);
@@ -61,6 +61,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           anonymousNumberOfRencontres: 1,
           persons: rencontre?.person ? [rencontre.person] : rencontre?.persons ? rencontre?.persons : [],
         }}
+        enableReinitialize
         onSubmit={async (body, actions) => {
           if (!body.user) return toast.error("L'utilisateur est obligatoire");
           if (!body.date) return toast.error("La date est obligatoire");

@@ -64,6 +64,7 @@ const SessionCountDownLimiter = () => {
           resetOrgEncryptionKey();
           setReloadModalOpen(true);
         }}
+        aria-label="Verrouiller/Recharger"
         className={[
           "button-link !tw-m-0 !tw-justify-start !tw-p-0",
           remainingSession < warnBeforeEndOfSession ? "!tw-font-bold !tw-text-red-500" : "",
