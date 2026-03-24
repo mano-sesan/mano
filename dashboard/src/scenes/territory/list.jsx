@@ -54,15 +54,17 @@ const List = () => {
   const territoryObservations = useAtomValue(onlyFilledObservationsTerritories);
   const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
+  const [showArchived, setShowArchived] = useState(false);
 
   const filteredTerritories = useMemo(() => {
-    if (!search.length) return [...territories].sort(sortTerritories(sortBy, sortOrder));
-    const territoriesIdsByTerritoriesSearch = filterBySearch(search, territories).map((t) => t._id);
+    const visibleTerritories = showArchived ? territories : territories.filter((t) => !t.archivedAt);
+    if (!search.length) return [...visibleTerritories].sort(sortTerritories(sortBy, sortOrder));
+    const territoriesIdsByTerritoriesSearch = filterBySearch(search, visibleTerritories).map((t) => t._id);
     const territoriesIdsFilteredByObsSearch = filterBySearch(search, territoryObservations).map((obs) => obs.territory);
 
     const territoriesIdsFilterBySearch = [...new Set([...territoriesIdsByTerritoriesSearch, ...territoriesIdsFilteredByObsSearch])];
-    return territories.filter((t) => territoriesIdsFilterBySearch.includes(t._id)).sort(sortTerritories(sortBy, sortOrder));
-  }, [territoryObservations, territories, search, sortBy, sortOrder]);
+    return visibleTerritories.filter((t) => territoriesIdsFilterBySearch.includes(t._id)).sort(sortTerritories(sortBy, sortOrder));
+  }, [territoryObservations, territories, search, sortBy, sortOrder, showArchived]);
 
   const limit = 20;
   const data = useMemo(
@@ -96,6 +98,10 @@ const List = () => {
               setPage(0);
             }}
           />
+          <label className="tw-ml-4 tw-flex tw-shrink-0 tw-items-center tw-gap-2 tw-text-sm tw-cursor-pointer">
+            <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+            Afficher les archivés
+          </label>
         </div>
       </div>
       <Table
@@ -115,6 +121,7 @@ const List = () => {
               return (
                 <div className="[overflow-wrap:anywhere]">
                   <b>{territory.name}</b>
+                  {territory.archivedAt && <span className="tw-ml-2 tw-text-xs tw-text-amber-600">(archivé)</span>}
                   <div className="tw-text-xs tw-text-gray-500">{territory.observations.length} observations</div>
                 </div>
               );
@@ -249,13 +256,24 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
               <div className="tw-flex tw-flex-wrap -tw-mx-2">
                 <div className="tw-w-full md:tw-w-1/2 tw-px-2">
                   <div className="tw-mb-4">
-                    <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Nom</label>
-                    <input autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="name" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                      Nom
+                    </label>
+                    <input
+                      autoComplete="off"
+                      name="name"
+                      id="name"
+                      value={values.name}
+                      onChange={handleChange}
+                      className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main"
+                    />
                   </div>
                 </div>
                 <div className="tw-w-full md:tw-w-1/2 tw-px-2">
                   <div className="tw-mb-4">
-                    <label htmlFor="territory-select-types" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Types</label>
+                    <label htmlFor="territory-select-types" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                      Types
+                    </label>
                     <SelectCustom
                       options={territoryTypes.map((_option) => ({ value: _option, label: _option }))}
                       name="types"
@@ -272,14 +290,32 @@ export function TerritoryModal({ open, setOpen, territory = {} }) {
                 </div>
                 <div className="tw-w-full md:tw-w-1/2 tw-px-2">
                   <div className="tw-mb-4">
-                    <label htmlFor="description" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Description</label>
-                    <textarea name="description" id="description" value={values.description} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="description" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      id="description"
+                      value={values.description}
+                      onChange={handleChange}
+                      rows={3}
+                      className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main"
+                    />
                   </div>
                 </div>
                 <div className="tw-w-full md:tw-w-1/2 tw-px-2">
                   <div className="tw-mb-4">
-                    <label htmlFor="perimeter" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">Périmètre</label>
-                    <textarea name="perimeter" id="perimeter" value={values.perimeter} onChange={handleChange} rows={3} className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main" />
+                    <label htmlFor="perimeter" className="tw-block tw-text-base tw-font-normal tw-text-gray-700 tw-mb-2">
+                      Périmètre
+                    </label>
+                    <textarea
+                      name="perimeter"
+                      id="perimeter"
+                      value={values.perimeter}
+                      onChange={handleChange}
+                      rows={3}
+                      className="tw-block tw-w-full tw-rounded tw-border tw-border-gray-300 tw-px-3 tw-py-1.5 tw-text-base focus:tw-border-main focus:tw-ring-main"
+                    />
                   </div>
                 </div>
               </div>

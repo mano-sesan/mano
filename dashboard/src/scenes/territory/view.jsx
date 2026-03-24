@@ -61,7 +61,8 @@ const View = () => {
           <h2 className="tw-text-2xl tw-font-bold tw-mb-0">{territory.name}</h2>
           {!["restricted-access"].includes(user.role) && (
             <div className="tw-flex tw-items-center tw-gap-2">
-              <button type="button"
+              <button
+                type="button"
                 className="button-submit !tw-bg-blue-900"
                 onClick={() => {
                   setActiveTab("Observations");
@@ -71,7 +72,8 @@ const View = () => {
               >
                 Statistiques
               </button>
-              <button type="button"
+              <button
+                type="button"
                 className="button-submit"
                 onClick={() => {
                   setModalOpen(true);
@@ -80,13 +82,48 @@ const View = () => {
                 Modifier
               </button>
               {canTransferTerritory && (
-                <button type="button"
+                <button
+                  type="button"
                   className="button-classic"
                   onClick={() => {
                     setIsTransferModalOpen(true);
                   }}
                 >
                   Transférer
+                </button>
+              )}
+              {!territory.archivedAt ? (
+                <button
+                  type="button"
+                  className="button-classic"
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        `Voulez-vous archiver le territoire « ${territory.name} » ? Il n'apparaîtra plus dans la liste mais ses observations seront conservées dans les statistiques.`
+                      )
+                    )
+                      return;
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: `/territory/${id}/archive` }));
+                    if (error) return toast.error(errorMessage(error));
+                    await refresh();
+                    toast.success("Territoire archivé");
+                    history.goBack();
+                  }}
+                >
+                  Archiver
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="button-submit"
+                  onClick={async () => {
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: `/territory/${id}/unarchive` }));
+                    if (error) return toast.error(errorMessage(error));
+                    await refresh();
+                    toast.success("Territoire désarchivé");
+                  }}
+                >
+                  Désarchiver
                 </button>
               )}
               <DeleteButtonAndConfirmModal
@@ -204,7 +241,8 @@ const View = () => {
         </ModalBody>
         <ModalFooter>
           <div>
-            <button type="button"
+            <button
+              type="button"
               className="button-destructive"
               onClick={() => {
                 setIsTransferModalOpen(false);
@@ -212,7 +250,8 @@ const View = () => {
             >
               Annuler
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="button-submit"
               disabled={!transferSelectedTerritory}
               onClick={() => {
