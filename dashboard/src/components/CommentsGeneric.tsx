@@ -55,6 +55,7 @@ interface Comment {
   treatment?: { _id: string };
   isMedicalCommentShared?: boolean;
   organisation?: string;
+  actionPopulated?: { name?: string; categories?: string[] };
 }
 
 interface CommentsModuleProps {
@@ -109,7 +110,8 @@ export function CommentsModule({
               {title} {comments.length ? `(${comments.length})` : ""}
             </h4>
             <div className="flex-col tw-flex tw-items-center tw-gap-2">
-              <button type="button"
+              <button
+                type="button"
                 aria-label="Ajouter un commentaire"
                 className={`tw-text-md tw-h-8 tw-w-8 tw-rounded-full ${COLOR_CLASSES[color].bg} tw-font-bold tw-text-white tw-transition hover:tw-scale-125`}
                 onClick={() => setModalCreateOpen(true)}
@@ -117,7 +119,8 @@ export function CommentsModule({
                 ＋
               </button>
               {Boolean(comments.length) && (
-                <button type="button"
+                <button
+                  type="button"
                   title="Passer les commentaires en plein écran"
                   className={`tw-h-6 tw-w-6 tw-rounded-full ${COLOR_CLASSES[color].text} tw-transition hover:tw-scale-125`}
                   onClick={() => setFullScreen(true)}
@@ -444,6 +447,11 @@ function CommentsTable({
                           <button
                             type="button"
                             className={`tw-ml-auto tw-block ${comment.isMedicalCommentShared ? "!tw-cursor-not-allowed" : ""}`}
+                            title={
+                              comment.type === "action" && comment.actionPopulated
+                                ? [comment.actionPopulated.name, comment.actionPopulated.categories?.join(", ")].filter(Boolean).join("\n")
+                                : ""
+                            }
                             onClick={(e) => {
                               e.stopPropagation();
                               const searchParams = new URLSearchParams(location.search);

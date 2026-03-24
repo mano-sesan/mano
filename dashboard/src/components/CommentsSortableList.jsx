@@ -225,10 +225,10 @@ export default function CommentsSortableList({
           <>
             <p>
               {comment.type === "action" && (
-                <>
+                <span title={[comment.actionPopulated?.name, comment.actionPopulated?.categories?.join(", ")].filter(Boolean).join("\n")}>
                   Action <b>{comment.actionPopulated?.name} </b>
                   pour{" "}
-                </>
+                </span>
               )}
               {comment.type === "treatment" && <>Traitement pour </>}
               {comment.type === "passage" && <>Passage pour </>}
