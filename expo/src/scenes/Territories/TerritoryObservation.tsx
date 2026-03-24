@@ -459,7 +459,7 @@ const TerritoryObservation = ({
               <View key="documents" className="mb-4">
                 <Label label="Document(s)" />
                 <DocumentsManager
-                  defaultParent="root"
+                  defaultParent="observations"
                   editable={editable}
                   uploadPath={`/territory/${route.params.territory._id}/document`}
                   onAddDocument={(doc: any) => onChange({ documents: [...(obs.documents || []), doc] })}
