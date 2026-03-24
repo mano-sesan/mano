@@ -142,8 +142,8 @@ test("test", async ({ page }) => {
   await page.getByLabel("Nom de l'action").fill("Action");
 
   // à ne pas voir concernant les actions
-  await expect(page.getByLabel("Description", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Commentaires" })).not.toBeVisible();
+  await expect(page.getByLabel("Description", { exact: true })).not.toBeVisible();
+  await expect(page.getByText("Commentaires")).toBeVisible();
   await expect(page.getByRole("button", { name: "Supprimer" })).not.toBeVisible();
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByText("Mise à jour !").click();
@@ -174,7 +174,7 @@ test("test", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Informations sociales" })).not.toBeVisible();
   await expect(page.getByRole("heading", { name: "Informations de santé" })).not.toBeVisible();
   await expect(page.getByRole("heading", { name: "Informations administratives" })).not.toBeVisible();
-  await expect(page.getByRole("heading", { name: "Commentaires (2)" })).not.toBeVisible();
+  await expect(page.getByRole("heading", { name: "Commentaires" })).toBeVisible();
 
   await page.getByRole("button", { name: "Modifier", exact: true }).click();
   await page.getByLabel("Autres pseudos").click();

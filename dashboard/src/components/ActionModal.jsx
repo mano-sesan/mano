@@ -520,9 +520,10 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
             tabs={[
               "Informations",
               ...(!["restricted-access"].includes(user.role) ? [`Documents ${action?.documents?.length ? `(${action.documents.length})` : ""}`] : []),
-              ...(!["restricted-access"].includes(user.role)
-                ? [`Commentaires ${action?.comments?.length ? `(${action.comments.length})` : ""}`]
-                : []),
+              (() => {
+                const visibleComments = user.role === "restricted-access" ? action.comments.filter((c) => c.user === user._id) : action.comments;
+                return `Commentaires ${visibleComments.length ? `(${visibleComments.length})` : ""}`;
+              })(),
               ...(!["restricted-access"].includes(user.role) && !isNewAction ? ["Historique"] : []),
               ...(action.recurrence && action.recurrenceData.timeUnit ? ["Voir toutes les occurrences"] : []),
             ]}
@@ -536,9 +537,9 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
             }}
             activeTabIndex={[
               "Informations",
-              "Documents",
+              ...(!["restricted-access"].includes(user.role) ? ["Documents"] : []),
               "Commentaires",
-              ...(isNewAction ? [] : ["Historique"]),
+              ...(!["restricted-access"].includes(user.role) && !isNewAction ? ["Historique"] : []),
               "Voir toutes les occurrences",
             ].findIndex((tab) => tab === activeTab)}
           />
@@ -627,18 +628,20 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
                         <CustomFieldDisplay value={action.categories?.join(", ")} type="text" />
                       )}
                     </div>
-                    <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
-                      <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="description">
-                        Description
-                      </label>
-                      {isEditing ? (
-                        <div className="tw-block tw-w-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300 tw-text-base tw-transition-all">
-                          <AutoResizeTextarea name="description" id="description" value={action.description} onChange={handleChange} rows={4} />
-                        </div>
-                      ) : (
-                        <CustomFieldDisplay value={action.description} type="textarea" />
-                      )}
-                    </div>
+                    {!["restricted-access"].includes(user.role) && (
+                      <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
+                        <label className={isEditing ? "" : "tw-text-sm tw-font-semibold tw-text-main"} htmlFor="description">
+                          Description
+                        </label>
+                        {isEditing ? (
+                          <div className="tw-block tw-w-full tw-overflow-hidden tw-rounded tw-border tw-border-gray-300 tw-text-base tw-transition-all">
+                            <AutoResizeTextarea name="description" id="description" value={action.description} onChange={handleChange} rows={4} />
+                          </div>
+                        ) : (
+                          <CustomFieldDisplay value={action.description} type="textarea" />
+                        )}
+                      </div>
+                    )}
                     {!!canToggleGroupCheck && (
                       <div className="tw-mb-4 tw-flex tw-flex-1 tw-flex-col tw-items-start tw-justify-start">
                         <label htmlFor="create-action-for-group">
@@ -875,78 +878,74 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
               />
             </div>
           )}
-          {!["restricted-access"].includes(user.role) && (
-            <div
-              className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              <CommentsModule
-                comments={action.comments
-                  .map((c) => ({ ...c, type: "action", action }))
-                  .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
-                color="main"
-                hiddenColumns={["person"]}
-                canToggleUrgentCheck
-                showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
-                typeForNewComment="action"
-                actionId={action?._id}
-                onDeleteComment={async (comment) => {
-                  const newData = { ...action, comments: action.comments.filter((c) => c._id !== comment._id) };
-                  setModalAction({ ...modalAction, action: newData });
-                  if (!isNewAction) {
-                    const [error] = await tryFetchExpectOk(() => API.delete({ path: `/comment/${comment._id}` }));
-                    if (error) {
-                      toast.error("Erreur lors de la suppression du commentaire");
-                      return false;
-                    }
-                    const ok = await handleSubmit({ newData });
-                    if (ok) toast.success("Suppression réussie");
-                    return true;
+          <div
+            className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Commentaires" && "tw-hidden"]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <CommentsModule
+              comments={(user.role === "restricted-access" ? action.comments.filter((c) => c.user === user._id) : action.comments)
+                .map((c) => ({ ...c, type: "action", action }))
+                .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))}
+              color="main"
+              hiddenColumns={["person"]}
+              canToggleUrgentCheck
+              showAddCommentButton={!modalAction.isEditingAllNextOccurences && !(initialExistingAction?.recurrence && !isEditing)}
+              typeForNewComment="action"
+              actionId={action?._id}
+              onDeleteComment={async (comment) => {
+                const newData = { ...action, comments: action.comments.filter((c) => c._id !== comment._id) };
+                setModalAction({ ...modalAction, action: newData });
+                if (!isNewAction) {
+                  const [error] = await tryFetchExpectOk(() => API.delete({ path: `/comment/${comment._id}` }));
+                  if (error) {
+                    toast.error("Erreur lors de la suppression du commentaire");
+                    return false;
                   }
-                }}
-                onSubmitComment={async (comment, isNewComment) => {
-                  if (isNewComment) {
-                    if (isNewAction) {
-                      // On a besoin d'un identifiant temporaire pour les nouveaux commentaires dans une nouvelle action
-                      // Car on peut ajouter, supprimer, éditer des commentaires qui n'existent pas en base de données.
-                      // Cet identifiant sera remplacé par l'identifiant de l'objet créé par le serveur.
-                      setModalAction({ ...modalAction, action: { ...action, comments: [{ ...comment, _id: uuidv4() }, ...action.comments] } });
-                      return;
-                    } else {
-                      const [error, response] = await tryFetchExpectOk(async () =>
-                        API.post({ path: "/comment", body: await encryptComment(comment) })
-                      );
-                      if (error) {
-                        toast.error("Erreur lors de l'ajout du commentaire");
-                        return;
-                      }
-                      const newData = { ...action, comments: [{ ...comment, _id: response.data._id }, ...action.comments] };
-                      setModalAction({ ...modalAction, action: newData });
-                      const ok = await handleSubmit({ newData });
-                      if (ok) toast.success("Commentaire ajouté !");
-                    }
+                  const ok = await handleSubmit({ newData });
+                  if (ok) toast.success("Suppression réussie");
+                  return true;
+                }
+              }}
+              onSubmitComment={async (comment, isNewComment) => {
+                if (isNewComment) {
+                  if (isNewAction) {
+                    // On a besoin d'un identifiant temporaire pour les nouveaux commentaires dans une nouvelle action
+                    // Car on peut ajouter, supprimer, éditer des commentaires qui n'existent pas en base de données.
+                    // Cet identifiant sera remplacé par l'identifiant de l'objet créé par le serveur.
+                    setModalAction({ ...modalAction, action: { ...action, comments: [{ ...comment, _id: uuidv4() }, ...action.comments] } });
+                    return;
                   } else {
-                    const newData = { ...action, comments: action.comments.map((c) => (c._id === comment._id ? comment : c)) };
-                    setModalAction({ ...modalAction, action: newData });
-                    if (isNewAction) return;
-                    const [error] = await tryFetchExpectOk(async () =>
-                      API.put({
-                        path: `/comment/${comment._id}`,
-                        body: await encryptComment(comment),
-                      })
-                    );
+                    const [error, response] = await tryFetchExpectOk(async () => API.post({ path: "/comment", body: await encryptComment(comment) }));
                     if (error) {
                       toast.error("Erreur lors de l'ajout du commentaire");
                       return;
                     }
-                    toast.success("Commentaire mis à jour");
-                    refresh();
+                    const newData = { ...action, comments: [{ ...comment, _id: response.data._id }, ...action.comments] };
+                    setModalAction({ ...modalAction, action: newData });
+                    const ok = await handleSubmit({ newData });
+                    if (ok) toast.success("Commentaire ajouté !");
                   }
-                }}
-              />
-            </div>
-          )}
+                } else {
+                  const newData = { ...action, comments: action.comments.map((c) => (c._id === comment._id ? comment : c)) };
+                  setModalAction({ ...modalAction, action: newData });
+                  if (isNewAction) return;
+                  const [error] = await tryFetchExpectOk(async () =>
+                    API.put({
+                      path: `/comment/${comment._id}`,
+                      body: await encryptComment(comment),
+                    })
+                  );
+                  if (error) {
+                    toast.error("Erreur lors de l'ajout du commentaire");
+                    return;
+                  }
+                  toast.success("Commentaire mis à jour");
+                  refresh();
+                }
+              }}
+            />
+          </div>
           {!["restricted-access"].includes(user.role) && (
             <div
               className={["tw-flex tw-h-[50vh] tw-w-full tw-flex-col tw-gap-4 tw-overflow-y-auto", activeTab !== "Historique" && "tw-hidden"]

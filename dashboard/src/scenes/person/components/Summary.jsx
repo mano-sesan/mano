@@ -31,7 +31,7 @@ export default function Summary({ person }) {
         </div>
 
         <div className="tw-col-span-4 tw-h-0 tw-min-h-full tw-overflow-auto tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
-          {["restricted-access"].includes(user.role) ? <PassagesRencontres person={person} /> : <Comments person={person} />}
+          <Comments person={person} />
         </div>
       </div>
       {!["restricted-access"].includes(user.role) && (
