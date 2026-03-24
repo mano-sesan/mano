@@ -49,12 +49,12 @@ test("test", async ({ page }) => {
 
   await page.getByRole("button", { name: "Dossier Médical" }).click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/i
+    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/i,
   );
 
   await page.getByRole("button", { name: "Ajouter une consultation" }).click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/
+    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/,
   );
 
   await page.getByLabel("Nom").click();
@@ -67,12 +67,12 @@ test("test", async ({ page }) => {
 
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/
+    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/,
   );
 
   await page.getByRole("button", { name: "Ajouter une consultation" }).click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/
+    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/,
   );
 
   await page.getByLabel("Nom").click();
@@ -84,11 +84,12 @@ test("test", async ({ page }) => {
   await page.getByLabel("Date prévue").fill(`${dayjs().add(-2, "day").format("YYYY-MM-DD")}T10:00`);
   await changeReactSelectValue(page, "new-consultation-select-status", "FAITE");
 
-  await expect(page.getByRole("textbox", { name: "Date réalisée" })).toHaveValue(dayjs().format("YYYY-MM-DDTHH:mm"));
+  // On vérifie que la date est aujourd'hui sans vérifier la minute exacte (elle peut changer entre la création et l'assertion)
+  await expect(page.getByRole("textbox", { name: "Date réalisée" })).toHaveValue(new RegExp(`^${dayjs().format("YYYY-MM-DD")}T\\d{2}:\\d{2}$`));
 
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/
+    /http:\/\/localhost:8090\/person\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\?tab=Dossier\+M%C3%A9dical/,
   );
 
   await page.getByRole("link", { name: "Agenda" }).click();
@@ -99,7 +100,7 @@ test("test", async ({ page }) => {
 
   await page.getByText("consult abc").click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/action\?calendarTab=2&calendarDate=[0-9]{4}-[0-9]{2}-[0-9]{2}&consultationId=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
+    /http:\/\/localhost:8090\/action\?calendarTab=2&calendarDate=[0-9]{4}-[0-9]{2}-[0-9]{2}&consultationId=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/,
   );
 
   await page.getByRole("button", { name: "Fermer" }).first().click();
@@ -116,7 +117,7 @@ test("test", async ({ page }) => {
 
   await page.locator('[data-test-id="faite"]').getByText("faite").click();
   await expect(page).toHaveURL(
-    /http:\/\/localhost:8090\/action\?calendarTab=2&consultationId=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/
+    /http:\/\/localhost:8090\/action\?calendarTab=2&consultationId=[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/,
   );
 
   await page.getByRole("button", { name: "Fermer" }).first().click();

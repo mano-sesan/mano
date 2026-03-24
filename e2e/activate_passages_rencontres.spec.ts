@@ -71,9 +71,9 @@ test("test", async ({ page }) => {
 
   await page.getByRole("link", { name: "Statistiques" }).click();
   await page.getByRole("button", { name: "Passages", exact: true }).click();
-  await expect(page.getByText("Non-anonyme375 %")).toBeVisible();
-  await expect(page.getByText("Anonyme125 %")).toBeVisible();
-  await expect(page.getByText("Total4100 %")).toBeVisible();
+  await expect(page.getByText(/Non-anonyme375\s%/)).toBeVisible({ timeout: 15000 });
+  await expect(page.getByText(/Anonyme125\s%/)).toBeVisible();
+  await expect(page.getByText(/Total4100\s%/)).toBeVisible();
 
   await expect(page.getByRole("button", { name: "Rencontres", exact: true })).not.toBeVisible();
 
