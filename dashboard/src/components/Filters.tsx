@@ -274,6 +274,7 @@ const Filters = ({
                 </div>
                 <div className="tw-w-96 tw-min-w-[384px]">
                   <SelectCustom
+                    aria-label="Champ à filtrer"
                     options={filterFields}
                     value={filter.field ? filter : null}
                     onChange={onChangeField}
@@ -427,6 +428,7 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
       <div className="-tw-mx-4 tw-flex tw-flex-wrap">
         <div className={["tw-pl-4", value?.comparator !== "unfilled" ? "tw-basis-1/2 tw-pr-2" : "tw-basis-full tw-pr-4"].join(" ")}>
           <SelectCustom
+            aria-label="Comparateur de date"
             options={dateOptions}
             value={dateOptions.find((opt) => opt.value === value?.comparator)}
             isClearable={!value}
@@ -462,6 +464,7 @@ const ValueSelector = ({ index, field, filterValues, value, onChangeValue, base 
           ].join(" ")}
         >
           <SelectCustom
+            aria-label="Comparateur numérique"
             options={numberOptions}
             value={numberOptions.find((opt) => opt.value === value?.comparator)}
             isClearable={!value}

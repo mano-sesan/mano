@@ -138,8 +138,9 @@ const OutOfActiveList = ({ person }) => {
                 <div className="tw-p-4">
                   <div className="tw-p-4 tw-grid tw-grid-cols-3 tw-gap-2">
                     <div>
-                      <label htmlFor="person-name">Sortie de file active de</label>
+                      <label htmlFor="out-of-active-list-team">Sortie de file active de</label>
                       <SelectCustom
+                        inputId="out-of-active-list-team"
                         name="team"
                         options={teamsWithAll}
                         onChange={(value) => handleChange({ currentTarget: { value: value._id, name: "team" } })}
