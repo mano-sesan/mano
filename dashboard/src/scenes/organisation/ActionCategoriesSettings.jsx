@@ -182,6 +182,7 @@ const Category = ({ item: category, groupTitle }) => {
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isMergingCategory, setIsMergingCategory] = useState(false);
   const [targetCategory, setTargetCategory] = useState(null);
+  const [mergedCategoryName, setMergedCategoryName] = useState("");
   const actions = useAtomValue(actionsState);
   const [organisation, setOrganisation] = useAtom(organisationState);
 
@@ -269,12 +270,16 @@ const Category = ({ item: category, groupTitle }) => {
 
   const onMergeCategory = async () => {
     if (!targetCategory) return toast.error("Vous devez choisir une catégorie cible");
+    const finalName = mergedCategoryName.trim() || targetCategory;
+    if (finalName !== targetCategory && flattenedCategories.filter((c) => c !== category && c !== targetCategory).includes(finalName)) {
+      return toast.error("Une catégorie avec ce nom existe déjà");
+    }
     const encryptedActions = await Promise.all(
       actions
-        .filter((a) => a.categories?.includes(category))
+        .filter((a) => a.categories?.includes(category) || (finalName !== targetCategory && a.categories?.includes(targetCategory)))
         .map((action) => ({
           ...action,
-          categories: [...new Set(action.categories.map((cat) => (cat === category ? targetCategory : cat)))],
+          categories: [...new Set(action.categories.map((cat) => (cat === category || cat === targetCategory ? finalName : cat)))],
         }))
         .map((action) => encryptAction({ ...action, user: action.user || user._id }, { checkRequiredFields: false }))
     );
@@ -282,7 +287,7 @@ const Category = ({ item: category, groupTitle }) => {
       if (group.groupTitle !== groupTitle) return group;
       return {
         ...group,
-        categories: group.categories.filter((cat) => cat !== category),
+        categories: group.categories.filter((cat) => cat !== category).map((cat) => (cat === targetCategory ? finalName : cat)),
       };
     });
     const oldOrganisation = organisation;
@@ -302,6 +307,7 @@ const Category = ({ item: category, groupTitle }) => {
       setOrganisation(res.data);
       setIsMergingCategory(false);
       setTargetCategory(null);
+      setMergedCategoryName("");
       toast.success("Catégorie fusionnée. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
       setOrganisation(oldOrganisation);
@@ -390,6 +396,21 @@ const Category = ({ item: category, groupTitle }) => {
                 isClearable
               />
             </div>
+            <div>
+              <label htmlFor="mergedCategoryName" className="tailwindui">
+                Nom de la catégorie après fusion (optionnel)
+              </label>
+              <input
+                className="tailwindui"
+                autoComplete="off"
+                id="mergedCategoryName"
+                name="mergedCategoryName"
+                type="text"
+                placeholder={targetCategory || "Laisser vide pour garder le nom de la catégorie cible"}
+                value={mergedCategoryName}
+                onChange={(e) => setMergedCategoryName(e.target.value)}
+              />
+            </div>
           </div>
         </ModalBody>
         <ModalFooter>
@@ -400,6 +421,7 @@ const Category = ({ item: category, groupTitle }) => {
             onClick={() => {
               setIsMergingCategory(false);
               setTargetCategory(null);
+              setMergedCategoryName("");
             }}
           >
             Annuler
