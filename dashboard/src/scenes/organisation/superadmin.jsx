@@ -527,6 +527,52 @@ const SuperAdmin = () => {
               >
                 Fusionner deux orgas
               </button>
+              {organisations?.some((o) => !o.disabledAt && o._id !== user.organisation) ? (
+                <button
+                  className="button-destructive"
+                  type="button"
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        "⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER TOUTES les organisations (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.\n\nCette action est réversible."
+                      )
+                    )
+                      return;
+                    if (!confirm("Êtes-vous vraiment sûr ? Toutes les organisations seront bloquées immédiatement.")) return;
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/disable-all" }));
+                    if (!error) {
+                      toast.success("Toutes les organisations ont été bloquées");
+                      setRefresh(true);
+                    } else {
+                      toast.error(errorMessage(error));
+                    }
+                  }}
+                >
+                  🚨 Tout bloquer (mode panique)
+                </button>
+              ) : (
+                <button
+                  className="button-submit"
+                  type="button"
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        "Voulez-vous vraiment réactiver toutes les organisations ?\n\nAttention : les organisations qui étaient déjà désactivées avant le blocage seront également réactivées."
+                      )
+                    )
+                      return;
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/enable-all" }));
+                    if (!error) {
+                      toast.success("Toutes les organisations ont été réactivées");
+                      setRefresh(true);
+                    } else {
+                      toast.error(errorMessage(error));
+                    }
+                  }}
+                >
+                  ✅ Tout réactiver
+                </button>
+              )}
             </div>
           )}
         </main>
@@ -1026,7 +1072,8 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
         <button type="button" name="cancel" disabled={loading} className="button-cancel" onClick={() => setOpen(false)}>
           Annuler
         </button>
-        <button type="button"
+        <button
+          type="button"
           className="button-submit"
           disabled={loading}
           onClick={async () => {
