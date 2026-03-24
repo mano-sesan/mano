@@ -101,7 +101,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
       documents: [],
       comments: [],
       history: [],
-      teams: modalAction.action?.teams ?? modalAction.action?.teams?.length === 1 ? [teams?.[0]._id] : [],
+      teams: modalAction.action?.teams ?? (teams?.length === 1 ? [teams[0]._id] : []),
       dueAt: new Date(),
       isRecurrent: modalAction.action?.recurrence ? true : false,
       recurrenceData: modalAction.action?.recurrence ? recurrences.find((e) => e._id === modalAction.action?.recurrence) || {} : {},
