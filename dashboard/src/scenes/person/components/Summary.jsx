@@ -34,6 +34,13 @@ export default function Summary({ person }) {
           <Comments person={person} />
         </div>
       </div>
+      {["restricted-access"].includes(user.role) && (organisation.rencontresEnabled === true || organisation.passagesEnabled === true) && (
+        <div className="noprint tw-grid tw-grid-cols-12 tw-gap-4 tw-pt-4">
+          <div className="tw-col-span-12 tw-rounded-lg tw-border tw-border-zinc-200 tw-shadow">
+            <PassagesRencontres person={person} />
+          </div>
+        </div>
+      )}
       {!["restricted-access"].includes(user.role) && (
         <>
           <div className="noprint tw-grid tw-grid-cols-12 tw-gap-4 tw-pt-4">
