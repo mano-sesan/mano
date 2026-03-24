@@ -1,4 +1,3 @@
-import React from "react";
 import SelectCustom from "./SelectCustom";
 
 const roles = [
