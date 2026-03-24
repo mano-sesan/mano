@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { populate } from "./scripts/populate-db";
-import { clickOnEmptyReactSelect, loginWith } from "./utils";
+import { changeReactSelectValue, clickOnEmptyReactSelect, loginWith } from "./utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import "dayjs/locale/fr";
