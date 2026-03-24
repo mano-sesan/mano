@@ -16,6 +16,7 @@ const MenuUser = ({ isDrawerCollapsed, className = "" }) => {
   return (
     <Menu as="div" className={["tw-relative tw-inline-block tw-text-left tw-z-50", className].join(" ")}>
       <MenuButton
+        aria-label={isDrawerCollapsed ? user?.name || "Menu utilisateur" : undefined}
         className={[
           "tw-inline-flex tw-flex-1 tw-items-center tw-justify-start tw-gap-x-1.5 tw-rounded-xl tw-border tw-px-1.5 tw-text-xs tw-font-normal tw-text-white tw-text-left focus:tw-outline-none tw-py-2 tw-max-w-full tw-w-full",
           isDrawerCollapsed ? "tw-justify-center" : "",
