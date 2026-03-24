@@ -150,7 +150,7 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {/* {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
+        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
           !onboardingForTeams &&
           !collapsed &&
           ["admin"].includes(role) &&
@@ -160,15 +160,17 @@ const Drawer = () => {
                 <AddPersons />
               </li>
             </div>
-          )} */}
+          )}
         <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
-            <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
+          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-xs tw-text-main">
+            <div className="m-0">
+              <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
+                Plan du site
+              </Link>{" "}
+              • Version&nbsp;: {deploymentCommit}
+            </div>
             <p className="m-0">Accessibilité&nbsp;: partielle</p>
-            <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
-              Plan du site
-            </Link>
           </div>
         )}
         <button
