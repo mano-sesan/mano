@@ -92,6 +92,7 @@ test("Territoires et lieux fréquentés", async ({ page }) => {
     dialog.accept();
   });
   await page.getByRole("button", { name: "Supprimer le lieu fréquenté faux lieu" }).click();
+  await expect(page.getByRole("button", { name: "Supprimer le lieu fréquenté faux lieu" })).not.toBeVisible();
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await page.getByRole("cell", { name: "personne 2" }).click();
@@ -101,7 +102,7 @@ test("Territoires et lieux fréquentés", async ({ page }) => {
 
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe(
-      'Voulez-vous vraiment supprimer le lieu "gare du nord" ? Cette action est irréversible et entrainera la suppression de tous les lieux fréquentés associés.'
+      'Voulez-vous vraiment supprimer le lieu "gare du nord" ? Cette action est irréversible et entrainera la suppression de tous les lieux fréquentés associés.',
     );
     dialog.accept();
   });
