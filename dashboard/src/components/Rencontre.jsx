@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
@@ -22,10 +22,21 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();
+  const isClosingRef = useRef(false);
 
   useEffect(() => {
+    if (rencontre) isClosingRef.current = false;
     setOpen(!!rencontre);
   }, [rencontre]);
+
+  const handleClose = useCallback(() => {
+    isClosingRef.current = true;
+    setOpen(false);
+  }, []);
+
+  const handleAfterLeave = useCallback(() => {
+    if (isClosingRef.current) onFinished?.();
+  }, [onFinished]);
 
   const onDeleteRencontre = async () => {
     setIsDeleting(true);
@@ -35,7 +46,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
       if (!error) {
         await refresh();
         toast.success("Suppression réussie");
-        setOpen(false);
+        handleClose();
       }
     }
     setIsDeleting(false);
@@ -49,11 +60,11 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
     <ModalContainer
       dataTestId="modal-rencontre-create-edit-delete"
       open={!!open && !!rencontre}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
-      onAfterLeave={onFinished}
+      onAfterLeave={handleAfterLeave}
     >
-      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
+      <ModalHeader onClose={handleClose} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
       <Formik
         initialValues={{
           date: new Date(),
@@ -89,7 +100,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
 
             onSave(rencontres);
             await refresh();
-            setOpen(false);
+            handleClose();
             return;
           }
 
@@ -129,7 +140,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
           }
 
           await refresh();
-          setOpen(false);
+          handleClose();
 
           if (success) {
             toast.success(isNew ? (showMultiSelect ? "Rencontres enregistrées" : "Rencontre enregistrée") : "Rencontre mise à jour");
@@ -193,7 +204,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" name="cancel" disabled={buttonsDisabled} className="button-cancel" onClick={() => setOpen(false)}>
+                <button type="button" name="cancel" disabled={buttonsDisabled} className="button-cancel" onClick={handleClose}>
                   Fermer
                 </button>
                 {!isNew && (
