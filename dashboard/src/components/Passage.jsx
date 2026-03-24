@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
@@ -21,9 +21,21 @@ const Passage = ({ passage, personId, onFinished }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();
 
+  const isClosingRef = useRef(false);
+
   useEffect(() => {
+    if (passage) isClosingRef.current = false;
     setOpen(!!passage);
   }, [passage]);
+
+  const handleClose = useCallback(() => {
+    isClosingRef.current = true;
+    setOpen(false);
+  }, []);
+
+  const handleAfterLeave = useCallback(() => {
+    if (isClosingRef.current) onFinished?.();
+  }, [onFinished]);
 
   const onDeletePassage = async () => {
     setIsDeleting(true);
@@ -33,7 +45,7 @@ const Passage = ({ passage, personId, onFinished }) => {
       if (!error) {
         await refresh();
         toast.success("Suppression réussie");
-        setOpen(false);
+        handleClose();
       }
     }
     setIsDeleting(false);
@@ -48,11 +60,11 @@ const Passage = ({ passage, personId, onFinished }) => {
     <ModalContainer
       dataTestId="modal-passage-create-edit-delete"
       open={!!open && !!passage}
-      onClose={() => setOpen(false)}
+      onClose={handleClose}
       size="3xl"
-      onAfterLeave={onFinished}
+      onAfterLeave={handleAfterLeave}
     >
-      <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
+      <ModalHeader onClose={handleClose} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
       <Formik
         initialValues={{ date: new Date(), ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
         onSubmit={async (body, actions) => {
@@ -108,7 +120,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             }
 
             await refresh();
-            setOpen(false);
+            handleClose();
             toast.success(body.person?.length > 1 ? "Passage enregistré !" : "Passages enregistrés !");
             return;
           }
@@ -124,7 +136,7 @@ const Passage = ({ passage, personId, onFinished }) => {
             return;
           }
           await refresh();
-          setOpen(false);
+          handleClose();
           toast.success("Passage mis à jour");
         }}
       >
@@ -214,7 +226,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <button type="button" disabled={buttonsDisabled} name="cancel" className="button-cancel" onClick={() => setOpen(false)}>
+                <button type="button" disabled={buttonsDisabled} name="cancel" className="button-cancel" onClick={handleClose}>
                   Fermer
                 </button>
                 {!isNew && (
