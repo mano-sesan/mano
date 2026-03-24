@@ -112,6 +112,7 @@ const List = () => {
             render: (structure) => <div className="[overflow-wrap:anywhere] tw-text-xs">{structure.description}</div>,
           },
           { title: "Téléphone", dataKey: "phone", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
+          { title: "Email", dataKey: "email", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
           {
             title: "Adresse",
             dataKey: "adresse",
@@ -249,6 +250,20 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
                 name="phone"
                 id="phone"
                 value={structure?.phone || ""}
+                onChange={onChange}
+              />
+            </div>
+            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+              <label className="tailwindui" htmlFor="email">
+                Email
+              </label>
+              <input
+                type="email"
+                className="tailwindui"
+                autoComplete="off"
+                name="email"
+                id="email"
+                value={structure?.email || ""}
                 onChange={onChange}
               />
             </div>
