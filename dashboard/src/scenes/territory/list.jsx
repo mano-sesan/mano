@@ -98,7 +98,7 @@ const List = () => {
               setPage(0);
             }}
           />
-          <label className="tw-ml-4 tw-flex tw-shrink-0 tw-items-center tw-gap-2 tw-text-sm tw-cursor-pointer">
+          <label className="tw-ml-4 tw-mt-2 tw-flex tw-shrink-0 tw-items-center tw-gap-2 tw-text-sm tw-cursor-pointer">
             <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
             Afficher les archivés
           </label>
