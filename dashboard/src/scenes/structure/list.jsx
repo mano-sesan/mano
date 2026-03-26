@@ -180,7 +180,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
   const onChange = (e) => setStructure({ ...structure, [e.target.name]: e.target.value });
   const onSubmit = async (e) => {
     e.preventDefault();
-    if (!structure.name) {
+    if (!structure || !structure.name) {
       toast.error("Le nom du contact est obligatoire");
       return;
     }
