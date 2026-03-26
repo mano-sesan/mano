@@ -1653,7 +1653,7 @@ router.post(
         for (const file of files) {
           const src = path.resolve(path.join(secondaryDir, file));
           const dest = path.resolve(path.join(mainDir, file));
-          if (!src.startsWith(basedir + path.sep) || !dest.startsWith(basedir + path.sep)) return;
+          if (!src.startsWith(basedir + path.sep) || !dest.startsWith(basedir + path.sep)) continue;
           fs.promises.rename(src, dest);
         }
       })
