@@ -159,14 +159,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
       return API.getAbortable({ path: "/user/me" });
     });
     if (userError || !userResponse.ok) return resetLoaderOnError(userError || userResponse.error);
-    // Si l'organisation est désactivée, on redirige vers la page d'organisation désactivé
-    if (userResponse.user.organisation.disabledAt) {
-      logout().finally(() => {
-        window.localStorage.removeItem("previously-logged-in");
-        return (window.location.href = "/organisation-desactivee");
-      });
-    }
-
     const latestOrganisation = userResponse.user.organisation;
     const latestUser = userResponse.user;
     const latestTeams = userResponse.user.orgTeams;

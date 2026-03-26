@@ -1697,6 +1697,36 @@ router.post(
   }),
 );
 
+router.post(
+  "/disable-all",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res) => {
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      // On exclut l'organisation du superadmin pour qu'il conserve son accès et puisse réactiver ensuite.
+      await Organisation.update(
+        { disabledAt: new Date() },
+        { where: { disabledAt: null, _id: { [Op.ne]: req.user.organisation } }, transaction: t, individualHooks: true },
+      );
+    });
+    res.status(200).send({ ok: true });
+  }),
+);
+
+router.post(
+  "/enable-all",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res) => {
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      await Organisation.update({ disabledAt: null }, { where: { disabledAt: { [Op.ne]: null } }, transaction: t, individualHooks: true });
+    });
+    res.status(200).send({ ok: true });
+  }),
+);
+
 router.get(
   "/:id/logs",
   passport.authenticate("user", { session: false, failWithError: true }),

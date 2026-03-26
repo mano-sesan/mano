@@ -245,9 +245,6 @@ const SignIn = () => {
       return setIsSubmitting(false);
     }
     const { organisation } = user;
-    if (organisation?.disabledAt) {
-      return (window.location.href = "/organisation-desactivee");
-    }
     setOrganisation(organisation);
     setUser(user);
     if (!!organisation.encryptionEnabled && !showEncryption && !["superadmin"].includes(user.role)) {
