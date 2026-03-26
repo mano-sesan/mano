@@ -45,6 +45,7 @@ export default function ActionStatusSelect({ action }: { action: ActionInstance 
 
   return (
     <select
+      aria-label={isConsultation(action) ? "Statut de la consultation" : "Statut de l'action"}
       className={`tw-cursor-pointer tw-appearance-none tw-rounded tw-border-none tw-px-2 tw-transition hover:tw-scale-105 ${
         action.status === DONE ? "tw-bg-green-700" : action.status === TODO ? "tw-bg-red-700" : "tw-bg-cyan-700"
       } tw-text-center tw-text-[11px] tw-font-bold tw-text-white tw-outline-none`}
