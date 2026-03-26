@@ -116,7 +116,7 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
   const [activeTab, setActiveTab] = useState("Informations");
   const isOnePerson = typeof action?.person === "string" || action?.person?.length === 1;
   const onlyPerson = !isOnePerson ? null : typeof action?.person === "string" ? action.person : action.person?.[0];
-  const canToggleGroupCheck = !!organisation.groupsEnabled && !!onlyPerson && groups.find((group) => group.persons?.includes(onlyPerson));
+  const canToggleGroupCheck = !!organisation?.groupsEnabled && !!onlyPerson && groups.find((group) => group.persons?.includes(onlyPerson));
 
   async function handleSubmit({ newData = {}, closeOnSubmit = false } = {}) {
     const body = { ...action, ...newData };
