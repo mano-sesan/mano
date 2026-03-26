@@ -6,7 +6,6 @@
   --toastify-z-index: 99999;
 }
 
-
 /* RGAA 10.7 — indicateur de focus visible pour la navigation clavier */
 *:focus-visible {
   outline: 2px solid #226854;
@@ -121,7 +120,7 @@ table.table-selego {
 
   thead td,
   thead th {
-    color: #008e7f;
+    color: #226854;
     text-align: left;
     padding: 0.5rem 0.5rem;
   }
