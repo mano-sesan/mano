@@ -11,7 +11,7 @@ const BellIconWithNotifications = ({ size = 30, notificationsNumber }) => (
       />
     </svg>
     {!!notificationsNumber && (
-      <div className="tw-absolute -tw-right-1.5 -tw-top-1.5 tw-flex tw-h-5 tw-min-w-[1.25rem] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-500 tw-px-1 tw-text-xs ">
+      <div className="tw-absolute -tw-right-1.5 -tw-top-1.5 tw-flex tw-h-5 tw-min-w-[1.25rem] tw-items-center tw-justify-center tw-rounded-full tw-bg-red-600 tw-px-1 tw-text-xs ">
         <span className="tw-text-white">{notificationsNumber}</span>
       </div>
     )}
