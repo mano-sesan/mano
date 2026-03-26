@@ -46,7 +46,6 @@ import { deploymentCommitState, deploymentDateState, showOutdateAlertBannerState
 import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
-import OrganisationDesactivee from "./scenes/organisation-desactivee";
 import PlanDuSite from "./scenes/plan-du-site";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
@@ -248,7 +247,6 @@ const App = () => {
       <Router history={history}>
         <ScrollToTop />
         <Switch>
-          <SentryRoute path="/organisation-desactivee" component={OrganisationDesactivee} />
           <SentryRoute path="/auth" component={Auth} />
           <SentryRoute path="/bac-a-sable" component={Sandbox} />
           <RestrictedRoute path="/charte" component={Charte} />
