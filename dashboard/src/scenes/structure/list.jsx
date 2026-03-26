@@ -233,13 +233,13 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
         <ModalHeader title={!initStructure?._id ? "Créer un contact" : "Modifier un contact"} />
         <ModalBody className="tw-pb-4">
           <form id="create-structure-form" className="tw-flex tw-w-full tw-flex-row tw-flex-wrap" onSubmit={onSubmit}>
-            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
               <label className="tailwindui" htmlFor="name">
                 Nom
               </label>
               <input type="text" className="tailwindui" autoComplete="off" name="name" id="name" value={structure?.name || ""} onChange={onChange} />
             </div>
-            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
               <label className="tailwindui" htmlFor="phone">
                 Téléphone
               </label>
@@ -253,7 +253,7 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
                 onChange={onChange}
               />
             </div>
-            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
               <label className="tailwindui" htmlFor="email">
                 Email
               </label>
