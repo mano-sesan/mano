@@ -538,7 +538,7 @@ const SuperAdmin = () => {
                   }
                   if (
                     !confirm(
-                      `⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s" : ""} (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.\n\nCette action est réversible.`
+                      `⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s" : ""} (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.`
                     )
                   )
                     return;
