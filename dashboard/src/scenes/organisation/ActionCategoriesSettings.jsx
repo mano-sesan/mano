@@ -284,10 +284,15 @@ const Category = ({ item: category, groupTitle }) => {
         .map((action) => encryptAction({ ...action, user: action.user || user._id }, { checkRequiredFields: false }))
     );
     const newActionsGroupedCategories = actionsGroupedCategories.map((group) => {
-      if (group.groupTitle !== groupTitle) return group;
+      if (group.groupTitle === groupTitle) {
+        return {
+          ...group,
+          categories: group.categories.filter((cat) => cat !== category).map((cat) => (cat === targetCategory ? finalName : cat)),
+        };
+      }
       return {
         ...group,
-        categories: group.categories.filter((cat) => cat !== category).map((cat) => (cat === targetCategory ? finalName : cat)),
+        categories: group.categories.map((cat) => (cat === targetCategory ? finalName : cat)),
       };
     });
     const oldOrganisation = organisation;
