@@ -194,7 +194,8 @@ const List = () => {
           {lastPersonsViewed.map((personId) => (
             <div key={personId} className="tw-bg-slate-100 tw-border tw-border-slate-300 tw-rounded-md tw-px-1.5 tw-py-0.5">
               <PersonName item={{ person: personId }} />
-              <button type="button"
+              <button
+                type="button"
                 className="tw-text-xs tw-border-slate-300 tw-border-l tw-pl-1 tw-ml-1"
                 onClick={() => setLastPersonsViewed(lastPersonsViewed.filter((id) => id !== personId))}
               >
@@ -373,7 +374,7 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
                   />
                 )}
                 {p.outOfActiveList ? (
-                  <div className="tw-max-w-md tw-text-black50">
+                  <div className="tw-max-w-md tw-text-black60">
                     <div className="tw-items-center tw-gap-1 tw-font-bold [overflow-wrap:anywhere]">
                       {p.name}
                       {p.otherNames ? <small className="tw-inline tw-text-main"> - {p.otherNames}</small> : null}
@@ -429,8 +430,8 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
           render: (p) => {
             if (p.outOfActiveList)
               return (
-                <div className="tw-max-w-md tw-text-black50 my-tooltip" data-tooltip={getPersonInfo(p)}>
-                  <p className="tw-mb-0 tw-items-center tw-gap-1 tw-font-bold [overflow-wrap:anywhere]">
+                <div className="tw-max-w-md tw-text-black60 my-tooltip" data-tooltip={getPersonInfo(p)}>
+                  <p className="tw-mb-0 tw-items-center tw-gap-1 tw-font-medium [overflow-wrap:anywhere]">
                     {p.name}
                     {p.otherNames ? <small className="tw-inline tw-text-main"> - {p.otherNames}</small> : null}
                   </p>
@@ -457,7 +458,7 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
           sortBy,
           render: (p) => {
             if (!p.birthdate) return "";
-            else if (p.outOfActiveList) return <i className="tw-text-black50">{p.formattedBirthDate}</i>;
+            else if (p.outOfActiveList) return <i className="tw-text-black60">{p.formattedBirthDate}</i>;
             return (
               <span>
                 <i>{p.formattedBirthDate}</i>
@@ -494,7 +495,7 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
           sortOrder,
           sortBy,
           render: (p) => {
-            if (p.outOfActiveList) return <div className="tw-text-black50">{formatDateWithFullMonth(p.followedSince)}</div>;
+            if (p.outOfActiveList) return <div className="tw-text-black60">{formatDateWithFullMonth(p.followedSince)}</div>;
             return formatDateWithFullMonth(p.followedSince);
           },
         },
@@ -510,7 +511,9 @@ const PersonsTable = ({ data, setSortOrder, setSortBy, sortOrder, sortBy, histor
               <div
                 className={
                   dayjsInstance(p.lastUpdateCheckForGDPR).isAfter(dayjsInstance().add(-2, "year"))
-                    ? "tw-text-black50"
+                    ? p.outOfActiveList
+                      ? "tw-text-black60"
+                      : ""
                     : "tw-font-bold tw-text-red-500"
                 }
               >
