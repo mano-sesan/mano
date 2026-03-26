@@ -32,6 +32,8 @@ import TerritoryObservationRencontre from "./TerritoryObservationRencontre";
 import PersonsSearch from "../Persons/PersonsSearch";
 import PersonNew from "../Persons/PersonNew";
 import { PersonInstance } from "@/types/person";
+import DocumentsManager from "../../components/DocumentsManager";
+import Label from "../../components/Label";
 
 type ObsStackParams = {
   TERRITORY_OBSERVATION: undefined;
@@ -152,7 +154,7 @@ const TerritoryObservation = ({
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
   const [allTerritoryOservations, setTerritoryObservations] = useAtom(territoryObservationsState);
   const [obsDB, setObsDB] = useState(
-    () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance)
+    () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance),
   );
 
   const setRencontres = useSetAtom(rencontresState);
@@ -172,7 +174,7 @@ const TerritoryObservation = ({
         documents: territoryObservation.documents || [],
       };
     },
-    [customFieldsObs]
+    [customFieldsObs],
   );
 
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
@@ -240,7 +242,7 @@ const TerritoryObservation = ({
           user: user._id,
           team: currentTeam._id,
           organisation: organisation._id,
-        })
+        }),
       ),
     });
     if (response.code || response.error) {
@@ -270,7 +272,7 @@ const TerritoryObservation = ({
           user: user._id,
           team: currentTeam._id,
           organisation: organisation._id,
-        })
+        }),
       ),
     });
     if (response.error) {
@@ -283,7 +285,7 @@ const TerritoryObservation = ({
       territoryObservations.map((a) => {
         if (a._id === obsDB._id) return response.decryptedData;
         return a;
-      })
+      }),
     );
     setObsDB(response.decryptedData);
     Alert.alert("Observation mise à jour !");
@@ -384,6 +386,14 @@ const TerritoryObservation = ({
             <Text>Rencontres</Text>
           </View>
         </TouchableOpacity>
+        <TouchableOpacity key="documents" onPress={() => setActiveTab("documents")}>
+          <View className={`p-4 bg-white ${activeTab === "documents" ? "border-b-green-700 border-b-4" : ""}`}>
+            <Text>
+              Documents
+              {obs.documents?.filter((d) => d.type !== "folder")?.length ? ` (${obs.documents.filter((d) => d.type !== "folder").length})` : ""}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </ScrollView>
       <KeyboardAvoidingView behavior="padding" className="flex-1 bg-white">
         <ScrollView
@@ -444,6 +454,27 @@ const TerritoryObservation = ({
                     </View>
                   );
                 })}
+              </View>
+            ) : activeTab === "documents" ? (
+              <View key="documents" className="mb-4">
+                <Label label="Document(s)" />
+                <DocumentsManager
+                  defaultParent="observations"
+                  editable={editable}
+                  uploadPath={`/territory/${route.params.territory._id}/document`}
+                  onAddDocument={(doc: any) => onChange({ documents: [...(obs.documents || []), doc] })}
+                  onDelete={(doc: any) =>
+                    onChange({
+                      documents: (obs.documents || []).filter((d: any) => d.type === "folder" || d.file?.filename !== doc.file?.filename),
+                    })
+                  }
+                  onUpdateDocument={(doc: any) =>
+                    onChange({
+                      documents: (obs.documents || []).map((d: any) => (d.type === "document" && d.file?.filename === doc.file?.filename ? doc : d)),
+                    })
+                  }
+                  documents={obs.documents}
+                />
               </View>
             ) : (
               <View key={currentGroup.name}>
