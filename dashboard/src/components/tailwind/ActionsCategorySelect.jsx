@@ -139,10 +139,15 @@ const ActionsCategorySelect = ({ label, values, onChange, id, withMostUsed, isDi
             </button>
           </div>
         ))}
-        {!selected.length && <div className="not-draggable tw-py-0.5 tw-opacity-60">Choisir...</div>}
+        {!selected.length && (
+          <div className="not-draggable tw-py-0.5 tw-opacity-70" aria-hidden="true">
+            Choisir...
+          </div>
+        )}
         <button
           type="button"
           onClick={() => setOpen(true)}
+          aria-label="Ajouter une catégorie"
           className="not-draggable add-action-category-button tw-relative tw-ml-auto tw-h-6 tw-w-6 tw-rounded-full tw-border tw-border-main"
         >
           <div className="tw-absolute tw-inset-0 tw-m-auto tw-h-3/6 tw-w-0.5 tw-bg-main" />
