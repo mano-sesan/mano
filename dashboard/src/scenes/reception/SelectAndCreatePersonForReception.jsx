@@ -66,7 +66,7 @@ const filterEasySearch = (search, items = []) => {
   return [...firstItems, ...secondItems];
 };
 
-const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true }) => {
+const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true, ...rest }) => {
   const { refresh } = useDataLoader();
   const [persons] = useAtom(personsState);
   const [isDisabled, setIsDisabled] = useState(false);
@@ -212,6 +212,7 @@ const SelectAndCreatePersonForReception = ({ value, onChange, inputId, className
       }}
       inputId={inputId}
       classNamePrefix={classNamePrefix}
+      {...rest}
     />
   );
 };
@@ -232,7 +233,8 @@ const PersonSelected = ({ person, showLinkToPerson }) => {
         </small>
       ) : null}
       {showLinkToPerson ? (
-        <button type="button"
+        <button
+          type="button"
           onMouseUp={onClick}
           // onTouchEnd required to work on tablet
           // see https://github.com/JedWatson/react-select/issues/3117#issuecomment-1286232693 for similar issue

@@ -17,6 +17,7 @@ export default {
         "mano-sombre": "#374B43",
         black: "#1D2021",
         black75: "#3b3b3b",
+        black60: "#5a5a5a",
         black50: "#777777",
         black25: "#b9b9b9",
         black05: "#F7F9FA",

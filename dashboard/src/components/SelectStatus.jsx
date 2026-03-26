@@ -2,7 +2,7 @@ import React from "react";
 import { mappedIdsToLabels } from "../atoms/actions";
 import SelectCustom from "./SelectCustom";
 
-const SelectStatus = ({ onChange, value, name = "status", inputId = "", classNamePrefix = "", disabled = false }) => {
+const SelectStatus = ({ onChange, value, name = "status", inputId = "", classNamePrefix = "", disabled = false, ...rest }) => {
   return (
     <SelectCustom
       options={mappedIdsToLabels}
@@ -13,6 +13,7 @@ const SelectStatus = ({ onChange, value, name = "status", inputId = "", classNam
       inputId={inputId}
       isDisabled={disabled}
       classNamePrefix={classNamePrefix}
+      {...rest}
     />
   );
 };
