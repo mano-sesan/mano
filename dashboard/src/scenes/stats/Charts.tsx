@@ -342,7 +342,7 @@ export const CustomResponsiveBar = ({
       <div
         ref={chartRef}
         className={[
-          "tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
+          "tw-relative tw-col-span-4 tw-pr-4 print:tw-col-span-1 tw-flex tw-h-80 tw-w-full tw-items-center tw-justify-center tw-font-bold print:tw-mx-auto print:tw-w-[400px]",
           onItemClick ? "[&_rect]:tw-cursor-pointer" : "",
         ].join(" ")}
       >
