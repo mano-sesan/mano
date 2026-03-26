@@ -285,7 +285,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(page.getByText("En rue depuis le : 12/11/2001")).toBeVisible();
     await expect(page.getByText("Suivi·e depuis le : 13/11/2001")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Actions" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Commentaires" })).not.toBeVisible();
+    await expect(page.getByRole("heading", { name: "Commentaires" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Informations sociales" })).not.toBeVisible();
     await expect(page.getByText("cool man")).not.toBeVisible();
     await expect(page.getByText("Homme isolé")).not.toBeVisible();
