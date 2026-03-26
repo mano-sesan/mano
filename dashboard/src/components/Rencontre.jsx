@@ -19,13 +19,9 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
   const user = useAtomValue(userState);
   const teams = useAtomValue(teamsState);
   const currentTeam = useAtomValue(currentTeamState);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();
-
-  useEffect(() => {
-    setOpen(!!rencontre);
-  }, [rencontre]);
 
   const onDeleteRencontre = async () => {
     setIsDeleting(true);

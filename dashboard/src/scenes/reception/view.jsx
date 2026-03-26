@@ -333,7 +333,7 @@ const PassagesToday = ({ passages, isOpen, setOpen }) => {
     <ModalContainer open={isOpen} onAfterLeave={() => setOpen(false)} size="4xl">
       <ModalHeader onClose={() => setOpen(false)} title={`Passages du ${formatDateWithNameOfDay(now())}`} />
       <ModalBody className="tw-pt-4 tw-px-4">
-        <Passage passage={passageToEdit} personId={passageToEdit?.person} onFinished={() => setPassageToEdit(null)} />
+        {passageToEdit && <Passage passage={passageToEdit} personId={passageToEdit?.person} onFinished={() => setPassageToEdit(null)} />}
         {!!passages.length && (
           <Table
             className="Table"

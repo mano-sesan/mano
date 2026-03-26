@@ -101,7 +101,7 @@ const RencontresTable = ({ period, rencontres, selectedTeams }) => {
             </button>
           </div>
         </div>
-        <Rencontre rencontre={rencontreToEdit} personId={rencontreToEdit?.person} onFinished={() => setRencontreToEdit(null)} />
+        {rencontreToEdit && <Rencontre rencontre={rencontreToEdit} personId={rencontreToEdit?.person} onFinished={() => setRencontreToEdit(null)} />}
         {!!rencontres.length && (
           <Table
             className="Table"

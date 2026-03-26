@@ -17,13 +17,9 @@ import { useDataLoader } from "../services/dataLoader";
 const Passage = ({ passage, personId, onFinished }) => {
   const user = useAtomValue(userState);
   const teams = useAtomValue(teamsState);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const { refresh } = useDataLoader();
-
-  useEffect(() => {
-    setOpen(!!passage);
-  }, [passage]);
 
   const onDeletePassage = async () => {
     setIsDeleting(true);

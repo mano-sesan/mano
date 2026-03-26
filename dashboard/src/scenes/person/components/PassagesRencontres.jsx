@@ -141,20 +141,24 @@ export default function PassagesRencontres({ person }) {
           </button>
         </ModalFooter>
       </ModalContainer>
-      <Rencontre
-        rencontre={currentRencontre}
-        personId={person._id}
-        onFinished={() => {
-          history.replace(`/person/${person._id}`);
-        }}
-      />
-      <Passage
-        passage={currentPassage}
-        personId={person._id}
-        onFinished={() => {
-          history.replace(`/person/${person._id}`);
-        }}
-      />
+      {currentRencontre && (
+        <Rencontre
+          rencontre={currentRencontre}
+          personId={person._id}
+          onFinished={() => {
+            history.replace(`/person/${person._id}`);
+          }}
+        />
+      )}
+      {currentPassage && (
+        <Passage
+          passage={currentPassage}
+          personId={person._id}
+          onFinished={() => {
+            history.replace(`/person/${person._id}`);
+          }}
+        />
+      )}
       {selected === "passages" && !personPassages.length && (
         <div className="tw-mt-8 tw-w-full tw-text-center tw-text-gray-500">
           <svg
