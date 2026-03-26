@@ -519,7 +519,7 @@ const SuperAdmin = () => {
                 Export vers umap
               </button>
               <button
-                className="button-destructive"
+                className="button-classic"
                 type="button"
                 onClick={() => {
                   setOpenMergeModal(true);
@@ -527,52 +527,64 @@ const SuperAdmin = () => {
               >
                 Fusionner deux orgas
               </button>
-              {organisations?.some((o) => !o.disabledAt && o._id !== user.organisation) ? (
-                <button
-                  className="button-destructive"
-                  type="button"
-                  onClick={async () => {
-                    if (
-                      !confirm(
-                        "⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER TOUTES les organisations (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.\n\nCette action est réversible."
-                      )
+              <button
+                className="button-destructive"
+                type="button"
+                onClick={async () => {
+                  const activeOrgs = organisations?.filter((o) => !o.disabledAt && o._id !== user.organisation) ?? [];
+                  if (activeOrgs.length === 0) {
+                    toast.info("Aucune organisation active à bloquer");
+                    return;
+                  }
+                  if (
+                    !confirm(
+                      `⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s" : ""} (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.\n\nCette action est réversible.`
                     )
-                      return;
-                    if (!confirm("Êtes-vous vraiment sûr ? Toutes les organisations seront bloquées immédiatement.")) return;
-                    const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/disable-all" }));
-                    if (!error) {
-                      toast.success("Toutes les organisations ont été bloquées");
-                      setRefresh(true);
-                    } else {
-                      toast.error(errorMessage(error));
-                    }
-                  }}
-                >
-                  🚨 Tout bloquer (mode panique)
-                </button>
-              ) : (
-                <button
-                  className="button-submit"
-                  type="button"
-                  onClick={async () => {
-                    if (
-                      !confirm(
-                        "Voulez-vous vraiment réactiver toutes les organisations ?\n\nAttention : les organisations qui étaient déjà désactivées avant le blocage seront également réactivées."
-                      )
+                  )
+                    return;
+                  if (
+                    !confirm(
+                      `Êtes-vous vraiment sûr ? ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s seront bloquées" : " sera bloquée"} immédiatement.`
                     )
-                      return;
-                    const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/enable-all" }));
-                    if (!error) {
-                      toast.success("Toutes les organisations ont été réactivées");
-                      setRefresh(true);
-                    } else {
-                      toast.error(errorMessage(error));
-                    }
-                  }}
-                >
-                  ✅ Tout réactiver
-                </button>
-              )}
+                  )
+                    return;
+                  const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/disable-all" }));
+                  if (!error) {
+                    toast.success("Toutes les organisations ont été bloquées");
+                    setRefresh(true);
+                  } else {
+                    toast.error(errorMessage(error));
+                  }
+                }}
+              >
+                🚨 Tout bloquer (panique)
+              </button>
+              <button
+                className="button-submit"
+                type="button"
+                onClick={async () => {
+                  const disabledOrgs = organisations?.filter((o) => !!o.disabledAt && o._id !== user.organisation) ?? [];
+                  if (disabledOrgs.length === 0) {
+                    toast.info("Aucune organisation désactivée à réactiver");
+                    return;
+                  }
+                  if (
+                    !confirm(
+                      `Voulez-vous vraiment réactiver ${disabledOrgs.length} organisation${disabledOrgs.length > 1 ? "s" : ""} ?\n\nAttention : les organisations qui étaient déjà désactivées avant le blocage seront également réactivées.`
+                    )
+                  )
+                    return;
+                  const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/enable-all" }));
+                  if (!error) {
+                    toast.success("Toutes les organisations ont été réactivées");
+                    setRefresh(true);
+                  } else {
+                    toast.error(errorMessage(error));
+                  }
+                }}
+              >
+                ✅ Tout réactiver
+              </button>
             </div>
           )}
         </main>
