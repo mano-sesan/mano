@@ -8,6 +8,7 @@ export type StructureInstance = {
   postcode: string;
   city: string;
   phone: string;
+  email?: string;
   description?: string;
   categories?: string[];
 };

@@ -32,6 +32,7 @@ const castToStructure = (structure: Partial<StructureInstance>) => ({
   city: structure?.city?.trim() || "",
   description: structure?.description?.trim() || "",
   phone: structure?.phone?.trim() || "",
+  email: structure?.email?.trim() || "",
   categories: structure?.categories?.length ? structure.categories : [],
 });
 
@@ -109,7 +110,7 @@ const Structure = ({ navigation, route }: Props) => {
         structures.map((s) => {
           if (s._id === response.data._id) return response.data;
           return s;
-        })
+        }),
       );
       setStructureDB(response.data);
       setUpdating(false);
@@ -174,7 +175,7 @@ const Structure = ({ navigation, route }: Props) => {
     ]);
   };
 
-  const { name, description, categories, city, postcode, adresse, phone } = structure;
+  const { name, description, categories, city, postcode, adresse, phone, email } = structure;
 
   return (
     <SceneContainer>
@@ -246,6 +247,17 @@ const Structure = ({ navigation, route }: Props) => {
           <Spacer />
           {!!phone.length && <Button caption="Appeler" Icon={PhoneIcon} color={colors.app.secondary} onPress={onCall} noBorder />}
         </Row>
+        <InputLabelled
+          label="Email"
+          onChangeText={(email) => setStructure((s) => ({ ...s, email }))}
+          value={email}
+          placeholder="contact@exemple.fr"
+          textContentType="emailAddress"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          editable={editable}
+        />
         <InputLabelled
           label="Description"
           value={description}

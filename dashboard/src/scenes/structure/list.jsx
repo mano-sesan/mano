@@ -112,6 +112,7 @@ const List = () => {
             render: (structure) => <div className="[overflow-wrap:anywhere] tw-text-xs">{structure.description}</div>,
           },
           { title: "Téléphone", dataKey: "phone", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
+          { title: "Email", dataKey: "email", onSortOrder: setSortOrder, onSortBy: setSortBy, sortBy, sortOrder },
           {
             title: "Adresse",
             dataKey: "adresse",
@@ -232,13 +233,13 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
         <ModalHeader title={!initStructure?._id ? "Créer un contact" : "Modifier un contact"} />
         <ModalBody className="tw-pb-4">
           <form id="create-structure-form" className="tw-flex tw-w-full tw-flex-row tw-flex-wrap" onSubmit={onSubmit}>
-            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
               <label className="tailwindui" htmlFor="name">
                 Nom
               </label>
               <input type="text" className="tailwindui" autoComplete="off" name="name" id="name" value={structure?.name || ""} onChange={onChange} />
             </div>
-            <div className="tw-flex tw-basis-1/2 tw-flex-col tw-px-4 tw-py-2">
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
               <label className="tailwindui" htmlFor="phone">
                 Téléphone
               </label>
@@ -249,6 +250,20 @@ const Structure = ({ structure: initStructure, open, onClose, onOpen, onAfterLea
                 name="phone"
                 id="phone"
                 value={structure?.phone || ""}
+                onChange={onChange}
+              />
+            </div>
+            <div className="tw-flex tw-basis-1/3 tw-flex-col tw-px-4 tw-py-2">
+              <label className="tailwindui" htmlFor="email">
+                Email
+              </label>
+              <input
+                type="email"
+                className="tailwindui"
+                autoComplete="off"
+                name="email"
+                id="email"
+                value={structure?.email || ""}
                 onChange={onChange}
               />
             </div>

@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     organisation: { type: DataTypes.UUID, references: { model: "Organisation", key: "_id", deferrable: Deferrable.INITIALLY_IMMEDIATE } },
     name: DataTypes.TEXT,
     phone: DataTypes.TEXT,
+    email: DataTypes.TEXT,
     adresse: DataTypes.TEXT,
     city: DataTypes.TEXT,
     postcode: DataTypes.TEXT,

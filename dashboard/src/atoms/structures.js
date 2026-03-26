@@ -107,6 +107,15 @@ export const structuresFields = (structuresTypes) => [
     enabled: true,
   },
   {
+    name: "email",
+    label: "Email",
+    type: "text",
+    encrypted: true,
+    importable: true,
+    filterable: true,
+    enabled: true,
+  },
+  {
     name: "categories",
     label: "Catégories",
     type: "multi-choice",
