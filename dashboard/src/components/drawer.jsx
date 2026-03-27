@@ -95,7 +95,7 @@ const Drawer = () => {
           <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
           <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
-            <p className="m-0">Accessibilité&nbsp;: partielle</p>
+            <p className="m-0">Accessibilité&nbsp;: non conforme</p>
           </div>
         </div>
       </nav>
@@ -170,7 +170,7 @@ const Drawer = () => {
               </Link>{" "}
               • Version&nbsp;: {deploymentCommit}
             </div>
-            <p className="m-0">Accessibilité&nbsp;: partielle</p>
+            <p className="m-0">Accessibilité&nbsp;: non conforme</p>
           </div>
         )}
         <button
