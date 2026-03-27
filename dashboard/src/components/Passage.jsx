@@ -54,6 +54,7 @@ const Passage = ({ passage, personId, onFinished }) => {
     >
       <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
       <Formik
+        enableReinitialize
         initialValues={{ date: new Date(), ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
         onSubmit={async (body, actions) => {
           if (!body.user) return toast.error("L'utilisateur est obligatoire");
