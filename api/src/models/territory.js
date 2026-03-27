@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     organisation: { type: DataTypes.UUID, references: { model: "Organisation", key: "_id", deferrable: Deferrable.INITIALLY_IMMEDIATE } },
     encrypted: { type: DataTypes.TEXT },
     encryptedEntityKey: { type: DataTypes.TEXT },
+    archivedAt: { type: DataTypes.DATE },
   };
 
   class Territory extends Model {

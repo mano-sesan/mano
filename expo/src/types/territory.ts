@@ -23,6 +23,7 @@ export type TerritoryInstance = {
   createdAt: string; // ISO date
   deletedAt?: string; // ISO date
   updatedAt: string; // ISO date
+  archivedAt?: string | null; // ISO date
 
   name: string;
   perimeter: string;
