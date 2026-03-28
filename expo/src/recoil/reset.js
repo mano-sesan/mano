@@ -10,6 +10,10 @@ import { actionsState } from "./actions";
 import { reportsState } from "./reports";
 import { groupsState } from "./groups";
 import { relsPersonPlaceState } from "./relPersonPlace";
+import { consultationsState } from "./consultations";
+import { treatmentsState } from "./treatments";
+import { medicalFileState } from "./medicalFiles";
+import { clearEncryptedMedicalCache } from "../services/dataManagement";
 
 const useResetAllCachedDataRecoilStates = () => {
   const setPersons = useSetAtom(personsState);
@@ -23,6 +27,9 @@ const useResetAllCachedDataRecoilStates = () => {
   const setReports = useSetAtom(reportsState);
   const setGroups = useSetAtom(groupsState);
   const setRelPersonPlaces = useSetAtom(relsPersonPlaceState);
+  const setConsultations = useSetAtom(consultationsState);
+  const setTreatments = useSetAtom(treatmentsState);
+  const setMedicalFiles = useSetAtom(medicalFileState);
 
   const setAll = () => {
     setPersons([]);
@@ -36,6 +43,10 @@ const useResetAllCachedDataRecoilStates = () => {
     setReports([]);
     setGroups([]);
     setRelPersonPlaces([]);
+    setConsultations([]);
+    setTreatments([]);
+    setMedicalFiles([]);
+    clearEncryptedMedicalCache();
   };
   return setAll;
 };
