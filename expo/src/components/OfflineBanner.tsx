@@ -4,26 +4,25 @@ import { useAtomValue } from "jotai";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MyText } from "./MyText";
-import { isOnlineState } from "@/services/network";
+import { offlineModeState } from "@/services/network";
 import { offlineQueueCountState } from "@/services/offlineQueue";
-import { syncStatusState, conflictsState } from "@/services/syncProcessor";
-import { processQueue } from "@/services/syncProcessor";
+import { processQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { RootStackParamList } from "@/types/navigation";
 
 const OfflineBanner = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const isOnline = useAtomValue(isOnlineState);
+  const offlineMode = useAtomValue(offlineModeState);
   const queueCount = useAtomValue(offlineQueueCountState);
   const syncStatus = useAtomValue(syncStatusState);
   const conflicts = useAtomValue(conflictsState);
 
-  if (isOnline && queueCount === 0 && conflicts.length === 0) return null;
+  if (!offlineMode && queueCount === 0 && conflicts.length === 0) return null;
 
   const getMessage = () => {
-    if (!isOnline && queueCount > 0) {
+    if (offlineMode && queueCount > 0) {
       return `Mode hors ligne \u2014 ${queueCount} modification${queueCount > 1 ? "s" : ""} en attente`;
     }
-    if (!isOnline) {
+    if (offlineMode) {
       return "Mode hors ligne";
     }
     if (syncStatus === "syncing") {
@@ -43,7 +42,7 @@ const OfflineBanner = () => {
       navigation.navigate("CONFLICT_RESOLUTION");
       return;
     }
-    if (isOnline && queueCount > 0) {
+    if (!offlineMode && queueCount > 0) {
       processQueue().catch(() => {});
     }
   };
@@ -53,11 +52,12 @@ const OfflineBanner = () => {
       <View
         className={[
           "py-2 px-4 flex-row items-center justify-center",
-          !isOnline && "bg-[#6B7280]",
-          isOnline && syncStatus === "syncing" && "bg-main",
-          isOnline && conflicts.length > 0 && "bg-orangeDark",
-          isOnline && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
-        ].join(" ")}>
+          offlineMode && "bg-[#6B7280]",
+          !offlineMode && syncStatus === "syncing" && "bg-main",
+          !offlineMode && conflicts.length > 0 && "bg-orangeDark",
+          !offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
+        ].join(" ")}
+      >
         <MyText bold color="#fff" className="text-[13px] text-center">
           {getMessage()}
         </MyText>
@@ -66,7 +66,7 @@ const OfflineBanner = () => {
             Résoudre
           </MyText>
         )}
-        {isOnline && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && (
+        {!offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && (
           <MyText color="#fff" className="text-[13px] ml-2 underline">
             Synchroniser
           </MyText>

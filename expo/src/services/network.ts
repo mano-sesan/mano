@@ -1,36 +1,44 @@
-import { atom } from "jotai";
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
-import { store } from "@/store";
+import { Alert } from "react-native";
+import { store, atomWithCache } from "@/store";
 
-export const isOnlineState = atom<boolean>(true);
+// Manual offline mode toggle (user-controlled, persisted)
+export const offlineModeState = atomWithCache<boolean>("mano-offline-mode", false);
 
-type ReconnectCallback = () => void;
-const reconnectCallbacks: ReconnectCallback[] = [];
-
-let previouslyConnected = true;
-
-export function onReconnect(callback: ReconnectCallback) {
-  reconnectCallbacks.push(callback);
-  return () => {
-    const index = reconnectCallbacks.indexOf(callback);
-    if (index !== -1) reconnectCallbacks.splice(index, 1);
-  };
-}
+let alertShown = false;
 
 function handleNetInfoChange(state: NetInfoState) {
   const connected = state.isConnected !== false && state.isInternetReachable !== false;
-  store.set(isOnlineState, connected);
+  // Suggest offline/online mode based on network vs manual toggle mismatch
+  const offlineMode = store.get(offlineModeState);
 
-  if (connected && !previouslyConnected) {
-    for (const cb of reconnectCallbacks) {
-      try {
-        cb();
-      } catch (e) {
-        console.warn("[network] reconnect callback error:", e);
-      }
-    }
+  if (!connected && !offlineMode && !alertShown) {
+    alertShown = true;
+    Alert.alert("Connexion faible", "Le réseau semble instable. Voulez-vous activer le mode hors ligne ?", [
+      { text: "Non", style: "cancel", onPress: () => (alertShown = false) },
+      {
+        text: "Oui",
+        onPress: () => {
+          store.set(offlineModeState, true);
+          alertShown = false;
+        },
+      },
+    ]);
   }
-  previouslyConnected = connected;
+
+  if (connected && offlineMode && !alertShown) {
+    alertShown = true;
+    Alert.alert("Connexion rétablie", "Le réseau semble stable. Voulez-vous désactiver le mode hors ligne ?", [
+      { text: "Non", style: "cancel", onPress: () => (alertShown = false) },
+      {
+        text: "Oui",
+        onPress: () => {
+          store.set(offlineModeState, false);
+          alertShown = false;
+        },
+      },
+    ]);
+  }
 }
 
 export function startNetworkListener() {

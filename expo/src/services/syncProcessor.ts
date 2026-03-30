@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { store, atomWithCache } from "@/store";
-import { isOnlineState, onReconnect } from "./network";
+import { offlineModeState } from "./network";
 import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
 import { refreshTriggerState } from "@/components/Loader";
@@ -25,8 +25,8 @@ let isSyncing = false;
 
 export async function processQueue(): Promise<void> {
   if (isSyncing) return;
-  const isOnline = store.get(isOnlineState);
-  if (!isOnline) return;
+  const offlineMode = store.get(offlineModeState);
+  if (offlineMode) return;
 
   isSyncing = true;
   store.set(syncStatusState, "syncing");
@@ -265,11 +265,4 @@ export function discardConflict(queueItemId: string) {
     conflicts.filter((c) => c.queueItemId !== queueItemId),
   );
   removeQueueItem(queueItemId);
-}
-
-// Start listening for reconnection events
-export function startSyncListener() {
-  return onReconnect(() => {
-    processQueue();
-  });
 }
