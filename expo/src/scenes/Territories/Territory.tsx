@@ -22,7 +22,7 @@ import { dayjsInstance } from "@/services/dateDayjs";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 
 const castToTerritory = (
-  territory: Partial<TerritoryInstance> = {}
+  territory: Partial<TerritoryInstance> = {},
 ): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
   name: territory.name?.trim() || "",
   user: territory.user || "",
@@ -89,7 +89,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
         territories.map((a) => {
           if (a._id === territoryDB._id) return response.decryptedData;
           return a;
-        })
+        }),
       );
       setTerritoryDB(response.decryptedData);
       Alert.alert("Territoire mis à jour !");
@@ -200,6 +200,43 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
             >
               Cette opération est irréversible{"\n"}et entrainera la suppression définitive{"\n"}de toutes les observations liées au territoire
             </DeleteButtonAndConfirmModal>
+            {!territoryDB?.archivedAt ? (
+              <Button
+                caption="Archiver"
+                onPress={() => {
+                  Alert.alert(
+                    "Archiver le territoire",
+                    `Voulez-vous archiver le territoire « ${territoryDB?.name} » ? Il n'apparaîtra plus dans la liste mais ses observations seront conservées dans les statistiques.`,
+                    [
+                      { text: "Annuler", style: "cancel" },
+                      {
+                        text: "Archiver",
+                        onPress: async () => {
+                          const response = await API.post({ path: `/territory/${territoryDB._id}/archive` });
+                          if (response.error) return Alert.alert(response.error);
+                          setTerritories((territories) =>
+                            territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: new Date().toISOString() } : t)),
+                          );
+                          setTerritoryDB((t) => ({ ...t, archivedAt: new Date().toISOString() }));
+                          Alert.alert("Territoire archivé");
+                        },
+                      },
+                    ],
+                  );
+                }}
+              />
+            ) : (
+              <Button
+                caption="Désarchiver"
+                onPress={async () => {
+                  const response = await API.post({ path: `/territory/${territoryDB._id}/unarchive` });
+                  if (response.error) return Alert.alert(response.error);
+                  setTerritories((territories) => territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: null } : t)));
+                  setTerritoryDB((t) => ({ ...t, archivedAt: null }));
+                  Alert.alert("Territoire désarchivé");
+                }}
+              />
+            )}
             <Button
               caption={editable ? "Mettre à jour" : "Modifier"}
               onPress={editable ? onUpdateTerritory : onEdit}

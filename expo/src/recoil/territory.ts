@@ -68,21 +68,20 @@ const territoriesWithObservations = atom((get) => {
     }
     observationsByTerritory[obs.territory!].push(obs);
   }
-  return territories
-    .filter((t) => !t.archivedAt)
-    .map((t) => ({
-      ...t,
-      observations: observationsByTerritory[t._id] || [],
-      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort(
-        (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
-      )?.[0]?.createdAt,
-    }));
+  return territories.map((t) => ({
+    ...t,
+    observations: observationsByTerritory[t._id] || [],
+    lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort(
+      (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
+    )?.[0]?.createdAt,
+  }));
 });
 
-export function useTerritoriesWithObservationsSearchSelector(search: string) {
+export function useTerritoriesWithObservationsSearchSelector(search: string, showArchived: boolean = false) {
   const territories = useAtomValue(territoriesWithObservations);
   return useMemo(() => {
-    if (!search?.length) return territories;
-    return filterBySearch(search, territories);
-  }, [search, territories]);
+    const visible = showArchived ? territories : territories.filter((t) => !t.archivedAt);
+    if (!search?.length) return visible;
+    return filterBySearch(search, visible);
+  }, [search, territories, showArchived]);
 }

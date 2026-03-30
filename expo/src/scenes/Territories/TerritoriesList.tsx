@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, View } from "react-native";
+import { Animated, Switch, View } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import Spinner from "../../components/Spinner";
@@ -19,14 +19,16 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
+import colors from "../../utils/colors";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
 const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
-  const territories = useTerritoriesWithObservationsSearchSelector(search);
+  const territories = useTerritoriesWithObservationsSearchSelector(search, showArchived);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -49,8 +51,9 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
     return (
       <RowContainer onPress={() => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("TERRITORY", { territory })}>
         <View>
-          <View>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Name>{name}</Name>
+            {!!territory.archivedAt && <ArchivedBadge>(archivé)</ArchivedBadge>}
           </View>
         </View>
       </RowContainer>
@@ -69,7 +72,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         },
       },
     ],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   return (
@@ -81,6 +84,10 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         onFocus={() => listRef.current?.scrollToOffset({ offset: 100 })}
         parentScroll={scrollY}
       />
+      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 8 }}>
+        <Switch value={showArchived} onValueChange={setShowArchived} trackColor={{ true: colors.app.color }} />
+        <MyText style={{ marginLeft: 8, fontSize: 14, color: "#666" }}>Afficher les archivés</MyText>
+      </View>
       <FlashListStyled
         // @ts-ignore FIXME
         ref={listRef}
@@ -103,7 +110,6 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   );
 };
 
-
 const ListEmptyComponent = () => {
   const loading = useAtomValue(loadingState);
   if (loading) return <Spinner />;
@@ -112,6 +118,11 @@ const ListEmptyComponent = () => {
 const Name = styled(MyText)`
   font-weight: bold;
   font-size: 17px;
+`;
+const ArchivedBadge = styled(MyText)`
+  font-size: 12px;
+  color: #d97706;
+  margin-left: 8px;
 `;
 
 export default TerritoriesList;
