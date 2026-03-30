@@ -25,7 +25,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import { RelPersonPlaceInstance } from "@/types/place";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { PassageInstance } from "@/types/passage";
-import { offlineModeState } from "@/services/network";
+import { offlineModeState } from "@/atoms/offlineMode";
 
 export const loadingState = atom("");
 

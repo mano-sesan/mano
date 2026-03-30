@@ -59,8 +59,8 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
   };
 
   const onCreateUser = async () => {
-    const now = Date.now();
     setPosting(true);
+    if (!name) return;
     const existingPerson = persons.find((p) => p.name === name);
     if (existingPerson) {
       Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
@@ -71,6 +71,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
     });
+    console.log("response", response);
     if (response.ok) {
       setPersons((persons) => {
         const nextPersons = [response.decryptedData, ...persons].map((p) => ({ ...p, followedSince: p.followedSince }));

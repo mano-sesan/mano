@@ -1,6 +1,7 @@
 import { atom } from "jotai";
-import { store, atomWithCache } from "@/store";
-import { offlineModeState } from "./network";
+import { store } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
 import { refreshTriggerState } from "@/components/Loader";
@@ -60,8 +61,10 @@ export async function processQueue(): Promise<void> {
       store.set(syncProgressState, { current: i + 1, total: queue.length });
 
       // For PUT/DELETE: detect conflicts by checking updatedAt
+      console.log(JSON.stringify({ item }, null, 2));
       if ((item.method === "PUT" || item.method === "DELETE") && item.entityUpdatedAt) {
         const conflict = await detectConflict(item);
+        console.log("conflict", conflict);
         if (conflict) {
           updateQueueItemStatus(item.id, { status: "conflict" });
           const conflicts = store.get(conflictsState);
@@ -143,9 +146,12 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
     const serverUpdatedAt = new Date(serverEntity.updatedAt).getTime();
     const localUpdatedAt = new Date(item.entityUpdatedAt!).getTime();
 
+    console.log(JSON.stringify({ serverUpdatedAt, localUpdatedAt }, null, 2));
+
     if (serverUpdatedAt !== localUpdatedAt) {
       // Conflict detected
-      const localBody = item.body || {};
+      const localBody = item.decryptedBody || {};
+      console.log(JSON.stringify({ localBody }, null, 2));
       const changedFields = localBody.decrypted ? Object.keys(localBody.decrypted) : [];
 
       return {
@@ -180,13 +186,13 @@ async function processMutation(item: QueuedMutation): Promise<boolean> {
     let response;
     switch (item.method) {
       case "POST":
-        response = await API.executeRaw({ method: "POST", path: item.path, body: item.body });
+        response = await API.executeRaw({ method: "POST", path: item.path, body: item.decryptedBody });
         break;
       case "PUT":
-        response = await API.executeRaw({ method: "PUT", path: item.path, body: item.body });
+        response = await API.executeRaw({ method: "PUT", path: item.path, body: item.decryptedBody });
         break;
       case "DELETE":
-        response = await API.executeRaw({ method: "DELETE", path: item.path, body: item.body });
+        response = await API.executeRaw({ method: "DELETE", path: item.path, body: item.decryptedBody });
         break;
     }
 
