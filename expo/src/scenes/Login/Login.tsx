@@ -138,8 +138,8 @@ const Login = ({ navigation }: Props) => {
     setLoading(true);
     const userDebugInfos = await API.getUserDebugInfos();
     const response = authViaCookie
-      ? await API.get({ path: "/user/signin-token" })
-      : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos } });
+      ? await API.get({ path: "/user/signin-token", offlineEnabled: false })
+      : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos }, offlineEnabled: false });
     if (response.error) {
       Alert.alert(response.error, undefined, [{ text: "OK", onPress: () => passwordRef.current?.focus() }], {
         cancelable: true,
