@@ -3,7 +3,7 @@
 // Menthe
 // Tuile
 
-let colors = {
+export default {
   app: {
     color: "#226854",
     secondary: "#ae1d20",
@@ -24,5 +24,3 @@ let colors = {
     color: "#fff",
   },
 };
-
-export default colors;
