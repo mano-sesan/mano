@@ -17,6 +17,9 @@ import { groupsState } from "./groups";
 import { territoriesState } from "./territory";
 import { extractInfosFromHistory } from "../utils/person-history";
 
+// Shared frozen empty array to avoid creating new [] on every fallback
+const EMPTY_ARRAY = Object.freeze([]);
+
 export const usersObjectSelector = atom((get) => {
   const users = get(usersState);
   const usersObject = {};
@@ -32,18 +35,22 @@ export const currentTeamReportsSelector = atom((get) => {
   return reports.filter((a) => a.team === currentTeam?._id);
 });
 
-const actionsWithCommentsSelector = atom((get) => {
-  const actions = get(actionsState);
+// Maps each actionId to its array of enriched comments.
+// Replaces actionsWithCommentsSelector: avoids spreading every action (O(actions)) just to attach comments.
+// Only comments linked to an action are processed (typically much fewer than total actions).
+const commentsByActionSelector = atom((get) => {
   const comments = get(commentsState);
-  const actionsObject = {};
-  for (const action of actions) {
-    actionsObject[action._id] = { ...action, comments: [] };
-  }
+  const map = new Map();
   for (const comment of comments) {
-    if (!actionsObject[comment.action]) continue;
-    actionsObject[comment.action].comments.push({ ...comment, date: comment.date || comment.createdAt });
+    if (!comment.action) continue;
+    let arr = map.get(comment.action);
+    if (!arr) {
+      arr = [];
+      map.set(comment.action, arr);
+    }
+    arr.push({ ...comment, date: comment.date || comment.createdAt });
   }
-  return actionsObject;
+  return map;
 });
 
 const placesObjectSelector = atom((get) => {
@@ -65,24 +72,56 @@ export const personsObjectSelector = atom((get) => {
   return personsObject;
 });
 
+// Extracted: only recomputes when groupsState changes (rare).
+// Previously computed inline inside itemsGroupedByPersonSelector on every recalculation.
+const groupMembershipSelector = atom((get) => {
+  const groups = get(groupsState);
+  const map = new Map();
+  for (const group of groups) {
+    if (!group.persons?.length) continue;
+    for (const personId of group.persons) {
+      map.set(personId, group);
+    }
+  }
+  return map;
+});
+
+// Extracted: only recomputes when medicalFileState changes.
+// Previously sorted inline ([...arr].sort()) on every recalculation of itemsGroupedByPersonSelector.
+const sortedMedicalFilesSelector = atom((get) => {
+  return [...get(medicalFileState)].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+});
+
 export const itemsGroupedByPersonSelector = atom((get) => {
-  const endOfToday = dayjsInstance().endOf("day").toISOString();
+  const now = dayjsInstance();
+  const endOfToday = now.endOf("day").toISOString();
   const persons = get(personsState);
   const personsObject = {};
   const user = get(userState);
   const usersObject = get(usersObjectSelector);
+
+  // Interactions tracked as Sets: avoids accumulating nulls/duplicates,
+  // eliminates the sort+Set+filter pass at the end.
+  const interactionsSets = new Map();
+
   for (const person of persons) {
     const { interactions, assignedTeamsPeriods } = extractInfosFromHistory(person);
+
+    const iSet = new Set();
+    for (let i = 0; i < interactions.length; i++) {
+      if (interactions[i]) iSet.add(interactions[i]);
+    }
+    interactionsSets.set(person._id, iSet);
+
     personsObject[person._id] = {
       ...person,
-      followedSince: person.followedSince,
-      followSinceMonths: dayjsInstance().diff(person.followedSince, "months"),
+      // `followedSince` is already in `...person` — no need to re-set it
+      followSinceMonths: now.diff(person.followedSince, "months"),
       userPopulated: usersObject[person.user],
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
       ageInMonths: ageFromBirthdateAsMonths(person.birthdate),
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
-      interactions,
       assignedTeamsPeriods,
       lastUpdateCheckForGDPR: person.followedSince,
       numberOfActions: 0,
@@ -98,32 +137,36 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     };
   }
 
-  const actions = get(actionsWithCommentsSelector);
+  // Use actionsState directly instead of actionsWithCommentsSelector.
+  // The main selector never accesses action.comments — it processes comments separately.
+  // This removes one intermediate selector layer and avoids spreading every action.
+  const actions = get(actionsState);
   const comments = get(commentsState);
 
   const consultations = get(consultationsState);
   const treatments = get(treatmentsState);
-  const medicalFiles = [...get(medicalFileState)].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const medicalFiles = get(sortedMedicalFilesSelector);
   const passages = get(passagesState);
   const relsPersonPlace = get(relsPersonPlaceState);
   const places = get(placesObjectSelector);
   const rencontres = get(rencontresState);
-  const groups = get(groupsState);
+  const groupMembership = get(groupMembershipSelector);
   const observations = get(territoryObservationsState);
   const territories = get(territoriesState);
 
-  for (const group of groups) {
-    if (!group.persons?.length) continue;
-    for (const person of group.persons) {
-      if (!personsObject[person]) continue;
-      personsObject[person].group = group;
+  // Attach groups from extracted selector
+  for (const [personId, group] of groupMembership) {
+    if (personsObject[personId]) {
+      personsObject[personId].group = group;
     }
   }
 
   for (const person of persons) {
     if (!person.documents?.length) continue;
+    const personObj = personsObject[person._id];
     const documentsForModule = [];
     const uniqueDocIds = {}; // to avoid duplicates
+    const iSet = interactionsSets.get(person._id);
     for (const document of person.documents) {
       if (!document) continue;
       if (uniqueDocIds[document._id]) continue;
@@ -137,10 +180,10 @@ export const itemsGroupedByPersonSelector = atom((get) => {
         },
       };
       documentsForModule.push(documentForModule);
-      personsObject[person._id].interactions.push(document.createdAt);
+      if (document.createdAt) iSet.add(document.createdAt);
       if (!document.group) continue;
-      if (!personsObject[person._id].group) continue;
-      for (const personIdInGroup of personsObject[person._id].group.persons) {
+      if (!personObj.group) continue;
+      for (const personIdInGroup of personObj.group.persons) {
         if (personIdInGroup === person._id) continue;
         if (!personsObject[personIdInGroup]) continue;
         if (!personsObject[personIdInGroup].groupDocuments) {
@@ -149,49 +192,52 @@ export const itemsGroupedByPersonSelector = atom((get) => {
         personsObject[personIdInGroup].groupDocuments.push(documentForModule);
       }
     }
-    personsObject[person._id].documentsForModule = documentsForModule;
+    personObj.documentsForModule = documentsForModule;
   }
 
-  // to dispatch comments efficiently
-  const personPerAction = {};
+  // Maps for efficient comment dispatch: actionId → personId, actionId → action
+  const personPerAction = new Map();
+  const actionsById = new Map();
   // to help adding action categories to persons efficiently
   const personActionCategoriesObject = {};
 
-  for (const action of Object.values(actions)) {
-    if (!personsObject[action.person]) continue;
-    personPerAction[action._id] = action.person;
-    personsObject[action.person].actions = personsObject[action.person].actions || [];
-    personsObject[action.person].actions.push(action);
-    if (!personsObject[action.person].numberOfActions) personsObject[action.person].numberOfActions = 0;
-    personsObject[action.person].numberOfActions++;
-    personsObject[action.person].interactions.push(action.dueAt);
-    personsObject[action.person].interactions.push(action.createdAt);
-    personsObject[action.person].interactions.push(action.completedAt);
+  for (const action of actions) {
+    const personObj = personsObject[action.person];
+    if (!personObj) continue;
+    personPerAction.set(action._id, action.person);
+    actionsById.set(action._id, action);
+    if (!personObj.actions) personObj.actions = [];
+    personObj.actions.push(action);
+    personObj.numberOfActions++;
+    const iSet = interactionsSets.get(action.person);
+    if (action.dueAt) iSet.add(action.dueAt);
+    if (action.createdAt) iSet.add(action.createdAt);
+    if (action.completedAt) iSet.add(action.completedAt);
     if (action.categories?.length) {
+      if (!personActionCategoriesObject[action.person]) personActionCategoriesObject[action.person] = {};
+      if (!personObj.actionCategories) personObj.actionCategories = [];
       for (const category of action.categories) {
-        personActionCategoriesObject[action.person] = personActionCategoriesObject[action.person] || {}; //
-        personsObject[action.person].actionCategories = personsObject[action.person].actionCategories || [];
         if (!personActionCategoriesObject[action.person][category]) {
           personActionCategoriesObject[action.person][category] = true;
-          personsObject[action.person].actionCategories.push(category);
+          personObj.actionCategories.push(category);
         }
       }
     }
     if (action.group) {
-      const group = personsObject[action.person].group;
+      const group = personObj.group;
       if (!group) continue;
       for (const person of group.persons) {
         if (!personsObject[person]) continue;
         if (person === action.person) continue;
-        personsObject[person].actions = personsObject[person].actions || [];
+        if (!personsObject[person].actions) personsObject[person].actions = [];
         personsObject[person].actions.push(action);
       }
     }
     if (action.documents) {
       for (const document of action.documents) {
         if (!document) continue;
-        personsObject[action.person].documentsForModule = personsObject[action.person].documentsForModule || [];
-        personsObject[action.person].documentsForModule.push({
+        if (!personObj.documentsForModule) personObj.documentsForModule = [];
+        personObj.documentsForModule.push({
           ...document,
           type: "document",
           linkedItem: {
@@ -204,12 +250,12 @@ export const itemsGroupedByPersonSelector = atom((get) => {
         // (on doit retrouver les documents dans toutes les fiches des personnes)
         // Ça fait beaucoup de complexité pour ce cas particulier.
         if (action.group) {
-          const group = personsObject[action.person].group;
+          const group = personObj.group;
           if (!group) continue;
           for (const person of group.persons) {
             if (!personsObject[person]) continue;
             if (person === action.person) continue;
-            personsObject[person].documentsForModule = personsObject[person].documentsForModule || [];
+            if (!personsObject[person].documentsForModule) personsObject[person].documentsForModule = [];
             personsObject[person].documentsForModule.push({
               ...document,
               type: "document",
@@ -227,81 +273,89 @@ export const itemsGroupedByPersonSelector = atom((get) => {
 
   for (const comment of comments) {
     if (comment.action) {
-      const person = personPerAction[comment.action];
-      if (!person) continue;
-      if (!personsObject[person]) continue;
-      personsObject[person].comments = personsObject[person].comments || [];
-      personsObject[person].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
+      const personId = personPerAction.get(comment.action);
+      if (!personId) continue;
+      const personObj = personsObject[personId];
+      if (!personObj) continue;
+      if (!personObj.comments) personObj.comments = [];
+      personObj.comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
       // Dans le cas où l'action est liée à un groupe, on doit ajouter les commentaires aux personnes du groupe.
-      if (actions[comment.action]?.group) {
-        const actionPersonGroup = personsObject[actions[comment.action].person].group;
+      const action = actionsById.get(comment.action);
+      if (action?.group) {
+        const actionPersonGroup = personsObject[action.person]?.group;
         if (actionPersonGroup) {
           for (const personOfGroup of actionPersonGroup.persons) {
             if (!personsObject[personOfGroup]) continue;
-            if (personOfGroup === person) continue;
-            personsObject[personOfGroup].comments = personsObject[personOfGroup].comments || [];
+            if (personOfGroup === personId) continue;
+            if (!personsObject[personOfGroup].comments) personsObject[personOfGroup].comments = [];
             personsObject[personOfGroup].comments.push({ ...comment, type: "action", date: comment.date || comment.createdAt });
           }
         }
       }
       continue;
     }
-    if (!personsObject[comment.person]) continue;
-    personsObject[comment.person].comments = personsObject[comment.person].comments || [];
-    personsObject[comment.person].comments.push({ ...comment, type: "person", date: comment.date || comment.createdAt });
-    personsObject[comment.person].interactions.push(comment.date || comment.createdAt);
+    const personObj = personsObject[comment.person];
+    if (!personObj) continue;
+    if (!personObj.comments) personObj.comments = [];
+    personObj.comments.push({ ...comment, type: "person", date: comment.date || comment.createdAt });
+    const commentDate = comment.date || comment.createdAt;
+    const commentISet = interactionsSets.get(comment.person);
+    if (commentDate && commentISet) commentISet.add(commentDate);
     if (comment.group) {
-      const group = personsObject[comment.person].group;
+      const group = personObj.group;
       if (!group) continue;
       for (const person of group.persons) {
         if (!personsObject[person]) continue;
         if (person === comment.person) continue;
-        personsObject[person].comments = personsObject[person].comments || [];
+        if (!personsObject[person].comments) personsObject[person].comments = [];
         personsObject[person].comments.push({ ...comment, type: "person", date: comment.date || comment.createdAt });
       }
     }
   }
   for (const relPersonPlace of relsPersonPlace) {
-    if (!personsObject[relPersonPlace.person]) continue;
+    const personObj = personsObject[relPersonPlace.person];
+    if (!personObj) continue;
     const place = places[relPersonPlace.place];
     if (!place) continue;
-    personsObject[relPersonPlace.person].places = personsObject[relPersonPlace.person].places || [];
-    personsObject[relPersonPlace.person].places.push(place.name);
-    personsObject[relPersonPlace.person].relsPersonPlace = personsObject[relPersonPlace.person].relsPersonPlace || [];
-    personsObject[relPersonPlace.person].relsPersonPlace.push(relPersonPlace);
-    personsObject[relPersonPlace.person].interactions.push(relPersonPlace.createdAt);
+    if (!personObj.places) personObj.places = [];
+    personObj.places.push(place.name);
+    if (!personObj.relsPersonPlace) personObj.relsPersonPlace = [];
+    personObj.relsPersonPlace.push(relPersonPlace);
+    const relISet = interactionsSets.get(relPersonPlace.person);
+    if (relPersonPlace.createdAt && relISet) relISet.add(relPersonPlace.createdAt);
   }
   for (const consultation of consultations) {
-    if (!personsObject[consultation.person]) continue;
+    const personObj = personsObject[consultation.person];
+    if (!personObj) continue;
 
-    personsObject[consultation.person].consultations = personsObject[consultation.person].consultations || [];
-    personsObject[consultation.person].flattenedConsultations = personsObject[consultation.person].flattenedConsultations || {};
+    if (!personObj.consultations) personObj.consultations = [];
+    if (!personObj.flattenedConsultations) personObj.flattenedConsultations = {};
+    const flatConsults = personObj.flattenedConsultations;
     for (const key of Object.keys(consultation)) {
       if (excludeConsultationsFieldsFromSearch.has(key)) continue;
-      if (!personsObject[consultation.person].flattenedConsultations[key]) {
-        personsObject[consultation.person].flattenedConsultations[key] = [];
+      if (!flatConsults[key]) {
+        flatConsults[key] = [];
       }
       if (Array.isArray(consultation[key])) {
-        personsObject[consultation.person].flattenedConsultations[key] = personsObject[consultation.person].flattenedConsultations[key].concat(
-          consultation[key]
-        );
+        // push spread instead of concat: mutates in place, avoids creating intermediate array
+        flatConsults[key].push(...consultation[key]);
       } else {
-        personsObject[consultation.person].flattenedConsultations[key].push(consultation[key]);
+        flatConsults[key].push(consultation[key]);
       }
     }
-    personsObject[consultation.person].consultations.push(consultation);
-    personsObject[consultation.person].hasAtLeastOneConsultation = true;
-    if (!personsObject[consultation.person].numberOfConsultations) personsObject[consultation.person].numberOfConsultations = 0;
-    personsObject[consultation.person].numberOfConsultations++;
-    personsObject[consultation.person].interactions.push(consultation.dueAt);
-    personsObject[consultation.person].interactions.push(consultation.createdAt);
-    personsObject[consultation.person].interactions.push(consultation.completedAt);
+    personObj.consultations.push(consultation);
+    personObj.hasAtLeastOneConsultation = true;
+    personObj.numberOfConsultations++;
+    const iSet = interactionsSets.get(consultation.person);
+    if (consultation.dueAt) iSet.add(consultation.dueAt);
+    if (consultation.createdAt) iSet.add(consultation.createdAt);
+    if (consultation.completedAt) iSet.add(consultation.completedAt);
     const consultationIsVisibleByMe = consultation.onlyVisibleBy.length === 0 || consultation.onlyVisibleBy.includes(user._id);
-    for (const comment of consultation.comments || []) {
-      personsObject[consultation.person].interactions.push(comment.date);
+    for (const comment of consultation.comments || EMPTY_ARRAY) {
+      if (comment.date) iSet.add(comment.date);
       if (!consultationIsVisibleByMe) continue;
-      personsObject[consultation.person].commentsMedical = personsObject[consultation.person].commentsMedical || [];
-      personsObject[consultation.person].commentsMedical.push({
+      if (!personObj.commentsMedical) personObj.commentsMedical = [];
+      personObj.commentsMedical.push({
         ...comment,
         consultation,
         person: consultation.person,
@@ -310,16 +364,17 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
   for (const treatment of treatments) {
-    if (!personsObject[treatment.person]) continue;
-    personsObject[treatment.person].treatments = personsObject[treatment.person].treatments || [];
-    personsObject[treatment.person].treatments.push(treatment);
-    if (!personsObject[treatment.person].numberOfTreatments) personsObject[treatment.person].numberOfTreatments = 0;
-    personsObject[treatment.person].numberOfTreatments++;
-    personsObject[treatment.person].interactions.push(treatment.createdAt);
-    for (const comment of treatment.comments || []) {
-      personsObject[treatment.person].interactions.push(comment.date);
-      personsObject[treatment.person].commentsMedical = personsObject[treatment.person].commentsMedical || [];
-      personsObject[treatment.person].commentsMedical.push({
+    const personObj = personsObject[treatment.person];
+    if (!personObj) continue;
+    if (!personObj.treatments) personObj.treatments = [];
+    personObj.treatments.push(treatment);
+    personObj.numberOfTreatments++;
+    const iSet = interactionsSets.get(treatment.person);
+    if (treatment.createdAt) iSet.add(treatment.createdAt);
+    for (const comment of treatment.comments || EMPTY_ARRAY) {
+      if (comment.date) iSet.add(comment.date);
+      if (!personObj.commentsMedical) personObj.commentsMedical = [];
+      personObj.commentsMedical.push({
         ...comment,
         treatment,
         person: treatment.person,
@@ -328,37 +383,39 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
   for (const medicalFile of medicalFiles) {
-    if (!personsObject[medicalFile.person]) continue;
-    if (personsObject[medicalFile.person].medicalFile) {
+    const personObj = personsObject[medicalFile.person];
+    if (!personObj) continue;
+    if (personObj.medicalFile) {
       const nextDocuments = {};
       const nextComments = {};
-      const existingMedicalFile = personsObject[medicalFile.person].medicalFile;
-      for (const document of medicalFile.documents || []) {
+      const existingMedicalFile = personObj.medicalFile;
+      for (const document of medicalFile.documents || EMPTY_ARRAY) {
         nextDocuments[document._id] = document;
       }
-      for (const document of existingMedicalFile.documents || []) {
+      for (const document of existingMedicalFile.documents || EMPTY_ARRAY) {
         nextDocuments[document._id] = document;
       }
-      for (const comment of medicalFile.comments || []) {
+      for (const comment of medicalFile.comments || EMPTY_ARRAY) {
         nextComments[comment._id] = comment;
       }
-      for (const comment of existingMedicalFile.comments || []) {
+      for (const comment of existingMedicalFile.comments || EMPTY_ARRAY) {
         nextComments[comment._id] = comment;
       }
-      personsObject[medicalFile.person].medicalFile = {
+      personObj.medicalFile = {
         ...medicalFile,
-        ...personsObject[medicalFile.person].medicalFile,
+        ...personObj.medicalFile,
         documents: Object.values(nextDocuments),
         comments: Object.values(nextComments),
       };
     } else {
-      personsObject[medicalFile.person].medicalFile = medicalFile;
+      personObj.medicalFile = medicalFile;
     }
-    personsObject[medicalFile.person].interactions.push(medicalFile.createdAt);
-    for (const comment of medicalFile.comments || []) {
-      personsObject[medicalFile.person].interactions.push(comment.date);
-      personsObject[medicalFile.person].commentsMedical = personsObject[medicalFile.person].commentsMedical || [];
-      personsObject[medicalFile.person].commentsMedical.push({
+    const iSet = interactionsSets.get(medicalFile.person);
+    if (medicalFile.createdAt) iSet.add(medicalFile.createdAt);
+    for (const comment of medicalFile.comments || EMPTY_ARRAY) {
+      if (comment.date) iSet.add(comment.date);
+      if (!personObj.commentsMedical) personObj.commentsMedical = [];
+      personObj.commentsMedical.push({
         ...comment,
         person: medicalFile.person,
         type: "medical-file",
@@ -366,19 +423,21 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
   for (const passage of passages) {
-    if (!personsObject[passage.person]) continue;
-    personsObject[passage.person].passages = personsObject[passage.person].passages || [];
-    personsObject[passage.person].passages.push({
+    const personObj = personsObject[passage.person];
+    if (!personObj) continue;
+    if (!personObj.passages) personObj.passages = [];
+    personObj.passages.push({
       ...passage,
       type: "Non-anonyme",
-      gender: personsObject[passage.person]?.gender || "Non renseigné",
+      gender: personObj.gender || "Non renseigné",
     });
-    if (!personsObject[passage.person].numberOfPassages) personsObject[passage.person].numberOfPassages = 0;
-    personsObject[passage.person].numberOfPassages++;
-    personsObject[passage.person].interactions.push(passage.date || passage.createdAt);
+    personObj.numberOfPassages++;
+    const passageDate = passage.date || passage.createdAt;
+    const passageISet = interactionsSets.get(passage.person);
+    if (passageDate && passageISet) passageISet.add(passageDate);
     if (passage.comment) {
-      personsObject[passage.person].comments = personsObject[passage.person].comments || [];
-      personsObject[passage.person].comments.push({
+      if (!personObj.comments) personObj.comments = [];
+      personObj.comments.push({
         comment: passage.comment,
         type: "passage",
         team: passage.team,
@@ -391,61 +450,46 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
 
-  // Cette zone sert à récupérer les territoires liés au rencontres (par rebonds via l'observation)
-  // On pourra se débarasser de ça quand on aura des territoires directement liés aux observations,
-  // autrement dit, en créant un objet enrichi d'observations avec leur territoires.
-  const rencontresObject = {};
-  const rencontresByObservations = {};
-  for (const rencontre of rencontres) {
-    if (!personsObject[rencontre.person]) continue;
-    rencontresObject[rencontre._id] = rencontre;
-    if (!personsObject[rencontre.person].numberOfRencontres) personsObject[rencontre.person].numberOfRencontres = 0;
-    personsObject[rencontre.person].numberOfRencontres++;
-    if (!rencontre.observation) continue;
-    if (!rencontresByObservations[rencontre.observation]) rencontresByObservations[rencontre.observation] = [];
-    rencontresByObservations[rencontre.observation].push(rencontre._id);
-  }
-
-  const observationsForRencontresObject = {};
-  const observationsByTerritories = {};
+  // Single-pass rencontre processing with pre-built observation→territory lookup.
+  // Replaces the original 3-pass approach (count+build lookup, build obs/territory maps, attach to persons).
+  // Pre-build lookup maps for observations and territories (iterates all, but these are typically small collections).
+  const observationTerritoryMap = new Map();
   for (const observation of observations) {
-    if (!rencontresByObservations[observation._id]) continue;
-    observationsForRencontresObject[observation._id] = { territory: observation.territory }; // Plus tard on pourra enrichir, pour l'instant on n'a besoin que de ça.
-    if (!observationsByTerritories[observation.territory]) observationsByTerritories[observation.territory] = [];
-    observationsByTerritories[observation.territory].push(observation._id);
+    observationTerritoryMap.set(observation._id, { territory: observation.territory });
   }
-
-  const territoriesForObservationsForRencontresObject = {};
+  const territoryNameMap = new Map();
   for (const territory of territories) {
-    if (!observationsByTerritories[territory._id]) continue;
-    territoriesForObservationsForRencontresObject[territory._id] = { name: territory.name };
+    territoryNameMap.set(territory._id, { name: territory.name });
   }
-  // Fin de la zone nommée au dessus
 
-  for (const rencontre of Object.values(rencontresObject)) {
-    if (!personsObject[rencontre.person]) continue;
-    personsObject[rencontre.person].rencontres = personsObject[rencontre.person].rencontres || [];
+  for (const rencontre of rencontres) {
+    const personObj = personsObject[rencontre.person];
+    if (!personObj) continue;
+    personObj.numberOfRencontres++;
+    if (!personObj.rencontres) personObj.rencontres = [];
     if (rencontre.observation) {
-      const observationObject = observationsForRencontresObject[rencontre.observation];
+      const observationObject = observationTerritoryMap.get(rencontre.observation);
       if (!observationObject) {
         // concurrence entre la création de la rencontre et de l'observation -> l'obs n'est pas encore disponible
-        personsObject[rencontre.person].rencontres.push(rencontre);
+        personObj.rencontres.push(rencontre);
       } else {
-        const territoryObject = territoriesForObservationsForRencontresObject[observationObject.territory];
-        personsObject[rencontre.person].rencontres.push({
+        const territoryObject = territoryNameMap.get(observationObject.territory);
+        personObj.rencontres.push({
           ...rencontre,
           observationObject,
           territoryObject,
         });
       }
     } else {
-      personsObject[rencontre.person].rencontres.push(rencontre);
+      personObj.rencontres.push(rencontre);
     }
 
-    personsObject[rencontre.person].interactions.push(rencontre.date || rencontre.createdAt);
+    const rencontreDate = rencontre.date || rencontre.createdAt;
+    const rencontreISet = interactionsSets.get(rencontre.person);
+    if (rencontreDate && rencontreISet) rencontreISet.add(rencontreDate);
     if (rencontre.comment) {
-      personsObject[rencontre.person].comments = personsObject[rencontre.person].comments || [];
-      personsObject[rencontre.person].comments.push({
+      if (!personObj.comments) personObj.comments = [];
+      personObj.comments.push({
         comment: rencontre.comment,
         type: "rencontre",
         rencontre: rencontre._id,
@@ -458,23 +502,20 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     }
   }
 
+  // Finalize interactions: convert Sets to sorted arrays.
+  // Sets already exclude nulls/undefined (checked before .add()) and duplicates.
+  // Only a single sort is needed — no dedup pass, no filter pass.
   for (const personId of Object.keys(personsObject)) {
-    personsObject[personId].interactions = [
-      ...new Set(
-        personsObject[personId].interactions.sort((a, b) => {
-          // sort by date descending: the latest date at 0
-          if (a > b) return -1;
-          if (a < b) return 1;
-          return 0;
-        })
-      ),
-      // Some interactions may contain undefined values, such as dueAt for an action that is not completed yet. We filter them out.
-      // We could have done it before by checking with 'if' but it would have made more conditions in loops.
-      // If we do not filter them, when comparing for date periods in stats, we would have to check for undefined,
-      // otherwise we would have a bug that consider everybody "person suivies" in every period.
-    ].filter((i) => Boolean(i));
-
-    personsObject[personId].lastUpdateCheckForGDPR = personsObject[personId].interactions.filter((a) => a < endOfToday)[0];
+    const iSet = interactionsSets.get(personId);
+    const sorted = Array.from(iSet).sort((a, b) => {
+      // sort by date descending: the latest date at 0
+      if (a > b) return -1;
+      if (a < b) return 1;
+      return 0;
+    });
+    personsObject[personId].interactions = sorted;
+    // .find() instead of .filter()[0]: stops at first match (array is sorted descending)
+    personsObject[personId].lastUpdateCheckForGDPR = sorted.find((a) => a < endOfToday);
   }
 
   return personsObject;
@@ -517,16 +558,21 @@ const personsWithPlacesSelector = atom((get) => {
   return personsObject;
 });
 
+// Refactored: uses commentsByActionSelector + actionsState directly.
+// Old version used actionsWithCommentsSelector which spread every action to attach comments,
+// then this selector spread them again to add personPopulated/userPopulated = double spread.
+// New version: single spread per action, comments looked up from Map.
 export const itemsGroupedByActionSelector = atom((get) => {
-  const actionsWithCommentsObject = get(actionsWithCommentsSelector);
+  const actions = get(actionsState);
+  const commentsByAction = get(commentsByActionSelector);
   const personsWithPlacesObject = get(personsWithPlacesSelector);
   const usersObject = get(usersObjectSelector);
 
   const actionsObject = {};
-  for (const actionId of Object.keys(actionsWithCommentsObject)) {
-    const action = actionsWithCommentsObject[actionId];
-    actionsObject[actionId] = {
+  for (const action of actions) {
+    actionsObject[action._id] = {
       ...action,
+      comments: commentsByAction.get(action._id) ?? [],
       personPopulated: personsWithPlacesObject[action.person],
       userPopulated: action.user ? usersObject[action.user] : null,
     };
@@ -601,9 +647,13 @@ export const onlyFilledObservationsTerritories = atom((get) => {
   });
 });
 
+// Optimization: depends on personsObjectSelector (lightweight) instead of itemsGroupedByPersonSelector (heavy).
+// Only needs person existence check + gender — no need to trigger the full person enrichment.
+// This breaks the cascading dependency: changes to actions/comments/consultations/etc.
+// no longer trigger recomputation of populatedPassagesSelector.
 export const populatedPassagesSelector = atom((get) => {
   const passages = get(passagesState);
-  const allPersonsAsObject = get(itemsGroupedByPersonSelector);
+  const allPersonsAsObject = get(personsObjectSelector);
   return passages
     .map((passage) => {
       if (!!passage.person && !allPersonsAsObject[passage.person]) return null;
