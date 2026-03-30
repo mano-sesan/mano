@@ -21,6 +21,8 @@ export type QueuedMutation = {
     fileName: string;
     fileType?: string;
     entityKey?: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
   };
 };
 

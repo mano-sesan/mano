@@ -212,7 +212,7 @@ async function processMutation(item: QueuedMutation): Promise<boolean> {
 }
 
 async function processFileUpload(item: QueuedMutation): Promise<boolean> {
-  const { localFilePath, fileName, fileType } = item.fileUpload!;
+  const { localFilePath, fileName, fileType, encryptedEntityKey, encryptedFile } = item.fileUpload!;
 
   try {
     const localFile = new FSFile(localFilePath);
@@ -226,11 +226,17 @@ async function processFileUpload(item: QueuedMutation): Promise<boolean> {
     const response = await API._doUpload({
       file: { base64, fileName, type: fileType },
       path: item.path,
+      encryptedEntityKey,
+      encryptedFile,
     });
 
     if (response?.ok) {
       // Clean up local file
-      try { localFile.delete(); } catch { /* ignore */ }
+      try {
+        localFile.delete();
+      } catch {
+        /* ignore */
+      }
       removeQueueItem(item.id);
       return true;
     }
@@ -268,7 +274,7 @@ export async function resolveConflict(queueItemId: string, resolvedBody: Record<
   // Remove the conflict from state after the PUT (or if no PUT needed)
   store.set(
     conflictsState,
-    conflicts.filter((c) => c.queueItemId !== queueItemId)
+    conflicts.filter((c) => c.queueItemId !== queueItemId),
   );
 }
 
@@ -277,7 +283,7 @@ export function discardConflict(queueItemId: string) {
   const conflicts = store.get(conflictsState);
   store.set(
     conflictsState,
-    conflicts.filter((c) => c.queueItemId !== queueItemId)
+    conflicts.filter((c) => c.queueItemId !== queueItemId),
   );
   removeQueueItem(queueItemId);
 }

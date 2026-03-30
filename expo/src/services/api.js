@@ -63,7 +63,17 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  execute = async ({
+    method,
+    path = "",
+    body = null,
+    query = {},
+    headers = {},
+    debug = false,
+    batch = null,
+    entityType = null,
+    offlineEnabled = false,
+  } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options = {
@@ -82,6 +92,31 @@ class ApiService {
       }
 
       if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+        const isOnline = store.get(isOnlineState);
+        // Skip offline queueing for non-entity paths (auth, logs, etc.)
+        if (!isOnline && body && offlineEnabled !== false) {
+          const entityId = body._id || uuidv4();
+          if (!body._id) body._id = entityId;
+          const item = enqueue({
+            method: method,
+            path: path,
+            body: body,
+            entityType: entityType || this._extractEntityType(path),
+            entityId,
+          });
+          // Return optimistic response
+          return Promise.resolve({
+            ok: true,
+            data: { _id: entityId, ...body, _pendingSync: true },
+            decryptedData: { _id: entityId, ...body, _pendingSync: true },
+            _offlineQueued: true,
+            _queueItemId: item.id,
+          });
+        }
+
+        // If online, also try to process any pending queue
+        if (isOnline) processQueue().catch(() => {});
+
         query = {
           encryptionLastUpdateAt: this.organisation?.encryptionLastUpdateAt,
           encryptionEnabled: this.organisation?.encryptionEnabled,
@@ -164,33 +199,7 @@ class ApiService {
     }
   };
 
-  post = (args) => {
-    const isOnline = store.get(isOnlineState);
-    // Skip offline queueing for non-entity paths (auth, logs, etc.)
-    if (!isOnline && args.body && args.offlineEnabled !== false) {
-      const entityId = args.body._id || uuidv4();
-      if (!args.body._id) args.body._id = entityId;
-      const item = enqueue({
-        method: "POST",
-        path: args.path,
-        body: args.body,
-        entityType: args.entityType || this._extractEntityType(args.path),
-        entityId,
-      });
-      // Return optimistic response
-      return Promise.resolve({
-        ok: true,
-        data: { _id: entityId, ...args.body, _pendingSync: true },
-        decryptedData: { _id: entityId, ...args.body, _pendingSync: true },
-        _offlineQueued: true,
-        _queueItemId: item.id,
-      });
-    }
-    const result = this.execute({ method: "POST", ...args });
-    // If online, also try to process any pending queue
-    if (isOnline) processQueue().catch(() => {});
-    return result;
-  };
+  post = (args) => this.execute({ method: "POST", ...args });
   get = async (args) => {
     if (args.batch) {
       let hasMore = true;
@@ -218,50 +227,8 @@ class ApiService {
       return this.execute({ method: "GET", ...args });
     }
   };
-  put = (args) => {
-    const isOnline = store.get(isOnlineState);
-    if (!isOnline && args.body && args.offlineEnabled !== false) {
-      const entityId = args.body._id || args.path.split("/").pop();
-      const item = enqueue({
-        method: "PUT",
-        path: args.path,
-        body: args.body,
-        entityType: args.entityType || this._extractEntityType(args.path),
-        entityId,
-        entityUpdatedAt: args.body.updatedAt || undefined,
-      });
-      return Promise.resolve({
-        ok: true,
-        data: { ...args.body, _pendingSync: true },
-        decryptedData: { ...args.body, _pendingSync: true },
-        _offlineQueued: true,
-        _queueItemId: item.id,
-      });
-    }
-    const result = this.execute({ method: "PUT", ...args });
-    if (isOnline) processQueue().catch(() => {});
-    return result;
-  };
-  delete = (args) => {
-    const isOnline = store.get(isOnlineState);
-    if (!isOnline && args.offlineEnabled !== false) {
-      const entityId = args.path.split("/").pop();
-      const item = enqueue({
-        method: "DELETE",
-        path: args.path,
-        body: args.body || null,
-        entityType: args.entityType || this._extractEntityType(args.path),
-        entityId,
-        entityUpdatedAt: args.body?.updatedAt || undefined,
-      });
-      return Promise.resolve({
-        ok: true,
-        _offlineQueued: true,
-        _queueItemId: item.id,
-      });
-    }
-    return this.execute({ method: "DELETE", ...args });
-  };
+  put = (args) => this.execute({ method: "PUT", ...args });
+  delete = (args) => this.execute({ method: "DELETE", ...args });
 
   // Raw execute for sync processor — body is already the pre-encryption payload
   executeRaw = async ({ method, path, body }) => {
@@ -380,19 +347,18 @@ class ApiService {
 
   // Upload a file to a path.
   upload = async ({ file, path }) => {
+    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+
     const isOnline = store.get(isOnlineState);
 
     if (!isOnline) {
-      return this._queueFileUpload({ file, path });
+      return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
     }
 
-    return this._doUpload({ file, path });
+    return this._doUpload({ file, path, encryptedEntityKey, encryptedFile });
   };
 
-  _doUpload = async ({ file, path }) => {
-    // Prepare file.
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
-
+  _doUpload = async ({ file, path, encryptedEntityKey, encryptedFile }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -404,9 +370,7 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [
-        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-      ]
+      [{ name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile }],
     );
 
     const json = await response.json();
@@ -416,7 +380,7 @@ class ApiService {
     return { ...json, encryptedEntityKey };
   };
 
-  _queueFileUpload = ({ file, path }) => {
+  _queueFileUpload = ({ file, path, encryptedEntityKey, encryptedFile }) => {
     // Save file locally for later upload
     const offlineDir = new FileSystem.Directory(FileSystem.Paths.document, "offline-uploads");
     if (!offlineDir.exists) {
@@ -437,6 +401,8 @@ class ApiService {
         localFilePath: localFile.uri,
         fileName: file.fileName,
         fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
       },
     });
 
@@ -444,7 +410,8 @@ class ApiService {
     return {
       ok: true,
       data: { filename: `pending-${localFileName}` },
-      encryptedEntityKey: "pending",
+      encryptedEntityKey: encryptedEntityKey,
+      encryptedFile: encryptedFile,
       _offlineQueued: true,
     };
   };
