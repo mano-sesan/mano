@@ -120,6 +120,13 @@ function ConflictCard({ conflict, expanded, onToggle, onResolveLocal, onResolveS
       {expanded && (
         <View className="px-4 pb-4">
           {conflict.changedFields.map((field) => {
+            if (field === "updatedAt") return null;
+            if (field === "createdAt") return null;
+            if (field === "entityKey") return null;
+            if (field === "entityUpdatedAt") return null;
+            if (field === "history") return null;
+            if (field === "assignedTeams") return null;
+
             const localVal = conflict.localVersion?.decrypted?.[field] ?? conflict.localVersion?.[field];
             const serverVal = conflict.serverVersion?.[field];
             return (
