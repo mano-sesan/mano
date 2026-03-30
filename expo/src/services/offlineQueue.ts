@@ -5,7 +5,7 @@ import { store } from "@/store";
 
 const QUEUE_KEY = "mano-offline-queue";
 
-export type QueuedMutation = {
+export interface QueuedMutation {
   id: string;
   method: "POST" | "PUT" | "DELETE";
   path: string;
@@ -17,14 +17,13 @@ export type QueuedMutation = {
   status: "pending" | "processing" | "failed" | "conflict";
   error?: string;
   fileUpload?: {
-    localFilePath: string;
     fileName: string;
     fileType?: string;
     entityKey?: string;
     encryptedEntityKey: string;
     encryptedFile: string;
   };
-};
+}
 
 export const offlineQueueState = atom<QueuedMutation[]>([]);
 export const offlineQueueCountState = atom<number>((get) => get(offlineQueueState).length);
@@ -34,7 +33,7 @@ function persistQueue(queue: QueuedMutation[]) {
   store.set(offlineQueueState, queue);
 }
 
-function loadQueueFromStorage(): QueuedMutation[] {
+export function loadQueueFromStorage(): QueuedMutation[] {
   const raw = storage.getString(QUEUE_KEY);
   if (!raw) return [];
   try {
@@ -62,27 +61,7 @@ export function enqueue(mutation: Omit<QueuedMutation, "id" | "timestamp" | "sta
   return item;
 }
 
-export function dequeue(): QueuedMutation | undefined {
-  const queue = loadQueueFromStorage();
-  const item = queue.shift();
-  persistQueue(queue);
-  return item;
-}
-
-export function peek(): QueuedMutation | undefined {
-  const queue = loadQueueFromStorage();
-  return queue[0];
-}
-
-export function getAll(): QueuedMutation[] {
-  return loadQueueFromStorage();
-}
-
-export function getByEntityId(entityId: string): QueuedMutation[] {
-  return loadQueueFromStorage().filter((m) => m.entityId === entityId);
-}
-
-export function updateQueueItem(id: string, updates: Partial<QueuedMutation>) {
+export function updateQueueItemStatus(id: string, updates: Pick<QueuedMutation, "status" | "error">) {
   const queue = loadQueueFromStorage();
   const index = queue.findIndex((m) => m.id === id);
   if (index !== -1) {
@@ -98,12 +77,4 @@ export function removeQueueItem(id: string) {
 
 export function clearQueue() {
   persistQueue([]);
-}
-
-export function getPendingCount(): number {
-  return loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "processing").length;
-}
-
-export function getFailedItems(): QueuedMutation[] {
-  return loadQueueFromStorage().filter((m) => m.status === "failed");
 }

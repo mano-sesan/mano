@@ -40,7 +40,7 @@ import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
 import { startNetworkListener, stopNetworkListener } from "./services/network";
 import { Directory, Paths } from "expo-file-system";
-import { initQueue, clearQueue, getPendingCount } from "./services/offlineQueue";
+import { initQueue, clearQueue } from "./services/offlineQueue";
 import { processQueue, startSyncListener } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
