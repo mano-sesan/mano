@@ -16,12 +16,12 @@ test("Transfer team", async ({ page }) => {
   await page.getByRole("link", { name: "Équipes" }).click();
   await page.getByRole("button", { name: "Créer une équipe" }).click();
   await page.getByLabel("Nom").fill("ancienne");
-  await page.getByText("Non").click();
+  await page.locator('[data-test-id="modal"]').getByText("Non").click();
   await page.getByRole("button", { name: "Créer", exact: true }).click();
   await page.getByText("Création réussie !").click();
   await page.getByRole("button", { name: "Créer une équipe" }).click();
   await page.getByLabel("Nom").fill("nouvelle");
-  await page.getByText("Non").click();
+  await page.locator('[data-test-id="modal"]').getByText("Non").click();
   await page.getByRole("button", { name: "Créer", exact: true }).click();
   await page.getByText("Création réussie !").click();
   // Personne suivie
