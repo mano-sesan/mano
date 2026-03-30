@@ -56,8 +56,8 @@ export default function ConflictResolution({ navigation }: Props) {
             conflict={conflict}
             expanded={expandedId === conflict.queueItemId}
             onToggle={() => setExpandedId(expandedId === conflict.queueItemId ? null : conflict.queueItemId)}
-            onResolveLocal={() => {
-              resolveConflict(conflict.queueItemId, conflict.localVersion);
+            onResolveLocal={async () => {
+              await resolveConflict(conflict.queueItemId, conflict.localVersion);
               if (conflicts.length <= 1) navigation.goBack();
             }}
             onResolveServer={() => {
@@ -142,7 +142,7 @@ function ConflictCard({ conflict, expanded, onToggle, onResolveLocal, onResolveS
               <Button caption="Garder ma version" onPress={handleKeepLocal} backgroundColor={colors.app.color} color="#fff" />
             </View>
             <View style={{ flex: 1, marginLeft: 6 }}>
-              <Button caption="Garder serveur" onPress={handleKeepServer} backgroundColor={colors.app.colorGrey} color="#fff" />
+              <Button caption="Garder l'autre version" onPress={handleKeepServer} backgroundColor={colors.app.colorGrey} color="#fff" />
             </View>
           </ButtonsRow>
         </CardBody>
