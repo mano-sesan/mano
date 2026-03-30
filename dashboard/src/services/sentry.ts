@@ -32,11 +32,7 @@ interface PerformanceTags {
   has_slow_resources: "yes" | "no";
 }
 
-function getConnectionQuality(
-  ttfb: number | null,
-  effectiveType?: string,
-  rtt?: number,
-): PerformanceTags["connection_quality"] {
+function getConnectionQuality(ttfb: number | null, effectiveType?: string, rtt?: number): PerformanceTags["connection_quality"] {
   // Priority 1: Use TTFB if available (most reliable)
   if (ttfb !== null) {
     if (ttfb < 100) return "excellent"; // < 100ms
@@ -66,10 +62,7 @@ function getConnectionQuality(
   return "unknown";
 }
 
-function getPageLoadSpeed(
-  domContentLoaded: number | null,
-  loadComplete: number | null,
-): PerformanceTags["page_load_speed"] {
+function getPageLoadSpeed(domContentLoaded: number | null, loadComplete: number | null): PerformanceTags["page_load_speed"] {
   const metric = loadComplete || domContentLoaded;
 
   if (metric === null) return "unknown";

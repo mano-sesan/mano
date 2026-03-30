@@ -13,7 +13,13 @@ module.exports = {
     HTMLInputElement: true,
   },
   ignorePatterns: ["build", ".eslintrc.cjs"],
-  extends: ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended", "plugin:react-hooks/recommended", "plugin:jsx-a11y/recommended"],
+  extends: [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+  ],
   overrides: [
     {
       files: ["*.jsx", "*.js", "*.ts", "*.tsx"],
