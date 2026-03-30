@@ -38,8 +38,7 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
-import { startNetworkListener, stopNetworkListener } from "./services/network";
-import { Directory, Paths } from "expo-file-system";
+import { startNetworkListener } from "./services/network";
 import { initQueue, clearQueue } from "./services/offlineQueue";
 import { processQueue, startSyncListener } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
@@ -189,7 +188,7 @@ const App = () => {
   useEffect(() => {
     // Initialize offline infrastructure
     initQueue();
-    startNetworkListener();
+    const unsubscribeNetworkListener = startNetworkListener();
     const unsubscribeSyncListener = startSyncListener();
 
     logEvents.initLogEvents().then(() => {
@@ -217,7 +216,7 @@ const App = () => {
     return () => {
       logEvents.logAppClose();
       appStateListener.current?.remove();
-      stopNetworkListener();
+      unsubscribeNetworkListener?.();
       unsubscribeSyncListener();
     };
   }, []);
@@ -231,13 +230,6 @@ const App = () => {
     API.organisation = null;
     if (clearAllRef.current) {
       clearQueue();
-      // Clean up any pending offline file uploads
-      try {
-        const offlineDir = new Directory(Paths.document, "offline-uploads");
-        if (offlineDir.exists) offlineDir.delete();
-      } catch {
-        /* ignore */
-      }
       await clearCache();
       resetAllRecoilStates();
       setLastRefresh(0);

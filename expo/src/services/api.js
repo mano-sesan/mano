@@ -72,7 +72,7 @@ class ApiService {
     debug = false,
     batch = null,
     entityType = null,
-    offlineEnabled = false,
+    offlineEnabled = true,
   } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
@@ -382,22 +382,13 @@ class ApiService {
   };
 
   _queueFileUpload = ({ file, path, encryptedEntityKey, encryptedFile }) => {
-    // Save file locally for later upload
-    const offlineDir = new FileSystem.Directory(FileSystem.Paths.document, "offline-uploads");
-    if (!offlineDir.exists) {
-      offlineDir.create({ intermediates: true });
-    }
-    const localFileName = `${uuidv4()}-${file.fileName}`;
-    const localFile = new FileSystem.File(offlineDir, localFileName);
-    localFile.create();
-    localFile.write(file.base64, { encoding: "base64" });
-
+    const entityId = uuidv4();
     enqueue({
       method: "POST",
       path,
       body: null,
       entityType: "file_upload",
-      entityId: localFileName,
+      entityId,
       fileUpload: {
         fileName: file.fileName,
         fileType: file.type,
@@ -409,7 +400,7 @@ class ApiService {
     // Return a placeholder — the caller builds document metadata from this
     return {
       ok: true,
-      data: { filename: `pending-${localFileName}` },
+      data: { filename: `pending-${entityId}` },
       encryptedEntityKey: encryptedEntityKey,
       encryptedFile: encryptedFile,
       _offlineQueued: true,

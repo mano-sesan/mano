@@ -33,18 +33,7 @@ function handleNetInfoChange(state: NetInfoState) {
   previouslyConnected = connected;
 }
 
-let unsubscribe: (() => void) | null = null;
-
 export function startNetworkListener() {
-  if (unsubscribe) return;
-  unsubscribe = NetInfo.addEventListener(handleNetInfoChange);
-  // Also do an initial check
   NetInfo.fetch().then(handleNetInfoChange);
-}
-
-export function stopNetworkListener() {
-  if (unsubscribe) {
-    unsubscribe();
-    unsubscribe = null;
-  }
+  return NetInfo.addEventListener(handleNetInfoChange);
 }
