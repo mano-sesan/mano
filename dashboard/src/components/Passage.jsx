@@ -139,7 +139,6 @@ const Passage = ({ passage, personId, onFinished }) => {
       >
         {({ values, handleChange, handleSubmit, isSubmitting }) => {
           const buttonsDisabled = isSubmitting || isDeleting || !open;
-          console.log(values.date);
           return (
             <>
               <ModalBody>
