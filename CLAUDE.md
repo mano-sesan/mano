@@ -129,6 +129,13 @@ Organizations can define custom fields for persons, actions, consultations, etc.
 - Prettier with `printWidth: 150`
 - Package manager: Yarn 4.0.2 (use corepack)
 
+### Mobile (Expo) Styling
+
+- **Use NativeWind** (`className`) — never `StyleSheet.create` or `styled-components/native`
+- Tailwind config: `expo/tailwind.config.js` with custom colors (`main`, `main75`, `main50`, `main25`, `orangeDark`, `redDark`, etc.)
+- For conditional classes, use `[].join(" ")` pattern, not template literals
+- Color reference: `colors.app.color` = `main` (#226854), `colors.warning.color` = `orangeDark` (#D97706), `colors.app.colorGrey` = `#8C9294`, `colors.app.colorDark` = `#0d5b54`
+
 ## Commits
 
 Les messages de commit doivent être rédigés **en français** et décrire l'impact fonctionnel/métier plutôt que les détails techniques.
