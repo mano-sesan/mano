@@ -44,6 +44,13 @@ const Passage = ({ passage, personId, onFinished }) => {
   const showMultiSelect = isNew && !isForPerson;
   const isEditingAnonymous = !isNew && !isForPerson;
   const passageDate = useRef(new Date());
+  const prevPassageRef = useRef(passage);
+  if (passage !== prevPassageRef.current) {
+    prevPassageRef.current = passage;
+    if (passage && !passage._id) {
+      passageDate.current = new Date();
+    }
+  }
 
   return (
     <ModalContainer
