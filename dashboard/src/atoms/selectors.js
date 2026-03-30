@@ -137,10 +137,8 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     };
   }
 
-  // Use actionsState directly instead of actionsWithCommentsSelector.
-  // The main selector never accesses action.comments — it processes comments separately.
-  // This removes one intermediate selector layer and avoids spreading every action.
   const actions = get(actionsState);
+  const commentsByAction = get(commentsByActionSelector);
   const comments = get(commentsState);
 
   const consultations = get(consultationsState);
@@ -206,8 +204,9 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     if (!personObj) continue;
     personPerAction.set(action._id, action.person);
     actionsById.set(action._id, action);
+    const actionWithComments = { ...action, comments: commentsByAction.get(action._id) ?? EMPTY_ARRAY };
     if (!personObj.actions) personObj.actions = [];
-    personObj.actions.push(action);
+    personObj.actions.push(actionWithComments);
     personObj.numberOfActions++;
     const iSet = interactionsSets.get(action.person);
     if (action.dueAt) iSet.add(action.dueAt);
@@ -230,7 +229,7 @@ export const itemsGroupedByPersonSelector = atom((get) => {
         if (!personsObject[person]) continue;
         if (person === action.person) continue;
         if (!personsObject[person].actions) personsObject[person].actions = [];
-        personsObject[person].actions.push(action);
+        personsObject[person].actions.push(actionWithComments);
       }
     }
     if (action.documents) {
