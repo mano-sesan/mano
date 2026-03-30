@@ -112,6 +112,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         wanderingAt: person.wanderingAt,
         followedSince: person.followedSince,
         createdAt: person.createdAt,
+        updatedAt: person.updatedAt,
         gender: person.gender,
         phone: person.phone?.trim(),
         email: person.email?.trim(),

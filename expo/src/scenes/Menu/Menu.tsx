@@ -15,7 +15,7 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { store } from "@/store";
-import { offlineModeState } from "@/services/network";
+import { offlineModeState } from "@/atoms/offlineMode";
 
 type MenuProps = BottomTabScreenProps<TabsParamsList, "MENU">;
 

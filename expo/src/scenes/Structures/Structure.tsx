@@ -34,6 +34,8 @@ const castToStructure = (structure: Partial<StructureInstance>) => ({
   phone: structure?.phone?.trim() || "",
   email: structure?.email?.trim() || "",
   categories: structure?.categories?.length ? structure.categories : [],
+  updatedAt: structure?.updatedAt || "",
+  createdAt: structure?.createdAt || "",
 });
 
 type Props = NativeStackScreenProps<RootStackParamList, "STRUCTURE">;

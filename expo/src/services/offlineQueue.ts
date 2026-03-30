@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
-import { storage } from "@/services/dataManagement";
+import { storage } from "@/services/storage";
 import { store } from "@/store";
 
 const QUEUE_KEY = "mano-offline-queue";
@@ -9,7 +9,7 @@ export interface QueuedMutation {
   id: string;
   method: "POST" | "PUT" | "DELETE";
   path: string;
-  body: Record<string, any> | null;
+  decryptedBody: Record<string, any> | null;
   entityType: string;
   entityId: string;
   entityUpdatedAt?: string;

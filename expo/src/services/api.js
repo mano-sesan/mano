@@ -31,9 +31,8 @@ import { Alert, Linking, Platform } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
-import { offlineModeState } from "./network";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { enqueue } from "./offlineQueue";
-import { processQueue } from "./syncProcessor";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -101,20 +100,20 @@ class ApiService {
           packageid: Application.applicationId,
         },
       };
-      if (body) {
-        options.body = JSON.stringify(await encryptItem(body));
-      }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {
         const offlineMode = store.get(offlineModeState);
         // Skip offline queueing for non-entity paths (auth, logs, etc.)
-        if (offlineMode && body && offlineEnabled !== false) {
+        console.log("offlineMode", offlineMode, "body", body);
+        if (offlineMode && offlineEnabled !== false) {
+          if (method === "POST") {
+            body = { ...body, _id: uuidv4() };
+          }
           const entityId = body._id || uuidv4();
-          if (!body._id) body._id = entityId;
           const item = enqueue({
             method: method,
             path: path,
-            body: body,
+            decryptedBody: body,
             entityType: entityType || this._extractEntityType(path),
             entityId,
             entityUpdatedAt: body.updatedAt || undefined,
@@ -122,16 +121,18 @@ class ApiService {
           // Return optimistic response
           return Promise.resolve({
             ok: true,
-            data: { _id: entityId, ...body, _pendingSync: true },
-            decryptedData: { _id: entityId, ...body, _pendingSync: true },
+            decryptedData: { _id: entityId, ...body.decrypted, _pendingSync: true },
             _offlineQueued: true,
             _queueItemId: item.id,
           });
         }
+      }
 
-        // If online, also try to process any pending queue
-        if (!offlineMode) processQueue().catch(() => {});
+      if (body) {
+        options.body = JSON.stringify(await this.encryptItem(body));
+      }
 
+      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
         query = {
           ...this.organisationEncryptionStatus(),
           ...query,

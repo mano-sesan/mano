@@ -1,19 +1,21 @@
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { Alert } from "react-native";
 import { store } from "@/store";
-import { atomWithCache } from "@/utils/atomWithCache";
-
+import { offlineModeState } from "@/atoms/offlineMode";
 // Manual offline mode toggle (user-controlled, persisted)
-export const offlineModeState = atomWithCache<boolean>("mano-offline-mode", false);
 
 let alertShown = false;
 
 function handleNetInfoChange(state: NetInfoState) {
   const connected = state.isConnected !== false && state.isInternetReachable !== false;
-  // Suggest offline/online mode based on network vs manual toggle mismatch
   const offlineMode = store.get(offlineModeState);
 
   if (!connected && !offlineMode && !alertShown) {
+    // Note : we should test this feature before sending in production
+    // because we don't know if the isConnected is reliable enough
+    // and we don't want to sned fake alerts to the user
+    // https://github.com/react-native-netinfo/react-native-netinfo?tab=readme-ov-file#netinfostate
+    /* 
     alertShown = true;
     Alert.alert("Connexion faible", "Le réseau semble instable. Voulez-vous activer le mode hors ligne ?", [
       { text: "Non", style: "cancel", onPress: () => (alertShown = false) },
@@ -25,6 +27,7 @@ function handleNetInfoChange(state: NetInfoState) {
         },
       },
     ]);
+     */
   }
 
   if (connected && offlineMode && !alertShown) {

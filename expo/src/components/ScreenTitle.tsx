@@ -6,7 +6,7 @@ import colors from "../utils/colors";
 import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 import { DEVMODE_HIDE_STATUS_BAR } from "../config";
 import { type Edge, SafeAreaView } from "react-native-safe-area-context";
-import { offlineModeState } from "@/services/network";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { useAtomValue } from "jotai";
 
 const hitSlop = {

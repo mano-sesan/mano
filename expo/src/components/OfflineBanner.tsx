@@ -4,7 +4,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MyText } from "./MyText";
-import { offlineModeState } from "@/services/network";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { offlineQueueCountState } from "@/services/offlineQueue";
 import { processQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { RootStackParamList } from "@/types/navigation";
@@ -46,15 +46,21 @@ const OfflineBanner = () => {
           text: "Oui",
           onPress: () => {
             setOfflineMode(false);
+            handleSync();
           },
         },
       ]);
+    } else {
+      handleSync();
     }
+  };
+
+  const handleSync = () => {
     if (conflicts.length > 0) {
       navigation.navigate("CONFLICT_RESOLUTION");
       return;
     }
-    if (!offlineMode && queueCount > 0) {
+    if (queueCount > 0) {
       processQueue().catch(() => {});
     }
   };

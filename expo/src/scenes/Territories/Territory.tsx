@@ -32,6 +32,8 @@ const castToTerritory = (
   description: territory.description?.trim() || "",
   entityKey: territory.entityKey || "",
   documents: territory.documents || [],
+  updatedAt: territory.updatedAt || "",
+  createdAt: territory.createdAt || "",
 });
 
 type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;
