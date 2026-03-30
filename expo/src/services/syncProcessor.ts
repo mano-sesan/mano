@@ -1,9 +1,9 @@
 import { atom } from "jotai";
-import { store, atomWithCache } from "@/store";
+import { store } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { offlineModeState } from "./network";
 import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
-import { refreshTriggerState } from "@/components/Loader";
 
 export type Conflict = {
   entityType: string;
@@ -96,18 +96,7 @@ export async function processQueue(): Promise<void> {
 // TODO: refactor the loader to simply await it
 async function pullSync(): Promise<void> {
   return new Promise<void>((resolve) => {
-    // Trigger a refresh cycle through the existing Loader mechanism
-    const unsubscribe = store.sub(refreshTriggerState, () => {
-      const trigger = store.get(refreshTriggerState);
-      if (!trigger.status) {
-        unsubscribe();
-        resolve();
-      }
-    });
-    store.set(refreshTriggerState, {
-      status: true,
-      options: { showFullScreen: false, initialLoad: false },
-    });
+    // TODO
   });
 }
 
@@ -253,7 +242,7 @@ export async function resolveConflict(queueItemId: string, resolvedBody: Record<
   // Remove the conflict from state after the PUT (or if no PUT needed)
   store.set(
     conflictsState,
-    conflicts.filter((c) => c.queueItemId !== queueItemId),
+    conflicts.filter((c) => c.queueItemId !== queueItemId)
   );
 }
 
@@ -262,7 +251,7 @@ export function discardConflict(queueItemId: string) {
   const conflicts = store.get(conflictsState);
   store.set(
     conflictsState,
-    conflicts.filter((c) => c.queueItemId !== queueItemId),
+    conflicts.filter((c) => c.queueItemId !== queueItemId)
   );
   removeQueueItem(queueItemId);
 }

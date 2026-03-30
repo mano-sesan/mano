@@ -61,8 +61,9 @@ const Menu = ({ navigation }: MenuProps) => {
     <SceneContainer>
       <ScreenTitle title="Menu" />
       <ScrollContainer noPadding>
+        <Spacer height={30} />
         <Row
-          caption={offlineMode ? "Activer le mode hors ligne" : "Désactiver le mode hors ligne"}
+          caption={!offlineMode ? "Activer le mode hors ligne" : "Désactiver le mode hors ligne"}
           onPress={() => {
             setOfflineMode(!offlineMode);
           }}

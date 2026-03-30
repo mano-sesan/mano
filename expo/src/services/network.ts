@@ -1,6 +1,7 @@
 import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { Alert } from "react-native";
-import { store, atomWithCache } from "@/store";
+import { store } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 
 // Manual offline mode toggle (user-controlled, persisted)
 export const offlineModeState = atomWithCache<boolean>("mano-offline-mode", false);

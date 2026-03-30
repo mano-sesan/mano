@@ -6,6 +6,8 @@ import colors from "../utils/colors";
 import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 import { DEVMODE_HIDE_STATUS_BAR } from "../config";
 import { type Edge, SafeAreaView } from "react-native-safe-area-context";
+import { offlineModeState } from "@/services/network";
+import { useAtomValue } from "jotai";
 
 const hitSlop = {
   top: 20,
@@ -54,7 +56,11 @@ const ScreenTitle = ({
 }: ScreenTitleProps) => {
   const showRightButton = Boolean(onAdd) || Boolean(onEdit) || Boolean(onSave);
   const showLeftButton = showRightButton || Boolean(onBack);
-  const topEdges = showRightButton || showLeftButton;
+  const offlineMode = useAtomValue(offlineModeState);
+  let topEdges = showRightButton || showLeftButton;
+  if (offlineMode) {
+    topEdges = false;
+  }
 
   return (
     <AnimatedSafeAreaView

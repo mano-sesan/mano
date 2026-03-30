@@ -271,6 +271,7 @@ const App = () => {
           ],
         }}
       >
+        <OfflineBanner />
         <AppStack.Navigator initialRouteName="LOGIN_STACK" screenOptions={{ gestureEnabled: false, headerShown: false }}>
           <AppStack.Screen name="LOGIN_STACK" component={LoginNavigator} key={resetLoginStackKey} />
           {!!isLoggedIn && (
