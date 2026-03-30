@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { useAtomValue } from "jotai";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -8,7 +8,6 @@ import { isOnlineState } from "@/services/network";
 import { offlineQueueCountState } from "@/services/offlineQueue";
 import { syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { processQueue } from "@/services/syncProcessor";
-import colors from "@/utils/colors";
 import { RootStackParamList } from "@/types/navigation";
 
 const OfflineBanner = () => {
@@ -19,14 +18,6 @@ const OfflineBanner = () => {
   const conflicts = useAtomValue(conflictsState);
 
   if (isOnline && queueCount === 0 && conflicts.length === 0) return null;
-
-  const getBannerStyle = () => {
-    if (!isOnline) return styles.offline;
-    if (syncStatus === "syncing") return styles.syncing;
-    if (conflicts.length > 0) return styles.conflict;
-    if (queueCount > 0) return styles.pending;
-    return styles.offline;
-  };
 
   const getMessage = () => {
     if (!isOnline && queueCount > 0) {
@@ -59,17 +50,24 @@ const OfflineBanner = () => {
 
   return (
     <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
-      <View style={[styles.container, getBannerStyle()]}>
-        <MyText bold color="#fff" style={styles.text}>
+      <View
+        className={[
+          "py-2 px-4 flex-row items-center justify-center",
+          !isOnline && "bg-[#6B7280]",
+          isOnline && syncStatus === "syncing" && "bg-main",
+          isOnline && conflicts.length > 0 && "bg-orangeDark",
+          isOnline && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
+        ].join(" ")}>
+        <MyText bold color="#fff" className="text-[13px] text-center">
           {getMessage()}
         </MyText>
         {conflicts.length > 0 && (
-          <MyText color="#fff" style={styles.syncButton}>
+          <MyText color="#fff" className="text-[13px] ml-2 underline">
             Résoudre
           </MyText>
         )}
         {isOnline && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && (
-          <MyText color="#fff" style={styles.syncButton}>
+          <MyText color="#fff" className="text-[13px] ml-2 underline">
             Synchroniser
           </MyText>
         )}
@@ -79,34 +77,3 @@ const OfflineBanner = () => {
 };
 
 export default OfflineBanner;
-
-const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontSize: 13,
-    textAlign: "center",
-  },
-  syncButton: {
-    fontSize: 13,
-    marginLeft: 8,
-    textDecorationLine: "underline",
-  },
-  offline: {
-    backgroundColor: "#6B7280",
-  },
-  syncing: {
-    backgroundColor: colors.app.color,
-  },
-  conflict: {
-    backgroundColor: colors.warning.color,
-  },
-  pending: {
-    backgroundColor: colors.app.colorDark,
-  },
-});
