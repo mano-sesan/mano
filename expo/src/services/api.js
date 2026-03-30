@@ -31,7 +31,7 @@ import { Alert, Linking, Platform } from "react-native";
 import { v4 as uuidv4 } from "uuid";
 import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
-import { isOnlineState } from "./network";
+import { offlineModeState } from "./network";
 import { enqueue } from "./offlineQueue";
 import { processQueue } from "./syncProcessor";
 
@@ -106,9 +106,9 @@ class ApiService {
       }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {
-        const isOnline = store.get(isOnlineState);
+        const offlineMode = store.get(offlineModeState);
         // Skip offline queueing for non-entity paths (auth, logs, etc.)
-        if (!isOnline && body && offlineEnabled !== false) {
+        if (offlineMode && body && offlineEnabled !== false) {
           const entityId = body._id || uuidv4();
           if (!body._id) body._id = entityId;
           const item = enqueue({
@@ -130,7 +130,7 @@ class ApiService {
         }
 
         // If online, also try to process any pending queue
-        if (isOnline) processQueue().catch(() => {});
+        if (!offlineMode) processQueue().catch(() => {});
 
         query = {
           ...this.organisationEncryptionStatus(),
@@ -286,9 +286,9 @@ class ApiService {
   upload = async ({ file, path }) => {
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
 
-    const isOnline = store.get(isOnlineState);
+    const offlineMode = store.get(offlineModeState);
 
-    if (!isOnline) {
+    if (offlineMode) {
       return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
     }
 

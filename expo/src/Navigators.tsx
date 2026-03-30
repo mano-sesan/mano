@@ -40,7 +40,7 @@ import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
 import { startNetworkListener } from "./services/network";
 import { initQueue, clearQueue } from "./services/offlineQueue";
-import { processQueue, startSyncListener } from "./services/syncProcessor";
+import { processQueue } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
@@ -187,7 +187,6 @@ const App = () => {
     // Initialize offline infrastructure
     initQueue();
     const unsubscribeNetworkListener = startNetworkListener();
-    const unsubscribeSyncListener = startSyncListener();
 
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
@@ -215,7 +214,6 @@ const App = () => {
       logEvents.logAppClose();
       appStateListener.current?.remove();
       unsubscribeNetworkListener?.();
-      unsubscribeSyncListener();
     };
   }, []);
 
