@@ -1,9 +1,7 @@
 import { atom } from "jotai";
-import { File as FSFile } from "expo-file-system";
-import { store } from "@/store";
-import { atomWithCache } from "@/store";
+import { store, atomWithCache } from "@/store";
 import { isOnlineState, onReconnect } from "./network";
-import { getAll, removeQueueItem, updateQueueItem, clearQueue, type QueuedMutation } from "./offlineQueue";
+import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
 import { refreshTriggerState } from "@/components/Loader";
 
@@ -44,7 +42,7 @@ export async function processQueue(): Promise<void> {
     }
 
     // Step 2: Check if there are items to process
-    const queue = getAll().filter((m) => m.status === "pending" || m.status === "failed");
+    const queue = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "failed");
     if (queue.length === 0) {
       store.set(syncStatusState, "idle");
       isSyncing = false;
@@ -65,7 +63,7 @@ export async function processQueue(): Promise<void> {
       if ((item.method === "PUT" || item.method === "DELETE") && item.entityUpdatedAt) {
         const conflict = await detectConflict(item);
         if (conflict) {
-          updateQueueItem(item.id, { status: "conflict" });
+          updateQueueItemStatus(item.id, { status: "conflict" });
           const conflicts = store.get(conflictsState);
           store.set(conflictsState, [...conflicts, conflict]);
           continue;
@@ -95,18 +93,13 @@ export async function processQueue(): Promise<void> {
   }
 }
 
+// TODO: refactor the loader to simply await it
 async function pullSync(): Promise<void> {
   return new Promise<void>((resolve) => {
-    const timeout = setTimeout(() => {
-      unsubscribe();
-      resolve(); // Resolve even on timeout to avoid blocking the queue
-    }, 30_000);
-
     // Trigger a refresh cycle through the existing Loader mechanism
     const unsubscribe = store.sub(refreshTriggerState, () => {
       const trigger = store.get(refreshTriggerState);
       if (!trigger.status) {
-        clearTimeout(timeout);
         unsubscribe();
         resolve();
       }
@@ -176,7 +169,7 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
 }
 
 async function processMutation(item: QueuedMutation): Promise<boolean> {
-  updateQueueItem(item.id, { status: "processing" });
+  updateQueueItemStatus(item.id, { status: "processing" });
 
   try {
     // Handle file uploads separately
@@ -203,48 +196,35 @@ async function processMutation(item: QueuedMutation): Promise<boolean> {
     }
 
     // Non-retryable error
-    updateQueueItem(item.id, { status: "failed", error: response?.error || "Unknown error" });
+    updateQueueItemStatus(item.id, { status: "failed", error: response?.error || "Unknown error" });
     return false;
   } catch (error: any) {
-    updateQueueItem(item.id, { status: "failed", error: error?.message || "Network error" });
+    updateQueueItemStatus(item.id, { status: "failed", error: error?.message || "Network error" });
     return false;
   }
 }
 
 async function processFileUpload(item: QueuedMutation): Promise<boolean> {
-  const { localFilePath, fileName, fileType, encryptedEntityKey, encryptedFile } = item.fileUpload!;
+  const { fileName, fileType, encryptedEntityKey, encryptedFile } = item.fileUpload!;
 
   try {
-    const localFile = new FSFile(localFilePath);
-    if (!localFile.exists) {
-      // File was deleted — skip this upload
-      removeQueueItem(item.id);
-      return true;
-    }
-
-    const base64 = await localFile.base64();
     const response = await API._doUpload({
-      file: { base64, fileName, type: fileType },
+      name: fileName,
+      type: fileType,
       path: item.path,
       encryptedEntityKey,
       encryptedFile,
     });
 
     if (response?.ok) {
-      // Clean up local file
-      try {
-        localFile.delete();
-      } catch {
-        /* ignore */
-      }
       removeQueueItem(item.id);
       return true;
     }
 
-    updateQueueItem(item.id, { status: "failed", error: response?.error || "Upload failed" });
+    updateQueueItemStatus(item.id, { status: "failed", error: response?.error || "Upload failed" });
     return false;
   } catch (error: any) {
-    updateQueueItem(item.id, { status: "failed", error: error?.message || "File upload error" });
+    updateQueueItemStatus(item.id, { status: "failed", error: error?.message || "File upload error" });
     return false;
   }
 }
@@ -252,9 +232,6 @@ async function processFileUpload(item: QueuedMutation): Promise<boolean> {
 export async function resolveConflict(queueItemId: string, resolvedBody: Record<string, any>) {
   const conflicts = store.get(conflictsState);
   const conflict = conflicts.find((c) => c.queueItemId === queueItemId);
-
-  // Remove the old queue item
-  removeQueueItem(queueItemId);
 
   // If the user resolved with merged data, we send a PUT with the resolved version
   if (resolvedBody && conflict) {
@@ -265,6 +242,8 @@ export async function resolveConflict(queueItemId: string, resolvedBody: Record<
       });
       if (!res?.ok) {
         console.warn("[syncProcessor] resolveConflict PUT failed:", res?.error);
+      } else {
+        removeQueueItem(queueItemId);
       }
     } catch (error) {
       console.warn("[syncProcessor] resolveConflict error:", error);

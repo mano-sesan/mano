@@ -117,6 +117,7 @@ class ApiService {
             body: body,
             entityType: entityType || this._extractEntityType(path),
             entityId,
+            entityUpdatedAt: body.updatedAt || undefined,
           });
           // Return optimistic response
           return Promise.resolve({
@@ -291,10 +292,10 @@ class ApiService {
       return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
     }
 
-    return this._doUpload({ file, path, encryptedEntityKey, encryptedFile });
+    return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
   };
 
-  _doUpload = async ({ file, path, encryptedEntityKey, encryptedFile }) => {
+  _doUpload = async ({ name, type, path, encryptedEntityKey, encryptedFile }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -306,7 +307,7 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [{ name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile }]
+      [{ name: "file", filename: name, mime: type, type: type, data: encryptedFile }]
     );
 
     const json = await response.json();
@@ -334,7 +335,6 @@ class ApiService {
       entityType: "file_upload",
       entityId: localFileName,
       fileUpload: {
-        localFilePath: localFile.uri,
         fileName: file.fileName,
         fileType: file.type,
         encryptedEntityKey,

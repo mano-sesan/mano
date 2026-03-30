@@ -10,7 +10,7 @@ import { MANO_DOWNLOAD_URL, MANO_TEST_ORGANISATION_ID } from "../../config";
 import { useAtomValue } from "jotai";
 import { currentTeamState, organisationState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
-import { getPendingCount } from "../../services/offlineQueue";
+import { loadQueueFromStorage } from "../../services/offlineQueue";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -23,7 +23,7 @@ const Menu = ({ navigation }: MenuProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
 
   const onLogoutRequest = async (clearAll = false) => {
-    const pendingCount = getPendingCount();
+    const pendingCount = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "processing").length;
     if (pendingCount > 0 && clearAll) {
       Alert.alert(
         "Modifications en attente",
@@ -38,7 +38,7 @@ const Menu = ({ navigation }: MenuProps) => {
               API.logout(clearAll);
             },
           },
-        ]
+        ],
       );
       return;
     }
