@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Switch, View } from "react-native";
+import { Animated, View } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import Spinner from "../../components/Spinner";
@@ -19,7 +19,7 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
-import colors from "../../utils/colors";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
@@ -72,7 +72,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         },
       },
     ],
-    { useNativeDriver: true },
+    { useNativeDriver: true }
   );
 
   return (
@@ -84,10 +84,6 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         onFocus={() => listRef.current?.scrollToOffset({ offset: 100 })}
         parentScroll={scrollY}
       />
-      <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 8 }}>
-        <Switch value={showArchived} onValueChange={setShowArchived} trackColor={{ true: colors.app.color }} />
-        <MyText style={{ marginLeft: 8, fontSize: 14, color: "#666" }}>Afficher les archivés</MyText>
-      </View>
       <FlashListStyled
         // @ts-ignore FIXME
         ref={listRef}
@@ -100,11 +96,23 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         data={territories}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}>
+            <CheckboxLabelled
+              _id="show-archived"
+              label="Afficher les territoires archivés"
+              value={showArchived}
+              onPress={() => setShowArchived((prev) => !prev)}
+              alone
+            />
+          </View>
+        }
         ListEmptyComponent={ListEmptyComponent}
         initialNumToRender={10}
         ListFooterComponent={ListFooterComponent}
         defaultTop={0}
       />
+
       <FloatAddButton onPress={onCreateTerritoryRequest} testID="add-territory-button" />
     </SceneContainer>
   );
