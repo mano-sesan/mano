@@ -25,6 +25,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import { RelPersonPlaceInstance } from "@/types/place";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { PassageInstance } from "@/types/passage";
+import { offlineModeState } from "@/services/network";
 
 export const loadingState = atom("");
 
@@ -95,6 +96,7 @@ export const DataLoader = () => {
   const setRencontres = useSetAtom(rencontresState);
   const setReports = useSetAtom(reportsState);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const offlineMode = useAtomValue(offlineModeState);
 
   // to prevent auto-refresh to trigger on the first render
   const initialLoadDone = useRef(false);
@@ -399,6 +401,13 @@ export const DataLoader = () => {
 
   useEffect(() => {
     if (refreshTrigger.status === true) {
+      if (offlineMode) {
+        setRefreshTrigger({
+          status: false,
+          options: { showFullScreen: false, initialLoad: false },
+        });
+        return;
+      }
       requestIdleCallback(refresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

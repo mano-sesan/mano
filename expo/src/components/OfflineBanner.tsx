@@ -1,6 +1,6 @@
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
-import { useAtomValue } from "jotai";
+import { Alert, TouchableOpacity, View } from "react-native";
+import { useAtom, useAtomValue } from "jotai";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MyText } from "./MyText";
@@ -8,10 +8,11 @@ import { offlineModeState } from "@/services/network";
 import { offlineQueueCountState } from "@/services/offlineQueue";
 import { processQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { RootStackParamList } from "@/types/navigation";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const OfflineBanner = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const offlineMode = useAtomValue(offlineModeState);
+  const [offlineMode, setOfflineMode] = useAtom(offlineModeState);
   const queueCount = useAtomValue(offlineQueueCountState);
   const syncStatus = useAtomValue(syncStatusState);
   const conflicts = useAtomValue(conflictsState);
@@ -38,6 +39,17 @@ const OfflineBanner = () => {
   };
 
   const handlePress = () => {
+    if (offlineMode) {
+      Alert.alert("Voulez-vous désactiver le mode hors ligne ?", undefined, [
+        { text: "Non", style: "cancel" },
+        {
+          text: "Oui",
+          onPress: () => {
+            setOfflineMode(false);
+          },
+        },
+      ]);
+    }
     if (conflicts.length > 0) {
       navigation.navigate("CONFLICT_RESOLUTION");
       return;
@@ -48,31 +60,33 @@ const OfflineBanner = () => {
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
-      <View
-        className={[
-          "py-2 px-4 flex-row items-center justify-center",
-          offlineMode && "bg-[#6B7280]",
-          !offlineMode && syncStatus === "syncing" && "bg-main",
-          !offlineMode && conflicts.length > 0 && "bg-orangeDark",
-          !offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
-        ].join(" ")}
-      >
-        <MyText bold color="#fff" className="text-[13px] text-center">
-          {getMessage()}
-        </MyText>
-        {conflicts.length > 0 && (
-          <MyText color="#fff" className="text-[13px] ml-2 underline">
-            Résoudre
+    <SafeAreaView edges={["top", "left", "right"]} className="z-50 bg-orange-400">
+      <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
+        <View
+          className={[
+            "px-4 flex-row items-center justify-center",
+            offlineMode && "bg-orange-400",
+            !offlineMode && syncStatus === "syncing" && "bg-main",
+            !offlineMode && conflicts.length > 0 && "bg-orangeDark",
+            !offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
+          ].join(" ")}
+        >
+          <MyText bold color="#fff" className="text-[13px] text-center">
+            {getMessage()}
           </MyText>
-        )}
-        {!offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && (
-          <MyText color="#fff" className="text-[13px] ml-2 underline">
-            Synchroniser
-          </MyText>
-        )}
-      </View>
-    </TouchableOpacity>
+          {conflicts.length > 0 && (
+            <MyText color="#fff" className="text-[13px] ml-2 underline">
+              Résoudre
+            </MyText>
+          )}
+          {!offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && (
+            <MyText color="#fff" className="text-[13px] ml-2 underline">
+              Synchroniser
+            </MyText>
+          )}
+        </View>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 };
 

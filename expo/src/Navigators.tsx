@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
+import { Alert, InteractionManager, AppState, NativeEventSubscription, View } from "react-native";
 import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
@@ -278,6 +278,7 @@ const App = () => {
           ],
         }}
       >
+        <OfflineBanner />
         <AppStack.Navigator initialRouteName="LOGIN_STACK" screenOptions={{ gestureEnabled: false, headerShown: false }}>
           <AppStack.Screen name="LOGIN_STACK" component={LoginNavigator} key={resetLoginStackKey} />
           {!!isLoggedIn && (
@@ -337,8 +338,8 @@ const App = () => {
             </>
           )}
         </AppStack.Navigator>
+
         <DataLoader />
-        {isLoggedIn && <OfflineBanner />}
         <ProgressBar loading={loading} progress={progress} fullScreen={fullScreen} />
         <APKUpdater />
         <EnvironmentIndicator />
