@@ -61,10 +61,8 @@ export async function processQueue(): Promise<void> {
       store.set(syncProgressState, { current: i + 1, total: queue.length });
 
       // For PUT/DELETE: detect conflicts by checking updatedAt
-      console.log(JSON.stringify({ item }, null, 2));
       if ((item.method === "PUT" || item.method === "DELETE") && item.entityUpdatedAt) {
         const conflict = await detectConflict(item);
-        console.log("conflict", conflict);
         if (conflict) {
           updateQueueItemStatus(item.id, { status: "conflict" });
           const conflicts = store.get(conflictsState);
@@ -146,12 +144,9 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
     const serverUpdatedAt = new Date(serverEntity.updatedAt).getTime();
     const localUpdatedAt = new Date(item.entityUpdatedAt!).getTime();
 
-    console.log(JSON.stringify({ serverUpdatedAt, localUpdatedAt }, null, 2));
-
     if (serverUpdatedAt !== localUpdatedAt) {
       // Conflict detected
       const localBody = item.decryptedBody || {};
-      console.log(JSON.stringify({ localBody }, null, 2));
       const changedFields = localBody.decrypted ? Object.keys(localBody.decrypted) : [];
 
       return {

@@ -90,24 +90,24 @@ class ApiService {
       if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
         const offlineMode = store.get(offlineModeState);
         // Skip offline queueing for non-entity paths (auth, logs, etc.)
-        console.log("offlineMode", offlineMode, "body", body);
         if (offlineMode && offlineEnabled !== false) {
           if (method === "POST") {
             body = { ...body, _id: uuidv4() };
           }
           const entityId = body._id || uuidv4();
+          const updatedAt = method === "PUT" ? body.updatedAt || undefined : undefined;
           const item = enqueue({
             method: method,
             path: path,
             decryptedBody: body,
             entityType: entityType || this._extractEntityType(path),
             entityId,
-            entityUpdatedAt: body.updatedAt || undefined,
+            entityUpdatedAt: updatedAt,
           });
           // Return optimistic response
           return Promise.resolve({
             ok: true,
-            decryptedData: { _id: entityId, ...body.decrypted, _pendingSync: true },
+            decryptedData: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
             _offlineQueued: true,
             _queueItemId: item.id,
           });
