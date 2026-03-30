@@ -45,7 +45,14 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
   const isForPerson = !!rencontre?.person;
   const showMultiSelect = isNew && !isForPerson;
 
-  let rencontreDate = useRef(new Date());
+  const rencontreDate = useRef(new Date());
+  const prevRencontreRef = useRef(rencontre);
+  if (rencontre !== prevRencontreRef.current) {
+    prevRencontreRef.current = rencontre;
+    if (rencontre && !rencontre._id) {
+      rencontreDate.current = new Date();
+    }
+  }
 
   return (
     <ModalContainer
