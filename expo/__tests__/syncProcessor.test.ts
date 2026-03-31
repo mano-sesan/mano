@@ -1,3 +1,7 @@
+import { store } from "@/store";
+import { offlineModeState } from "@/recoil/offlineMode";
+import { offlineQueueState, type QueuedMutation } from "../src/services/offlineQueue";
+import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "../src/services/syncProcessor";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // vi.hoisted runs before vi.mock hoisting — safe to reference in mock factories
@@ -15,16 +19,24 @@ const { mockStorage, mockApi } = vi.hoisted(() => ({
 
 vi.mock("react-native-mmkv", () => ({
   MMKV: class {
-    getString(key: string) { return mockStorage.get(key); }
-    set(key: string, value: string) { mockStorage.set(key, value); }
-    delete(key: string) { mockStorage.delete(key); }
-    clearAll() { mockStorage.clear(); }
+    getString(key: string) {
+      return mockStorage.get(key);
+    }
+    set(key: string, value: string) {
+      mockStorage.set(key, value);
+    }
+    delete(key: string) {
+      mockStorage.delete(key);
+    }
+    clearAll() {
+      mockStorage.clear();
+    }
   },
 }));
 
 vi.mock("uuid", () => ({ v4: () => "mock-uuid" }));
 vi.mock("@/services/sentry", () => ({ capture: vi.fn() }));
-vi.mock("../api", () => ({ default: mockApi }));
+vi.mock("@/services/api", () => ({ default: mockApi }));
 
 // Mock pullSync — the real pullSync sets status:true then waits for status:false.
 // This mock atom auto-resets to false on the next microtask to simulate sync completion.
@@ -43,11 +55,6 @@ vi.mock("@/components/Loader", async () => {
   );
   return { refreshTriggerState };
 });
-
-import { store } from "@/store";
-import { offlineModeState } from "@/recoil/offlineMode";
-import { offlineQueueState, type QueuedMutation } from "../offlineQueue";
-import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "../syncProcessor";
 
 function seedQueue(items: QueuedMutation[]) {
   mockStorage.set("mano-offline-queue", JSON.stringify(items));

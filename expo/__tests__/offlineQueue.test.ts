@@ -1,13 +1,31 @@
+import {
+  enqueue,
+  loadQueueFromStorage,
+  updateQueueItemStatus,
+  removeQueueItem,
+  clearQueue,
+  initQueue,
+  offlineQueueState,
+} from "@/services/offlineQueue";
+import { store } from "@/store";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // Mock react-native-mmkv before any imports that use it
 const mockStorage = new Map<string, string>();
 vi.mock("react-native-mmkv", () => ({
   MMKV: class {
-    getString(key: string) { return mockStorage.get(key); }
-    set(key: string, value: string) { mockStorage.set(key, value); }
-    delete(key: string) { mockStorage.delete(key); }
-    clearAll() { mockStorage.clear(); }
+    getString(key: string) {
+      return mockStorage.get(key);
+    }
+    set(key: string, value: string) {
+      mockStorage.set(key, value);
+    }
+    delete(key: string) {
+      mockStorage.delete(key);
+    }
+    clearAll() {
+      mockStorage.clear();
+    }
   },
 }));
 
@@ -15,9 +33,6 @@ let uuidCounter = 0;
 vi.mock("uuid", () => ({
   v4: () => `test-uuid-${++uuidCounter}`,
 }));
-
-import { enqueue, loadQueueFromStorage, updateQueueItemStatus, removeQueueItem, clearQueue, initQueue, offlineQueueState } from "../offlineQueue";
-import { store } from "@/store";
 
 beforeEach(() => {
   mockStorage.clear();
@@ -158,7 +173,16 @@ describe("offlineQueue", () => {
   describe("initQueue", () => {
     it("charge la queue du storage dans l'atom", () => {
       const items = [
-        { id: "x1", method: "POST" as const, path: "/test", decryptedBody: null, entityType: "action", entityId: "a1", timestamp: 1, status: "pending" as const },
+        {
+          id: "x1",
+          method: "POST" as const,
+          path: "/test",
+          decryptedBody: null,
+          entityType: "action",
+          entityId: "a1",
+          timestamp: 1,
+          status: "pending" as const,
+        },
       ];
       mockStorage.set("mano-offline-queue", JSON.stringify(items));
 
