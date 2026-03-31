@@ -1,3 +1,8 @@
+import { store } from "@/store";
+import { offlineModeState } from "@/recoil/offlineMode";
+import { enqueue, offlineQueueState, loadQueueFromStorage, type QueuedMutation } from "@/services/offlineQueue";
+import { processQueue, conflictsState, syncStatusState } from "@/services/syncProcessor";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { entityFixtures, type EntityFixture } from "./fixtures/entityFixtures";
 
@@ -15,17 +20,25 @@ const { mockStorage, mockApi } = vi.hoisted(() => ({
 
 vi.mock("react-native-mmkv", () => ({
   MMKV: class {
-    getString(key: string) { return mockStorage.get(key); }
-    set(key: string, value: string) { mockStorage.set(key, value); }
-    delete(key: string) { mockStorage.delete(key); }
-    clearAll() { mockStorage.clear(); }
+    getString(key: string) {
+      return mockStorage.get(key);
+    }
+    set(key: string, value: string) {
+      mockStorage.set(key, value);
+    }
+    delete(key: string) {
+      mockStorage.delete(key);
+    }
+    clearAll() {
+      mockStorage.clear();
+    }
   },
 }));
 
 let uuidCounter = 0;
 vi.mock("uuid", () => ({ v4: () => `uuid-${++uuidCounter}` }));
 vi.mock("@/services/sentry", () => ({ capture: vi.fn() }));
-vi.mock("../api", () => ({ default: mockApi }));
+vi.mock("@/services/api", () => ({ default: mockApi }));
 
 vi.mock("@/components/Loader", async () => {
   const { atom } = await import("jotai");
@@ -42,11 +55,6 @@ vi.mock("@/components/Loader", async () => {
   );
   return { refreshTriggerState };
 });
-
-import { store } from "@/store";
-import { offlineModeState } from "@/recoil/offlineMode";
-import { enqueue, offlineQueueState, loadQueueFromStorage, type QueuedMutation } from "../offlineQueue";
-import { processQueue, conflictsState, syncStatusState } from "../syncProcessor";
 
 function seedQueue(items: QueuedMutation[]) {
   mockStorage.set("mano-offline-queue", JSON.stringify(items));
@@ -288,12 +296,14 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
     });
 
     it("POST : pas de détection de conflit, executeRaw appelé directement", async () => {
-      seedQueue([makeItem(fixture, {
-        method: "POST",
-        path: `${fixture.apiPath}/multiple`,
-        decryptedBody: fixture.postBody,
-        entityUpdatedAt: undefined,
-      })]);
+      seedQueue([
+        makeItem(fixture, {
+          method: "POST",
+          path: `${fixture.apiPath}/multiple`,
+          decryptedBody: fixture.postBody,
+          entityUpdatedAt: undefined,
+        }),
+      ]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // auth seulement
       mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
