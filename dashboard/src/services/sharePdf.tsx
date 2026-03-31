@@ -167,9 +167,7 @@ function SharePDFDocument({
 
   const actions = sortByDate(person.actions || [], "dueAt", "createdAt");
   const filteredActions =
-    options.actionCategories.length > 0
-      ? actions.filter((a) => a.categories?.some((c: string) => options.actionCategories.includes(c)))
-      : actions;
+    options.actionCategories.length > 0 ? actions.filter((a) => a.categories?.some((c: string) => options.actionCategories.includes(c))) : actions;
 
   const consultations = sortByDate(
     (person.consultations || []).filter((c) => !disableConsultationRow(c, user)),
@@ -363,9 +361,7 @@ function SharePDFDocument({
             <Text style={styles.sectionTitle}>Passages ({passages.length})</Text>
             {passages.map((passage, i) => (
               <View key={passage._id || i} style={styles.itemBlock}>
-                {options.passageFields.date && (
-                  <Text style={styles.text}>{formatDateTimeWithNameOfDay(passage.date || passage.createdAt)}</Text>
-                )}
+                {options.passageFields.date && <Text style={styles.text}>{formatDateTimeWithNameOfDay(passage.date || passage.createdAt)}</Text>}
                 {options.passageFields.comment && passage.comment && <Text style={styles.text}>Commentaire : {passage.comment}</Text>}
                 {options.passageFields.user && <Text style={styles.text}>Créé par : {getUserName(passage.user)}</Text>}
                 {options.passageFields.team && <Text style={styles.text}>Équipe : {getTeamName(passage.team)}</Text>}
@@ -449,8 +445,7 @@ function SharePDFDocument({
               <Text style={styles.sectionTitle}>Consultations ({filteredConsultations.length})</Text>
               {filteredConsultations.map((consultation, i) => {
                 const consultationType = organisation.consultations?.find((c) => c.name === consultation.type);
-                const consultationFields =
-                  consultationType?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)) || [];
+                const consultationFields = consultationType?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)) || [];
 
                 // Get selected fields for this consultation type
                 const selectedFieldsForType = options.consultationFields[consultation.type] || {};

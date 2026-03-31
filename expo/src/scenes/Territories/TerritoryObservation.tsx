@@ -434,24 +434,45 @@ const TerritoryObservation = ({
                 {rencontrePersons.length ? <Text className="text-lg font-bold">Personnes rencontrées</Text> : null}
                 {rencontrePersons.map((person) => {
                   const personRencontre = rencontresForObs.find((r) => r.person === person._id);
+                  const isSaved = !!personRencontre?._id;
                   return (
-                    <View key={person._id} className="bg-gray-100 rounded p-4 my-2 flex flex-row">
-                      <View className="grow shrink">
-                        <PersonName person={person} />
-                      </View>
-                      {!personRencontre?._id ? (
-                        <View className="shrink-0 !w-16 items-center flex">
-                          <TouchableOpacity
-                            className="bg-red-700 px-2 py-1 rounded"
-                            onPress={() => {
-                              setRencontrePersons((rencontrePersons) => rencontrePersons.filter((p) => p._id !== person._id));
-                            }}
-                          >
-                            <Text className="text-white font-bold">Retirer</Text>
-                          </TouchableOpacity>
+                    <TouchableOpacity
+                      key={person._id}
+                      className="bg-gray-100 rounded p-4 my-2"
+                      disabled={!isSaved}
+                      onPress={() => {
+                        if (isSaved) {
+                          navigation.navigate("RENCONTRE", { rencontre: personRencontre, person });
+                        }
+                      }}
+                    >
+                      <View className="flex flex-row items-center">
+                        <View className="grow shrink">
+                          <PersonName person={person} />
+                          {isSaved && personRencontre.comment ? (
+                            <Text className="text-gray-500 text-xs mt-1" numberOfLines={2}>
+                              {personRencontre.comment}
+                            </Text>
+                          ) : isSaved ? (
+                            <Text className="text-gray-400 text-xs mt-1 italic">Appuyer pour ajouter un commentaire</Text>
+                          ) : null}
                         </View>
-                      ) : null}
-                    </View>
+                        {!isSaved ? (
+                          <View className="shrink-0 !w-16 items-center flex">
+                            <TouchableOpacity
+                              className="bg-red-700 px-2 py-1 rounded"
+                              onPress={() => {
+                                setRencontrePersons((rencontrePersons) => rencontrePersons.filter((p) => p._id !== person._id));
+                              }}
+                            >
+                              <Text className="text-white font-bold">Retirer</Text>
+                            </TouchableOpacity>
+                          </View>
+                        ) : (
+                          <Text className="text-gray-400 text-lg ml-2">›</Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
                   );
                 })}
               </View>

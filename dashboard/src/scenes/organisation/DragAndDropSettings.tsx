@@ -316,7 +316,7 @@ const Group: React.FC<GroupProps> = ({
               <span className="group-title tw-pl-2">
                 {groupTitle} ({items.length})
               </span>
-              {(!!onGroupTitleChange && !!editable || !!onGroupTeamsChange) && (
+              {((!!onGroupTitleChange && !!editable) || !!onGroupTeamsChange) && (
                 <button
                   type="button"
                   aria-label={`Modifier le groupe ${groupTitle}`}

@@ -121,82 +121,85 @@ const View = () => {
           const teamIndex = teams.findIndex((t) => t._id === id);
           const fallbackColor = borderColors[teamIndex % borderColors.length];
           return (
-          <React.Fragment>
-            <div className="tw-flex tw-flex-col tw-gap-4">
-              <div className="tw-max-w-96">
-                <label htmlFor="name" className="tw-m-0">
-                  Nom
-                </label>
-                <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
-              </div>
-              <div className="tw-flex tw-items-baseline tw-gap-2">
-                <input type="checkbox" name="nightSession" id="nightSession" checked={values.nightSession} onChange={handleChange} />
-                <label htmlFor="nightSession">Équipe de nuit</label>
-                <NightSessionModale />
-              </div>
-              <div className="tw-max-w-96">
-                <label htmlFor="color" className="tw-m-0">
-                  Couleur de l'équipe
-                </label>
-                <div className="tw-flex tw-items-center tw-gap-2 tw-mt-2">
-                  <input
-                    type="color"
-                    name="color"
-                    id="color"
-                    value={values.color || fallbackColor}
-                    onChange={handleChange}
-                    className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
-                  />
-                  <span className="tw-text-sm tw-text-gray-500">{values.color || "Automatique"}</span>
+            <React.Fragment>
+              <div className="tw-flex tw-flex-col tw-gap-4">
+                <div className="tw-max-w-96">
+                  <label htmlFor="name" className="tw-m-0">
+                    Nom
+                  </label>
+                  <input className="tailwindui" autoComplete="off" name="name" id="name" value={values.name} onChange={handleChange} />
+                </div>
+                <div className="tw-flex tw-items-baseline tw-gap-2">
+                  <input type="checkbox" name="nightSession" id="nightSession" checked={values.nightSession} onChange={handleChange} />
+                  <label htmlFor="nightSession">Équipe de nuit</label>
+                  <NightSessionModale />
+                </div>
+                <div className="tw-max-w-96">
+                  <label htmlFor="color" className="tw-m-0">
+                    Couleur de l'équipe
+                  </label>
+                  <div className="tw-flex tw-items-center tw-gap-2 tw-mt-2">
+                    <input
+                      type="color"
+                      name="color"
+                      id="color"
+                      value={values.color || fallbackColor}
+                      onChange={handleChange}
+                      className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
+                    />
+                    <span className="tw-text-sm tw-text-gray-500">{values.color || "Automatique"}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="tw-flex tw-justify-end">
-              <button type="button"
-                className="button-classic"
-                onClick={() => {
-                  setIsTransferModalOpen(true);
-                }}
-              >
-                Transférer les données vers une autre équipe
-              </button>
-              {cantDeleteMessage ? (
-                <button type="button"
-                  className="button-destructive"
+              <div className="tw-flex tw-justify-end">
+                <button
+                  type="button"
+                  className="button-classic"
                   onClick={() => {
-                    toast.error(cantDeleteMessage);
+                    setIsTransferModalOpen(true);
                   }}
                 >
-                  Supprimer
+                  Transférer les données vers une autre équipe
                 </button>
-              ) : (
-                <DeleteButtonAndConfirmModal
-                  title={`Voulez-vous vraiment supprimer l'équipe ${team.name}`}
-                  textToConfirm={team.name}
-                  // disabled={teams.length === 1}
-                  // disabledTitle="Vous ne pouvez pas supprimer la dernière équipe"
-                  onConfirm={async () => {
-                    const [error] = await tryFetch(async () => await API.delete({ path: `/team/${id}` }));
-                    if (error) {
-                      return toast.error(errorMessage(error));
-                    }
-                    setTeams(teams.filter((t) => t._id !== id));
-                    toast.success("Suppression réussie");
-                    history.goBack();
-                  }}
-                >
-                  <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
-                    Cette opération est irréversible
-                    <br />
-                  </span>
-                </DeleteButtonAndConfirmModal>
-              )}
-              <div className="tw-ml-3">
-                <ButtonCustom type="submit" title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
+                {cantDeleteMessage ? (
+                  <button
+                    type="button"
+                    className="button-destructive"
+                    onClick={() => {
+                      toast.error(cantDeleteMessage);
+                    }}
+                  >
+                    Supprimer
+                  </button>
+                ) : (
+                  <DeleteButtonAndConfirmModal
+                    title={`Voulez-vous vraiment supprimer l'équipe ${team.name}`}
+                    textToConfirm={team.name}
+                    // disabled={teams.length === 1}
+                    // disabledTitle="Vous ne pouvez pas supprimer la dernière équipe"
+                    onConfirm={async () => {
+                      const [error] = await tryFetch(async () => await API.delete({ path: `/team/${id}` }));
+                      if (error) {
+                        return toast.error(errorMessage(error));
+                      }
+                      setTeams(teams.filter((t) => t._id !== id));
+                      toast.success("Suppression réussie");
+                      history.goBack();
+                    }}
+                  >
+                    <span className="tw-mb-8 tw-block tw-w-full tw-text-center">
+                      Cette opération est irréversible
+                      <br />
+                    </span>
+                  </DeleteButtonAndConfirmModal>
+                )}
+                <div className="tw-ml-3">
+                  <ButtonCustom type="submit" title={"Mettre à jour"} loading={isSubmitting} onClick={handleSubmit} />
+                </div>
               </div>
-            </div>
-          </React.Fragment>
-        );}}
+            </React.Fragment>
+          );
+        }}
       </Formik>
       <ModalContainer
         open={isTransferModalOpen}
@@ -228,7 +231,8 @@ const View = () => {
         </ModalBody>
         <ModalFooter>
           <div>
-            <button type="button"
+            <button
+              type="button"
               className="button-destructive"
               onClick={() => {
                 setIsTransferModalOpen(false);
@@ -236,7 +240,8 @@ const View = () => {
             >
               Annuler
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="button-submit"
               onClick={() => {
                 const actionsInTeam = actions.filter((a) => a.teams?.includes(id));

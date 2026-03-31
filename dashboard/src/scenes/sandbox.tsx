@@ -249,7 +249,8 @@ function Recurrence() {
 
 function Day({ label, onClick, selected }: { label: string; onClick?: () => void; selected?: boolean }) {
   return (
-    <button type="button"
+    <button
+      type="button"
       onClick={onClick}
       className={`tw-rounded-full tw-h-10 tw-w-10 tw-flex tw-items-center tw-justify-center tw-text-white ${selected ? "tw-bg-main" : "tw-bg-main25"}`}
     >

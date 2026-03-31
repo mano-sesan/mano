@@ -27,10 +27,7 @@ export const LOADING_ORG_BROADCAST_KEY = "mano-loading-org";
 export function broadcastLoadingOrg(organisationId: string) {
   try {
     window.localStorage.removeItem(LOADING_ORG_BROADCAST_KEY);
-    window.localStorage.setItem(
-      LOADING_ORG_BROADCAST_KEY,
-      JSON.stringify({ orgId: organisationId, ts: Date.now(), rand: Math.random() })
-    );
+    window.localStorage.setItem(LOADING_ORG_BROADCAST_KEY, JSON.stringify({ orgId: organisationId, ts: Date.now(), rand: Math.random() }));
   } catch (_e) {
     // ignore
   }

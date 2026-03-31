@@ -155,7 +155,8 @@ export default function Errors() {
               title: "Déchiffrer",
               dataKey: "action-dechiffrer",
               render: (row) => (
-                <button type="button"
+                <button
+                  type="button"
                   className="button-classic"
                   onClick={() => {
                     setItem(row);
@@ -170,7 +171,8 @@ export default function Errors() {
               title: "Supprimer définitivement",
               dataKey: "action-supprimer",
               render: (item) => (
-                <button type="button"
+                <button
+                  type="button"
                   className="button-destructive"
                   onClick={async () => {
                     if (!confirm("Voulez-vous vraiment supprimer DEFINITIVEMENT cette donnée ?")) return;
