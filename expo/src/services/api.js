@@ -107,6 +107,7 @@ class ApiService {
           // Return optimistic response
           return Promise.resolve({
             ok: true,
+            data: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
             decryptedData: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
             _offlineQueued: true,
             _queueItemId: item.id,
