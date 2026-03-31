@@ -37,7 +37,7 @@ const ActionsCalendar = ({ actions, isNightSession, columns = ["Heure", "Nom", "
     if (savedDate) return new Date(savedDate);
     return new Date();
   });
-  const [activeTabIndex, setActiveTabIndex] = useState(Number(new URLSearchParams(location.search)?.get("calendarTab") || 2));
+  const [activeTabIndex, setActiveTabIndex] = useState(Number(new URLSearchParams(location.search)?.get("calendarTab") || 1));
 
   useEffect(() => {
     if (!currentDate) return;
