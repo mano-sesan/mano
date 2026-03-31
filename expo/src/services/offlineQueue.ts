@@ -50,6 +50,60 @@ export function initQueue() {
 
 export function enqueue(mutation: Omit<QueuedMutation, "id" | "timestamp" | "status">): QueuedMutation {
   const queue = loadQueueFromStorage();
+
+  // Deduplicate: merge with existing pending item for the same entity
+  if (mutation.entityId && mutation.entityType) {
+    const existingIndex = queue.findIndex(
+      (m) => m.status === "pending" && m.entityId === mutation.entityId && m.entityType === mutation.entityType,
+    );
+
+    if (existingIndex !== -1) {
+      const existing = queue[existingIndex];
+
+      if (mutation.method === "DELETE") {
+        // DELETE after POST → remove the POST entirely (entity never existed on server)
+        if (existing.method === "POST") {
+          queue.splice(existingIndex, 1);
+          persistQueue(queue);
+          return existing; // nothing to send
+        }
+        // DELETE after PUT → replace with DELETE, keep original entityUpdatedAt
+        queue[existingIndex] = {
+          ...existing,
+          method: "DELETE",
+          path: mutation.path,
+          decryptedBody: mutation.decryptedBody,
+          timestamp: Date.now(),
+        };
+        persistQueue(queue);
+        return queue[existingIndex];
+      }
+
+      if (mutation.method === "PUT") {
+        if (existing.method === "POST") {
+          // PUT after POST → merge body into the POST (server never saw the entity)
+          const mergedBody = { ...existing.decryptedBody, ...mutation.decryptedBody };
+          if (existing.decryptedBody?.decrypted || mutation.decryptedBody?.decrypted) {
+            mergedBody.decrypted = { ...existing.decryptedBody?.decrypted, ...mutation.decryptedBody?.decrypted };
+          }
+          queue[existingIndex] = { ...existing, decryptedBody: mergedBody, timestamp: Date.now() };
+          persistQueue(queue);
+          return queue[existingIndex];
+        }
+        if (existing.method === "PUT") {
+          // PUT after PUT → replace body, keep original entityUpdatedAt for conflict detection
+          const mergedBody = { ...existing.decryptedBody, ...mutation.decryptedBody };
+          if (existing.decryptedBody?.decrypted || mutation.decryptedBody?.decrypted) {
+            mergedBody.decrypted = { ...existing.decryptedBody?.decrypted, ...mutation.decryptedBody?.decrypted };
+          }
+          queue[existingIndex] = { ...existing, decryptedBody: mergedBody, path: mutation.path, timestamp: Date.now() };
+          persistQueue(queue);
+          return queue[existingIndex];
+        }
+      }
+    }
+  }
+
   const item: QueuedMutation = {
     ...mutation,
     id: uuidv4(),

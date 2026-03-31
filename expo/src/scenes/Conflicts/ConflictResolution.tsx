@@ -63,6 +63,10 @@ export default function ConflictResolution({ navigation }: Props) {
               discardConflict(conflict.queueItemId);
               if (conflicts.length <= 1) navigation.goBack();
             }}
+            onDismiss={() => {
+              discardConflict(conflict.queueItemId);
+              if (conflicts.length <= 1) navigation.goBack();
+            }}
           />
         ))}
       </ScrollContainer>
@@ -76,9 +80,10 @@ type ConflictCardProps = {
   onToggle: () => void;
   onResolveLocal: () => void;
   onResolveServer: () => void;
+  onDismiss: () => void;
 };
 
-function ConflictCard({ conflict, expanded, onToggle, onResolveLocal, onResolveServer }: ConflictCardProps) {
+function ConflictCard({ conflict, expanded, onToggle, onResolveLocal, onResolveServer, onDismiss }: ConflictCardProps) {
   const entityLabel = ENTITY_LABELS[conflict.entityType] || conflict.entityType;
   const entityName =
     conflict.localVersion?.name || conflict.serverVersion?.name || conflict.localVersion?.decrypted?.name || conflict.entityId.slice(0, 8);
@@ -115,6 +120,9 @@ function ConflictCard({ conflict, expanded, onToggle, onResolveLocal, onResolveS
           </View>
           <MyText className="text-sm text-[#8C9294] ml-2">{expanded ? "\u25B2" : "\u25BC"}</MyText>
         </View>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onDismiss} hitSlop={12} className="absolute top-2 right-2 p-1">
+        <MyText className="text-lg text-[#8C9294]">{"\u2715"}</MyText>
       </TouchableOpacity>
 
       {expanded && (
