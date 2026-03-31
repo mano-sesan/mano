@@ -63,69 +63,71 @@ export default function View() {
 
   return (
     <div>
-      <div className="tw-flex tw-w-full tw-justify-between tw-items-center">
-        <div>
-          <BackButton />
-        </div>
-        {user.role !== "restricted-access" && (
-          <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
-            <SearchInPerson person={person} />
+      <div className="tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-pt-2 tw-pb-2">
+        <div className="tw-flex tw-w-full tw-justify-between tw-items-center">
+          <div>
+            <BackButton to="/person" />
           </div>
-        )}
-        <div className="noprint">
-          <UserName
-            id={person.user}
-            wrapper={() => "Créée par "}
-            canAddUser
-            handleChange={async (newUser) => {
-              const [error] = await tryFetchExpectOk(async () =>
-                API.put({
-                  path: `/person/${person._id}`,
-                  body: await encryptPerson({ ...person, user: newUser }),
-                })
-              );
-              if (!error) {
-                toast.success("Personne mise à jour (créée par)");
-                await refresh();
-              } else {
-                toast.error(errorMessage(error));
-              }
-            }}
-          />
-        </div>
-      </div>
-      <div className="tw-flex tw-w-full tw-justify-center">
-        <div className="noprint tw-flex tw-flex-1">
-          {!["restricted-access"].includes(user.role) && (
-            <TabsNav
-              className="tw-justify-center tw-px-3 tw-py-2"
-              tabs={[
-                "Résumé",
-                Boolean(user.healthcareProfessional) && "Dossier Médical",
-                organisation.territoriesEnabled ? `Territoires et lieux fréquentés` : `Lieux fréquentés`,
-                "Historique",
-                Boolean(organisation.groupsEnabled) && `Liens familiaux (${personGroup.relations.length})`,
-              ].filter(Boolean)}
-              onClick={(tab) => {
-                if (tab.includes("Résumé")) setCurrentTab("Résumé");
-                if (tab.includes("Dossier Médical")) setCurrentTab("Dossier Médical");
-                if (tab.includes("Territoires et lieux fréquentés")) setCurrentTab("Territoires et lieux fréquentés");
-                if (tab.includes("Lieux fréquentés")) setCurrentTab("Lieux fréquentés");
-                if (tab.includes("Historique")) setCurrentTab("Historique");
-                if (tab.includes("Liens familiaux")) setCurrentTab("Liens familiaux");
-                refresh();
-              }}
-              activeTabIndex={[
-                "Résumé",
-                Boolean(user.healthcareProfessional) && "Dossier Médical",
-                organisation.territoriesEnabled ? `Territoires et lieux fréquentés` : `Lieux fréquentés`,
-                "Historique",
-                Boolean(organisation.groupsEnabled) && `Liens familiaux`,
-              ]
-                .filter(Boolean)
-                .findIndex((tab) => tab.includes(currentTab))}
-            />
+          {user.role !== "restricted-access" && (
+            <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
+              <SearchInPerson person={person} />
+            </div>
           )}
+          <div className="noprint">
+            <UserName
+              id={person.user}
+              wrapper={() => <div className="tw-text-sm tw-font-normal">Créée par</div>}
+              canAddUser
+              handleChange={async (newUser) => {
+                const [error] = await tryFetchExpectOk(async () =>
+                  API.put({
+                    path: `/person/${person._id}`,
+                    body: await encryptPerson({ ...person, user: newUser }),
+                  })
+                );
+                if (!error) {
+                  toast.success("Personne mise à jour (créée par)");
+                  await refresh();
+                } else {
+                  toast.error(errorMessage(error));
+                }
+              }}
+            />
+          </div>
+        </div>
+        <div className="tw-flex tw-w-full tw-justify-center">
+          <div className="noprint tw-flex tw-flex-1">
+            {!["restricted-access"].includes(user.role) && (
+              <TabsNav
+                className="tw-justify-center tw-px-3 tw-py-2"
+                tabs={[
+                  "Résumé",
+                  Boolean(user.healthcareProfessional) && "Dossier Médical",
+                  organisation.territoriesEnabled ? `Territoires et lieux fréquentés` : `Lieux fréquentés`,
+                  "Historique",
+                  Boolean(organisation.groupsEnabled) && `Liens familiaux (${personGroup.relations.length})`,
+                ].filter(Boolean)}
+                onClick={(tab) => {
+                  if (tab.includes("Résumé")) setCurrentTab("Résumé");
+                  if (tab.includes("Dossier Médical")) setCurrentTab("Dossier Médical");
+                  if (tab.includes("Territoires et lieux fréquentés")) setCurrentTab("Territoires et lieux fréquentés");
+                  if (tab.includes("Lieux fréquentés")) setCurrentTab("Lieux fréquentés");
+                  if (tab.includes("Historique")) setCurrentTab("Historique");
+                  if (tab.includes("Liens familiaux")) setCurrentTab("Liens familiaux");
+                  refresh();
+                }}
+                activeTabIndex={[
+                  "Résumé",
+                  Boolean(user.healthcareProfessional) && "Dossier Médical",
+                  organisation.territoriesEnabled ? `Territoires et lieux fréquentés` : `Lieux fréquentés`,
+                  "Historique",
+                  Boolean(organisation.groupsEnabled) && `Liens familiaux`,
+                ]
+                  .filter(Boolean)
+                  .findIndex((tab) => tab.includes(currentTab))}
+              />
+            )}
+          </div>
         </div>
       </div>
       <div className="tw-pt-4" data-test-id={person?.name + currentTab}>
