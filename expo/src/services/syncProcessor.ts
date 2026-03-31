@@ -106,23 +106,7 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
   // We compare the item's entityUpdatedAt (recorded when the user made the offline edit)
   // with the current server updatedAt (now in the atom cache after pull sync)
 
-  const entityMapPath: Record<string, string> = {
-    person: "/person",
-    action: "/action",
-    comment: "/comment",
-    consultation: "/consultation",
-    treatment: "/treatment",
-    passage: "/passage",
-    rencontre: "/rencontre",
-    "territory-observation": "/territory-observation",
-    place: "/place",
-    relPersonPlace: "/relPersonPlace",
-    group: "/group",
-    report: "/report",
-  };
-
-  const path = entityMapPath[item.entityType];
-  if (!path) return null;
+  const path = `/${item.entityType}`;
 
   try {
     const response = await API.get({ path: `${path}/${item.entityId}` });
