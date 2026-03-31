@@ -94,7 +94,8 @@ export default function SuperadminOrganisationUsers({
                               <div className="tw-flex tw-cursor-default tw-items-start tw-text-green-700">
                                 <LinkIcon className="tw-h-4 tw-w-4 tw-mr-2 tw-mt-1" /> {generatedLink[1]}
                               </div>
-                              <button type="button"
+                              <button
+                                type="button"
                                 className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline tw-flex tw-items-center tw-gap-1"
                                 onClick={() => {
                                   navigator.clipboard.writeText(generatedLink[1]);
@@ -106,7 +107,8 @@ export default function SuperadminOrganisationUsers({
                               </button>
                             </div>
                           )}
-                          <button type="button"
+                          <button
+                            type="button"
                             className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
                             onClick={() => {
                               setIsGeneratingLinkForUser(user._id);
@@ -139,7 +141,8 @@ export default function SuperadminOrganisationUsers({
                           {isReleasingUser === user._id ? (
                             <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Déblocage de l'utilisateur en cours…</div>
                           ) : (
-                            <button type="button"
+                            <button
+                              type="button"
                               className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
                               onClick={() => {
                                 setIsReleasingUser(user._id);
@@ -171,7 +174,8 @@ export default function SuperadminOrganisationUsers({
                           {isReactivatingUser === user._id ? (
                             <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Réactivation de l'utilisateur en cours…</div>
                           ) : (
-                            <button type="button"
+                            <button
+                              type="button"
                               className="tw-cursor-pointer tw-text-main hover:tw-underline focus:tw-underline"
                               onClick={() => {
                                 setIsReactivatingUser(user._id);
@@ -199,7 +203,8 @@ export default function SuperadminOrganisationUsers({
                           {isDisablingUser === user._id ? (
                             <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Désactivation en cours…</div>
                           ) : (
-                            <button type="button"
+                            <button
+                              type="button"
                               className="tw-cursor-pointer tw-text-red-600 hover:tw-underline focus:tw-underline"
                               onClick={() => {
                                 if (!window.confirm(`Voulez-vous vraiment désactiver le compte de ${user.name || user.email} ?`)) return;
@@ -286,7 +291,8 @@ export default function SuperadminOrganisationUsers({
                     >
                       <span className="tw-mb-7 tw-block tw-w-full tw-text-center">Cette opération est irréversible</span>
                     </DeleteButtonAndConfirmModal>
-                    <button type="button"
+                    <button
+                      type="button"
                       className="button-submit"
                       onClick={() => {
                         setOpenEditUserModal(true);
@@ -305,6 +311,21 @@ export default function SuperadminOrganisationUsers({
       <ModalFooter>
         <button type="button" className="button-cancel" onClick={onClose}>
           Fermer
+        </button>
+        <button
+          type="button"
+          className="button-classic tw-flex tw-items-center tw-gap-1"
+          onClick={() => {
+            const emails = users
+              .filter((u: UserInstance) => !u.disabledAt)
+              .map((u: UserInstance) => u.email)
+              .join(", ");
+            navigator.clipboard.writeText(emails);
+            toast.success("Emails copiés dans le presse-papiers");
+          }}
+        >
+          <DocumentDuplicateIcon className="tw-h-4 tw-w-4" />
+          Copier tous les emails
         </button>
         <button type="button" className="button-submit" onClick={() => setOpenCreateUserModal(true)}>
           Ajouter un utilisateur

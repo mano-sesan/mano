@@ -8,14 +8,7 @@ import { flattenedActionsCategoriesSelector } from "../../../atoms/actions";
 import { Accordion } from "../../../components/tailwind/Accordion";
 import SelectCustom from "../../../components/SelectCustom";
 import type { ShareOptions } from "../../../types/share";
-import {
-  GENERAL_INFO_FIELDS,
-  ACTION_FIELDS,
-  TREATMENT_FIELDS,
-  PASSAGE_FIELDS,
-  RENCONTRE_FIELDS,
-  getDefaultShareOptions,
-} from "../../../types/share";
+import { GENERAL_INFO_FIELDS, ACTION_FIELDS, TREATMENT_FIELDS, PASSAGE_FIELDS, RENCONTRE_FIELDS, getDefaultShareOptions } from "../../../types/share";
 import { generateSharePDF } from "../../../services/sharePdf";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { toast } from "react-toastify";
@@ -294,7 +287,9 @@ export default function ShareModal() {
             {/* En-têtes */}
             <div className="tw-space-y-4">
               <div>
-                <label htmlFor="share-header-summary" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page de résumé</label>
+                <label htmlFor="share-header-summary" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                  En-tête de la page de résumé
+                </label>
                 <textarea
                   id="share-header-summary"
                   className="tailwindui tw-w-full"
@@ -306,7 +301,9 @@ export default function ShareModal() {
               </div>
               {isHealthcareProfessional && (
                 <div>
-                  <label htmlFor="share-header-medical" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">En-tête de la page médicale</label>
+                  <label htmlFor="share-header-medical" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                    En-tête de la page médicale
+                  </label>
                   <textarea
                     id="share-header-medical"
                     className="tailwindui tw-w-full"
@@ -323,7 +320,11 @@ export default function ShareModal() {
             <Accordion
               title={
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                <label
+                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={options.includeGeneralInfo && hasSelectedFields(options.generalInfoFields)}
@@ -369,7 +370,11 @@ export default function ShareModal() {
                   key={section.name}
                   title={
                     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                    <label
+                      className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
                         checked={sectionChecked}
@@ -401,7 +406,11 @@ export default function ShareModal() {
             <Accordion
               title={
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                <label
+                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={options.includeActions && hasSelectedFields(options.actionFields)}
@@ -454,7 +463,11 @@ export default function ShareModal() {
               <Accordion
                 title={
                   // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                  <label
+                    className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       checked={options.includeConsultations}
@@ -523,7 +536,11 @@ export default function ShareModal() {
               <Accordion
                 title={
                   // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                  <label
+                    className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
                     <input
                       type="checkbox"
                       checked={options.includeTreatments && hasSelectedFields(options.treatmentFields)}
@@ -562,7 +579,11 @@ export default function ShareModal() {
             <Accordion
               title={
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                <label
+                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={options.includeComments}
@@ -593,7 +614,11 @@ export default function ShareModal() {
             <Accordion
               title={
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                <label
+                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={options.includePassages && hasSelectedFields(options.passageFields)}
@@ -631,7 +656,11 @@ export default function ShareModal() {
             <Accordion
               title={
                 // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+                <label
+                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
                   <input
                     type="checkbox"
                     checked={options.includeRencontres && hasSelectedFields(options.rencontreFields)}
@@ -667,7 +696,9 @@ export default function ShareModal() {
 
             {/* Pied de page */}
             <div>
-              <label htmlFor="share-footer" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Pied de page</label>
+              <label htmlFor="share-footer" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                Pied de page
+              </label>
               <textarea
                 id="share-footer"
                 className="tailwindui tw-w-full"
@@ -693,12 +724,7 @@ export default function ShareModal() {
               </button>
             </div>
             <div className="tw-flex tw-gap-2">
-              <button
-                type="button"
-                className="button-submit tw-flex tw-items-center tw-gap-2"
-                onClick={handleDownloadPDF}
-                disabled={isGenerating}
-              >
+              <button type="button" className="button-submit tw-flex tw-items-center tw-gap-2" onClick={handleDownloadPDF} disabled={isGenerating}>
                 <DocumentArrowDownIcon className="tw-h-5 tw-w-5" />
                 Télécharger PDF
               </button>

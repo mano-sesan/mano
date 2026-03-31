@@ -58,13 +58,15 @@ export default function ActionsWeekly({ actions, isNightSession, onCreateAction 
           Aujourd'hui
         </button>
         <div className="tw-flex tw-flex-row tw-gap-1 tw-items-center">
-          <button type="button"
+          <button
+            type="button"
             className="tw-inline-flex tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-white tw-px-2 tw-py-1 tw-font-medium tw-text-gray-700 tw-shadow-sm hover:tw-bg-gray-50 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-main focus:tw-ring-offset-2 tw-m-0 tw-w-auto tw-text-sm"
             onClick={() => setStartOfWeek(dayjsInstance(startOfWeek).subtract(1, "week").startOf("week").format("YYYY-MM-DD"))}
           >
             &lt;
           </button>
-          <button type="button"
+          <button
+            type="button"
             className="tw-inline-flex tw-justify-center tw-rounded-md tw-border tw-border-gray-300 tw-bg-white tw-px-2 tw-py-1 tw-font-medium tw-text-gray-700 tw-shadow-sm hover:tw-bg-gray-50 focus:tw-outline-none focus:tw-ring-2 focus:tw-ring-main focus:tw-ring-offset-2 tw-m-0 tw-w-auto tw-text-sm"
             onClick={() => setStartOfWeek(dayjsInstance(startOfWeek).add(1, "week").startOf("week").format("YYYY-MM-DD"))}
           >

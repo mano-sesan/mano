@@ -1639,14 +1639,22 @@ router.post(
       });
     });
 
-    const basedir = STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads");
-    const mainDir = path.join(basedir, mainId, "persons");
-    const secondaryDir = path.join(basedir, secondaryId, "persons");
+    const basedir = path.resolve(STORAGE_DIRECTORY ? path.join(STORAGE_DIRECTORY, "uploads") : path.join(__dirname, "../../uploads"));
+    const mainDir = path.resolve(path.join(basedir, mainId, "persons"));
+    const secondaryDir = path.resolve(path.join(basedir, secondaryId, "persons"));
+    if (!mainDir.startsWith(basedir + path.sep) || !secondaryDir.startsWith(basedir + path.sep)) {
+      const error = new Error("Invalid path");
+      error.status = 400;
+      return next(error);
+    }
     await fs.promises
       .readdir(secondaryDir)
       .then((files) => {
         for (const file of files) {
-          fs.promises.rename(path.join(secondaryDir, file), path.join(mainDir, file));
+          const src = path.resolve(path.join(secondaryDir, file));
+          const dest = path.resolve(path.join(mainDir, file));
+          if (!src.startsWith(basedir + path.sep) || !dest.startsWith(basedir + path.sep)) continue;
+          fs.promises.rename(src, dest);
         }
       })
       .catch(() => {
@@ -1692,6 +1700,36 @@ router.post(
     await sequelize.transaction(async (t) => {
       t.userId = req.user._id;
       await organisation.update({ disabledAt: null }, { transaction: t });
+    });
+    res.status(200).send({ ok: true });
+  }),
+);
+
+router.post(
+  "/disable-all",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res) => {
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      // On exclut l'organisation du superadmin pour qu'il conserve son accès et puisse réactiver ensuite.
+      await Organisation.update(
+        { disabledAt: new Date() },
+        { where: { disabledAt: null, _id: { [Op.ne]: req.user.organisation } }, transaction: t, individualHooks: true },
+      );
+    });
+    res.status(200).send({ ok: true });
+  }),
+);
+
+router.post(
+  "/enable-all",
+  passport.authenticate("user", { session: false, failWithError: true }),
+  validateUser(["superadmin"]),
+  catchErrors(async (req, res) => {
+    await sequelize.transaction(async (t) => {
+      t.userId = req.user._id;
+      await Organisation.update({ disabledAt: null }, { where: { disabledAt: { [Op.ne]: null } }, transaction: t, individualHooks: true });
     });
     res.status(200).send({ ok: true });
   }),

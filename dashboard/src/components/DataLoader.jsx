@@ -13,8 +13,6 @@ export default function DataLoader() {
   const total = useAtomValue(totalState);
   const modalCacheOpen = useAtomValue(modalCacheOpenState);
 
-  console.log("modalCacheOpen", modalCacheOpen);
-
   if (modalCacheOpen) return <ModalCacheResetLoader />;
   if (!isLoading) return <RandomPicturePreloader />;
   if (!total && !fullScreen) return null;

@@ -95,7 +95,7 @@ const Drawer = () => {
           <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
           <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
             <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
-            <p className="m-0">Accessibilité&nbsp;: partielle</p>
+            <p className="m-0">Accessibilité&nbsp;: non conforme</p>
           </div>
         </div>
       </nav>
@@ -150,7 +150,7 @@ const Drawer = () => {
             </>
           )}
         </div>
-        {/* {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
+        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
           !onboardingForTeams &&
           !collapsed &&
           ["admin"].includes(role) &&
@@ -160,15 +160,17 @@ const Drawer = () => {
                 <AddPersons />
               </li>
             </div>
-          )} */}
+          )}
         <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
-            <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
-            <p className="m-0">Accessibilité&nbsp;: partielle</p>
-            <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
-              Plan du site
-            </Link>
+          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-xs tw-text-main">
+            <div className="m-0">
+              <Link to="/plan-du-site" className="m-0 tw-text-main hover:tw-underline">
+                Plan du site
+              </Link>{" "}
+              • Version&nbsp;: {deploymentCommit}
+            </div>
+            <p className="m-0">Accessibilité&nbsp;: non conforme</p>
           </div>
         )}
         <button
@@ -192,7 +194,7 @@ const Drawer = () => {
           type="button"
           aria-label={isCollapsed ? "Déplier la navigation" : "Replier la navigation"}
           aria-expanded={!isCollapsed}
-          className="tw-absolute tw-top-5 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
+          className="tw-absolute tw-top-4 tw-flex tw-h-10 tw-w-5 tw-items-center tw-justify-center tw-rounded-r-md tw-border tw-border-l-0 tw-border-gray-200 tw-bg-white tw-text-gray-400 tw-shadow-sm tw-transition-all hover:tw-bg-gray-50 hover:tw-text-gray-600"
           style={{ left: isCollapsed ? "4rem" : "14rem" }}
           onClick={() => setIsCollapsed(!isCollapsed)}
         >

@@ -186,6 +186,7 @@ const Reception = () => {
             inputId="person-select-and-create-reception"
             classNamePrefix="person-select-and-create-reception"
             showLinkToPerson={true}
+            aria-label="Rechercher ou créer une personne"
           />
         </div>
         <ButtonCustom
@@ -250,7 +251,12 @@ const Reception = () => {
           <div className="tw-mb-8 tw-flex tw-items-center tw-gap-4 tw-px-4 tw-pt-4">
             <div className="tw-grow tw-text-lg tw-font-bold tw-text-black">Agenda</div>
             <div className="tw-w-96">
-              <SelectStatus onChange={(event) => setStatus(event.target.value)} value={status} />
+              <SelectStatus
+                onChange={(event) => setStatus(event.target.value)}
+                value={status}
+                inputId="reception-status-filter"
+                aria-label="Filtrer par statut"
+              />
             </div>
           </div>
           <ActionsCalendar

@@ -13,8 +13,7 @@ export default function BottomBar() {
   const [showDrawer, setShowDrawer] = useAtom(showDrawerState);
   return (
     <nav
-      title="Tab bar pour navigation sur mobile"
-      aria-labelledby="bottom tab bar"
+      aria-label="Navigation mobile"
       className={[
         "noprint tw-flex tw-w-full tw-shrink-0 tw-justify-between tw-overflow-hidden tw-border-t tw-border-black tw-border-opacity-10 tw-bg-white tw-px-1 tw-pt-3 tw-text-[10px] tw-text-main sm:tw-hidden [&_*.active]:tw-font-semibold [&_*.active]:tw-text-main [&_*.active]:tw-opacity-100 [&_*]:tw-opacity-80",
       ].join(" ")}

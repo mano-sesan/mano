@@ -144,7 +144,9 @@ export default function ImportPersons() {
       const duplicatesInFile = [...new Set(importedNames.filter((name, index) => importedNames.indexOf(name) !== index))];
       const existingNames = new Set(existingPersons.map((p) => p.name.toLowerCase()));
       const duplicatesWithExisting = persons.filter((p) => existingNames.has(p.name.toLowerCase())).map((p) => p.name);
-      const duplicates = [...new Set([...duplicatesInFile.map((name) => persons.find((p) => p.name.toLowerCase() === name)?.name), ...duplicatesWithExisting])];
+      const duplicates = [
+        ...new Set([...duplicatesInFile.map((name) => persons.find((p) => p.name.toLowerCase() === name)?.name), ...duplicatesWithExisting]),
+      ];
 
       setDuplicateNames(duplicates);
 

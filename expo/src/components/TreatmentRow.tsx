@@ -6,7 +6,7 @@ import RowContainer from "./RowContainer";
 import { MyText } from "./MyText";
 import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
 import { TreatmentInstance } from "@/types/treatment";
-import { Dayjs } from "dayjs";
+import { dayjsInstance } from "@/services/dateDayjs";
 
 type TreatmentRowProps = {
   onTreatmentPress: (treatment: TreatmentInstance) => void;
@@ -25,8 +25,11 @@ const TreatmentRow = ({ onTreatmentPress, treatment, testID = "treatment" }: Tre
 
   return (
     <RowContainer onPress={onRowPress} testID={`${testID}-row-${name?.split(" ").join("-").toLowerCase()}-button`}>
-      <DateAndTimeCalendarDisplay date={treatment.startDate as unknown as Dayjs} topCaption={treatment.endDate ? "Du" : "À partir du"} />
-      <DateAndTimeCalendarDisplay date={treatment.endDate as unknown as Dayjs} topCaption="au" />
+      <DateAndTimeCalendarDisplay
+        date={treatment.startDate ? dayjsInstance(treatment.startDate) : null}
+        topCaption={treatment.endDate ? "Du" : "À partir du"}
+      />
+      <DateAndTimeCalendarDisplay date={treatment.endDate ? dayjsInstance(treatment.endDate) : null} topCaption="au" />
       <CaptionsContainer>
         <Name bold>{name}</Name>
         <DosageContainer>

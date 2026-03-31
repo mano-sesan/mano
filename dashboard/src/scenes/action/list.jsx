@@ -258,7 +258,7 @@ const List = () => {
               </div>
             </div>
             <div className="tw-flex tw-flex-col">
-              <label htmlFor="actions-show-as" className="tw-shrink-0 tw-m-0">
+              <label htmlFor="actions-show-type" className="tw-shrink-0 tw-m-0">
                 Éléments affichés
               </label>
               <div className="tw-grow">
@@ -294,7 +294,7 @@ const List = () => {
               </div>
             </div>
             <div className="tw-flex tw-flex-col">
-              <label htmlFor="action-select-categories-filter" className="tw-shrink-0 tw-m-0">
+              <label htmlFor="action-team-filter" className="tw-shrink-0 tw-m-0">
                 Filtrer par équipe
               </label>
               <div className="tw-w-grow">
@@ -303,6 +303,7 @@ const List = () => {
                   value={selectedTeamIds}
                   colored
                   isDisabled={viewAllOrganisationData || viewNoTeamData}
+                  inputId="action-team-filter"
                 />
                 {teams.length > 1 && (
                   <label htmlFor="viewAllOrganisationData" className="tw-flex tw-items-center tw-text-sm tw-m-0">
@@ -356,7 +357,7 @@ const List = () => {
               </label>
             </div>
             <div className="tw-flex tw-flex-col tw-items-start">
-              <label htmlFor="action-select-categories-filter" className="tw-shrink-0 tw-m-0">
+              <label htmlFor="action-select-consultation-type-filter" className="tw-shrink-0 tw-m-0">
                 Filtrer par type de consultation
               </label>
               <div className="tw-w-full">

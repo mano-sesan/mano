@@ -4,12 +4,13 @@ import { toast } from "react-toastify";
 import { CommentsModule } from "../../../components/CommentsGeneric";
 import { encryptComment } from "../../../atoms/comments";
 import API, { tryFetchExpectOk } from "../../../services/api";
-import { organisationState } from "../../../atoms/auth";
+import { organisationState, userState } from "../../../atoms/auth";
 import { groupsState } from "../../../atoms/groups";
 import { useDataLoader } from "../../../services/dataLoader";
 import { errorMessage } from "../../../utils";
 
 export default function Comments({ person }) {
+  const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const groups = useAtomValue(groupsState);
   const { refresh } = useDataLoader();
@@ -22,11 +23,11 @@ export default function Comments({ person }) {
       .map((e) => ({ ...e, isMedicalCommentShared: true }))
       .sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
   }, [person]);
-  const comments = useMemo(
-    () =>
-      [...(person?.comments || []), ...medicalCommentsVisibleByAll].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)),
-    [person, medicalCommentsVisibleByAll]
-  );
+  const comments = useMemo(() => {
+    const allComments = [...(person?.comments || []), ...medicalCommentsVisibleByAll];
+    const filtered = user.role === "restricted-access" ? allComments.filter((c) => c.user === user._id) : allComments;
+    return filtered.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+  }, [person, medicalCommentsVisibleByAll, user.role, user._id]);
 
   const canToggleGroupCheck = useMemo(
     () => !!organisation.groupsEnabled && !!person._id && groups.find((group) => group.persons?.includes(person._id)),

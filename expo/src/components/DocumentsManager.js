@@ -96,7 +96,16 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 };
 
 // La liste des documents en tant que telle.
-const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument, onDelete, defaultParent = "root" }) => {
+const DocumentsManager = ({
+  personDB,
+  uploadPath,
+  documents,
+  onAddDocument,
+  onUpdateDocument,
+  onDelete,
+  defaultParent = "root",
+  editable = true,
+}) => {
   documents = documents || [];
   const [selectedFolder, setSelectedFolder] = useState(defaultParent);
   const user = useAtomValue(userState);
@@ -203,7 +212,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
             reset();
           }
         }
-      }
+      },
     );
   };
 
@@ -227,6 +236,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
     }
     const extension = asset.fileName.split(".").reverse()[0];
     const newName = `${name}.${extension}`;
+    const basePath = uploadPath || `/person/${personDB?._id}/document`;
     const uploadResponse = await API.upload({
       file: {
         uri: asset.uri,
@@ -234,7 +244,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
         fileName: newName,
         type: asset.type,
       },
-      path: `/person/${personDB._id}/document`,
+      path: basePath,
     });
     if (!uploadResponse.ok || !uploadResponse.data) {
       // Si le backend a renvoyé un message d'erreur, on l'affiche
@@ -254,7 +264,7 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
       createdAt: new Date(),
       createdBy: user._id,
       parentId: selectedFolder,
-      downloadPath: `/person/${personDB._id}/document/${file.filename}`,
+      downloadPath: `${basePath}/${file.filename}`,
       file,
     });
     reset();
@@ -275,15 +285,17 @@ const DocumentsManager = ({ personDB, documents, onAddDocument, onUpdateDocument
       };
     }),
     "Dossier racine",
-    defaultParent
+    defaultParent,
   );
   const folders = flattenTreeForFolderSelect(tree);
 
   return (
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
-      {documents.length ? <View className="mb-4">{renderTree(tree, personDB._id, onDelete, onUpdateDocument)}</View> : null}
-      <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} />
+      {documents.length ? (
+        <View className="mb-4">{renderTree(tree, personDB?._id, editable ? onDelete : undefined, editable ? onUpdateDocument : undefined)}</View>
+      ) : null}
+      {editable ? <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} /> : null}
       <Modal animationType="fade" visible={!!asset}>
         <SceneContainer>
           <ScreenTitle title="Donner un nom à cette photo" onBack={reset} />
@@ -335,7 +347,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
   const extension = document.name?.split(".").reverse()[0];
 
   const onMorePress = async () => {
-    const options = ["Supprimer", "Renommer", "Annuler"];
+    const options = [...(onDelete ? ["Supprimer"] : []), ...(onUpdate ? ["Renommer"] : []), "Annuler"];
     showActionSheetWithOptions(
       {
         options,
@@ -353,12 +365,15 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
               text: "Supprimer",
               style: "destructive",
               onPress: async () => {
-                if (!document?.file?.filename) {
+                const deletePath =
+                  document.downloadPath ||
+                  (document.person || personId ? `/person/${document.person || personId}/document/${document.file?.filename}` : null);
+                if (!document?.file?.filename || !deletePath) {
                   capture(new Error("Document not found for deleting"), { personId, document });
                   return;
                 }
                 setIsDeleting(true);
-                await API.delete({ path: document.downloadPath ?? `/person/${document.person ?? personId}/document/${document.file.filename}` });
+                await API.delete({ path: deletePath });
                 onDelete(document);
               },
             },
@@ -367,7 +382,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
         if (options[buttonIndex] === "Renommer") {
           setIsRenaming(true);
         }
-      }
+      },
     );
   };
 
@@ -375,9 +390,12 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
     <>
       <TouchableOpacity
         style={style}
-        onLongPress={onMorePress}
+        onLongPress={onDelete || onUpdate ? onMorePress : undefined}
         onPress={() => {
-          if (!document?.file?.filename) {
+          const downloadPath =
+            document.downloadPath ||
+            (document.person || personId ? `/person/${document.person || personId}/document/${document.file?.filename}` : null);
+          if (!document?.file?.filename || !downloadPath) {
             Alert.alert("Erreur", "Le document est introuvable");
             capture(new Error("Document not found for downloading"), { personId, document });
             return;
@@ -385,7 +403,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
           if (isDownloading) return;
           setIsDownloading(true);
           API.download({
-            path: document.downloadPath ?? `/person/${document.person ?? personId}/document/${document.file.filename}`,
+            path: downloadPath,
             encryptedEntityKey: document.encryptedEntityKey,
             document,
           }).then(({ path }) => {
@@ -406,7 +424,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                         "Mano ne peut pas ouvrir seul ce type de fichier",
                         `Vous pouvez chercher une application sur le store pour ouvrir les fichiers de type .${path
                           .split(".")
-                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
+                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`,
                       );
                       break;
                     case DocumentViewer.errorCodes.OPERATION_CANCELED:

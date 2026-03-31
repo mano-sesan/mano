@@ -519,13 +519,71 @@ const SuperAdmin = () => {
                 Export vers umap
               </button>
               <button
-                className="button-destructive"
+                className="button-classic"
                 type="button"
                 onClick={() => {
                   setOpenMergeModal(true);
                 }}
               >
                 Fusionner deux orgas
+              </button>
+              <button
+                className="button-destructive"
+                type="button"
+                onClick={async () => {
+                  const activeOrgs = organisations?.filter((o) => !o.disabledAt && o._id !== user.organisation) ?? [];
+                  if (activeOrgs.length === 0) {
+                    toast.info("Aucune organisation active à bloquer");
+                    return;
+                  }
+                  if (
+                    !confirm(
+                      `⚠️ MODE PANIQUE ⚠️\n\nVoulez-vous vraiment BLOQUER ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s" : ""} (sauf la vôtre) ?\n\nPlus aucun utilisateur (web et mobile) ne pourra se connecter.`
+                    )
+                  )
+                    return;
+                  if (
+                    !confirm(
+                      `Êtes-vous vraiment sûr ? ${activeOrgs.length} organisation${activeOrgs.length > 1 ? "s seront bloquées" : " sera bloquée"} immédiatement.`
+                    )
+                  )
+                    return;
+                  const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/disable-all" }));
+                  if (!error) {
+                    toast.success("Toutes les organisations ont été bloquées");
+                    setRefresh(true);
+                  } else {
+                    toast.error(errorMessage(error));
+                  }
+                }}
+              >
+                🚨 Tout bloquer (panique)
+              </button>
+              <button
+                className="button-submit"
+                type="button"
+                onClick={async () => {
+                  const disabledOrgs = organisations?.filter((o) => !!o.disabledAt && o._id !== user.organisation) ?? [];
+                  if (disabledOrgs.length === 0) {
+                    toast.info("Aucune organisation désactivée à réactiver");
+                    return;
+                  }
+                  if (
+                    !confirm(
+                      `Voulez-vous vraiment réactiver ${disabledOrgs.length} organisation${disabledOrgs.length > 1 ? "s" : ""} ?\n\nAttention : les organisations qui étaient déjà désactivées avant le blocage seront également réactivées.`
+                    )
+                  )
+                    return;
+                  const [error] = await tryFetchExpectOk(async () => API.post({ path: "/organisation/enable-all" }));
+                  if (!error) {
+                    toast.success("Toutes les organisations ont été réactivées");
+                    setRefresh(true);
+                  } else {
+                    toast.error(errorMessage(error));
+                  }
+                }}
+              >
+                ✅ Tout réactiver
               </button>
             </div>
           )}
@@ -1026,7 +1084,8 @@ const MergeOrganisations = ({ open, setOpen, organisations, onChange }) => {
         <button type="button" name="cancel" disabled={loading} className="button-cancel" onClick={() => setOpen(false)}>
           Annuler
         </button>
-        <button type="button"
+        <button
+          type="button"
           className="button-submit"
           disabled={loading}
           onClick={async () => {

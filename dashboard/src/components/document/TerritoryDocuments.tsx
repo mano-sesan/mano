@@ -58,7 +58,7 @@ export default function TerritoryDocuments({ territory, observations }: Territor
         obsDocs.push({
           ...doc,
           linkedItem: { _id: obs._id!, type: "territory-observation" } as LinkedItem,
-          parentId: doc.parentId ?? "observations",
+          parentId: !doc.parentId || doc.parentId === "root" ? "observations" : doc.parentId,
         } as DocumentOrFolder);
       }
     }
@@ -126,8 +126,7 @@ export default function TerritoryDocuments({ territory, observations }: Territor
 
       // Separate territory docs from observation docs
       const territoryNextDocuments = updatedDocs.filter((d) => d.linkedItem.type === "territory" && d._id !== "observations");
-      const currentTerritoryDocuments = (territory.documents || [])
-        .map((d) => ({ _id: d._id, parentId: d.parentId, position: d.position }));
+      const currentTerritoryDocuments = (territory.documents || []).map((d) => ({ _id: d._id, parentId: d.parentId, position: d.position }));
       const nextTerritoryDocsSimplified = territoryNextDocuments.map((d) => ({
         _id: d._id,
         parentId: d.parentId,

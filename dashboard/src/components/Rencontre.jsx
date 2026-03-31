@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
@@ -45,6 +45,15 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
   const isForPerson = !!rencontre?.person;
   const showMultiSelect = isNew && !isForPerson;
 
+  const rencontreDate = useRef(new Date());
+  const prevRencontreRef = useRef(rencontre);
+  if (rencontre !== prevRencontreRef.current) {
+    prevRencontreRef.current = rencontre;
+    if (rencontre && !rencontre._id) {
+      rencontreDate.current = new Date();
+    }
+  }
+
   return (
     <ModalContainer
       dataTestId="modal-rencontre-create-edit-delete"
@@ -56,7 +65,7 @@ const Rencontre = ({ rencontre, onFinished, onSave = undefined, disableAccessToP
       <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer une rencontre" : "Éditer la rencontre"} />
       <Formik
         initialValues={{
-          date: new Date(),
+          date: rencontreDate.current,
           ...rencontre,
           anonymousNumberOfRencontres: 1,
           persons: rencontre?.person ? [rencontre.person] : rencontre?.persons ? rencontre?.persons : [],

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { Formik } from "formik";
 import SelectUser from "./SelectUser";
@@ -43,6 +43,14 @@ const Passage = ({ passage, personId, onFinished }) => {
   const isForPerson = !!passage?.person;
   const showMultiSelect = isNew && !isForPerson;
   const isEditingAnonymous = !isNew && !isForPerson;
+  const passageDate = useRef(new Date());
+  const prevPassageRef = useRef(passage);
+  if (passage !== prevPassageRef.current) {
+    prevPassageRef.current = passage;
+    if (passage && !passage._id) {
+      passageDate.current = new Date();
+    }
+  }
 
   return (
     <ModalContainer
@@ -54,7 +62,8 @@ const Passage = ({ passage, personId, onFinished }) => {
     >
       <ModalHeader onClose={() => setOpen(false)} title={isNew ? "Enregistrer un passage" : "Éditer le passage"} />
       <Formik
-        initialValues={{ date: new Date(), ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
+        enableReinitialize
+        initialValues={{ date: passageDate.current, ...passage, anonymousNumberOfPassages: 1, persons: passage?.person ? [passage?.person] : [] }}
         onSubmit={async (body, actions) => {
           if (!body.user) return toast.error("L'utilisateur est obligatoire");
           if (!body.date) return toast.error("La date est obligatoire");
