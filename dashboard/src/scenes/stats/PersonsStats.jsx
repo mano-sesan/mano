@@ -248,7 +248,10 @@ export default function PersonStats({
                   (isStatsV2 && window.localStorage.getItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`) !== "false")
                 }
                 onToggle={(e) => {
-                  window.localStorage.setItem(`person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`, e.target.open ? "true" : "false");
+                  window.localStorage.setItem(
+                    `person-stats-${section.name.replace(" ", "-").toLocaleLowerCase()}-open`,
+                    e.target.open ? "true" : "false"
+                  );
                 }}
               >
                 <summary className="tw-mx-0 tw-my-8">
@@ -641,7 +644,11 @@ export const AgeRangeBar = ({ persons, onItemClick }) => {
                   data-id={range.id}
                   className="tw-flex tw-items-center tw-gap-2 tw-p-2 tw-bg-gray-50 tw-rounded tw-border tw-border-gray-200"
                 >
-                  <button type="button" className="drag-handle tw-cursor-move tw-text-gray-400 hover:tw-text-gray-600 tw-p-1" title="Glisser pour réordonner">
+                  <button
+                    type="button"
+                    className="drag-handle tw-cursor-move tw-text-gray-400 hover:tw-text-gray-600 tw-p-1"
+                    title="Glisser pour réordonner"
+                  >
                     <svg xmlns="http://www.w3.org/2000/svg" className="tw-h-5 tw-w-5" fill="currentColor" viewBox="0 0 24 24">
                       <circle cx="9" cy="6" r="1.5" />
                       <circle cx="15" cy="6" r="1.5" />

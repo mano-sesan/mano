@@ -26,7 +26,9 @@ interface FileOnDisk {
   entityName?: string;
 }
 
-function collectReferencedFilenames(sources: Array<{ documents?: Array<{ _id?: string; type?: string; file?: { filename?: string } }> }>): Set<string> {
+function collectReferencedFilenames(
+  sources: Array<{ documents?: Array<{ _id?: string; type?: string; file?: { filename?: string } }> }>
+): Set<string> {
   const filenames = new Set<string>();
   for (const entity of sources) {
     if (!entity.documents) continue;

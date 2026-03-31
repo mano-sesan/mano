@@ -593,8 +593,15 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   useRestoreScrollPosition();
 
-  const { transformPerson, transformPersonMedical, transformAction, transformConsultation, transformRencontre, transformPassage, transformObservation } =
-    useExportTransforms();
+  const {
+    transformPerson,
+    transformPersonMedical,
+    transformAction,
+    transformConsultation,
+    transformRencontre,
+    transformPassage,
+    transformObservation,
+  } = useExportTransforms();
 
   const exportDisabled =
     ["Général", "Services", "Comptes-rendus"].includes(activeTab) || (activeTab === "Dossiers médicaux" && !user.healthcareProfessional);
@@ -665,9 +672,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
           <h1 className="tw-grow tw-text-xl tw-font-normal">Statistiques</h1>
           <div className="tw-flex tw-items-center tw-gap-4">
             <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
-            {user.role === "admin" && (
-              <ButtonCustom title="Télécharger un export" onClick={handleExport} disabled={exportDisabled} />
-            )}
+            {user.role === "admin" && <ButtonCustom title="Télécharger un export" onClick={handleExport} disabled={exportDisabled} />}
           </div>
         </div>
       </div>
@@ -675,7 +680,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
       {/* Line 2: Tabs */}
       <div className="noprint tw-flex tw-flex-row tw-flex-wrap tw-border-b tw-border-zinc-200 tw-mb-6">
         {availableTabs.map((tab) => (
-          <button type="button"
+          <button
+            type="button"
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={[

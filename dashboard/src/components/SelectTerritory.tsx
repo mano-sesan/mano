@@ -54,4 +54,3 @@ const SelectTerritory = ({
 };
 
 export default SelectTerritory;
-

@@ -61,7 +61,8 @@ const View = () => {
           <h2 className="tw-text-2xl tw-font-bold tw-mb-0">{territory.name}</h2>
           {!["restricted-access"].includes(user.role) && (
             <div className="tw-flex tw-items-center tw-gap-2">
-              <button type="button"
+              <button
+                type="button"
                 className="button-submit !tw-bg-blue-900"
                 onClick={() => {
                   setActiveTab("Observations");
@@ -71,7 +72,8 @@ const View = () => {
               >
                 Statistiques
               </button>
-              <button type="button"
+              <button
+                type="button"
                 className="button-submit"
                 onClick={() => {
                   setModalOpen(true);
@@ -80,7 +82,8 @@ const View = () => {
                 Modifier
               </button>
               {canTransferTerritory && (
-                <button type="button"
+                <button
+                  type="button"
                   className="button-classic"
                   onClick={() => {
                     setIsTransferModalOpen(true);
@@ -204,7 +207,8 @@ const View = () => {
         </ModalBody>
         <ModalFooter>
           <div>
-            <button type="button"
+            <button
+              type="button"
               className="button-destructive"
               onClick={() => {
                 setIsTransferModalOpen(false);
@@ -212,7 +216,8 @@ const View = () => {
             >
               Annuler
             </button>
-            <button type="button"
+            <button
+              type="button"
               className="button-submit"
               disabled={!transferSelectedTerritory}
               onClick={() => {

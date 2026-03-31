@@ -61,7 +61,8 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
             activeTabIndex={activeTab.includes("Actions") ? 0 : 1}
           />
           <div className="flex-col tw-flex tw-items-center tw-gap-2">
-            <button type="button"
+            <button
+              type="button"
               aria-label="Ajouter une action"
               className={[
                 "tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-font-bold tw-text-white tw-transition hover:tw-scale-125",
@@ -95,7 +96,8 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
             >
               ＋
             </button>
-            <button type="button"
+            <button
+              type="button"
               title="Passer les actions/consultations en plein écran"
               className={[
                 "tw-h-6 tw-w-6 tw-rounded-full tw-transition hover:tw-scale-125 disabled:tw-cursor-not-allowed disabled:tw-opacity-30",

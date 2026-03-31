@@ -93,7 +93,9 @@ export default function ConsultationsStats({
                 onChange={(s) => setConsultationsTypes(s.map((s) => s._id))}
                 isClearable
                 isMulti
-                value={organisation.consultations.map((e) => ({ _id: e.name, name: e.name })).filter((s) => (consultationsTypes || []).includes(s._id))}
+                value={organisation.consultations
+                  .map((e) => ({ _id: e.name, name: e.name }))
+                  .filter((s) => (consultationsTypes || []).includes(s._id))}
               />
             </div>
           </div>

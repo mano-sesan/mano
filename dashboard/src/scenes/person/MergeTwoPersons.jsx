@@ -147,7 +147,8 @@ const MergeTwoPersons = ({ person }) => {
           const _doc = _docOrFolder;
           return {
             ..._doc,
-            downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
+            downloadPath:
+              _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
           };
         }),
       ],
@@ -326,7 +327,8 @@ const MergeTwoPersons = ({ person }) => {
                 if (_doc.type === "folder") return _doc;
                 return {
                   ..._doc,
-                  downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
+                  downloadPath:
+                    _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
                 };
               }),
             ],
@@ -353,7 +355,8 @@ const MergeTwoPersons = ({ person }) => {
               if (_doc.type === "folder") return _doc;
               return {
                 ..._doc,
-                downloadPath: _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
+                downloadPath:
+                  _doc.downloadPath ?? (_doc.file?.filename ? `/person/${personToMergeAndDelete._id}/document/${_doc.file.filename}` : undefined),
               };
             }),
             comments: [
