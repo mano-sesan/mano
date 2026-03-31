@@ -60,7 +60,7 @@ export const personsObjectSelector = atom((get) => {
   const persons = get(personsState);
   const personsObject = {};
   for (const person of persons) {
-    personsObject[person._id] = { ...person };
+    personsObject[person._id] = person;
   }
   return personsObject;
 });
@@ -490,6 +490,7 @@ export const personsWithMedicalFileAndConsultationsMergedSelector = atom((get) =
   const persons = get(arrayOfitemsGroupedByPersonSelector);
   if (!user.healthcareProfessional) return persons;
   return persons.map((person) => {
+    if (!person.medicalFile && !person.flattenedConsultations) return person;
     return {
       ...(person.medicalFile || {}),
       ...(person.flattenedConsultations || {}),
@@ -498,28 +499,9 @@ export const personsWithMedicalFileAndConsultationsMergedSelector = atom((get) =
   });
 });
 
-const personsWithPlacesSelector = atom((get) => {
-  const persons = get(personsState);
-  const personsObject = {};
-  for (const person of persons) {
-    personsObject[person._id] = { ...person };
-  }
-  const relsPersonPlace = get(relsPersonPlaceState);
-  const places = get(placesObjectSelector);
-
-  for (const relPersonPlace of relsPersonPlace) {
-    if (!personsObject[relPersonPlace.person]) continue;
-    const place = places[relPersonPlace.place];
-    if (!place) continue;
-    personsObject[relPersonPlace.person].places = personsObject[relPersonPlace.person].places || {};
-    personsObject[relPersonPlace.person].places[place._id] = place.name;
-  }
-  return personsObject;
-});
-
 export const itemsGroupedByActionSelector = atom((get) => {
   const actionsWithCommentsObject = get(actionsWithCommentsSelector);
-  const personsWithPlacesObject = get(personsWithPlacesSelector);
+  const personsObject = get(personsObjectSelector);
   const usersObject = get(usersObjectSelector);
 
   const actionsObject = {};
@@ -527,7 +509,7 @@ export const itemsGroupedByActionSelector = atom((get) => {
     const action = actionsWithCommentsObject[actionId];
     actionsObject[actionId] = {
       ...action,
-      personPopulated: personsWithPlacesObject[action.person],
+      personPopulated: personsObject[action.person],
       userPopulated: action.user ? usersObject[action.user] : null,
     };
   }
@@ -542,14 +524,14 @@ export const arrayOfitemsGroupedByActionSelector = atom((get) => {
 
 export const itemsGroupedByConsultationSelector = atom((get) => {
   const consultations = get(consultationsState);
-  const personsWithPlacesObject = get(personsWithPlacesSelector);
+  const personsObject = get(personsObjectSelector);
   const usersObject = get(usersObjectSelector);
 
   const consultationObject = {};
   for (const consultation of consultations) {
     consultationObject[consultation._id] = {
       ...consultation,
-      personPopulated: personsWithPlacesObject[consultation.person],
+      personPopulated: personsObject[consultation.person],
       userPopulated: consultation.user ? usersObject[consultation.user] : null,
     };
   }
@@ -564,14 +546,14 @@ export const arrayOfitemsGroupedByConsultationSelector = atom((get) => {
 
 export const itemsGroupedByTreatmentSelector = atom((get) => {
   const treatments = get(treatmentsState);
-  const personsWithPlacesObject = get(personsWithPlacesSelector);
+  const personsObject = get(personsObjectSelector);
   const usersObject = get(usersObjectSelector);
 
   const treatmentsObject = {};
   for (const treatment of treatments) {
     treatmentsObject[treatment._id] = {
       ...treatment,
-      personPopulated: personsWithPlacesObject[treatment.person],
+      personPopulated: personsObject[treatment.person],
       userPopulated: treatment.user ? usersObject[treatment.user] : null,
     };
   }
