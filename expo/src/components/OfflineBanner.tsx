@@ -71,10 +71,15 @@ const OfflineBanner = () => {
         <View
           className={[
             "px-4 flex-row items-center justify-center",
-            offlineMode && "bg-orange-400",
-            !offlineMode && syncStatus === "syncing" && "bg-main",
-            !offlineMode && conflicts.length > 0 && "bg-orangeDark",
-            !offlineMode && queueCount > 0 && conflicts.length === 0 && syncStatus !== "syncing" && "bg-[#0d5b54]",
+            offlineMode
+              ? "bg-orange-400"
+              : syncStatus === "syncing"
+                ? "bg-main"
+                : conflicts.length > 0
+                  ? "bg-orangeDark"
+                  : queueCount > 0
+                    ? "bg-[#0d5b54]"
+                    : "",
           ].join(" ")}
         >
           <MyText bold color="#fff" className="text-[13px] text-center">
