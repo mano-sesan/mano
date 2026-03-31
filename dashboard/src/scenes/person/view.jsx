@@ -63,7 +63,7 @@ export default function View() {
 
   return (
     <div>
-      <div className="tw-sticky tw-top-0 tw-z-10 tw-bg-white tw-pb-2">
+      <div className="tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-pt-2 tw-pb-2">
         <div className="tw-flex tw-w-full tw-justify-between tw-items-center">
           <div>
             <BackButton to="/person" />
@@ -76,7 +76,7 @@ export default function View() {
           <div className="noprint">
             <UserName
               id={person.user}
-              wrapper={() => "Créée par "}
+              wrapper={() => <div className="tw-text-sm tw-font-normal">Créée par</div>}
               canAddUser
               handleChange={async (newUser) => {
                 const [error] = await tryFetchExpectOk(async () =>
