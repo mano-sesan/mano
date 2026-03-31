@@ -75,33 +75,6 @@ const Drawer = () => {
     );
   };
 
-  if (isStatsOnly) {
-    return (
-      <nav
-        title="Navigation principale"
-        className={[
-          "noprint tw-absolute tw-flex tw-h-screen tw-w-screen tw-opacity-100 tw-transition-all sm:!tw-pointer-events-auto sm:!tw-visible sm:tw-relative sm:tw-h-auto sm:tw-w-auto sm:tw-translate-x-0 sm:tw-bg-transparent",
-          showDrawer ? "tw-visible tw-z-30 tw-translate-x-0 tw-transition-all" : "tw-pointer-events-none tw-invisible tw-z-[-1] -tw-translate-x-full",
-        ].join(" ")}
-      >
-        <div
-          className={[
-            "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-opacity-10 tw-bg-[#E1E3E3] tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
-            isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-px-2" : "tw-w-64 tw-basis-52 tw-px-2",
-            isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
-          ].join(" ")}
-        >
-          {!["superadmin"].includes(user.role) && <TeamSelector />}
-          <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
-          <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-[0.65rem] tw-text-main">
-            <p className="m-0">Version&nbsp;: {deploymentCommit}</p>
-            <p className="m-0">Accessibilité&nbsp;: non conforme</p>
-          </div>
-        </div>
-      </nav>
-    );
-  }
-
   return (
     <nav
       title="Navigation principale"
@@ -118,49 +91,54 @@ const Drawer = () => {
         ].join(" ")}
       >
         {!["superadmin"].includes(user.role) && <TeamSelector />}
-        <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
-          {["admin", "normal"].includes(role) && isDesktop && <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />}
-          {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
-            <NavItem to="/reception" icon={HomeIcon} label="Accueil" />
+        <div className="tw-flex tw-flex-col tw-gap-2 tw-my-2">
+          {["admin", "normal"].includes(role) && isDesktop && (
+            <DrawerGroup>
+              <NavItem to="/search" icon={MagnifyingGlassIcon} label="Recherche" />
+            </DrawerGroup>
           )}
-          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/action" icon={CalendarDaysIcon} label="Agenda" />}
-          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/person" icon={UserIcon} label="Personnes suivies" />}
-          {["admin", "normal", "restricted-access"].includes(role) && !!organisation.territoriesEnabled && (
-            <NavItem to="/territory" icon={MapIcon} label="Territoires" />
+          {["admin", "normal", "restricted-access"].includes(role) && (
+            <DrawerGroup>
+              {["admin", "normal", "restricted-access"].includes(role) && !!organisation.receptionEnabled && !!isDesktop && (
+                <NavItem to="/reception" icon={HomeIcon} label="Accueil" />
+              )}
+              {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/action" icon={CalendarDaysIcon} label="Agenda" />}
+              {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/person" icon={UserIcon} label="Personnes suivies" />}
+              {["admin", "normal", "restricted-access"].includes(role) && !!organisation.territoriesEnabled && (
+                <NavItem to="/territory" icon={MapIcon} label="Territoires" />
+              )}
+              {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/report" icon={DocumentTextIcon} label="Comptes rendus" />}
+            </DrawerGroup>
           )}
-          {["admin", "normal", "restricted-access"].includes(role) && <NavItem to="/report" icon={DocumentTextIcon} label="Comptes rendus" />}
-        </div>
-        {["admin", "normal", "restricted-access"].includes(role) && (
-          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
-            <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
-            <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
-          </div>
-        )}
-        {["admin", "normal"].includes(role) && isDesktop && (
-          <div className="tw-mt-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
-            <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />
-          </div>
-        )}
-        <div className="tw-my-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+          {["admin", "normal", "restricted-access"].includes(role) && (
+            <DrawerGroup>
+              <NavItem to="/structure" icon={BuildingOffice2Icon} label="Contacts" />
+              <NavItem to="https://soliguide.fr/" icon={MapPinIcon} label="Soliguide" external />
+            </DrawerGroup>
+          )}
+          {(["admin", "normal"].includes(role) || isStatsOnly) && isDesktop && (
+            <DrawerGroup>
+              <NavItem to="/stats" icon={ChartBarIcon} label="Statistiques" />
+            </DrawerGroup>
+          )}
+
           {["admin"].includes(role) && isDesktop && (
-            <>
+            <DrawerGroup>
               <NavItem to={`/organisation/${organisation._id}`} icon={BuildingOfficeIcon} label="Organisation" id="show-on-onboarding" />
               <NavItem to="/team" icon={UsersIcon} label="Équipes" id="show-on-onboarding" />
               <NavItem to="/user" icon={UserCircleIcon} label="Utilisateurs" />
-            </>
+            </DrawerGroup>
           )}
-        </div>
-        {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
-          !onboardingForTeams &&
-          !collapsed &&
-          ["admin"].includes(role) &&
-          isDesktop && (
-            <div className="tw-mb-2 [&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
-              <li>
+          {import.meta.env.VITE_ADD_MULTIPLE_PERSONS_BUTTON === "true" &&
+            !onboardingForTeams &&
+            !collapsed &&
+            ["admin"].includes(role) &&
+            isDesktop && (
+              <DrawerGroup>
                 <AddPersons />
-              </li>
-            </div>
-          )}
+              </DrawerGroup>
+            )}
+        </div>
         <MenuUser isDrawerCollapsed={collapsed} className={["tw-mt-auto tw-mb-4", collapsed ? "tw-w-full" : "tw-self-stretch"].join(" ")} />
         {!collapsed && (
           <div className="tw-mb-4 tw-flex tw-flex-col tw-justify-between tw-text-xs tw-text-main">
@@ -277,6 +255,14 @@ function TeamSelector() {
         })}
       </MenuItems>
     </Menu>
+  );
+}
+
+function DrawerGroup({ children }) {
+  return (
+    <div className="[&_a.active]:tw-text-main [&_a.active]:tw-underline [&_a:hover]:tw-text-main [&_a]:tw-my-2 [&_a]:tw-block [&_a]:tw-rounded-lg [&_a]:tw-py-0.5 [&_a]:tw-text-sm [&_a]:tw-font-semibold [&_a]:tw-text-black75 [&_li]:tw-list-none tw-bg-white tw-rounded-xl tw-px-2">
+      {children}
+    </div>
   );
 }
 
