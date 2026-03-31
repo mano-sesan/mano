@@ -19,14 +19,16 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
+import CheckboxLabelled from "../../components/CheckboxLabelled";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
 const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
-  const territories = useTerritoriesWithObservationsSearchSelector(search);
+  const territories = useTerritoriesWithObservationsSearchSelector(search, showArchived);
 
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -49,8 +51,9 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
     return (
       <RowContainer onPress={() => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("TERRITORY", { territory })}>
         <View>
-          <View>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Name>{name}</Name>
+            {!!territory.archivedAt && <ArchivedBadge>(archivé)</ArchivedBadge>}
           </View>
         </View>
       </RowContainer>
@@ -93,16 +96,27 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         data={territories}
         renderItem={renderRow}
         keyExtractor={keyExtractor}
+        ListHeaderComponent={
+          <View style={{ paddingHorizontal: 20, paddingVertical: 8 }}>
+            <CheckboxLabelled
+              _id="show-archived"
+              label="Afficher les territoires archivés"
+              value={showArchived}
+              onPress={() => setShowArchived((prev) => !prev)}
+              alone
+            />
+          </View>
+        }
         ListEmptyComponent={ListEmptyComponent}
         initialNumToRender={10}
         ListFooterComponent={ListFooterComponent}
         defaultTop={0}
       />
+
       <FloatAddButton onPress={onCreateTerritoryRequest} testID="add-territory-button" />
     </SceneContainer>
   );
 };
-
 
 const ListEmptyComponent = () => {
   const loading = useAtomValue(loadingState);
@@ -112,6 +126,11 @@ const ListEmptyComponent = () => {
 const Name = styled(MyText)`
   font-weight: bold;
   font-size: 17px;
+`;
+const ArchivedBadge = styled(MyText)`
+  font-size: 12px;
+  color: #d97706;
+  margin-left: 8px;
 `;
 
 export default TerritoriesList;

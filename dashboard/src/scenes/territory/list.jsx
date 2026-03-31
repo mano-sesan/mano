@@ -54,15 +54,17 @@ const List = () => {
   const territoryObservations = useAtomValue(onlyFilledObservationsTerritories);
   const [sortBy, setSortBy] = useLocalStorage("territory-sortBy", "name");
   const [sortOrder, setSortOrder] = useLocalStorage("territory-sortOrder", "ASC");
+  const [showArchived, setShowArchived] = useState(false);
 
   const filteredTerritories = useMemo(() => {
-    if (!search.length) return [...territories].sort(sortTerritories(sortBy, sortOrder));
-    const territoriesIdsByTerritoriesSearch = filterBySearch(search, territories).map((t) => t._id);
+    const visibleTerritories = showArchived ? territories : territories.filter((t) => !t.archivedAt);
+    if (!search.length) return [...visibleTerritories].sort(sortTerritories(sortBy, sortOrder));
+    const territoriesIdsByTerritoriesSearch = filterBySearch(search, visibleTerritories).map((t) => t._id);
     const territoriesIdsFilteredByObsSearch = filterBySearch(search, territoryObservations).map((obs) => obs.territory);
 
     const territoriesIdsFilterBySearch = [...new Set([...territoriesIdsByTerritoriesSearch, ...territoriesIdsFilteredByObsSearch])];
-    return territories.filter((t) => territoriesIdsFilterBySearch.includes(t._id)).sort(sortTerritories(sortBy, sortOrder));
-  }, [territoryObservations, territories, search, sortBy, sortOrder]);
+    return visibleTerritories.filter((t) => territoriesIdsFilterBySearch.includes(t._id)).sort(sortTerritories(sortBy, sortOrder));
+  }, [territoryObservations, territories, search, sortBy, sortOrder, showArchived]);
 
   const limit = 20;
   const data = useMemo(
@@ -96,6 +98,10 @@ const List = () => {
               setPage(0);
             }}
           />
+          <label className="tw-ml-4 tw-mt-2 tw-flex tw-shrink-0 tw-items-center tw-gap-2 tw-text-sm tw-cursor-pointer">
+            <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+            Afficher les archivés
+          </label>
         </div>
       </div>
       <Table
@@ -115,6 +121,7 @@ const List = () => {
               return (
                 <div className="[overflow-wrap:anywhere]">
                   <b>{territory.name}</b>
+                  {territory.archivedAt && <span className="tw-ml-2 tw-text-xs tw-text-amber-600">(archivé)</span>}
                   <div className="tw-text-xs tw-text-gray-500">{territory.observations.length} observations</div>
                 </div>
               );

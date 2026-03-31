@@ -60,7 +60,7 @@ const View = () => {
         <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
           <h2 className="tw-text-2xl tw-font-bold tw-mb-0">{territory.name}</h2>
           {!["restricted-access"].includes(user.role) && (
-            <div className="tw-flex tw-items-center tw-gap-2">
+            <div className="tw-flex tw-items-center">
               <button
                 type="button"
                 className="button-submit !tw-bg-blue-900"
@@ -90,6 +90,40 @@ const View = () => {
                   }}
                 >
                   Transférer
+                </button>
+              )}
+              {!territory.archivedAt ? (
+                <button
+                  type="button"
+                  className="button-classic"
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        `Voulez-vous archiver le territoire « ${territory.name} » ? Il n'apparaîtra plus dans la liste mais ses observations seront conservées dans les statistiques.`
+                      )
+                    )
+                      return;
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: `/territory/${id}/archive` }));
+                    if (error) return toast.error(errorMessage(error));
+                    await refresh();
+                    toast.success("Territoire archivé");
+                    history.goBack();
+                  }}
+                >
+                  Archiver
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="button-classic"
+                  onClick={async () => {
+                    const [error] = await tryFetchExpectOk(async () => API.post({ path: `/territory/${id}/unarchive` }));
+                    if (error) return toast.error(errorMessage(error));
+                    await refresh();
+                    toast.success("Territoire désarchivé");
+                  }}
+                >
+                  Désarchiver
                 </button>
               )}
               <DeleteButtonAndConfirmModal
