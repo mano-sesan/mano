@@ -895,6 +895,7 @@ const castToAction = (action: Partial<ActionInstance>): ActionInstanceWithoutId 
     teams: action.teams || (action.team ? [action.team!] : []),
     history: action.history || [],
     documents: action.documents || [],
+    createdAt: action.createdAt,
     updatedAt: action.updatedAt,
     deletedAt: action.deletedAt,
     organisation: action.organisation!,

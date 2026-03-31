@@ -74,6 +74,8 @@ const castToConsultation = (
     type: consult.type || "",
     status: consult.status || TODO,
     dueAt: consult.dueAt || null,
+    createdAt: consult.createdAt || "",
+    updatedAt: consult.updatedAt || "",
     person: consult.person || personId,
     completedAt: consult.completedAt || null,
     onlyVisibleBy: consult.onlyVisibleBy || [],
