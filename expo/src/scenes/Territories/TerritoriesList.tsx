@@ -20,6 +20,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
@@ -33,11 +34,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const onRefresh = async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   };
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  useRefreshOnFocus();
 
   const onCreateTerritoryRequest = () => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("TERRITORY_NEW");
 
@@ -72,7 +69,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         },
       },
     ],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   return (

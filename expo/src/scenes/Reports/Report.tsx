@@ -31,12 +31,13 @@ import { ReportInstance } from "@/types/report";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const castToReport = (report?: ReportInstance) =>
   ({
     description: report?.description?.trim() || "",
     collaborations: report?.collaborations || [],
-  } as ReportInstance);
+  }) as ReportInstance;
 
 type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
 const ReportLoading = ({ navigation, route }: Props) => {
@@ -47,7 +48,7 @@ const ReportLoading = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day]
+    [currentTeam?.name, currentTeam?.nightSession, day],
   );
 
   useEffect(() => {
@@ -89,6 +90,8 @@ const Report = ({ navigation, route }: Props) => {
   const organisation = useAtomValue(organisationState)!;
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const [servicesCount, setServicesCount] = useState(0);
+
+  useRefreshOnFocus();
 
   const isFocused = useIsFocused();
 
@@ -188,7 +191,7 @@ const Report = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day]
+    [currentTeam?.name, currentTeam?.nightSession, day],
   );
 
   const canViewComments = ["admin", "normal"].includes(user.role);
