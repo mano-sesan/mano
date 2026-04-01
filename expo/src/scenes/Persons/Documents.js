@@ -61,7 +61,6 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
               documents: personDB.documents.filter((d) => d?.file?.filename !== document.file.filename),
             });
           }}
-          personDB={personDB}
           documents={documents}
           backgroundColor={backgroundColor || colors.app.color}
         />
