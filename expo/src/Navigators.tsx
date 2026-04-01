@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as NavigationBar from 'expo-navigation-bar';
+import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
@@ -218,7 +218,7 @@ const App = () => {
       resetAllRecoilStates();
       setLastRefresh(0);
     }
-    InteractionManager.runAfterInteractions(async () => {
+    requestIdleCallback(async () => {
       resetUser(null);
       resetOrganisation(null);
       resetTeams([]);
@@ -251,7 +251,6 @@ const App = () => {
           API.navigation = navigationRef;
           SplashScreen.hide();
           NavigationBar.setButtonStyleAsync("dark");
-
         }}
         theme={{
           ...DefaultTheme,
