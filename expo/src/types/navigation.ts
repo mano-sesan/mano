@@ -22,7 +22,7 @@ export type RootStackParamList = {
   TABS_STACK: NavigatorScreenParams<TabsParamsList>;
   ACTION_STACK: ActionScreenParams;
   ACTION_NEW_STACK?: { person: PersonInstance };
-  ACTIONS_FOR_REPORT: { date: string; status: ActionStatus };
+  ACTIONS_FOR_REPORT: { date: string; status: ActionStatus | null };
   ACTIONS_FILTER: undefined;
   PERSON_STACK: { person: PersonInstance; editable?: boolean };
   PERSON_NEW: undefined;
@@ -48,7 +48,7 @@ export type RootStackParamList = {
   COMPTES_RENDUS: undefined;
   COMPTE_RENDU: { report?: ReportInstance; day: string; editable?: boolean };
   COLLABORATIONS: { report?: ReportInstance; day: string };
-  CONSULTATIONS_FOR_REPORT: { date: string; status: ActionStatus };
+  CONSULTATIONS_FOR_REPORT: { date: string; status: ActionStatus | null };
   CONSULTATION_STACK?: { personDB?: PersonInstance; consultationDB?: ConsultationInstance; duplicate?: boolean; editable?: boolean };
   SERVICES: { date: string };
   STRUCTURES: undefined;
