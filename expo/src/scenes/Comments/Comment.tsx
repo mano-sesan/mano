@@ -17,7 +17,7 @@ import DateAndTimeInput from "../../components/DateAndTimeInput";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
-import { refreshTriggerState } from "@/components/Loader";
+
 import { Dayjs } from "dayjs";
 
 type CommentProps = NativeStackScreenProps<RootStackParamList, "COMMENT">;
@@ -27,7 +27,7 @@ const Comment = ({ navigation, route }: CommentProps) => {
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const setComments = useSetAtom(commentsState);
   const groups = useAtomValue(groupsState);
   const isNewComment = true;
   const [comment, setComment] = useState("");
@@ -61,10 +61,10 @@ const Comment = ({ navigation, route }: CommentProps) => {
       return false;
     }
     if (response.ok) {
+      setComments((comments) => [response.decryptedData, ...comments]);
       setUpdating(false);
       Alert.alert("Commentaire ajouté", undefined, [{ text: "OK", onPress: onBack }]);
     }
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     return response;
   };
 

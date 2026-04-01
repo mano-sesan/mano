@@ -59,11 +59,10 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
       }
       if (response.ok) {
         setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
-        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
         navigation.goBack();
       }
     },
-    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
+    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, navigation]
   );
 
   const onCreatePlace = useCallback(async () => {

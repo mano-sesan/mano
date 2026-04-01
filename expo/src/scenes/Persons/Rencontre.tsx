@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -14,13 +14,11 @@ import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { RencontreInstance } from "@/types/rencontre";
-import { refreshTriggerState } from "../../components/Loader";
 
 type RencontreProps = NativeStackScreenProps<RootStackParamList, "RENCONTRE">;
 const Rencontre = ({ navigation, route }: RencontreProps) => {
   const personId = route.params.person._id;
   const isNewRencontre = !route.params.rencontre;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [rencontre, setRencontre] = useState<RencontreInstance>(
@@ -90,7 +88,6 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
                   Alert.alert("Erreur", response.error || response.code || "Une erreur est survenue lors de l'enregistrement de la rencontre");
                   return;
                 }
-                setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
                 navigation.goBack();
               }}
             />

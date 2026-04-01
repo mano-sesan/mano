@@ -30,7 +30,7 @@ import InputFromSearchList from "../../components/InputFromSearchList";
 import CommentRow from "../Comments/CommentRow";
 import SubList from "../../components/SubList";
 import NewCommentInput from "../Comments/NewCommentInput";
-import { refreshTriggerState } from "../../components/Loader";
+
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
@@ -184,7 +184,6 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
   const user = useAtomValue(userState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const isNew = !consultationDB?._id;
   const [writingComment, setWritingComment] = useState("");
@@ -239,7 +238,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
       Alert.alert("Impossible de dupliquer !");
       return;
     }
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    setAllConsultations((all) => [response.decryptedData, ...all]);
     backRequestHandledRef.current = true;
     navigation.replace("CONSULTATION_STACK", {
       personDB: person,
@@ -306,7 +305,11 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
         : await API.put({ path: `/consultation/${consultationDB._id}`, body });
       if (!consultationResponse.ok) return false;
 
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      if (isNew) {
+        setAllConsultations((all) => [consultationResponse.decryptedData, ...all]);
+      } else {
+        setAllConsultations((all) => all.map((c) => (c._id === consultationDB._id ? consultationResponse.decryptedData : c)));
+      }
 
       const consultationCancelled = consultationToSave.status === CANCEL && consultationDB.status !== CANCEL;
       if (!isNew && consultationCancelled) {

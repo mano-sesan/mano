@@ -332,7 +332,6 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
       setPersons((persons) => persons.filter((p) => p._id !== personDB._id));
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     }
     return true;
   };

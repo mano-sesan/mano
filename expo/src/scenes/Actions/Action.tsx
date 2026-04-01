@@ -30,7 +30,7 @@ import { capture } from "../../services/sentry";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../recoil/groups";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
-import { refreshTriggerState } from "../../components/Loader";
+
 import { createMaterialTopTabNavigator, MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import DocumentsManager from "../../components/DocumentsManager";
 import { isEmptyValue } from "../../utils";
@@ -148,7 +148,6 @@ type ActionMainProps = ActionProps & {
 };
 
 const Action = ({ navigation, route, actionDB, action, actions, setAction, persons, onSearchPerson }: ActionMainProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const setActions = useSetAtom(actionsState);
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
@@ -227,10 +226,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
-  const onRefresh = async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  };
-
   const updateAction = async (action: ActionInstance) => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
@@ -246,7 +241,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     console.log("action._id", action._id);
     if (!oldAction) {
       Alert.alert("Action non trouvée");
-      onRefresh();
       setUpdating(false);
       return false;
     }
@@ -283,7 +277,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         body: prepareActionForEncryption(action as ActionInstance),
       });
       if (!response?.ok) return response;
-      onRefresh();
+      setActions((actions) => actions.map((a) => (a._id === oldAction._id ? response.decryptedData : a)));
       return response;
     } catch (error: any) {
       capture(error, { extra: { message: "error in updating action" } });
@@ -325,7 +319,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       }
       return;
     }
-    onRefresh();
     if (actionCancelled) {
       Alert.alert("Cette action est annulée, voulez-vous la dupliquer ?", "Avec une date ultérieure par exemple", [
         { text: "Oui", onPress: onDuplicate },
@@ -381,7 +374,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
     Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
-    onRefresh();
     setActions((actions) => [...actions, response.decryptedData]);
 
     navigation.replace("ACTION_STACK", {
@@ -413,7 +405,10 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
     });
-    if (res.ok) onRefresh();
+    if (res.ok) {
+      setActions((actions) => actions.filter((a) => a._id !== id));
+      setComments((comments) => comments.filter((c) => c.action !== id));
+    }
     return res;
   };
 
