@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -13,7 +13,7 @@ import { currentTeamState, userState } from "../../recoil/auth";
 import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
 import API from "../../services/api";
 import { useNavigation } from "@react-navigation/native";
-import { refreshTriggerState } from "../../components/Loader";
+
 import { PersonInstance } from "@/types/person";
 import { RencontreInstance } from "@/types/rencontre";
 import { RencontreNewStackParams, RootStackParamList } from "@/types/navigation";
@@ -95,7 +95,6 @@ const NewRencontreForm = ({
   setRencontrePersons,
   canChangePerson,
 }: NewRencontreFormProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const navigation = useNavigation();
@@ -174,7 +173,6 @@ const NewRencontreForm = ({
 
     // Mettre à jour l'état avec toutes les nouvelles rencontres
     setRencontres([...newRencontres, ...rencontres]);
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     setPosting(false);
 
     if (newRencontres.length > 1) {

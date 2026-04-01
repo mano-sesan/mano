@@ -26,7 +26,7 @@ import { RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { CommentInstance } from "@/types/comment";
 import { TreatmentInstance } from "@/types/treatment";
-import { refreshTriggerState } from "@/components/Loader";
+
 import { Document } from "@/types/document";
 
 type TreatmentProps = NativeStackScreenProps<RootStackParamList, "TREATMENT">;
@@ -37,7 +37,6 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
   const treatmentDB = route?.params?.treatmentDB;
   const isNew = !treatmentDB?._id;
   const user = useAtomValue(userState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const [name, setName] = useState(treatmentDB?.name || "");
   const [dosage, setDosage] = useState(treatmentDB?.dosage || "");
@@ -117,7 +116,11 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
       ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body) })
       : await API.put({ path: `/treatment/${treatmentDB._id}`, body: prepareTreatmentForEncryption(body) });
     if (!treatmentResponse.ok) return false;
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    if (isNew) {
+      setAllTreatments((all) => [treatmentResponse.decryptedData, ...all]);
+    } else {
+      setAllTreatments((all) => all.map((t) => (t._id === treatmentDB._id ? treatmentResponse.decryptedData : t)));
+    }
     setPosting(false);
     if (goBackOnSave) onBack();
     return true;

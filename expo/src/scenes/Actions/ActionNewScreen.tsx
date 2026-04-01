@@ -13,14 +13,13 @@ import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import Label from "../../components/Label";
 import Tags from "../../components/Tags";
 import { MyText } from "../../components/MyText";
-import { DONE, prepareActionForEncryption, TODO } from "../../recoil/actions";
+import { actionsState, DONE, prepareActionForEncryption, TODO } from "../../recoil/actions";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import API from "../../services/api";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../recoil/groups";
 import { useNavigation } from "@react-navigation/native";
-import { refreshTriggerState } from "../../components/Loader";
 import RecurrenceComponent from "../../components/Recurrence";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { getOccurrences } from "../../utils/recurrence";
@@ -109,7 +108,7 @@ const NewActionForm = ({
   setActionPersons,
   canChangePerson,
 }: NewActionFormProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const setActions = useSetAtom(actionsState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState)!;
@@ -243,12 +242,13 @@ const NewActionForm = ({
       body: await Promise.all(actions.map(API.encryptItem)),
     });
 
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     setPosting(false);
     if (!response.ok) {
       if (response.status !== 401) Alert.alert(response.error || response.code);
       return;
     }
+
+    setActions((prev) => [...prev, ...response.decryptedData]);
 
     backRequestHandledRef.current = true;
 

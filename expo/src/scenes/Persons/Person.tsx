@@ -80,16 +80,16 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   const preparePersonForEncryption = usePreparePersonForEncryption();
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const [persons, setPersons] = useAtom(personsState);
-  const actions = useAtomValue(actionsState);
+  const [actions, setActions] = useAtom(actionsState);
   const groups = useAtomValue(groupsState);
-  const comments = useAtomValue(commentsState);
-  const passages = useAtomValue(passagesState) as Array<{ _id: string; person: string; createdAt: Date }>;
-  const rencontres = useAtomValue(rencontresState) as Array<{ _id: string; person: string; createdAt: Date }>;
-  const consultations = useAtomValue(consultationsState);
-  const treatments = useAtomValue(treatmentsState);
-  const medicalFiles = useAtomValue(medicalFileState);
+  const [comments, setComments] = useAtom(commentsState);
+  const [passages, setPassages] = useAtom(passagesState);
+  const [rencontres, setRencontres] = useAtom(rencontresState);
+  const [consultations, setConsultations] = useAtom(consultationsState);
+  const [treatments, setTreatments] = useAtom(treatmentsState);
+  const [medicalFiles, setMedicalFiles] = useAtom(medicalFileState);
   const hideEditButton = useAtomValue(hideEditButtonAtom);
-  const relsPersonPlace = useAtomValue(relsPersonPlaceState) as Array<{ _id: string; person: string; place: string; createdAt: Date }>;
+  const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
   const user = useAtomValue(userState)!;
 
   const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id)!, [persons, route.params?.person?._id]);
@@ -332,7 +332,14 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
       setPersons((persons) => persons.filter((p) => p._id !== personDB._id));
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      setActions((actions) => actions.filter((a) => !body.actionIdsToDelete.includes(a._id)));
+      setComments((comments) => comments.filter((c) => !body.commentIdsToDelete.includes(c._id)));
+      setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((r) => !body.relsPersonPlaceIdsToDelete.includes(r._id)));
+      setPassages((passages) => passages.filter((p) => !body.passageIdsToDelete.includes(p._id)));
+      setRencontres((rencontres) => rencontres.filter((r) => !body.rencontreIdsToDelete.includes(r._id)));
+      setConsultations((consultations) => consultations.filter((c) => !body.consultationIdsToDelete.includes(c._id)));
+      setTreatments((treatments) => treatments.filter((t) => !body.treatmentIdsToDelete.includes(t._id)));
+      setMedicalFiles((medicalFiles) => medicalFiles.filter((m) => !body.medicalFileIdsToDelete.includes(m._id)));
     }
     return true;
   };

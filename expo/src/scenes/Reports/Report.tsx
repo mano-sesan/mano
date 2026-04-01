@@ -13,7 +13,7 @@ import Spacer from "../../components/Spacer";
 import Tags from "../../components/Tags";
 import { CANCEL, DONE, TODO } from "../../recoil/actions";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { flattenedServicesSelector, prepareReportForEncryption } from "../../recoil/reports";
+import { flattenedServicesSelector, prepareReportForEncryption, reportsState } from "../../recoil/reports";
 import API from "../../services/api";
 import colors from "../../utils/colors";
 import {
@@ -26,7 +26,7 @@ import {
   useRencontresForReport,
 } from "./selectors";
 import { getPeriodTitle } from "./utils";
-import { refreshTriggerState } from "../../components/Loader";
+
 import { ReportInstance } from "@/types/report";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
@@ -87,7 +87,7 @@ const Report = ({ navigation, route }: Props) => {
   const passages = usePassagesForReport(day);
   const observations = useObservationsForReport(day);
   const organisation = useAtomValue(organisationState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const setReports = useSetAtom(reportsState);
   const [servicesCount, setServicesCount] = useState(0);
 
   const isFocused = useIsFocused();
@@ -147,7 +147,11 @@ const Report = ({ navigation, route }: Props) => {
       return false;
     }
     if (response.ok) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      if (reportDB?._id) {
+        setReports((reports) => reports.map((r) => (r._id === reportDB._id ? response.decryptedData : r)));
+      } else {
+        setReports((reports) => [response.decryptedData, ...reports]);
+      }
       setReport(castToReport(response.decryptedData));
       Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);

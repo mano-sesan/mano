@@ -12,9 +12,9 @@ import Row from "../../components/Row";
 import Spacer from "../../components/Spacer";
 import { currentTeamState, organisationState, userState } from "../../recoil/auth";
 import { getPeriodTitle } from "./utils";
-import { prepareReportForEncryption } from "../../recoil/reports";
+import { prepareReportForEncryption, reportsState } from "../../recoil/reports";
 import { currentTeamReportsSelector } from "./selectors";
-import { refreshTriggerState } from "../../components/Loader";
+
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 
@@ -23,7 +23,7 @@ const Collaborations = ({ route, navigation }: Props) => {
   const user = useAtomValue(userState)!;
   const [collaboration, setCollaboration] = useState("");
   const [posting, setPosting] = useState(false);
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const setReports = useSetAtom(reportsState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const teamsReports = useAtomValue(currentTeamReportsSelector);
 
@@ -84,7 +84,11 @@ const Collaborations = ({ route, navigation }: Props) => {
         });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      if (reportDB?._id) {
+        setReports((reports) => reports.map((r) => (r._id === reportDB._id ? response.decryptedData : r)));
+      } else {
+        setReports((reports) => [response.decryptedData, ...reports]);
+      }
       onBack();
     }
   };
