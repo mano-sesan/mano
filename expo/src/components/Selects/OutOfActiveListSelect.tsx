@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { personFieldsSelector } from "../../recoil/persons";
+import { personFieldsSelector } from "../../atoms/persons";
 import SelectLabelled from "./SelectLabelled";
 
 type OutOfActiveListSelectProps = {

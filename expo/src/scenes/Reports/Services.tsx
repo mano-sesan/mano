@@ -7,10 +7,10 @@ import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyServices } from "../../components/ListEmptyContainer";
 import { getPeriodTitle } from "./utils";
-import { currentTeamState, organisationState } from "../../recoil/auth";
+import { currentTeamState, organisationState } from "../../atoms/auth";
 import API from "../../services/api";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { servicesSelector } from "../../recoil/reports";
+import { servicesSelector } from "../../atoms/reports";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
@@ -44,7 +44,7 @@ function IncrementorSmall({
       });
     },
     500,
-    { maxWait: 4000 }
+    { maxWait: 4000 },
   );
 
   const [value, setValue] = useState(initialValue);
@@ -54,7 +54,7 @@ function IncrementorSmall({
     () => () => {
       debounced.flush();
     },
-    [debounced]
+    [debounced],
   );
 
   return (

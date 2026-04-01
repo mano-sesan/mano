@@ -1,4 +1,4 @@
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
@@ -19,7 +19,7 @@ export const preparePlaceForEncryption = (place: Partial<PlaceInstance>) => {
   } catch (error) {
     Alert.alert(
       "Le lieu n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

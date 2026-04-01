@@ -3,7 +3,7 @@ import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
-import { actionsFiltersState } from "../../recoil/actions";
+import { actionsFiltersState } from "../../atoms/actions";
 import { useAtom } from "jotai";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";

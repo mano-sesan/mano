@@ -8,7 +8,7 @@ import ButtonsContainer from "../../components/ButtonsContainer";
 import Button from "../../components/Button";
 import colors from "../../utils/colors";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import { PersonInstance } from "@/types/person";
 import { CustomField } from "@/types/field";
 import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";

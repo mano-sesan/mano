@@ -8,7 +8,7 @@ import API from "../../services/api";
 import ScrollContainer from "../../components/ScrollContainer";
 import { MANO_DOWNLOAD_URL, MANO_TEST_ORGANISATION_ID } from "../../config";
 import { useAtomValue } from "jotai";
-import { currentTeamState, organisationState } from "../../recoil/auth";
+import { currentTeamState, organisationState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "@/types/navigation";

@@ -7,7 +7,7 @@ import { territoryObservationsState } from "./territoryObservations";
 import structuredClone from "@ungap/structured-clone";
 import { filterBySearch } from "../utils/search";
 import { ReadyToEncryptTerritoryInstance, TerritoryInstance, TerritoryType } from "@/types/territory";
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { useMemo } from "react";
 

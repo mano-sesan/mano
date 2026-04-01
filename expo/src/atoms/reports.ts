@@ -3,7 +3,7 @@ import { organisationState } from "./auth";
 import { looseUuidRegex, dateRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { ReportInstance } from "@/types/report";
 
 export const reportsState = atomWithCache<Array<ReportInstance>>("report", []);
@@ -32,7 +32,7 @@ export const prepareReportForEncryption = (report: Partial<ReportInstance>) => {
   } catch (error) {
     Alert.alert(
       "Le compte-rendu n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

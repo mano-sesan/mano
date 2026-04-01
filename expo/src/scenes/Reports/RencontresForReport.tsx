@@ -7,7 +7,7 @@ import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyRencontres, ListNoMoreRencontres } from "../../components/ListEmptyContainer";
 import { useRencontresForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import RencontreRow from "../Persons/RencontreRow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";

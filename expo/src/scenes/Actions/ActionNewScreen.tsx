@@ -13,12 +13,12 @@ import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import Label from "../../components/Label";
 import Tags from "../../components/Tags";
 import { MyText } from "../../components/MyText";
-import { DONE, prepareActionForEncryption, TODO } from "../../recoil/actions";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import API from "../../services/api";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
-import { groupsState } from "../../recoil/groups";
+import { groupsState } from "../../atoms/groups";
 import { useNavigation } from "@react-navigation/native";
 import { refreshTriggerState } from "../../components/Loader";
 import RecurrenceComponent from "../../components/Recurrence";
@@ -218,7 +218,7 @@ const NewActionForm = ({
             dueAt: !withTime
               ? occurrence
               : dayjsInstance(occurrence).set("hour", dayjsInstance(dueAt).hour()).set("minute", dayjsInstance(dueAt).minute()).toDate(),
-          })
+          }),
         );
       } else {
         return prepareActionForEncryption({
@@ -274,7 +274,6 @@ const NewActionForm = ({
     if (status === DONE && !completedAt) return false;
     return true;
   }, [name, categories, dueAt, actionPersons, status, completedAt]);
-
 
   const onGoBackRequested = () => {
     if (!name.length && !dueAt) {

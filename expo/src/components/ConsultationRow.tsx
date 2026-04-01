@@ -6,14 +6,14 @@ import RowContainer from "./RowContainer";
 import { MyText } from "./MyText";
 import colors from "../utils/colors";
 
-import { DONE, TODO } from "../recoil/actions";
+import { DONE, TODO } from "../atoms/actions";
 import UserName from "./UserName";
 import DateAndTimeCalendarDisplay from "./DateAndTimeCalendarDisplay";
 import { useAtomValue } from "jotai";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 import { StyleSheet } from "react-native";
-import { consultationIsVisibleByMe, disableConsultationRow } from "../recoil/consultations";
-import { itemsGroupedByPersonSelector } from "../recoil/selectors";
+import { consultationIsVisibleByMe, disableConsultationRow } from "../atoms/consultations";
+import { itemsGroupedByPersonSelector } from "../atoms/selectors";
 import { ConsultationInstance } from "@/types/consultation";
 import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";

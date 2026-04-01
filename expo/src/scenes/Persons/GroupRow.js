@@ -4,7 +4,7 @@ import { View, TouchableOpacity, TouchableWithoutFeedback } from "react-native";
 import { useAtomValue } from "jotai";
 import { MyText } from "../../components/MyText";
 import UserName from "../../components/UserName";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { dayjsInstance } from "../../services/dateDayjs";
 
 const GroupRow = ({ relation, onMorePress, person }) => {

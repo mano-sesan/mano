@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { atom, useAtomValue } from "jotai";
 import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
-import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../recoil/actions";
+import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSelector } from "../atoms/actions";
 import Label from "./Label";
 import { MyText } from "./MyText";
 import Row from "./Row";
@@ -55,7 +55,7 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
 
   const mostUsedCategoriesToShow = useMemo(
     () => categoriesSortedByMostUsed.filter((category) => !values.some((_category) => _category === category)).slice(0, 5),
-    [categoriesSortedByMostUsed, values]
+    [categoriesSortedByMostUsed, values],
   );
 
   const groups = useMemo(() => {

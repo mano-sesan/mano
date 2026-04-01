@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
 import { useAtomValue, useSetAtom } from "jotai";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import API from "../../services/api";
-import { rencontresState } from "../../recoil/rencontres";
+import { rencontresState } from "../../atoms/rencontres";
 import BubbleRow from "../../components/BubbleRow";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { PersonPopulated } from "@/types/person";
 import { RencontreInstance } from "@/types/rencontre";
 
@@ -35,7 +35,7 @@ const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps)
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(person!);
         if (options[buttonIndex!] === "Supprimer") onRencontreDeleteRequest();
-      }
+      },
     );
   };
 

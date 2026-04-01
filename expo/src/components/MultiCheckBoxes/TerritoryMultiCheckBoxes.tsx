@@ -1,7 +1,7 @@
 import React from "react";
 import MultiCheckBoxes from "./MultiCheckBoxes";
 import { useAtomValue } from "jotai";
-import { flattenedTerritoriesTypesSelector } from "../../recoil/territory";
+import { flattenedTerritoriesTypesSelector } from "../../atoms/territory";
 import { TerritoryType } from "@/types/territory";
 
 const TerritoryMultiCheckBoxes = ({

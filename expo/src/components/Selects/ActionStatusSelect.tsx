@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components/native";
-import { CANCEL, CHOOSE, DONE, mappedIdsToLabels, TODO } from "../../recoil/actions";
+import { CANCEL, CHOOSE, DONE, mappedIdsToLabels, TODO } from "../../atoms/actions";
 import colors from "../../utils/colors";
 import Button from "../Button";
 import SelectLabelled from "./SelectLabelled";

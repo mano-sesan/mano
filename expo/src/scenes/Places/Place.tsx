@@ -8,11 +8,11 @@ import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
-import { placesState, preparePlaceForEncryption } from "../../recoil/places";
-import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { placesState, preparePlaceForEncryption } from "../../atoms/places";
+import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
 import API from "../../services/api";
 import { sortByName } from "../../utils/sortByName";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 
@@ -67,7 +67,7 @@ const Place = ({ navigation, route }: PlaceProps) => {
             if (p._id === placeDB._id) return response.decryptedData;
             return p;
           })
-          .sort(sortByName)
+          .sort(sortByName),
       );
       setUpdating(false);
       Alert.alert("Lieu mis à jour !", undefined, [{ text: "OK", onPress: onBack }]);

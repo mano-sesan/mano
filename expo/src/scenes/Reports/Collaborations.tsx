@@ -10,9 +10,9 @@ import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyCollaboration } from "../../components/ListEmptyContainer";
 import Row from "../../components/Row";
 import Spacer from "../../components/Spacer";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import { getPeriodTitle } from "./utils";
-import { prepareReportForEncryption } from "../../recoil/reports";
+import { prepareReportForEncryption } from "../../atoms/reports";
 import { currentTeamReportsSelector } from "./selectors";
 import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -141,7 +141,7 @@ const Collaborations = ({ route, navigation }: Props) => {
         <Spacer height={15} />
       </>
     ),
-    [isReadyToSave, onCreateCollaboration, posting]
+    [isReadyToSave, onCreateCollaboration, posting],
   );
 
   return (

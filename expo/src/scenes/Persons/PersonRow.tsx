@@ -10,7 +10,7 @@ import RowContainer from "../../components/RowContainer";
 import TeamsTags from "../../components/TeamsTags";
 import colors from "../../utils/colors";
 import { useAtomValue } from "jotai";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, userState } from "../../atoms/auth";
 import { PersonInstance } from "@/types/person";
 import { RootStackParamList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -69,7 +69,7 @@ export default function PersonRow({ onPress, person, isPersonsSearchRow = false,
         if (options[buttonIndex!] === "Ajouter un lieu fréquenté") {
           navigation.push("PLACE_NEW", { person });
         }
-      }
+      },
     );
   };
 

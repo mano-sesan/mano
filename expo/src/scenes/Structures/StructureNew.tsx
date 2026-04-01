@@ -7,7 +7,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import API from "../../services/api";
-import { structuresState } from "../../recoil/structures";
+import { structuresState } from "../../atoms/structures";
 import { sortByName } from "../../utils/sortByName";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";

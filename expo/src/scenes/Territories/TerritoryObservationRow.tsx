@@ -7,8 +7,8 @@ import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
 import UserName from "../../components/UserName";
 import API from "../../services/api";
-import { customFieldsObsSelector, territoryObservationsState } from "../../recoil/territoryObservations";
-import { currentTeamState } from "../../recoil/auth";
+import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
+import { currentTeamState } from "../../atoms/auth";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { CustomField } from "@/types/field";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
@@ -77,7 +77,7 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(observation);
         if (options[buttonIndex!] === "Supprimer") onObservationDeleteRequest();
-      }
+      },
     );
   };
 

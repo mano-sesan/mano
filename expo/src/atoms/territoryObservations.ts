@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
@@ -100,7 +100,7 @@ export const prepareObsForEncryption = (customFields: CustomField[]) => (obs: Pa
   } catch (error) {
     Alert.alert(
       "L'observation n'a pas été sauvegardée car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

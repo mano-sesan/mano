@@ -3,7 +3,7 @@ import styled from "styled-components/native";
 import { useAtomValue } from "jotai";
 import { MyText } from "./MyText";
 import colors from "../utils/colors";
-import { teamsState } from "../recoil/auth";
+import { teamsState } from "../atoms/auth";
 import { TeamInstance } from "@/types/team";
 
 const teamsColors = ["#255c99", "#74776bff", "#00c6a5ff", "#ff4b64ff", "#ef798aff"];

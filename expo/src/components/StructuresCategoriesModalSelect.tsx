@@ -10,7 +10,7 @@ import ScreenTitle from "./ScreenTitle";
 import ScrollContainer from "./ScrollContainer";
 import { FlashList } from "@shopify/flash-list";
 import Search from "./Search";
-import { structuresCategoriesSelector } from "../recoil/structures";
+import { structuresCategoriesSelector } from "../atoms/structures";
 import styled from "styled-components/native";
 import colors from "../utils/colors";
 

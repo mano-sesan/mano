@@ -5,7 +5,7 @@ import ButtonReset from "./ButtonReset";
 import { Search as SearchIcon } from "../icons";
 import { MyTextInput } from "./MyText";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../recoil/auth";
+import { organisationState } from "../atoms/auth";
 
 type SearchPropsBase = {
   placeholder?: string;

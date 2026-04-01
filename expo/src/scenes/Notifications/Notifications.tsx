@@ -1,9 +1,9 @@
 import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import * as Sentry from "@sentry/react-native";
 import React, { useCallback, useMemo } from "react";
-import { actionsState, TODO } from "../../recoil/actions";
-import { currentTeamState } from "../../recoil/auth";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { actionsState, TODO } from "../../atoms/actions";
+import { currentTeamState } from "../../atoms/auth";
+import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { refreshTriggerState } from "../../components/Loader";
@@ -13,7 +13,7 @@ import CommentRow from "../Comments/CommentRow";
 import styled from "styled-components/native";
 import { MyText } from "../../components/MyText";
 import { ListEmptyUrgent, ListEmptyUrgentAction, ListEmptyUrgentComment } from "../../components/ListEmptyContainer";
-import { actionsObjectSelector, itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { actionsObjectSelector, itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import API from "../../services/api";
 import { Alert, DefaultSectionT, SectionListData } from "react-native";
 import { RootStackParamList, TabsParamsList } from "@/types/navigation";
@@ -97,7 +97,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         data: commentsFiltered,
       },
     ],
-    [actionsFiltered, commentsFiltered]
+    [actionsFiltered, commentsFiltered],
   );
 
   const onPseudoPress = useCallback(
@@ -105,7 +105,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
     },
-    [navigation]
+    [navigation],
   );
 
   const onActionPress = useCallback(
@@ -115,7 +115,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         action,
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderItem = ({ item }: { item: UrgentAction | UrgentComment }) => {
@@ -164,7 +164,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
                       comments.map((c) => {
                         if (c._id === comment._id) return response.decryptedData;
                         return c;
-                      })
+                      }),
                     );
                     return true;
                   }
