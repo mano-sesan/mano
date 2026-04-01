@@ -30,7 +30,7 @@ import { capture } from "../../services/sentry";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../recoil/groups";
 import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
-
+import { refreshTriggerState } from "../../components/Loader";
 import { createMaterialTopTabNavigator, MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import DocumentsManager from "../../components/DocumentsManager";
 import { isEmptyValue } from "../../utils";
@@ -148,6 +148,7 @@ type ActionMainProps = ActionProps & {
 };
 
 const Action = ({ navigation, route, actionDB, action, actions, setAction, persons, onSearchPerson }: ActionMainProps) => {
+  const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const setActions = useSetAtom(actionsState);
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
@@ -226,6 +227,10 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
+  const onRefresh = async () => {
+    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+  };
+
   const updateAction = async (action: ActionInstance) => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
@@ -241,6 +246,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     console.log("action._id", action._id);
     if (!oldAction) {
       Alert.alert("Action non trouvée");
+      onRefresh();
       setUpdating(false);
       return false;
     }
