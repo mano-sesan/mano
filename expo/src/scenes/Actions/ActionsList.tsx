@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import * as Sentry from "@sentry/react-native";
 import { useAtom, useAtomValue } from "jotai";
 import { useActionSheet } from "@expo/react-native-action-sheet";
@@ -9,7 +9,6 @@ import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { actionsFiltersState, TODO } from "../../atoms/actions";
 import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../atoms/selectors";
-import { useIsFocused } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
 import Button from "../../components/Button";
 import ConsultationRow from "../../components/ConsultationRow";
@@ -23,6 +22,7 @@ import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
 
@@ -54,11 +54,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
 
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  useRefreshOnFocus();
 
   const onPressFloatingButton = async () => {
     const isConsultationButtonEnabled = user.healthcareProfessional;

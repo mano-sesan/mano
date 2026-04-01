@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import { Animated } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import SceneContainer from "../../components/SceneContainer";
@@ -11,12 +11,12 @@ import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
 import { useAtom, useAtomValue } from "jotai";
 import { loadingState, refreshTriggerState } from "../../components/Loader";
-import { useIsFocused } from "@react-navigation/native";
 import { PersonInstance } from "@/types/person";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FlashListRef } from "@shopify/flash-list";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
   setSearch: (search: string) => void;
@@ -33,11 +33,7 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   };
 
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  useRefreshOnFocus();
 
   const keyExtractor = (person: PersonInstance) => person._id;
   const ListFooterComponent = useCallback(() => {
@@ -63,7 +59,7 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
         },
       },
     ],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   const listref = useRef<FlashListRef<PersonInstance> | null>(null);

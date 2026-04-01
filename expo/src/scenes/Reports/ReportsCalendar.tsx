@@ -13,6 +13,7 @@ import { itemsGroupedDateSelector } from "./selectors";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ReportInstance } from "@/types/report";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 LocaleConfig.locales.fr = {
   monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
@@ -68,6 +69,8 @@ const ReportsCalendar = ({ navigation }: ReportsCalendarProps) => {
   const onRefresh = useCallback(() => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
   }, [setRefreshTrigger]);
+
+  useRefreshOnFocus();
 
   const [submiting, setSubmiting] = useState(false);
 
