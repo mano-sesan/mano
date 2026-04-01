@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import API from "../../services/api";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
