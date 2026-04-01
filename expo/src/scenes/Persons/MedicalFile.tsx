@@ -534,9 +534,10 @@ const MedicalFile = ({
           ifEmpty="Pas encore de document médical"
         >
           <DocumentsManager
+            uploadPath={`/person/${personDB._id}/document`}
             defaultParent="root"
             documents={allMedicalDocuments}
-            personDB={personDB}
+            personId={personDB._id}
             onUpdateDocument={onUpdateDocument}
             onAddDocument={onAddDocument}
             onDelete={onDelete}

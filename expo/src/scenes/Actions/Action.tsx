@@ -544,8 +544,9 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
               {() => (
                 <ScrollContainer noRadius>
                   <DocumentsManager
+                    uploadPath={`/person/${actionDB.person}/document`}
                     defaultParent="root"
-                    personDB={person}
+                    personId={actionDB.person}
                     onAddDocument={(doc: DocumentOrFolder) => {
                       const newActionDb = { ...actionDB, documents: [...(actionDB.documents || []), doc] };
 

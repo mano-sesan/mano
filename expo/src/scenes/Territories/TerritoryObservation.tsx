@@ -480,6 +480,7 @@ const TerritoryObservation = ({
               <View key="documents" className="mb-4">
                 <Label label="Document(s)" />
                 <DocumentsManager
+                  personId={undefined}
                   defaultParent="observations"
                   editable={editable}
                   uploadPath={`/territory/${route.params.territory._id}/document`}
