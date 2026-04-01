@@ -464,8 +464,9 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
               <>
                 <Label label="Document(s)" />
                 <DocumentsManager
+                  uploadPath={`/person/${person?._id}/document`}
                   defaultParent="consultation"
-                  personDB={person}
+                  personId={person?._id}
                   onAddDocument={(doc: DocumentOrFolder) => onChange({ documents: [...(consultation.documents || []), doc] })}
                   onDelete={(doc: Document) =>
                     onChange({

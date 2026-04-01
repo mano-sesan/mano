@@ -97,7 +97,6 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
 
 // La liste des documents en tant que telle.
 const DocumentsManager = ({
-  personDB,
   uploadPath,
   documents,
   onAddDocument,
@@ -105,6 +104,7 @@ const DocumentsManager = ({
   onDelete,
   defaultParent = "root",
   editable = true,
+  personId = "",
 }) => {
   documents = documents || [];
   const [selectedFolder, setSelectedFolder] = useState(defaultParent);
@@ -236,7 +236,7 @@ const DocumentsManager = ({
     }
     const extension = asset.fileName.split(".").reverse()[0];
     const newName = `${name}.${extension}`;
-    const basePath = uploadPath || `/person/${personDB?._id}/document`;
+    const basePath = uploadPath;
     const uploadResponse = await API.upload({
       file: {
         uri: asset.uri,
@@ -293,7 +293,7 @@ const DocumentsManager = ({
     <>
       {documents.length > 0 && <Text className="text-gray-500 mb-4">Cliquez sur un document pour le consulter</Text>}
       {documents.length ? (
-        <View className="mb-4">{renderTree(tree, personDB?._id, editable ? onDelete : undefined, editable ? onUpdateDocument : undefined)}</View>
+        <View className="mb-4">{renderTree(tree, personId, editable ? onDelete : undefined, editable ? onUpdateDocument : undefined)}</View>
       ) : null}
       {editable ? <Button caption="Ajouter..." disabled={!!loading} loading={!!loading} onPress={onAddPress} /> : null}
       <Modal animationType="fade" visible={!!asset}>

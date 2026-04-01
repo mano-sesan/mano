@@ -222,8 +222,9 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
             />
             <Label label="Document(s)" />
             <DocumentsManager
+              uploadPath={`/person/${personDB._id}/document`}
               defaultParent="treatment"
-              personDB={personDB}
+              personId={personDB._id}
               onAddDocument={(doc: Document) => {
                 setDocuments((docs) => [...docs, doc]);
               }}

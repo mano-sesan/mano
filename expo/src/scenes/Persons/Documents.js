@@ -43,7 +43,9 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
       <SubHeader center backgroundColor={backgroundColor || colors.app.color} onBack={navigation.goBack} caption="Documents" />
       <ScrollContainer backgroundColor={backgroundColor || colors.app.color}>
         <DocumentsManager
+          personId={personDB._id}
           defaultParent="root"
+          uploadPath={`/person/${personDB._id}/document`}
           onAddDocument={(document) =>
             onUpdatePerson(true, {
               documents: [...(personDB.documents || []), document],
@@ -59,7 +61,6 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
               documents: personDB.documents.filter((d) => d?.file?.filename !== document.file.filename),
             });
           }}
-          personDB={personDB}
           documents={documents}
           backgroundColor={backgroundColor || colors.app.color}
         />
