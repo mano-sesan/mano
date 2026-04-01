@@ -9,7 +9,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import FoldersNavigator from "./FoldersNavigator";
 import Tabs from "../../components/Tabs";
 import colors from "../../utils/colors";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   allowedPersonFieldsInHistorySelector,
   personsState,
@@ -36,6 +36,7 @@ import { PersonInstance } from "@/types/person";
 import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
 import { PersonStackParams, RootStackParamList } from "@/types/navigation";
 import { hideEditButtonAtom } from "@/utils/hide-edit-button";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
@@ -94,15 +95,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
 
   const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id)!, [persons, route.params?.person?._id]);
 
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) {
-      requestIdleCallback(() => {
-        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  useRefreshOnFocus();
 
   const castToPerson = useCallback(
     (person: Partial<PersonInstance>) => {

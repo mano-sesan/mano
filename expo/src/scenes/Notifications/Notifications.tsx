@@ -21,6 +21,7 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from "@react-naviga
 import { PersonInstance, PersonPopulated } from "@/types/person";
 import { ActionInstance } from "@/types/action";
 import { CommentInstance } from "@/types/comment";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type UrgentAction = ActionInstance & { isAction: true; isComment: false };
 interface UrgentComment extends Omit<CommentInstance, "person" | "action"> {
@@ -81,6 +82,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
   const { actionsFiltered, commentsFiltered } = useAtomValue(urgentItemsSelector);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const setComments = useSetAtom(commentsState);
+  useRefreshOnFocus();
 
   const onRefresh = useCallback(async () => {
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
@@ -97,7 +99,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         data: commentsFiltered,
       },
     ],
-    [actionsFiltered, commentsFiltered]
+    [actionsFiltered, commentsFiltered],
   );
 
   const onPseudoPress = useCallback(
@@ -105,7 +107,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
     },
-    [navigation]
+    [navigation],
   );
 
   const onActionPress = useCallback(
@@ -115,7 +117,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         action,
       });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderItem = ({ item }: { item: UrgentAction | UrgentComment }) => {
@@ -164,7 +166,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
                       comments.map((c) => {
                         if (c._id === comment._id) return response.decryptedData;
                         return c;
-                      })
+                      }),
                     );
                     return true;
                   }
