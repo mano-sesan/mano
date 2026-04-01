@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { deletedUsersState, usersState } from "../recoil/auth";
+import { deletedUsersState, usersState } from "../atoms/auth";
 import { MyText } from "./MyText";
 import { UUIDV4 } from "@/types/uuid";
 import { View } from "react-native";

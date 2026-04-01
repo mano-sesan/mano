@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { flattenedCustomFieldsPersonsSelector } from "../../recoil/persons";
+import { flattenedCustomFieldsPersonsSelector } from "../../atoms/persons";
 import MultiCheckBoxes from "../MultiCheckBoxes/MultiCheckBoxes";
 import { PersonInstance } from "@/types/person";
 

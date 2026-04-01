@@ -29,11 +29,11 @@ import EyeIcon from "../../icons/EyeIcon";
 import Title, { SubTitle } from "../../components/Title";
 import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config";
 import { useSetAtom } from "jotai";
-import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../recoil/auth";
+import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../atoms/auth";
 import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
 import { refreshTriggerState } from "../../components/Loader";
 import { useIsFocused } from "@react-navigation/native";
-import useResetAllCachedDataRecoilStates from "../../recoil/reset";
+import useResetAllCachedDataRecoilStates from "../../atoms/reset";
 import { LoginStackParamsList } from "@/types/navigation";
 
 type Props = NativeStackScreenProps<LoginStackParamsList, "LOGIN">;

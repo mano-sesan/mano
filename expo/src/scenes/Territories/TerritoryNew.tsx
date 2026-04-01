@@ -7,8 +7,8 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import API from "../../services/api";
-import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
-import { userState } from "../../recoil/auth";
+import { prepareTerritoryForEncryption, territoriesState } from "../../atoms/territory";
+import { userState } from "../../atoms/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 

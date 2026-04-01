@@ -5,12 +5,12 @@ import PersonsFilterScreen from "./PersonsFilterScreen";
 import FilterConfigModal from "./FilterConfigModal";
 import { TabsParamsList } from "@/types/navigation";
 import { useAtom, useAtomValue } from "jotai";
-import { teamsState, userState } from "@/recoil/auth";
-import { arrayOfitemsGroupedByPersonSelector } from "@/recoil/selectors";
+import { teamsState, userState } from "@/atoms/auth";
+import { arrayOfitemsGroupedByPersonSelector } from "@/atoms/selectors";
 import { filterBySearch } from "@/utils/search";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import PersonNew from "./PersonNew";
-import { personsFiltersState } from "@/recoil/persons";
+import { personsFiltersState } from "@/atoms/persons";
 import { filterPersons, FilterContext } from "@/utils/personFilters";
 import { Filter } from "@/types/field";
 

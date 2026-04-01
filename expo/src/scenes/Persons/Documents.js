@@ -4,7 +4,7 @@ import colors from "../../utils/colors";
 import DocumentsManager from "../../components/DocumentsManager";
 import ScrollContainer from "../../components/ScrollContainer";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 
 const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) => {

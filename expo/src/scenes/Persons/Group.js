@@ -4,9 +4,9 @@ import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import GroupRow from "./GroupRow";
-import { useGroupSelector } from "../../recoil/groups";
+import { useGroupSelector } from "../../atoms/groups";
 import { capture } from "../../services/sentry";
 
 const Group = ({ personDB, navigation }) => {
@@ -27,7 +27,7 @@ const Group = ({ personDB, navigation }) => {
           style: "cancel",
         },
       ],
-      { cancelable: true }
+      { cancelable: true },
     );
   };
 

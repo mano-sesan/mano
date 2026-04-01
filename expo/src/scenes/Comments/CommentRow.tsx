@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import BubbleRow from "../../components/BubbleRow";
 import CommentModal from "./CommentModal";
 import { CommentInstance } from "@/types/comment";
@@ -35,7 +35,7 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") setUpdateModalVisible(true);
         if (options[buttonIndex!] === "Supprimer") onCommentDeleteRequest();
-      }
+      },
     );
   };
 

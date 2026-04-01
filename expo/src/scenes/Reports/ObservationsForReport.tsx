@@ -7,9 +7,9 @@ import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyObservations, ListNoMoreObservations } from "../../components/ListEmptyContainer";
 import { useObservationsForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import TerritoryObservationRow from "../Territories/TerritoryObservationRow";
-import { territoriesState } from "../../recoil/territory";
+import { territoriesState } from "../../atoms/territory";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
@@ -31,7 +31,7 @@ const ObservationsForReport = ({ navigation, route }: Props) => {
   const onUpdatObs = useCallback(
     (obs: TerritoryObservationInstance) =>
       navigation.push("TERRITORY_OBSERVATION_STACK", { obs, territory: territories.find((t) => t._id === obs.territory)!, editable: true }),
-    [navigation, territories]
+    [navigation, territories],
   );
 
   const onTerritoryPress = useCallback((territory: TerritoryInstance) => navigation.push("TERRITORY", { territory }), [navigation]);

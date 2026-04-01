@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { fieldsPersonsCustomizableOptionsSelector } from "../../recoil/persons";
+import { fieldsPersonsCustomizableOptionsSelector } from "../../atoms/persons";
 import MultiCheckBoxes from "../MultiCheckBoxes/MultiCheckBoxes";
 
 const OutOfActiveListReasonMultiCheckBox = ({ values, onChange, editable }) => {

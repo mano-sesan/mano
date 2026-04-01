@@ -8,8 +8,8 @@ import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust"
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
-import { currentTeamState, userState } from "../../recoil/auth";
-import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
+import { currentTeamState, userState } from "../../atoms/auth";
+import { rencontresState, prepareRencontreForEncryption } from "../../atoms/rencontres";
 import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
@@ -24,7 +24,8 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [rencontre, setRencontre] = useState<RencontreInstance>(
-    () => route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance)
+    () =>
+      route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance),
   );
   const [submitting, setSubmitting] = useState(false);
   const [rencontres, setRencontres] = useAtom(rencontresState);

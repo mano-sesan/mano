@@ -1,4 +1,4 @@
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { GroupInstance } from "@/types/group";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";

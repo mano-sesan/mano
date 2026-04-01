@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as NavigationBar from 'expo-navigation-bar';
+import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
@@ -56,9 +56,9 @@ import Collaborations from "./scenes/Reports/Collaborations";
 import Treatment from "./scenes/Persons/Treatment";
 import Consultation from "./scenes/Persons/Consultation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { currentTeamState, organisationState, teamsState, userState } from "./recoil/auth";
+import { currentTeamState, organisationState, teamsState, userState } from "./atoms/auth";
 import { appCurrentCacheKey, clearCache } from "./services/dataManagement";
-import useResetAllCachedDataRecoilStates from "./recoil/reset";
+import useResetAllCachedDataRecoilStates from "./atoms/reset";
 import CGUsAcceptance from "./scenes/Login/CGUsAcceptance";
 import Consultations from "./scenes/Reports/Consultations";
 import Passage from "./scenes/Persons/Passage";
@@ -69,6 +69,7 @@ import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
+import { store } from "./store";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -251,7 +252,6 @@ const App = () => {
           API.navigation = navigationRef;
           SplashScreen.hide();
           NavigationBar.setButtonStyleAsync("dark");
-
         }}
         theme={{
           ...DefaultTheme,
@@ -333,7 +333,7 @@ const App = () => {
 
 export default function Navigators() {
   return (
-    <Provider>
+    <Provider store={store}>
       <App />
     </Provider>
   );

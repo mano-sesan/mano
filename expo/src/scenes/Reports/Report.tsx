@@ -11,9 +11,9 @@ import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import Spacer from "../../components/Spacer";
 import Tags from "../../components/Tags";
-import { CANCEL, DONE, TODO } from "../../recoil/actions";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { flattenedServicesSelector, prepareReportForEncryption } from "../../recoil/reports";
+import { CANCEL, DONE, TODO } from "../../atoms/actions";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
+import { flattenedServicesSelector, prepareReportForEncryption } from "../../atoms/reports";
 import API from "../../services/api";
 import colors from "../../utils/colors";
 import {
@@ -36,7 +36,7 @@ const castToReport = (report?: ReportInstance) =>
   ({
     description: report?.description?.trim() || "",
     collaborations: report?.collaborations || [],
-  } as ReportInstance);
+  }) as ReportInstance;
 
 type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
 const ReportLoading = ({ navigation, route }: Props) => {
@@ -47,7 +47,7 @@ const ReportLoading = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day]
+    [currentTeam?.name, currentTeam?.nightSession, day],
   );
 
   useEffect(() => {
@@ -188,7 +188,7 @@ const Report = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day]
+    [currentTeam?.name, currentTeam?.nightSession, day],
   );
 
   const canViewComments = ["admin", "normal"].includes(user.role);

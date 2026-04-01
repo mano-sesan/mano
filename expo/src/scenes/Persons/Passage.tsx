@@ -8,8 +8,8 @@ import InputMultilineAutoAdjust from "../../components/InputMultilineAutoAdjust"
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
-import { currentTeamState, userState } from "../../recoil/auth";
-import { passagesState, preparePassageForEncryption } from "../../recoil/passages";
+import { currentTeamState, userState } from "../../atoms/auth";
+import { passagesState, preparePassageForEncryption } from "../../atoms/passages";
 import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
@@ -25,7 +25,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
   const user = useAtomValue(userState)!;
   const [passage, setPassage] = useState(
     () =>
-      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance)
+      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance),
   );
   const [submitting, setSubmitting] = useState(false);
   const [passages, setPassages] = useAtom(passagesState);

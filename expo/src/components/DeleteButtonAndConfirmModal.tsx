@@ -11,7 +11,7 @@ import ScrollContainer from "./ScrollContainer";
 import { SubTitle } from "./Title";
 import { MyText } from "./MyText";
 import { useAtomValue } from "jotai";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 
 type DeleteButtonAndConfirmModalProps = {
   children: React.ReactNode;

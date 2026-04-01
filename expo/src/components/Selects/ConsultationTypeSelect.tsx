@@ -1,6 +1,6 @@
 import React from "react";
 import { useAtomValue } from "jotai";
-import { organisationState } from "../../recoil/auth";
+import { organisationState } from "../../atoms/auth";
 import SelectLabelled from "./SelectLabelled";
 
 const ConsultationTypeSelect = ({ value, onSelect, editable }: { value: string; onSelect: (value: string) => void; editable: boolean }) => {

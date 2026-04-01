@@ -7,7 +7,7 @@ import ScrollContainer from "@/components/ScrollContainer";
 import Search from "@/components/Search";
 import Tags from "@/components/Tags";
 import FilterGroup from "@/components/FilterGroup";
-import { personsFiltersState, availablePersonFiltersSelector, customFieldsPersonsSelector } from "@/recoil/persons";
+import { personsFiltersState, availablePersonFiltersSelector, customFieldsPersonsSelector } from "@/atoms/persons";
 import { FilterableField } from "@/types/field";
 import { formatFilterLabel } from "@/utils/personFilters";
 import { MyText } from "@/components/MyText";

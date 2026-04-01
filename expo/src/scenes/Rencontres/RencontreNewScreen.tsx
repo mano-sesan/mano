@@ -9,8 +9,8 @@ import DateAndTimeInput from "../../components/DateAndTimeInput";
 import Label from "../../components/Label";
 import Tags from "../../components/Tags";
 import { MyText } from "../../components/MyText";
-import { currentTeamState, userState } from "../../recoil/auth";
-import { rencontresState, prepareRencontreForEncryption } from "../../recoil/rencontres";
+import { currentTeamState, userState } from "../../atoms/auth";
+import { rencontresState, prepareRencontreForEncryption } from "../../atoms/rencontres";
 import API from "../../services/api";
 import { useNavigation } from "@react-navigation/native";
 import { refreshTriggerState } from "../../components/Loader";
@@ -136,7 +136,7 @@ const NewRencontreForm = ({
             text: "Annuler",
             style: "cancel",
           },
-        ]
+        ],
       );
     } else {
       onCreateRencontre();

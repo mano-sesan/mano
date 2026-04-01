@@ -15,19 +15,19 @@ import {
   personsState,
   usePreparePersonForEncryption,
   flattenedCustomFieldsPersonsSelector,
-} from "../../recoil/persons";
-import { actionsState, prepareActionForEncryption } from "../../recoil/actions";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
-import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { userState } from "../../recoil/auth";
+} from "../../atoms/persons";
+import { actionsState, prepareActionForEncryption } from "../../atoms/actions";
+import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
+import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { userState } from "../../atoms/auth";
 import API from "../../services/api";
-import { rencontresState } from "../../recoil/rencontres";
-import { passagesState } from "../../recoil/passages";
-import { consultationsState } from "../../recoil/consultations";
-import { treatmentsState } from "../../recoil/treatments";
-import { medicalFileState } from "../../recoil/medicalFiles";
+import { rencontresState } from "../../atoms/rencontres";
+import { passagesState } from "../../atoms/passages";
+import { consultationsState } from "../../atoms/consultations";
+import { treatmentsState } from "../../atoms/treatments";
+import { medicalFileState } from "../../atoms/medicalFiles";
 import { refreshTriggerState } from "../../components/Loader";
-import { groupsState, prepareGroupForEncryption } from "../../recoil/groups";
+import { groupsState, prepareGroupForEncryption } from "../../atoms/groups";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";

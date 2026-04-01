@@ -11,10 +11,10 @@ import TerritoryMultiCheckBoxes from "../../components/MultiCheckBoxes/Territory
 import SubList from "../../components/SubList";
 import TerritoryObservationRow from "./TerritoryObservationRow";
 import { useAtom, useAtomValue } from "jotai";
-import { prepareTerritoryForEncryption, territoriesState } from "../../recoil/territory";
-import { territoryObservationsState } from "../../recoil/territoryObservations";
+import { prepareTerritoryForEncryption, territoriesState } from "../../atoms/territory";
+import { territoryObservationsState } from "../../atoms/territoryObservations";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import { TerritoryInstance } from "@/types/territory";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";

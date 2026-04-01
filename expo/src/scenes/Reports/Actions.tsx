@@ -10,8 +10,8 @@ import { FlashListStyled } from "../../components/Lists";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
 import { useActionsForReport } from "./selectors";
 import ScreenTitle from "../../components/ScreenTitle";
-import { CANCEL, DONE } from "../../recoil/actions";
-import { currentTeamState } from "../../recoil/auth";
+import { CANCEL, DONE } from "../../atoms/actions";
+import { currentTeamState } from "../../atoms/auth";
 import { getPeriodTitle } from "./utils";
 import { ActionInstance } from "@/types/action";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -45,7 +45,7 @@ const Actions = ({ route, navigation }: Props) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.push("PERSON_STACK", { person });
     },
-    [navigation]
+    [navigation],
   );
 
   const onActionPress = useCallback(
@@ -53,7 +53,7 @@ const Actions = ({ route, navigation }: Props) => {
       Sentry.setContext("action", { _id: action._id });
       navigation.push("ACTION_STACK", { action });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderItem = ({ item: action }: { item: ActionInstance }) => {
@@ -65,7 +65,7 @@ const Actions = ({ route, navigation }: Props) => {
       <ScreenTitle
         title={`Actions ${status === DONE ? "faites" : status === CANCEL ? "annulées" : "créées"}\n${getPeriodTitle(
           date,
-          currentTeam?.nightSession
+          currentTeam?.nightSession,
         )}`}
         onBack={navigation.goBack}
       />
@@ -83,7 +83,6 @@ const Actions = ({ route, navigation }: Props) => {
     </SceneContainer>
   );
 };
-
 
 const ListEmptyComponent = () => {
   const loading = useAtomValue(loadingState);

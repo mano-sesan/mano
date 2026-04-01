@@ -10,9 +10,9 @@ import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyPlaceWithName } from "../../components/ListEmptyContainer";
 import Row from "../../components/Row";
 import Spacer from "../../components/Spacer";
-import { placesState, preparePlaceForEncryption } from "../../recoil/places";
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../recoil/relPersonPlace";
-import { userState } from "../../recoil/auth";
+import { placesState, preparePlaceForEncryption } from "../../atoms/places";
+import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { userState } from "../../atoms/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { sortByName } from "../../utils/sortByName";
 import { RootStackParamList } from "@/types/navigation";
@@ -63,7 +63,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         navigation.goBack();
       }
     },
-    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
+    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation],
   );
 
   const onCreatePlace = useCallback(async () => {
@@ -90,7 +90,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         <Spacer height={15} />
       </>
     ),
-    [isReadyToSave, onCreatePlace, posting]
+    [isReadyToSave, onCreatePlace, posting],
   );
 
   return (

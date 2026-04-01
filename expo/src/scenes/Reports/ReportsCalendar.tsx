@@ -6,7 +6,7 @@ import { RefreshControl } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
-import { currentTeamState } from "../../recoil/auth";
+import { currentTeamState } from "../../atoms/auth";
 import colors from "../../utils/colors";
 import { refreshTriggerState } from "../../components/Loader";
 import { itemsGroupedDateSelector } from "./selectors";

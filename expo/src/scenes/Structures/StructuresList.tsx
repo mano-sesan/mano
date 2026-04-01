@@ -10,7 +10,7 @@ import Spinner from "../../components/Spinner";
 import { ListEmptyStructures } from "../../components/ListEmptyContainer";
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
-import { structuresState } from "../../recoil/structures";
+import { structuresState } from "../../atoms/structures";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { StructureInstance } from "@/types/structure";

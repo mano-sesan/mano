@@ -9,7 +9,7 @@ import ButtonsContainer from "../../components/ButtonsContainer";
 import Button from "../../components/Button";
 import Title, { SubTitle } from "../../components/Title";
 import { useAtomValue, useSetAtom } from "jotai";
-import { currentTeamState, userState } from "../../recoil/auth";
+import { currentTeamState, userState } from "../../atoms/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList } from "@/types/navigation";

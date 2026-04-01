@@ -8,7 +8,7 @@ import { MyText } from "../../components/MyText";
 import Title from "../../components/Title";
 import ScreenTitle from "../../components/ScreenTitle";
 import { useAtomValue, useSetAtom } from "jotai";
-import { currentTeamState, userState } from "../../recoil/auth";
+import { currentTeamState, userState } from "../../atoms/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList, RootStackParamList } from "@/types/navigation";

@@ -4,7 +4,7 @@ import { Alert } from "react-native";
 import { useSetAtom } from "jotai";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
-import { relsPersonPlaceState } from "../../recoil/relPersonPlace";
+import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
 import { PlaceInstance, RelPersonPlaceInstance } from "@/types/place";
 import { PersonPopulated } from "@/types/person";
 import { RootStackParamList } from "@/types/navigation";
@@ -37,7 +37,7 @@ const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps
           });
         }
         if (options[buttonIndex!] === "Retirer") onRelPersonPlaceRequest();
-      }
+      },
     );
   };
 

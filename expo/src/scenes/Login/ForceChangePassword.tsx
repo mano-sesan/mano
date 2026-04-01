@@ -5,7 +5,7 @@ import SceneContainer from "../../components/SceneContainer";
 import colors from "../../utils/colors";
 import { ChangePasswordBody } from "./ChangePassword";
 import { MyText } from "../../components/MyText";
-import { currentTeamState, userState } from "../../recoil/auth";
+import { currentTeamState, userState } from "../../atoms/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList } from "@/types/navigation";

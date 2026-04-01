@@ -7,16 +7,16 @@ import Spinner from "../../components/Spinner";
 import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
-import { actionsFiltersState, TODO } from "../../recoil/actions";
-import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../recoil/selectors";
+import { actionsFiltersState, TODO } from "../../atoms/actions";
+import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../atoms/selectors";
 import { useIsFocused } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
 import Button from "../../components/Button";
 import ConsultationRow from "../../components/ConsultationRow";
-import { organisationState, userState } from "../../recoil/auth";
+import { organisationState, userState } from "../../atoms/auth";
 import { Dimensions, View } from "react-native";
 import { dayjsInstance } from "../../services/dateDayjs";
-import { flattenedServicesSelector } from "../../recoil/reports";
+import { flattenedServicesSelector } from "../../atoms/reports";
 import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList } from "@/types/navigation";
 import { MaterialTopTabScreenProps } from "@react-navigation/material-top-tabs";
 import { ActionInstance } from "@/types/action";
@@ -39,8 +39,6 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
   const filters = useAtomValue(actionsFiltersState);
   const user = useAtomValue(userState)!;
 
-
-  
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
   const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
@@ -94,7 +92,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
         if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
         }
-      }
+      },
     );
   };
 
@@ -103,14 +101,12 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
     return ListNoMoreActions;
   }, [hasMore]);
 
-  
-
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON_STACK", { person });
     },
-    [navigation]
+    [navigation],
   );
 
   const onActionPress = useCallback(
@@ -118,14 +114,14 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
       Sentry.setContext("action", { _id: action._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION_STACK", { action });
     },
-    [navigation]
+    [navigation],
   );
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK", { personDB, consultationDB });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderItem = ({ item }: { item: ActionInstance | ConsultationInstance }) => {

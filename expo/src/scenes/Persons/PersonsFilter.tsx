@@ -9,7 +9,7 @@ import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
 import OutOfActiveListSelect from "../../components/Selects/OutOfActiveListSelect";
 import { useAtomValue } from "jotai";
-import { teamsState } from "../../recoil/auth";
+import { teamsState } from "../../atoms/auth";
 
 type Filters = {
   filterTeams: string[];

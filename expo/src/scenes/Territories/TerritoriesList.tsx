@@ -10,7 +10,7 @@ import Search from "../../components/Search";
 import { useAtom, useAtomValue } from "jotai";
 import { useIsFocused } from "@react-navigation/native";
 import { refreshTriggerState, loadingState } from "../../components/Loader";
-import { useTerritoriesWithObservationsSearchSelector } from "../../recoil/territory";
+import { useTerritoriesWithObservationsSearchSelector } from "../../atoms/territory";
 import RowContainer from "../../components/RowContainer";
 import { MyText } from "../../components/MyText";
 import styled from "styled-components/native";
@@ -72,7 +72,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         },
       },
     ],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   return (

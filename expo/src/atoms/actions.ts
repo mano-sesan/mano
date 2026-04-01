@@ -1,4 +1,4 @@
-import { atomWithCache } from "@/store";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { atom } from "jotai";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
@@ -66,7 +66,7 @@ export const prepareActionForEncryption = (action: Partial<ActionInstance>) => {
   } catch (error) {
     Alert.alert(
       "L'action n'a pas été sauvegardée car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
+      "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
     );
     capture(error);
     throw error;

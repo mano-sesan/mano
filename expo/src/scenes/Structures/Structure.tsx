@@ -13,7 +13,7 @@ import Spacer from "../../components/Spacer";
 import PinIcon from "../../icons/PinIcon";
 import PhoneIcon from "../../icons/PhoneIcon";
 import { useAtom } from "jotai";
-import { structuresState } from "../../recoil/structures";
+import { structuresState } from "../../atoms/structures";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import StructuresCategoriesModalSelect from "../../components/StructuresCategoriesModalSelect";
 import { StructureInstance } from "@/types/structure";

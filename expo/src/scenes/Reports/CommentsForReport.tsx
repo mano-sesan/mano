@@ -9,11 +9,11 @@ import CommentRow from "../Comments/CommentRow";
 import { ListEmptyComments, ListNoMoreComments } from "../../components/ListEmptyContainer";
 import { useCommentsForReport } from "./selectors";
 import { getPeriodTitle } from "./utils";
-import { currentTeamState, organisationState } from "../../recoil/auth";
-import { commentsState, prepareCommentForEncryption } from "../../recoil/comments";
+import { currentTeamState, organisationState } from "../../atoms/auth";
+import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
 import { Alert } from "react-native";
 import API from "../../services/api";
-import { groupsState } from "../../recoil/groups";
+import { groupsState } from "../../atoms/groups";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { CommentInstance } from "@/types/comment";
@@ -41,7 +41,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.push("PERSON_STACK", { person });
     },
-    [navigation]
+    [navigation],
   );
 
   const onActionPress = useCallback(
@@ -49,7 +49,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
       Sentry.setContext("action", { _id: action._id });
       navigation.push("ACTION_STACK", { action });
     },
-    [navigation]
+    [navigation],
   );
 
   const renderItem = ({ item: comment }: { item: (typeof comments)[number] }) => {
@@ -98,7 +98,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
                     comments.map((c) => {
                       if (c._id === comment._id) return response.decryptedData;
                       return c;
-                    })
+                    }),
                   );
                   return true;
                 }

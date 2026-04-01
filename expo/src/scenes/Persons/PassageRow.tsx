@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
 import { useAtomValue, useSetAtom } from "jotai";
-import { userState } from "../../recoil/auth";
+import { userState } from "../../atoms/auth";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
-import { passagesState } from "../../recoil/passages";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
+import { passagesState } from "../../atoms/passages";
 import { PassageInstance } from "@/types/passage";
 import { PersonPopulated } from "@/types/person";
 
@@ -36,7 +36,7 @@ const PassageRow = ({ onUpdate, passage, itemName, onItemNamePress }: PassageRow
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(person!);
         if (options[buttonIndex!] === "Supprimer") onPassageDeleteRequest();
-      }
+      },
     );
   };
 

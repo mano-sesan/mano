@@ -7,7 +7,7 @@ import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyC
 import Search from "../../components/Search";
 import { FlashListStyled } from "../../components/Lists";
 import { useAtom, useAtomValue } from "jotai";
-import { usePersonsSearchSelector } from "../../recoil/selectors";
+import { usePersonsSearchSelector } from "../../atoms/selectors";
 import { loadingState, refreshTriggerState } from "../../components/Loader";
 import { PersonInstance } from "@/types/person";
 
@@ -53,7 +53,6 @@ const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: Pers
     </SceneContainer>
   );
 };
-
 
 const ListEmptyComponent = () => {
   const loading = useAtomValue(loadingState);

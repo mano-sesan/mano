@@ -1,19 +1,19 @@
 import { atom, useAtomValue } from "jotai";
-import { CANCEL, DONE } from "../../recoil/actions";
-import { currentTeamState, userState } from "../../recoil/auth";
-import { commentsState } from "../../recoil/comments";
-import { reportsState } from "../../recoil/reports";
+import { CANCEL, DONE } from "../../atoms/actions";
+import { currentTeamState, userState } from "../../atoms/auth";
+import { commentsState } from "../../atoms/comments";
+import { reportsState } from "../../atoms/reports";
 import {
   actionsForCurrentTeamSelector,
   actionsObjectSelector,
   consultationsForCurrentTeamSelector,
   itemsGroupedByPersonSelector,
-} from "../../recoil/selectors";
-import { territoryObservationsState } from "../../recoil/territoryObservations";
+} from "../../atoms/selectors";
+import { territoryObservationsState } from "../../atoms/territoryObservations";
 import { getDayWithOffset } from "../../services/dateDayjs";
-import { rencontresState } from "../../recoil/rencontres";
-import { passagesState } from "../../recoil/passages";
-import { consultationIsVisibleByMe } from "../../recoil/consultations";
+import { rencontresState } from "../../atoms/rencontres";
+import { passagesState } from "../../atoms/passages";
+import { consultationIsVisibleByMe } from "../../atoms/consultations";
 import { ConsultationInstance } from "@/types/consultation";
 import { ActionInstance } from "@/types/action";
 import { ReportInstance } from "@/types/report";

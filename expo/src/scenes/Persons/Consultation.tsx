@@ -18,11 +18,11 @@ import {
   consultationsState,
   encryptedFields,
   prepareConsultationForEncryption,
-} from "../../recoil/consultations";
+} from "../../atoms/consultations";
 import ConsultationTypeSelect from "../../components/Selects/ConsultationTypeSelect";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
-import { CANCEL, DONE, TODO } from "../../recoil/actions";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
+import { CANCEL, DONE, TODO } from "../../atoms/actions";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
@@ -40,7 +40,7 @@ import { ConsultationInstance } from "@/types/consultation";
 import PersonsSearch from "./PersonsSearch";
 import PersonNew from "./PersonNew";
 import { PersonInstance } from "@/types/person";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { CommentInstance } from "@/types/comment";
 import { Document, Folder } from "@/types/document";
 
@@ -58,7 +58,7 @@ const castToConsultation = (
   consult: Partial<ConsultationInstance> = {},
   organisation: { consultations: any[]; _id: string },
   personId: string | undefined,
-  userId: string
+  userId: string,
 ): ConsultationWithoutId => {
   const toReturn: ConsultationWithoutId = {};
   const consultationTypeCustomFields = consult?.type
@@ -103,7 +103,7 @@ const ConsultationScreen = (props: Props) => {
   }, [allConsultations, props.route?.params?.consultationDB?._id, user._id, props.route?.params?.personDB?._id]);
 
   const [consultation, setConsultation] = useState(() =>
-    castToConsultation(consultationDB, organisation, props.route?.params?.personDB?._id, user._id)
+    castToConsultation(consultationDB, organisation, props.route?.params?.personDB?._id, user._id),
   );
 
   // Get person from consultation.person ID (can be different from route.params.personDB after person search)
@@ -123,7 +123,7 @@ const ConsultationScreen = (props: Props) => {
     if (props.route?.params?.duplicate) {
       Alert.alert(
         "La consultation est dupliquée, vous pouvez la modifier !",
-        "Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée."
+        "Les commentaires de la consultation aussi sont dupliqués. La consultation originale est annulée.",
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -338,7 +338,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
       return true;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [consultation]
+    [consultation],
   );
 
   const onDeleteRequest = () => {
@@ -475,7 +475,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                   onUpdateDocument={(doc: Document) =>
                     onChange({
                       documents: consultation.documents.map((d: DocumentOrFolder) =>
-                        d.type === "document" && d.file?.filename === doc.file?.filename ? doc : d
+                        d.type === "document" && d.file?.filename === doc.file?.filename ? doc : d,
                       ),
                     })
                   }

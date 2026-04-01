@@ -7,7 +7,7 @@ import Spacer from "../../components/Spacer";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
 import { useAtomValue } from "jotai";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { CommentInstance } from "@/types/comment";
 

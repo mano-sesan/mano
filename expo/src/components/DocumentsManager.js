@@ -6,7 +6,7 @@ import ScrollContainer from "./ScrollContainer";
 import Button from "./Button";
 import API from "../services/api";
 import { capture } from "../services/sentry";
-import { userState } from "../recoil/auth";
+import { userState } from "../atoms/auth";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 import InputLabelled from "./InputLabelled";

@@ -6,10 +6,10 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import OutOfActiveListReasonMultiCheckBox from "../../components/Selects/OutOfActiveListReasonMultiCheckBox";
-import { userState } from "../../recoil/auth";
-import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from "../../recoil/persons";
+import { userState } from "../../atoms/auth";
+import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from "../../atoms/persons";
 import API from "../../services/api";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { PersonInstance } from "@/types/person";
@@ -58,7 +58,7 @@ const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveList
         persons.map((p) => {
           if (p._id === person._id) return newPerson;
           return p;
-        })
+        }),
       );
     }
     return response;

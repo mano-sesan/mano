@@ -8,7 +8,7 @@ import Button from "../../components/Button";
 import ButtonsContainer from "../../components/ButtonsContainer";
 import ButtonDelete from "../../components/ButtonDelete";
 import { useAtomValue } from "jotai";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import { CommentInstance } from "@/types/comment";

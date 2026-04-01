@@ -15,12 +15,12 @@ import {
   groupedCustomFieldsObsSelector,
   prepareObsForEncryption,
   territoryObservationsState,
-} from "../../recoil/territoryObservations";
-import { currentTeamState, organisationState, userState } from "../../recoil/auth";
+} from "../../atoms/territoryObservations";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import API from "../../services/api";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
-import { prepareRencontreForEncryption, rencontresState } from "../../recoil/rencontres";
-import { itemsGroupedByPersonSelector } from "../../recoil/selectors";
+import { prepareRencontreForEncryption, rencontresState } from "../../atoms/rencontres";
+import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { PersonName } from "../Persons/PersonRow";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
