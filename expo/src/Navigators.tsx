@@ -219,7 +219,7 @@ const App = () => {
       resetAllRecoilStates();
       setLastRefresh(0);
     }
-    InteractionManager.runAfterInteractions(async () => {
+    requestIdleCallback(async () => {
       resetUser(null);
       resetOrganisation(null);
       resetTeams([]);
