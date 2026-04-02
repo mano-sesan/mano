@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Op } = require("sequelize");
+const { Op, fn, col } = require("sequelize");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
 const { validatePassword, looseUuidRegex, jwtRegex, sanitizeAll, headerJwtRegex } = require("../utils");
@@ -150,9 +150,20 @@ router.get(
   validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
     const user = await User.findOne({ where: { _id: req.user._id } });
-    const teams = await user.getTeams({ order: [["name", "ASC"]] });
+    const teams = await user.getTeams({
+      order: [
+        [fn("LOWER", col("name")), "ASC"],
+        ["_id", "ASC"],
+      ],
+    });
     const organisation = await user.getOrganisation();
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["name", "ASC"]] });
+    const orgTeams = await Team.findAll({
+      where: { organisation: organisation._id },
+      order: [
+        [fn("LOWER", col("name")), "ASC"],
+        ["_id", "ASC"],
+      ],
+    });
     return res.status(200).send({
       ok: true,
       user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams),
@@ -289,9 +300,17 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["name", "ASC"]] });
-    const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const orgTeams = await Team.findAll({
+      where: { organisation: organisation._id },
+      order: [
+        [fn("LOWER", col("name")), "ASC"],
+        ["_id", "ASC"],
+      ],
+    });
+    const userTeamIds = new Set(
+      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team)
+    );
+    const teams = orgTeams.filter((t) => userTeamIds.has(t._id));
 
     const token = jwt.sign({ _id: user._id }, config.SECRET, { expiresIn: JWT_MAX_AGE });
     res.cookie("jwt", token, cookieOptions());
@@ -358,9 +377,17 @@ router.get(
       });
     }
 
-    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["name", "ASC"]] });
-    const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    const orgTeams = await Team.findAll({
+      where: { organisation: organisation._id },
+      order: [
+        [fn("LOWER", col("name")), "ASC"],
+        ["_id", "ASC"],
+      ],
+    });
+    const userTeamIds = new Set(
+      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team)
+    );
+    const teams = orgTeams.filter((t) => userTeamIds.has(t._id));
 
     createUserLog(req, user);
 
