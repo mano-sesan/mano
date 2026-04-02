@@ -35,6 +35,7 @@ import { ModalContainer, ModalBody, ModalHeader } from "./tailwind/Modal";
 import { errorMessage } from "../utils";
 import { useDataLoader } from "../services/dataLoader";
 import Alert from "./tailwind/Alert";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 
 const totalNumberOfItemsSelector = atom((get) => {
   const persons = get(personsState);
@@ -102,9 +103,28 @@ const totalNumberOfItemsSelector = atom((get) => {
   );
 });
 
+function collectDocuments(entities) {
+  return entities.flatMap((e) => e.documents?.filter((doc) => doc?.type !== "folder") || []);
+}
+
+const documentStatsSelector = atom((get) => {
+  const allDocs = [
+    ...collectDocuments(get(personsState)),
+    ...collectDocuments(get(treatmentsState)),
+    ...collectDocuments(get(actionsState)),
+    ...collectDocuments(get(medicalFileState)),
+    ...collectDocuments(get(consultationsState)),
+    ...collectDocuments(get(territoryObservationsState)),
+    ...collectDocuments(get(territoriesState)),
+  ];
+  const totalSize = allDocs.reduce((acc, doc) => acc + (doc.file?.size || 0), 0);
+  return { count: allDocs.length, totalSize };
+});
+
 const EncryptionKey = ({ isMain }) => {
   const [organisation, setOrganisation] = useAtom(organisationState);
   const totalNumberOfItems = useAtomValue(totalNumberOfItemsSelector);
+  const documentStats = useAtomValue(documentStatsSelector);
   const teams = useAtomValue(teamsState);
   const user = useAtomValue(userState);
   const setEncryptionKeyLength = useSetAtom(encryptionKeyLengthState);
@@ -117,6 +137,8 @@ const EncryptionKey = ({ isMain }) => {
   const history = useHistory();
 
   const [open, setOpen] = useState(onboardingForEncryption);
+  const [showPreCheck, setShowPreCheck] = useState(false);
+  const [speedTest, setSpeedTest] = useState({ status: "idle", downloadSpeed: 0, uploadSpeed: 0 }); // idle | running | done | error
   const [encryptionKey, setEncryptionKey] = useState("");
   const [encryptingStatus, setEncryptingStatus] = useState("");
   const [encryptingPhase, setEncryptingPhase] = useState("");
@@ -420,6 +442,158 @@ const EncryptionKey = ({ isMain }) => {
     }
   };
 
+  const runSpeedTest = async () => {
+    setSpeedTest({ status: "running", downloadSpeed: 0, uploadSpeed: 0 });
+    try {
+      // Download test : 500 Ko de données binaires
+      const dlStart = performance.now();
+      const dlBlob = await API.download({ path: "/speed-test" });
+      const dlDuration = (performance.now() - dlStart) / 1000;
+      const dlBytes = dlBlob.size;
+      if (!dlBytes) throw new Error("Download test failed");
+      const downloadSpeed = dlBytes / dlDuration; // bytes/s
+
+      // Upload test : payload JSON de ~500 Ko
+      const ulPayload = "x".repeat(500_000);
+      const ulStart = performance.now();
+      const ulResponse = await API.post({ path: "/speed-test", body: { payload: ulPayload } });
+      if (!ulResponse.ok) throw new Error("Upload test failed");
+      const ulDuration = (performance.now() - ulStart) / 1000;
+      const uploadSpeed = ulPayload.length / ulDuration; // bytes/s
+
+      setSpeedTest({ status: "done", downloadSpeed, uploadSpeed });
+    } catch {
+      setSpeedTest({ status: "error", downloadSpeed: 0, uploadSpeed: 0 });
+    }
+  };
+
+  const formatSize = (bytes) => {
+    if (bytes < 1024) return `${bytes} o`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} Go`;
+  };
+
+  const formatSpeed = (bytesPerSec) => {
+    const bitsPerSec = bytesPerSec * 8;
+    if (bitsPerSec < 1_000_000) return `${(bitsPerSec / 1_000).toFixed(0)} Kbps`;
+    return `${(bitsPerSec / 1_000_000).toFixed(1)} Mbps`;
+  };
+
+  const formatDuration = (seconds) => {
+    if (seconds < 60) return `moins d'une minute`;
+    if (seconds < 3600) return `environ ${Math.ceil(seconds / 60)} minutes`;
+    return `environ ${(seconds / 3600).toFixed(1)} heures`;
+  };
+
+  const minSpeed = Math.min(speedTest.downloadSpeed, speedTest.uploadSpeed);
+  // Chaque document fait un aller-retour réseau (download + upload), facteur ×2.5 pour être pessimiste (overhead crypto, latence, etc.)
+  const estimatedDuration = minSpeed > 0 ? (documentStats.totalSize * 2.5) / minSpeed : 0;
+  const isTooSlow = minSpeed > 0 && minSpeed < 125_000; // < 1 Mbps
+  const isSlow = minSpeed > 0 && minSpeed < 625_000; // < 5 Mbps
+
+  const renderPreCheck = () => (
+    <>
+      <div className="tw-space-y-4">
+        <Alert color="info">
+          Le changement de clé nécessite de <b>télécharger, déchiffrer, rechiffrer puis renvoyer</b> chaque document au serveur. Cette opération peut
+          prendre du temps selon le volume de données et la qualité de votre connexion.
+        </Alert>
+
+        <div className="tw-flex tw-items-center tw-gap-2 tw-my-4">
+          <InformationCircleIcon className="tw-w-5 tw-h-5" />
+          <div>
+            <b>{totalNumberOfItems.toLocaleString("fr-FR")}</b> éléments à rechiffrer
+            {documentStats.count > 0 && (
+              <>
+                , dont <b>{documentStats.count.toLocaleString("fr-FR")}</b> documents représentant <b>{formatSize(documentStats.totalSize)}</b>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="tw-bg-gray-50 tw-rounded-lg tw-p-4 tw-space-y-2">
+          <p className="tw-font-bold">Test de connexion</p>
+          {speedTest.status === "idle" && (
+            <>
+              <p>Vous devez tester votre connexion avant de continuer.</p>
+              <button type="button" className="button-submit !tw-bg-main !tw-ml-0 !tw-mt-4" onClick={runSpeedTest}>
+                Tester ma connexion
+              </button>
+            </>
+          )}
+          {speedTest.status === "running" && (
+            <p className="tw-flex tw-items-center tw-gap-2">
+              <span className="tw-inline-block tw-h-4 tw-w-4 tw-border-2 tw-border-gray-300 tw-border-t-main tw-rounded-full tw-animate-spin" />
+              Test en cours…
+            </p>
+          )}
+          {speedTest.status === "error" && (
+            <>
+              <Alert color="danger">Le test de connexion a échoué. Vérifiez votre connexion internet.</Alert>
+              <button type="button" className="button-submit !tw-bg-main" onClick={runSpeedTest}>
+                Réessayer
+              </button>
+            </>
+          )}
+          {speedTest.status === "done" && (
+            <>
+              <div className="tw-grid tw-grid-cols-2 tw-gap-2">
+                <div>
+                  Téléchargement : <b>{formatSpeed(speedTest.downloadSpeed)}</b>
+                </div>
+                <div>
+                  Envoi : <b>{formatSpeed(speedTest.uploadSpeed)}</b>
+                </div>
+              </div>
+              {documentStats.count > 0 && estimatedDuration > 0 && (
+                <p>
+                  Durée estimée du rechiffrement : <b>{formatDuration(estimatedDuration)}</b>
+                </p>
+              )}
+              {isTooSlow && (
+                <Alert color="danger">
+                  Votre connexion est trop lente pour effectuer le rechiffrement de manière fiable. Connectez-vous à un réseau Wi-Fi stable avant de
+                  continuer.
+                </Alert>
+              )}
+              {!isTooSlow && isSlow && (
+                <Alert color="warning">
+                  Votre connexion est lente. Le rechiffrement pourrait prendre du temps. Assurez-vous de ne pas fermer votre navigateur pendant toute
+                  la durée de l'opération.
+                </Alert>
+              )}
+              {!isTooSlow && !isSlow && <Alert color="success">Votre connexion est suffisante pour le rechiffrement.</Alert>}
+              <button type="button" className="tw-text-sm tw-underline tw-text-gray-600" onClick={runSpeedTest}>
+                Relancer le test
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+      <div className="tw-border-t tw-border-t-gray-50 tw-mt-6 tw-pt-4 tw-flex tw-justify-center tw-gap-4">
+        <button
+          type="button"
+          className="button-cancel"
+          onClick={() => {
+            setShowPreCheck(false);
+            setOpen(false);
+          }}
+        >
+          Annuler
+        </button>
+        <button
+          type="button"
+          className="button-submit !tw-bg-black disabled:tw-opacity-50"
+          disabled={speedTest.status !== "done" || isTooSlow}
+          onClick={() => setShowPreCheck(false)}
+        >
+          Continuer
+        </button>
+      </div>
+    </>
+  );
+
   const renderEncrypting = () => (
     <>
       <Alert color="danger">
@@ -588,7 +762,14 @@ const EncryptionKey = ({ isMain }) => {
 
   return (
     <>
-      <button type="button" className="button-submit !tw-bg-black" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="button-submit !tw-bg-black"
+        onClick={() => {
+          if (organisation.encryptionEnabled) setShowPreCheck(true);
+          setOpen(true);
+        }}
+      >
         {organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"}
       </button>
       <ModalContainer
@@ -601,12 +782,14 @@ const EncryptionKey = ({ isMain }) => {
           setEncryptingPhase("");
           uploadStartedAtRef.current = null;
           setUploadNow(0);
+          setShowPreCheck(false);
+          setSpeedTest({ status: "idle", downloadSpeed: 0, uploadSpeed: 0 });
         }}
         size="3xl"
         dataTestId="encryption-modal"
       >
         <ModalHeader title={organisation.encryptionEnabled ? "Changer la clé de chiffrement" : "Activer le chiffrement"} onClose={tryCloseModal} />
-        <ModalBody className="tw-p-4">{!encryptionKey ? renderForm() : renderEncrypting()}</ModalBody>
+        <ModalBody className="tw-p-4">{encryptionKey ? renderEncrypting() : showPreCheck ? renderPreCheck() : renderForm()}</ModalBody>
       </ModalContainer>
     </>
   );
