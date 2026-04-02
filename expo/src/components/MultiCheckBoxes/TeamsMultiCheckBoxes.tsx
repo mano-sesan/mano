@@ -15,7 +15,7 @@ const TeamsMultiCheckBoxes = ({ values = [], onChange, editable }: TeamsMultiChe
   return (
     <MultiCheckBoxes
       label="Assigner à une équipe"
-      source={teams.map((t) => t.name)}
+      source={[...teams].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map((t) => t.name)}
       values={values}
       onChange={onChange}
       editable={editable}

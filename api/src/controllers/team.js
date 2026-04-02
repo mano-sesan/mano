@@ -21,7 +21,7 @@ router.post(
           z
             .string()
             .regex(/^#[0-9a-fA-F]{6}$/)
-            .nullable()
+            .nullable(),
         ),
       }).parse(req.body);
     } catch (e) {
@@ -33,10 +33,10 @@ router.post(
     let organisation = req.user.organisation;
     const team = await Team.create(
       { organisation, name: req.body.name, nightSession: req.body.nightSession || false, color: req.body.color || null },
-      { returning: true }
+      { returning: true },
     );
     res.status(200).send({ ok: true, data: team });
-  })
+  }),
 );
 
 router.get(
@@ -44,15 +44,9 @@ router.get(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
-    const teams = await Team.findAll({
-      where: { organisation: req.user.organisation },
-      order: [
-        [sequelize.fn("LOWER", sequelize.col("name")), "ASC"],
-        ["_id", "ASC"],
-      ],
-    });
+    const teams = await Team.findAll({ where: { organisation: req.user.organisation }, order: [["createdAt", "ASC"]] });
     return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
-  })
+  }),
 );
 
 router.get(
@@ -73,7 +67,7 @@ router.get(
     if (!data) return res.status(404).send({ ok: false, error: "Not Found" });
 
     return res.status(200).send({ ok: true, data });
-  })
+  }),
 );
 
 router.put(
@@ -93,7 +87,7 @@ router.put(
             z
               .string()
               .regex(/^#[0-9a-fA-F]{6}$/)
-              .nullable()
+              .nullable(),
           ),
         }),
       }).parse(req);
@@ -116,7 +110,7 @@ router.put(
     const data = await Team.findOne(query);
 
     return res.status(200).send({ ok: true, data });
-  })
+  }),
 );
 
 router.delete(
@@ -148,7 +142,7 @@ router.delete(
     await RelUserTeam.destroy({ where: { team: req.params._id } });
     await Team.destroy({ where: { _id: req.params._id, organisation: req.user.organisation } });
     res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 module.exports = router;

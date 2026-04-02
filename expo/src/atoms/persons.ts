@@ -163,7 +163,10 @@ export const availablePersonFiltersSelector = atom((get) => {
       name: "assignedTeams",
       label: "Équipes en charge",
       type: "multi-choice" as const,
-      options: teams.map((t) => t.name).filter(Boolean) as string[],
+      options: [...teams]
+        .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+        .map((t) => t.name)
+        .filter(Boolean) as string[],
     },
   ];
 

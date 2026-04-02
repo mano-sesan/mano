@@ -19,32 +19,34 @@ export default function TableCustomFieldTeamSelector({ field, onUpdate }) {
         </label>
       </div>
       {field.enabled === false &&
-        teams.map((e) => {
-          return (
-            <div key={e._id}>
-              <label style={{ marginBottom: 0 }}>
-                <input
-                  type="checkbox"
-                  disabled={field.enabled === true}
-                  checked={field.enabled === true || (field.enabledTeams || []).includes(e._id)}
-                  onChange={(event) => {
-                    const checked = event.target.checked;
-                    if (checked) {
-                      onUpdate({
-                        enabledTeams: [...new Set([...(field.enabledTeams || []), e._id])],
-                      });
-                    } else {
-                      onUpdate({
-                        enabledTeams: (field.enabledTeams || []).filter((f) => f !== e._id),
-                      });
-                    }
-                  }}
-                />{" "}
-                {e.name}
-              </label>
-            </div>
-          );
-        })}
+        [...teams]
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          .map((e) => {
+            return (
+              <div key={e._id}>
+                <label style={{ marginBottom: 0 }}>
+                  <input
+                    type="checkbox"
+                    disabled={field.enabled === true}
+                    checked={field.enabled === true || (field.enabledTeams || []).includes(e._id)}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      if (checked) {
+                        onUpdate({
+                          enabledTeams: [...new Set([...(field.enabledTeams || []), e._id])],
+                        });
+                      } else {
+                        onUpdate({
+                          enabledTeams: (field.enabledTeams || []).filter((f) => f !== e._id),
+                        });
+                      }
+                    }}
+                  />{" "}
+                  {e.name}
+                </label>
+              </div>
+            );
+          })}
     </div>
   );
 }

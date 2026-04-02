@@ -795,7 +795,7 @@ const Stats = ({ onSwitchVersion }) => {
       name: "outOfTeamsDuringPeriod",
       label: "Sortie d'équipe",
       type: "multi-choice",
-      options: teams.map((t) => t.name),
+      options: [...teams].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map((t) => t.name),
     });
     // Stats-only filter: Territoires
     filterBase.push({

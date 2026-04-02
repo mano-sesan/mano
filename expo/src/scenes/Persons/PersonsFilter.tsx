@@ -42,18 +42,20 @@ const PersonsFilter = ({ onBack, personFilters }: PersonsFilterProps) => {
           onPress={() => setFilterAlertness(!filterAlertness)}
         />
         <Category>Filtrer par équipe en charge</Category>
-        {teams.map(({ _id, name }, i) => {
-          const isSelected = filterTeams.includes(_id);
-          return (
-            <CheckboxLabelled
-              _id={_id}
-              key={_id}
-              label={name}
-              value={isSelected}
-              onPress={() => setFilterByTeam(isSelected ? filterTeams.filter((teamId) => teamId !== _id) : [...filterTeams, _id])}
-            />
-          );
-        })}
+        {[...teams]
+          .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+          .map(({ _id, name }, i) => {
+            const isSelected = filterTeams.includes(_id);
+            return (
+              <CheckboxLabelled
+                _id={_id}
+                key={_id}
+                label={name}
+                value={isSelected}
+                onPress={() => setFilterByTeam(isSelected ? filterTeams.filter((teamId) => teamId !== _id) : [...filterTeams, _id])}
+              />
+            );
+          })}
         <OutOfActiveListSelectWapper>
           <OutOfActiveListSelect value={filterOutOfActiveList} editable={true} onSelect={(value) => setFilterOutOfActiveList(value)} />
         </OutOfActiveListSelectWapper>

@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Op, fn, col } = require("sequelize");
+const { Op } = require("sequelize");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
 const { validatePassword, looseUuidRegex, jwtRegex, sanitizeAll, headerJwtRegex } = require("../utils");
@@ -150,25 +150,14 @@ router.get(
   validateUser(["admin", "normal", "superadmin", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
     const user = await User.findOne({ where: { _id: req.user._id } });
-    const teams = await user.getTeams({
-      order: [
-        [fn("LOWER", col("name")), "ASC"],
-        ["_id", "ASC"],
-      ],
-    });
+    const teams = await user.getTeams({ order: [["createdAt", "ASC"]] });
     const organisation = await user.getOrganisation();
-    const orgTeams = await Team.findAll({
-      where: { organisation: organisation._id },
-      order: [
-        [fn("LOWER", col("name")), "ASC"],
-        ["_id", "ASC"],
-      ],
-    });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     return res.status(200).send({
       ok: true,
       user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams),
     });
-  })
+  }),
 );
 
 router.post(
@@ -185,7 +174,7 @@ router.post(
     });
     res.clearCookie("jwt", logoutCookieOptions());
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -300,15 +289,9 @@ router.post(
       return res.status(403).send({ ok: false, error: "Accès interdit au personnel non habilité" });
     }
 
-    const orgTeams = await Team.findAll({
-      where: { organisation: organisation._id },
-      order: [
-        [fn("LOWER", col("name")), "ASC"],
-        ["_id", "ASC"],
-      ],
-    });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeamIds = new Set(
-      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team)
+      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team),
     );
     const teams = orgTeams.filter((t) => userTeamIds.has(t._id));
 
@@ -316,7 +299,7 @@ router.post(
     res.cookie("jwt", token, cookieOptions());
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  })
+  }),
 );
 
 router.get(
@@ -377,22 +360,16 @@ router.get(
       });
     }
 
-    const orgTeams = await Team.findAll({
-      where: { organisation: organisation._id },
-      order: [
-        [fn("LOWER", col("name")), "ASC"],
-        ["_id", "ASC"],
-      ],
-    });
+    const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeamIds = new Set(
-      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team)
+      (await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } })).map((rel) => rel.team),
     );
     const teams = orgTeams.filter((t) => userTeamIds.has(t._id));
 
     createUserLog(req, user);
 
     return res.status(200).send({ ok: true, token, user: serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) });
-  })
+  }),
 );
 
 router.post(
@@ -445,7 +422,7 @@ Si vous en êtes à l'origine, vous pouvez cliquer sur ce lien: ${link}`;
     await mailservice.sendEmail(user.email, subject, body);
 
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -505,7 +482,7 @@ router.post(
     if (name) user.set({ name: sanitizeAll(name) });
     await user.save();
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -558,11 +535,11 @@ router.post(
     const data = await User.create(newUser, { returning: true });
 
     const user = await User.findOne({ where: { _id: data._id } });
-    const teams = await Team.findAll({ where: { organisation: organisationId, _id: { [Op.in]: team } }, order: [["name", "ASC"]] });
+    const teams = await Team.findAll({ where: { organisation: organisationId, _id: { [Op.in]: team } }, order: [["createdAt", "ASC"]] });
     const tx = await User.sequelize.transaction();
     await RelUserTeam.bulkCreate(
       teams.map((t) => ({ user: data._id, team: t._id, organisation: organisationId })),
-      { transaction: tx }
+      { transaction: tx },
     );
     await tx.commit();
     await user.save({ transaction: tx });
@@ -572,7 +549,7 @@ router.post(
       data.email,
       "Bienvenue dans Mano",
       null,
-      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible)
+      mailBienvenueHtml(data.name, data.email, organisation.name, token, organisation.responsible),
     );
 
     return res.status(200).send({
@@ -589,7 +566,7 @@ router.post(
         updatedAt: data.updatedAt,
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -649,7 +626,7 @@ router.post(
         gaveFeedbackSep2025: userWithoutPassword.gaveFeedbackSep2025,
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -676,7 +653,7 @@ router.post(
       ...getClientInfo(req),
     });
     return res.status(200).send({ ok: false, error: "" });
-  })
+  }),
 );
 
 router.post(
@@ -696,7 +673,7 @@ router.post(
       ...getClientInfo(req),
     });
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.get(
@@ -742,7 +719,7 @@ router.get(
       ok: true,
       data,
     });
-  })
+  }),
 );
 
 router.get(
@@ -757,7 +734,7 @@ router.get(
       paranoid: false,
     });
     return res.status(200).send({ ok: true, data: users });
-  })
+  }),
 );
 
 router.get(
@@ -779,7 +756,7 @@ router.get(
     query.where.organisation = req.user.organisation;
     const user = await User.findOne(query);
     if (!user) return res.status(404).send({ ok: false, error: "User not found" });
-    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
     return res.status(200).send({
       ok: true,
       data: {
@@ -802,7 +779,7 @@ router.get(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 router.get(
@@ -868,7 +845,7 @@ router.get(
     });
 
     return res.status(200).send({ ok: true, data });
-  })
+  }),
 );
 
 router.put(
@@ -882,7 +859,7 @@ router.put(
         phone: z.string().nullable().optional(),
         email: z.preprocess(
           (email) => (typeof email === "string" ? email.trim().toLowerCase() : email),
-          z.string().email().optional().or(z.literal(""))
+          z.string().email().optional().or(z.literal("")),
         ),
         currentPassword: z.optional(z.string().min(1)),
         gaveFeedbackSep2025: z.optional(z.boolean()),
@@ -934,13 +911,13 @@ router.put(
           organisation: user.organisation,
           _id: { [Op.in]: team },
         },
-        order: [["name", "ASC"]],
+        order: [["createdAt", "ASC"]],
         transaction: tx,
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx }
+        { transaction: tx },
       );
     }
     await user.save({ transaction: tx });
@@ -963,7 +940,7 @@ router.put(
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
       },
     });
-  })
+  }),
 );
 
 router.put(
@@ -1020,13 +997,13 @@ router.put(
           organisation: organisationId,
           _id: { [Op.in]: team },
         },
-        order: [["name", "ASC"]],
+        order: [["createdAt", "ASC"]],
         transaction: tx,
       });
       await RelUserTeam.destroy({ where: { user: _id }, transaction: tx });
       await RelUserTeam.bulkCreate(
         existingTeams.map((team) => ({ user: _id, team: team._id, organisation: user.organisation })),
-        { transaction: tx }
+        { transaction: tx },
       );
     }
 
@@ -1048,10 +1025,10 @@ router.put(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
-        team: (await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] })).map((t) => t._id),
+        team: (await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] })).map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 const clearUserData = async (user) => {
@@ -1111,7 +1088,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.delete(
@@ -1157,7 +1134,7 @@ router.delete(
 
     await tx.commit();
     res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 router.post(
@@ -1187,7 +1164,7 @@ router.post(
     await user.save();
 
     return res.status(200).send({ ok: true, data: { link } });
-  })
+  }),
 );
 
 router.post(
@@ -1224,7 +1201,7 @@ router.post(
     user.decryptAttempts = 0;
     user.nextLoginAttemptAt = null;
     await user.save();
-    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1248,7 +1225,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -1281,7 +1258,7 @@ router.post(
       ...getClientInfo(req),
     });
 
-    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1304,7 +1281,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 router.post(
@@ -1332,7 +1309,7 @@ router.post(
     user.lastLoginAt = new Date();
     user.lastDeactivationWarningAt = null;
     await user.save();
-    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] });
+    const team = await user.getTeams({ raw: true, attributes: ["_id"], order: [["createdAt", "ASC"]] });
 
     return res.status(200).send({
       ok: true,
@@ -1356,7 +1333,7 @@ router.post(
         team: team.map((t) => t._id),
       },
     });
-  })
+  }),
 );
 
 module.exports = router;

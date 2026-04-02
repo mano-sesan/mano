@@ -12,26 +12,29 @@ import { currentTeamState, userState } from "../../atoms/auth";
 import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList, RootStackParamList } from "@/types/navigation";
+import { TeamInstance } from "@/types/team";
 
 const TeamBody = ({ onSelect }: { onSelect: () => void }) => {
-  const [loading, setLoading] = useState<number | undefined>(undefined);
+  const [loading, setLoading] = useState<string | undefined>(undefined);
   const user = useAtomValue(userState)!;
   const setCurrentTeam = useSetAtom(currentTeamState);
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
-  const onTeamSelected = async (teamIndex: number) => {
-    setLoading(teamIndex);
+  const onTeamSelected = async (team: TeamInstance) => {
+    setLoading(team._id);
     setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
-    setCurrentTeam(user.teams![teamIndex]!);
+    setCurrentTeam(team);
     setLoading(undefined);
     onSelect();
   };
 
+  const sortedTeams = [...(user?.teams ?? [])].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
   return (
     <ScrollContainer backgroundColor="#fff">
-      {user?.teams?.map(({ _id, name }, i) => (
-        <TeamContainer disabled={!!loading} key={_id} onPress={() => onTeamSelected(i)}>
-          {loading === i ? <ActivityIndicator size="small" color={colors.app.color} /> : <Team>{name}</Team>}
+      {sortedTeams.map((team) => (
+        <TeamContainer disabled={!!loading} key={team._id} onPress={() => onTeamSelected(team)}>
+          {loading === team._id ? <ActivityIndicator size="small" color={colors.app.color} /> : <Team>{team.name}</Team>}
         </TeamContainer>
       ))}
     </ScrollContainer>

@@ -39,7 +39,7 @@ const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefin
         name={name}
         onChange={handleChange}
         value={teams.find((_team) => _team._id === teamId)}
-        options={teams}
+        options={[...teams].sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
         getOptionValue={(team) => team._id}
         getOptionLabel={(team) => team.name}
         formatOptionLabel={(team, options) => {

@@ -39,7 +39,10 @@ export default function ImportPersons() {
     () =>
       [...personFieldsIncludingCustomFields.filter((field) => field.importable), ...customFieldsMedicalFile].map((field) => ({
         ...field,
-        options: field.name === "assignedTeams" ? teams.map((team) => team.name) : field.options,
+        options:
+          field.name === "assignedTeams"
+            ? [...teams].sort((a, b) => (a.name || "").localeCompare(b.name || "")).map((team) => team.name)
+            : field.options,
       })),
     [customFieldsMedicalFile, personFieldsIncludingCustomFields, teams]
   );

@@ -10,7 +10,7 @@ const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNameP
   return (
     <SelectCustom
       name="name"
-      options={teams}
+      options={[...teams].sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
       onChange={(teams) => onChange(teams?.map((t) => t._id) || [])}
       value={teamIds.map((_teamId) => teams.find((_team) => _team._id === _teamId))}
       getOptionValue={(team) => team._id}

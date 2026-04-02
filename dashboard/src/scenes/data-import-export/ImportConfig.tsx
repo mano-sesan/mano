@@ -1158,12 +1158,13 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   const groupedCustomFieldsObs = organisation.groupedCustomFieldsObs;
   const groupedServices = organisation.groupedServices;
   const actionsGroupedCategories = organisation.actionsGroupedCategories;
+  const sortedTeams = [...teams].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
   // Création de chaque onglet
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...sortedTeams.map((t) => t.name)],
       ...customFieldsPersons.reduce((acc, curr) => {
         return [
           ...acc,
@@ -1172,7 +1173,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
             e.label,
             typeOptions.find((t) => t.value === e.type)!.label,
             (e.options || []).join(","),
-            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+            ...sortedTeams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
           ]),
         ];
       }, [] as string[][]),
@@ -1183,7 +1184,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...sortedTeams.map((t) => t.name)],
       ...groupedCustomFieldsMedicalFile.reduce((acc, curr) => {
         return [
           ...acc,
@@ -1192,7 +1193,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
             e.label,
             typeOptions.find((t) => t.value === e.type)!.label,
             (e.options || []).join(","),
-            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+            ...sortedTeams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
           ]),
         ];
       }, [] as string[][]),
@@ -1203,7 +1204,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Consultation type pour", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ["Consultation type pour", "Intitulé du champ", "Type de champ", "Choix", ...sortedTeams.map((t) => t.name)],
       ...consultationFields.reduce((acc, curr) => {
         return [
           ...acc,
@@ -1212,7 +1213,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
             e.label,
             typeOptions.find((t) => t.value === e.type)!.label,
             (e.options || []).join(","),
-            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+            ...sortedTeams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
           ]),
         ];
       }, [] as string[][]),
@@ -1223,7 +1224,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...teams.map((t) => t.name)],
+      ["Rubrique", "Intitulé du champ", "Type de champ", "Choix", ...sortedTeams.map((t) => t.name)],
       ...groupedCustomFieldsObs.reduce((acc, curr) => {
         return [
           ...acc,
@@ -1232,7 +1233,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
             e.label,
             typeOptions.find((t) => t.value === e.type)!.label,
             (e.options || []).join(","),
-            ...teams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
+            ...sortedTeams.map((t) => ((e.enabledTeams || []).includes(t._id) ? "X" : "")),
           ]),
         ];
       }, [] as string[][]),

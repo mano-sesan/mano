@@ -470,17 +470,19 @@ const SignIn = () => {
       <div className="tw-mx-10 tw-my-0 tw-w-full tw-max-w-lg tw-overflow-y-auto tw-overflow-x-hidden tw-rounded-lg tw-bg-white tw-px-7 tw-py-10 tw-text-black">
         <h1 className="tw-mb-6 tw-text-center tw-text-3xl tw-font-bold">Choisir son équipe pour commencer</h1>
         <div className="tw-flex tw-w-full tw-flex-col tw-items-center tw-gap-3">
-          {user.teams.map((team, index) => (
-            <TeamButton
-              key={team._id}
-              team={team}
-              teamIndex={index}
-              onClick={() => {
-                setCurrentTeam(team);
-                onSigninValidated();
-              }}
-            />
-          ))}
+          {[...user.teams]
+            .sort((a, b) => (a.name || "").localeCompare(b.name || ""))
+            .map((team) => (
+              <TeamButton
+                key={team._id}
+                team={team}
+                teamIndex={user.orgTeams.findIndex((t) => t._id === team._id)}
+                onClick={() => {
+                  setCurrentTeam(team);
+                  onSigninValidated();
+                }}
+              />
+            ))}
         </div>
       </div>
     );

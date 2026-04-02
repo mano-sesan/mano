@@ -1231,7 +1231,7 @@ const CreateUser = ({ onChange, open, setOpen, organisation }) => {
                         <div>
                           <SelectCustom
                             name="name"
-                            options={organisationTeams}
+                            options={[...organisationTeams].sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
                             onChange={(teams) => handleChange({ target: { value: teams?.map((t) => t._id) || [], name: "team" } })}
                             value={values.team.map((_teamId) => organisationTeams.find((_team) => _team._id === _teamId))}
                             getOptionValue={(team) => team._id}
@@ -1387,7 +1387,7 @@ const EditUser = ({ onChange, open, setOpen, organisation, editUser }) => {
                         <div>
                           <SelectCustom
                             name="name"
-                            options={organisationTeams}
+                            options={[...organisationTeams].sort((a, b) => (a.name || "").localeCompare(b.name || ""))}
                             onChange={(teams) => handleChange({ target: { value: teams?.map((t) => t._id) || [], name: "team" } })}
                             value={values.team.map((_teamId) => organisationTeams.find((_team) => _team._id === _teamId))}
                             getOptionValue={(team) => team._id}

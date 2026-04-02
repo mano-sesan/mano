@@ -187,10 +187,10 @@ function TeamSelector() {
   const [currentTeam, setCurrentTeam] = useAtom(currentTeamState);
   const teams = useAtomValue(teamsState);
   const user = useAtomValue(userState);
-  const availableTeams = user.role === "admin" ? teams : user.teams;
+  const availableTeams = [...(user.role === "admin" ? teams : user.teams)].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   const { backgroundColor, borderColor } = getTeamColors(
     currentTeam,
-    availableTeams.findIndex((t) => t._id === currentTeam?._id)
+    teams.findIndex((t) => t._id === currentTeam?._id)
   );
   const isDrawerCollapsed = useAtomValue(isDrawerCollapsedState);
 
@@ -229,7 +229,7 @@ function TeamSelector() {
         {availableTeams.map((team) => {
           const _teamColors = getTeamColors(
             team,
-            availableTeams.findIndex((t) => t._id === team._id)
+            teams.findIndex((t) => t._id === team._id)
           );
           return (
             <MenuItem key={team._id}>
