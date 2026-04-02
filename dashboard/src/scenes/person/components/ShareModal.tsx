@@ -12,7 +12,9 @@ import { GENERAL_INFO_FIELDS, ACTION_FIELDS, TREATMENT_FIELDS, PASSAGE_FIELDS, R
 import { generateSharePDF } from "../../../services/sharePdf";
 import { dayjsInstance, formatDateTimeWithNameOfDay } from "../../../services/date";
 import { toast } from "react-toastify";
-import { DocumentArrowDownIcon, PrinterIcon } from "@heroicons/react/24/outline";
+import { DocumentArrowDownIcon, PrinterIcon, LinkIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { generateShareCode, generateSalt, deriveKeyFromCode, encryptBlob } from "../../../services/shareEncryption";
+import API from "../../../services/api";
 
 export default function ShareModal() {
   const [{ open, person, options }, setShareModalState] = useAtom(shareModalState);
@@ -29,6 +31,9 @@ export default function ShareModal() {
   const flattenedActionsCategories = useAtomValue(flattenedActionsCategoriesSelector);
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [shareStep, setShareStep] = useState<"configure" | "sharing" | "shared">("configure");
+  const [shareResult, setShareResult] = useState<{ link: string; code: string } | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const isHealthcareProfessional = user.healthcareProfessional === true;
 
@@ -265,6 +270,58 @@ export default function ShareModal() {
     }
   }, [person, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams]);
 
+  const handleShareViaLink = useCallback(async () => {
+    if (!person) return;
+    setShareStep("sharing");
+    try {
+      const blob = await generateSharePDF(person, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams);
+      const pdfBytes = new Uint8Array(await blob.arrayBuffer());
+
+      const code = generateShareCode();
+      const salt = await generateSalt();
+      const key = await deriveKeyFromCode(code, salt);
+      const encryptedData = await encryptBlob(pdfBytes, key);
+
+      const encryptedFile = new File([encryptedData], "share.bin", { type: "application/octet-stream" });
+
+      const result = await API.uploadWithFields({
+        path: "/document-share",
+        file: encryptedFile,
+        fields: {
+          personId: person._id,
+          salt,
+          expiresInHours: "72",
+        },
+      });
+
+      if (!result.ok) {
+        throw new Error(result.error || "Erreur lors du partage");
+      }
+
+      const link = `${window.location.origin}/partage/${result.data.token}`;
+      setShareResult({ link, code });
+      setShareStep("shared");
+    } catch (error) {
+      console.error("Error sharing via link:", error);
+      toast.error("Erreur lors de la création du lien de partage");
+      setShareStep("configure");
+    }
+  }, [person, options, user, organisation, team, flattenedCustomFieldsPersons, users, teams]);
+
+  const handleCopyLink = useCallback(() => {
+    if (!shareResult) return;
+    navigator.clipboard.writeText(shareResult.link);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }, [shareResult]);
+
+  const handleCloseModal = useCallback(() => {
+    closeModal();
+    setShareStep("configure");
+    setShareResult(null);
+    setLinkCopied(false);
+  }, [closeModal]);
+
   // Helpers pour vérifier si au moins un champ est sélectionné
   const hasSelectedFields = (fields: Record<string, boolean> | undefined) => {
     if (!fields) return false;
@@ -280,94 +337,90 @@ export default function ShareModal() {
 
   return (
     <>
-      <ModalContainer open={open} onClose={closeModal} size="3xl" dataTestId="share-modal">
-        <ModalHeader title={`Partager le dossier de ${person.name}`} onClose={closeModal} />
-        <ModalBody className="tw-p-4 tw-max-h-[70vh] tw-overflow-y-auto">
-          <div className="tw-space-y-4">
-            {/* En-têtes */}
-            <div className="tw-space-y-4">
-              <div>
-                <label htmlFor="share-header-summary" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
-                  En-tête de la page de résumé
-                </label>
-                <textarea
-                  id="share-header-summary"
-                  className="tailwindui tw-w-full"
-                  rows={2}
-                  placeholder="Texte optionnel à afficher en haut du résumé..."
-                  value={options.headerSummary}
-                  onChange={(e) => updateOption("headerSummary", e.target.value)}
-                />
-              </div>
-              {isHealthcareProfessional && (
-                <div>
-                  <label htmlFor="share-header-medical" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
-                    En-tête de la page médicale
-                  </label>
-                  <textarea
-                    id="share-header-medical"
-                    className="tailwindui tw-w-full"
-                    rows={2}
-                    placeholder="Texte optionnel à afficher en haut du dossier médical..."
-                    value={options.headerMedical}
-                    onChange={(e) => updateOption("headerMedical", e.target.value)}
-                  />
+      <ModalContainer open={open} onClose={handleCloseModal} size="4xl" dataTestId="share-modal">
+        <ModalHeader title={`Partager le dossier de ${person.name}`} onClose={handleCloseModal} />
+        {shareStep === "shared" && shareResult ? (
+          <>
+            <ModalBody className="tw-p-6">
+              <div className="tw-space-y-6">
+                <div className="tw-text-center">
+                  <div className="tw-mx-auto tw-flex tw-h-12 tw-w-12 tw-items-center tw-justify-center tw-rounded-full tw-bg-green-100 tw-mb-4">
+                    <LinkIcon className="tw-h-6 tw-w-6 tw-text-green-600" />
+                  </div>
+                  <h3 className="tw-text-lg tw-font-medium tw-text-gray-900">Lien de partage créé</h3>
+                  <p className="tw-mt-2 tw-text-sm tw-text-gray-500">Ce lien expire dans 72 heures et peut être utilisé 5 fois maximum.</p>
                 </div>
-              )}
-            </div>
 
-            {/* Informations générales */}
-            <Accordion
-              title={
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label
-                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="checkbox"
-                    checked={options.includeGeneralInfo && hasSelectedFields(options.generalInfoFields)}
-                    onChange={(e) => {
-                      updateOption("includeGeneralInfo", e.target.checked);
-                      if (e.target.checked) {
-                        toggleAllFields("generalInfoFields", GENERAL_INFO_FIELDS, true);
-                      } else {
-                        toggleAllFields("generalInfoFields", GENERAL_INFO_FIELDS, false);
-                      }
-                    }}
-                    className="tw-rounded tw-border-gray-300"
-                  />
-                  Informations générales
-                </label>
-              }
-              defaultOpen
-            >
-              <div className="tw-space-y-2 tw-ml-4">
-                {GENERAL_INFO_FIELDS.map((field) => (
-                  <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                <div>
+                  <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Lien à transmettre</label>
+                  <div className="tw-flex tw-gap-2">
                     <input
-                      type="checkbox"
-                      checked={options.generalInfoFields?.[field.name] ?? false}
-                      onChange={() => toggleField("generalInfoFields", field.name)}
-                      className="tw-rounded tw-border-gray-300"
+                      type="text"
+                      readOnly
+                      value={shareResult.link}
+                      className="tailwindui tw-w-full tw-text-sm tw-font-mono"
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
                     />
-                    {field.label}
-                  </label>
-                ))}
+                    <button type="button" className="button-submit tw-flex tw-items-center tw-gap-1 tw-whitespace-nowrap" onClick={handleCopyLink}>
+                      {linkCopied ? <CheckIcon className="tw-h-4 tw-w-4" /> : <ClipboardDocumentIcon className="tw-h-4 tw-w-4" />}
+                      {linkCopied ? "Copié" : "Copier"}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Code à communiquer à l'oral au destinataire</label>
+                  <p className="tw-text-3xl tw-font-mono tw-font-bold tw-tracking-widest tw-mt-2">{shareResult.code}</p>
+                  <p className="tw-mt-2 tw-text-sm tw-text-amber-600 tw-font-medium">
+                    Ne transmettez pas ce code par email ou SMS. Communiquez-le uniquement à l'oral.
+                  </p>
+                </div>
               </div>
-            </Accordion>
+            </ModalBody>
+            <ModalFooter>
+              <button type="button" className="button-cancel" onClick={handleCloseModal}>
+                Fermer
+              </button>
+            </ModalFooter>
+          </>
+        ) : (
+          <>
+            <ModalBody className="tw-p-4 tw-max-h-[70vh] tw-overflow-y-auto">
+              <div className="tw-space-y-4">
+                {/* En-têtes */}
+                <div className="tw-space-y-4">
+                  <div>
+                    <label htmlFor="share-header-summary" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                      En-tête de la page de résumé
+                    </label>
+                    <textarea
+                      id="share-header-summary"
+                      className="tailwindui tw-w-full"
+                      rows={2}
+                      placeholder="Texte optionnel à afficher en haut du résumé..."
+                      value={options.headerSummary}
+                      onChange={(e) => updateOption("headerSummary", e.target.value)}
+                    />
+                  </div>
+                  {isHealthcareProfessional && (
+                    <div>
+                      <label htmlFor="share-header-medical" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                        En-tête de la page médicale
+                      </label>
+                      <textarea
+                        id="share-header-medical"
+                        className="tailwindui tw-w-full"
+                        rows={2}
+                        placeholder="Texte optionnel à afficher en haut du dossier médical..."
+                        value={options.headerMedical}
+                        onChange={(e) => updateOption("headerMedical", e.target.value)}
+                      />
+                    </div>
+                  )}
+                </div>
 
-            {/* Champs personnalisés par section */}
-            {customFieldsPersonsSections.map((section) => {
-              const enabledFields = section.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
-              if (enabledFields.length === 0) return null;
-
-              const sectionChecked = options.customFieldsSections[section.name] ?? false;
-
-              return (
+                {/* Informations générales */}
                 <Accordion
-                  key={section.name}
                   title={
                     // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
                     <label
@@ -377,21 +430,29 @@ export default function ShareModal() {
                     >
                       <input
                         type="checkbox"
-                        checked={sectionChecked}
-                        onChange={() => toggleSectionField(section.name)}
+                        checked={options.includeGeneralInfo && hasSelectedFields(options.generalInfoFields)}
+                        onChange={(e) => {
+                          updateOption("includeGeneralInfo", e.target.checked);
+                          if (e.target.checked) {
+                            toggleAllFields("generalInfoFields", GENERAL_INFO_FIELDS, true);
+                          } else {
+                            toggleAllFields("generalInfoFields", GENERAL_INFO_FIELDS, false);
+                          }
+                        }}
                         className="tw-rounded tw-border-gray-300"
                       />
-                      {section.name}
+                      Informations générales
                     </label>
                   }
+                  defaultOpen
                 >
                   <div className="tw-space-y-2 tw-ml-4">
-                    {enabledFields.map((field) => (
+                    {GENERAL_INFO_FIELDS.map((field) => (
                       <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={options.customFieldsFields[field.name] ?? false}
-                          onChange={() => toggleCustomField(field.name)}
+                          checked={options.generalInfoFields?.[field.name] ?? false}
+                          onChange={() => toggleField("generalInfoFields", field.name)}
                           className="tw-rounded tw-border-gray-300"
                         />
                         {field.label}
@@ -399,342 +460,405 @@ export default function ShareModal() {
                     ))}
                   </div>
                 </Accordion>
-              );
-            })}
 
-            {/* Actions */}
-            <Accordion
-              title={
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label
-                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                >
-                  <input
-                    type="checkbox"
-                    checked={options.includeActions && hasSelectedFields(options.actionFields)}
-                    onChange={(e) => {
-                      updateOption("includeActions", e.target.checked);
-                      if (e.target.checked) {
-                        toggleAllFields("actionFields", ACTION_FIELDS, true);
-                      } else {
-                        toggleAllFields("actionFields", ACTION_FIELDS, false);
-                      }
-                    }}
-                    className="tw-rounded tw-border-gray-300"
-                  />
-                  Actions
-                </label>
-              }
-            >
-              <div className="tw-space-y-3 tw-ml-4">
-                <div className="tw-space-y-2">
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
-                  {ACTION_FIELDS.map((field) => (
-                    <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={options.actionFields?.[field.name] ?? false}
-                        onChange={() => toggleField("actionFields", field.name)}
-                        className="tw-rounded tw-border-gray-300"
-                      />
-                      {field.label}
-                    </label>
-                  ))}
-                </div>
-                <div className="tw-pt-2 tw-border-t">
-                  {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                  <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par catégories (optionnel)</label>
-                  <SelectCustom
-                    isMulti
-                    options={flattenedActionsCategories.map((c) => ({ value: c, label: c }))}
-                    value={options.actionCategories.map((c) => ({ value: c, label: c }))}
-                    onChange={(values) => updateOption("actionCategories", values?.map((v) => v.value) || [])}
-                    placeholder="Toutes les catégories..."
-                    isClearable
-                  />
-                </div>
-              </div>
-            </Accordion>
+                {/* Champs personnalisés par section */}
+                {customFieldsPersonsSections.map((section) => {
+                  const enabledFields = section.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
+                  if (enabledFields.length === 0) return null;
 
-            {/* Consultations (si healthcareProfessional) */}
-            {isHealthcareProfessional && (
-              <Accordion
-                title={
-                  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                  <label
-                    className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={options.includeConsultations}
-                      onChange={(e) => updateOption("includeConsultations", e.target.checked)}
-                      className="tw-rounded tw-border-gray-300"
-                    />
-                    Consultations
-                  </label>
-                }
-              >
-                <div className="tw-space-y-4 tw-ml-4">
-                  <div>
-                    {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
-                    <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par types (optionnel)</label>
-                    <SelectCustom
-                      isMulti
-                      options={consultationTypes.map((c) => ({ value: c.name, label: c.name }))}
-                      value={options.consultationTypes.map((c) => ({ value: c, label: c }))}
-                      onChange={(values) => updateOption("consultationTypes", values?.map((v) => v.value) || [])}
-                      placeholder="Tous les types..."
-                      isClearable
-                    />
-                  </div>
+                  const sectionChecked = options.customFieldsSections[section.name] ?? false;
 
-                  {/* Champs par type de consultation */}
-                  {consultationTypes.map((consultationType) => {
-                    const enabledFields = consultationType.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
-                    if (enabledFields.length === 0) return null;
-
-                    const typeFields = options.consultationFields[consultationType.name] || {};
-                    const allSelected = enabledFields.every((f) => typeFields[f.name]);
-
-                    return (
-                      <div key={consultationType.name} className="tw-border tw-rounded tw-p-3">
-                        <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-font-medium tw-mb-2">
+                  return (
+                    <Accordion
+                      key={section.name}
+                      title={
+                        // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                        <label
+                          className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => e.stopPropagation()}
+                        >
                           <input
                             type="checkbox"
-                            checked={allSelected}
-                            onChange={(e) => toggleAllConsultationFields(consultationType.name, enabledFields, e.target.checked)}
+                            checked={sectionChecked}
+                            onChange={() => toggleSectionField(section.name)}
                             className="tw-rounded tw-border-gray-300"
                           />
-                          {consultationType.name}
+                          {section.name}
                         </label>
-                        <div className="tw-space-y-1 tw-ml-4">
-                          {enabledFields.map((field) => (
-                            <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-text-sm">
-                              <input
-                                type="checkbox"
-                                checked={typeFields[field.name] ?? false}
-                                onChange={() => toggleConsultationField(consultationType.name, field.name)}
-                                className="tw-rounded tw-border-gray-300"
-                              />
-                              {field.label}
-                            </label>
-                          ))}
-                        </div>
+                      }
+                    >
+                      <div className="tw-space-y-2 tw-ml-4">
+                        {enabledFields.map((field) => (
+                          <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={options.customFieldsFields[field.name] ?? false}
+                              onChange={() => toggleCustomField(field.name)}
+                              className="tw-rounded tw-border-gray-300"
+                            />
+                            {field.label}
+                          </label>
+                        ))}
                       </div>
-                    );
-                  })}
-                </div>
-              </Accordion>
-            )}
+                    </Accordion>
+                  );
+                })}
 
-            {/* Traitements (si healthcareProfessional) */}
-            {isHealthcareProfessional && (
-              <Accordion
-                title={
-                  // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                  <label
-                    className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={options.includeTreatments && hasSelectedFields(options.treatmentFields)}
-                      onChange={(e) => {
-                        updateOption("includeTreatments", e.target.checked);
-                        if (e.target.checked) {
-                          toggleAllFields("treatmentFields", TREATMENT_FIELDS, true);
-                        } else {
-                          toggleAllFields("treatmentFields", TREATMENT_FIELDS, false);
-                        }
-                      }}
-                      className="tw-rounded tw-border-gray-300"
-                    />
-                    Traitements
-                  </label>
-                }
-              >
-                <div className="tw-space-y-2 tw-ml-4">
-                  <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
-                  {TREATMENT_FIELDS.map((field) => (
-                    <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                {/* Actions */}
+                <Accordion
+                  title={
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                    <label
+                      className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
                       <input
                         type="checkbox"
-                        checked={options.treatmentFields?.[field.name] ?? false}
-                        onChange={() => toggleField("treatmentFields", field.name)}
+                        checked={options.includeActions && hasSelectedFields(options.actionFields)}
+                        onChange={(e) => {
+                          updateOption("includeActions", e.target.checked);
+                          if (e.target.checked) {
+                            toggleAllFields("actionFields", ACTION_FIELDS, true);
+                          } else {
+                            toggleAllFields("actionFields", ACTION_FIELDS, false);
+                          }
+                        }}
                         className="tw-rounded tw-border-gray-300"
                       />
-                      {field.label}
+                      Actions
                     </label>
-                  ))}
-                </div>
-              </Accordion>
-            )}
-
-            {/* Commentaires */}
-            <Accordion
-              title={
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label
-                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
+                  }
                 >
-                  <input
-                    type="checkbox"
-                    checked={options.includeComments}
-                    onChange={(e) => updateOption("includeComments", e.target.checked)}
-                    className="tw-rounded tw-border-gray-300"
-                  />
-                  Commentaires
-                </label>
-              }
-            >
-              <div className="tw-ml-4">
-                <p className="tw-text-gray-500 tw-text-sm">Inclure les commentaires du dossier social.</p>
+                  <div className="tw-space-y-3 tw-ml-4">
+                    <div className="tw-space-y-2">
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
+                      {ACTION_FIELDS.map((field) => (
+                        <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={options.actionFields?.[field.name] ?? false}
+                            onChange={() => toggleField("actionFields", field.name)}
+                            className="tw-rounded tw-border-gray-300"
+                          />
+                          {field.label}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="tw-pt-2 tw-border-t">
+                      {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                      <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par catégories (optionnel)</label>
+                      <SelectCustom
+                        isMulti
+                        options={flattenedActionsCategories.map((c) => ({ value: c, label: c }))}
+                        value={options.actionCategories.map((c) => ({ value: c, label: c }))}
+                        onChange={(values) => updateOption("actionCategories", values?.map((v) => v.value) || [])}
+                        placeholder="Toutes les catégories..."
+                        isClearable
+                      />
+                    </div>
+                  </div>
+                </Accordion>
+
+                {/* Consultations (si healthcareProfessional) */}
                 {isHealthcareProfessional && (
-                  <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-mt-2">
-                    <input
-                      type="checkbox"
-                      checked={options.includeCommentsMedical}
-                      onChange={(e) => updateOption("includeCommentsMedical", e.target.checked)}
-                      className="tw-rounded tw-border-gray-300"
-                    />
-                    Inclure aussi les commentaires médicaux
-                  </label>
+                  <Accordion
+                    title={
+                      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                      <label
+                        className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={options.includeConsultations}
+                          onChange={(e) => updateOption("includeConsultations", e.target.checked)}
+                          className="tw-rounded tw-border-gray-300"
+                        />
+                        Consultations
+                      </label>
+                    }
+                  >
+                    <div className="tw-space-y-4 tw-ml-4">
+                      <div>
+                        {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+                        <label className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">Filtrer par types (optionnel)</label>
+                        <SelectCustom
+                          isMulti
+                          options={consultationTypes.map((c) => ({ value: c.name, label: c.name }))}
+                          value={options.consultationTypes.map((c) => ({ value: c, label: c }))}
+                          onChange={(values) => updateOption("consultationTypes", values?.map((v) => v.value) || [])}
+                          placeholder="Tous les types..."
+                          isClearable
+                        />
+                      </div>
+
+                      {/* Champs par type de consultation */}
+                      {consultationTypes.map((consultationType) => {
+                        const enabledFields = consultationType.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
+                        if (enabledFields.length === 0) return null;
+
+                        const typeFields = options.consultationFields[consultationType.name] || {};
+                        const allSelected = enabledFields.every((f) => typeFields[f.name]);
+
+                        return (
+                          <div key={consultationType.name} className="tw-border tw-rounded tw-p-3">
+                            <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-font-medium tw-mb-2">
+                              <input
+                                type="checkbox"
+                                checked={allSelected}
+                                onChange={(e) => toggleAllConsultationFields(consultationType.name, enabledFields, e.target.checked)}
+                                className="tw-rounded tw-border-gray-300"
+                              />
+                              {consultationType.name}
+                            </label>
+                            <div className="tw-space-y-1 tw-ml-4">
+                              {enabledFields.map((field) => (
+                                <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-text-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={typeFields[field.name] ?? false}
+                                    onChange={() => toggleConsultationField(consultationType.name, field.name)}
+                                    className="tw-rounded tw-border-gray-300"
+                                  />
+                                  {field.label}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </Accordion>
                 )}
-              </div>
-            </Accordion>
 
-            {/* Passages */}
-            <Accordion
-              title={
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label
-                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
+                {/* Traitements (si healthcareProfessional) */}
+                {isHealthcareProfessional && (
+                  <Accordion
+                    title={
+                      // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                      <label
+                        className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={options.includeTreatments && hasSelectedFields(options.treatmentFields)}
+                          onChange={(e) => {
+                            updateOption("includeTreatments", e.target.checked);
+                            if (e.target.checked) {
+                              toggleAllFields("treatmentFields", TREATMENT_FIELDS, true);
+                            } else {
+                              toggleAllFields("treatmentFields", TREATMENT_FIELDS, false);
+                            }
+                          }}
+                          className="tw-rounded tw-border-gray-300"
+                        />
+                        Traitements
+                      </label>
+                    }
+                  >
+                    <div className="tw-space-y-2 tw-ml-4">
+                      <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
+                      {TREATMENT_FIELDS.map((field) => (
+                        <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={options.treatmentFields?.[field.name] ?? false}
+                            onChange={() => toggleField("treatmentFields", field.name)}
+                            className="tw-rounded tw-border-gray-300"
+                          />
+                          {field.label}
+                        </label>
+                      ))}
+                    </div>
+                  </Accordion>
+                )}
+
+                {/* Commentaires */}
+                <Accordion
+                  title={
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                    <label
+                      className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={options.includeComments}
+                        onChange={(e) => updateOption("includeComments", e.target.checked)}
+                        className="tw-rounded tw-border-gray-300"
+                      />
+                      Commentaires
+                    </label>
+                  }
                 >
-                  <input
-                    type="checkbox"
-                    checked={options.includePassages && hasSelectedFields(options.passageFields)}
-                    onChange={(e) => {
-                      updateOption("includePassages", e.target.checked);
-                      if (e.target.checked) {
-                        toggleAllFields("passageFields", PASSAGE_FIELDS, true);
-                      } else {
-                        toggleAllFields("passageFields", PASSAGE_FIELDS, false);
-                      }
-                    }}
-                    className="tw-rounded tw-border-gray-300"
-                  />
-                  Passages
-                </label>
-              }
-            >
-              <div className="tw-space-y-2 tw-ml-4">
-                <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
-                {PASSAGE_FIELDS.map((field) => (
-                  <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={options.passageFields?.[field.name] ?? false}
-                      onChange={() => toggleField("passageFields", field.name)}
-                      className="tw-rounded tw-border-gray-300"
-                    />
-                    {field.label}
-                  </label>
-                ))}
-              </div>
-            </Accordion>
+                  <div className="tw-ml-4">
+                    <p className="tw-text-gray-500 tw-text-sm">Inclure les commentaires du dossier social.</p>
+                    {isHealthcareProfessional && (
+                      <label className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer tw-mt-2">
+                        <input
+                          type="checkbox"
+                          checked={options.includeCommentsMedical}
+                          onChange={(e) => updateOption("includeCommentsMedical", e.target.checked)}
+                          className="tw-rounded tw-border-gray-300"
+                        />
+                        Inclure aussi les commentaires médicaux
+                      </label>
+                    )}
+                  </div>
+                </Accordion>
 
-            {/* Rencontres */}
-            <Accordion
-              title={
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
-                <label
-                  className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
+                {/* Passages */}
+                <Accordion
+                  title={
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                    <label
+                      className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={options.includePassages && hasSelectedFields(options.passageFields)}
+                        onChange={(e) => {
+                          updateOption("includePassages", e.target.checked);
+                          if (e.target.checked) {
+                            toggleAllFields("passageFields", PASSAGE_FIELDS, true);
+                          } else {
+                            toggleAllFields("passageFields", PASSAGE_FIELDS, false);
+                          }
+                        }}
+                        className="tw-rounded tw-border-gray-300"
+                      />
+                      Passages
+                    </label>
+                  }
                 >
-                  <input
-                    type="checkbox"
-                    checked={options.includeRencontres && hasSelectedFields(options.rencontreFields)}
-                    onChange={(e) => {
-                      updateOption("includeRencontres", e.target.checked);
-                      if (e.target.checked) {
-                        toggleAllFields("rencontreFields", RENCONTRE_FIELDS, true);
-                      } else {
-                        toggleAllFields("rencontreFields", RENCONTRE_FIELDS, false);
-                      }
-                    }}
-                    className="tw-rounded tw-border-gray-300"
-                  />
-                  Rencontres
-                </label>
-              }
-            >
-              <div className="tw-space-y-2 tw-ml-4">
-                <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
-                {RENCONTRE_FIELDS.map((field) => (
-                  <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={options.rencontreFields?.[field.name] ?? false}
-                      onChange={() => toggleField("rencontreFields", field.name)}
-                      className="tw-rounded tw-border-gray-300"
-                    />
-                    {field.label}
-                  </label>
-                ))}
-              </div>
-            </Accordion>
+                  <div className="tw-space-y-2 tw-ml-4">
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
+                    {PASSAGE_FIELDS.map((field) => (
+                      <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.passageFields?.[field.name] ?? false}
+                          onChange={() => toggleField("passageFields", field.name)}
+                          className="tw-rounded tw-border-gray-300"
+                        />
+                        {field.label}
+                      </label>
+                    ))}
+                  </div>
+                </Accordion>
 
-            {/* Pied de page */}
-            <div>
-              <label htmlFor="share-footer" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
-                Pied de page
-              </label>
-              <textarea
-                id="share-footer"
-                className="tailwindui tw-w-full"
-                rows={2}
-                placeholder="Texte optionnel en bas du document..."
-                value={options.footer}
-                onChange={(e) => updateOption("footer", e.target.value)}
-              />
-              <p className="tw-text-gray-500 tw-text-sm tw-mt-1">
-                Sera automatiquement complété par : "Extrait le {formatDateTimeWithNameOfDay(dayjsInstance())} par {user.name}"
-              </p>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <div className="tw-flex tw-w-full tw-justify-between">
-            <div className="tw-flex tw-gap-2">
-              <button type="button" className="button-classic" onClick={selectAll}>
-                Tout sélectionner
-              </button>
-              <button type="button" className="button-classic" onClick={deselectAll}>
-                Tout décocher
-              </button>
-            </div>
-            <div className="tw-flex tw-gap-2">
-              <button type="button" className="button-submit tw-flex tw-items-center tw-gap-2" onClick={handleDownloadPDF} disabled={isGenerating}>
-                <DocumentArrowDownIcon className="tw-h-5 tw-w-5" />
-                Télécharger PDF
-              </button>
-              <button type="button" className="button-submit tw-flex tw-items-center tw-gap-2" onClick={handlePrint} disabled={isGenerating}>
-                <PrinterIcon className="tw-h-5 tw-w-5" />
-                Imprimer
-              </button>
-            </div>
-          </div>
-        </ModalFooter>
+                {/* Rencontres */}
+                <Accordion
+                  title={
+                    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                    <label
+                      className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={options.includeRencontres && hasSelectedFields(options.rencontreFields)}
+                        onChange={(e) => {
+                          updateOption("includeRencontres", e.target.checked);
+                          if (e.target.checked) {
+                            toggleAllFields("rencontreFields", RENCONTRE_FIELDS, true);
+                          } else {
+                            toggleAllFields("rencontreFields", RENCONTRE_FIELDS, false);
+                          }
+                        }}
+                        className="tw-rounded tw-border-gray-300"
+                      />
+                      Rencontres
+                    </label>
+                  }
+                >
+                  <div className="tw-space-y-2 tw-ml-4">
+                    <p className="tw-text-sm tw-font-medium tw-text-gray-700">Champs à inclure :</p>
+                    {RENCONTRE_FIELDS.map((field) => (
+                      <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={options.rencontreFields?.[field.name] ?? false}
+                          onChange={() => toggleField("rencontreFields", field.name)}
+                          className="tw-rounded tw-border-gray-300"
+                        />
+                        {field.label}
+                      </label>
+                    ))}
+                  </div>
+                </Accordion>
+
+                {/* Pied de page */}
+                <div>
+                  <label htmlFor="share-footer" className="tw-block tw-text-sm tw-font-medium tw-text-gray-700 tw-mb-1">
+                    Pied de page
+                  </label>
+                  <textarea
+                    id="share-footer"
+                    className="tailwindui tw-w-full"
+                    rows={2}
+                    placeholder="Texte optionnel en bas du document..."
+                    value={options.footer}
+                    onChange={(e) => updateOption("footer", e.target.value)}
+                  />
+                  <p className="tw-text-gray-500 tw-text-sm tw-mt-1">
+                    Sera automatiquement complété par : "Extrait le {formatDateTimeWithNameOfDay(dayjsInstance())} par {user.name}"
+                  </p>
+                </div>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <div className="tw-flex tw-w-full tw-justify-between">
+                <div className="tw-flex tw-gap-2">
+                  <button type="button" className="button-classic" onClick={selectAll}>
+                    Tout sélectionner
+                  </button>
+                  <button type="button" className="button-classic" onClick={deselectAll}>
+                    Tout décocher
+                  </button>
+                </div>
+                <div className="tw-flex tw-gap-2">
+                  <button
+                    type="button"
+                    className="button-submit tw-flex tw-items-center tw-gap-2"
+                    onClick={handleDownloadPDF}
+                    disabled={isGenerating || shareStep === "sharing"}
+                  >
+                    <DocumentArrowDownIcon className="tw-h-5 tw-w-5" />
+                    Télécharger PDF
+                  </button>
+                  <button
+                    type="button"
+                    className="button-submit tw-flex tw-items-center tw-gap-2"
+                    onClick={handlePrint}
+                    disabled={isGenerating || shareStep === "sharing"}
+                  >
+                    <PrinterIcon className="tw-h-5 tw-w-5" />
+                    Imprimer
+                  </button>
+                  <button
+                    type="button"
+                    className="button-submit tw-flex tw-items-center tw-gap-2"
+                    onClick={handleShareViaLink}
+                    disabled={isGenerating || shareStep === "sharing"}
+                  >
+                    <LinkIcon className="tw-h-5 tw-w-5" />
+                    {shareStep === "sharing" ? "Création du lien..." : "Partager via lien"}
+                  </button>
+                </div>
+              </div>
+            </ModalFooter>
+          </>
+        )}
       </ModalContainer>
     </>
   );
