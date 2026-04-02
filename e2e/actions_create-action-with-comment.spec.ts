@@ -39,7 +39,7 @@ test("Create action with comments", async ({ page }) => {
   await page.getByText("Création réussie !").click();
 
   await page.getByRole("link", { name: "Agenda" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=1");
   await page.getByRole("button", { name: "Créer une action" }).click();
   await page.getByLabel("Nom de l'action").fill("action avec commentaire");
   await page.getByText("Action prioritaire").click();
@@ -70,7 +70,7 @@ test("Create action with comments", async ({ page }) => {
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   await page.getByRole("link", { name: "Agenda" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=1");
   await page.getByRole("button", { name: "Créer une action" }).click();
   await page.getByLabel("Nom de l'action").click();
   await page.getByLabel("Nom de l'action").fill(actionFor2PersonName);
@@ -100,7 +100,7 @@ test("Create action with comments", async ({ page }) => {
   await page.getByRole("button", { name: "Fermer" }).first().click();
 
   await page.getByRole("link", { name: "Agenda" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/action?calendarTab=1");
   await page.locator(`data-test-id=${actionFor2PersonName}`).getByText(person1Name).click();
   await expect(page).toHaveURL(/http:\/\/localhost:8090\/person\/.*/);
   await page.getByText(actionFor2PersonName).click();

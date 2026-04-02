@@ -23,8 +23,8 @@ test("Replace me", async ({ browser }) => {
   await loginWith(userPage, "normal1@example.org");
 
   // On attend que les deux soient connectés
-  await expect(adminPage).toHaveURL("http://localhost:8090/reception?calendarTab=2");
-  await expect(userPage).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+  await expect(adminPage).toHaveURL("http://localhost:8090/reception?calendarTab=1");
+  await expect(userPage).toHaveURL("http://localhost:8090/reception?calendarTab=1");
 
   // L'admin crée un user
   await adminPage.getByRole("link", { name: "Personnes suivies" }).click();
@@ -53,7 +53,7 @@ test("Replace me", async ({ browser }) => {
 
   // L'admin se reconnecte et doit voir la personne créée par le user
   await loginWith(adminPage, "admin1@example.org");
-  await expect(adminPage).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+  await expect(adminPage).toHaveURL("http://localhost:8090/reception?calendarTab=1");
   await adminPage.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(adminPage.getByText("créé_par_user")).toBeVisible();
 

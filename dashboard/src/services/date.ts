@@ -92,15 +92,15 @@ export function ageFromBirthdateAsMonths(date: PossibleDate): number | null {
   return dayjsInstance().diff(birthDate, "month");
 }
 
-export function formatCalendarDate(date: PossibleDate): string | null {
+export function formatCalendarDate(date: PossibleDate, isForNight: boolean = false): string | null {
   if (dayjs(date).isSame(dayjs(), "day")) {
-    return "Aujourd'hui";
+    return isForNight ? "Ce soir" : "Aujourd'hui";
   }
   if (dayjs(date).isSame(dayjs().subtract(1, "day"), "day")) {
-    return "Hier";
+    return isForNight ? "Hier soir" : "Hier";
   }
   if (dayjs(date).isSame(dayjs().add(1, "day"), "day")) {
-    return "Demain";
+    return isForNight ? "Demain soir" : "Demain";
   }
   return dayjs(date).format("ddd D MMM");
 }
