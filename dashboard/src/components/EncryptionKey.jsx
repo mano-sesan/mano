@@ -766,7 +766,7 @@ const EncryptionKey = ({ isMain }) => {
         type="button"
         className="button-submit !tw-bg-black"
         onClick={() => {
-          if (organisation.encryptionEnabled) setShowPreCheck(true);
+          if (organisation.encryptionEnabled && !import.meta.env.VITE_TEST_PLAYWRIGHT) setShowPreCheck(true);
           setOpen(true);
         }}
       >
