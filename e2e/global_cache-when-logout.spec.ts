@@ -53,7 +53,7 @@ test("Person creation", async ({ page }) => {
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.locator("#orgEncryptionKey").pressSequentially("plouf");
   await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
 
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
@@ -69,7 +69,7 @@ test("Person creation", async ({ page }) => {
   await page.getByRole("button", { name: "Se connecter" }).click();
   await page.locator("#orgEncryptionKey").pressSequentially("plouf");
   await page.getByRole("button", { name: "Se connecter" }).click();
-  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
   await expect(page.getByRole("cell", { name: person1Name })).toBeVisible();
@@ -93,7 +93,7 @@ test("Person creation", async ({ page }) => {
     await orgKeyLocator.pressSequentially("plouf");
     await page.getByRole("button", { name: "Se connecter" }).click();
   }
-  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+  await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
   await page.getByRole("link", { name: "Personnes suivies" }).click();
   await expect(page).toHaveURL("http://localhost:8090/person");
   await expect(page.getByRole("cell", { name: person1Name })).toBeVisible();
@@ -108,7 +108,7 @@ test("Person creation", async ({ page }) => {
     await page.getByRole("button", { name: "Se connecter" }).click();
     await page.locator("#orgEncryptionKey").pressSequentially("plouf");
     await page.getByRole("button", { name: "Se connecter" }).click();
-    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
 

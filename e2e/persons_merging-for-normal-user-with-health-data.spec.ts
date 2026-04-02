@@ -124,7 +124,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Se connecter" }).click();
     await page.locator("#orgEncryptionKey").pressSequentially("plouf");
     await page.getByRole("button", { name: "Se connecter" }).click();
-    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
   });
 
   await test.step("merge two people with string medical field different should be forbidden", async () => {
@@ -134,7 +134,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Fusionner avec un autre dossier" }).click();
     const forbiddenMergeListener = async (dialog) => {
       expect(dialog.message()).toBe(
-        "Les champs médicaux ne sont pas identiques. Vous devez être un·e professionnel·le de santé pour fusionner des dossiers médicaux différents.",
+        "Les champs médicaux ne sont pas identiques. Vous devez être un·e professionnel·le de santé pour fusionner des dossiers médicaux différents."
       );
       await dialog.accept();
     };
@@ -162,7 +162,7 @@ test("merging normal user with health data", async ({ page }) => {
     await page.getByRole("button", { name: "Se connecter" }).click();
     await page.locator("#orgEncryptionKey").pressSequentially("plouf");
     await page.getByRole("button", { name: "Se connecter" }).click();
-    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=2");
+    await expect(page).toHaveURL("http://localhost:8090/reception?calendarTab=1");
 
     await page.getByRole("link", { name: "Personnes suivies" }).click();
     await expect(page).toHaveURL("http://localhost:8090/person");
