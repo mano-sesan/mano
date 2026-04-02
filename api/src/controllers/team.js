@@ -46,7 +46,10 @@ router.get(
   catchErrors(async (req, res) => {
     const teams = await Team.findAll({
       where: { organisation: req.user.organisation },
-      order: [[sequelize.fn("LOWER", sequelize.col("name")), "ASC"]],
+      order: [
+        [sequelize.fn("LOWER", sequelize.col("name")), "ASC"],
+        ["_id", "ASC"],
+      ],
     });
     return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
