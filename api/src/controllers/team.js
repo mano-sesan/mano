@@ -44,7 +44,10 @@ router.get(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
-    const teams = await Team.findAll({ where: { organisation: req.user.organisation }, order: [["name", "ASC"]] });
+    const teams = await Team.findAll({
+      where: { organisation: req.user.organisation },
+      order: [[sequelize.fn("LOWER", sequelize.col("name")), "ASC"]],
+    });
     return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
   })
 );
