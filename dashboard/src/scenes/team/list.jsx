@@ -173,8 +173,8 @@ const Create = () => {
                 return actions.setSubmitting(false);
               }
               setUser(meResponse.user);
-              setCurrentTeam(meResponse.user.teams[0]);
               if (onboardingForTeams) {
+                setCurrentTeam(meResponse.user.teams[0]);
                 toast.success(`Création réussie ! Vous êtes dans l'équipe ${newTeamRes.data.name}`);
                 setOnboardingEndModalOpen(true);
               } else {
