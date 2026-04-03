@@ -169,6 +169,7 @@ const TerritoryObservation = ({
         ...toReturn,
         observedAt: territoryObservation.observedAt || (territoryObservation.createdAt! as Date) || new Date(),
         createdAt: territoryObservation.createdAt,
+        updatedAt: territoryObservation.updatedAt,
         user: territoryObservation.user || "",
         entityKey: territoryObservation.entityKey || "",
         documents: territoryObservation.documents || [],

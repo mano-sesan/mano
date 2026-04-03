@@ -28,6 +28,10 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { v4 as uuidv4 } from "uuid";
+import { store } from "@/store";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { enqueue } from "./offlineQueue";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -58,7 +62,17 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  execute = async ({
+    method,
+    path = "",
+    body = null,
+    query = {},
+    headers = {},
+    debug = false,
+    batch = null,
+    entityType = null,
+    offlineEnabled = true,
+  } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options = {
@@ -72,6 +86,35 @@ class ApiService {
           packageid: Application.applicationId,
         },
       };
+
+      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+        const offlineMode = store.get(offlineModeState);
+        // Skip offline queueing for non-entity paths (auth, logs, etc.)
+        if (offlineMode && offlineEnabled !== false) {
+          if (method === "POST") {
+            body = { ...body, _id: uuidv4() };
+          }
+          const entityId = body._id || uuidv4();
+          const updatedAt = method === "PUT" ? body.updatedAt || undefined : undefined;
+          const item = enqueue({
+            method: method,
+            path: path,
+            decryptedBody: body,
+            entityType: entityType || this._extractEntityType(path),
+            entityId,
+            entityUpdatedAt: updatedAt,
+          });
+          // Return optimistic response
+          return Promise.resolve({
+            ok: true,
+            data: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
+            decryptedData: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
+            _offlineQueued: true,
+            _queueItemId: item.id,
+          });
+        }
+      }
+
       if (body) {
         options.body = JSON.stringify(await this.encryptItem(body));
       }
@@ -190,6 +233,17 @@ class ApiService {
   put = (args) => this.execute({ method: "PUT", ...args });
   delete = (args) => this.execute({ method: "DELETE", ...args });
 
+  // Raw execute for sync processor — body is already the pre-encryption payload
+  executeRaw = async ({ method, path, body }) => {
+    return this.execute({ method, path, body });
+  };
+
+  _extractEntityType = (path) => {
+    // Extract entity type from path like "/person" or "/person/uuid"
+    const parts = path.split("/").filter(Boolean);
+    return parts[0] || "unknown";
+  };
+
   setOrgEncryptionKey = async (orgEncryptionKey) => {
     this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
     const { encryptedVerificationKey } = this.organisation;
@@ -296,11 +350,18 @@ class ApiService {
 
   // Upload a file to a path.
   upload = async ({ file, path }) => {
-    // Prepare file.
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
 
-    // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
+    const offlineMode = store.get(offlineModeState);
 
+    if (offlineMode) {
+      return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
+    }
+
+    return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
+  };
+
+  _doUpload = async ({ name, type, path, encryptedEntityKey, encryptedFile }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -312,31 +373,40 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-        // custom content type
-        // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
-        // // part file from storage
-        // { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: ReactNativeBlobUtil.wrap(path_to_a_file) },
-        // // elements without property `filename` will be sent as plain text
-        // { name: 'name', data: 'user' },
-        // {
-        //   name: 'info',
-        //   data: JSON.stringify({
-        //     mail: 'example@example.com',
-        //     tel: '12345678',
-        //   }),
-        // },
-      ]
+      [{ name: "file", filename: name, mime: type, type: type, data: encryptedFile }],
     );
 
     const json = await response.json();
-    // Si erreur (ok: false), on retourne les infos d'erreur du backend
     if (!json.ok) {
       return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
     }
     return { ...json, encryptedEntityKey };
+  };
+
+  _queueFileUpload = ({ file, path, encryptedEntityKey, encryptedFile }) => {
+    const entityId = uuidv4();
+    enqueue({
+      method: "POST",
+      path,
+      body: null,
+      entityType: "file_upload",
+      entityId,
+      fileUpload: {
+        fileName: file.fileName,
+        fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
+      },
+    });
+
+    // Return a placeholder — the caller builds document metadata from this
+    return {
+      ok: true,
+      data: { filename: `pending-${entityId}` },
+      encryptedEntityKey: encryptedEntityKey,
+      encryptedFile: encryptedFile,
+      _offlineQueued: true,
+    };
   };
   token = "";
   onLogIn = () => {};

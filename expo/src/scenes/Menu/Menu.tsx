@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Linking } from "react-native";
+import { Alert, Linking } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import Row from "../../components/Row";
@@ -7,12 +7,14 @@ import Spacer from "../../components/Spacer";
 import API from "../../services/api";
 import ScrollContainer from "../../components/ScrollContainer";
 import { MANO_DOWNLOAD_URL, MANO_TEST_ORGANISATION_ID } from "../../config";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { currentTeamState, organisationState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
+import { loadQueueFromStorage } from "../../services/offlineQueue";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { offlineModeState } from "@/atoms/offlineMode";
 
 type MenuProps = BottomTabScreenProps<TabsParamsList, "MENU">;
 
@@ -20,8 +22,28 @@ const Menu = ({ navigation }: MenuProps) => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
+  const [offlineMode, setOfflineMode] = useAtom(offlineModeState);
 
   const onLogoutRequest = async (clearAll = false) => {
+    const pendingCount = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "processing").length;
+    if (pendingCount > 0 && clearAll) {
+      Alert.alert(
+        "Modifications en attente",
+        `Vous avez ${pendingCount} modification${pendingCount > 1 ? "s" : ""} non synchronisée${pendingCount > 1 ? "s" : ""}. En vidant le cache, ces modifications seront perdues.`,
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Déconnecter quand même",
+            style: "destructive",
+            onPress: () => {
+              setIsLoggingOut(true);
+              API.logout(clearAll);
+            },
+          },
+        ],
+      );
+      return;
+    }
     setIsLoggingOut(true);
     API.logout(clearAll);
   };
@@ -38,6 +60,13 @@ const Menu = ({ navigation }: MenuProps) => {
     <SceneContainer>
       <ScreenTitle title="Menu" />
       <ScrollContainer noPadding>
+        <Spacer height={30} />
+        <Row
+          caption={!offlineMode ? "Activer le mode hors ligne" : "Désactiver le mode hors ligne"}
+          onPress={() => {
+            setOfflineMode(!offlineMode);
+          }}
+        />
         <Spacer height={30} />
         <Row
           withNextButton

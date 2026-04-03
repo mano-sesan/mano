@@ -35,4 +35,5 @@ export interface ActionInstance {
   completedAt?: PossibleDate;
   isConsultation?: boolean;
   recurrence?: UUIDV4;
+  _pendingSync?: boolean;
 }

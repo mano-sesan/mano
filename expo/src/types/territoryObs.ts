@@ -16,6 +16,7 @@ export interface TerritoryObservationInstance {
   documents?: Array<Document | Folder>;
 
   [key: string]: any; // custom fields
+  _pendingSync?: boolean;
 }
 
 export interface ReadyToEncryptTerritoryObservationInstance {

@@ -21,9 +21,7 @@ import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 
-const castToTerritory = (
-  territory: Partial<TerritoryInstance> = {},
-): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
+const castToTerritory = (territory: Partial<TerritoryInstance> = {}): Omit<TerritoryInstance, "_id" | "organisation"> => ({
   name: territory.name?.trim() || "",
   user: territory.user || "",
   types: territory.types || [],
@@ -31,6 +29,8 @@ const castToTerritory = (
   description: territory.description?.trim() || "",
   entityKey: territory.entityKey || "",
   documents: territory.documents || [],
+  updatedAt: territory.updatedAt || "",
+  createdAt: territory.createdAt || "",
 });
 
 type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;

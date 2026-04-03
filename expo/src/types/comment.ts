@@ -17,4 +17,5 @@ export interface CommentInstance {
   updatedAt?: Date;
   deletedAt?: Date;
   entityKey?: string;
+  _pendingSync?: boolean;
 }

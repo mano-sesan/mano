@@ -36,6 +36,7 @@ const castToReport = (report?: ReportInstance) =>
   ({
     description: report?.description?.trim() || "",
     collaborations: report?.collaborations || [],
+    updatedAt: report?.updatedAt || "",
   }) as ReportInstance;
 
 type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
