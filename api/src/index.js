@@ -130,6 +130,7 @@ app.use("/treatment", require("./controllers/treatment"));
 app.use("/group", require("./controllers/group"));
 app.use("/medical-file", require("./controllers/medicalFile"));
 app.use("/recurrence", require("./controllers/recurrence"));
+app.use("/document-share", require("./controllers/documentShare"));
 app.use("/transfer-team", require("./controllers/transferTeam"));
 app.use("/transfer-territory", require("./controllers/transferTerritory"));
 
