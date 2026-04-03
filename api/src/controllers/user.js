@@ -291,7 +291,10 @@ router.post(
 
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const teams = userTeams
+      .map((rel) => orgTeams.find((t) => t._id === rel.team))
+      .filter(Boolean)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     const token = jwt.sign({ _id: user._id }, config.SECRET, { expiresIn: JWT_MAX_AGE });
     res.cookie("jwt", token, cookieOptions());
@@ -360,7 +363,10 @@ router.get(
 
     const orgTeams = await Team.findAll({ where: { organisation: organisation._id }, order: [["createdAt", "ASC"]] });
     const userTeams = await RelUserTeam.findAll({ where: { user: user._id, team: { [Op.in]: orgTeams.map((t) => t._id) } } });
-    const teams = userTeams.map((rel) => orgTeams.find((t) => t._id === rel.team)).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const teams = userTeams
+      .map((rel) => orgTeams.find((t) => t._id === rel.team))
+      .filter(Boolean)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     createUserLog(req, user);
 
