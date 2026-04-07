@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import structuredClone from "@ungap/structured-clone";
 import { capture } from "../services/sentry";
 import type { PersonPopulated } from "../types/person";
 import type { CustomOrPredefinedField } from "../types/field";
@@ -135,92 +134,116 @@ export function computeEvolutiveStatsForPersons({
       selectedTeamsObjectWithOwnPeriod,
       assignedTeamsPeriods: person.assignedTeamsPeriods,
     });
-    for (const period of personPeriods) {
-      const periodStartDate = dayjsInstance(period.isoStartDate).format("YYYY-MM-DD");
-      if (periodStartDate > queryEndDateFormatted) continue;
-      const initSnapshotDate = periodStartDate > queryStartDateFormatted ? periodStartDate : queryStartDateFormatted;
-      const initSnapshot = getPersonSnapshotAtDate({
-        person,
-        snapshotDate: initSnapshotDate,
-        typesByFields,
-        onlyForFieldName: indicatorFieldName,
-        replaceNullishWithNonRenseigne: true,
-      });
-      let countSwitchedValueDuringThePeriod = 0;
+    if (personPeriods.length === 0) continue;
 
-      const currentRawValue = getValueByField(indicatorFieldName, indicatorFieldType, initSnapshot[indicatorFieldName ?? ""]);
-      let currentValue = Array.isArray(currentRawValue) ? currentRawValue : [currentRawValue].filter(Boolean);
-      let currentPerson = initSnapshot;
+    // Pre-format period bounds to YYYY-MM-DD so we can compare them against history dates directly.
+    // `mergedPersonAssignedTeamPeriodsWithQueryPeriod` returns sorted, non-overlapping periods, so we
+    // can walk them with a single cursor while iterating history chronologically.
+    const formattedPeriods = personPeriods.map((p) => ({
+      start: dayjsInstance(p.isoStartDate).format("YYYY-MM-DD"),
+      end: dayjsInstance(p.isoEndDate).format("YYYY-MM-DD"),
+    }));
 
-      for (const historyItem of person.history ?? []) {
-        const historyDate = dayjsInstance(historyItem.date).format("YYYY-MM-DD");
-        if (periodStartDate === historyDate) continue; // we don't want to take the snapshot date (it's already done before the loop)
-        if (historyDate < initSnapshotDate) continue;
-        if (historyDate > queryEndDateFormatted) break;
+    const firstPeriodStart = formattedPeriods[0].start;
+    if (firstPeriodStart > queryEndDateFormatted) continue;
 
-        let nextPerson = structuredClone(currentPerson);
-        for (const historyChangeField of Object.keys(historyItem.data)) {
-          if (historyChangeField !== indicatorFieldName) continue; // we support only one indicator for now
-          if (forbiddenPersonFieldsInHistory.includes(indicatorFieldName)) continue;
-          if (indicatorFieldName === "merge") continue;
-          const oldValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].oldValue);
-          const historyNewValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].newValue);
-          const currentPersonValue = getValueByField(indicatorFieldName, indicatorFieldType, currentPerson[historyChangeField]);
-          if (JSON.stringify(oldValue) !== JSON.stringify(currentPersonValue)) {
-            capture(new Error("Incoherent history in computeEvolutiveStatsForPersons"), {
-              extra: {
-                personPeriods,
-                periodStartDate,
-                historyDate,
-                initSnapshotDate,
-                queryEndDateFormatted,
-                historyItem,
-                historyChangeField,
-                oldValue,
-                historyNewValue,
-                currentPersonValue,
-                // currentPerson,
-                // person,
-                // initSnapshot,
-              },
-            });
-          }
+    // Single snapshot at the earliest effective start: we walk the whole history once and rely on the
+    // period cursor below to decide whether a given change should be counted. This mutualises the work
+    // that used to be duplicated across periods and also fixes two pre-existing issues:
+    //   1. switches were double-counted when a person had several disjoint periods (each period ran
+    //      its own history walk without any upper bound beyond queryEnd, so changes that occurred
+    //      during a later period were counted once per earlier period too);
+    //   2. switches that happened strictly outside any selected-team period (e.g. in a gap between
+    //      two periods, or after the person left all selected teams but before queryEnd) were counted
+    //      anyway, because the inner loop only checked queryEnd, never the period's own end.
+    const initSnapshotDate = firstPeriodStart > queryStartDateFormatted ? firstPeriodStart : queryStartDateFormatted;
+    const initSnapshot = getPersonSnapshotAtDate({
+      person,
+      snapshotDate: initSnapshotDate,
+      typesByFields,
+      onlyForFieldName: indicatorFieldName,
+      replaceNullishWithNonRenseigne: true,
+    });
 
-          if (oldValue === "") continue;
-          nextPerson = {
-            ...nextPerson,
-            [historyChangeField]: historyNewValue,
-          };
+    const currentRawValue = getValueByField(indicatorFieldName, indicatorFieldType, initSnapshot[indicatorFieldName ?? ""]);
+    let currentValue = Array.isArray(currentRawValue) ? currentRawValue : [currentRawValue].filter(Boolean);
+    let currentPerson = initSnapshot;
+    let countSwitchedForPerson = 0;
+    // Cursor into `formattedPeriods`. History is iterated chronologically and periods are sorted &
+    // non-overlapping, so we only ever advance the cursor forward → amortised O(1) membership test.
+    let periodCursor = 0;
+
+    for (const historyItem of person.history ?? []) {
+      const historyDate = dayjsInstance(historyItem.date).format("YYYY-MM-DD");
+      // Items on or before the snapshot date are already reflected in `initSnapshot` (see
+      // getPersonSnapshotAtDate: it applies every history item whose date <= snapshotDate).
+      if (historyDate <= initSnapshotDate) continue;
+      if (historyDate > queryEndDateFormatted) break;
+
+      // Shallow copy is sufficient: the loop below only reassigns top-level fields and never mutates
+      // nested values. A deep clone would be a major perf sink (see the previous commit).
+      let nextPerson = { ...currentPerson };
+      for (const historyChangeField of Object.keys(historyItem.data)) {
+        if (historyChangeField !== indicatorFieldName) continue; // we support only one indicator for now
+        if (forbiddenPersonFieldsInHistory.includes(indicatorFieldName)) continue;
+        if (indicatorFieldName === "merge") continue;
+        const oldValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].oldValue);
+        const historyNewValue = getValueByField(indicatorFieldName, indicatorFieldType, historyItem.data[historyChangeField].newValue);
+        const currentPersonValue = getValueByField(indicatorFieldName, indicatorFieldType, currentPerson[historyChangeField]);
+        if (JSON.stringify(oldValue) !== JSON.stringify(currentPersonValue)) {
+          capture(new Error("Incoherent history in computeEvolutiveStatsForPersons"), {
+            extra: {
+              personPeriods,
+              historyDate,
+              initSnapshotDate,
+              queryEndDateFormatted,
+              historyItem,
+              historyChangeField,
+              oldValue,
+              historyNewValue,
+              currentPersonValue,
+            },
+          });
         }
-        const nextRawValue = getValueByField(indicatorFieldName, indicatorFieldType, nextPerson[indicatorFieldName ?? ""]);
-        const nextValue = Array.isArray(nextRawValue) ? nextRawValue : [nextRawValue].filter(Boolean);
 
-        if (historyDate >= queryStartDateFormatted) {
-          // now we have the person at the date of the history item
+        if (oldValue === "") continue;
+        nextPerson = {
+          ...nextPerson,
+          [historyChangeField]: historyNewValue,
+        };
+      }
+      const nextRawValue = getValueByField(indicatorFieldName, indicatorFieldType, nextPerson[indicatorFieldName ?? ""]);
+      const nextValue = Array.isArray(nextRawValue) ? nextRawValue : [nextRawValue].filter(Boolean);
 
-          if (currentValue.includes(valueStart)) {
-            if (!nextValue.includes(valueStart)) {
-              countSwitchedValueDuringThePeriod++;
-              for (const value of nextValue) {
-                if (!personsIdsSwitchedByValue[value]) {
-                  personsIdsSwitchedByValue[value] = [];
-                }
-                personsIdsSwitchedByValue[value].push(person._id);
+      // Advance cursor past any period that ended strictly before this history date.
+      while (periodCursor < formattedPeriods.length && historyDate > formattedPeriods[periodCursor].end) {
+        periodCursor++;
+      }
+      const inSelectedTeamPeriod = periodCursor < formattedPeriods.length && historyDate >= formattedPeriods[periodCursor].start;
+
+      if (inSelectedTeamPeriod && historyDate >= queryStartDateFormatted) {
+        if (currentValue.includes(valueStart)) {
+          if (!nextValue.includes(valueStart)) {
+            countSwitchedForPerson++;
+            for (const value of nextValue) {
+              if (!personsIdsSwitchedByValue[value]) {
+                personsIdsSwitchedByValue[value] = [];
               }
+              personsIdsSwitchedByValue[value].push(person._id);
             }
           }
         }
-        currentPerson = nextPerson;
-        currentValue = nextValue;
       }
+      currentPerson = nextPerson;
+      currentValue = nextValue;
+    }
 
-      if (countSwitchedValueDuringThePeriod === 0) {
-        if (!personsIdsSwitchedByValue[valueStart]) {
-          personsIdsSwitchedByValue[valueStart] = [];
-        }
-        // FIXME: is there a bug here ? we don'tcheck if the person has the valueStart, should we ?
-        personsIdsSwitchedByValue[valueStart].push(person._id); // from `fromValue` to `fromValue`
+    if (countSwitchedForPerson === 0) {
+      if (!personsIdsSwitchedByValue[valueStart]) {
+        personsIdsSwitchedByValue[valueStart] = [];
       }
+      // FIXME: is there a bug here ? we don't check if the person has the valueStart, should we ?
+      personsIdsSwitchedByValue[valueStart].push(person._id); // from `fromValue` to `fromValue`
     }
   }
 
