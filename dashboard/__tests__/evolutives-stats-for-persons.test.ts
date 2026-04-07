@@ -560,6 +560,112 @@ describe("Stats evolutives", () => {
     expect(computed.percentSwitched).toBe(100);
   });
 
+  describe("Multi-équipes", () => {
+    // Scénario partagé :
+    // - deux équipes sélectionnées, T1 et T2
+    // - la personne est suivie par T1 en janvier, puis par T2 en mars (pas d'affectation en février)
+    // - période de requête large : janvier → mai
+    const selectedTeamsObjectWithOwnPeriod = {
+      "team-1": { isoStartDate: "2024-01-01", isoEndDate: "2024-05-01" },
+      "team-2": { isoStartDate: "2024-01-01", isoEndDate: "2024-05-01" },
+    };
+    const assignedTeamsPeriods = {
+      all: [{ isoStartDate: "2024-01-01", isoEndDate: null }],
+      "team-1": [{ isoStartDate: "2024-01-01", isoEndDate: "2024-02-01" }],
+      "team-2": [{ isoStartDate: "2024-03-01", isoEndDate: "2024-04-01" }],
+    };
+
+    test("un changement survenu pendant une période de suivi est compté une seule fois même quand plusieurs équipes sont sélectionnées", async () => {
+      // Avant la correction, la boucle historique était rejouée une fois par période retournée
+      // par la fusion des périodes d'affectation. Un changement qui tombait dans une période
+      // postérieure était donc recompté par le passage de chaque période antérieure (dont le
+      // parcours n'était pas borné par la fin de période mais seulement par queryEnd).
+      // Ici, le changement du 15 mars tombe dans la période de suivi T2 mais était aussi vu
+      // par le parcours de T1 → il était compté deux fois. La nouvelle implémentation doit
+      // le compter une seule fois.
+      const computed = computeEvolutiveStatsForPersons({
+        startDate: "2024-01-01T00:00:00.000Z",
+        endDate: "2024-05-01T00:00:00.000Z",
+        viewAllOrganisationData: false,
+        selectedTeamsObjectWithOwnPeriod,
+        evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+        evolutiveStatsIndicators: [
+          {
+            fieldName: "custom-2023-06-16T08-50-52-737Z",
+            fromValue: "Apatride",
+            toValue: "Française",
+            type: "enum",
+          },
+        ],
+        persons: [
+          {
+            ...personPopulated,
+            assignedTeamsPeriods,
+            "custom-2023-06-16T08-50-52-737Z": "Française",
+            history: [
+              {
+                date: dayjs("2024-03-15").toDate(),
+                data: {
+                  "custom-2023-06-16T08-50-52-737Z": {
+                    oldValue: "Apatride",
+                    newValue: "Française",
+                  },
+                },
+                user: "XXX",
+              },
+            ],
+          },
+        ],
+      });
+      expect(computed.countSwitched).toBe(1);
+      expect(computed.countPersonSwitched).toBe(1);
+      expect(computed.percentSwitched).toBe(100);
+    });
+
+    test("un changement survenu pendant un trou entre deux périodes de suivi n'est pas compté", async () => {
+      // Avant la correction, la borne haute du parcours historique était queryEnd et non la
+      // fin de période, donc un changement qui avait lieu pendant un trou (ici, en février
+      // entre les périodes T1 et T2) était compté bien qu'aucune équipe sélectionnée ne
+      // suive la personne à ce moment-là.
+      const computed = computeEvolutiveStatsForPersons({
+        startDate: "2024-01-01T00:00:00.000Z",
+        endDate: "2024-05-01T00:00:00.000Z",
+        viewAllOrganisationData: false,
+        selectedTeamsObjectWithOwnPeriod,
+        evolutiveStatsIndicatorsBase: mockedEvolutiveStatsIndicatorsBase,
+        evolutiveStatsIndicators: [
+          {
+            fieldName: "custom-2023-06-16T08-50-52-737Z",
+            fromValue: "Apatride",
+            toValue: "Française",
+            type: "enum",
+          },
+        ],
+        persons: [
+          {
+            ...personPopulated,
+            assignedTeamsPeriods,
+            "custom-2023-06-16T08-50-52-737Z": "Française",
+            history: [
+              {
+                date: dayjs("2024-02-15").toDate(),
+                data: {
+                  "custom-2023-06-16T08-50-52-737Z": {
+                    oldValue: "Apatride",
+                    newValue: "Française",
+                  },
+                },
+                user: "XXX",
+              },
+            ],
+          },
+        ],
+      });
+      expect(computed.countSwitched).toBe(0);
+      expect(computed.countPersonSwitched).toBe(0);
+    });
+  });
+
   test("If the end of the period is in the future, it should work", async () => {
     const computed = computeEvolutiveStatsForPersons({
       startDate: "2024-01-01T00:00:00.000Z",
