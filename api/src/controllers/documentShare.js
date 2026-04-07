@@ -113,34 +113,7 @@ router.post(
     }
 
     res.send({ ok: true, data: { token } });
-  }),
-);
-
-// List active shares for a person.
-router.get(
-  "/person/:personId",
-  passport.authenticate("user", { session: false, failWithError: true }),
-  validateUser(["admin", "normal"]),
-  catchErrors(async (req, res) => {
-    try {
-      z.object({ personId: z.string().regex(looseUuidRegex) }).parse(req.params);
-    } catch (e) {
-      return res.status(400).send({ ok: false, error: "Requête invalide." });
-    }
-
-    const shares = await DocumentShare.findAll({
-      where: {
-        organisation: req.user.organisation,
-        person: req.params.personId,
-        revokedAt: null,
-        expiresAt: { [Op.gt]: new Date() },
-      },
-      attributes: ["_id", "expiresAt", "downloadCount", "maxDownloads", "lockedAt", "accessedAt", "createdAt"],
-      order: [["createdAt", "DESC"]],
-    });
-
-    res.send({ ok: true, data: shares });
-  }),
+  })
 );
 
 // Revoke a share.
@@ -172,7 +145,7 @@ router.delete(
     await share.update({ revokedAt: new Date() });
 
     res.send({ ok: true });
-  }),
+  })
 );
 
 // Public: get share metadata (no auth).
@@ -201,7 +174,7 @@ router.get(
         maxDownloads: share.maxDownloads,
       },
     });
-  }),
+  })
 );
 
 // Public: download encrypted blob (no auth).
@@ -229,7 +202,7 @@ router.post(
           expiresAt: { [Op.gt]: new Date() },
           downloadCount: { [Op.lt]: sequelize.col("maxDownloads") },
         },
-      },
+      }
     );
 
     if (updatedCount === 0) {
@@ -250,7 +223,7 @@ router.post(
     }
 
     res.sendFile(filePath);
-  }),
+  })
 );
 
 module.exports = router;
