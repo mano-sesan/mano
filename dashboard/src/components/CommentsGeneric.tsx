@@ -23,8 +23,9 @@ import CustomFieldDisplay from "./CustomFieldDisplay";
 import StethoscopeIcon from "./StethoscopeIcon";
 import SelectTeam from "./SelectTeam";
 import { defaultModalActionState, modalActionState } from "../atoms/modal";
-import { itemsGroupedByActionSelector } from "../atoms/selectors";
+import { itemsGroupedByActionSelector, itemsGroupedByConsultationSelector, itemsGroupedByTreatmentSelector } from "../atoms/selectors";
 import CommentsSortableList from "./CommentsSortableList";
+import HoverableInfo from "./HoverableInfo";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
 
 /*
@@ -312,6 +313,8 @@ function CommentsTable({
   withFilters = false,
 }: CommentsTableProps) {
   const actionsObjects = useAtomValue(itemsGroupedByActionSelector);
+  const consultationsObjects = useAtomValue(itemsGroupedByConsultationSelector);
+  const treatmentsObjects = useAtomValue(itemsGroupedByTreatmentSelector);
   const setModalAction = useSetAtom(modalActionState);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
@@ -484,13 +487,49 @@ function CommentsTable({
                               }
                             }}
                           >
-                            <div className="tw-rounded tw-border tw-border-blue-900 tw-bg-blue-900/10 tw-px-1">
+                            <HoverableInfo
+                              as="div"
+                              className="tw-rounded tw-border tw-border-blue-900 tw-bg-blue-900/10 tw-px-1"
+                              tooltip={(() => {
+                                if (comment.type === "action" && actionsObjects[comment.action]) {
+                                  const a = actionsObjects[comment.action];
+                                  return (
+                                    <>
+                                      <div className="tw-font-semibold">{a?.name || "Action"}</div>
+                                      {a?.categories?.length ? <div>Catégories : {a.categories.join(", ")}</div> : null}
+                                    </>
+                                  );
+                                }
+                                if (comment.type === "consultation" && comment.consultation) {
+                                  const c = consultationsObjects[comment.consultation._id] as { name?: string; type?: string } | undefined;
+                                  if (c) {
+                                    return (
+                                      <>
+                                        <div className="tw-font-semibold">{c.name || "Consultation"}</div>
+                                        {c.type ? <div>Type : {c.type}</div> : null}
+                                      </>
+                                    );
+                                  }
+                                }
+                                if (comment.type === "treatment" && comment.treatment) {
+                                  const t = treatmentsObjects[comment.treatment._id] as { name?: string } | undefined;
+                                  if (t) {
+                                    return (
+                                      <>
+                                        <div className="tw-font-semibold">{t.name || "Traitement"}</div>
+                                      </>
+                                    );
+                                  }
+                                }
+                                return undefined;
+                              })()}
+                            >
                               {comment.type === "treatment" && "Traitement"}
                               {comment.type === "consultation" && "Consultation"}
                               {comment.type === "action" && "Action"}
                               {comment.type === "passage" && "Passage"}
                               {comment.type === "rencontre" && "Rencontre"}
-                            </div>
+                            </HoverableInfo>
                           </button>
                         )}
                       </div>
