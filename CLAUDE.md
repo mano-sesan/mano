@@ -176,5 +176,5 @@ Le message doit répondre à la question : **"Qu'est-ce qui change pour l'utilis
 ## Pull Requests
 
 - **Titre** : même format que les commits (`<type>(<scope>): <description>`)
-- **Description** : un court texte descriptif, pas de bullet points ni de section "généré par Claude"
+- **Description** : seulement si nécessaire, un court texte descriptif, pas de bullet points ni de section "généré par Claude"
 - **Checklist de test** : uniquement si le changement nécessite des vérifications non évidentes (cas limites, configurations spécifiques, etc.). Ne pas en ajouter quand c'est trivial
