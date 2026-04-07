@@ -29,6 +29,8 @@ fileignoreconfig:
   checksum: 2c19d1a80d3c9e50509b320c1bf294a86d3f8bc0a6ea2185d2d30ed913e5285f
 - filename: dashboard/src/scenes/report/view.jsx
   checksum: 9076b74a9e3528fccf0ae1a128867ca668b152ef4a39f83f8e66d58951b4b29a
+- filename: dashboard/src/services/shareEncryption.ts
+  checksum: 3d27752dba245fcaba69e80686c0eb1a0d758294344ecab6aa59750734dbe21f
 - filename: e2e/scripts/populate-db.ts
   checksum: 4dcf8959d9b95e0451eebbfa0bc372ada4b5186f8fbd65286454016c1434095d
 - filename: expo/src/App.tsx

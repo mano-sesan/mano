@@ -47,6 +47,7 @@ import Sandbox from "./scenes/sandbox";
 import { initialLoadIsDoneState, useDataLoader } from "./services/dataLoader";
 import ObservationModal from "./components/ObservationModal";
 import PlanDuSite from "./scenes/plan-du-site";
+import SharePublicPage from "./scenes/share/SharePublicPage";
 import { UploadProgressProvider } from "./components/document/DocumentsUpload";
 import { FORCE_LOGOUT_BROADCAST_KEY, isLogoutInitiatedByThisTab } from "./services/logout";
 import { disableCacheWrites, LOADING_ORG_BROADCAST_KEY } from "./services/dataManagement";
@@ -248,6 +249,7 @@ const App = () => {
         <ScrollToTop />
         <Switch>
           <SentryRoute path="/auth" component={Auth} />
+          <SentryRoute path="/partage/:token" component={SharePublicPage} />
           <SentryRoute path="/bac-a-sable" component={Sandbox} />
           <RestrictedRoute path="/charte" component={Charte} />
           <RestrictedRoute path="/account" component={Account} />

@@ -190,11 +190,44 @@ class Api {
     return response.json();
   }
 
+  async uploadWithFields({ path, file, fields = {} }: { path: string; file: File; fields?: Record<string, string> }) {
+    const formData = new FormData();
+    formData.append("file", file);
+    for (const [key, value] of Object.entries(fields)) {
+      formData.append(key, value);
+    }
+    const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus() }), {
+      mode: "cors",
+      credentials: "include",
+      headers: {
+        ...(this.token ? { Authorization: `JWT ${this.token}` } : {}),
+        Accept: "application/json",
+        platform: "dashboard",
+        version: "2.1.0",
+      },
+      method: "POST",
+      body: formData,
+    });
+    this.updateDeploymentStatus(response);
+    if (this.needAuthRedirection(response)) throw new AuthError();
+    return response.json();
+  }
+
   async download({ path, query = {} }: { path: string; query?: Record<string, string | Date | boolean> }) {
     const response = await fetch(this.getUrl(path, { ...this.organisationEncryptionStatus(), ...query }), { ...this.fetchParams(), method: "GET" });
     this.updateDeploymentStatus(response);
     if (this.needAuthRedirection(response)) throw new AuthError();
     return response.blob();
+  }
+
+  async downloadBlob({ path, method = "GET" }: { path: string; method?: "GET" | "POST" }) {
+    const response = await fetch(this.getUrl(path), { ...this.fetchParams(), method });
+    this.updateDeploymentStatus(response);
+    if (!response.ok) {
+      const result = await response.json();
+      return result;
+    }
+    return response.arrayBuffer();
   }
 
   async getSigninToken() {
