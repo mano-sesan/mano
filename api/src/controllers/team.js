@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const passport = require("passport");
 const { z } = require("zod");
+const { Op } = require("sequelize");
 const { looseUuidRegex } = require("../utils");
 const { catchErrors } = require("../errors");
 const { Team, RelUserTeam, sequelize } = require("../db/sequelize");
@@ -31,6 +32,10 @@ router.post(
     }
 
     let organisation = req.user.organisation;
+    const existingTeam = await Team.findOne({ where: { organisation, name: req.body.name } });
+    if (existingTeam) {
+      return res.status(400).send({ ok: false, error: "Une équipe avec ce nom existe déjà." });
+    }
     const team = await Team.create(
       { organisation, name: req.body.name, nightSession: req.body.nightSession || false, color: req.body.color || null },
       { returning: true }
@@ -103,6 +108,15 @@ router.put(
     if (req.body.hasOwnProperty("nightSession")) updateTeam.nightSession = req.body.nightSession;
     // eslint-disable-next-line no-prototype-builtins
     if (req.body.hasOwnProperty("color")) updateTeam.color = req.body.color;
+
+    if (updateTeam.name) {
+      const existingTeam = await Team.findOne({
+        where: { organisation: req.user.organisation, name: updateTeam.name, _id: { [Op.ne]: req.params._id } },
+      });
+      if (existingTeam) {
+        return res.status(400).send({ ok: false, error: "Une équipe avec ce nom existe déjà." });
+      }
+    }
 
     const query = { where: { _id: req.params._id, organisation: req.user.organisation } };
 
