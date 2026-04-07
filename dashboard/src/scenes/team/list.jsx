@@ -18,6 +18,22 @@ import { errorMessage } from "../../utils";
 import { getTeamColors } from "../../components/TagTeam";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
+// Palette de couleurs suffisamment foncées pour garantir un contraste RGAA AA
+// (ratio ≥ 4.5:1) avec du texte blanc. Utilisée comme couleur par défaut
+// lors de la création d'une nouvelle équipe.
+const rgaaSafeTeamColors = [
+  "#255c99", // bleu
+  "#124660", // bleu foncé
+  "#4a148c", // violet foncé
+  "#7a1f4d", // bordeaux
+  "#b71c1c", // rouge foncé
+  "#1b5e20", // vert foncé
+  "#3e2723", // brun
+  "#263238", // bleu-gris foncé
+  "#004d40", // sarcelle foncé
+  "#880e4f", // rose foncé
+];
+
 const defaultSort = (a, b, sortOrder) => (sortOrder === "ASC" ? (a.name || "").localeCompare(b.name) : (b.name || "").localeCompare(a.name));
 
 const sortTeams = (sortBy, sortOrder) => (a, b) => {
@@ -111,7 +127,13 @@ const Create = () => {
   const [user, setUser] = useAtom(userState);
   const organisation = useAtomValue(organisationState);
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const [open, setOpen] = useState(!teams.length);
+  const pickRandomColor = () => rgaaSafeTeamColors[Math.floor(Math.random() * rgaaSafeTeamColors.length)];
+  const [defaultColor, setDefaultColor] = useState(pickRandomColor);
+  const [open, setOpenState] = useState(!teams.length);
+  const setOpen = (value) => {
+    if (value) setDefaultColor(pickRandomColor());
+    setOpenState(value);
+  };
 
   const [onboardingEndModalOpen, setOnboardingEndModalOpen] = useState(false);
 
@@ -133,7 +155,8 @@ const Create = () => {
             </span>
           )}
           <Formik
-            initialValues={{ name: "", color: "#255c99" }}
+            enableReinitialize
+            initialValues={{ name: "", color: defaultColor }}
             onSubmit={async (values, actions) => {
               if (!values.name) {
                 toast.error("Vous devez choisir un nom");
@@ -249,7 +272,7 @@ const Create = () => {
                             type="color"
                             name="color"
                             id="color"
-                            value={values.color || "#255c99"}
+                            value={values.color || defaultColor}
                             onChange={handleChange}
                             className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
                           />
