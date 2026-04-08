@@ -16,6 +16,7 @@ import { MyText } from "../../components/MyText";
 import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import API from "../../services/api";
+import { offlineModeState } from "@/recoil/offlineMode";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../atoms/groups";
@@ -114,6 +115,7 @@ const NewActionForm = ({
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState)!;
   const user = useAtomValue(userState)!;
+  const offlineMode = useAtomValue(offlineModeState);
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [dueAt, setDueAt] = useState<PossibleDate | null>(null);
@@ -238,15 +240,33 @@ const NewActionForm = ({
       }
     });
 
-    const response = await API.post({
-      path: "/action/multiple",
-      body: await Promise.all(actions.map(API.encryptItem)),
-    });
+    let response: { ok: boolean; decryptedData?: any[]; data?: any; error?: string; code?: string; status?: number };
+
+    if (offlineMode) {
+      // In offline mode, enqueue each action individually (the offline queue can't handle array bodies)
+      const results = [];
+      for (const action of actions) {
+        const res = await API.post({ path: "/action", body: action, entityType: "action" });
+        if (!res.ok) {
+          setPosting(false);
+          Alert.alert(res.error || res.code);
+          return;
+        }
+        results.push(res.decryptedData || res.data);
+      }
+      response = { ok: true, decryptedData: results };
+    } else {
+      response = await API.post({
+        path: "/action/multiple",
+        body: await Promise.all(actions.map(API.encryptItem)),
+        offlineEnabled: false,
+      });
+    }
 
     setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
     setPosting(false);
     if (!response.ok) {
-      if (response.status !== 401) Alert.alert(response.error || response.code);
+      if (response.status !== 401) Alert.alert(response.error || response.code || "Erreur inconnue");
       return;
     }
 
@@ -255,9 +275,9 @@ const NewActionForm = ({
     if (!hasRecurrence) {
       onBack();
     } else {
-      const actionToRedirect = response.decryptedData[0];
+      const actionToRedirect = response.decryptedData![0];
       Sentry.setContext("action", { _id: actionToRedirect._id });
-      onActionCreated(response.decryptedData[0]);
+      onActionCreated(response.decryptedData![0]);
       setTimeout(() => setPosting(false), 250);
     }
   };

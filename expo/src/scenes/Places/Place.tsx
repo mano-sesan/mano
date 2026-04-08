@@ -53,6 +53,8 @@ const Place = ({ navigation, route }: PlaceProps) => {
         _id: placeDB._id,
         user: placeDB.user || user._id,
         entityKey: placeDB.entityKey,
+        createdAt: placeDB.createdAt,
+        updatedAt: placeDB.updatedAt,
       }),
     });
     if (response.error) {

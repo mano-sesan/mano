@@ -6,6 +6,8 @@ import colors from "../utils/colors";
 import ArrowLeftExtended from "../icons/ArrowLeftExtended";
 import { DEVMODE_HIDE_STATUS_BAR } from "../config";
 import { type Edge, SafeAreaView } from "react-native-safe-area-context";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { useAtomValue } from "jotai";
 
 const hitSlop = {
   top: 20,
@@ -54,7 +56,11 @@ const ScreenTitle = ({
 }: ScreenTitleProps) => {
   const showRightButton = Boolean(onAdd) || Boolean(onEdit) || Boolean(onSave);
   const showLeftButton = showRightButton || Boolean(onBack);
-  const topEdges = showRightButton || showLeftButton;
+  const offlineMode = useAtomValue(offlineModeState);
+  let topEdges = showRightButton || showLeftButton;
+  if (offlineMode) {
+    topEdges = false;
+  }
 
   return (
     <AnimatedSafeAreaView
@@ -147,12 +153,12 @@ const styles: Styles = {
           translateY: forceTop
             ? 0
             : parentScroll?.interpolate
-            ? parentScroll.interpolate({
-                inputRange: [0, 100],
-                outputRange: [90, 0],
-                extrapolate: "clamp",
-              })
-            : 0,
+              ? parentScroll.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [90, 0],
+                  extrapolate: "clamp",
+                })
+              : 0,
         },
       ],
     };
@@ -165,12 +171,12 @@ const styles: Styles = {
         translateY: forceTop
           ? 0
           : parentScroll?.interpolate
-          ? parentScroll.interpolate({
-              inputRange: [0, 100],
-              outputRange: [0, -90],
-              extrapolate: "clamp",
-            })
-          : 0,
+            ? parentScroll.interpolate({
+                inputRange: [0, 100],
+                outputRange: [0, -90],
+                extrapolate: "clamp",
+              })
+            : 0,
       },
     ],
   }),

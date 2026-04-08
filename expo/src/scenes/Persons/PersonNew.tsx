@@ -59,7 +59,6 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
   };
 
   const onCreateUser = async () => {
-    const now = Date.now();
     setPosting(true);
     const existingPerson = persons.find((p) => p.name === name);
     if (existingPerson) {

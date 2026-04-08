@@ -23,10 +23,30 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
   const setRefreshTrigger = useSetAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
-  const [rencontre, setRencontre] = useState<RencontreInstance>(
-    () =>
-      route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance),
-  );
+  const [rencontre, setRencontre] = useState<RencontreInstance>(() => {
+    if (route.params.rencontre) {
+      return {
+        _id: route.params.rencontre._id,
+        organisation: route.params.rencontre.organisation,
+        entityKey: route.params.rencontre.entityKey,
+        createdAt: route.params.rencontre.createdAt,
+        deletedAt: route.params.rencontre.deletedAt,
+        updatedAt: route.params.rencontre.updatedAt,
+        date: route.params.rencontre.date,
+        person: route.params.rencontre.person,
+        user: route.params.rencontre.user,
+        team: route.params.rencontre.team,
+        observation: route.params.rencontre.observation,
+        comment: route.params.rencontre.comment,
+      };
+    }
+    return {
+      date: new Date().toISOString(),
+      user: user._id,
+      team: currentTeam._id,
+      person: personId,
+    } as RencontreInstance;
+  });
   const [submitting, setSubmitting] = useState(false);
   const [rencontres, setRencontres] = useAtom(rencontresState);
 

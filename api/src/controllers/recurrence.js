@@ -22,6 +22,7 @@ router.post(
     }
 
     Recurrence.create({
+      _id: req.body._id || undefined,
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       timeInterval: req.body.timeUnit === "year" ? 1 : req.body.timeInterval,
@@ -35,7 +36,7 @@ router.post(
         data,
       });
     });
-  })
+  }),
 );
 
 router.put(
@@ -73,7 +74,7 @@ router.put(
       ok: true,
       data: recurrence,
     });
-  })
+  }),
 );
 
 router.get(
@@ -125,7 +126,7 @@ router.get(
       ],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
-  })
+  }),
 );
 
 module.exports = router;

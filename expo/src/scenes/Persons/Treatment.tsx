@@ -92,6 +92,8 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
       documents,
       comments,
       user: treatmentDB?.user ?? user._id,
+      updatedAt: treatmentDB?.updatedAt,
+      createdAt: treatmentDB?.createdAt,
     };
 
     if (!isNew) {

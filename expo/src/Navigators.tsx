@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
+import { Alert, InteractionManager, AppState, NativeEventSubscription, View } from "react-native";
 import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
@@ -38,9 +38,13 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
+import { startNetworkListener } from "./services/network";
+import { initQueue, clearQueue } from "./services/offlineQueue";
+import { processQueue } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { DataLoader, loaderFullScreenState, loadingState, progressState } from "./components/Loader";
+import OfflineBanner from "./components/OfflineBanner";
 import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
 import DotsIcon from "./icons/DotsIcon";
 import Notifications from "./scenes/Notifications/Notifications";
@@ -69,6 +73,7 @@ import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
+import ConflictResolution from "./scenes/Conflicts/ConflictResolution";
 import { store } from "./store";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
@@ -181,11 +186,17 @@ const App = () => {
   const clearAllRef = useRef(false);
 
   useEffect(() => {
+    // Initialize offline infrastructure
+    initQueue();
+    const unsubscribeNetworkListener = startNetworkListener();
+
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
       appStateListener.current = AppState.addEventListener("change", (nextAppState) => {
         if (appState.current.match(/inactive|background/) && nextAppState === "active") {
           if (API.token) API.get({ path: "/check-auth" }); // will force logout if session is expired
+          // Also try to process offline queue on app foreground
+          if (API.token) processQueue().catch(() => {});
           logEvents.logAppVisit();
         } else {
           logEvents.logAppClose();
@@ -204,6 +215,7 @@ const App = () => {
     return () => {
       logEvents.logAppClose();
       appStateListener.current?.remove();
+      unsubscribeNetworkListener?.();
     };
   }, []);
 
@@ -215,6 +227,7 @@ const App = () => {
     API.orgEncryptionKey = null;
     API.organisation = null;
     if (clearAllRef.current) {
+      clearQueue();
       await clearCache();
       resetAllRecoilStates();
       setLastRefresh(0);
@@ -265,6 +278,7 @@ const App = () => {
           ],
         }}
       >
+        <OfflineBanner />
         <AppStack.Navigator initialRouteName="LOGIN_STACK" screenOptions={{ gestureEnabled: false, headerShown: false }}>
           <AppStack.Screen name="LOGIN_STACK" component={LoginNavigator} key={resetLoginStackKey} />
           {!!isLoggedIn && (
@@ -319,9 +333,12 @@ const App = () => {
               <AppStack.Screen name="PRIVACY" component={Privacy} />
               <AppStack.Screen name="CGU" component={Cgu} />
               <AppStack.Screen name="CHARTE" component={Charte} />
+              {/* Conflicts */}
+              <AppStack.Screen name="CONFLICT_RESOLUTION" component={ConflictResolution} />
             </>
           )}
         </AppStack.Navigator>
+
         <DataLoader />
         <ProgressBar loading={loading} progress={progress} fullScreen={fullScreen} />
         <APKUpdater />
