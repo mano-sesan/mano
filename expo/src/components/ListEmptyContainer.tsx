@@ -26,8 +26,9 @@ export const ListEmptyPlaceWithName = (name: string) => () => <ListEmptyContaine
 export const ListEmptyComments = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire à afficher" />;
 export const ListEmptyRencontres = () => <ListEmptyContainer opaque text="Il n'y a pas de rencontre à afficher" />;
 // eslint-disable-next-line react/display-name
-export const ListEmptyCollaboration = (collaboration: string) => () =>
-  <ListEmptyContainer text={`Vous n'avez pas encore collaboré avec ${collaboration}`} />;
+export const ListEmptyCollaboration = (collaboration: string) => () => (
+  <ListEmptyContainer text={`Vous n'avez pas encore collaboré avec ${collaboration}`} />
+);
 export const ListEmptyUrgent = () => <ListEmptyContainer opaque text="Il n'y a pas d'élément prioritaire à afficher" />;
 export const ListEmptyUrgentAction = () => <ListEmptyContainer opaque text="Il n'y a pas d'action urgente à afficher" />;
 export const ListEmptyUrgentComment = () => <ListEmptyContainer opaque text="Il n'y a pas de commentaire urgent à afficher" />;

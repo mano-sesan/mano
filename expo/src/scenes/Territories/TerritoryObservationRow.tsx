@@ -77,7 +77,7 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(observation);
         if (options[buttonIndex!] === "Supprimer") onObservationDeleteRequest();
-      },
+      }
     );
   };
 

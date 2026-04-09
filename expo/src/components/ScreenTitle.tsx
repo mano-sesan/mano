@@ -147,12 +147,12 @@ const styles: Styles = {
           translateY: forceTop
             ? 0
             : parentScroll?.interpolate
-            ? parentScroll.interpolate({
-                inputRange: [0, 100],
-                outputRange: [90, 0],
-                extrapolate: "clamp",
-              })
-            : 0,
+              ? parentScroll.interpolate({
+                  inputRange: [0, 100],
+                  outputRange: [90, 0],
+                  extrapolate: "clamp",
+                })
+              : 0,
         },
       ],
     };
@@ -165,12 +165,12 @@ const styles: Styles = {
         translateY: forceTop
           ? 0
           : parentScroll?.interpolate
-          ? parentScroll.interpolate({
-              inputRange: [0, 100],
-              outputRange: [0, -90],
-              extrapolate: "clamp",
-            })
-          : 0,
+            ? parentScroll.interpolate({
+                inputRange: [0, 100],
+                outputRange: [0, -90],
+                extrapolate: "clamp",
+              })
+            : 0,
       },
     ],
   }),

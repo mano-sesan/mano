@@ -56,7 +56,7 @@ router.post(
 
     const data = await Structure.create(newStructure, { returning: true });
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.post(
@@ -77,7 +77,7 @@ router.post(
             phone: z.optional(z.string()),
             email: z.optional(z.string()),
             categories: z.optional(z.array(z.string())),
-          }),
+          })
         ),
       }).parse(req.body);
     } catch (e) {
@@ -105,7 +105,7 @@ router.post(
     return res.status(200).send({
       ok: true,
     });
-  }),
+  })
 );
 
 router.get(
@@ -140,7 +140,7 @@ router.get(
 
     const data = await Structure.findAll(query);
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.get(
@@ -161,7 +161,7 @@ router.get(
     const data = await Structure.findOne({ where: { _id, organisation: req.user.organisation } });
     if (!data) return res.status(404).send({ ok: false, error: "Not Found" });
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.put(
@@ -176,7 +176,7 @@ router.put(
           z.object({
             groupTitle: z.string(),
             categories: z.array(z.string()),
-          }),
+          })
         ),
         oldCategory: z.string(),
         newCategory: z.string(),
@@ -196,7 +196,7 @@ router.put(
       // in every organisation structure, replace the old category with new category
       await Structure.update(
         { categories: sequelize.fn("array_replace", sequelize.col("categories"), oldCategory, newCategory) },
-        { where: { organisation: req.user.organisation }, transaction: tx },
+        { where: { organisation: req.user.organisation }, transaction: tx }
       );
 
       organisation.set({ structuresGroupedCategories });
@@ -206,7 +206,7 @@ router.put(
       });
     });
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
-  }),
+  })
 );
 
 router.put(
@@ -259,7 +259,7 @@ router.put(
     if (!count) return res.status(404).send({ ok: false, error: "Not Found" });
     const data = array[0];
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.delete(
@@ -279,7 +279,7 @@ router.delete(
     const _id = req.params._id;
     await Structure.destroy({ where: { _id, organisation: req.user.organisation } });
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 module.exports = router;

@@ -32,7 +32,7 @@ test("test", async ({ page }) => {
   await page.getByRole("button", { name: "Personnes suivies", exact: true }).click();
   await page
     .getByLabel(
-      'Activer la possibilité d\'ajouter des liens familiaux entre personnes. Un onglet "Famille" sera rajouté dans les personnes, et vous pourrez créer des actions, des commentaires et des documents visibles pour toute la famille.',
+      'Activer la possibilité d\'ajouter des liens familiaux entre personnes. Un onglet "Famille" sera rajouté dans les personnes, et vous pourrez créer des actions, des commentaires et des documents visibles pour toute la famille.'
     )
     .check();
   await page.getByRole("button", { name: "Mettre à jour" }).first().click();

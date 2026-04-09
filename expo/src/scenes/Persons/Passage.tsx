@@ -25,7 +25,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
   const user = useAtomValue(userState)!;
   const [passage, setPassage] = useState(
     () =>
-      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance),
+      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance)
   );
   const [submitting, setSubmitting] = useState(false);
   const [passages, setPassages] = useAtom(passagesState);

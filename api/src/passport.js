@@ -11,7 +11,7 @@ module.exports = (app) => {
       if (!token) token = req.cookies.jwt;
       return token;
     },
-    secretOrKey: SECRET
+    secretOrKey: SECRET,
   };
 
   passport.use(

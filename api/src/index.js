@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === "production") {
     cors({
       credentials: true,
       origin: ["http://localhost:1420", "http://localhost:4145", "http://localhost:8083", "http://localhost:8090", "http://localhost:3000"],
-    }),
+    })
   );
 }
 

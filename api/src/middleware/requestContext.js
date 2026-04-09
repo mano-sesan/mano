@@ -5,4 +5,3 @@ const { runWithRequestContext } = require("../utils/requestContext");
 module.exports = function requestContextMiddleware(_req, _res, next) {
   runWithRequestContext(() => next());
 };
-

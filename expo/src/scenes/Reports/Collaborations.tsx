@@ -141,7 +141,7 @@ const Collaborations = ({ route, navigation }: Props) => {
         <Spacer height={15} />
       </>
     ),
-    [isReadyToSave, onCreateCollaboration, posting],
+    [isReadyToSave, onCreateCollaboration, posting]
   );
 
   return (

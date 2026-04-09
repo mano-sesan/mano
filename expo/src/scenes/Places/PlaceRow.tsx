@@ -37,7 +37,7 @@ const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps
           });
         }
         if (options[buttonIndex!] === "Retirer") onRelPersonPlaceRequest();
-      },
+      }
     );
   };
 

@@ -218,7 +218,7 @@ const NewActionForm = ({
             dueAt: !withTime
               ? occurrence
               : dayjsInstance(occurrence).set("hour", dayjsInstance(dueAt).hour()).set("minute", dayjsInstance(dueAt).minute()).toDate(),
-          }),
+          })
         );
       } else {
         return prepareActionForEncryption({

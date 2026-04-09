@@ -35,7 +35,7 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") setUpdateModalVisible(true);
         if (options[buttonIndex!] === "Supprimer") onCommentDeleteRequest();
-      },
+      }
     );
   };
 

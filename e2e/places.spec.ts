@@ -102,7 +102,7 @@ test("Territoires et lieux fréquentés", async ({ page }) => {
 
   page.once("dialog", (dialog) => {
     expect(dialog.message()).toBe(
-      'Voulez-vous vraiment supprimer le lieu "gare du nord" ? Cette action est irréversible et entrainera la suppression de tous les lieux fréquentés associés.',
+      'Voulez-vous vraiment supprimer le lieu "gare du nord" ? Cette action est irréversible et entrainera la suppression de tous les lieux fréquentés associés.'
     );
     dialog.accept();
   });

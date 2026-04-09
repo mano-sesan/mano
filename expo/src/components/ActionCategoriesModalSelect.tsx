@@ -55,7 +55,7 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
 
   const mostUsedCategoriesToShow = useMemo(
     () => categoriesSortedByMostUsed.filter((category) => !values.some((_category) => _category === category)).slice(0, 5),
-    [categoriesSortedByMostUsed, values],
+    [categoriesSortedByMostUsed, values]
   );
 
   const groups = useMemo(() => {

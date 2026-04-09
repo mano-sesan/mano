@@ -35,7 +35,7 @@ const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps)
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(person!);
         if (options[buttonIndex!] === "Supprimer") onRencontreDeleteRequest();
-      },
+      }
     );
   };
 

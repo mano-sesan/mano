@@ -110,7 +110,7 @@ const Structure = ({ navigation, route }: Props) => {
         structures.map((s) => {
           if (s._id === response.data._id) return response.data;
           return s;
-        }),
+        })
       );
       setStructureDB(response.data);
       setUpdating(false);

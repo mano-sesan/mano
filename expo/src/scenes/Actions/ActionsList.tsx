@@ -92,7 +92,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
         if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
           navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
         }
-      },
+      }
     );
   };
 
@@ -106,7 +106,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
       Sentry.setContext("person", { _id: person._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("PERSON_STACK", { person });
     },
-    [navigation],
+    [navigation]
   );
 
   const onActionPress = useCallback(
@@ -114,14 +114,14 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
       Sentry.setContext("action", { _id: action._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("ACTION_STACK", { action });
     },
-    [navigation],
+    [navigation]
   );
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK", { personDB, consultationDB });
     },
-    [navigation],
+    [navigation]
   );
 
   const renderItem = ({ item }: { item: ActionInstance | ConsultationInstance }) => {

@@ -46,14 +46,14 @@ const Consultations = ({ route, navigation }: Props) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.push("PERSON_STACK", { person });
     },
-    [navigation],
+    [navigation]
   );
 
   const onConsultationPress = useCallback(
     (consultationDB: ConsultationInstance, personDB: PersonInstance) => {
       navigation.push("CONSULTATION_STACK", { personDB, consultationDB });
     },
-    [navigation],
+    [navigation]
   );
 
   const renderItem = ({ item: consultation }: { item: ConsultationInstance }) => {
@@ -67,7 +67,7 @@ const Consultations = ({ route, navigation }: Props) => {
       <ScreenTitle
         title={`Consultations ${status === DONE ? "faites" : status === CANCEL ? "annulées" : "créées"}\n${getPeriodTitle(
           date,
-          currentTeam?.nightSession,
+          currentTeam?.nightSession
         )}`}
         onBack={navigation.goBack}
       />
