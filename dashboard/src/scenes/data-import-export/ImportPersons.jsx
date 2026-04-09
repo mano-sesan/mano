@@ -97,20 +97,10 @@ export default function ImportPersons() {
       const lastRow = parseInt(personsSheet["!ref"].split(":")[1].replace(/\D+/g, ""), 10);
 
       const nameField = importableFields.find((f) => f.name === "name");
-      const assignedTeamsField = importableFields.find((f) => f.name === "assignedTeams");
 
       if (!headerColumnsAndField.find((e) => e[1]?.name === "name")) {
         toast.error(
           `La colonne "${nameField.label}" est requise. Vérifiez votre fichier pour vous assurer que cette colonne existe et est correctement nommée. Vous pouvez vérifier avec le fichier d'exemple que les colonnes sont bien identiques.`,
-          { autoClose: 5000 }
-        );
-        setReloadKey((k) => k + 1);
-        return;
-      }
-
-      if (!headerColumnsAndField.find((e) => e[1]?.name === "assignedTeams")) {
-        toast.error(
-          `La colonne "${assignedTeamsField.label}" est requise. Vérifiez votre fichier pour vous assurer que cette colonne existe et est correctement nommée. Vous pouvez vérifier avec le fichier d'exemple que les colonnes sont bien identiques.`,
           { autoClose: 5000 }
         );
         setReloadKey((k) => k + 1);
@@ -140,11 +130,6 @@ export default function ImportPersons() {
           person.description = `Données importées le ${formatDateWithFullMonth(now())}\n${person.description || ""}`;
           if (!person.name) {
             toast.error(`La colonne "${nameField.label}" ne doit pas être vide, vérifiez la ligne ${i} du fichier.`);
-            setReloadKey((k) => k + 1);
-            return;
-          }
-          if (!person.assignedTeams?.length) {
-            toast.error(`La colonne "${assignedTeamsField.label}" ne doit pas être vide, vérifiez la ligne ${i} du fichier.`);
             setReloadKey((k) => k + 1);
             return;
           }
