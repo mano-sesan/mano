@@ -224,7 +224,7 @@ function TeamSelector() {
       <MenuItems
         anchor="bottom start"
         transition
-        className="tw-z-50 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
+        className="tw-z-50 tw-min-w-52 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
       >
         {availableTeams.map((team) => {
           const _teamColors = getTeamColors(
