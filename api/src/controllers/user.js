@@ -682,7 +682,14 @@ router.get(
   "/search",
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
-  catchErrors(async (req, res) => {
+  catchErrors(async (req, res, next) => {
+    try {
+      z.object({ search: z.string().max(200).optional().default("") }).parse(req.query);
+    } catch (e) {
+      const error = new Error(`Invalid request in user search: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
     const search = req.query.search || "";
     const users = await User.findAll({
       where: {

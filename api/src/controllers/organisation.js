@@ -119,7 +119,7 @@ router.get(
       totalOrganisations: organisations.length,
       organisationsWithProblems: organisationsWithDuplicates.length,
     });
-  }),
+  })
 );
 
 // Fix duplicate field names in customFieldsPersons for specific organisations
@@ -222,7 +222,7 @@ router.post(
       ok: true,
       data: results,
     });
-  }),
+  })
 );
 
 router.get(
@@ -270,7 +270,7 @@ router.get(
     const territoryObservations = await TerritoryObservation.count(query);
     const territories = await Territory.count(query);
     const recurrences = await Recurrence.count(
-      query.where[Op.or] ? { ...query, where: { ...query.where, [Op.or]: query.where[Op.or].filter((item) => !item.deletedAt) } } : query,
+      query.where[Op.or] ? { ...query, where: { ...query.where, [Op.or]: query.where[Op.or].filter((item) => !item.deletedAt) } } : query
     );
 
     // Medical data is never saved in cache so we always have to download all at every page reload.
@@ -301,7 +301,7 @@ router.get(
         recurrences,
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -354,7 +354,7 @@ router.post(
         consultations: defaultConsultationsFields,
         migrations: ["custom-fields-persons-setup", "custom-fields-persons-refacto-regroup"],
       },
-      { returning: true },
+      { returning: true }
     );
     const token = crypto.randomBytes(20).toString("hex");
     const adminUser = await User.create(
@@ -367,17 +367,17 @@ router.post(
         forgotPasswordResetToken: token,
         forgotPasswordResetExpires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000), // 30 days
       },
-      { returning: true },
+      { returning: true }
     );
     await mailservice.sendEmail(
       adminUser.email,
       "Bienvenue dans Mano",
       null,
-      mailBienvenueHtml(adminUser.name, adminUser.email, organisation.name, token, organisation.responsible),
+      mailBienvenueHtml(adminUser.name, adminUser.email, organisation.name, token, organisation.responsible)
     );
 
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.get(
@@ -528,7 +528,7 @@ router.get(
       superadmins,
       usersConnectedLast24h,
     });
-  }),
+  })
 );
 
 router.put(
@@ -563,7 +563,7 @@ router.put(
       });
     }
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
-  }),
+  })
 );
 
 router.put(
@@ -588,8 +588,8 @@ router.put(
             z.object({
               name: z.string().min(1),
               fields: z.array(customFieldSchema),
-            }),
-          ),
+            })
+          )
         ),
         groupedCustomFieldsMedicalFile: z.optional(z.array(customFieldGroupSchema)),
         consultations: z.optional(
@@ -597,8 +597,8 @@ router.put(
             z.object({
               name: z.string().min(1),
               fields: z.array(customFieldSchema),
-            }),
-          ),
+            })
+          )
         ),
         encryptedVerificationKey: z.optional(z.string().min(1)),
         encryptionEnabled: z.optional(z.boolean()),
@@ -690,7 +690,7 @@ router.put(
       ok: true,
       data: serializeOrganisation(organisation),
     });
-  }),
+  })
 );
 
 router.put(
@@ -742,7 +742,7 @@ router.put(
       ok: true,
       data: serializeOrganisation(organisation),
     });
-  }),
+  })
 );
 
 router.delete(
@@ -785,11 +785,11 @@ router.delete(
       recipients,
       "Organisation supprimée",
       null,
-      `L'organisation ${organisation.name} (responsable: ${organisation.responsible}) a été supprimée de Mano par ${req.user.name} (${req.user.email}).`,
+      `L'organisation ${organisation.name} (responsable: ${organisation.responsible}) a été supprimée de Mano par ${req.user.name} (${req.user.email}).`
     );
 
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.get(
@@ -808,7 +808,7 @@ router.get(
     }
     const data = await Organisation.findOne({ where: { _id: req.params.id } });
     return res.status(200).send({ ok: true, data });
-  }),
+  })
 );
 
 router.get(
@@ -827,7 +827,7 @@ router.get(
     }
     const teams = await Team.findAll({ where: { organisation: req.params.id }, order: [["createdAt", "ASC"]] });
     return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
-  }),
+  })
 );
 
 // Récupère la liste complète des données supprimée pour une organisation
@@ -880,7 +880,7 @@ router.get(
         treatments,
       },
     });
-  }),
+  })
 );
 
 // Restaure des données arbitraires dans une organisation (pas de vérification de cohérence)
@@ -928,7 +928,7 @@ router.post(
           {
             replacements: { ids: persons, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (groups.length) {
@@ -937,7 +937,7 @@ router.post(
           {
             replacements: { ids: groups, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (actions.length) {
@@ -946,7 +946,7 @@ router.post(
           {
             replacements: { ids: actions, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (comments.length) {
@@ -955,7 +955,7 @@ router.post(
           {
             replacements: { ids: comments, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (passages.length) {
@@ -964,7 +964,7 @@ router.post(
           {
             replacements: { ids: passages, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (rencontres.length) {
@@ -973,7 +973,7 @@ router.post(
           {
             replacements: { ids: rencontres, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (consultations.length) {
@@ -982,7 +982,7 @@ router.post(
           {
             replacements: { ids: consultations, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (treatments.length) {
@@ -991,7 +991,7 @@ router.post(
           {
             replacements: { ids: treatments, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (medicalFiles.length) {
@@ -1000,7 +1000,7 @@ router.post(
           {
             replacements: { ids: medicalFiles, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (relsPersonPlaces.length) {
@@ -1009,13 +1009,13 @@ router.post(
           {
             replacements: { ids: relsPersonPlaces, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
     });
 
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 // SUpprime définitivement des données arbitraires dans une organisation (pas de vérification de cohérence)
@@ -1118,7 +1118,7 @@ router.delete(
           {
             replacements: { ids: consultations, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (treatments.length) {
@@ -1133,7 +1133,7 @@ router.delete(
           {
             replacements: { ids: medicalFiles, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (relsPersonPlaces.length) {
@@ -1142,7 +1142,7 @@ router.delete(
           {
             replacements: { ids: relsPersonPlaces, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (reports.length) {
@@ -1163,7 +1163,7 @@ router.delete(
           {
             replacements: { ids: territoryObservations, organisation: req.user.organisation },
             transaction: tx,
-          },
+          }
         );
       }
       if (territories.length) {
@@ -1175,7 +1175,7 @@ router.delete(
     });
 
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 // Liste tous les fichiers physiques sur le disque pour une organisation
@@ -1287,7 +1287,7 @@ router.get(
     const pendingFilenames = pendingOrphanedFiles.map((o) => o.filename);
 
     return res.status(200).send({ ok: true, data: { files, pendingOrphanedFilenames: pendingFilenames } });
-  }),
+  })
 );
 
 // Supprime un fichier orphelin du disque
@@ -1358,7 +1358,7 @@ router.delete(
     }
 
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1628,7 +1628,7 @@ router.post(
           groupedCustomFieldsMedicalFile: mainGroupedCustomFieldsMedicalFile,
           collaborations: mainCollaborations,
         },
-        { transaction: t },
+        { transaction: t }
       );
       // End merging organisation configuration
 
@@ -1662,7 +1662,7 @@ router.post(
       });
 
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1670,6 +1670,13 @@ router.post(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
   catchErrors(async (req, res, next) => {
+    try {
+      z.object({ id: z.string().regex(looseUuidRegex) }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation disable: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
     const { id } = req.params;
     const organisation = await Organisation.findOne({ where: { _id: id } });
     if (!organisation) {
@@ -1682,7 +1689,7 @@ router.post(
       await organisation.update({ disabledAt: new Date() }, { transaction: t });
     });
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1690,6 +1697,13 @@ router.post(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["superadmin"]),
   catchErrors(async (req, res, next) => {
+    try {
+      z.object({ id: z.string().regex(looseUuidRegex) }).parse(req.params);
+    } catch (e) {
+      const error = new Error(`Invalid request in organisation enable: ${e}`);
+      error.status = 400;
+      return next(error);
+    }
     const { id } = req.params;
     const organisation = await Organisation.findOne({ where: { _id: id } });
     if (!organisation) {
@@ -1702,7 +1716,7 @@ router.post(
       await organisation.update({ disabledAt: null }, { transaction: t });
     });
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1715,11 +1729,11 @@ router.post(
       // On exclut l'organisation du superadmin pour qu'il conserve son accès et puisse réactiver ensuite.
       await Organisation.update(
         { disabledAt: new Date() },
-        { where: { disabledAt: null, _id: { [Op.ne]: req.user.organisation } }, transaction: t, individualHooks: true },
+        { where: { disabledAt: null, _id: { [Op.ne]: req.user.organisation } }, transaction: t, individualHooks: true }
       );
     });
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -1732,7 +1746,7 @@ router.post(
       await Organisation.update({ disabledAt: null }, { where: { disabledAt: { [Op.ne]: null } }, transaction: t, individualHooks: true });
     });
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.get(
@@ -1775,7 +1789,7 @@ router.get(
       ok: true,
       data: logs,
     });
-  }),
+  })
 );
 
 router.get(
@@ -1983,7 +1997,7 @@ router.get(
       }
       const dirExists = await fs.promises.access(orgStorageDir).then(
         () => true,
-        () => false,
+        () => false
       );
       if (dirExists) {
         let totalSize = 0;
@@ -2018,7 +2032,7 @@ router.get(
         documentsFolderSize,
       },
     });
-  }),
+  })
 );
 
 module.exports = router;
