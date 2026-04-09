@@ -67,7 +67,7 @@ const Place = ({ navigation, route }: PlaceProps) => {
             if (p._id === placeDB._id) return response.decryptedData;
             return p;
           })
-          .sort(sortByName),
+          .sort(sortByName)
       );
       setUpdating(false);
       Alert.alert("Lieu mis à jour !", undefined, [{ text: "OK", onPress: onBack }]);

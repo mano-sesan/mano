@@ -369,7 +369,7 @@ export const useActionsByStatusAndTimeframeSelector = (
   status: ActionStatus,
   limit?: number,
   timeframe?: string,
-  filters?: { categories?: string[] },
+  filters?: { categories?: string[] }
 ) => {
   if (status === DONE) {
     // eslint-disable-next-line react-hooks/rules-of-hooks

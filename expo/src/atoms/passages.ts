@@ -23,7 +23,7 @@ export const preparePassageForEncryption = (passage: Partial<PassageInstance>) =
   } catch (error) {
     Alert.alert(
       "Le passage n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
     );
     capture(error);
     throw error;

@@ -69,7 +69,7 @@ export default function PersonRow({ onPress, person, isPersonsSearchRow = false,
         if (options[buttonIndex!] === "Ajouter un lieu fréquenté") {
           navigation.push("PLACE_NEW", { person });
         }
-      },
+      }
     );
   };
 

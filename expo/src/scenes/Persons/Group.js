@@ -27,7 +27,7 @@ const Group = ({ personDB, navigation }) => {
           style: "cancel",
         },
       ],
-      { cancelable: true },
+      { cancelable: true }
     );
   };
 

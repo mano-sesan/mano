@@ -26,7 +26,7 @@ melissa.saiter@sesan.fr<br />
 <li>Guillaume - 07 68 55 81 48 - guillaume.demirhan@sesan.fr</li>
 </ul>`
     : resp === "Simon"
-    ? `<p><b>Simon LESGOURGUES</b><br />
+      ? `<p><b>Simon LESGOURGUES</b><br />
 simon.lesgourgues@sesan.fr<br />
 06 62 94 76 88</p>
 <p><b>Votre référent n'est pas disponible&nbsp;?</b></p>
@@ -34,7 +34,7 @@ simon.lesgourgues@sesan.fr<br />
 <li>Melissa - 07 49 08 27 10 - melissa.saiter@sesan.fr</li>
 <li>Guillaume - 07 68 55 81 48 - guillaume.demirhan@sesan.fr</li>
 </ul>`
-    : `<p><b>Guillaume DEMIRHAN</b><br />
+      : `<p><b>Guillaume DEMIRHAN</b><br />
 guillaume.demirhan@sesan.fr<br />
 07 68 55 81 48</p>
 <p><b>Votre référent n'est pas disponible&nbsp;?</b></p>

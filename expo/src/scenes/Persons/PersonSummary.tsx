@@ -101,17 +101,17 @@ const PersonSummary = ({
 
   const sortedActions = useMemo(
     () => [...(actionsWithoutFutureRecurrences(actions || []) || [])].sort((p1, p2) => (p1.dueAt! > p2.dueAt! ? -1 : 1)),
-    [actions],
+    [actions]
   );
   const sortedComments = useMemo(
     () => [...(comments || [])].sort((c1, c2) => ((c1.date || c1.createdAt) > (c2.date || c2.createdAt) ? -1 : 1)),
-    [comments],
+    [comments]
   );
   const sortedRencontres = useMemo(() => [...(rencontres || [])].sort((r1, r2) => (r1.date > r2.date ? -1 : 1)), [rencontres]);
   const sortedPassages = useMemo(() => [...(passages || [])].sort((r1, r2) => (r1.date > r2.date ? -1 : 1)), [passages]);
   const sortedRelPersonPlace = useMemo(
     () => [...(relsPersonPlace || [])].sort((r1, r2) => (r1.createdAt > r2.createdAt ? -1 : 1)),
-    [relsPersonPlace],
+    [relsPersonPlace]
   );
 
   const allPlaces = useAtomValue(placesState) as PlaceInstance[];
@@ -129,7 +129,7 @@ const PersonSummary = ({
       Sentry.setContext("action", { _id: action._id });
       navigation.push("ACTION_STACK", { action });
     },
-    [navigation],
+    [navigation]
   );
 
   return (
@@ -358,7 +358,7 @@ const PersonSummary = ({
                           comments.map((c) => {
                             if (c._id === comment._id) return response.decryptedData;
                             return c;
-                          }),
+                          })
                         );
                         return true;
                       }

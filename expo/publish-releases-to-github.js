@@ -44,7 +44,7 @@ const publishApksToGithub = async () => {
     // Upload standard variant with tag m{version}
     console.log(chalk.blue(`Publishing standard APK with tag m${mobileAppVersion}...`));
     const standardResult = await exec(
-      `gh release create m${mobileAppVersion} "${standardApkPath}" ./app.config.ts --target main --title "Mano v${mobileAppVersion}"`,
+      `gh release create m${mobileAppVersion} "${standardApkPath}" ./app.config.ts --target main --title "Mano v${mobileAppVersion}"`
     );
 
     if (standardResult.stderr?.length) {
@@ -57,7 +57,7 @@ const publishApksToGithub = async () => {
     // Upload Niort variant with tag niort{version}
     console.log(chalk.blue(`\nPublishing Niort APK with tag niort${mobileAppVersion}...`));
     const niortResult = await exec(
-      `gh release create niort${mobileAppVersion} "${niortApkPath}" ./app.config.ts --target main --title "Mano Niort v${mobileAppVersion}"`,
+      `gh release create niort${mobileAppVersion} "${niortApkPath}" ./app.config.ts --target main --title "Mano Niort v${mobileAppVersion}"`
     );
 
     if (niortResult.stderr?.length) {
@@ -70,7 +70,7 @@ const publishApksToGithub = async () => {
     // Upload Nantes variant with tag nantes{version}
     console.log(chalk.blue(`\nPublishing Nantes APK with tag nantes${mobileAppVersion}...`));
     const nantesResult = await exec(
-      `gh release create nantes${mobileAppVersion} "${nantesApkPath}" ./app.config.ts --target main --title "Mano Nantes v${mobileAppVersion}"`,
+      `gh release create nantes${mobileAppVersion} "${nantesApkPath}" ./app.config.ts --target main --title "Mano Nantes v${mobileAppVersion}"`
     );
 
     if (nantesResult.stderr?.length) {

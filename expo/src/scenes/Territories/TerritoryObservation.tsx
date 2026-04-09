@@ -154,7 +154,7 @@ const TerritoryObservation = ({
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
   const [allTerritoryOservations, setTerritoryObservations] = useAtom(territoryObservationsState);
   const [obsDB, setObsDB] = useState(
-    () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance),
+    () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance)
   );
 
   const setRencontres = useSetAtom(rencontresState);
@@ -174,7 +174,7 @@ const TerritoryObservation = ({
         documents: territoryObservation.documents || [],
       };
     },
-    [customFieldsObs],
+    [customFieldsObs]
   );
 
   const [activeTab, setActiveTab] = useState(fieldsGroupNames[0]);
@@ -242,7 +242,7 @@ const TerritoryObservation = ({
           user: user._id,
           team: currentTeam._id,
           organisation: organisation._id,
-        }),
+        })
       ),
     });
     if (response.code || response.error) {
@@ -272,7 +272,7 @@ const TerritoryObservation = ({
           user: user._id,
           team: currentTeam._id,
           organisation: organisation._id,
-        }),
+        })
       ),
     });
     if (response.error) {
@@ -285,7 +285,7 @@ const TerritoryObservation = ({
       territoryObservations.map((a) => {
         if (a._id === obsDB._id) return response.decryptedData;
         return a;
-      }),
+      })
     );
     setObsDB(response.decryptedData);
     Alert.alert("Observation mise à jour !");

@@ -81,7 +81,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -148,7 +148,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -216,7 +216,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -276,7 +276,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person1Name }).click();
     await expect(page).toHaveURL(`http://localhost:8090/person/${personId}`);
@@ -339,7 +339,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person2Name }).click();
 
@@ -375,7 +375,7 @@ test("test restricted accesses", async ({ page }) => {
     await expect(
       page
         .locator(`[data-test-id="${personId}"]`)
-        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" }),
+        .getByRole("button", { name: "Personne très vulnérable, ou ayant besoin d'une attention particulière" })
     ).toBeVisible();
     await page.getByRole("cell", { name: person2Name }).click();
 

@@ -90,7 +90,7 @@ const ActionScreen = (props: ActionProps) => {
     if (props.route.params?.duplicate) {
       Alert.alert(
         "L'action est dupliquée, vous pouvez la modifier !",
-        "Les commentaires de l'action aussi sont dupliqués. L'action originale est annulée",
+        "Les commentaires de l'action aussi sont dupliqués. L'action originale est annulée"
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -300,7 +300,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             _id: a._id,
             person: a.person,
             teams: Array.isArray(a.teams) && a.teams.length ? a.teams : [a.team],
-          }),
+          })
         );
         if (!response.ok) {
           Alert.alert(response.error);
@@ -316,7 +316,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       Object.assign({}, castToAction(action), {
         _id: actionDB._id,
         teams: Array.isArray(actionDB.teams) && actionDB.teams.length ? actionDB.teams : [actionDB.team],
-      }),
+      })
     );
     setUpdating(false);
     if (!response.ok) {
@@ -870,7 +870,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                         comments.map((c) => {
                           if (c._id === comment._id) return response.decryptedData;
                           return c;
-                        }),
+                        })
                       );
                       return true;
                     }

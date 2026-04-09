@@ -47,7 +47,7 @@ router.post(
             _id: z.string().regex(looseUuidRegex),
             encrypted: z.string(),
             encryptedEntityKey: z.string(),
-          }),
+          })
         ).parse(req.body[key]);
       } catch (e) {
         const error = new Error(`Invalid request in transfer team ${key}: ${e}`);
@@ -97,7 +97,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of observationsToUpdate) {
         await TerritoryObservation.update(
           { encrypted, encryptedEntityKey },
-          { where: { _id, organisation: req.user.organisation }, transaction: tx },
+          { where: { _id, organisation: req.user.organisation }, transaction: tx }
         );
       }
 
@@ -118,7 +118,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of reportsToUpdate) {
         await Report.update(
           { encrypted, encryptedEntityKey, team: targetTeamId },
-          { where: { _id, team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx },
+          { where: { _id, team: teamToDeleteId, organisation: req.user.organisation }, transaction: tx }
         );
       }
 
@@ -129,7 +129,7 @@ router.post(
       for (let { encrypted, encryptedEntityKey, _id } of reportsInTargetTeamToUpdate) {
         await Report.update(
           { encrypted, encryptedEntityKey, team: targetTeamId },
-          { where: { _id, team: targetTeamId, organisation: req.user.organisation }, transaction: tx },
+          { where: { _id, team: targetTeamId, organisation: req.user.organisation }, transaction: tx }
         );
       }
 
@@ -307,7 +307,7 @@ router.post(
     });
 
     return res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 module.exports = router;

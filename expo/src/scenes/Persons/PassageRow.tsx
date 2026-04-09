@@ -36,7 +36,7 @@ const PassageRow = ({ onUpdate, passage, itemName, onItemNamePress }: PassageRow
       async (buttonIndex) => {
         if (options[buttonIndex!] === "Modifier") onUpdate!(person!);
         if (options[buttonIndex!] === "Supprimer") onPassageDeleteRequest();
-      },
+      }
     );
   };
 

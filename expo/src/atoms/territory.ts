@@ -26,7 +26,7 @@ export const prepareTerritoryForEncryption = (territory: Partial<TerritoryInstan
   } catch (error) {
     Alert.alert(
       "Le territoire n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
     );
     capture(error);
     throw error;
@@ -72,7 +72,7 @@ const territoriesWithObservations = atom((get) => {
     ...t,
     observations: observationsByTerritory[t._id] || [],
     lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort(
-      (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime(),
+      (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
     )?.[0]?.createdAt,
   }));
 });

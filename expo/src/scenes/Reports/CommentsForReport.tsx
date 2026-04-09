@@ -41,7 +41,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.push("PERSON_STACK", { person });
     },
-    [navigation],
+    [navigation]
   );
 
   const onActionPress = useCallback(
@@ -49,7 +49,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
       Sentry.setContext("action", { _id: action._id });
       navigation.push("ACTION_STACK", { action });
     },
-    [navigation],
+    [navigation]
   );
 
   const renderItem = ({ item: comment }: { item: (typeof comments)[number] }) => {
@@ -98,7 +98,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
                     comments.map((c) => {
                       if (c._id === comment._id) return response.decryptedData;
                       return c;
-                    }),
+                    })
                   );
                   return true;
                 }

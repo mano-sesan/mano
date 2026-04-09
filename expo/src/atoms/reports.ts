@@ -32,7 +32,7 @@ export const prepareReportForEncryption = (report: Partial<ReportInstance>) => {
   } catch (error) {
     Alert.alert(
       "Le compte-rendu n'a pas été sauvegardé car son format était incorrect.",
-      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
+      "Vous pouvez vérifier son contenu et tenter de le sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
     );
     capture(error);
     throw error;

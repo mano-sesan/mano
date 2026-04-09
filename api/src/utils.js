@@ -123,24 +123,24 @@ function detectAndLogRaceCondition({ entityType, entityId, clientUpdatedAt, curr
       timeDifferenceSeconds < 1
         ? "<1s"
         : timeDifferenceSeconds < 10
-        ? "1-10s"
-        : timeDifferenceSeconds < 60 * 60
-        ? "10s-1h"
-        : timeDifferenceSeconds < 24 * 60 * 60
-        ? "1h-24h"
-        : ">24h";
+          ? "1-10s"
+          : timeDifferenceSeconds < 60 * 60
+            ? "10s-1h"
+            : timeDifferenceSeconds < 24 * 60 * 60
+              ? "1h-24h"
+              : ">24h";
 
     const lastUpdateAgo = Date.now() - dbTimestamp.getTime();
     const lastUpdateAgoBucket =
       lastUpdateAgo < 1000
         ? "<1s"
         : lastUpdateAgo < 10000
-        ? "1-10s"
-        : lastUpdateAgo < 60000 * 60
-        ? "10s-1h"
-        : lastUpdateAgo < 24 * 60 * 60 * 1000
-        ? "1h-24h"
-        : ">24h";
+          ? "1-10s"
+          : lastUpdateAgo < 60000 * 60
+            ? "10s-1h"
+            : lastUpdateAgo < 24 * 60 * 60 * 1000
+              ? "1h-24h"
+              : ">24h";
 
     // Prepare comprehensive context for Sentry
     const raceContext = {

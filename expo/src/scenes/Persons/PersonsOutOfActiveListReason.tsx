@@ -58,7 +58,7 @@ const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveList
         persons.map((p) => {
           if (p._id === person._id) return newPerson;
           return p;
-        }),
+        })
       );
     }
     return response;
