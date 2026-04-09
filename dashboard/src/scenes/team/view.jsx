@@ -27,7 +27,7 @@ import { encryptReport, reportsState } from "../../atoms/reports";
 import { useDataLoader } from "../../services/dataLoader";
 import { cleanHistory } from "../../utils/person-history";
 import ConfirmModal from "../../components/ConfirmModal";
-import { borderColors } from "../../components/TagTeam";
+import { getTeamColors } from "../../components/TagTeam";
 
 const View = () => {
   const [team, setTeam] = useState(null);
@@ -118,8 +118,8 @@ const View = () => {
         }}
       >
         {({ values, handleChange, handleSubmit, isSubmitting }) => {
-          const teamIndex = teams.findIndex((t) => t._id === id);
-          const fallbackColor = borderColors[teamIndex % borderColors.length];
+          const team = teams.find((t) => t._id === id);
+          const { borderColor: teamColor } = getTeamColors(team);
           return (
             <React.Fragment>
               <div className="tw-flex tw-flex-col tw-gap-4">
@@ -143,7 +143,7 @@ const View = () => {
                       type="color"
                       name="color"
                       id="color"
-                      value={values.color || fallbackColor}
+                      value={values.color || teamColor}
                       onChange={handleChange}
                       className="tw-h-10 tw-w-14 tw-cursor-pointer tw-rounded tw-border tw-border-gray-300"
                     />
