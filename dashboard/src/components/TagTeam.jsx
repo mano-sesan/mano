@@ -3,10 +3,15 @@ import { useAtomValue } from "jotai";
 import { teamsState } from "../atoms/auth";
 import { MoonIcon } from "@heroicons/react/24/solid";
 
-export const getTeamColors = (team) => ({
-  backgroundColor: `${team?.color}cc`,
-  borderColor: team?.color,
-});
+const DEFAULT_TEAM_COLOR = "#255c99";
+
+export const getTeamColors = (team) => {
+  const color = team?.color || DEFAULT_TEAM_COLOR;
+  return {
+    backgroundColor: `${color}cc`,
+    borderColor: color,
+  };
+};
 
 const TagTeam = ({ teamId }) => {
   const teams = useAtomValue(teamsState);
