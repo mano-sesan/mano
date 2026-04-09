@@ -114,6 +114,12 @@ function serializeTeam(team) {
   };
 }
 
+const frCollator = new Intl.Collator("fr", { sensitivity: "base" });
+
+function serializeTeams(teams) {
+  return teams.map(serializeTeam).sort((a, b) => frCollator.compare(a.name, b.name));
+}
+
 function serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTeams) {
   return {
     _id: user._id,
@@ -127,14 +133,14 @@ function serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTea
     termsAccepted: user.termsAccepted,
     cgusAccepted: user.cgusAccepted,
     gaveFeedbackSep2025: user.gaveFeedbackSep2025,
-    teams: teams.map(serializeTeam),
-    orgTeams: orgTeams.map(serializeTeam),
+    teams: serializeTeams(teams),
+    orgTeams: serializeTeams(orgTeams),
     organisation: serializeOrganisation(organisation),
   };
 }
 
 module.exports = {
   serializeOrganisation,
-  serializeTeam,
+  serializeTeams,
   serializeUserWithTeamsAndOrganisation,
 };

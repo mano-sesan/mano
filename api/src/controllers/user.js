@@ -14,7 +14,7 @@ const { User, RelUserTeam, Team, Organisation, UserLog } = require("../db/sequel
 const validateUser = require("../middleware/validateUser");
 const { capture } = require("../sentry");
 const { ExtractJwt } = require("passport-jwt");
-const { serializeUserWithTeamsAndOrganisation, serializeTeam } = require("../utils/data-serializer");
+const { serializeUserWithTeamsAndOrganisation, serializeTeams } = require("../utils/data-serializer");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const dayjs = require("dayjs");
 const getClientInfo = require("../utils/getClientInfo");
@@ -712,7 +712,7 @@ router.get(
         disabledAt: user.disabledAt,
         decryptAttempts: user.decryptAttempts,
         loginAttempts: user.loginAttempts,
-        teams: user.Teams ? user.Teams.map(serializeTeam) : [],
+        teams: user.Teams ? serializeTeams(user.Teams) : [],
         organisationPopulated: user.Organisation,
       };
     });
@@ -842,7 +842,7 @@ router.get(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
-        teams: user.Teams ? user.Teams.map(serializeTeam) : [],
+        teams: user.Teams ? serializeTeams(user.Teams) : [],
       };
     });
 

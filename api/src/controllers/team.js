@@ -7,7 +7,7 @@ const { looseUuidRegex } = require("../utils");
 const { catchErrors } = require("../errors");
 const { Team, RelUserTeam, sequelize } = require("../db/sequelize");
 const validateUser = require("../middleware/validateUser");
-const { serializeTeam } = require("../utils/data-serializer");
+const { serializeTeams } = require("../utils/data-serializer");
 
 const TEAM_COLORS = [
   "#255c99",
@@ -70,7 +70,7 @@ router.get(
   validateUser(["superadmin", "admin", "normal", "restricted-access", "stats-only"]),
   catchErrors(async (req, res) => {
     const teams = await Team.findAll({ where: { organisation: req.user.organisation }, order: [["createdAt", "ASC"]] });
-    return res.status(200).send({ ok: true, data: teams.map(serializeTeam) });
+    return res.status(200).send({ ok: true, data: serializeTeams(teams) });
   })
 );
 

@@ -107,12 +107,8 @@ const View = () => {
           if (error) return toast.error(errorMessage(error));
           if (!error) {
             toast.success("Mise à jour !");
-            setTeams(
-              teams.map((t) => {
-                if (t._id !== id) return t;
-                return response.data;
-              })
-            );
+            const [errorTeams, responseTeams] = await tryFetchExpectOk(async () => API.get({ path: "/team" }));
+            if (!errorTeams) setTeams(responseTeams.data);
             if (currentTeam._id === id) setCurrentTeam(response.data);
           }
         }}
