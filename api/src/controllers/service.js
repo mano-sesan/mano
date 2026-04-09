@@ -33,13 +33,12 @@ router.post(
     const count = Number(req.body.count);
     const service = String(req.body.service);
 
-    Service.upsert(
+    const [data] = await Service.upsert(
       { team, date, service, organisation, count },
-      { returning: true, conflictFields: ["service", "date", "team", "organisation"] }
-    ).then(([data]) => {
-      return res.status(200).send({ ok: true, data });
-    });
-  })
+      { returning: true, conflictFields: ["service", "date", "team", "organisation"] },
+    );
+    return res.status(200).send({ ok: true, data });
+  }),
 );
 
 router.get(
@@ -61,10 +60,9 @@ router.get(
     const { team, date } = req.params;
     const organisation = req.user.organisation;
 
-    Service.findAll({ where: { team, date, organisation } }).then((data) => {
-      return res.status(200).send({ ok: true, data });
-    });
-  })
+    const data = await Service.findAll({ where: { team, date, organisation } });
+    return res.status(200).send({ ok: true, data });
+  }),
 );
 
 router.get(
@@ -86,7 +84,7 @@ router.get(
 
     const organisation = req.user.organisation;
 
-    Service.findAll({
+    const data = await Service.findAll({
       where: {
         team: {
           [Op.in]: req.query.teamIds.split(","),
@@ -97,16 +95,15 @@ router.get(
         },
         organisation,
       },
-    }).then((data) => {
-      const allServicesMergedByTeam = {};
-      for (const serviceRow of data) {
-        allServicesMergedByTeam[serviceRow.team] = allServicesMergedByTeam[serviceRow.team] || {};
-        allServicesMergedByTeam[serviceRow.team][serviceRow.service] =
-          (allServicesMergedByTeam[serviceRow.team][serviceRow.service] || 0) + serviceRow.count;
-      }
-      return res.status(200).send({ ok: true, data: allServicesMergedByTeam });
     });
-  })
+    const allServicesMergedByTeam = {};
+    for (const serviceRow of data) {
+      allServicesMergedByTeam[serviceRow.team] = allServicesMergedByTeam[serviceRow.team] || {};
+      allServicesMergedByTeam[serviceRow.team][serviceRow.service] =
+        (allServicesMergedByTeam[serviceRow.team][serviceRow.service] || 0) + serviceRow.count;
+    }
+    return res.status(200).send({ ok: true, data: allServicesMergedByTeam });
+  }),
 );
 
 router.get(
@@ -132,7 +129,7 @@ router.get(
     }));
 
     return res.status(200).send({ ok: true, data: servicesWithGroups });
-  })
+  }),
 );
 
 // List sum of services for each day in a specific month.
@@ -162,10 +159,10 @@ router.get(
       {
         replacements: { date, team: team.includes(",") ? team.split(",") : [team], organisation },
         type: sequelize.QueryTypes.SELECT,
-      }
+      },
     );
     return res.status(200).send({ ok: true, data: servicesCountByDay });
-  })
+  }),
 );
 
 // List sum for each service in a specific period
@@ -201,7 +198,7 @@ router.get(
         {
           replacements: { from, to: to || from, team: team.includes(",") ? team.split(",") : [team], organisation },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
     } else {
       servicesCountByDay = await sequelize.query(
@@ -209,12 +206,12 @@ router.get(
         {
           replacements: { team: team.includes(",") ? team.split(",") : [team], organisation },
           type: sequelize.QueryTypes.SELECT,
-        }
+        },
       );
     }
 
     return res.status(200).send({ ok: true, data: servicesCountByDay });
-  })
+  }),
 );
 
 // Update service name (from old to new)
@@ -240,7 +237,7 @@ router.put(
     await Service.update({ service: newService }, { where: { service: oldService, organisation } });
 
     return res.status(200).send({ ok: true });
-  })
+  }),
 );
 
 // Update service configuration
@@ -256,7 +253,7 @@ router.put(
           z.object({
             groupTitle: z.string(),
             services: z.array(z.string()),
-          })
+          }),
         ),
       }).parse(req.body);
     } catch (e) {
@@ -279,7 +276,7 @@ router.put(
       throw e;
     }
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
-  })
+  }),
 );
 
 module.exports = router;
