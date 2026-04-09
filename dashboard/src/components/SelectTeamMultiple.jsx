@@ -16,8 +16,7 @@ const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNameP
       getOptionValue={(team) => team._id}
       getOptionLabel={(team) => team.name}
       formatOptionLabel={(team) => {
-        const teamIndex = teams.findIndex((t) => t._id === team._id);
-        const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+        const { backgroundColor, borderColor } = getTeamColors(team);
         return (
           <div className="tw-flex tw-items-center tw-gap-2">
             <span

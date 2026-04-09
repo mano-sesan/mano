@@ -188,10 +188,7 @@ function TeamSelector() {
   const teams = useAtomValue(teamsState);
   const user = useAtomValue(userState);
   const availableTeams = user.role === "admin" ? teams : user.teams;
-  const { backgroundColor, borderColor } = getTeamColors(
-    currentTeam,
-    availableTeams.findIndex((t) => t._id === currentTeam?._id)
-  );
+  const { backgroundColor, borderColor } = getTeamColors(currentTeam);
   const isDrawerCollapsed = useAtomValue(isDrawerCollapsedState);
 
   return (
@@ -227,10 +224,7 @@ function TeamSelector() {
         className="tw-z-50 tw-rounded tw-transition tw-bg-white tw-shadow-lg tw-ring-1 tw-ring-black/5 focus:tw-outline-none tw-max-h-60 tw-overflow-y-auto  data-[closed]:tw-opacity-0 data-[closed]:tw-pointer-events-none data-[closed]:tw-scale-95"
       >
         {availableTeams.map((team) => {
-          const _teamColors = getTeamColors(
-            team,
-            availableTeams.findIndex((t) => t._id === team._id)
-          );
+          const _teamColors = getTeamColors(team);
           return (
             <MenuItem key={team._id}>
               <button

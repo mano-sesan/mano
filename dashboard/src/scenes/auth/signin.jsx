@@ -474,7 +474,6 @@ const SignIn = () => {
             <TeamButton
               key={team._id}
               team={team}
-              teamIndex={index}
               onClick={() => {
                 setCurrentTeam(team);
                 onSigninValidated();
@@ -638,9 +637,9 @@ const SignIn = () => {
   );
 };
 
-const TeamButton = ({ team, teamIndex, onClick }) => {
+const TeamButton = ({ team, onClick }) => {
   const [hovered, setHovered] = useState(false);
-  const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+  const { backgroundColor, borderColor } = getTeamColors(team);
   return (
     <button
       type="button"

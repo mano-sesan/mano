@@ -161,9 +161,8 @@ const GanttChart = ({
     if (!acc[item.team]) {
       acc[item.team] = [];
     }
-    const teamIndex = teams.findIndex((t) => t._id === item.team);
-    const team = teams[teamIndex];
-    const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+    const team = teams.find((t) => t._id === item.team);
+    const { backgroundColor, borderColor } = getTeamColors(team);
     acc[item.team].push({
       ...item,
       width,

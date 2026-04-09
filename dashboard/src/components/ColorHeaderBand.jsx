@@ -5,10 +5,9 @@ import { getTeamColors } from "./TagTeam";
 
 export default function ColorHeaderBand({ teamId }) {
   const teams = useAtomValue(teamsState);
-  const teamIndex = teams?.findIndex((t) => t._id === teamId);
-  const team = teams[teamIndex];
+  const team = teams?.find((t) => t._id === teamId);
 
-  const { borderColor, backgroundColor } = getTeamColors(team, teamIndex);
+  const { borderColor, backgroundColor } = getTeamColors(team);
 
   useEffect(() => {
     const metaThemeColor = document.querySelector("meta[name=theme-color]");

@@ -43,8 +43,7 @@ const SelectTeam = ({ name, onChange, teamId = null, teams = [], style = undefin
         getOptionValue={(team) => team._id}
         getOptionLabel={(team) => team.name}
         formatOptionLabel={(team, options) => {
-          const teamIndex = allTeams.findIndex((t) => t._id === team._id);
-          const { backgroundColor, borderColor } = getTeamColors(team, teamIndex);
+          const { backgroundColor, borderColor } = getTeamColors(team);
           let showPill = options.context === "menu" || !noPill;
           return (
             <div className="tw-flex tw-items-center tw-gap-2">

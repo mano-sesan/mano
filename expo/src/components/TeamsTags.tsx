@@ -6,8 +6,6 @@ import colors from "../utils/colors";
 import { teamsState } from "../atoms/auth";
 import { TeamInstance } from "@/types/team";
 
-const teamsColors = ["#255c99", "#74776bff", "#00c6a5ff", "#ff4b64ff", "#ef798aff"];
-
 type TeamsTagsProps = {
   teams?: TeamInstance["_id"][];
 };
@@ -22,10 +20,9 @@ const TeamsTags = ({ teams = [] }: TeamsTagsProps) => {
       {teams?.map((teamId) => {
         if (!teamId) return;
         if (!allTeams?.length) return;
-        const teamIndex = allTeams.findIndex((t) => t._id === teamId);
-        if (teamIndex === -1) return;
-        const team = allTeams[teamIndex];
-        const backgroundColor = team?.color || teamsColors[teamIndex % teamsColors.length];
+        const team = allTeams.find((t) => t._id === teamId);
+        if (!team) return;
+        const backgroundColor = team.color;
         return (
           <Team key={team?._id} backgroundColor={backgroundColor}>
             {team?.name}
