@@ -114,6 +114,9 @@ function ActionContent({ onClose, isMulti = false, isSubmitting, setIsSubmitting
   const isNewAction = !initialExistingAction;
 
   const [activeTab, setActiveTab] = useState("Informations");
+
+  if (!user) return null;
+
   const isOnePerson = typeof action?.person === "string" || action?.person?.length === 1;
   const onlyPerson = !isOnePerson ? null : typeof action?.person === "string" ? action.person : action.person?.[0];
   const canToggleGroupCheck = !!organisation?.groupsEnabled && !!onlyPerson && groups.find((group) => group.persons?.includes(onlyPerson));
