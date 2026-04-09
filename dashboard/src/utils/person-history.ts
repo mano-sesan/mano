@@ -3,6 +3,16 @@ import type { PersonInstance, AssignedTeamsPeriods, PersonHistoryEntry, FieldCha
 import type { TeamInstance } from "../types/team";
 import { forbiddenPersonFieldsInHistory } from "../atoms/persons";
 
+/** Première date de suivi exploitable : followedSince si valide, sinon createdAt (données importées / anciennes). */
+function effectiveFollowStart(person: PersonInstance): Date | null {
+  for (const candidate of [person.followedSince, person.createdAt]) {
+    if (candidate == null) continue;
+    const d = dayjsInstance(candidate);
+    if (d.isValid()) return d.toDate();
+  }
+  return null;
+}
+
 export const cleanHistory = (history: Array<PersonHistoryEntry> = []): Array<PersonHistoryEntry> => {
   const alreadyExisting = {};
   const newHistory = [];
@@ -51,7 +61,9 @@ export function extractInfosFromHistory(person: PersonInstance): {
   interactions: Array<Date>;
   assignedTeamsPeriods: AssignedTeamsPeriods;
 } {
-  const interactions = [person.followedSince];
+  const followStart = effectiveFollowStart(person);
+  const followStartIso = followStart ? dayjsInstance(followStart).toISOString() : null;
+  const interactions: Array<Date> = followStart ? [followStart] : [];
   // assignedTeamsPeriods
   // final format example, after looping the whole history: { teamIdA: [{ endDate: startDate: }, { endDate: startDate: }] }
   // current format: { teamIdA: [{ endDate: now,  startDate: undefined }] }
@@ -68,7 +80,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
     {
       all: [
         {
-          isoStartDate: dayjsInstance(person.followedSince).toISOString(),
+          isoStartDate: followStartIso,
           isoEndDate: null,
         },
       ],
@@ -116,7 +128,7 @@ export function extractInfosFromHistory(person: PersonInstance): {
     assignedTeamsPeriods[teamId] = (assignedTeamsPeriods[teamId] || []).map((period) => {
       if (period.isoStartDate) return period;
       return {
-        isoStartDate: dayjsInstance(person.followedSince).toISOString(),
+        isoStartDate: followStartIso,
         isoEndDate: period.isoEndDate,
       };
     });

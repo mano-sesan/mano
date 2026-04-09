@@ -155,4 +155,20 @@ describe("Extract infos from history", () => {
       new Date("2022-01-02T00:00:00.000Z"),
     ]);
   });
+
+  test("followedSince invalide ou absent → repli sur createdAt sans lever d'erreur", () => {
+    const createdAt = new Date("2022-06-15T00:00:00.000Z");
+    const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
+      ...personPopulated,
+      followedSince: new Date(NaN),
+      createdAt,
+      assignedTeams: ["TEAM_ID_A"],
+      history: [],
+    });
+    expect(assignedTeamsPeriods).toEqual({
+      TEAM_ID_A: [{ isoEndDate: null, isoStartDate: "2022-06-15T00:00:00.000Z" }],
+      all: [{ isoStartDate: "2022-06-15T00:00:00.000Z", isoEndDate: null }],
+    });
+    expect(interactions).toEqual([createdAt]);
+  });
 });
