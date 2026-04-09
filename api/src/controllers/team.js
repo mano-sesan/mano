@@ -9,6 +9,24 @@ const { Team, RelUserTeam, sequelize } = require("../db/sequelize");
 const validateUser = require("../middleware/validateUser");
 const { serializeTeam } = require("../utils/data-serializer");
 
+const TEAM_COLORS = [
+  "#255c99",
+  "#74776b",
+  "#00c6a5",
+  "#ff4b64",
+  "#ef798a",
+  "#a066ff",
+  "#00e6d6",
+  "#124660",
+  "#ff4f38",
+  "#1b9476",
+  "#4dbac7",
+  "#ffa500",
+  "#e392db",
+  "#28a428",
+  "#f5d000",
+];
+
 router.post(
   "/",
   passport.authenticate("user", { session: false, failWithError: true }),
@@ -36,10 +54,12 @@ router.post(
     if (existingTeam) {
       return res.status(400).send({ ok: false, error: "Une équipe avec ce nom existe déjà." });
     }
-    const team = await Team.create(
-      { organisation, name: req.body.name, nightSession: req.body.nightSession || false, color: req.body.color || null },
-      { returning: true }
-    );
+    let color = req.body.color || null;
+    if (!color) {
+      const teamCount = await Team.count({ where: { organisation } });
+      color = TEAM_COLORS[teamCount % TEAM_COLORS.length];
+    }
+    const team = await Team.create({ organisation, name: req.body.name, nightSession: req.body.nightSession || false, color }, { returning: true });
     res.status(200).send({ ok: true, data: team });
   })
 );
