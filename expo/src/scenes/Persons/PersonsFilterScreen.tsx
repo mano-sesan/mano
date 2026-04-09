@@ -99,7 +99,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
         onNavigateToConfig(field);
       }
     },
-    [onNavigateToConfig],
+    [onNavigateToConfig]
   );
 
   const handleResetAll = React.useCallback(() => {

@@ -1,4 +1,4 @@
-import * as Application from 'expo-application';
+import * as Application from "expo-application";
 
 const SCHEME = process.env.EXPO_PUBLIC_SCHEME;
 const HOST = process.env.EXPO_PUBLIC_HOST;

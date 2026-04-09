@@ -72,7 +72,7 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
         },
       },
     ],
-    { useNativeDriver: true },
+    { useNativeDriver: true }
   );
 
   return (

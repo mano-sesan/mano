@@ -212,7 +212,7 @@ const DocumentsManager = ({
             reset();
           }
         }
-      },
+      }
     );
   };
 
@@ -285,7 +285,7 @@ const DocumentsManager = ({
       };
     }),
     "Dossier racine",
-    defaultParent,
+    defaultParent
   );
   const folders = flattenTreeForFolderSelect(tree);
 
@@ -382,7 +382,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
         if (options[buttonIndex] === "Renommer") {
           setIsRenaming(true);
         }
-      },
+      }
     );
   };
 
@@ -424,7 +424,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                         "Mano ne peut pas ouvrir seul ce type de fichier",
                         `Vous pouvez chercher une application sur le store pour ouvrir les fichiers de type .${path
                           .split(".")
-                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`,
+                          .at(-1)}, et Mano l'ouvrira automatiquement la prochaine fois.`
                       );
                       break;
                     case DocumentViewer.errorCodes.OPERATION_CANCELED:

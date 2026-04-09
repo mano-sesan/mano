@@ -50,7 +50,7 @@ export async function createAction(
   options: {
     categories?: Array<{ group: string; category: string }>;
     group?: boolean;
-  } = { categories: [], group: false },
+  } = { categories: [], group: false }
 ) {
   await page.getByRole("link", { name: "Agenda" }).click();
   await page.getByRole("button", { name: "Créer une action" }).click();

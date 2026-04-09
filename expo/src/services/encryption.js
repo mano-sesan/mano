@@ -107,10 +107,10 @@ const encrypt = async (content_stringified, entityKey, masterKey) => {
       ? // entityKey est un string (en base64) avant le commit de ce commentaire (please blame).
         sodium.from_base64(entityKey, sodium.base64_variants.ORIGINAL)
       : // entityKey peut-être un objet qui n'est pas un Uint8Array, c'est MMKV qui crée son système
-      // Donc on convertit entityKey en Uint8Array
-      typeof entityKey === "object" && !(entityKey instanceof Uint8Array)
-      ? new Uint8Array(Object.values(entityKey))
-      : entityKey;
+        // Donc on convertit entityKey en Uint8Array
+        typeof entityKey === "object" && !(entityKey instanceof Uint8Array)
+        ? new Uint8Array(Object.values(entityKey))
+        : entityKey;
 
   const encryptedContent = await _encrypt_and_prepend_nonce(encodeContent(content_stringified), entityKeyUint8array);
   const encryptedEntityKey = await _encrypt_and_prepend_nonce(entityKeyUint8array, masterKey);

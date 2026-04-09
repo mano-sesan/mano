@@ -24,8 +24,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [rencontre, setRencontre] = useState<RencontreInstance>(
-    () =>
-      route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance),
+    () => route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance)
   );
   const [submitting, setSubmitting] = useState(false);
   const [rencontres, setRencontres] = useAtom(rencontresState);

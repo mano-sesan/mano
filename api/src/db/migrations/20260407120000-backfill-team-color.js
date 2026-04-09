@@ -43,7 +43,7 @@ module.exports = {
       WHERE t."_id" = ranked."_id"
         AND t."color" IS NULL
       `,
-      { replacements: { colors: TEAM_COLORS, paletteSize: TEAM_COLORS.length } },
+      { replacements: { colors: TEAM_COLORS, paletteSize: TEAM_COLORS.length } }
     );
   },
 

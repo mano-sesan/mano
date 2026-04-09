@@ -63,7 +63,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         navigation.goBack();
       }
     },
-    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation],
+    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
   );
 
   const onCreatePlace = useCallback(async () => {
@@ -90,7 +90,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         <Spacer height={15} />
       </>
     ),
-    [isReadyToSave, onCreatePlace, posting],
+    [isReadyToSave, onCreatePlace, posting]
   );
 
   return (

@@ -22,7 +22,7 @@ export function atomWithCache<T>(collectionName: string, initialValue: T): Primi
       const newValue = typeof update === "function" ? (update as (prev: T) => T)(currentValue) : update;
       set(baseAtom, newValue);
       storage.set(collectionName, JSON.stringify(newValue));
-    },
+    }
   );
 
   // Copy the init property for debugging

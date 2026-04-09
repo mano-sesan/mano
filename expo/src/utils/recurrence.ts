@@ -123,15 +123,18 @@ export function actionsWithoutFutureRecurrences(actionsToSet: ActionInstance[]) 
 
   const actionsWithoutRecurrence = structuredClone(actionsToSet.filter((action) => !action.recurrence)); // null ou undefined
   const actionsGroupedByRecurrence = structuredClone(
-    actionsToSet.reduce((acc, action) => {
-      if (action.recurrence) {
-        if (!acc[action.recurrence]) {
-          acc[action.recurrence] = [];
+    actionsToSet.reduce(
+      (acc, action) => {
+        if (action.recurrence) {
+          if (!acc[action.recurrence]) {
+            acc[action.recurrence] = [];
+          }
+          acc[action.recurrence].push(action);
         }
-        acc[action.recurrence].push(action);
-      }
-      return acc;
-    }, {} as Record<UUIDV4, ActionInstance[]>)
+        return acc;
+      },
+      {} as Record<UUIDV4, ActionInstance[]>
+    )
   );
 
   const actionsWithRecurrence = Object.values(actionsGroupedByRecurrence).flatMap((group) => {

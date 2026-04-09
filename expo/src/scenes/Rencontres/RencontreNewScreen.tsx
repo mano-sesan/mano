@@ -136,7 +136,7 @@ const NewRencontreForm = ({
             text: "Annuler",
             style: "cancel",
           },
-        ],
+        ]
       );
     } else {
       onCreateRencontre();

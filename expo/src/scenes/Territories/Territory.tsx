@@ -22,7 +22,7 @@ import { dayjsInstance } from "@/services/dateDayjs";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 
 const castToTerritory = (
-  territory: Partial<TerritoryInstance> = {},
+  territory: Partial<TerritoryInstance> = {}
 ): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
   name: territory.name?.trim() || "",
   user: territory.user || "",
@@ -89,7 +89,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
         territories.map((a) => {
           if (a._id === territoryDB._id) return response.decryptedData;
           return a;
-        }),
+        })
       );
       setTerritoryDB(response.decryptedData);
       Alert.alert("Territoire mis à jour !");
@@ -215,13 +215,13 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                           const response = await API.post({ path: `/territory/${territoryDB._id}/archive` });
                           if (response.error) return Alert.alert(response.error);
                           setTerritories((territories) =>
-                            territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: new Date().toISOString() } : t)),
+                            territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: new Date().toISOString() } : t))
                           );
                           setTerritoryDB((t) => ({ ...t, archivedAt: new Date().toISOString() }));
                           Alert.alert("Territoire archivé");
                         },
                       },
-                    ],
+                    ]
                   );
                 }}
               />

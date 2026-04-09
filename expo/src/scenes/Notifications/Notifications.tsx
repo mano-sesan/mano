@@ -97,7 +97,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         data: commentsFiltered,
       },
     ],
-    [actionsFiltered, commentsFiltered],
+    [actionsFiltered, commentsFiltered]
   );
 
   const onPseudoPress = useCallback(
@@ -105,7 +105,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
       Sentry.setContext("person", { _id: person._id });
       navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
     },
-    [navigation],
+    [navigation]
   );
 
   const onActionPress = useCallback(
@@ -115,7 +115,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
         action,
       });
     },
-    [navigation],
+    [navigation]
   );
 
   const renderItem = ({ item }: { item: UrgentAction | UrgentComment }) => {
@@ -164,7 +164,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
                       comments.map((c) => {
                         if (c._id === comment._id) return response.decryptedData;
                         return c;
-                      }),
+                      })
                     );
                     return true;
                   }

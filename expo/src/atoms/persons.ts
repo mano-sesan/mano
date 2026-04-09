@@ -94,7 +94,7 @@ export const usePreparePersonForEncryption = () => {
     } catch (error) {
       Alert.alert(
         "La personne n'a pas été sauvegardée car son format était incorrect.",
-        "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif.",
+        "Vous pouvez vérifier son contenu et tenter de la sauvegarder à nouveau. L'équipe technique a été prévenue et va travailler sur un correctif."
       );
       capture(error);
       throw error;

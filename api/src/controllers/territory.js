@@ -55,7 +55,7 @@ router.post(
         encrypted: req.body.encrypted,
         encryptedEntityKey: req.body.encryptedEntityKey,
       },
-      { returning: true },
+      { returning: true }
     );
     return res.status(200).send({
       ok: true,
@@ -69,7 +69,7 @@ router.post(
         deletedAt: data.deletedAt,
       },
     });
-  }),
+  })
 );
 
 router.post(
@@ -85,7 +85,7 @@ router.post(
             _id: z.optional(z.string().regex(looseUuidRegex)),
             encrypted: z.string(),
             encryptedEntityKey: z.string(),
-          }),
+          })
         ),
       }).parse(req.body);
     } catch (e) {
@@ -109,7 +109,7 @@ router.post(
     return res.status(200).send({
       ok: true,
     });
-  }),
+  })
 );
 
 router.get(
@@ -151,7 +151,7 @@ router.get(
       attributes: ["_id", "encrypted", "encryptedEntityKey", "createdAt", "updatedAt", "deletedAt", "archivedAt"],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
-  }),
+  })
 );
 
 router.put(
@@ -168,14 +168,14 @@ router.put(
               _id: z.string().regex(looseUuidRegex),
               encrypted: z.string(),
               encryptedEntityKey: z.string(),
-            }),
-          ),
+            })
+          )
         ),
         territoriesGroupedTypes: z.array(
           z.object({
             groupTitle: z.string(),
             types: z.array(z.string()),
-          }),
+          })
         ),
       }).parse(req.body);
     } catch (e) {
@@ -201,7 +201,7 @@ router.put(
       });
     });
     return res.status(200).send({ ok: true, data: serializeOrganisation(organisation) });
-  }),
+  })
 );
 
 router.put(
@@ -240,7 +240,7 @@ router.put(
     await territory.save();
 
     return res.status(200).send({ ok: true, data: territory });
-  }),
+  })
 );
 
 router.delete(
@@ -281,7 +281,7 @@ router.delete(
     });
 
     res.status(200).send({ ok: true });
-  }),
+  })
 );
 
 router.post(
@@ -301,7 +301,7 @@ router.post(
     territory.archivedAt = new Date();
     await territory.save();
     return res.status(200).send({ ok: true, data: territory });
-  }),
+  })
 );
 
 router.post(
@@ -321,7 +321,7 @@ router.post(
     territory.archivedAt = null;
     await territory.save();
     return res.status(200).send({ ok: true, data: territory });
-  }),
+  })
 );
 
 // Upload a document for a territory.
@@ -369,7 +369,7 @@ router.post(
         mimetype: file.mimetype,
       },
     });
-  }),
+  })
 );
 
 // Download a file for a territory by its filename.
@@ -399,7 +399,7 @@ router.get(
     } else {
       res.sendFile(file);
     }
-  }),
+  })
 );
 
 // Delete a file for a territory by its filename.
@@ -430,7 +430,7 @@ router.delete(
       fs.unlinkSync(file);
       res.send({ ok: true });
     }
-  }),
+  })
 );
 
 module.exports = router;

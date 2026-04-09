@@ -40,7 +40,7 @@ export const refreshTriggerState = atom({
 export function mergeItems<T extends { _id?: string; deletedAt?: any }>(
   oldItems: T[],
   newItems: T[] = [],
-  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {},
+  { formatNewItemsFunction, filterNewItemsFunction }: { formatNewItemsFunction?: (item: T) => T; filterNewItemsFunction?: (item: T) => boolean } = {}
 ): T[] {
   const newItemsCleanedAndFormatted: T[] = [];
   const newItemIds: Record<string, boolean> = {};

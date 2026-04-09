@@ -31,7 +31,7 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
         // TODO: les prendre en compte (mais nécessite de faire évoluer les sélecteurs recoil)
         // ...(personDB.groupDocuments || []),
       ],
-      defaultFolders,
+      defaultFolders
     ),
     // Les dossiers par défaut configurés par l'organisation
   ]

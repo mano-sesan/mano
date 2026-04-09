@@ -47,7 +47,7 @@ const ReportLoading = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day],
+    [currentTeam?.name, currentTeam?.nightSession, day]
   );
 
   useEffect(() => {
@@ -188,7 +188,7 @@ const Report = ({ navigation, route }: Props) => {
 
   const title = useMemo(
     () => `Compte rendu de l'équipe ${currentTeam?.name || ""}\n${getPeriodTitle(day, currentTeam?.nightSession)}`,
-    [currentTeam?.name, currentTeam?.nightSession, day],
+    [currentTeam?.name, currentTeam?.nightSession, day]
   );
 
   const canViewComments = ["admin", "normal"].includes(user.role);

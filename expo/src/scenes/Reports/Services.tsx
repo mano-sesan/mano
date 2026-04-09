@@ -44,7 +44,7 @@ function IncrementorSmall({
       });
     },
     500,
-    { maxWait: 4000 },
+    { maxWait: 4000 }
   );
 
   const [value, setValue] = useState(initialValue);
@@ -54,7 +54,7 @@ function IncrementorSmall({
     () => () => {
       debounced.flush();
     },
-    [debounced],
+    [debounced]
   );
 
   return (
