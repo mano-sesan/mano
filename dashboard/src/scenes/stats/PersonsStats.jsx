@@ -482,11 +482,11 @@ export const AgeRangeBar = ({ persons, onItemClick }) => {
     };
   }, [modalOpen, tempSettings]);
 
-  const averageAge = useMemo(() => {
-    const personsWithAge = persons.filter((p) => p.birthdate && p.birthdate.length && p.age != null);
-    if (personsWithAge.length === 0) return null;
+  const { averageAge, personsWithAgeCount } = useMemo(() => {
+    const personsWithAge = persons.filter((p) => p.birthdate && p.birthdate.length && Number.isFinite(p.age));
+    if (personsWithAge.length === 0) return { averageAge: null, personsWithAgeCount: 0 };
     const sum = personsWithAge.reduce((acc, p) => acc + p.age, 0);
-    return Math.round((sum / personsWithAge.length) * 10) / 10;
+    return { averageAge: Math.round((sum / personsWithAge.length) * 10) / 10, personsWithAgeCount: personsWithAge.length };
   }, [persons]);
 
   // Generate categories and data based on settings
@@ -638,11 +638,7 @@ export const AgeRangeBar = ({ persons, onItemClick }) => {
         axisTitleY="Nombre de personnes"
         help={`Répartition des âges des personnes concernées, dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
         settingsButton={settingsButton}
-        additionalInfo={
-          averageAge != null
-            ? `Âge moyen\u00a0: ${averageAge} ans (sur ${persons.filter((p) => p.birthdate && p.birthdate.length).length} personnes renseignées)`
-            : null
-        }
+        additionalInfo={averageAge != null ? `Âge moyen\u00a0: ${averageAge} ans (sur ${personsWithAgeCount} personnes renseignées)` : null}
       />
 
       <ModalContainer open={modalOpen} onClose={() => setModalOpen(false)} size="xl">
