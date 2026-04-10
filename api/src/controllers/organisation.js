@@ -1647,19 +1647,17 @@ router.post(
       error.status = 400;
       return next(error);
     }
-    await fs.promises
-      .readdir(secondaryDir)
-      .then((files) => {
-        for (const file of files) {
-          const src = path.resolve(path.join(secondaryDir, file));
-          const dest = path.resolve(path.join(mainDir, file));
-          if (!src.startsWith(basedir + path.sep) || !dest.startsWith(basedir + path.sep)) continue;
-          fs.promises.rename(src, dest);
-        }
-      })
-      .catch(() => {
-        console.log("No secondary directory");
-      });
+    try {
+      const files = await fs.promises.readdir(secondaryDir);
+      for (const file of files) {
+        const src = path.resolve(path.join(secondaryDir, file));
+        const dest = path.resolve(path.join(mainDir, file));
+        if (!src.startsWith(basedir + path.sep) || !dest.startsWith(basedir + path.sep)) continue;
+        await fs.promises.rename(src, dest);
+      }
+    } catch {
+      console.log("No secondary directory");
+    }
 
     res.status(200).send({ ok: true });
   })

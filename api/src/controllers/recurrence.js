@@ -21,7 +21,7 @@ router.post(
       return next(error);
     }
 
-    Recurrence.create({
+    const data = await Recurrence.create({
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       timeInterval: req.body.timeUnit === "year" ? 1 : req.body.timeInterval,
@@ -29,13 +29,9 @@ router.post(
       selectedDays: req.body.timeUnit !== "week" ? null : req.body.selectedDays,
       recurrenceTypeForMonthAndYear: req.body.timeUnit !== "month" && req.body.timeUnit !== "year" ? null : req.body.recurrenceTypeForMonthAndYear,
       organisation: req.user.organisation,
-    }).then((data) => {
-      return res.status(200).send({
-        ok: true,
-        data,
-      });
     });
-  })
+    return res.status(200).send({ ok: true, data });
+  }),
 );
 
 router.put(
@@ -73,7 +69,7 @@ router.put(
       ok: true,
       data: recurrence,
     });
-  })
+  }),
 );
 
 router.get(
@@ -125,7 +121,7 @@ router.get(
       ],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
-  })
+  }),
 );
 
 module.exports = router;
