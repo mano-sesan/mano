@@ -646,7 +646,11 @@ export const AgeRangeBar = ({ persons, onItemClick }) => {
         axisTitleY="Nombre de personnes"
         help={`Répartition des âges des personnes concernées, dans la période définie.\n\nSi aucune période n'est définie, on considère l'ensemble des personnes.`}
         settingsButton={settingsButton}
-        additionalInfo={averageAge != null ? `Âge moyen\u00a0: ${averageAge} ans (sur ${personsWithAgeCount} personnes renseignées)` : null}
+        additionalInfo={
+          averageAge != null
+            ? `Âge moyen\u00a0: ${averageAge} ans (sur ${personsWithAgeCount} ${personsWithAgeCount === 1 ? "personne renseignée" : "personnes renseignées"})`
+            : null
+        }
       />
 
       <ModalContainer open={modalOpen} onClose={() => setModalOpen(false)} size="xl">
