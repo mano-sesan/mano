@@ -172,14 +172,14 @@ describe("Extract infos from history", () => {
     });
     expect(invalidFollowedSinceInteractions).toEqual([createdAt]);
 
+    const { followedSince: _followedSince, ...personWithoutFollowedSince } = personPopulated;
     const { assignedTeamsPeriods: missingFollowedSinceAssignedTeamsPeriods, interactions: missingFollowedSinceInteractions } =
       extractInfosFromHistory({
-        ...personPopulated,
-        followedSince: null as unknown as Date,
+        ...personWithoutFollowedSince,
         createdAt,
         assignedTeams: ["TEAM_ID_A"],
         history: [],
-      });
+      } as typeof personPopulated);
     expect(missingFollowedSinceAssignedTeamsPeriods).toEqual({
       TEAM_ID_A: [{ isoEndDate: null, isoStartDate: "2022-06-15T00:00:00.000Z" }],
       all: [{ isoStartDate: "2022-06-15T00:00:00.000Z", isoEndDate: null }],
