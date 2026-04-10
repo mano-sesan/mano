@@ -74,9 +74,9 @@ export default function View() {
     <div>
       {isBirthday && <Confetti style={{ zIndex: 100 }} recycle={false} numberOfPieces={300} />}
       {isBirthday && (
-        <div className=" tw-mx-auto tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-fuchsia-100 tw-text-fuchsia-900 tw-py-2 tw-px-4 tw-text-sm tw-font-medium">
-          <CakeIcon className="tw-h-5 tw-w-5" />
-          C'est l'anniversaire de {person.name} aujourd'hui&nbsp;!
+        <div className="tw-mx-auto tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-fuchsia-50 tw-text-fuchsia-900 tw-py-2 tw-px-4 tw-text-sm tw-font-medium">
+          <CakeIcon className="tw-h-5 tw-w-5 tw-flex-shrink-0 tw-text-[#a855f7]" />
+          <span className="rainbow-sweep">C'est l'anniversaire de {person.name} aujourd'hui&nbsp;!</span>
         </div>
       )}
       <div className="tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-pt-2 tw-pb-2">
