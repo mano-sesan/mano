@@ -16,7 +16,6 @@ jest.mock("../src/services/dataManagement", () => ({
 }));
 
 describe("Extract infos from history", () => {
-  const today = dayjs().startOf("day").toISOString();
   test("no team change, only one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
