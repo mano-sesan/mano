@@ -19,6 +19,8 @@ import SearchInPerson from "./components/SearchInPerson";
 import { errorMessage } from "../../utils";
 import OutOfActiveListBanner from "./OutOfActiveListBanner";
 import { useEffect, useMemo } from "react";
+import Confetti from "react-confetti";
+import { CakeIcon } from "@heroicons/react/24/solid";
 import { useLocalStorage } from "../../services/useLocalStorage";
 
 export default function View() {
@@ -56,6 +58,13 @@ export default function View() {
     });
   }, [personId, setLastPersonsViewed, person]);
 
+  const isBirthday = useMemo(() => {
+    if (!person?.birthdate) return false;
+    const today = new Date();
+    const birthdate = new Date(person.birthdate);
+    return today.getDate() === birthdate.getDate() && today.getMonth() === birthdate.getMonth();
+  }, [person?.birthdate]);
+
   if (!person) {
     history.push("/person");
     return null;
@@ -63,6 +72,13 @@ export default function View() {
 
   return (
     <div>
+      {isBirthday && <Confetti style={{ zIndex: 100 }} recycle={false} numberOfPieces={300} />}
+      {isBirthday && (
+        <div className=" tw-mx-auto tw-flex tw-items-center tw-justify-center tw-gap-2 tw-bg-fuchsia-100 tw-text-fuchsia-900 tw-py-2 tw-px-4 tw-text-sm tw-font-medium">
+          <CakeIcon className="tw-h-5 tw-w-5" />
+          C'est l'anniversaire de {person.name} aujourd'hui&nbsp;!
+        </div>
+      )}
       <div className="tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-pt-2 tw-pb-2">
         <div className="tw-flex tw-w-full tw-justify-between tw-items-center">
           <div>

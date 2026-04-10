@@ -6376,6 +6376,7 @@ __metadata:
     prettier: "npm:3.2.5"
     prettier-plugin-tailwindcss: "npm:0.5.12"
     react: "npm:18.2.0"
+    react-confetti: "npm:^6.4.0"
     react-datepicker: "npm:4.8.0"
     react-diff-viewer-continued: "npm:3.4.0"
     react-dom: "npm:18.2.0"
@@ -11182,6 +11183,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-confetti@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "react-confetti@npm:6.4.0"
+  dependencies:
+    tween-functions: "npm:^1.2.0"
+  peerDependencies:
+    react: ^16.3.0 || ^17.0.1 || ^18.0.0 || ^19.0.0
+  checksum: a0e1bfc826cc086e13c18f2f8997e1825025be8ea80f5b1ffdd4871babe89a6876eac99f43525d4d4cbf141fab2a9372f5d51d19fa5995b64e77e6717ac4b286
+  languageName: node
+  linkType: hard
+
 "react-datepicker@npm:4.8.0":
   version: 4.8.0
   resolution: "react-datepicker@npm:4.8.0"
@@ -12842,6 +12854,13 @@ __metadata:
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 9c4759110a19c53f992d9aae23aac5ced636e99887b51b9e61def52611732872ff7668757d4e4c61f19691e36f4da981cd9485e869b4a7408d689f6bf1f14e62
+  languageName: node
+  linkType: hard
+
+"tween-functions@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "tween-functions@npm:1.2.0"
+  checksum: 7e59295b8b0ee4132ed2fe335f56a9db5c87056dad6b6fd3011be72239fd20398003ddb4403bc98ad9f5c94468890830f64016edbbde35581faf95b32cda8305
   languageName: node
   linkType: hard
 
