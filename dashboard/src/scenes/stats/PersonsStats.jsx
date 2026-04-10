@@ -483,10 +483,18 @@ export const AgeRangeBar = ({ persons, onItemClick }) => {
   }, [modalOpen, tempSettings]);
 
   const { averageAge, personsWithAgeCount } = useMemo(() => {
-    const personsWithAge = persons.filter((p) => p.birthdate && p.birthdate.length && Number.isFinite(p.age));
-    if (personsWithAge.length === 0) return { averageAge: null, personsWithAgeCount: 0 };
-    const sum = personsWithAge.reduce((acc, p) => acc + p.age, 0);
-    return { averageAge: Math.round((sum / personsWithAge.length) * 10) / 10, personsWithAgeCount: personsWithAge.length };
+    const { sum, count } = persons.reduce(
+      (acc, p) => {
+        if (p.birthdate && p.birthdate.length && Number.isFinite(p.age)) {
+          acc.sum += p.age;
+          acc.count += 1;
+        }
+        return acc;
+      },
+      { sum: 0, count: 0 }
+    );
+    if (count === 0) return { averageAge: null, personsWithAgeCount: 0 };
+    return { averageAge: Math.round((sum / count) * 10) / 10, personsWithAgeCount: count };
   }, [persons]);
 
   // Generate categories and data based on settings
