@@ -10,7 +10,7 @@ import { personFieldsIncludingCustomFieldsSelector, usePreparePersonForEncryptio
 import { teamsState, userState } from "../../atoms/auth";
 import { isNullOrUndefined } from "../../utils";
 import API, { tryFetchExpectOk } from "../../services/api";
-import { formatDateWithFullMonth, now } from "../../services/date";
+import { dayjsInstance, formatDateWithFullMonth, now } from "../../services/date";
 import { sanitizeFieldValueFromExcel } from "./importSanitizer";
 import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../atoms/medicalFiles";
 import { encryptItem } from "../../services/encryption";
@@ -128,6 +128,7 @@ export default function ImportPersons() {
         }
         if (Object.keys(person).length) {
           person.description = `Données importées le ${formatDateWithFullMonth(now())}\n${person.description || ""}`;
+          if (!person.followedSince || !dayjsInstance(person.followedSince).isValid()) person.followedSince = now().toDate();
           if (!person.name) {
             toast.error(`La colonne "${nameField.label}" ne doit pas être vide, vérifiez la ligne ${i} du fichier.`);
             setReloadKey((k) => k + 1);
