@@ -235,6 +235,7 @@ export const CustomResponsiveBar = ({
   tableHeaderTitles,
   showTotal = true,
   settingsButton,
+  additionalInfo,
 }: {
   title: string | React.ReactNode;
   data: BarData;
@@ -253,6 +254,7 @@ export const CustomResponsiveBar = ({
   };
   showTotal?: boolean;
   settingsButton?: React.ReactNode;
+  additionalInfo?: React.ReactNode;
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
@@ -288,7 +290,7 @@ export const CustomResponsiveBar = ({
   return (
     <div className="tw-m-0 tw-grid tw-grid-cols-7 print:tw-grid-cols-1 tw-gap-y-8 tw-gap-x-12 tw-w-full tw-flex-wrap tw-items-center tw-justify-between tw-rounded-2xl tw-border tw-border-main25 tw-bg-white print:tw-break-inside-avoid">
       <ChartTitle title={title} help={help} settingsButton={settingsButton} chartRef={chartRef} />
-      <div className="tw-flex tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
+      <div className="tw-flex tw-flex-col tw-pl-4 tw-w-full tw-col-span-3 print:tw-col-span-1 tw-items-center tw-justify-center">
         <table className="tw-w-full tw-border tw-border-zinc-200 tw-text-sm print:tw-max-w-xl">
           <thead>
             <tr className="tw-bg-zinc-100">
@@ -338,6 +340,7 @@ export const CustomResponsiveBar = ({
             )}
           </tbody>
         </table>
+        {additionalInfo && <div className="tw-mt-2 tw-text-sm tw-text-gray-600">{additionalInfo}</div>}
       </div>
       <div
         ref={chartRef}
