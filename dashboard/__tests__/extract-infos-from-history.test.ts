@@ -16,7 +16,6 @@ jest.mock("../src/services/dataManagement", () => ({
 }));
 
 describe("Extract infos from history", () => {
-  const today = dayjs().startOf("day").toISOString();
   test("no team change, only one team", () => {
     const { assignedTeamsPeriods, interactions } = extractInfosFromHistory({
       ...personPopulated,
@@ -154,5 +153,36 @@ describe("Extract infos from history", () => {
       new Date("2022-01-03T00:00:00.000Z"),
       new Date("2022-01-02T00:00:00.000Z"),
     ]);
+  });
+
+  test("followedSince invalide ou absent → repli sur createdAt sans lever d'erreur", () => {
+    const createdAt = new Date("2022-06-15T00:00:00.000Z");
+    const { assignedTeamsPeriods: invalidFollowedSinceAssignedTeamsPeriods, interactions: invalidFollowedSinceInteractions } =
+      extractInfosFromHistory({
+        ...personPopulated,
+        followedSince: new Date(NaN),
+        createdAt,
+        assignedTeams: ["TEAM_ID_A"],
+        history: [],
+      });
+    expect(invalidFollowedSinceAssignedTeamsPeriods).toEqual({
+      TEAM_ID_A: [{ isoEndDate: null, isoStartDate: "2022-06-15T00:00:00.000Z" }],
+      all: [{ isoStartDate: "2022-06-15T00:00:00.000Z", isoEndDate: null }],
+    });
+    expect(invalidFollowedSinceInteractions).toEqual([createdAt]);
+
+    const { followedSince: _followedSince, ...personWithoutFollowedSince } = personPopulated;
+    const { assignedTeamsPeriods: missingFollowedSinceAssignedTeamsPeriods, interactions: missingFollowedSinceInteractions } =
+      extractInfosFromHistory({
+        ...personWithoutFollowedSince,
+        createdAt,
+        assignedTeams: ["TEAM_ID_A"],
+        history: [],
+      } as typeof personPopulated);
+    expect(missingFollowedSinceAssignedTeamsPeriods).toEqual({
+      TEAM_ID_A: [{ isoEndDate: null, isoStartDate: "2022-06-15T00:00:00.000Z" }],
+      all: [{ isoStartDate: "2022-06-15T00:00:00.000Z", isoEndDate: null }],
+    });
+    expect(missingFollowedSinceInteractions).toEqual([createdAt]);
   });
 });
