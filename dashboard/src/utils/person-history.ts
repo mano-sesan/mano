@@ -2,6 +2,7 @@ import { dayjsInstance } from "../services/date";
 import type { PersonInstance, AssignedTeamsPeriods, PersonHistoryEntry, FieldChangeData } from "../types/person";
 import type { TeamInstance } from "../types/team";
 import { forbiddenPersonFieldsInHistory } from "../atoms/persons";
+import { capture } from "../services/sentry";
 
 export const cleanHistory = (history: Array<PersonHistoryEntry> = []): Array<PersonHistoryEntry> => {
   const alreadyExisting = {};
@@ -54,6 +55,19 @@ export function extractInfosFromHistory(person: PersonInstance): {
   const hasFollowedSince = !!person.followedSince;
   const followedSinceAsDayjsInstance = dayjsInstance(person.followedSince);
   const isValidFollowedSince = hasFollowedSince && followedSinceAsDayjsInstance.isValid();
+  // Capture information about followedSince because it's unexpected
+  if (!isValidFollowedSince) {
+    capture(new Error("Invalid followedSince in extractInfosFromHistory"), {
+      extra: {
+        _id: person._id,
+        followedSince: person.followedSince,
+        hasFollowedSince,
+        followedSinceAsDayjsInstance,
+        isValidFollowedSince,
+        createdAt: person.createdAt,
+      },
+    });
+  }
   const followStart = isValidFollowedSince ? person.followedSince : person.createdAt;
   const followStartIso = dayjsInstance(followStart).toISOString();
   const interactions = [followStart];
