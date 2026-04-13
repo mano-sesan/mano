@@ -183,6 +183,7 @@ const PersonSummary = ({
           date={person.followedSince}
           editable={editable}
           showYear
+          required
         />
       ) : (
         <InputLabelled
