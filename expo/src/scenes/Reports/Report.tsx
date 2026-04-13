@@ -31,6 +31,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const castToReport = (report?: ReportInstance) =>
   ({
@@ -87,7 +88,8 @@ const Report = ({ navigation, route }: Props) => {
   const passages = usePassagesForReport(day);
   const observations = useObservationsForReport(day);
   const organisation = useAtomValue(organisationState)!;
-  const { refresh } = useDataLoader({ refreshOnMount: true });
+  const { refresh } = useDataLoader();
+  useRefreshOnFocus();
   const [servicesCount, setServicesCount] = useState(0);
 
   const isFocused = useIsFocused();

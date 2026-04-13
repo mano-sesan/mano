@@ -15,6 +15,7 @@ import { RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FlashListRef } from "@shopify/flash-list";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
   setSearch: (search: string) => void;
@@ -25,7 +26,8 @@ type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
 };
 
 const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, onFiltersPress, onCreatePersonRequest }: PersonListProps) => {
-  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const keyExtractor = (person: PersonInstance) => person._id;
   const ListFooterComponent = useCallback(() => {

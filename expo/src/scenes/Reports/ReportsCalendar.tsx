@@ -13,6 +13,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ReportInstance } from "@/types/report";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 LocaleConfig.locales.fr = {
   monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
@@ -65,7 +66,8 @@ const ReportsCalendar = ({ navigation }: ReportsCalendarProps) => {
   const dates = useAtomValue(mappedReportsToCalendarDaysSelector);
   const currentTeam = useAtomValue(currentTeamState);
 
-  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const [submiting, setSubmiting] = useState(false);
 

@@ -1,6 +1,4 @@
-/* eslint-disable no-inner-declarations */
 // Pour l'historique git, avant le code était ici : dashboard/src/components/DataLoader.jsx
-import { useEffect } from "react";
 import { Alert } from "react-native";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { useMMKVNumber } from "react-native-mmkv";
@@ -51,7 +49,7 @@ function setMMKVCacheItem(key: string, value: any) {
   storage.set(key, JSON.stringify(value));
 }
 
-export function useDataLoader(options = { refreshOnMount: false }) {
+export function useDataLoader() {
   const [fullScreen, setFullScreen] = useAtom(fullScreenState);
   const [isLoading, setIsLoading] = useAtom(isLoadingState);
   const setLoadingText = useSetAtom(loadingTextState);
@@ -80,20 +78,6 @@ export function useDataLoader(options = { refreshOnMount: false }) {
   const setMedicalFiles = useSetAtom(medicalFileState);
 
   const [lastRefresh, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
-
-  useEffect(function refreshOnMountEffect() {
-    if (options.refreshOnMount && !isLoading) {
-      requestIdleCallback(() => {
-        loadOrRefreshData(false)
-          .then(() => setIsLoading(false))
-          .catch((error) => {
-            capture(error);
-            setIsLoading(false);
-          });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   async function loadOrRefreshData(isStartingInitialLoad: boolean) {
     setIsLoading(true);

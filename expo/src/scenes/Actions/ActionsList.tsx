@@ -22,6 +22,7 @@ import { PersonInstance } from "@/types/person";
 import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
 
@@ -48,7 +49,8 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
 
-  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const onPressFloatingButton = async () => {
     const isConsultationButtonEnabled = user.healthcareProfessional;

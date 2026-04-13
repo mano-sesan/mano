@@ -21,6 +21,7 @@ import { PersonInstance, PersonPopulated } from "@/types/person";
 import { ActionInstance } from "@/types/action";
 import { CommentInstance } from "@/types/comment";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type UrgentAction = ActionInstance & { isAction: true; isComment: false };
 interface UrgentComment extends Omit<CommentInstance, "person" | "action"> {
@@ -80,7 +81,8 @@ type NotificationsProps = NativeStackScreenProps<TabsParamsList, "PRIORITÉS">;
 const Notifications = ({ navigation }: NotificationsProps) => {
   const { actionsFiltered, commentsFiltered } = useAtomValue(urgentItemsSelector);
 
-  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const sections = useMemo(
     () => [

@@ -40,7 +40,7 @@ import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
-import { useDataLoader, progressState } from "./services/dataLoader";
+import { useDataLoader, progressState, totalState } from "./services/dataLoader";
 import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
 import DotsIcon from "./icons/DotsIcon";
 import Notifications from "./scenes/Notifications/Notifications";
@@ -74,9 +74,9 @@ const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
-  const { isFullScreen } = useDataLoader();
+  const { isLoading, isFullScreen } = useDataLoader();
 
-  if (isFullScreen) return null;
+  if (isLoading && isFullScreen) return null;
 
   return (
     <Tab.Navigator
@@ -166,6 +166,7 @@ const App = () => {
   const appStateListener = useRef<NativeEventSubscription | null>(null);
   const navigationRef = useNavigationContainerRef();
   const progress = useAtomValue(progressState);
+  const total = useAtomValue(totalState);
   const { resetMMKVAndAtoms, isFullScreen, isLoading } = useDataLoader();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const resetOrganisation = useSetAtom(organisationState);
@@ -318,7 +319,7 @@ const App = () => {
             </>
           )}
         </AppStack.Navigator>
-        <ProgressBar loading={isLoading} progress={progress} fullScreen={isFullScreen} />
+        <ProgressBar loading={isLoading} progress={progress} fullScreen={isFullScreen} total={total} />
         <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>

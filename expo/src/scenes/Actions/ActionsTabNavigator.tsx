@@ -1,7 +1,7 @@
 // app/src/scenes/Actions/ActionsTabNavigator.js
 import React from "react";
 import { Platform, View, TouchableOpacity, Animated } from "react-native";
-import { createMaterialTopTabNavigator, MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ActionsList from "./ActionsList";

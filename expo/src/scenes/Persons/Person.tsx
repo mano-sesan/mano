@@ -36,6 +36,7 @@ import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
 import { PersonStackParams, RootStackParamList } from "@/types/navigation";
 import { hideEditButtonAtom } from "@/utils/hide-edit-button";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
@@ -93,7 +94,8 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
 
   const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id)!, [persons, route.params?.person?._id]);
 
-  const { refresh } = useDataLoader({ refreshOnMount: true });
+  const { refresh } = useDataLoader();
+  useRefreshOnFocus();
 
   const castToPerson = useCallback(
     (person: Partial<PersonInstance>) => {

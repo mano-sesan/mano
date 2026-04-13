@@ -18,6 +18,7 @@ import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
@@ -27,7 +28,8 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
 
   const territories = useTerritoriesWithObservationsSearchSelector(search, showArchived);
 
-  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const onCreateTerritoryRequest = () => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("TERRITORY_NEW");
 
