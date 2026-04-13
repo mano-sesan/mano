@@ -337,8 +337,8 @@ const itemsForStatsSelector = ({
     // Filter by action categories (only actions in the period)
     if (filterByActionCategories.length || filterByActionCategoriesCombined.length) {
       const actionsInPeriod = (person.actions || []).filter((a) => actionsFilteredByPersons[a._id]);
-      const categoryFilter = filterByActionCategoriesCombined[0] || filterByActionCategories[0];
-      if (!matchesActionCategoryFilter(actionsInPeriod, categoryFilter)) {
+      const allCategoryFilters = [...filterByActionCategoriesCombined, ...filterByActionCategories];
+      if (!allCategoryFilters.every((f) => matchesActionCategoryFilter(actionsInPeriod, f))) {
         delete personsUpdated[person._id];
         delete personsCreated[person._id];
         delete personsUpdatedWithActions[person._id];
