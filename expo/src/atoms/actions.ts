@@ -1,4 +1,3 @@
-import { atomWithCache } from "@/utils/atomWithCache";
 import { atom } from "jotai";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
@@ -6,7 +5,7 @@ import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { ActionInstance } from "@/types/action";
 
-export const actionsState = atomWithCache<Array<ActionInstance>>("action", []);
+export const actionsState = atom<Array<ActionInstance>>([]);
 
 export const actionsCategoriesSelector = atom((get) => {
   const organisation = get(organisationState)!;

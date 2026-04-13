@@ -2,14 +2,14 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Alert, KeyboardAvoidingView, Platform } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import PersonSummary from "./PersonSummary";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import FoldersNavigator from "./FoldersNavigator";
 import Tabs from "../../components/Tabs";
 import colors from "../../utils/colors";
-import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   allowedPersonFieldsInHistorySelector,
   personsState,
@@ -26,7 +26,6 @@ import { passagesState } from "../../atoms/passages";
 import { consultationsState } from "../../atoms/consultations";
 import { treatmentsState } from "../../atoms/treatments";
 import { medicalFileState } from "../../atoms/medicalFiles";
-import { refreshTriggerState } from "../../components/Loader";
 import { groupsState, prepareGroupForEncryption } from "../../atoms/groups";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
@@ -36,6 +35,7 @@ import { PersonInstance } from "@/types/person";
 import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
 import { PersonStackParams, RootStackParamList } from "@/types/navigation";
 import { hideEditButtonAtom } from "@/utils/hide-edit-button";
+import { useDataLoader } from "@/services/dataLoader";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
@@ -78,8 +78,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
   const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const [persons, setPersons] = useAtom(personsState);
+  const persons = useAtomValue(personsState);
   const actions = useAtomValue(actionsState);
   const groups = useAtomValue(groupsState);
   const comments = useAtomValue(commentsState);
@@ -94,15 +93,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
 
   const personDB = useMemo(() => persons.find((p) => p._id === route.params?.person?._id)!, [persons, route.params?.person?._id]);
 
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) {
-      requestIdleCallback(() => {
-        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  const { refresh } = useDataLoader({ refreshOnMount: true });
 
   const castToPerson = useCallback(
     (person: Partial<PersonInstance>) => {
@@ -207,12 +198,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       return false;
     }
     const newPerson = response.decryptedData;
-    setPersons((persons) =>
-      persons.map((p) => {
-        if (p._id === personDB._id) return newPerson;
-        return p;
-      })
-    );
+    await refresh();
     setPerson(castToPerson(newPerson));
     if (alert) Alert.alert("Personne mise à jour !");
     setUpdating(false);
@@ -331,8 +317,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const personRes = await API.delete({ path: `/person/${personDB._id}`, body });
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
-      setPersons((persons) => persons.filter((p) => p._id !== personDB._id));
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      await refresh();
     }
     return true;
   };

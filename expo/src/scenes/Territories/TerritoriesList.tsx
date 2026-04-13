@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Animated, View } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -7,9 +7,6 @@ import { ListEmptyTerritories, ListNoMoreTerritories } from "../../components/Li
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
-import { useAtom, useAtomValue } from "jotai";
-import { useIsFocused } from "@react-navigation/native";
-import { refreshTriggerState, loadingState } from "../../components/Loader";
 import { useTerritoriesWithObservationsSearchSelector } from "../../atoms/territory";
 import RowContainer from "../../components/RowContainer";
 import { MyText } from "../../components/MyText";
@@ -20,24 +17,17 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { TerritoryInstance } from "@/types/territory";
 import { FlashListRef } from "@shopify/flash-list";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
+import { useDataLoader } from "@/services/dataLoader";
 
 type TerritoriesListProps = BottomTabScreenProps<TabsParamsList, "TERRITOIRES">;
 
 const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
   const territories = useTerritoriesWithObservationsSearchSelector(search, showArchived);
 
-  const onRefresh = async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  };
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
 
   const onCreateTerritoryRequest = () => navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("TERRITORY_NEW");
 
@@ -87,8 +77,8 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
       <FlashListStyled
         // @ts-ignore FIXME
         ref={listRef}
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         withHeaderSearch
         onScroll={onScroll}
         estimatedItemSize={80}
@@ -119,8 +109,8 @@ const TerritoriesList = ({ navigation }: TerritoriesListProps) => {
 };
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyTerritories />;
 };
 const Name = styled(MyText)`

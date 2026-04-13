@@ -10,7 +10,7 @@ import ButtonsContainer from "../../components/ButtonsContainer";
 import TerritoryMultiCheckBoxes from "../../components/MultiCheckBoxes/TerritoryMultiCheckBoxes";
 import SubList from "../../components/SubList";
 import TerritoryObservationRow from "./TerritoryObservationRow";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { prepareTerritoryForEncryption, territoriesState } from "../../atoms/territory";
 import { territoryObservationsState } from "../../atoms/territoryObservations";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
@@ -20,6 +20,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
+import { useDataLoader } from "@/services/dataLoader";
 
 const castToTerritory = (
   territory: Partial<TerritoryInstance> = {}
@@ -37,11 +38,12 @@ type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;
 
 const Territory = ({ route, navigation }: TerritoryProps) => {
   const user = useAtomValue(userState)!;
-  const [territories, setTerritories] = useAtom(territoriesState);
+  const territories = useAtomValue(territoriesState);
   const [territoryDB, setTerritoryDB] = useState(() => territories.find((territory) => territory._id === route.params?.territory?._id)!);
+  const { refresh } = useDataLoader();
 
   const [territory, setTerritory] = useState(castToTerritory(route?.params?.territory));
-  const [allTerritoryObservations, setTerritoryObservations] = useAtom(territoryObservationsState);
+  const allTerritoryObservations = useAtomValue(territoryObservationsState);
   const territoryObservations = useMemo(() => {
     return allTerritoryObservations
       .filter((obs) => obs.territory === territoryDB?._id)
@@ -85,12 +87,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
       return false;
     }
     if (response.ok) {
-      setTerritories((territories) =>
-        territories.map((a) => {
-          if (a._id === territoryDB._id) return response.decryptedData;
-          return a;
-        })
-      );
+      await refresh();
       setTerritoryDB(response.decryptedData);
       Alert.alert("Territoire mis à jour !");
       setUpdating(false);
@@ -111,8 +108,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
       return false;
     }
     if (!response.ok) return false;
-    setTerritories((territories) => territories.filter((t) => t._id !== territoryDB._id));
-    setTerritoryObservations((obs) => obs.filter((o) => o.territory !== territoryDB._id));
+    await refresh();
     Alert.alert("Territoire supprimé !");
     return true;
   };
@@ -214,9 +210,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                         onPress: async () => {
                           const response = await API.post({ path: `/territory/${territoryDB._id}/archive` });
                           if (response.error) return Alert.alert(response.error);
-                          setTerritories((territories) =>
-                            territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: new Date().toISOString() } : t))
-                          );
+                          await refresh();
                           setTerritoryDB((t) => ({ ...t, archivedAt: new Date().toISOString() }));
                           Alert.alert("Territoire archivé");
                         },
@@ -231,7 +225,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                 onPress={async () => {
                   const response = await API.post({ path: `/territory/${territoryDB._id}/unarchive` });
                   if (response.error) return Alert.alert(response.error);
-                  setTerritories((territories) => territories.map((t) => (t._id === territoryDB._id ? { ...t, archivedAt: null } : t)));
+                  await refresh();
                   setTerritoryDB((t) => ({ ...t, archivedAt: null }));
                   Alert.alert("Territoire désarchivé");
                 }}

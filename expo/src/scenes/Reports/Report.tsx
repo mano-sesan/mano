@@ -1,7 +1,7 @@
 import { useIsFocused } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import InputLabelled from "../../components/InputLabelled";
 import Label from "../../components/Label";
 import { MyText } from "../../components/MyText";
@@ -26,11 +26,11 @@ import {
   useRencontresForReport,
 } from "./selectors";
 import { getPeriodTitle } from "./utils";
-import { refreshTriggerState } from "../../components/Loader";
 import { ReportInstance } from "@/types/report";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
+import { useDataLoader } from "@/services/dataLoader";
 
 const castToReport = (report?: ReportInstance) =>
   ({
@@ -87,7 +87,7 @@ const Report = ({ navigation, route }: Props) => {
   const passages = usePassagesForReport(day);
   const observations = useObservationsForReport(day);
   const organisation = useAtomValue(organisationState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader({ refreshOnMount: true });
   const [servicesCount, setServicesCount] = useState(0);
 
   const isFocused = useIsFocused();
@@ -147,7 +147,7 @@ const Report = ({ navigation, route }: Props) => {
       return false;
     }
     if (response.ok) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      await refresh();
       setReport(castToReport(response.decryptedData));
       Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);

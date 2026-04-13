@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import ActionRow from "../../components/ActionRow";
 import Spinner from "../../components/Spinner";
@@ -9,8 +9,6 @@ import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { actionsFiltersState, TODO } from "../../atoms/actions";
 import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../atoms/selectors";
-import { useIsFocused } from "@react-navigation/native";
-import { refreshTriggerState, loadingState } from "../../components/Loader";
 import Button from "../../components/Button";
 import ConsultationRow from "../../components/ConsultationRow";
 import { organisationState, userState } from "../../atoms/auth";
@@ -23,6 +21,7 @@ import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import { ConsultationInstance } from "@/types/consultation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useDataLoader } from "@/services/dataLoader";
 
 const keyExtractor = (item: ActionInstance | ConsultationInstance) => item._id;
 
@@ -41,7 +40,6 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
 
   const actionsByStatusAndTimeframe = useActionsByStatusAndTimeframeSelector(status, limit, timeframe, filters) as Array<
     ActionInstance | ConsultationInstance
@@ -50,15 +48,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const hasMore = useMemo(() => limit < total, [limit, total]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
-
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  const { refresh, isLoading } = useDataLoader({ refreshOnMount: true });
 
   const onPressFloatingButton = async () => {
     const isConsultationButtonEnabled = user.healthcareProfessional;
@@ -148,8 +138,8 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
       }}
     >
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={actionsByStatusAndTimeframe}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -163,7 +153,7 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 }
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyActions />;
 };

@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { userState } from "../../atoms/auth";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
-import { passagesState } from "../../atoms/passages";
+import { useDataLoader } from "@/services/dataLoader";
 import { PassageInstance } from "@/types/passage";
 import { PersonPopulated } from "@/types/person";
 
@@ -20,7 +20,7 @@ type PassageRowProps = {
 const PassageRow = ({ onUpdate, passage, itemName, onItemNamePress }: PassageRowProps) => {
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const user = useAtomValue(userState)!;
-  const setPassages = useSetAtom(passagesState);
+  const { refresh } = useDataLoader();
   const person = useMemo(() => (passage?.person ? personsObject[passage.person] : undefined), [personsObject, passage.person]);
   const { showActionSheetWithOptions } = useActionSheet();
 
@@ -57,7 +57,7 @@ const PassageRow = ({ onUpdate, passage, itemName, onItemNamePress }: PassageRow
   const onPassageDelete = async () => {
     const response = await API.delete({ path: `/passage/${passage._id}` });
     if (!response.ok) return Alert.alert(response.error);
-    setPassages((passages) => passages.filter((p) => p._id !== passage._id));
+    await refresh();
   };
 
   return (

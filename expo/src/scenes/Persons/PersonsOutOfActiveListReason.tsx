@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import { View } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import Button from "../../components/Button";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import OutOfActiveListReasonMultiCheckBox from "../../components/Selects/OutOfActiveListReasonMultiCheckBox";
 import { userState } from "../../atoms/auth";
-import { allowedPersonFieldsInHistorySelector, personsState, usePreparePersonForEncryption } from "../../atoms/persons";
+import { allowedPersonFieldsInHistorySelector, usePreparePersonForEncryption } from "../../atoms/persons";
 import API from "../../services/api";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { PersonInstance } from "@/types/person";
+import { useDataLoader } from "@/services/dataLoader";
 
 type PersonsOutOfActiveListReasonProps = {
   onBack: () => void;
@@ -22,7 +23,7 @@ type PersonsOutOfActiveListReasonProps = {
 const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveListReasonProps) => {
   const [reasons, setReasons] = useState<PersonInstance["outOfActiveListReasons"]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const setPersons = useSetAtom(personsState);
+  const { refresh } = useDataLoader();
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const allowedFieldsInHistory = useAtomValue(allowedPersonFieldsInHistorySelector);
   const preparePersonForEncryption = usePreparePersonForEncryption();
@@ -53,13 +54,7 @@ const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveList
       body: preparePersonForEncryption(newPerson),
     });
     if (response.ok) {
-      const newPerson = response.decryptedData;
-      setPersons((persons) =>
-        persons.map((p) => {
-          if (p._id === person._id) return newPerson;
-          return p;
-        })
-      );
+      await refresh();
     }
     return response;
   };
