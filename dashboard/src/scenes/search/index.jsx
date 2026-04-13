@@ -221,7 +221,7 @@ function useCommentsFilteredBySearch(search) {
   const allComments = useAtomValue(allCommentsWithPassagesAndRencontresSelector);
   return useMemo(() => {
     if (!search?.length) return [];
-    return filterBySearch(search, allComments);
+    return filterBySearch(search, allComments, ["personPopulated", "userPopulated", "actionPopulated"]);
   }, [search, allComments]);
 }
 
