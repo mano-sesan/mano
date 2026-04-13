@@ -390,4 +390,23 @@ $theme-colors: (
   }
 }
 
+@keyframes rainbow-sweep {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.rainbow-sweep {
+  background: linear-gradient(90deg, #a855f7 0%, #a855f7 40%, #8b00ff, #0088ff, #00ff00, #ffff00, #ff8800, #ff0000, #a855f7 100%);
+  background-size: 300% 100%;
+  background-position: 100% 50%;
+  animation: rainbow-sweep 1.5s ease-out forwards;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 @import "bootstrap/scss/bootstrap.scss";
