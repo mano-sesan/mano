@@ -42,6 +42,7 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import { matchesActionCategoryFilter } from "./action-category-filter";
 import StatsV2 from "./index-v2";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
@@ -137,6 +138,8 @@ const itemsForStatsSelector = ({
     "numberOfTreatments",
     "numberOfPassages",
     "numberOfRencontres",
+    "actionCategories",
+    "actionCategoriesCombined",
   ];
 
   const activeFilters = filterPersons.filter(
@@ -149,6 +152,8 @@ const itemsForStatsSelector = ({
   );
   const outOfActiveListFilter = filterPersons.find((f) => f.field === "outOfActiveList")?.value;
   const filterByStartFollowBySelectedTeamDuringPeriod = filterPersons.filter((f) => f.field === "startFollowBySelectedTeamDuringPeriod");
+  const filterByActionCategories = filterPersons.filter((f) => f.field === "actionCategories");
+  const filterByActionCategoriesCombined = filterPersons.filter((f) => f.field === "actionCategoriesCombined");
   const filterByNumberOfActions = filterPersons.filter((f) => f.field === "numberOfActions");
   const filterByNumberOfConsultations = filterPersons.filter((f) => f.field === "numberOfConsultations");
   const filterHasAtLeastOneConsultation = filterPersons.filter((f) => f.field === "hasAtLeastOneConsultation");
@@ -328,6 +333,18 @@ const itemsForStatsSelector = ({
       actionsFilteredByPersons[action._id] = action;
       // Voir ci-dessus (pourquoi on limite aux personnes suivies)
       if (personsUpdated[person._id]) personsUpdatedWithActions[person._id] = person;
+    }
+    // Filter by action categories (only actions in the period)
+    if (filterByActionCategories.length || filterByActionCategoriesCombined.length) {
+      const actionsInPeriod = (person.actions || []).filter((a) => actionsFilteredByPersons[a._id]);
+      const categoryFilter = filterByActionCategoriesCombined[0] || filterByActionCategories[0];
+      if (!matchesActionCategoryFilter(actionsInPeriod, categoryFilter)) {
+        delete personsUpdated[person._id];
+        delete personsCreated[person._id];
+        delete personsUpdatedWithActions[person._id];
+        for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
+        continue;
+      }
     }
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {
