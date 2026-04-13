@@ -81,10 +81,11 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
                     if (props.selectProps?.value?.length <= 1) return <components.MultiValueContainer {...props} />;
                     const lastValue = props.selectProps?.value?.[props.selectProps?.value?.length - 1]?.value;
                     const isLastValue = props?.data?.value === lastValue;
+                    const connector = selectedField?.field === "actionCategoriesCombined" ? "ET" : "OU";
                     return (
                       <>
                         <components.MultiValueLabel {...props} />
-                        {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+                        {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">{connector}</span>}
                       </>
                     );
                   },
