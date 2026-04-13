@@ -1,9 +1,9 @@
 import React, { useMemo } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createNativeStackNavigator, NativeStackNavigationProp } from "@react-navigation/native-stack";
 import PersonsList from "./PersonsList";
 import PersonsFilterScreen from "./PersonsFilterScreen";
 import FilterConfigModal from "./FilterConfigModal";
-import { TabsParamsList } from "@/types/navigation";
+import { RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { useAtom, useAtomValue } from "jotai";
 import { teamsState, userState } from "@/atoms/auth";
 import { arrayOfitemsGroupedByPersonSelector } from "@/atoms/selectors";
@@ -79,7 +79,15 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
         )}
       </PersonsListStack.Screen>
       <PersonsListStack.Screen name="PERSON_NEW">
-        {({ navigation }) => <PersonNew onBack={() => navigation.goBack()} onPersonCreated={(person) => navigation.goBack()} />}
+        {({ navigation }) => (
+          <PersonNew
+            onBack={() => navigation.goBack()}
+            onPersonCreated={(person) => {
+              navigation.goBack();
+              props.navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
+            }}
+          />
+        )}
       </PersonsListStack.Screen>
     </PersonsListStack.Navigator>
   );
