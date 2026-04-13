@@ -174,7 +174,13 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const personToUpdate = Object.assign({}, castToPerson(person), stateToMerge, {
       _id: personDB._id,
     });
-    if (!personToUpdate.followedSince) personToUpdate.followedSince = personDB.createdAt;
+    if (!personToUpdate.followedSince) {
+      if (personDB.followedSince) {
+        personToUpdate.followedSince = personDB.followedSince;
+      } else {
+        personToUpdate.followedSince = personDB.createdAt;
+      }
+    }
     const oldPerson = persons.find((a) => a._id === personDB._id)!;
     const existingPerson = persons.find((p) => personDB._id !== p._id && p.name === personToUpdate.name);
     if (existingPerson) {
