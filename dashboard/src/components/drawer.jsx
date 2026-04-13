@@ -86,7 +86,7 @@ const Drawer = () => {
       <div
         className={[
           "noprint tw-relative tw-max-h-full tw-min-w-min tw-shrink-0 tw-flex-col tw-justify-between tw-overflow-y-auto tw-border-opacity-10 tw-bg-[#E1E3E3] tw-drop-shadow-xl tw-transition-all tw-duration-300 sm:!tw-flex sm:tw-drop-shadow-none",
-          isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-px-2" : "tw-w-64 tw-basis-52 tw-px-2",
+          isCollapsed && isDesktop ? "tw-w-16 tw-basis-16 tw-px-2" : "tw-basis-52 tw-px-2",
           isOnboarding ? "[&_li:not(#show-on-onboarding)]:tw-pointer-events-none [&_li:not(#show-on-onboarding)]:tw-opacity-20" : "",
         ].join(" ")}
       >
