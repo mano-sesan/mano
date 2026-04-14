@@ -275,6 +275,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
   }
 
   if (["enum", "multi-choice"].includes(type) && name !== "outOfActiveList") {
+    const connector = name === "actionCategoriesCombined" ? "ET" : "OU";
     return (
       <SelectCustom
         options={filterOptions.map((_value) => ({ label: _value, value: _value }))}
@@ -296,7 +297,7 @@ function ModalValueSelector({ field, filterOptions, value, onChange, comparator,
             return (
               <>
                 <components.MultiValueLabel {...props} />
-                {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">OU</span>}
+                {!isLastValue && <span className="tw-ml-1 tw-mr-2 tw-inline-block">{connector}</span>}
               </>
             );
           },

@@ -22,9 +22,10 @@ function getFilterDisplayValue(filter) {
   if (Array.isArray(filter.value)) {
     if (filter.value.length === 0) return null;
     if (filter.value.length === 1) return filter.value[0];
+    const connector = filter.field === "actionCategoriesCombined" ? " et " : " ou ";
     return filter.value.map((v, i) => (
       <span key={i}>
-        {i > 0 && <span className="tw-font-normal tw-italic"> ou </span>}
+        {i > 0 && <span className="tw-font-normal tw-italic">{connector}</span>}
         {v}
       </span>
     ));
