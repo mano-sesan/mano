@@ -346,7 +346,7 @@ const BlockCreatedAt = ({ persons }) => {
   const averageFollowedTime =
     persons.reduce((total, person) => {
       let totalFollowedTime = 0;
-      let followStart = Date.parse(person.followedSince);
+      let followStart = Date.parse(person.followedSince || person.createdAt);
 
       const history = person.history || [];
 
