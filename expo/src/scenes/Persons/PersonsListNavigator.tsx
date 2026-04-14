@@ -83,8 +83,46 @@ export default function PersonsListNavigator(props: PersonsStackProps) {
           <PersonNew
             onBack={() => navigation.goBack()}
             onPersonCreated={(person) => {
-              navigation.goBack();
-              props.navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("PERSON_STACK", { person });
+              props.navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().reset({
+                index: 1,
+                routes: [
+                  {
+                    name: "TABS_STACK",
+                    state: {
+                      index: 2,
+                      routes: [
+                        {
+                          name: "AGENDA",
+                        },
+                        {
+                          name: "TERRITOIRES",
+                        },
+                        {
+                          name: "PERSONNES",
+                          state: {
+                            index: 0,
+                            routes: [
+                              {
+                                name: "PERSONS_LIST",
+                              },
+                            ],
+                          },
+                        },
+                        {
+                          name: "PRIORITÉS",
+                        },
+                        {
+                          name: "MENU",
+                        },
+                      ],
+                    },
+                  },
+                  {
+                    name: "PERSON_STACK",
+                    params: { person, editable: true },
+                  },
+                ],
+              });
             }}
           />
         )}
