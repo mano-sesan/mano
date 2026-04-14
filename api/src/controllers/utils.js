@@ -48,9 +48,10 @@ router.get("/version", async (req, res) => {
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
-- Retour du filtre par équipe dans les personnes suivies
-- Compatibilité avec les documents pour les territoires (seulement sur le web pour le moment)
-- Quelques bugs mineurs corrigés`,
+- On peut ajouter un commentaire en cliquant sur une rencontre
+- On peut télécharger et importer des documents pour les territoires
+- On peut archiver des territoires sans perdre les observations
+- Quelques bugs corrigés : email dans la fiche contact, date des traitements, redirection vers le dossier de la personne après création.`,
       [
         { text: "Télécharger", link: downloadLink },
         { text: "Installer", link: installLink },
