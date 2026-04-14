@@ -3,8 +3,8 @@
 ## Comment livrer une version mobile pour android
 
 1. Lancer `yarn update-mobile-app-version [patch|minor|major]`
-2. Lancer `yarn build:android-apks` (génère 2 APKs: standard et Niort)
-3. Lancer `yarn publish-release-to-github` (publie les 2 APKs avec tags m{version} et niort{version})
+2. Lancer `yarn build:android-apks` (génère 3 APKs: standard, niort et nantes)
+3. Lancer `yarn publish-releases-to-github` (publie les 3 APKs avec tags m{version}, niort{version} et nantes{version})
 4. Committer et push les modifications de version.
 
 ## Comment créer un nouveau package Id
