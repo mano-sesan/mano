@@ -43,7 +43,7 @@ export const personPopulated: PersonPopulated = {
   interactions: [dayjs("2023-01-01").toDate()],
   lastUpdateCheckForGDPR: new Date(),
   assignedTeamsPeriods: {
-    all: [{ isoStartDate: "2023-01-01", isoEndDate: "2024-01-01" }],
+    all: [{ isoStartDate: "2023-01-01", isoEndDate: null }],
   },
 };
 
