@@ -9,7 +9,7 @@ import ButtonDelete from "../../components/ButtonDelete";
 import styled from "styled-components/native";
 import { MyText } from "../../components/MyText";
 import CustomFieldInput from "../../components/CustomFieldInput";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   customFieldsObsSelector,
   groupedCustomFieldsObsSelector,
@@ -34,6 +34,7 @@ import PersonNew from "../Persons/PersonNew";
 import { PersonInstance } from "@/types/person";
 import DocumentsManager from "../../components/DocumentsManager";
 import Label from "../../components/Label";
+import { useDataLoader } from "@/services/dataLoader";
 
 type ObsStackParams = {
   TERRITORY_OBSERVATION: undefined;
@@ -152,12 +153,11 @@ const TerritoryObservation = ({
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
   const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
   const fieldsGroupNames = groupedCustomFieldsObs.map((f) => f.name).filter((f) => f);
-  const [allTerritoryOservations, setTerritoryObservations] = useAtom(territoryObservationsState);
+  const { refresh } = useDataLoader();
+  const allTerritoryOservations = useAtomValue(territoryObservationsState);
   const [obsDB, setObsDB] = useState(
     () => allTerritoryOservations.find((obs) => obs._id === route.params?.obs?._id) || ({} as TerritoryObservationInstance)
   );
-
-  const setRencontres = useSetAtom(rencontresState);
 
   const castToTerritoryObservation = useCallback(
     (territoryObservation: Partial<TerritoryObservationInstance> = {}) => {
@@ -227,7 +227,7 @@ const TerritoryObservation = ({
         }
         newRencontres.push(response.decryptedData);
       }
-      setRencontres((rencontres) => [...rencontres, ...newRencontres]);
+      await refresh();
       setRencontresForObs((rencontresForObs) => [...rencontresForObs, ...newRencontres]);
     }
   };
@@ -251,8 +251,8 @@ const TerritoryObservation = ({
       return false;
     }
 
+    await refresh();
     setObs(castToTerritoryObservation(response.decryptedData));
-    setTerritoryObservations((territoryObservations) => [response.decryptedData, ...territoryObservations]);
     setObsDB(response.decryptedData);
     await saveRencontres(response.decryptedData._id);
     Alert.alert("Nouvelle observation créée !");
@@ -280,13 +280,8 @@ const TerritoryObservation = ({
       Alert.alert(response.error);
       return false;
     }
+    await refresh();
     setObs(castToTerritoryObservation(response.decryptedData));
-    setTerritoryObservations((territoryObservations) =>
-      territoryObservations.map((a) => {
-        if (a._id === obsDB._id) return response.decryptedData;
-        return a;
-      })
-    );
     setObsDB(response.decryptedData);
     Alert.alert("Observation mise à jour !");
     await saveRencontres(response.decryptedData._id);
@@ -316,7 +311,7 @@ const TerritoryObservation = ({
     setDeleting(false);
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
-      setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== obsDB._id));
+      await refresh();
       Alert.alert("Observation supprimée !");
       onBack();
     }

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import { Animated } from "react-native";
 import * as Sentry from "@sentry/react-native";
 import SceneContainer from "../../components/SceneContainer";
@@ -9,14 +9,13 @@ import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyC
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import Search from "../../components/Search";
-import { useAtom, useAtomValue } from "jotai";
-import { loadingState, refreshTriggerState } from "../../components/Loader";
-import { useIsFocused } from "@react-navigation/native";
 import { PersonInstance } from "@/types/person";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { FlashListRef } from "@shopify/flash-list";
+import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
   setSearch: (search: string) => void;
@@ -27,17 +26,8 @@ type PersonListProps = BottomTabScreenProps<TabsParamsList, "PERSONNES"> & {
 };
 
 const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, onFiltersPress, onCreatePersonRequest }: PersonListProps) => {
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-
-  const onRefresh = async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  };
-
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (isFocused && refreshTrigger.status !== true) requestIdleCallback(onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFocused]);
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const keyExtractor = (person: PersonInstance) => person._id;
   const ListFooterComponent = useCallback(() => {
@@ -81,8 +71,8 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
         // @ts-ignore FIXME
         ref={listref}
         withHeaderSearch
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         onScroll={onScroll}
         parentScroll={scrollY}
         data={persons}
@@ -101,8 +91,8 @@ const PersonsList = ({ navigation, route, persons, numberOfFilters, setSearch, o
 };
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyPersons />;
 };
 

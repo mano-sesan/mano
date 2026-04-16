@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import API from "../../services/api";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -14,7 +14,7 @@ import { currentTeamState, organisationState, userState } from "../../atoms/auth
 import { getPeriodTitle } from "./utils";
 import { prepareReportForEncryption } from "../../atoms/reports";
 import { currentTeamReportsSelector } from "./selectors";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 
@@ -23,7 +23,7 @@ const Collaborations = ({ route, navigation }: Props) => {
   const user = useAtomValue(userState)!;
   const [collaboration, setCollaboration] = useState("");
   const [posting, setPosting] = useState(false);
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const teamsReports = useAtomValue(currentTeamReportsSelector);
 
@@ -84,7 +84,7 @@ const Collaborations = ({ route, navigation }: Props) => {
         });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      await refresh();
       onBack();
     }
   };

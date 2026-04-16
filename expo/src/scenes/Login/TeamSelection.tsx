@@ -9,19 +9,19 @@ import Title from "../../components/Title";
 import ScreenTitle from "../../components/ScreenTitle";
 import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList, RootStackParamList } from "@/types/navigation";
+import { useDataLoader } from "@/services/dataLoader";
 
 const TeamBody = ({ onSelect }: { onSelect: () => void }) => {
   const [loading, setLoading] = useState<number | undefined>(undefined);
   const user = useAtomValue(userState)!;
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { startInitialLoad } = useDataLoader();
 
   const onTeamSelected = async (teamIndex: number) => {
     setLoading(teamIndex);
-    setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
+    startInitialLoad();
     setCurrentTeam(user.teams![teamIndex]!);
     setLoading(undefined);
     onSelect();

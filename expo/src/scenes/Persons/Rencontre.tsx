@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -9,25 +9,24 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { rencontresState, prepareRencontreForEncryption } from "../../atoms/rencontres";
+import { prepareRencontreForEncryption } from "../../atoms/rencontres";
 import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { RencontreInstance } from "@/types/rencontre";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 
 type RencontreProps = NativeStackScreenProps<RootStackParamList, "RENCONTRE">;
 const Rencontre = ({ navigation, route }: RencontreProps) => {
   const personId = route.params.person._id;
   const isNewRencontre = !route.params.rencontre;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const [rencontre, setRencontre] = useState<RencontreInstance>(
     () => route.params.rencontre || ({ date: new Date().toISOString(), user: user._id, team: currentTeam._id, person: personId } as RencontreInstance)
   );
   const [submitting, setSubmitting] = useState(false);
-  const [rencontres, setRencontres] = useAtom(rencontresState);
 
   const createRencontre = async () => {
     const response = await API.post({
@@ -35,9 +34,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
       body: prepareRencontreForEncryption(rencontre),
     });
     if (response.ok) {
-      const newRencontre = response.decryptedData;
-
-      setRencontres([newRencontre, ...rencontres]);
+      await refresh();
       Alert.alert("Rencontre ajoutée !");
     }
     return response;
@@ -49,9 +46,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
       body: prepareRencontreForEncryption(rencontre),
     });
     if (response.ok) {
-      const updatedRencontre = response.decryptedData;
-
-      setRencontres((rencontres) => rencontres.map((r) => (r._id === updatedRencontre._id ? updatedRencontre : r)));
+      await refresh();
       Alert.alert("Rencontre modifiée !");
     }
     return response;
@@ -90,7 +85,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
                   Alert.alert("Erreur", response.error || response.code || "Une erreur est survenue lors de l'enregistrement de la rencontre");
                   return;
                 }
-                setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+                await refresh();
                 navigation.goBack();
               }}
             />

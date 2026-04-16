@@ -248,7 +248,7 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
 
 export const arrayOfitemsGroupedByPersonSelector = atom((get) => {
   const itemsGroupedByPerson = get(itemsGroupedByPersonSelector);
-  return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized > b.nameNormalized ? 1 : -1));
+  return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized! > b.nameNormalized! ? 1 : -1));
 });
 
 export const usePersonsSearchSelector = (search: string) => {

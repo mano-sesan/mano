@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, ScrollView, View } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -30,7 +30,7 @@ import InputFromSearchList from "../../components/InputFromSearchList";
 import CommentRow from "../Comments/CommentRow";
 import SubList from "../../components/SubList";
 import NewCommentInput from "../Comments/NewCommentInput";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
 import { alertCreateComment } from "../../utils/alert-create-comment";
@@ -179,12 +179,11 @@ type ConsultationFormProps = Props & {
 };
 
 const ConsultationForm = ({ navigation, route, consultationDB, consultation, setConsultation, person, onSearchPerson }: ConsultationFormProps) => {
-  const setAllConsultations = useSetAtom(consultationsState);
   const organisation = useAtomValue(organisationState)!;
   const user = useAtomValue(userState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
   const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
 
   const isNew = !consultationDB?._id;
   const [writingComment, setWritingComment] = useState("");
@@ -239,7 +238,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
       Alert.alert("Impossible de dupliquer !");
       return;
     }
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    await refresh();
     backRequestHandledRef.current = true;
     navigation.replace("CONSULTATION_STACK", {
       personDB: person,
@@ -306,7 +305,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
         : await API.put({ path: `/consultation/${consultationDB._id}`, body });
       if (!consultationResponse.ok) return false;
 
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+      await refresh();
 
       const consultationCancelled = consultationToSave.status === CANCEL && consultationDB.status !== CANCEL;
       if (!isNew && consultationCancelled) {
@@ -362,7 +361,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
       Alert.alert(response.error);
       return;
     }
-    setAllConsultations((all) => all.filter((t) => t._id !== consultationDB._id));
+    await refresh();
     Alert.alert("Consultation supprimée !");
     onBack();
   };

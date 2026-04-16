@@ -1,10 +1,10 @@
-import { atomWithCache } from "@/utils/atomWithCache";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { RelPersonPlaceInstance } from "@/types/place";
 
-export const relsPersonPlaceState = atomWithCache<RelPersonPlaceInstance[]>("relPersonPlace", []);
+export const relsPersonPlaceState = atom<RelPersonPlaceInstance[]>([]);
 
 const encryptedFields = ["place", "person", "user"];
 

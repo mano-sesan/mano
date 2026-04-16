@@ -1,18 +1,19 @@
 import dayjs from "dayjs";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { atom, useAtomValue } from "jotai";
 import { RefreshControl } from "react-native";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import { currentTeamState } from "../../atoms/auth";
 import colors from "../../utils/colors";
-import { refreshTriggerState } from "../../components/Loader";
 import { itemsGroupedDateSelector } from "./selectors";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ReportInstance } from "@/types/report";
+import { useDataLoader } from "@/services/dataLoader";
+import useRefreshOnFocus from "@/utils/refresh-on-focus";
 
 LocaleConfig.locales.fr = {
   monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
@@ -64,10 +65,9 @@ type ReportsCalendarProps = NativeStackScreenProps<RootStackParamList, "COMPTES_
 const ReportsCalendar = ({ navigation }: ReportsCalendarProps) => {
   const dates = useAtomValue(mappedReportsToCalendarDaysSelector);
   const currentTeam = useAtomValue(currentTeamState);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
-  const onRefresh = useCallback(() => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
+
+  const { refresh, isLoading } = useDataLoader();
+  useRefreshOnFocus();
 
   const [submiting, setSubmiting] = useState(false);
 
@@ -82,7 +82,7 @@ const ReportsCalendar = ({ navigation }: ReportsCalendarProps) => {
   return (
     <SceneContainer>
       <ScreenTitle title={`Comptes-rendus de l'équipe ${currentTeam?.name}`} onBack={navigation.goBack} />
-      <ScrollContainer refreshControl={<RefreshControl refreshing={refreshTrigger.status} onRefresh={onRefresh} />}>
+      <ScrollContainer refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}>
         <Calendar
           onDayPress={onDayPress}
           hideExtraDays={true}

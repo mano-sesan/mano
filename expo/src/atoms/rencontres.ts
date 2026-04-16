@@ -1,10 +1,10 @@
-import { atomWithCache } from "@/utils/atomWithCache";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { RencontreInstance } from "@/types/rencontre";
 
-export const rencontresState = atomWithCache<RencontreInstance[]>("rencontre", []);
+export const rencontresState = atom<RencontreInstance[]>([]);
 
 const encryptedFields = ["person", "team", "user", "date", "observation", "comment"];
 

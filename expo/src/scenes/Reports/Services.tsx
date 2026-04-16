@@ -1,9 +1,8 @@
-import { useAtom, useAtomValue } from "jotai";
-import React, { useCallback, useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
+import React, { useEffect, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
-import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyServices } from "../../components/ListEmptyContainer";
 import { getPeriodTitle } from "./utils";
@@ -14,6 +13,7 @@ import { servicesSelector } from "../../atoms/reports";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
+import { useDataLoader } from "@/services/dataLoader";
 
 type ServiceToShow = Pick<ServiceInstance, "service" | "_id" | "count">;
 
@@ -82,14 +82,10 @@ const Services = ({ navigation, route }: Props) => {
   const groupedServices = useAtomValue(servicesSelector);
   const { date } = route.params;
   const organisation = useAtomValue(organisationState)!;
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const [services, setServices] = useState<Array<ServiceToShow>>([]);
   const [activeTab, setActiveTab] = useState(groupedServices[0]?.groupTitle || null);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
+  const { refresh, isLoading } = useDataLoader();
 
   useEffect(() => {
     async function initServices() {
@@ -142,8 +138,8 @@ const Services = ({ navigation, route }: Props) => {
       </ScrollView>
 
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={selectedServices}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

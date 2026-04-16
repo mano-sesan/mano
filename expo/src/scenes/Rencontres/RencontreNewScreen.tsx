@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -10,10 +10,10 @@ import Label from "../../components/Label";
 import Tags from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { rencontresState, prepareRencontreForEncryption } from "../../atoms/rencontres";
+import { prepareRencontreForEncryption } from "../../atoms/rencontres";
 import API from "../../services/api";
 import { useNavigation } from "@react-navigation/native";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { PersonInstance } from "@/types/person";
 import { RencontreInstance } from "@/types/rencontre";
 import { RencontreNewStackParams, RootStackParamList } from "@/types/navigation";
@@ -95,14 +95,13 @@ const NewRencontreForm = ({
   setRencontrePersons,
   canChangePerson,
 }: NewRencontreFormProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const navigation = useNavigation();
   const [date, setDate] = useState<Date>(new Date());
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
-  const [rencontres, setRencontres] = useAtom(rencontresState);
 
   const backRequestHandledRef = useRef(false);
   useEffect(() => {
@@ -172,9 +171,7 @@ const NewRencontreForm = ({
       newRencontres.push(response.decryptedData);
     }
 
-    // Mettre à jour l'état avec toutes les nouvelles rencontres
-    setRencontres([...newRencontres, ...rencontres]);
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    await refresh();
     setPosting(false);
 
     if (newRencontres.length > 1) {

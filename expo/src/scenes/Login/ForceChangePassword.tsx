@@ -6,19 +6,19 @@ import colors from "../../utils/colors";
 import { ChangePasswordBody } from "./ChangePassword";
 import { MyText } from "../../components/MyText";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList } from "@/types/navigation";
+import { useDataLoader } from "@/services/dataLoader";
 
 type ForceChangePasswordProps = NativeStackScreenProps<LoginStackParamsList, "FORCE_CHANGE_PASSWORD">;
 
 const ForceChangePassword = ({ navigation }: ForceChangePasswordProps) => {
   const user = useAtomValue(userState)!;
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { startInitialLoad } = useDataLoader();
   const onOk = () => {
     if (user.teams?.length === 1) {
-      setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: true } });
+      startInitialLoad();
       setCurrentTeam(user.teams[0]);
       navigation.getParent()?.navigate("TABS_STACK");
     } else {

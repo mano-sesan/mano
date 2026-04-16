@@ -7,11 +7,10 @@ import { territoryObservationsState } from "./territoryObservations";
 import structuredClone from "@ungap/structured-clone";
 import { filterBySearch } from "../utils/search";
 import { ReadyToEncryptTerritoryInstance, TerritoryInstance, TerritoryType } from "@/types/territory";
-import { atomWithCache } from "@/utils/atomWithCache";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { useMemo } from "react";
 
-export const territoriesState = atomWithCache<Array<TerritoryInstance>>("territory", []);
+export const territoriesState = atom<Array<TerritoryInstance>>([]);
 
 const encryptedFields: Array<keyof TerritoryInstance> = ["name", "perimeter", "description", "types", "user", "documents"];
 

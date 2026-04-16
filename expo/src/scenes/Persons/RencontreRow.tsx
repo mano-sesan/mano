@@ -1,10 +1,10 @@
 import React, { useMemo } from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { userState } from "../../atoms/auth";
 import API from "../../services/api";
-import { rencontresState } from "../../atoms/rencontres";
+import { useDataLoader } from "@/services/dataLoader";
 import BubbleRow from "../../components/BubbleRow";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { PersonPopulated } from "@/types/person";
@@ -19,7 +19,7 @@ type RencontreRowProps = {
 const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps) => {
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
   const user = useAtomValue(userState)!;
-  const setRencontres = useSetAtom(rencontresState);
+  const { refresh } = useDataLoader();
   const person = useMemo(() => (rencontre?.person ? personsObject[rencontre.person] : undefined), [personsObject, rencontre.person]);
   const { showActionSheetWithOptions } = useActionSheet();
 
@@ -56,7 +56,7 @@ const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps)
   const onRencontreDelete = async () => {
     const response = await API.delete({ path: `/rencontre/${rencontre._id}` });
     if (!response.ok) return Alert.alert(response.error);
-    setRencontres((rencontres) => rencontres.filter((p) => p._id !== rencontre._id));
+    await refresh();
   };
 
   return (
