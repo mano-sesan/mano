@@ -7,18 +7,39 @@ interface CategoryFilter {
   value: string | string[];
 }
 
-export function matchesActionCategoryFilter(actionsInPeriod: ActionWithCategories[], filter: CategoryFilter): boolean {
-  const selectedCategories = Array.isArray(filter.value) ? filter.value : [filter.value];
-  if (!selectedCategories.length) return true;
+export interface CategoryMatchState {
+  filter: CategoryFilter;
+  vals: string[];
+  isNonRenseigne: boolean;
+  matched: boolean;
+}
 
-  if (selectedCategories.length === 1 && selectedCategories[0] === "Non renseigné") {
-    return !actionsInPeriod.some((a) => a.categories?.length);
-  }
+export function createCategoryMatchStates(filters: CategoryFilter[]): CategoryMatchState[] {
+  return filters.map((filter) => {
+    const vals = Array.isArray(filter.value) ? filter.value : [filter.value];
+    const isNonRenseigne = vals.length === 1 && vals[0] === "Non renseigné";
+    // "Non renseigné" est satisfait par défaut et invalidé dès qu'une action a une catégorie
+    return { filter, vals, isNonRenseigne, matched: isNonRenseigne };
+  });
+}
 
-  if (filter.field === "actionCategoriesCombined") {
-    // AND: at least one action has ALL selected categories
-    return actionsInPeriod.some((a) => a.categories?.length && selectedCategories.every((c) => a.categories!.includes(c)));
+export function accumulateActionForCategoryStates(states: CategoryMatchState[], action: ActionWithCategories): void {
+  for (const s of states) {
+    if (s.isNonRenseigne) {
+      if (action.categories?.length) s.matched = false;
+      continue;
+    }
+    if (s.matched) continue;
+    if (s.filter.field === "actionCategoriesCombined") {
+      // AND: une action a toutes les catégories sélectionnées
+      if (action.categories?.length && s.vals.every((c) => action.categories!.includes(c))) s.matched = true;
+    } else {
+      // OR: une action a au moins une des catégories sélectionnées
+      if (action.categories?.some((c) => s.vals.includes(c))) s.matched = true;
+    }
   }
-  // OR: at least one action has one of the selected categories
-  return actionsInPeriod.some((a) => a.categories?.some((c) => selectedCategories.includes(c)));
+}
+
+export function allCategoryStatesMatched(states: CategoryMatchState[]): boolean {
+  return states.every((s) => s.matched);
 }

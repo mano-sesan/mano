@@ -42,7 +42,7 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
-import { matchesActionCategoryFilter } from "./action-category-filter";
+import { createCategoryMatchStates, accumulateActionForCategoryStates, allCategoryStatesMatched } from "./action-category-filter";
 import StatsV2 from "./index-v2";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
@@ -303,12 +303,14 @@ const itemsForStatsSelector = ({
       }
     }
 
+    const categoryStates = createCategoryMatchStates([...filterByActionCategoriesCombined, ...filterByActionCategories]);
     let numberOfActions = 0;
     for (const action of person.actions || []) {
       if (!filterItemByTeam(action, "teams")) continue;
       if (noPeriodSelected) {
         actionsFilteredByPersons[action._id] = action;
         numberOfActions++;
+        accumulateActionForCategoryStates(categoryStates, action);
         // On veut seulement les personnes considérées comme suivies
         // Pour ne pas avoir plus de personnes suivies concernées par les actions que de personnes suivies
         if (personsUpdated[person._id]) personsUpdatedWithActions[person._id] = person;
@@ -331,20 +333,16 @@ const itemsForStatsSelector = ({
       }
       numberOfActions++;
       actionsFilteredByPersons[action._id] = action;
+      accumulateActionForCategoryStates(categoryStates, action);
       // Voir ci-dessus (pourquoi on limite aux personnes suivies)
       if (personsUpdated[person._id]) personsUpdatedWithActions[person._id] = person;
     }
-    // Filter by action categories (only actions in the period)
-    if (filterByActionCategories.length || filterByActionCategoriesCombined.length) {
-      const actionsInPeriod = (person.actions || []).filter((a) => actionsFilteredByPersons[a._id]);
-      const allCategoryFilters = [...filterByActionCategoriesCombined, ...filterByActionCategories];
-      if (!allCategoryFilters.every((f) => matchesActionCategoryFilter(actionsInPeriod, f))) {
-        delete personsUpdated[person._id];
-        delete personsCreated[person._id];
-        delete personsUpdatedWithActions[person._id];
-        for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
-        continue;
-      }
+    if (categoryStates.length && !allCategoryStatesMatched(categoryStates)) {
+      delete personsUpdated[person._id];
+      delete personsCreated[person._id];
+      delete personsUpdatedWithActions[person._id];
+      for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
+      continue;
     }
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {

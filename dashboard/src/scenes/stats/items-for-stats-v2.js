@@ -3,7 +3,7 @@ import { filterItem } from "../../components/Filters";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { extractOutOfActiveListPeriods, isDateInOutOfActiveListPeriod } from "../../utils/person-out-of-active-list-periods";
 import { dayjsInstance } from "../../services/date";
-import { matchesActionCategoryFilter } from "./action-category-filter";
+import { createCategoryMatchStates, accumulateActionForCategoryStates, allCategoryStatesMatched } from "./action-category-filter";
 
 /**
  * Check if a given ISO date falls within a period when the person was assigned
@@ -295,6 +295,7 @@ export const itemsForStatsV2Selector = ({
       }
     }
 
+    const categoryStates = createCategoryMatchStates([...filterByActionCategoriesCombined, ...filterByActionCategories]);
     let numberOfActions = 0;
     for (const action of person.actions || []) {
       if (!filterItemByTeam(action, "teams")) continue;
@@ -302,6 +303,7 @@ export const itemsForStatsV2Selector = ({
       if (noPeriodSelected) {
         actionsFilteredByPersons[action._id] = action;
         numberOfActions++;
+        accumulateActionForCategoryStates(categoryStates, action);
         if (personsForStats[person._id]) personsUpdatedWithActions[person._id] = person;
         continue;
       }
@@ -322,18 +324,14 @@ export const itemsForStatsV2Selector = ({
       }
       numberOfActions++;
       actionsFilteredByPersons[action._id] = action;
+      accumulateActionForCategoryStates(categoryStates, action);
       if (personsForStats[person._id]) personsUpdatedWithActions[person._id] = person;
     }
-    // Filter by action categories (only actions in the period)
-    if (filterByActionCategories.length || filterByActionCategoriesCombined.length) {
-      const actionsInPeriod = (person.actions || []).filter((a) => actionsFilteredByPersons[a._id]);
-      const allCategoryFilters = [...filterByActionCategoriesCombined, ...filterByActionCategories];
-      if (!allCategoryFilters.every((f) => matchesActionCategoryFilter(actionsInPeriod, f))) {
-        delete personsForStats[person._id];
-        delete personsUpdatedWithActions[person._id];
-        for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
-        continue;
-      }
+    if (categoryStates.length && !allCategoryStatesMatched(categoryStates)) {
+      delete personsForStats[person._id];
+      delete personsUpdatedWithActions[person._id];
+      for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
+      continue;
     }
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {
