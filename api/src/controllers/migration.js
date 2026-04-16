@@ -108,7 +108,7 @@ router.put(
             migrationLastUpdateAt: new Date(),
           });
         }
-        if (req.params.migrationName === "set-followed-since-from-created-at") {
+        if (req.params.migrationName === "set-followed-since-from-created-at-2") {
           try {
             z.array(
               z.object({
