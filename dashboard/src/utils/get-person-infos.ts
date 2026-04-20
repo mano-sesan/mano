@@ -20,5 +20,8 @@ export function getPersonInfo(person: PersonInstance) {
   if (person.email) {
     infos.push(`Email : ${person.email}`);
   }
+  if (person.description) {
+    infos.push(`Description : ${person.description}`);
+  }
   return infos.join("\n");
 }
