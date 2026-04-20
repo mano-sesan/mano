@@ -537,8 +537,8 @@ const Stats = ({ onSwitchVersion }) => {
   const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);
   const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage("stats-teams", [currentTeam]);
   const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses", DONE);
-  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
-  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
+  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups-v2", []);
+  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories-v2", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
   const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
   const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);

@@ -198,11 +198,13 @@ const ActionsStats = ({
             </label>
             <div>
               <SelectCustom
-                value={actionsCategoriesGroups?.map((_option) => ({ value: _option, label: _option })) || []}
+                value={
+                  actionsCategoriesGroups.reduce((acc, group) => [...acc, ...group], []).map((_option) => ({ value: _option, label: _option })) || []
+                }
                 options={groupsCategories.map((group) => group.groupTitle).map((_option) => ({ value: _option, label: _option }))}
                 getOptionValue={(s) => s.value}
                 getOptionLabel={(s) => s.label}
-                onChange={(groups) => setActionsCategoriesGroups(groups.map((s) => s.value))}
+                onChange={(groups) => setActionsCategoriesGroups([groups.map((s) => s.value)])}
                 name="action-category-group"
                 inputId="action-select-group-category-filter"
                 isClearable
@@ -217,7 +219,9 @@ const ActionsStats = ({
             <div>
               <SelectCustom
                 options={filterableActionsCategories.map((_option) => ({ value: _option, label: _option }))}
-                value={actionsCategories?.map((_option) => ({ value: _option, label: _option })) || []}
+                value={
+                  actionsCategories.reduce((acc, category) => [...acc, ...category], []).map((_option) => ({ value: _option, label: _option })) || []
+                }
                 getOptionValue={(s) => s.value}
                 getOptionLabel={(s) => s.label}
                 onChange={(categories) => setActionsCategories(categories.map((s) => s.value))}

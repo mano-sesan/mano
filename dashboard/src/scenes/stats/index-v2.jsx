@@ -114,8 +114,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);
   const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage("stats-teams", [currentTeam]);
   const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses", DONE);
-  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
-  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
+  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups-v2", []);
+  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories-v2", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
   const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
   const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
@@ -220,31 +220,94 @@ const StatsV2 = ({ onSwitchVersion }) => {
         categoriesGroupObject[category] = groupCategory.groupTitle;
       }
     }
+    const catGroupsFilterObject = {};
+    const catFiltersObject = {};
+    for (const [index, groups] of Object.entries(actionsCategoriesGroups)) {
+      catGroupsFilterObject[index] = groups;
+    }
+    for (const [index, categories] of Object.entries(actionsCategories)) {
+      catFiltersObject[index] = categories;
+    }
     for (const action of actionsFilteredByPersons) {
       if (!!actionsStatuses.length && !actionsStatuses.includes(action.status)) {
         continue;
       }
+      if (actionsCategories.length === 1 && actionsCategories[0] === "-- Aucune --") {
+        if (!action.categories?.length) {
+          actionsDetailed.push(action);
+          continue;
+        }
+      }
+      let actionIncluded = true;
+      const actionByCategories = {};
+      const actionByGroups = {};
       if (action.categories?.length) {
         for (const category of action.categories) {
-          actionsDetailed.push({
+          const group = categoriesGroupObject[category] ?? "Catégories supprimées";
+          const actionByCategory = {
             ...action,
             category,
-            categoryGroup: categoriesGroupObject[category] ?? "Catégories supprimées",
-          });
+            categoryGroup: group,
+          };
+          actionByCategories[category] = actionByCategory;
+          actionByGroups[group] = true;
         }
       } else {
-        actionsDetailed.push(action);
+        const actionByCategory = {
+          ...action,
+          category: action.category,
+          categoryGroup: action.categoryGroup,
+        };
+        actionByCategories[action.category] = actionByCategory;
+        actionByGroups[action.categoryGroup] = true;
+      }
+      let matchingGroupsFilters = 0;
+      for (let index = 0; index < actionsCategoriesGroups.length; index++) {
+        const groups = catGroupsFilterObject[index];
+        for (const group of groups) {
+          if (actionByGroups[group]) {
+            matchingGroupsFilters++;
+            break;
+          }
+        }
+      }
+      if (matchingGroupsFilters < actionsCategoriesGroups.length) {
+        actionIncluded = false;
+        continue;
+      }
+      let matchingCategoriesFilter = 0;
+      for (let index = 0; index < actionsCategories.length; index++) {
+        const categories = catFiltersObject[index];
+        for (const category of categories) {
+          if (actionByCategories[category]) {
+            matchingCategoriesFilter++;
+            break;
+          }
+        }
+      }
+      if (matchingCategoriesFilter < actionsCategories.length) {
+        actionIncluded = false;
+        continue;
+      }
+      if (actionIncluded === true) {
+        if (action.categories?.length) {
+          for (const category of action.categories) {
+            const categoryGroup = categoriesGroupObject[category] ?? "Catégories supprimées";
+            if (!actionsCategoriesGroups.length || actionsCategoriesGroups.includes(categoryGroup)) {
+              actionsDetailed.push({
+                ...action,
+                category,
+                categoryGroup: categoriesGroupObject[category] ?? "Catégories supprimées",
+              });
+            }
+          }
+        } else {
+          actionsDetailed.push(action);
+        }
       }
     }
-    const _actionsWithDetailedGroupAndCategories = actionsDetailed
-      .filter((a) => !actionsCategoriesGroups.length || actionsCategoriesGroups.includes(a.categoryGroup))
-      .filter((a) => {
-        if (!actionsCategories.length) return true;
-        if (actionsCategories.length === 1 && actionsCategories[0] === "-- Aucune --") return !a.categories?.length;
-        return actionsCategories.includes(a.category);
-      });
-    return _actionsWithDetailedGroupAndCategories;
-  }, [actionsFilteredByPersons, groupsCategories, actionsCategoriesGroups, actionsCategories, actionsStatuses]);
+    return actionsDetailed;
+  }, [actionsFilteredByPersons, actionsCategoriesGroups, actionsCategories, actionsStatuses, groupsCategories]);
 
   const passages = useMemo(() => {
     const activeFilters = filterPersons.filter((f) => f.value);
@@ -431,10 +494,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
       });
     }
     if (actionsCategoriesGroups.length) {
-      filters.push({ field: "categoryGroup", value: actionsCategoriesGroups });
+      for (const group of actionsCategoriesGroups) {
+        filters.push({ field: "categoryGroup", value: group });
+      }
     }
     if (actionsCategories.length) {
-      filters.push({ field: "category", value: actionsCategories });
+      for (const category of actionsCategories) {
+        filters.push({ field: "category", value: category });
+      }
     }
     return filters;
   }, [actionsStatuses, actionsCategoriesGroups, actionsCategories]);
@@ -476,12 +543,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
   // === Tab chip filter setters (for remove via setFilters) ===
   const setActionsChipFilters = useCallback(
     (newFilters) => {
+      console.log("newFilters", newFilters);
       const statusFilter = newFilters.find((f) => f.field === "status");
       setActionsStatuses(statusFilter ? statusFilter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []);
-      const groupFilter = newFilters.find((f) => f.field === "categoryGroup");
-      setActionsCategoriesGroups(groupFilter ? groupFilter.value : []);
-      const catFilter = newFilters.find((f) => f.field === "category");
-      setActionsCategories(catFilter ? catFilter.value : []);
+      setActionsCategoriesGroups(newFilters.filter((f) => f.field === "categoryGroup").map((f) => f.value));
+      setActionsCategories(newFilters.filter((f) => f.field === "category").map((f) => f.value));
     },
     [setActionsStatuses, setActionsCategoriesGroups, setActionsCategories]
   );
@@ -542,14 +608,22 @@ const StatsV2 = ({ onSwitchVersion }) => {
   }, [simpleFilterEditingIndex, simpleFilterTab, actionsChipFilters, servicesChipFilters, consultationsChipFilters, rencontresChipFilters]);
 
   const applySimpleFilter = useCallback(
-    (filter) => {
+    (filter, isUpdating = false) => {
       if (simpleFilterTab === "Actions") {
         if (filter.field === "status") {
           setActionsStatuses(filter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
         } else if (filter.field === "categoryGroup") {
-          setActionsCategoriesGroups(filter.value);
+          if (isUpdating) {
+            setActionsCategoriesGroups((prev) => prev.map((g, i) => (i === editingFilterIndex ? filter.value : g)));
+          } else {
+            setActionsCategoriesGroups((prev) => [...prev, filter.value]);
+          }
         } else if (filter.field === "category") {
-          setActionsCategories(filter.value);
+          if (isUpdating) {
+            setActionsCategories((prev) => prev.map((c, i) => (i === editingFilterIndex ? filter.value : c)));
+          } else {
+            setActionsCategories((prev) => [...prev, filter.value]);
+          }
         }
       } else if (simpleFilterTab === "Services") {
         if (filter.field === "serviceGroup") {
@@ -571,6 +645,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
     },
     [
       simpleFilterTab,
+      editingFilterIndex,
       setActionsStatuses,
       setActionsCategoriesGroups,
       setActionsCategories,
@@ -991,8 +1066,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
         }}
         filterBase={simpleFilterModalBase}
         editingFilter={simpleFilterEditingFilter}
-        onAddFilter={applySimpleFilter}
-        onEditFilter={applySimpleFilter}
+        onAddFilter={(filter) => applySimpleFilter(filter)}
+        onEditFilter={(filter) => applySimpleFilter(filter, true)}
         filterLabel={
           simpleFilterTab === "Actions"
             ? "d'action"
