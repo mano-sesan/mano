@@ -1,5 +1,5 @@
-import { atomWithCache } from "@/utils/atomWithCache";
 import { atom, useAtomValue } from "jotai";
+import { atomWithCache } from "@/utils/atomWithCache";
 import { organisationState, currentTeamState, userState, teamsState } from "./auth";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
@@ -8,7 +8,7 @@ import { Filter, FilterableField } from "@/types/field";
 import { placesState } from "./places";
 import { flattenedActionsCategoriesSelector } from "./actions";
 
-export const personsState = atomWithCache<PersonInstance[]>("person", []);
+export const personsState = atom<PersonInstance[]>([]);
 /*
 
 All fields for person are
@@ -73,7 +73,7 @@ export const allowedPersonFieldsInHistorySelector = atom((get) => {
 
 export const filterPersonsBaseSelector = atom((get) => {
   const personFields = get(personFieldsSelector);
-  return personFields.filter((m) => m.filterable).map(({ name, ...rest }) => ({ field: name, ...rest }));
+  return personFields.filter((m) => m.filterable).map(({ name, ...rest }) => ({ field: name, name, ...rest }));
 });
 
 /*
@@ -156,7 +156,7 @@ export const availablePersonFiltersSelector = atom((get) => {
       name: "places",
       label: "Lieux fréquentés",
       type: "multi-choice" as const,
-      options: [...new Set(places.map((place) => place.name))],
+      options: [...new Set(places.map((place) => place.name).filter(Boolean) as string[])],
     },
     {
       field: "assignedTeams",

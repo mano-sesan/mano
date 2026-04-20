@@ -1,9 +1,8 @@
-import { atomWithCache } from "@/utils/atomWithCache";
+import { atom, useAtomValue } from "jotai";
 import { GroupInstance } from "@/types/group";
-import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 
-export const groupsState = atomWithCache<GroupInstance[]>("group", []);
+export const groupsState = atom<GroupInstance[]>([]);
 
 export function useGroupSelector(personId: string) {
   const groups = useAtomValue(groupsState);

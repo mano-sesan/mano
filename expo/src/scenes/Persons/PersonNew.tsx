@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import dayjs from "dayjs";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -14,6 +14,7 @@ import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiChe
 import { currentTeamState, teamsState, userState } from "../../atoms/auth";
 import { PersonInstance } from "@/types/person";
 import { useNavigation } from "@react-navigation/native";
+import { useDataLoader } from "@/services/dataLoader";
 
 type PersonNewProps = {
   onPersonCreated: (person: PersonInstance) => void;
@@ -21,12 +22,13 @@ type PersonNewProps = {
 };
 
 const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
-  const [persons, setPersons] = useAtom(personsState);
+  const persons = useAtomValue(personsState);
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState)!;
   const teams = useAtomValue(teamsState);
   const preparePersonForEncryption = usePreparePersonForEncryption();
   const navigation = useNavigation();
+  const { refresh } = useDataLoader();
 
   const [name, setName] = useState("");
   const [assignedTeams, setAssignedTeams] = useState([currentTeam?._id!]);
@@ -47,9 +49,9 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onCreateUserRequest = async () => {
+  const onCreatePersonRequest = async () => {
     Keyboard.dismiss();
-    const response = await onCreateUser();
+    const response = await onCreatePerson();
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
       Sentry.setContext("person", { _id: response.data._id });
@@ -58,8 +60,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     }
   };
 
-  const onCreateUser = async () => {
-    const now = Date.now();
+  const onCreatePerson = async () => {
     setPosting(true);
     const existingPerson = persons.find((p) => p.name === name);
     if (existingPerson) {
@@ -72,10 +73,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
     });
     if (response.ok) {
-      setPersons((persons) => {
-        const nextPersons = [response.decryptedData, ...persons].map((p) => ({ ...p, followedSince: p.followedSince }));
-        return nextPersons;
-      });
+      await refresh();
     }
     if (!response.ok) {
       setPosting(false);
@@ -106,7 +104,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       {
         text: "Enregistrer",
         onPress: async () => {
-          const response = await onCreateUser();
+          const response = await onCreatePerson();
           if (response.ok) onBack();
         },
       },
@@ -142,7 +140,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
               setAssignedTeams(newAssignedTeams.map((teamName) => teams.find((t) => t.name === teamName)?._id!));
             }}
           />
-          <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreateUserRequest} loading={posting} testID="new-person-create" />
+          <Button caption="Créer" disabled={!isReadyToSave} onPress={onCreatePersonRequest} loading={posting} testID="new-person-create" />
         </View>
       </ScrollContainer>
     </SceneContainer>

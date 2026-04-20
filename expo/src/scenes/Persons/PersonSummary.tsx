@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef } from "react";
 import { Alert, Linking, Text } from "react-native";
 import styled from "styled-components/native";
 import * as Sentry from "@sentry/react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import dayjs from "dayjs";
 import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
@@ -27,7 +27,7 @@ import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirm
 import RencontreRow from "./RencontreRow";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { formatDateWithFullMonth, getRelativeTimeFrench } from "../../services/dateDayjs";
-import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
+import { prepareCommentForEncryption } from "../../atoms/comments";
 import { groupsState } from "../../atoms/groups";
 import API from "../../services/api";
 import PassageRow from "./PassageRow";
@@ -41,6 +41,7 @@ import { UUIDV4 } from "@/types/uuid";
 import { PlaceInstance } from "@/types/place";
 import { ActionInstance } from "@/types/action";
 import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
+import { useDataLoader } from "@/services/dataLoader";
 
 type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   person: Omit<PersonInstance, "_id">;
@@ -78,7 +79,7 @@ const PersonSummary = ({
 }: PersonSummaryProps) => {
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
-  const setComments = useSetAtom(commentsState);
+  const { refresh } = useDataLoader();
   const groups = useAtomValue(groupsState)!;
   useEditButtonStatusOnFocused("show");
 
@@ -339,7 +340,7 @@ const PersonSummary = ({
                   Alert.alert(response.error);
                   return false;
                 }
-                setComments((comments) => comments.filter((p) => p._id !== comment._id));
+                await refresh();
                 return true;
               }}
               onUpdate={
@@ -355,12 +356,7 @@ const PersonSummary = ({
                         return false;
                       }
                       if (response.ok) {
-                        setComments((comments) =>
-                          comments.map((c) => {
-                            if (c._id === comment._id) return response.decryptedData;
-                            return c;
-                          })
-                        );
+                        await refresh();
                         return true;
                       }
                       return false;
@@ -386,7 +382,7 @@ const PersonSummary = ({
                 Alert.alert(response.error || response.code);
                 return false;
               }
-              setComments((comments) => [response.decryptedData, ...comments]);
+              await refresh();
               return true;
             }}
           />

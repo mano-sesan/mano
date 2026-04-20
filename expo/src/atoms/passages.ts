@@ -1,10 +1,10 @@
-import { atomWithCache } from "@/utils/atomWithCache";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { PassageInstance } from "@/types/passage";
 
-export const passagesState = atomWithCache<PassageInstance[]>("passage", []);
+export const passagesState = atom<PassageInstance[]>([]);
 
 const encryptedFields = ["person", "team", "user", "date", "comment"];
 

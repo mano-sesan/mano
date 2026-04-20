@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import SceneContainer from "../../components/SceneContainer";
 import ActionRow from "../../components/ActionRow";
 import Spinner from "../../components/Spinner";
 import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
 import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
-import { refreshTriggerState, loadingState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { useActionsForReport } from "./selectors";
 import ScreenTitle from "../../components/ScreenTitle";
 import { CANCEL, DONE } from "../../atoms/actions";
@@ -21,7 +21,7 @@ const keyExtractor = (action: ActionInstance) => action._id;
 
 type Props = NativeStackScreenProps<RootStackParamList, "ACTIONS_FOR_REPORT">;
 const Actions = ({ route, navigation }: Props) => {
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const { refresh, isLoading } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
 
@@ -33,10 +33,6 @@ const Actions = ({ route, navigation }: Props) => {
     if (status === CANCEL) return actionsCanceled;
     return [];
   }, [status, actionsCreated, actionsCompleted, actionsCanceled]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
 
   const onCreateAction = useCallback(() => navigation.push("ACTION_NEW_STACK"), [navigation]);
 
@@ -70,8 +66,8 @@ const Actions = ({ route, navigation }: Props) => {
         onBack={navigation.goBack}
       />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={actionsToShow}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -85,8 +81,8 @@ const Actions = ({ route, navigation }: Props) => {
 };
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyActions />;
 };
 export default Actions;

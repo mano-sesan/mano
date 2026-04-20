@@ -6,9 +6,8 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import ButtonsContainer from "../../components/ButtonsContainer";
-import ButtonDelete from "../../components/ButtonDelete";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
+import { useAtomValue } from "jotai";
+import { prepareCommentForEncryption } from "../../atoms/comments";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import API from "../../services/api";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
@@ -17,8 +16,8 @@ import DateAndTimeInput from "../../components/DateAndTimeInput";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
-import { refreshTriggerState } from "@/components/Loader";
 import { Dayjs } from "dayjs";
+import { useDataLoader } from "@/services/dataLoader";
 
 type CommentProps = NativeStackScreenProps<RootStackParamList, "COMMENT">;
 // NOTE: this component is only used to create a new comment from a person row. No CRUD, only creation.
@@ -27,7 +26,7 @@ const Comment = ({ navigation, route }: CommentProps) => {
   const currentTeam = useAtomValue(currentTeamState);
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
   const groups = useAtomValue(groupsState);
   const isNewComment = true;
   const [comment, setComment] = useState("");
@@ -64,7 +63,7 @@ const Comment = ({ navigation, route }: CommentProps) => {
       setUpdating(false);
       Alert.alert("Commentaire ajouté", undefined, [{ text: "OK", onPress: onBack }]);
     }
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    await refresh();
     return response;
   };
 

@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import { atomWithCache } from "@/utils/atomWithCache";
 import { organisationState } from "./auth";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
@@ -7,7 +6,7 @@ import { Alert } from "react-native";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { CustomField } from "@/types/field";
 
-export const territoryObservationsState = atomWithCache<Array<TerritoryObservationInstance>>("territory-observation", []);
+export const territoryObservationsState = atom<Array<TerritoryObservationInstance>>([]);
 
 export const customFieldsObsSelector = atom((get) => {
   const organisation = get(organisationState)!;

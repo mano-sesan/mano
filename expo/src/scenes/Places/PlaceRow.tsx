@@ -1,10 +1,9 @@
 import React from "react";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert } from "react-native";
-import { useSetAtom } from "jotai";
 import API from "../../services/api";
 import BubbleRow from "../../components/BubbleRow";
-import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { useDataLoader } from "@/services/dataLoader";
 import { PlaceInstance, RelPersonPlaceInstance } from "@/types/place";
 import { PersonPopulated } from "@/types/person";
 import { RootStackParamList } from "@/types/navigation";
@@ -18,7 +17,7 @@ type PlaceRowProps = {
 };
 
 const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps) => {
-  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const { refresh } = useDataLoader();
   const { showActionSheetWithOptions } = useActionSheet();
 
   const onMorePress = async () => {
@@ -58,7 +57,7 @@ const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps
   const onRelPersonPlaceDelete = async () => {
     const response = await API.delete({ path: `/relPersonPlace/${relPersonPlace?._id}` });
     if (response.ok) {
-      setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel._id !== relPersonPlace?._id));
+      await refresh();
     }
     if (!response.ok) return Alert.alert(response.error);
   };

@@ -1,8 +1,8 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import React, { useCallback } from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyObservations, ListNoMoreObservations } from "../../components/ListEmptyContainer";
 import { useObservationsForReport } from "./selectors";
@@ -21,12 +21,8 @@ const ObservationsForReport = ({ navigation, route }: Props) => {
   const { date } = route.params;
   const observations = useObservationsForReport(date);
   const territories = useAtomValue(territoriesState);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const { refresh, isLoading } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
 
   const onUpdatObs = useCallback(
     (obs: TerritoryObservationInstance) =>
@@ -45,8 +41,8 @@ const ObservationsForReport = ({ navigation, route }: Props) => {
     <SceneContainer backgroundColor="#fff">
       <ScreenTitle title={`Observations\n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={observations}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

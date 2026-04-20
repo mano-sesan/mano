@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo } from "react";
 import * as Sentry from "@sentry/react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import SceneContainer from "../../components/SceneContainer";
 import Spinner from "../../components/Spinner";
 import { ListEmptyConsultations, ListNoMoreConsultations } from "../../components/ListEmptyContainer";
 import { FlashListStyled } from "../../components/Lists";
-import { refreshTriggerState, loadingState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { useConsultationsForReport } from "./selectors";
 import ScreenTitle from "../../components/ScreenTitle";
 import { CANCEL, DONE } from "../../atoms/actions";
@@ -22,7 +22,7 @@ const keyExtractor = (consultation: ConsultationInstance) => consultation._id;
 
 type Props = NativeStackScreenProps<RootStackParamList, "CONSULTATIONS_FOR_REPORT">;
 const Consultations = ({ route, navigation }: Props) => {
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const { refresh, isLoading } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const { status, date } = route.params;
 
@@ -36,10 +36,6 @@ const Consultations = ({ route, navigation }: Props) => {
     if (status === CANCEL) return consultationsCanceled;
     return [];
   }, [status, consultationsCreated, consultationsCompleted, consultationsCanceled]);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
 
   const onPseudoPress = useCallback(
     (person: PersonInstance) => {
@@ -72,8 +68,8 @@ const Consultations = ({ route, navigation }: Props) => {
         onBack={navigation.goBack}
       />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={consultationsToShow}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -87,8 +83,8 @@ const Consultations = ({ route, navigation }: Props) => {
 };
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyConsultations />;
 };
 export default Consultations;

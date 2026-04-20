@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import styled from "styled-components/native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
@@ -13,7 +12,7 @@ import colors from "../../utils/colors";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import { consultationsState } from "../../atoms/consultations";
 import { treatmentsState } from "../../atoms/treatments";
-import { customFieldsMedicalFileSelector, medicalFileState, prepareMedicalFileForEncryption } from "../../atoms/medicalFiles";
+import { customFieldsMedicalFileSelector, prepareMedicalFileForEncryption } from "../../atoms/medicalFiles";
 import API from "../../services/api";
 import HealthInsuranceMultiCheckBox from "../../components/Selects/HealthInsuranceMultiCheckBox";
 import CustomFieldInput from "../../components/CustomFieldInput";
@@ -38,6 +37,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { TreatmentInstance } from "@/types/treatment";
 import SubHeader from "@/components/SubHeader";
 import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
+import { useDataLoader } from "@/services/dataLoader";
 
 type MedicalFileProps = NativeStackScreenProps<RootStackParamList, "PERSON_STACK"> & {
   backgroundColor: string;
@@ -74,7 +74,7 @@ const MedicalFile = ({
 
   const allConsultations = useAtomValue(consultationsState);
   const allTreatments = useAtomValue(treatmentsState);
-  const setAllMedicalFiles = useSetAtom(medicalFileState);
+  const { refresh } = useDataLoader();
 
   const consultations = useMemo(
     () =>
@@ -101,7 +101,7 @@ const MedicalFile = ({
           body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ person: personDB?._id, documents: [], organisation: organisation._id }),
         });
         if (!response.ok) return;
-        setAllMedicalFiles((medicalFiles) => [...medicalFiles, response.decryptedData]);
+        await refresh();
         setMedicalFile(response.decryptedData);
       })();
     }
@@ -302,12 +302,7 @@ const MedicalFile = ({
       body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ ...medicalFileDB, ...latestMedicalFile }),
     });
     if (!response.ok) return false;
-    setAllMedicalFiles((medicalFiles) =>
-      medicalFiles.map((m) => {
-        if (m._id === medicalFileDB!._id) return response.decryptedData;
-        return m;
-      })
-    );
+    await refresh();
     setMedicalFile(response.decryptedData);
     const personResponse = await onUpdatePerson();
     if (!personResponse) return false;
@@ -325,12 +320,7 @@ const MedicalFile = ({
     const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
-      setAllMedicalFiles((medicalFiles) =>
-        medicalFiles.map((m) => {
-          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
-          return m;
-        })
-      );
+      await refresh();
       setMedicalFile(medicalFileResponse.decryptedData);
     }
   };
@@ -343,12 +333,7 @@ const MedicalFile = ({
     const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
-      setAllMedicalFiles((medicalFiles) =>
-        medicalFiles.map((m) => {
-          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
-          return m;
-        })
-      );
+      await refresh();
       setMedicalFile(medicalFileResponse.decryptedData);
     }
   };
@@ -361,12 +346,7 @@ const MedicalFile = ({
     const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
 
     if (medicalFileResponse.ok) {
-      setAllMedicalFiles((medicalFiles) =>
-        medicalFiles.map((m) => {
-          if (m._id === medicalFileDB!._id) return medicalFileResponse.decryptedData;
-          return m;
-        })
-      );
+      await refresh();
       setMedicalFile(medicalFileResponse.decryptedData);
     }
   };
@@ -547,10 +527,5 @@ const MedicalFile = ({
     </>
   );
 };
-
-const BackButton = styled.TouchableOpacity`
-  margin-right: auto;
-  margin-bottom: 25px;
-`;
 
 export default MedicalFile;

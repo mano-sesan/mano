@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import styled from "styled-components/native";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
@@ -9,12 +9,13 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { passagesState, preparePassageForEncryption } from "../../atoms/passages";
+import { preparePassageForEncryption } from "../../atoms/passages";
 import API from "../../services/api";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { dayjsInstance } from "@/services/dateDayjs";
 import { PassageInstance } from "@/types/passage";
+import { useDataLoader } from "@/services/dataLoader";
 
 type PassageProps = NativeStackScreenProps<RootStackParamList, "PASSAGE">;
 
@@ -28,7 +29,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
       route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance)
   );
   const [submitting, setSubmitting] = useState(false);
-  const [passages, setPassages] = useAtom(passagesState);
+  const { refresh } = useDataLoader();
 
   const createPassage = async () => {
     const response = await API.post({
@@ -36,9 +37,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
       body: preparePassageForEncryption(passage),
     });
     if (response.ok) {
-      const newPassage = response.decryptedData;
-
-      setPassages([newPassage, ...passages]);
+      await refresh();
       Alert.alert("Passage ajouté !");
     }
     return response;
@@ -50,9 +49,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
       body: preparePassageForEncryption(passage),
     });
     if (response.ok) {
-      const updatedPassage = response.decryptedData;
-
-      setPassages((passages) => passages.map((r) => (r._id === updatedPassage._id ? updatedPassage : r)));
+      await refresh();
       Alert.alert("Passage modifié !");
     }
     return response;

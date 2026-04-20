@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, KeyboardAvoidingView, View } from "react-native";
 import * as Sentry from "@sentry/react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -20,7 +20,6 @@ import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalS
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../atoms/groups";
 import { useNavigation } from "@react-navigation/native";
-import { refreshTriggerState } from "../../components/Loader";
 import RecurrenceComponent from "../../components/Recurrence";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { getOccurrences } from "../../utils/recurrence";
@@ -31,6 +30,7 @@ import { ActionNewStackParams, RootStackParamList } from "@/types/navigation";
 import PersonsSearch from "../Persons/PersonsSearch";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import PersonNew from "../Persons/PersonNew";
+import { useDataLoader } from "@/services/dataLoader";
 
 const ActionNewStack = createNativeStackNavigator<ActionNewStackParams>();
 type NewActionScreenProps = NativeStackScreenProps<RootStackParamList, "ACTION_NEW_STACK">;
@@ -109,7 +109,7 @@ const NewActionForm = ({
   setActionPersons,
   canChangePerson,
 }: NewActionFormProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { refresh } = useDataLoader();
   const currentTeam = useAtomValue(currentTeamState)!;
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState)!;
@@ -243,7 +243,7 @@ const NewActionForm = ({
       body: await Promise.all(actions.map(API.encryptItem)),
     });
 
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    refresh();
     setPosting(false);
     if (!response.ok) {
       if (response.status !== 401) Alert.alert(response.error || response.code);
