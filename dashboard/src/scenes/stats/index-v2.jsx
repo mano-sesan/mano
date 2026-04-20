@@ -791,19 +791,22 @@ const StatsV2 = ({ onSwitchVersion }) => {
         )}
 
         {!evolutifDisabled && (
-          <label
+          <button
             className={[
               "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0 tw-mt-2",
               evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
             ].join(" ")}
+            onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
+            type="button"
+            aria-label="Affichage évolutif"
           >
             <div
-              onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
               className={[
                 "tw-relative tw-inline-flex tw-h-5 tw-w-9 tw-shrink-0 tw-rounded-full tw-transition-colors tw-duration-200",
                 !evolutifDisabled ? "tw-cursor-pointer" : "",
                 evolutivesStatsActivated && !evolutifDisabled ? "tw-bg-main" : "tw-bg-zinc-300",
               ].join(" ")}
+              name="evolutif-stats"
             >
               <span
                 className={[
@@ -812,8 +815,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
                 ].join(" ")}
               />
             </div>
-            <span className="tw-text-sm tw-text-zinc-700">Affichage évolutif</span>
-          </label>
+            <label htmlFor="evolutif-stats" className="tw-text-sm tw-text-zinc-700 tw-m-0 tw-cursor-pointer">
+              Affichage évolutif
+            </label>
+          </button>
         )}
       </div>
 
@@ -946,6 +951,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filters={filterPersons}
             setFilters={setFilterPersons}
             filterBase={filterPersonsWithAllFields}
+            addFilterLabel="Ajouter un filtre de personne"
             onAddFilter={() => {
               setEditingFilterIndex(null);
               setFilterModalOpen(true);

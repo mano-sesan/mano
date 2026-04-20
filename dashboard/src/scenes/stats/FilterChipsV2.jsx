@@ -40,11 +40,11 @@ export default function FilterChipsV2({
   disabled,
   onAddFilter,
   onEditFilter,
+  addFilterLabel,
   chipBgClass = "tw-bg-main/10",
   chipTextClass = "tw-text-main",
   chipLabelClass = "tw-text-main/60",
   chipHoverClass = "hover:tw-bg-main/20",
-  addFilterLabel = "Ajouter un filtre de personne",
 }) {
   const activeFilters = filters.filter((f) => f.field && f.value);
 
