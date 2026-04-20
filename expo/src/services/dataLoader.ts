@@ -662,6 +662,10 @@ export function useDataLoader() {
     setReports([]);
     setGroups([]);
     setRelsPersonPlace([]);
+    setConsultations([]);
+    setTreatments([]);
+    setMedicalFiles([]);
+    setRecurrences([]);
   }
 
   const cleanupLoader = () => {
