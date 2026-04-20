@@ -31,6 +31,7 @@ import { modalConfirmState } from "../../components/ModalConfirm";
 import { useDataLoader } from "../../services/dataLoader";
 import Alert from "../../components/tailwind/Alert";
 import { DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
+import { capture } from "../../services/sentry";
 
 const SignIn = () => {
   const [organisation, setOrganisation] = useAtom(organisationState);
@@ -121,6 +122,7 @@ const SignIn = () => {
         if (navigator?.storage?.persist) {
           const isPersisted = await navigator.storage.persist();
           console.info(`[storage] persist request result: ${isPersisted ? "granted" : "denied"}`);
+          if (!isPersisted) capture(new Error("Persist request denied"));
         } else {
           console.info("[storage] persist not supported");
         }
