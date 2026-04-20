@@ -277,7 +277,7 @@ export default function NewIndex() {
                   <div>
                     Simon
                     <br />
-                    LESGOURGES
+                    LESGOURGUES
                     <div className="text-sm mt-1 h-10">Chargé de déploiement</div>
                   </div>
                 </div>
