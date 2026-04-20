@@ -299,6 +299,7 @@ function ObservationContent({
           </nav>
           <form
             id="add-observation-form"
+            className="tw-z-50"
             onSubmit={(e) => {
               e.preventDefault();
               handleSubmit();
