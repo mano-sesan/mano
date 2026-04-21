@@ -668,9 +668,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
         } else if (filter.field === "category") {
           if (isUpdating) {
             const editedFilterIndex =
-              simpleFilterEditingIndex -
-              actionsChipFilters.filter((a) => a.field === "status" || a.field === "categoryGroup").length -
-              actionsCategoriesGroups.length;
+              simpleFilterEditingIndex - actionsChipFilters.filter((a) => a.field === "status" || a.field === "categoryGroup").length;
             setActionsCategories((prev) => prev.map((c, i) => (i === editedFilterIndex ? filter.value : c)));
           } else {
             setActionsCategories((prev) => [...prev, filter.value]);
