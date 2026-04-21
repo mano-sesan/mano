@@ -274,8 +274,7 @@ const Group: React.FC<GroupProps> = ({
     }
   }, [onDragAndDrop, sectionId]);
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async () => {
     setIsSubmitting(true);
     try {
       if (onGroupTitleChange) {
@@ -381,7 +380,7 @@ const Group: React.FC<GroupProps> = ({
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
             {!!onGroupTitleChange && !!editable && (
-              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onSubmit}>
+              <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
                 <div>
                   <label htmlFor="newGroupTitle" className="tailwindui">
                     Nom du groupe
@@ -396,7 +395,7 @@ const Group: React.FC<GroupProps> = ({
                     className="tailwindui"
                   />
                 </div>
-              </form>
+              </div>
             )}
             {!!onGroupTeamsChange && (
               <>
@@ -451,7 +450,7 @@ const Group: React.FC<GroupProps> = ({
               </DeleteButtonAndConfirmModal>
             )}
             {((!!onGroupTitleChange && !!editable) || !!onGroupTeamsChange) && (
-              <button type="submit" className="button-submit" form="edit-category-group-form" disabled={isSubmitting}>
+              <button type="button" className="button-submit" onClick={onSubmit} disabled={isSubmitting}>
                 Enregistrer
               </button>
             )}
