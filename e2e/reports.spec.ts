@@ -83,7 +83,7 @@ test("Création d'un rapport aujourd'hui avec plusieurs données", async ({ page
 
   // Ajout d'une consultation
   await page.getByRole("button", { name: "Consultations (0)" }).click();
-  await page.getByLabel("Ajouter une action").click();
+  await page.getByLabel("Ajouter une consultation").click();
   await changeReactSelectValue(page, "create-consultation-person-select", "Toto");
   await changeReactSelectValue(page, "create-consultation-team-select", "Team Test - 1");
   await changeReactSelectValue(page, "consultation-modal-type", "Médicale");
