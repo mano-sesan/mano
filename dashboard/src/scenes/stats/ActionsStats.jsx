@@ -248,7 +248,6 @@ const ActionsStats = ({
           axisTitleX="Groupe"
           data={getMultichoiceBarData(actionsWithDetailedGroupAndCategories, "categoryGroup", {
             options: groupsCategories.map((group) => group.groupTitle),
-            debug: true,
           })}
         />
         <CustomResponsiveBar
