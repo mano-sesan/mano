@@ -41,7 +41,8 @@ export default function ConsultationModal() {
     return consultationsObjects[currentConsultationId];
   }, [currentConsultationId, consultationsObjects]);
   const personId = searchParams.get("personId");
-  const date = searchParams.get("dueAt") || searchParams.get("completedAt");
+  const dueAt = searchParams.get("dueAt");
+  const completedAt = searchParams.get("completedAt");
 
   const [open, setOpen] = useState(false);
   const consultationIdRef = useRef(currentConsultationId);
@@ -69,7 +70,8 @@ export default function ConsultationModal() {
         key={open}
         personId={personId}
         consultation={currentConsultation}
-        date={date}
+        dueAt={dueAt}
+        completedAt={completedAt}
         onClose={() => {
           manualCloseRef.current = true;
           setOpen(false);
@@ -79,13 +81,13 @@ export default function ConsultationModal() {
   );
 }
 
-const newConsultationInitialState = (organisationId, personId, userId, date, teams) => ({
+const newConsultationInitialState = (organisationId, personId, userId, dueAt, completedAt, teams) => ({
   _id: null,
-  dueAt: date ? new Date(date) : new Date(),
-  completedAt: new Date(),
+  dueAt: dueAt ? new Date(dueAt) : new Date(),
+  completedAt: completedAt ? new Date(completedAt) : new Date(),
   name: "",
   type: "",
-  status: TODO,
+  status: completedAt ? DONE : TODO,
   teams: teams.length === 1 ? [teams[0]._id] : [],
   user: userId,
   person: personId || null,
@@ -97,7 +99,7 @@ const newConsultationInitialState = (organisationId, personId, userId, date, tea
   createdAt: new Date(),
 });
 
-function ConsultationContent({ personId, consultation, date, onClose }) {
+function ConsultationContent({ personId, consultation, dueAt, completedAt, onClose }) {
   const organisation = useAtomValue(organisationState);
   const searchParams = new URLSearchParams(location.search);
   const teams = useAtomValue(teamsState);
@@ -109,7 +111,7 @@ function ConsultationContent({ personId, consultation, date, onClose }) {
   const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
   const { refresh } = useDataLoader();
 
-  const newConsultationInitialStateRef = useRef(newConsultationInitialState(organisation._id, personId, user._id, date, teams));
+  const newConsultationInitialStateRef = useRef(newConsultationInitialState(organisation._id, personId, user._id, dueAt, completedAt, teams));
 
   const [isEditing, setIsEditing] = useState(!consultation || searchParams.get("isEditing") === "true");
   const [isFetching, setIsFetching] = useState(false);

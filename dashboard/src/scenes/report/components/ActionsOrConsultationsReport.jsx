@@ -63,7 +63,7 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
           <div className="flex-col tw-flex tw-items-center tw-gap-2">
             <button
               type="button"
-              aria-label="Ajouter une action"
+              aria-label={activeTab.includes("Actions") ? "Ajouter une action" : "Ajouter une consultation"}
               className={[
                 "tw-text-md tw-h-8 tw-w-8 tw-rounded-full tw-font-bold tw-text-white tw-transition hover:tw-scale-125",
                 activeTab.includes("Actions") ? "tw-bg-main" : "tw-bg-blue-900",
@@ -193,6 +193,8 @@ export const ActionsOrConsultationsReport = ({ actions, consultations, actionsCr
               } else {
                 const searchParams = new URLSearchParams(history.location.search);
                 searchParams.set("newConsultation", true);
+                searchParams.set("dueAt", period.startDate);
+                searchParams.set("completedAt", dayjsInstance(period.startDate).set("hour", 12));
                 history.push(`?${searchParams.toString()}`);
               }
             }}
