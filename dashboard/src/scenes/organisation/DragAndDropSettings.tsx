@@ -274,18 +274,25 @@ const Group: React.FC<GroupProps> = ({
     }
   }, [onDragAndDrop, sectionId]);
 
-  const onSubmit = async () => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
+      if (onGroupTitleChange) {
+        const success = await onEditGroupTitle();
+        if (!success) {
+          return;
+        }
+      }
       if (onGroupTeamsChange) {
         await onGroupTeamsChange(groupTitle, {
           enabled: groupTeamsEnabled,
           enabledTeams: groupTeamsEnabled ? [] : groupTeamsEnabledTeams,
         });
       }
-      await onEditGroupTitle();
     } finally {
       setIsSubmitting(false);
+      setIsEditingGroupTitle(false);
     }
   };
 
@@ -293,19 +300,19 @@ const Group: React.FC<GroupProps> = ({
     const oldGroupTitle = groupTitle;
     if (!newGroupTitle) {
       toast.error("Vous devez saisir un nom pour le groupe");
-      return;
+      return false;
     }
     if (newGroupTitle.trim() !== oldGroupTitle.trim()) {
       if (groupTitles.find((title) => title === newGroupTitle)) {
         toast.error("Ce groupe existe déjà");
-        return;
+        return false;
       }
 
       if (onGroupTitleChange) {
         await onGroupTitleChange(oldGroupTitle, newGroupTitle);
       }
     }
-    setIsEditingGroupTitle(false);
+    return true;
   };
 
   return (
@@ -374,7 +381,7 @@ const Group: React.FC<GroupProps> = ({
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
             {!!onGroupTitleChange && !!editable && (
-              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
+              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onSubmit}>
                 <div>
                   <label htmlFor="newGroupTitle" className="tailwindui">
                     Nom du groupe
@@ -443,8 +450,8 @@ const Group: React.FC<GroupProps> = ({
                 </span>
               </DeleteButtonAndConfirmModal>
             )}
-            {!!onGroupTitleChange && !!editable && (
-              <button type="submit" className="button-submit" form="edit-category-group-form" onClick={onSubmit} disabled={isSubmitting}>
+            {((!!onGroupTitleChange && !!editable) || !!onGroupTeamsChange) && (
+              <button type="submit" className="button-submit" form="edit-category-group-form" disabled={isSubmitting}>
                 Enregistrer
               </button>
             )}
