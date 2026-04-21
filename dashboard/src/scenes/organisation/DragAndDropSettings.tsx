@@ -31,6 +31,7 @@ interface DragAndDropSettingsProps {
     { oldName, newName }: { oldName: string; newName?: string },
     teamChange?: { enabled: boolean; enabledTeams: string[] }
   ) => Promise<void>;
+  canChangeTeamsVisibility?: boolean;
 }
 
 const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
@@ -45,6 +46,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
   onAddGroup = null,
   onDeleteGroup = null,
   onGroupChange,
+  canChangeTeamsVisibility = false,
 }) => {
   if (!title) throw new Error("title is required");
   if (!data) throw new Error("data is required");
@@ -172,6 +174,7 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
               dataItemKey={dataItemKey}
               onDeleteGroup={onDeleteGroup}
               onGroupChange={onGroupChange}
+              canChangeTeamsVisibility={canChangeTeamsVisibility}
               NewItemComponent={NewItemComponent}
               sectionId={sectionId}
               isAlone={data.length === 1}
