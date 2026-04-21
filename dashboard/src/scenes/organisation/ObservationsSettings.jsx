@@ -50,36 +50,6 @@ const ObservationsSettings = () => {
     refresh();
   };
 
-  const onGroupTitleChange = async (oldName, newName) => {
-    if (!newName) {
-      toast.error("Vous devez saisir un nom pour le groupe de champs personnalisés");
-      return;
-    }
-    const newCustomFieldsObs = groupedCustomFieldsObs.map((type) => {
-      if (type.name !== oldName) return type;
-      return {
-        ...type,
-        name: newName,
-      };
-    });
-
-    const oldOrganisation = organisation;
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { groupedCustomFieldsObs: newCustomFieldsObs },
-      })
-    );
-    if (!error) {
-      refresh();
-      setOrganisation(response.data);
-      toast.success("Groupe mise à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
-    } else {
-      setOrganisation(oldOrganisation);
-      toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
-    }
-  };
-
   const onDeleteGroup = async (name) => {
     const newCustomFieldsObs = groupedCustomFieldsObs.filter((type) => type.name !== name);
 
@@ -100,16 +70,23 @@ const ObservationsSettings = () => {
     }
   };
 
-  const onGroupTeamsChange = async (groupTitle, { enabled, enabledTeams }) => {
+  const onGroupChange = async ({ oldName, newName }, teamChange) => {
+    if (!newName) {
+      toast.error("Vous devez saisir un nom pour le groupe de champs personnalisés");
+      return;
+    }
     const newCustomFieldsObs = groupedCustomFieldsObs.map((group) => {
-      if (group.name !== groupTitle) return group;
+      if (group.name !== oldName) return group;
       return {
         ...group,
-        fields: group.fields.map((field) => ({
-          ...field,
-          enabled,
-          enabledTeams: enabled ? [] : enabledTeams,
-        })),
+        name: newName,
+        fields: !teamChange
+          ? group.fields
+          : group.fields.map((field) => ({
+              ...field,
+              enabled: teamChange.enabled,
+              enabledTeams: teamChange.enabled ? [] : teamChange.enabledTeams,
+            })),
       };
     });
 
@@ -124,7 +101,7 @@ const ObservationsSettings = () => {
     if (!error) {
       setOrganisation(response.data);
       refresh();
-      toast.success("Visibilité appliquée à tous les champs du groupe. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
+      toast.success("Groupe mis à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
       setOrganisation(oldOrganisation);
       toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
@@ -161,9 +138,8 @@ const ObservationsSettings = () => {
       onDragAndDrop={onDragAndDrop}
       addButtonCaption="Ajouter un groupe de champs personnalisés"
       onAddGroup={onAddGroup}
-      onGroupTitleChange={onGroupTitleChange}
       onDeleteGroup={onDeleteGroup}
-      onGroupTeamsChange={onGroupTeamsChange}
+      onGroupChange={onGroupChange}
     />
   );
 };

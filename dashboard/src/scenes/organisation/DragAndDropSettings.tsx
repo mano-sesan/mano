@@ -22,13 +22,15 @@ interface DragAndDropSettingsProps {
   onDragAndDrop: (groups: DragAndDropGroup[]) => Promise<void>;
   addButtonCaption?: string;
   ItemComponent: React.ComponentType<{ item: Item; groupTitle: string }>;
-  onGroupTitleChange?: (oldTitle: string, newTitle: string) => Promise<void>;
   NewItemComponent: React.ComponentType<{ groupTitle: string }>;
   dataItemKey?: (item: Item) => string;
   sectionId?: string;
   onAddGroup?: (groupTitle: string) => Promise<void>;
   onDeleteGroup?: (groupTitle: string) => Promise<void>;
-  onGroupTeamsChange?: (groupTitle: string, update: { enabled: boolean; enabledTeams: string[] }) => Promise<void>;
+  onGroupChange?: (
+    { oldName, newName }: { oldName: string; newName?: string },
+    teamChange?: { enabled: boolean; enabledTeams: string[] }
+  ) => Promise<void>;
 }
 
 const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
@@ -37,13 +39,12 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
   onDragAndDrop,
   addButtonCaption,
   ItemComponent,
-  onGroupTitleChange,
   NewItemComponent,
   dataItemKey = (item: Item) => (typeof item === "string" ? item : item.name),
   sectionId = "drag-and-drop-setting",
   onAddGroup = null,
   onDeleteGroup = null,
-  onGroupTeamsChange,
+  onGroupChange,
 }) => {
   if (!title) throw new Error("title is required");
   if (!data) throw new Error("data is required");
@@ -169,9 +170,8 @@ const DragAndDropSettings: React.FC<DragAndDropSettingsProps> = ({
               groupTitles={groupTitles}
               ItemComponent={ItemComponent}
               dataItemKey={dataItemKey}
-              onGroupTitleChange={onGroupTitleChange}
               onDeleteGroup={onDeleteGroup}
-              onGroupTeamsChange={onGroupTeamsChange}
+              onGroupChange={onGroupChange}
               NewItemComponent={NewItemComponent}
               sectionId={sectionId}
               isAlone={data.length === 1}
@@ -220,9 +220,12 @@ interface GroupProps {
   editable?: boolean;
   onDragAndDrop: () => Promise<void>;
   groupTitles: string[];
-  onGroupTitleChange?: (oldTitle: string, newTitle: string) => Promise<void>;
   onDeleteGroup?: (groupTitle: string) => Promise<void>;
-  onGroupTeamsChange?: (groupTitle: string, update: { enabled: boolean; enabledTeams: string[] }) => Promise<void>;
+  canChangeTeamsVisibility?: boolean;
+  onGroupChange?: (
+    { oldName, newName }: { oldName: string; newName?: string },
+    teamChange?: { enabled: boolean; enabledTeams: string[] }
+  ) => Promise<void>;
   ItemComponent: React.ComponentType<{ item: any; groupTitle: string }>;
   sectionId: string;
   NewItemComponent: React.ComponentType<{ groupTitle: string }>;
@@ -238,9 +241,9 @@ const Group: React.FC<GroupProps> = ({
   editable = true,
   onDragAndDrop,
   groupTitles,
-  onGroupTitleChange,
   onDeleteGroup,
-  onGroupTeamsChange,
+  onGroupChange,
+  canChangeTeamsVisibility = true,
   ItemComponent,
   sectionId,
   NewItemComponent,
@@ -276,26 +279,6 @@ const Group: React.FC<GroupProps> = ({
 
   const onSubmit = async () => {
     setIsSubmitting(true);
-    try {
-      if (onGroupTitleChange) {
-        const success = await onEditGroupTitle();
-        if (!success) {
-          return;
-        }
-      }
-      if (onGroupTeamsChange) {
-        await onGroupTeamsChange(groupTitle, {
-          enabled: groupTeamsEnabled,
-          enabledTeams: groupTeamsEnabled ? [] : groupTeamsEnabledTeams,
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
-      setIsEditingGroupTitle(false);
-    }
-  };
-
-  const onEditGroupTitle = async () => {
     const oldGroupTitle = groupTitle;
     if (!newGroupTitle) {
       toast.error("Vous devez saisir un nom pour le groupe");
@@ -306,12 +289,24 @@ const Group: React.FC<GroupProps> = ({
         toast.error("Ce groupe existe déjà");
         return false;
       }
-
-      if (onGroupTitleChange) {
-        await onGroupTitleChange(oldGroupTitle, newGroupTitle);
-      }
     }
-    return true;
+    try {
+      onGroupChange(
+        {
+          oldName: oldGroupTitle,
+          newName: newGroupTitle?.trim(),
+        },
+        canChangeTeamsVisibility
+          ? {
+              enabled: groupTeamsEnabled,
+              enabledTeams: groupTeamsEnabledTeams,
+            }
+          : undefined
+      );
+    } finally {
+      setIsSubmitting(false);
+      setIsEditingGroupTitle(false);
+    }
   };
 
   return (
@@ -333,7 +328,7 @@ const Group: React.FC<GroupProps> = ({
               <span className="group-title tw-pl-2">
                 {groupTitle} ({items.length})
               </span>
-              {((!!onGroupTitleChange && !!editable) || !!onGroupTeamsChange) && (
+              {!!onGroupChange && !!editable && (
                 <button
                   type="button"
                   aria-label={`Modifier le groupe ${groupTitle}`}
@@ -375,11 +370,11 @@ const Group: React.FC<GroupProps> = ({
           <NewItemComponent groupTitle={groupTitle} />
         </details>
       </div>
-      {(!!onGroupTitleChange || !!onGroupTeamsChange) && (
+      {!!onGroupChange && (
         <ModalContainer open={isEditingGroupTitle}>
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
-            {!!onGroupTitleChange && !!editable && (
+            {!!onGroupChange && !!editable && (
               <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
                 <div>
                   <label htmlFor="newGroupTitle" className="tailwindui">
@@ -397,7 +392,7 @@ const Group: React.FC<GroupProps> = ({
                 </div>
               </div>
             )}
-            {!!onGroupTeamsChange && (
+            {!!canChangeTeamsVisibility && (
               <>
                 {!!editable && <hr className="tw-mx-8 tw-my-4" />}
                 <div className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
@@ -449,7 +444,7 @@ const Group: React.FC<GroupProps> = ({
                 </span>
               </DeleteButtonAndConfirmModal>
             )}
-            {((!!onGroupTitleChange && !!editable) || !!onGroupTeamsChange) && (
+            {!!onGroupChange && !!editable && (
               <button type="button" className="button-submit" onClick={onSubmit} disabled={isSubmitting}>
                 Enregistrer
               </button>
