@@ -30,11 +30,25 @@ type BubbleRowProps = {
   metaCaption: string;
   urgent?: boolean;
   group?: boolean;
+  share?: boolean;
+  isMedicalCommentShared?: boolean;
   itemName?: string;
   onItemNamePress?: () => void;
 };
 
-const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, group, itemName, onItemNamePress }: BubbleRowProps) => (
+const BubbleRow = ({
+  onMorePress,
+  caption,
+  date,
+  user,
+  metaCaption,
+  urgent,
+  group,
+  share,
+  isMedicalCommentShared,
+  itemName,
+  onItemNamePress,
+}: BubbleRowProps) => (
   <Container urgent={urgent}>
     <CaptionsContainer>
       {itemName ? (
@@ -44,6 +58,9 @@ const BubbleRow = ({ onMorePress, caption, date, user, metaCaption, urgent, grou
       ) : null}
       {urgent ? <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5">❗ Prioritaire </MyText> : null}
       {group ? <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5">👪</MyText> : null}
+      {isMedicalCommentShared || share ? (
+        <MyText className="-ml-2.5 -mt-4 mb-4 py-0.5 px-1.5 text-sky-700">Commentaire médical partagé</MyText>
+      ) : null}
       <CommentStyled>{caption?.split("\\n")?.join("\u000A")}</CommentStyled>
       <CreationDate>
         {!!user && <UserName caption={metaCaption} id={user} />}
