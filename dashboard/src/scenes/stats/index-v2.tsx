@@ -254,7 +254,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
     let hasFilterStatus = !!actionsStatuses.length;
     let hasCategoriesGroupsFilter = !!actionsCategoriesGroups.length;
     let hasCategoriesFilter = !!actionsCategories.length;
-    let catFilterIsAucune = actionsCategories.length === 1 && actionsCategories[0].includes("-- Aucune --");
+    let catFilterIsAucune = actionsCategories.length === 1 && actionsCategories[0].length === 1 && actionsCategories[0][0] === "-- Aucune --";
     // un seul loop sur chaque action
     for (const action of actionsFilteredByPersons) {
       if (hasFilterStatus) {
@@ -654,19 +654,24 @@ const StatsV2 = ({ onSwitchVersion }) => {
   }, [simpleFilterEditingIndex, simpleFilterTab, actionsChipFilters, servicesChipFilters, consultationsChipFilters, rencontresChipFilters]);
 
   const applySimpleFilter = useCallback(
-    (filter, isUpdating = false) => {
+    (filter: Filter, isUpdating = false) => {
       if (simpleFilterTab === "Actions") {
         if (filter.field === "status") {
           setActionsStatuses(filter.value.map((name: string) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
         } else if (filter.field === "categoryGroup") {
           if (isUpdating) {
-            setActionsCategoriesGroups((prev) => prev.map((g, i) => (i === simpleFilterEditingIndex ? filter.value : g)));
+            const editedFilterIndex = simpleFilterEditingIndex - actionsChipFilters.filter((a) => a.field === "status").length;
+            setActionsCategoriesGroups((prev) => prev.map((g, i) => (i === editedFilterIndex ? filter.value : g)));
           } else {
             setActionsCategoriesGroups((prev) => [...prev, filter.value]);
           }
         } else if (filter.field === "category") {
           if (isUpdating) {
-            setActionsCategories((prev) => prev.map((c, i) => (i === simpleFilterEditingIndex ? filter.value : c)));
+            const editedFilterIndex =
+              simpleFilterEditingIndex -
+              actionsChipFilters.filter((a) => a.field === "status" || a.field === "categoryGroup").length -
+              actionsCategoriesGroups.length;
+            setActionsCategories((prev) => prev.map((c, i) => (i === editedFilterIndex ? filter.value : c)));
           } else {
             setActionsCategories((prev) => [...prev, filter.value]);
           }
