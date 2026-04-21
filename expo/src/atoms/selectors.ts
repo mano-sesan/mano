@@ -5,14 +5,14 @@ import { commentsState } from "./comments";
 import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
-import { isComingInDays, isPassed, isToday, isTomorrow } from "../services/date";
+import { isComingInDays, isPassed, isToday } from "../services/date";
 import { filterBySearch } from "../utils/search";
 import { consultationsState } from "./consultations";
 import { rencontresState } from "./rencontres";
 import { treatmentsState } from "./treatments";
 import { medicalFileState } from "./medicalFiles";
 import { groupsState } from "./groups";
-import { dayjsInstance, formatAge, formatBirthDate } from "../services/dateDayjs";
+import { dayjsInstance, formatAge, formatBirthDate, ageFromBirthdateAsYear, ageFromBirthdateAsMonths } from "../services/dateDayjs";
 import { passagesState } from "./passages";
 import { PersonInstance, PersonPopulated } from "@/types/person";
 import { Document, Folder } from "@/types/document";
@@ -61,6 +61,7 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
   const personsObject: Record<PersonInstance["_id"], PersonPopulated> = {};
   for (const person of persons) {
     const age = person.birthdate ? formatAge(person.birthdate) : 0;
+    console.log({ age });
     const nameLowercased = person.name.toLocaleLowerCase();
     // replace all accents with normal letters
     const nameNormalized = nameLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -69,8 +70,9 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     personsObject[person._id] = {
       ...person,
       nameNormalized,
-      formattedBirthDate: person.birthdate ? `${age} (${formatBirthDate(person.birthdate)})` : undefined,
-      age: age ? Number(age) : undefined,
+      formattedBirthDate: formatBirthDate(person.birthdate) ?? undefined,
+      age: ageFromBirthdateAsYear(person.birthdate) ?? undefined,
+      ageInMonths: ageFromBirthdateAsMonths(person.birthdate) ?? undefined,
       followSinceMonths,
       // remove anything that is not a number
       formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
