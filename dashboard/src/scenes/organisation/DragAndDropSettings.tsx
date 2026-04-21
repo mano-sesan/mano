@@ -261,7 +261,8 @@ const Group: React.FC<GroupProps> = ({
   const [isEditingGroupTitle, setIsEditingGroupTitle] = useState(false);
   const [groupTeamsEnabled, setGroupTeamsEnabled] = useState(true);
   const [groupTeamsEnabledTeams, setGroupTeamsEnabledTeams] = useState<string[]>([]);
-  const [isApplyingTeams, setIsApplyingTeams] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newGroupTitle, setNewGroupTitle] = useState(groupTitle);
 
   useEffect(() => {
     if (listRef.current) {
@@ -273,26 +274,36 @@ const Group: React.FC<GroupProps> = ({
     }
   }, [onDragAndDrop, sectionId]);
 
-  const onEditGroupTitle = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newGroupTitle = formData.get("newGroupTitle") as string;
+  const onSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      if (onGroupTeamsChange) {
+        await onGroupTeamsChange(groupTitle, {
+          enabled: groupTeamsEnabled,
+          enabledTeams: groupTeamsEnabled ? [] : groupTeamsEnabledTeams,
+        });
+      }
+      await onEditGroupTitle();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onEditGroupTitle = async () => {
     const oldGroupTitle = groupTitle;
     if (!newGroupTitle) {
       toast.error("Vous devez saisir un nom pour le groupe");
       return;
     }
-    if (newGroupTitle.trim() === oldGroupTitle.trim()) {
-      toast.error("Le nom du groupe n'a pas changé");
-      return;
-    }
-    if (groupTitles.find((title) => title === newGroupTitle)) {
-      toast.error("Ce groupe existe déjà");
-      return;
-    }
+    if (newGroupTitle.trim() !== oldGroupTitle.trim()) {
+      if (groupTitles.find((title) => title === newGroupTitle)) {
+        toast.error("Ce groupe existe déjà");
+        return;
+      }
 
-    if (onGroupTitleChange) {
-      await onGroupTitleChange(oldGroupTitle, newGroupTitle);
+      if (onGroupTitleChange) {
+        await onGroupTitleChange(oldGroupTitle, newGroupTitle);
+      }
     }
     setIsEditingGroupTitle(false);
   };
@@ -363,12 +374,20 @@ const Group: React.FC<GroupProps> = ({
           <ModalHeader title={`Éditer le groupe: ${groupTitle}`} />
           <ModalBody className="tw-py-4">
             {!!onGroupTitleChange && !!editable && (
-              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8" onSubmit={onEditGroupTitle}>
+              <form id="edit-category-group-form" className="tw-flex tw-w-full tw-flex-col tw-gap-4 tw-px-8">
                 <div>
                   <label htmlFor="newGroupTitle" className="tailwindui">
-                    Nouveau nom du groupe
+                    Nom du groupe
                   </label>
-                  <input type="text" id="newGroupTitle" name="newGroupTitle" placeholder={groupTitle} autoComplete="off" className="tailwindui" />
+                  <input
+                    type="text"
+                    id="newGroupTitle"
+                    name="newGroupTitle"
+                    value={newGroupTitle}
+                    onChange={(e) => setNewGroupTitle(e.target.value)}
+                    autoComplete="off"
+                    className="tailwindui"
+                  />
                 </div>
               </form>
             )}
@@ -400,24 +419,6 @@ const Group: React.FC<GroupProps> = ({
                       </label>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className="button-submit !tw-bg-main"
-                    disabled={isApplyingTeams || (!groupTeamsEnabled && groupTeamsEnabledTeams.length === 0)}
-                    onClick={async () => {
-                      setIsApplyingTeams(true);
-                      try {
-                        await onGroupTeamsChange(groupTitle, {
-                          enabled: groupTeamsEnabled,
-                          enabledTeams: groupTeamsEnabled ? [] : groupTeamsEnabledTeams,
-                        });
-                      } finally {
-                        setIsApplyingTeams(false);
-                      }
-                    }}
-                  >
-                    Appliquer à tous les champs du groupe
-                  </button>
                 </div>
               </>
             )}
@@ -443,7 +444,7 @@ const Group: React.FC<GroupProps> = ({
               </DeleteButtonAndConfirmModal>
             )}
             {!!onGroupTitleChange && !!editable && (
-              <button type="submit" className="button-submit" form="edit-category-group-form">
+              <button type="submit" className="button-submit" form="edit-category-group-form" onClick={onSubmit} disabled={isSubmitting}>
                 Enregistrer
               </button>
             )}

@@ -121,7 +121,9 @@ const PersonCustomFieldsSettings = () => {
     if (!error) {
       setOrganisation(response.data);
       refresh();
-      toast.success("Visibilité appliquée à tous les champs du groupe");
+      toast.success(
+        "Visibilité appliquée à tous les champs du groupe. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard"
+      );
     } else {
       setOrganisation(oldOrganisation);
       toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
