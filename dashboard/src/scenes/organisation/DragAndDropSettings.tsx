@@ -290,6 +290,12 @@ const Group: React.FC<GroupProps> = ({
         return false;
       }
     }
+    if (canChangeTeamsVisibility) {
+      if (!groupTeamsEnabled && groupTeamsEnabledTeams.length === 0) {
+        toast.error("Veuillez sélectionner au moins une équipe ou activer pour toute l'organisation");
+        return false;
+      }
+    }
     try {
       onGroupChange(
         {
@@ -425,7 +431,15 @@ const Group: React.FC<GroupProps> = ({
             )}
           </ModalBody>
           <ModalFooter>
-            <button type="button" name="cancel" className="button-cancel" onClick={() => setIsEditingGroupTitle(false)}>
+            <button
+              type="button"
+              name="cancel"
+              className="button-cancel"
+              onClick={() => {
+                setIsEditingGroupTitle(false);
+                setNewGroupTitle(groupTitle);
+              }}
+            >
               Annuler
             </button>
             {!!onDeleteGroup && !!editable && (
