@@ -23,6 +23,7 @@ type CommentModalProps = {
   onDelete?: (comment: CommentInstance) => Promise<boolean>;
   canToggleUrgentCheck?: boolean;
   canToggleGroupCheck?: boolean;
+  canToggleShareComment?: boolean;
 };
 
 const CommentModal = ({
@@ -34,6 +35,7 @@ const CommentModal = ({
   onDelete,
   canToggleUrgentCheck,
   canToggleGroupCheck,
+  canToggleShareComment,
 }: CommentModalProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
@@ -43,6 +45,7 @@ const CommentModal = ({
   const [urgent, setUrgent] = useState(commentDB?.urgent || false);
   const [date, setDate] = useState((commentDB?.date || commentDB?.createdAt) ?? dayjs());
   const [group, setGroup] = useState(commentDB?.group || false);
+  const [share, setShare] = useState(commentDB?.share || false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -50,9 +53,10 @@ const CommentModal = ({
     if ((commentDB?.comment || "") !== comment) return false;
     if ((commentDB?.urgent || false) !== urgent) return false;
     if ((commentDB?.group || false) !== group) return false;
+    if ((commentDB?.share || false) !== share) return false;
     if ((commentDB?.date || false) !== date) return false;
     return true;
-  }, [comment, commentDB, urgent, group, date]);
+  }, [comment, commentDB, urgent, group, share, date]);
 
   const onUpdateComment = async () => {
     if (!onUpdate) return;
@@ -65,6 +69,7 @@ const CommentModal = ({
       date: date as Dayjs,
       urgent,
       group,
+      share,
       organisation: organisation._id,
       type: commentDB.type || undefined,
       person: commentDB.person,
@@ -146,6 +151,15 @@ const CommentModal = ({
                 alone
                 onPress={() => setGroup((g) => !g)}
                 value={group}
+              />
+            )}
+            {!!canToggleShareComment && (
+              <CheckboxLabelled
+                _id="share"
+                label="Commentaire médical partagé (ce commentaire sera partagé avec les professionnels non-médicaux)"
+                alone
+                onPress={() => setShare((s) => !s)}
+                value={share}
               />
             )}
             <ButtonsContainer>

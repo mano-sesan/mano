@@ -15,9 +15,19 @@ type CommentRowProps = {
   onItemNamePress?: () => void;
   canToggleUrgentCheck?: boolean;
   canToggleGroupCheck?: boolean;
+  canToggleShareComment?: boolean;
 };
 
-const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, canToggleUrgentCheck, canToggleGroupCheck }: CommentRowProps) => {
+const CommentRow = ({
+  onUpdate,
+  onDelete,
+  comment,
+  itemName,
+  onItemNamePress,
+  canToggleUrgentCheck,
+  canToggleGroupCheck,
+  canToggleShareComment,
+}: CommentRowProps) => {
   const { showActionSheetWithOptions } = useActionSheet();
   const organisation = useAtomValue(organisationState)!;
   const [updateModalVisible, setUpdateModalVisible] = useState(false);
@@ -62,6 +72,8 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
         user={comment.user}
         urgent={comment.urgent}
         group={!!organisation.groupsEnabled && comment.group}
+        share={comment.share}
+        isMedicalCommentShared={comment.isMedicalCommentShared}
         itemName={itemName}
         onItemNamePress={onItemNamePress}
         metaCaption="Commentaire de"
@@ -73,6 +85,7 @@ const CommentRow = ({ onUpdate, onDelete, comment, itemName, onItemNamePress, ca
         title="Commentaire"
         canToggleUrgentCheck={canToggleUrgentCheck}
         canToggleGroupCheck={canToggleGroupCheck}
+        canToggleShareComment={canToggleShareComment}
         onUpdate={onUpdate}
         onDelete={onDelete}
       />

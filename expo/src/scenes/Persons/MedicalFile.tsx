@@ -422,7 +422,6 @@ const MedicalFile = ({
           .filter((f) => f.enabled || f.enabledTeams?.includes(currentTeam._id))
           .map((field) => {
             const { label, name } = field;
-            console.log("label", label, name);
             return (
               <CustomFieldInput
                 key={name}
@@ -451,6 +450,7 @@ const MedicalFile = ({
             <CommentRow
               key={comment._id}
               comment={comment}
+              canToggleShareComment
               itemName={
                 ["consultation", "treatment"].includes(comment.type)
                   ? `${comment.type === "consultation" ? "Consultation" : "Traitement"}`

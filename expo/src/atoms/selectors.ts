@@ -214,6 +214,10 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
       }
       for (const comment of medicalFile.comments || []) {
         nextComments[comment._id] = comment;
+        if (comment.share) {
+          personsObject[medicalFile.person].comments = personsObject[medicalFile.person].comments || [];
+          personsObject[medicalFile.person].comments!.push({ ...comment, isMedicalCommentShared: true });
+        }
       }
       for (const comment of existingMedicalFile.comments || []) {
         nextComments[comment._id] = comment;
@@ -226,6 +230,12 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
       };
     } else {
       personsObject[medicalFile.person].medicalFile = medicalFile;
+      for (const comment of medicalFile.comments || []) {
+        if (comment.share) {
+          personsObject[medicalFile.person].comments = personsObject[medicalFile.person].comments || [];
+          personsObject[medicalFile.person].comments!.push({ ...comment, isMedicalCommentShared: true });
+        }
+      }
     }
   }
 
@@ -248,7 +258,7 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
 
 export const arrayOfitemsGroupedByPersonSelector = atom((get) => {
   const itemsGroupedByPerson = get(itemsGroupedByPersonSelector);
-  return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized > b.nameNormalized ? 1 : -1));
+  return Object.values(itemsGroupedByPerson).sort((a, b) => (a.nameNormalized! > b.nameNormalized! ? 1 : -1));
 });
 
 export const usePersonsSearchSelector = (search: string) => {

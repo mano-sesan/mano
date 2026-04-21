@@ -7,6 +7,8 @@ export interface CommentInstance {
   comment?: string;
   urgent?: boolean;
   group?: boolean;
+  share?: boolean;
+  isMedicalCommentShared?: boolean;
   date?: Dayjs;
   person?: UUIDV4;
   action?: UUIDV4;
