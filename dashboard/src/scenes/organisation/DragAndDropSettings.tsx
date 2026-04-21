@@ -287,7 +287,7 @@ const Group: React.FC<GroupProps> = ({
       return false;
     }
     if (newGroupTitle.trim() !== oldGroupTitle.trim()) {
-      if (groupTitles.find((title) => title === newGroupTitle)) {
+      if (groupTitles.find((title) => title === newGroupTitle.trim())) {
         toast.error("Ce groupe existe déjà");
         return false;
       }
