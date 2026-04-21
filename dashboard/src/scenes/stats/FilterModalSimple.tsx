@@ -2,8 +2,27 @@ import { useState, useEffect } from "react";
 import { components } from "react-select";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
+import { Filter, FilterableField } from "../../types/field";
 
-export default function FilterModalSimple({ open, onClose, filterBase, editingFilter, onAddFilter, onEditFilter, filterLabel = "" }) {
+interface FilterModalSimpleProps {
+  open: boolean;
+  onClose: () => void;
+  filterBase: Array<FilterableField>;
+  editingFilter: Filter | null;
+  onAddFilter: (filter: Filter) => void;
+  onEditFilter: (filter: Filter) => void;
+  filterLabel: string;
+}
+
+export default function FilterModalSimple({
+  open,
+  onClose,
+  filterBase,
+  editingFilter,
+  onAddFilter,
+  onEditFilter,
+  filterLabel = "",
+}: FilterModalSimpleProps) {
   const [selectedField, setSelectedField] = useState(null);
   const [filterValue, setFilterValue] = useState([]);
 
@@ -44,7 +63,9 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
       <ModalBody className="tw-py-4 tw-px-6">
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div>
-            <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">Champ</label>
+            <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1" htmlFor="filter-modal-simple-field">
+              Champ
+            </label>
             <SelectCustom
               options={fieldChoices}
               value={selectedField ? { field: selectedField.field, label: selectedField.label } : null}
@@ -64,7 +85,9 @@ export default function FilterModalSimple({ open, onClose, filterBase, editingFi
           </div>
           {selectedField && (
             <div>
-              <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">Valeur</label>
+              <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1" htmlFor="filter-modal-simple-value">
+                Valeur
+              </label>
               <SelectCustom
                 options={selectedFieldOptions.map((o) => (typeof o === "string" ? { label: o, value: o } : o))}
                 value={filterValue.map((v) => (typeof v === "string" ? { label: v, value: v } : v))}

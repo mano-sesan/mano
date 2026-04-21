@@ -12,25 +12,26 @@ import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { SelectedPersonsModal } from "./PersonsStats";
 
 const ActionsStats = ({
-  // data
+  // v1 + v2
   actionsWithDetailedGroupAndCategories,
-  // filter by status
-  setActionsStatuses,
-  actionsStatuses,
-  // filter by group
-  setActionsCategoriesGroups,
-  actionsCategoriesGroups,
   groupsCategories,
-  // filter by category
-  setActionsCategories,
-  actionsCategories,
-  filterableActionsCategories,
-  // filter by persons
-  filterBase,
   filterPersons,
-  setFilterPersons,
   personsUpdatedWithActions,
   isStatsV2,
+  // v1
+  // filter by status
+  setActionsStatuses = undefined,
+  actionsStatuses = [],
+  // filter by group
+  setActionsCategoriesGroups = undefined,
+  actionsCategoriesGroups = [],
+  // filter by category
+  setActionsCategories = undefined,
+  actionsCategories = [],
+  filterableActionsCategories = [],
+  // filter by persons
+  filterBase = [],
+  setFilterPersons = undefined,
 }) => {
   const [actionsModalOpened, setActionsModalOpened] = useState(false);
   const [personsModalOpened, setPersonsModalOpened] = useState(false);
@@ -198,7 +199,7 @@ const ActionsStats = ({
             </label>
             <div>
               <SelectCustom
-                value={actionsCategoriesGroups?.map((_option) => ({ value: _option, label: _option })) || []}
+                value={actionsCategoriesGroups.map((_option) => ({ value: _option, label: _option })) || []}
                 options={groupsCategories.map((group) => group.groupTitle).map((_option) => ({ value: _option, label: _option }))}
                 getOptionValue={(s) => s.value}
                 getOptionLabel={(s) => s.label}
@@ -217,7 +218,7 @@ const ActionsStats = ({
             <div>
               <SelectCustom
                 options={filterableActionsCategories.map((_option) => ({ value: _option, label: _option }))}
-                value={actionsCategories?.map((_option) => ({ value: _option, label: _option })) || []}
+                value={actionsCategories.map((_option) => ({ value: _option, label: _option })) || []}
                 getOptionValue={(s) => s.value}
                 getOptionLabel={(s) => s.label}
                 onChange={(categories) => setActionsCategories(categories.map((s) => s.value))}
@@ -247,7 +248,6 @@ const ActionsStats = ({
           axisTitleX="Groupe"
           data={getMultichoiceBarData(actionsWithDetailedGroupAndCategories, "categoryGroup", {
             options: groupsCategories.map((group) => group.groupTitle),
-            debug: true,
           })}
         />
         <CustomResponsiveBar

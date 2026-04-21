@@ -127,7 +127,7 @@ const DateRangePickerWithPresets = ({
   setPreset,
   removePreset,
   presets,
-  defaultPreset,
+  defaultPreset = undefined,
   isStatsV2 = false,
   pickerOffsetClassName = "tw-left-0",
 }) => {

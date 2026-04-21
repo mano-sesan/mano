@@ -54,7 +54,7 @@ function SearchResults({ person, search }: { person: PersonPopulated; search: st
     if (!user.healthcareProfessional) return defaultTabs;
     return [...defaultTabs, "Consultations", "Traitements", "Dossiers médicaux"];
   }, [user.healthcareProfessional]);
-  const [activeTab, setActiveTab] = useLocalStorage("person-search-tab", 0);
+  const [activeTab, setActiveTab] = useLocalStorage("person-search-tab", "Actions");
 
   const actions = useMemo(() => {
     if (!person.actions?.length) return [];

@@ -44,6 +44,9 @@ import FilterModalSimple from "./FilterModalSimple";
 import { itemsForStatsV2Selector } from "./items-for-stats-v2";
 import { StatsV2Provider } from "./StatsContext";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
+import { TeamInstance } from "../../types/team";
+import { Filter, FilterableField } from "../../types/field";
+import { ActionInstance } from "../../types/action";
 
 const tabsV2 = [
   "Général",
@@ -107,15 +110,15 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
   const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "all");
-  const [filterPersons, setFilterPersons] = useLocalStorage("stats-v2-filterPersons", []);
+  const [filterPersons, setFilterPersons] = useLocalStorage<Filter[]>("stats-v2-filterPersons", []);
   const [filterObs, setFilterObs] = useLocalStorage("stats-v2-filterObs", []);
   const [viewAllOrganisationData, setViewAllOrganisationData] = useLocalStorage("stats-viewAllOrganisationData", teams.length === 1);
   const [period, setPeriod] = useLocalStorage("period", { startDate: null, endDate: null });
   const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);
-  const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage("stats-teams", [currentTeam]);
+  const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage<Array<TeamInstance>>("stats-teams", [currentTeam]);
   const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses", DONE);
-  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage("stats-catGroups", []);
-  const [actionsCategories, setActionsCategories] = useLocalStorage("stats-categories", []);
+  const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage<Array<Array<string>>>("stats-catGroups-v2", []);
+  const [actionsCategories, setActionsCategories] = useLocalStorage<Array<Array<string>>>("stats-categories-v2", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
   const [consultationsTypes, setConsultationsTypes] = useLocalStorage("stats-consultationsTypes", []);
   const [rencontresTerritories, setRencontresTerritories] = useLocalStorage("stats-rencontresTerritories", []);
@@ -202,7 +205,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const filterableActionsCategories = useMemo(() => {
     if (!actionsCategoriesGroups.length) return ["-- Aucune --", ...allCategories];
     return groupsCategories
-      .filter((group) => actionsCategoriesGroups.includes(group.groupTitle))
+      .filter((group) => actionsCategoriesGroups.some((f) => f.includes(group.groupTitle)))
       .reduce((filteredCats, group) => [...filteredCats, ...group.categories], []);
   }, [actionsCategoriesGroups, allCategories, groupsCategories]);
 
@@ -220,31 +223,124 @@ const StatsV2 = ({ onSwitchVersion }) => {
         categoriesGroupObject[category] = groupCategory.groupTitle;
       }
     }
-    for (const action of actionsFilteredByPersons) {
-      if (!!actionsStatuses.length && !actionsStatuses.includes(action.status)) {
-        continue;
-      }
-      if (action.categories?.length) {
-        for (const category of action.categories) {
-          actionsDetailed.push({
-            ...action,
-            category,
-            categoryGroup: categoriesGroupObject[category] ?? "Catégories supprimées",
-          });
-        }
-      } else {
-        actionsDetailed.push(action);
+    /* 
+    Hypothèses : 
+    - on a potentiellement 100k actions, donc on doit être efficace dans le filtre : on ne doit faire qu'un seul loop sur chaque action
+    - les actions ont plusieurs catégories, mais on affiche les actions splitées par catégorie, pour lesquelles on doit devnier le groupe de catégorie : défi !
+    - les filtres doivent être efficaces : ce sont des arrays d'arrays de string, pas mal, on va faire avec, en évitant au max les "includes" et "find"
+    Algo :
+    1. on doit d'abord passer les filtres ET sur les actions non splitées : sur les ET de catégories et sur les ET de groupes de catégories
+    2. si l'action passe le premier screen, on la split
+    3. on regroupes tous les filtres, les ET deviennent des OU (et les OU restent des OU)
+    4. si une catégorie/groupe n'est pas dans ces filtres, on l'exclut
+     */
+    // on transforme au préalable les filtres en un objet flat UNE SEULE FOIS pour toutes les actions, pour utiliser dans la phase 2
+    const statusFilterObject = {};
+    for (const status of actionsStatuses) {
+      statusFilterObject[status] = true;
+    }
+    const flatCategoriesGroups = {};
+    const flatCategories = {};
+    for (const groups of actionsCategoriesGroups) {
+      for (const group of groups) {
+        flatCategoriesGroups[group] = true;
       }
     }
-    const _actionsWithDetailedGroupAndCategories = actionsDetailed
-      .filter((a) => !actionsCategoriesGroups.length || actionsCategoriesGroups.includes(a.categoryGroup))
-      .filter((a) => {
-        if (!actionsCategories.length) return true;
-        if (actionsCategories.length === 1 && actionsCategories[0] === "-- Aucune --") return !a.categories?.length;
-        return actionsCategories.includes(a.category);
-      });
-    return _actionsWithDetailedGroupAndCategories;
-  }, [actionsFilteredByPersons, groupsCategories, actionsCategoriesGroups, actionsCategories, actionsStatuses]);
+    for (const categories of actionsCategories) {
+      for (const category of categories) {
+        flatCategories[category] = true;
+      }
+    }
+    let hasFilterStatus = !!actionsStatuses.length;
+    let hasCategoriesGroupsFilter = !!actionsCategoriesGroups.length;
+    let hasCategoriesFilter = !!actionsCategories.length;
+    let catFilterIsAucune = actionsCategories.length === 1 && actionsCategories[0].length === 1 && actionsCategories[0][0] === "-- Aucune --";
+    // un seul loop sur chaque action
+    for (const action of actionsFilteredByPersons) {
+      if (hasFilterStatus) {
+        if (!statusFilterObject[action.status]) {
+          continue;
+        }
+      }
+      if (catFilterIsAucune) {
+        if (!action.categories?.length) {
+          actionsDetailed.push(action);
+        }
+        continue;
+      }
+      const actionByCategories: Record<string, ActionInstance & { categoryGroup: string }> = {};
+      const actionByGroups: Record<string, boolean> = {};
+      // On prépare les actions splitées par catégorie dès maintenant, pour récupérer les groupes de catégorie et ne pas avoir à le faire deux fois
+      // trade-off : on faut peut-être peiner la mémoire à recréer des objets qui potentiellement seront filtrés
+      if (action.categories?.length) {
+        for (const category of action.categories) {
+          const group = categoriesGroupObject[category] ?? "Catégories supprimées";
+          const actionByCategory = {
+            ...action,
+            category,
+            categoryGroup: group,
+          };
+          actionByCategories[category] = actionByCategory;
+          actionByGroups[group] = true;
+        }
+      } else {
+        const actionByCategory = {
+          ...action,
+          category: action.category,
+          categoryGroup: action.categoryGroup,
+        };
+        actionByCategories[action.category] = actionByCategory;
+        actionByGroups[action.categoryGroup] = true;
+      }
+      // Filtres ET
+      // Chaque filtre ET est un array de plusieurs catégories/groupes (OU)
+      // donc l'idée de l'algo c'est qu'une action doit appartenir à tous les arrays
+      // donc le nombre de matching doit être égal au nombre de filtres ET
+
+      // Filtre ET sur les groupes de catégories
+      if (hasCategoriesGroupsFilter) {
+        let matchingGroupsFilters = 0;
+        for (let index = 0; index < actionsCategoriesGroups.length; index++) {
+          const groups = actionsCategoriesGroups[index];
+          for (const group of groups) {
+            if (actionByGroups[group]) {
+              matchingGroupsFilters++;
+              break; // un seul matching par array suffit
+            }
+          }
+        }
+        if (matchingGroupsFilters < actionsCategoriesGroups.length) {
+          continue;
+        }
+      }
+      // Filtre ET sur les catégories
+      if (hasCategoriesFilter) {
+        let matchingCategoriesFilter = 0;
+        for (let index = 0; index < actionsCategories.length; index++) {
+          const categories = actionsCategories[index];
+          for (const category of categories) {
+            if (actionByCategories[category]) {
+              matchingCategoriesFilter++;
+              break; // un seul matching par array suffit
+            }
+          }
+        }
+        if (matchingCategoriesFilter < actionsCategories.length) {
+          continue;
+        }
+      }
+      // Filtres OU : tous les filtres deviennent des OU
+      // On loop chaque action splitée, elle doit avoir soit un groupe soit une catégorie contenus dans les filtres
+      for (const actionByCategory of Object.values(actionByCategories)) {
+        if (!hasCategoriesGroupsFilter && !hasCategoriesFilter) {
+          actionsDetailed.push(actionByCategory);
+        } else if (flatCategoriesGroups[actionByCategory.categoryGroup] || flatCategories[actionByCategory.category]) {
+          actionsDetailed.push(actionByCategory);
+        }
+      }
+    }
+    return actionsDetailed;
+  }, [actionsFilteredByPersons, actionsCategoriesGroups, actionsCategories, actionsStatuses, groupsCategories]);
 
   const passages = useMemo(() => {
     const activeFilters = filterPersons.filter((f) => f.value);
@@ -370,37 +466,49 @@ const StatsV2 = ({ onSwitchVersion }) => {
   ]);
 
   // === Tab-specific filter bases ===
-  const actionsFilterBase = useMemo(
+  const actionsFilterBase: Array<FilterableField> = useMemo(
     () => [
-      { field: "status", label: "Statut", options: mappedIdsToLabels.map((s) => s.name) },
-      { field: "categoryGroup", label: "Groupe de catégories", options: groupsCategories.map((g) => g.groupTitle) },
-      { field: "category", label: "Catégorie", options: filterableActionsCategories },
+      { field: "status", name: "status", label: "Statut", type: "multi-choice", options: mappedIdsToLabels.map((s) => s.name) },
+      {
+        field: "categoryGroup",
+        name: "categoryGroup",
+        label: "Groupe de catégories",
+        type: "multi-choice",
+        options: groupsCategories.map((g) => g.groupTitle),
+      },
+      { field: "category", name: "category", label: "Catégorie", type: "multi-choice", options: filterableActionsCategories },
     ],
     [groupsCategories, filterableActionsCategories]
   );
 
-  const servicesFilterBase = useMemo(
+  const servicesFilterBase: Array<FilterableField> = useMemo(
     () => [
-      { field: "serviceGroup", label: "Groupe de services", options: groupedServices.map((g) => g.groupTitle) },
-      { field: "service", label: "Service", options: allServices },
+      {
+        field: "serviceGroup",
+        name: "serviceGroup",
+        label: "Groupe de services",
+        type: "multi-choice",
+        options: groupedServices.map((g) => g.groupTitle),
+      },
+      { field: "service", name: "service", label: "Service", type: "multi-choice", options: allServices },
     ],
     [groupedServices, allServices]
   );
 
-  const consultationsFilterBase = useMemo(
+  const consultationsFilterBase: Array<FilterableField> = useMemo(
     () => [
-      { field: "status", label: "Statut", options: mappedIdsToLabels.map((s) => s.name) },
-      { field: "type", label: "Type", options: organisation.consultations.map((c) => c.name) },
+      { field: "status", name: "status", label: "Statut", type: "multi-choice", options: mappedIdsToLabels.map((s) => s.name) },
+      { field: "type", name: "type", label: "Type", type: "multi-choice", options: organisation.consultations.map((c) => c.name) },
     ],
     [organisation.consultations]
   );
 
-  const rencontresFilterBase = useMemo(() => {
+  const rencontresFilterBase: Array<FilterableField> = useMemo(() => {
     if (!organisation.territoriesEnabled) return [];
-    return [{ field: "territory", label: "Territoire", options: territories.map((t) => t.name) }];
+    return [{ field: "territory", name: "territory", label: "Territoire", type: "multi-choice", options: territories.map((t) => t.name) }];
   }, [organisation.territoriesEnabled, territories]);
 
-  const obsFilterBase = useMemo(() => {
+  const obsFilterBase: Array<FilterableField> = useMemo(() => {
     const allTerritoryTypes = new Set();
     territories.forEach((t) => {
       if (t.types && Array.isArray(t.types)) t.types.forEach((type) => allTerritoryTypes.add(type));
@@ -412,7 +520,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
         name: "territoryTypes",
         label: "Type de territoire",
         type: "multi-choice",
-        options: Array.from(allTerritoryTypes).sort(),
+        options: Array.from(allTerritoryTypes).sort() as string[],
       },
       ...customFieldsObs
         .filter((a) => a.enabled || a.enabledTeams?.includes(currentTeam._id))
@@ -431,10 +539,14 @@ const StatsV2 = ({ onSwitchVersion }) => {
       });
     }
     if (actionsCategoriesGroups.length) {
-      filters.push({ field: "categoryGroup", value: actionsCategoriesGroups });
+      for (const group of actionsCategoriesGroups) {
+        filters.push({ field: "categoryGroup", value: group });
+      }
     }
     if (actionsCategories.length) {
-      filters.push({ field: "category", value: actionsCategories });
+      for (const category of actionsCategories) {
+        filters.push({ field: "category", value: category });
+      }
     }
     return filters;
   }, [actionsStatuses, actionsCategoriesGroups, actionsCategories]);
@@ -475,19 +587,19 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   // === Tab chip filter setters (for remove via setFilters) ===
   const setActionsChipFilters = useCallback(
-    (newFilters) => {
+    (newFilters: Array<Filter>) => {
       const statusFilter = newFilters.find((f) => f.field === "status");
-      setActionsStatuses(statusFilter ? statusFilter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []);
-      const groupFilter = newFilters.find((f) => f.field === "categoryGroup");
-      setActionsCategoriesGroups(groupFilter ? groupFilter.value : []);
-      const catFilter = newFilters.find((f) => f.field === "category");
-      setActionsCategories(catFilter ? catFilter.value : []);
+      setActionsStatuses(
+        statusFilter ? statusFilter.value.map((name: string) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []
+      );
+      setActionsCategoriesGroups(newFilters.filter((f) => f.field === "categoryGroup").map((f) => f.value));
+      setActionsCategories(newFilters.filter((f) => f.field === "category").map((f) => f.value));
     },
     [setActionsStatuses, setActionsCategoriesGroups, setActionsCategories]
   );
 
   const setServicesChipFilters = useCallback(
-    (newFilters) => {
+    (newFilters: Array<Filter>) => {
       const groupFilter = newFilters.find((f) => f.field === "serviceGroup");
       setServicesGroupFilter(groupFilter ? groupFilter.value : []);
       const serviceFilter = newFilters.find((f) => f.field === "service");
@@ -497,10 +609,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
   );
 
   const setConsultationsChipFilters = useCallback(
-    (newFilters) => {
+    (newFilters: Array<Filter>) => {
       const statusFilter = newFilters.find((f) => f.field === "status");
       setConsultationsStatuses(
-        statusFilter ? statusFilter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []
+        statusFilter ? statusFilter.value.map((name: string) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean) : []
       );
       const typeFilter = newFilters.find((f) => f.field === "type");
       setConsultationsTypes(typeFilter ? typeFilter.value : []);
@@ -509,9 +621,9 @@ const StatsV2 = ({ onSwitchVersion }) => {
   );
 
   const setRencontresChipFilters = useCallback(
-    (newFilters) => {
+    (newFilters: Array<Filter>) => {
       const territoryFilter = newFilters.find((f) => f.field === "territory");
-      setRencontresTerritories(territoryFilter ? territoryFilter.value.map((name) => ({ value: name, label: name })) : []);
+      setRencontresTerritories(territoryFilter ? territoryFilter.value.map((name: string) => ({ value: name, label: name })) : []);
     },
     [setRencontresTerritories]
   );
@@ -542,14 +654,25 @@ const StatsV2 = ({ onSwitchVersion }) => {
   }, [simpleFilterEditingIndex, simpleFilterTab, actionsChipFilters, servicesChipFilters, consultationsChipFilters, rencontresChipFilters]);
 
   const applySimpleFilter = useCallback(
-    (filter) => {
+    (filter: Filter, isUpdating = false) => {
       if (simpleFilterTab === "Actions") {
         if (filter.field === "status") {
-          setActionsStatuses(filter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
+          setActionsStatuses(filter.value.map((name: string) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
         } else if (filter.field === "categoryGroup") {
-          setActionsCategoriesGroups(filter.value);
+          if (isUpdating) {
+            const editedFilterIndex = simpleFilterEditingIndex - actionsChipFilters.filter((a) => a.field === "status").length;
+            setActionsCategoriesGroups((prev) => prev.map((g, i) => (i === editedFilterIndex ? filter.value : g)));
+          } else {
+            setActionsCategoriesGroups((prev) => [...prev, filter.value]);
+          }
         } else if (filter.field === "category") {
-          setActionsCategories(filter.value);
+          if (isUpdating) {
+            const editedFilterIndex =
+              simpleFilterEditingIndex - actionsChipFilters.filter((a) => a.field === "status" || a.field === "categoryGroup").length;
+            setActionsCategories((prev) => prev.map((c, i) => (i === editedFilterIndex ? filter.value : c)));
+          } else {
+            setActionsCategories((prev) => [...prev, filter.value]);
+          }
         }
       } else if (simpleFilterTab === "Services") {
         if (filter.field === "serviceGroup") {
@@ -559,18 +682,19 @@ const StatsV2 = ({ onSwitchVersion }) => {
         }
       } else if (simpleFilterTab === "Consultations") {
         if (filter.field === "status") {
-          setConsultationsStatuses(filter.value.map((name) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
+          setConsultationsStatuses(filter.value.map((name: string) => mappedIdsToLabels.find((s) => s.name === name)?._id).filter(Boolean));
         } else if (filter.field === "type") {
           setConsultationsTypes(filter.value);
         }
       } else if (simpleFilterTab === "Rencontres") {
         if (filter.field === "territory") {
-          setRencontresTerritories(filter.value.map((name) => ({ value: name, label: name })));
+          setRencontresTerritories(filter.value.map((name: string) => ({ value: name, label: name })));
         }
       }
     },
     [
       simpleFilterTab,
+      simpleFilterEditingIndex,
       setActionsStatuses,
       setActionsCategoriesGroups,
       setActionsCategories,
@@ -672,7 +796,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
           <h1 className="tw-grow tw-text-xl tw-font-normal">Statistiques</h1>
           <div className="tw-flex tw-items-center tw-gap-4">
             <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />
-            {user.role === "admin" && <ButtonCustom title="Télécharger un export" onClick={handleExport} disabled={exportDisabled} />}
+            {user.role === "admin" && <ButtonCustom type="button" title="Télécharger un export" onClick={handleExport} disabled={exportDisabled} />}
           </div>
         </div>
       </div>
@@ -705,7 +829,6 @@ const StatsV2 = ({ onSwitchVersion }) => {
               setSelectedTeams(teams.filter((t) => teamsId.includes(t._id)));
             }}
             value={selectedTeams.map((e) => e?._id)}
-            colored
           />
           {teams.length > 1 && (
             <label htmlFor="viewAllOrganisationData-v2" className="tw-flex tw-items-center tw-text-xs tw-mt-0.5 text-zinc-700">
@@ -714,7 +837,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
                 type="checkbox"
                 className="tw-mr-1"
                 checked={viewAllOrganisationData}
-                value={viewAllOrganisationData}
+                value={viewAllOrganisationData ? "true" : "false"}
                 onChange={() => setViewAllOrganisationData(!viewAllOrganisationData)}
               />
               Statistiques de toute l'organisation
@@ -791,14 +914,17 @@ const StatsV2 = ({ onSwitchVersion }) => {
         )}
 
         {!evolutifDisabled && (
-          <label
+          <button
             className={[
               "tw-flex tw-items-center tw-gap-2 tw-select-none tw-shrink-0 tw-mt-2",
               evolutifDisabled ? "tw-opacity-40 tw-pointer-events-none" : "tw-cursor-pointer",
             ].join(" ")}
+            onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
+            type="button"
+            aria-label="Affichage évolutif"
+            name="evolutif-stats"
           >
             <div
-              onClick={() => !evolutifDisabled && setEvolutivesStatsActivated(!evolutivesStatsActivated)}
               className={[
                 "tw-relative tw-inline-flex tw-h-5 tw-w-9 tw-shrink-0 tw-rounded-full tw-transition-colors tw-duration-200",
                 !evolutifDisabled ? "tw-cursor-pointer" : "",
@@ -812,8 +938,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
                 ].join(" ")}
               />
             </div>
-            <span className="tw-text-sm tw-text-zinc-700">Affichage évolutif</span>
-          </label>
+            <label htmlFor="evolutif-stats" className="tw-text-sm tw-text-zinc-700 tw-m-0 tw-cursor-pointer">
+              Affichage évolutif
+            </label>
+          </button>
         )}
       </div>
 
@@ -946,6 +1074,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
             filters={filterPersons}
             setFilters={setFilterPersons}
             filterBase={filterPersonsWithAllFields}
+            addFilterLabel="Ajouter un filtre de personne"
             onAddFilter={() => {
               setEditingFilterIndex(null);
               setFilterModalOpen(true);
@@ -985,8 +1114,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
         }}
         filterBase={simpleFilterModalBase}
         editingFilter={simpleFilterEditingFilter}
-        onAddFilter={applySimpleFilter}
-        onEditFilter={applySimpleFilter}
+        onAddFilter={(filter) => applySimpleFilter(filter)}
+        onEditFilter={(filter) => applySimpleFilter(filter, true)}
         filterLabel={
           simpleFilterTab === "Actions"
             ? "d'action"
@@ -1048,19 +1177,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
           {activeTab === "Actions" && (
             <ActionsStats
               actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
-              setActionsStatuses={setActionsStatuses}
-              actionsStatuses={actionsStatuses}
-              setActionsCategoriesGroups={setActionsCategoriesGroups}
-              actionsCategoriesGroups={actionsCategoriesGroups}
               groupsCategories={groupsCategories}
-              setActionsCategories={setActionsCategories}
-              actionsCategories={actionsCategories}
-              filterableActionsCategories={filterableActionsCategories}
-              personsUpdatedWithActions={personsUpdatedWithActions}
-              filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
-              setFilterPersons={setFilterPersons}
+              personsUpdatedWithActions={personsUpdatedWithActions}
               isStatsV2
+              // v1
             />
           )}
           {activeTab === "Personnes" && (
@@ -1072,7 +1193,6 @@ const StatsV2 = ({ onSwitchVersion }) => {
               setFilterPersons={setFilterPersons}
               personsForStats={personsForStats}
               personFields={personFields}
-              flattenedCustomFieldsPersons={flattenedCustomFieldsPersons}
               evolutivesStatsActivated={evolutivesStatsActivated}
               period={period}
               evolutiveStatsIndicators={evolutiveStatsIndicators}
@@ -1123,7 +1243,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
               isStatsV2
             />
           )}
-          {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} hideTitle />}
+          {activeTab === "Comptes-rendus" && <ReportsStats reports={reports} />}
           {activeTab === "Consultations" && (
             <ConsultationsStats
               consultations={consultationsFilteredByStatus}

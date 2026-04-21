@@ -4,9 +4,9 @@ import { organisationState } from "../../atoms/auth";
 import { useAtomValue } from "jotai";
 
 const GeneralStats = ({
+  personsCreated = [],
+  personsUpdated = [],
   personTypeCounts,
-  personsCreated,
-  personsUpdated,
   rencontres,
   passages,
   actions,
