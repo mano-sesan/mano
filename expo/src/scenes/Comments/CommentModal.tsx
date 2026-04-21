@@ -37,7 +37,6 @@ const CommentModal = ({
   canToggleGroupCheck,
   canToggleShareComment,
 }: CommentModalProps) => {
-  console.log("commentDB", commentDB);
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
