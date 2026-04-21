@@ -252,6 +252,8 @@ const StatsV2 = ({ onSwitchVersion }) => {
       }
     }
     let hasFilterStatus = !!actionsStatuses.length;
+    let hasCategoriesGroupsFilter = !!actionsCategoriesGroups.length;
+    let hasCategoriesFilter = !!actionsCategories.length;
     let catFilterIsAucune = actionsCategories.length === 1 && actionsCategories[0].includes("-- Aucune --");
     // un seul loop sur chaque action
     for (const action of actionsFilteredByPersons) {
@@ -296,37 +298,43 @@ const StatsV2 = ({ onSwitchVersion }) => {
       // donc le nombre de matching doit être égal au nombre de filtres ET
 
       // Filtre ET sur les groupes de catégories
-      let matchingGroupsFilters = 0;
-      for (let index = 0; index < actionsCategoriesGroups.length; index++) {
-        const groups = actionsCategoriesGroups[index];
-        for (const group of groups) {
-          if (actionByGroups[group]) {
-            matchingGroupsFilters++;
-            break; // un seul matching par array suffit
+      if (hasCategoriesGroupsFilter) {
+        let matchingGroupsFilters = 0;
+        for (let index = 0; index < actionsCategoriesGroups.length; index++) {
+          const groups = actionsCategoriesGroups[index];
+          for (const group of groups) {
+            if (actionByGroups[group]) {
+              matchingGroupsFilters++;
+              break; // un seul matching par array suffit
+            }
           }
         }
-      }
-      if (matchingGroupsFilters < actionsCategoriesGroups.length) {
-        continue;
+        if (matchingGroupsFilters < actionsCategoriesGroups.length) {
+          continue;
+        }
       }
       // Filtre ET sur les catégories
-      let matchingCategoriesFilter = 0;
-      for (let index = 0; index < actionsCategories.length; index++) {
-        const categories = actionsCategories[index];
-        for (const category of categories) {
-          if (actionByCategories[category]) {
-            matchingCategoriesFilter++;
-            break; // un seul matching par array suffit
+      if (hasCategoriesFilter) {
+        let matchingCategoriesFilter = 0;
+        for (let index = 0; index < actionsCategories.length; index++) {
+          const categories = actionsCategories[index];
+          for (const category of categories) {
+            if (actionByCategories[category]) {
+              matchingCategoriesFilter++;
+              break; // un seul matching par array suffit
+            }
           }
         }
-      }
-      if (matchingCategoriesFilter < actionsCategories.length) {
-        continue;
+        if (matchingCategoriesFilter < actionsCategories.length) {
+          continue;
+        }
       }
       // Filtres OU : tous les filtres deviennent des OU
       // On loop chaque action splitée, elle doit avoir soit un groupe soit une catégorie contenus dans les filtres
       for (const actionByCategory of Object.values(actionByCategories)) {
-        if (flatCategoriesGroups[actionByCategory.categoryGroup] || flatCategories[actionByCategory.category]) {
+        if (!hasCategoriesGroupsFilter && !hasCategoriesFilter) {
+          actionsDetailed.push(actionByCategory);
+        } else if (flatCategoriesGroups[actionByCategory.categoryGroup] || flatCategories[actionByCategory.category]) {
           actionsDetailed.push(actionByCategory);
         }
       }
