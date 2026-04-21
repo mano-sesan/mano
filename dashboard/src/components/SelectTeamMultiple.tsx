@@ -3,8 +3,23 @@ import { useAtomValue } from "jotai";
 import { teamsState } from "../atoms/auth";
 import SelectCustom from "./SelectCustom";
 import { getTeamColors } from "./TagTeam";
+import { TeamInstance } from "../types/team";
 
-const SelectTeamMultiple = ({ onChange, value: teamIds = [], inputId, classNamePrefix, isDisabled = false }) => {
+type SelectTeamMultipleProps = {
+  onChange: (teamIds: TeamInstance["_id"][]) => void;
+  value: TeamInstance["_id"][];
+  inputId?: string;
+  classNamePrefix?: string;
+  isDisabled?: boolean;
+};
+
+const SelectTeamMultiple = ({
+  onChange,
+  value: teamIds = [],
+  inputId = "team-select",
+  classNamePrefix = "team-select",
+  isDisabled = false,
+}: SelectTeamMultipleProps) => {
   const teams = useAtomValue(teamsState);
 
   return (

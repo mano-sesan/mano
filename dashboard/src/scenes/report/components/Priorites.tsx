@@ -6,13 +6,20 @@ import { sortActionsOrConsultations } from "../../../atoms/actions";
 import { personsState } from "../../../atoms/persons";
 import { ModalContainer, ModalBody, ModalFooter } from "../../../components/tailwind/Modal";
 import { NotificationActionList, NotificationCommentList } from "../../../components/Notification";
+import { ActionInstance } from "../../../types/action";
 
-export default function Priorites({ actions, comments }) {
+type ActionsSortOrder = "ASC" | "DESC";
+type PrioritesProps = {
+  actions: Array<ActionInstance>;
+  comments: Array<any>;
+};
+
+export default function Priorites({ actions, comments }: PrioritesProps) {
   const [showModal, setShowModal] = useState(false);
   const persons = useAtomValue(personsState);
 
   const [actionsSortBy, setActionsSortBy] = useLocalStorage("actions-consultations-sortBy", "dueAt");
-  const [actionsSortOrder, setActionsSortOrder] = useLocalStorage("actions-consultations-sortOrder", "ASC");
+  const [actionsSortOrder, setActionsSortOrder] = useLocalStorage<ActionsSortOrder>("actions-consultations-sortOrder", "ASC");
 
   const actionsFiltered = useMemo(
     () => actions.filter((action) => action.urgent).sort(sortActionsOrConsultations(actionsSortBy, actionsSortOrder)),

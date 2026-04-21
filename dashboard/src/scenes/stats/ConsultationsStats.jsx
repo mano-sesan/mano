@@ -20,11 +20,11 @@ export default function ConsultationsStats({
   filterPersons,
   setFilterPersons,
   // status filtering props
-  consultationsStatuses = [],
-  setConsultationsStatuses = () => {},
+  consultationsStatuses,
+  setConsultationsStatuses,
   // type filtering props
-  consultationsTypes = [],
-  setConsultationsTypes = () => {},
+  consultationsTypes,
+  setConsultationsTypes,
   isStatsV2,
 }) {
   const organisation = useAtomValue(organisationState);

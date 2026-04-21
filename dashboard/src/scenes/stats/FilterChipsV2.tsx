@@ -1,7 +1,8 @@
 import React from "react";
 import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { Filter, FilterableField } from "../../types/field";
 
-function getFilterDisplayValue(filter) {
+function getFilterDisplayValue(filter: Filter): React.ReactNode | null {
   if (!filter.value) return null;
   if (typeof filter.value === "object" && !Array.isArray(filter.value)) {
     if (filter.value.comparator === "unfilled") return "Non renseigné";
@@ -33,6 +34,20 @@ function getFilterDisplayValue(filter) {
   return String(filter.value);
 }
 
+type FilterChipsV2Props = {
+  filters: Array<Filter>;
+  setFilters: (filters: Array<Filter>) => void;
+  filterBase: Array<FilterableField>;
+  disabled?: boolean;
+  onAddFilter: () => void;
+  onEditFilter: (index: number) => void;
+  addFilterLabel: string;
+  chipBgClass?: string;
+  chipTextClass?: string;
+  chipLabelClass?: string;
+  chipHoverClass?: string;
+};
+
 export default function FilterChipsV2({
   filters,
   setFilters,
@@ -45,10 +60,10 @@ export default function FilterChipsV2({
   chipTextClass = "tw-text-main",
   chipLabelClass = "tw-text-main/60",
   chipHoverClass = "hover:tw-bg-main/20",
-}) {
+}: FilterChipsV2Props) {
   const activeFilters = filters.filter((f) => f.field && f.value);
 
-  const removeFilter = (index) => {
+  const removeFilter = (index: number) => {
     const realIndex = filters.findIndex((f) => f === activeFilters[index]);
     if (realIndex !== -1) {
       setFilters(filters.filter((_, i) => i !== realIndex));

@@ -3,6 +3,8 @@ import { components } from "react-select";
 import { ModalContainer, ModalHeader, ModalBody, ModalFooter } from "../../components/tailwind/Modal";
 import SelectCustom from "../../components/SelectCustom";
 import DatePicker from "../../components/DatePicker";
+import { Filter } from "../../types/field";
+import { FilterableField } from "../../types/field";
 
 function categoryToLabel(category) {
   if (category === "medicalFile") return "Dossier médical";
@@ -40,7 +42,17 @@ const numberOptions = [
   { label: "Non renseigné", value: "unfilled" },
 ];
 
-export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, editingFilter, onEditFilter, filterLabel = "" }) {
+type FilterModalV2Props = {
+  open: boolean;
+  onClose: () => void;
+  filterBase: Array<FilterableField>;
+  onAddFilter: (filter: Filter) => void;
+  editingFilter: Filter | null;
+  onEditFilter: (filter: Filter) => void;
+  filterLabel: string;
+};
+
+export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, editingFilter, onEditFilter, filterLabel = "" }: FilterModalV2Props) {
   const [selectedField, setSelectedField] = useState(null);
   const [filterValue, setFilterValue] = useState(null);
   const [comparator, setComparator] = useState(null);
@@ -114,7 +126,9 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
       <ModalBody className="tw-py-4 tw-px-6">
         <div className="tw-flex tw-flex-col tw-gap-4">
           <div>
-            <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">Champ</label>
+            <label htmlFor="filter-modal-field" className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">
+              Champ
+            </label>
             <SelectCustom
               options={filterFields}
               value={selectedField}
@@ -147,7 +161,9 @@ export default function FilterModalV2({ open, onClose, filterBase, onAddFilter, 
           </div>
           {selectedField && (
             <div>
-              <label className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">Valeur</label>
+              <label htmlFor="filter-modal-value" className="tw-block tw-text-sm tw-font-medium tw-text-zinc-700 tw-mb-1">
+                Valeur
+              </label>
               <ModalValueSelector
                 field={selectedField}
                 filterOptions={filterOptions}
