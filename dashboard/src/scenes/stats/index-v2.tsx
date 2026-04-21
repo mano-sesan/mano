@@ -1166,19 +1166,11 @@ const StatsV2 = ({ onSwitchVersion }) => {
           {activeTab === "Actions" && (
             <ActionsStats
               actionsWithDetailedGroupAndCategories={actionsWithDetailedGroupAndCategories}
-              setActionsStatuses={setActionsStatuses}
-              actionsStatuses={actionsStatuses}
-              setActionsCategoriesGroups={setActionsCategoriesGroups}
-              actionsCategoriesGroups={actionsCategoriesGroups}
               groupsCategories={groupsCategories}
-              setActionsCategories={setActionsCategories}
-              actionsCategories={actionsCategories}
-              filterableActionsCategories={filterableActionsCategories}
-              personsUpdatedWithActions={personsUpdatedWithActions}
-              filterBase={filterPersonsWithAllFields}
               filterPersons={filterPersons}
-              setFilterPersons={setFilterPersons}
+              personsUpdatedWithActions={personsUpdatedWithActions}
               isStatsV2
+              // v1
             />
           )}
           {activeTab === "Personnes" && (
