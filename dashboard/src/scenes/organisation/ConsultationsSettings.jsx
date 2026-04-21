@@ -151,6 +151,7 @@ const ConsultationsSettings = () => {
       onDeleteGroup={onDeleteType}
       onDragAndDrop={onDragAndDrop}
       onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };

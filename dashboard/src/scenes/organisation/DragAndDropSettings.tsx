@@ -243,7 +243,7 @@ const Group: React.FC<GroupProps> = ({
   groupTitles,
   onDeleteGroup,
   onGroupChange,
-  canChangeTeamsVisibility = true,
+  canChangeTeamsVisibility = false,
   ItemComponent,
   sectionId,
   NewItemComponent,
@@ -278,7 +278,6 @@ const Group: React.FC<GroupProps> = ({
   }, [onDragAndDrop, sectionId]);
 
   const onSubmit = async () => {
-    setIsSubmitting(true);
     const oldGroupTitle = groupTitle;
     if (!newGroupTitle) {
       toast.error("Vous devez saisir un nom pour le groupe");
@@ -296,8 +295,9 @@ const Group: React.FC<GroupProps> = ({
         return false;
       }
     }
+    setIsSubmitting(true);
     try {
-      onGroupChange(
+      await onGroupChange(
         {
           oldName: oldGroupTitle,
           newName: newGroupTitle?.trim(),

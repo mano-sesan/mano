@@ -139,6 +139,7 @@ const MedicalFileSettings = () => {
       onAddGroup={onAddGroup}
       onDeleteGroup={onDeleteGroup}
       onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };

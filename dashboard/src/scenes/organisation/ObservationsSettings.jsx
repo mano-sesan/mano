@@ -140,6 +140,7 @@ const ObservationsSettings = () => {
       onAddGroup={onAddGroup}
       onDeleteGroup={onDeleteGroup}
       onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };

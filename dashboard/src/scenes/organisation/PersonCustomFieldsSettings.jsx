@@ -136,6 +136,7 @@ const PersonCustomFieldsSettings = () => {
       onDeleteGroup={onDeleteGroup}
       onDragAndDrop={onDragAndDrop}
       onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };
