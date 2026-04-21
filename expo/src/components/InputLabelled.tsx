@@ -92,11 +92,13 @@ const Content = styled(MyText)`
   font-size: 17px;
   line-height: 20px;
   flex-shrink: 1;
+  color: #000;
 `;
 
 const Input = styled(MyTextInput)`
   border: 1px solid rgba(7, 7, 8, 0.1);
   border-radius: 12px;
+  color: #000;
   padding-horizontal: 12px;
   padding-vertical: 15px;
 `;

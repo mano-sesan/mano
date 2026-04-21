@@ -77,4 +77,4 @@ function App() {
   return <Navigators />;
 }
 
-export default Sentry.wrap(App);
+export default __DEV__ ? App : Sentry.wrap(App);

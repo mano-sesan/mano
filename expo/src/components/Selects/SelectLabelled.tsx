@@ -83,22 +83,26 @@ const SelectLabelled = ({
 */
 
 type SelectAndroidProps = Pick<SelectLabelledProps, "value" | "values" | "onSelect" | "label" | "row" | "mappedIdsToLabels" | "testID">;
-const SelectAndroid = ({ value, values, onSelect, label, row, mappedIdsToLabels, testID }: SelectAndroidProps) => (
-  <InputContainer row={row} testID={testID}>
-    {Boolean(label) && (
-      <Label bold row={row}>
-        {label}
-      </Label>
-    )}
-    <PickerContainer row={row}>
-      <Picker selectedValue={value} onValueChange={(newValue) => onSelect(newValue)}>
-        {mappedIdsToLabels?.length
-          ? mappedIdsToLabels.map((value, i) => <Picker.Item key={value._id + i} label={value.name} value={value._id} testID={value.name} />)
-          : values.map((value, i) => <Picker.Item key={value} label={value} value={value} testID={value} />)}
-      </Picker>
-    </PickerContainer>
-  </InputContainer>
-);
+const SelectAndroid = ({ value, values, onSelect, label, row, mappedIdsToLabels, testID }: SelectAndroidProps) => {
+  return (
+    <InputContainer row={row} testID={testID}>
+      {Boolean(label) && (
+        <Label bold row={row}>
+          {label}
+        </Label>
+      )}
+      <PickerContainer row={row}>
+        <Picker selectedValue={value} onValueChange={(newValue) => onSelect(newValue)}>
+          {mappedIdsToLabels?.length
+            ? mappedIdsToLabels.map((value, i) => (
+                <Picker.Item key={value._id + i} label={value.name} value={value._id} testID={value.name} color="#000" />
+              ))
+            : values.map((value, i) => <Picker.Item key={value} label={value} value={value} testID={value} color="#000" />)}
+        </Picker>
+      </PickerContainer>
+    </InputContainer>
+  );
+};
 
 const inputRow = css`
   flex-direction: row;
