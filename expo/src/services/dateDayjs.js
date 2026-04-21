@@ -31,11 +31,21 @@ export function formatDateTimeWithNameOfDay(date) {
 // }
 
 export function formatBirthDate(date) {
-  let birthDate = new Date(date);
-  let day = String(birthDate.getDate()).padStart(2, "0");
-  let month = String(birthDate.getMonth() + 1).padStart(2, "0"); // January is 0!
-  let year = birthDate.getFullYear();
-  return `${day}/${month}/${year}`;
+  if (!date) return null;
+  const birthDate = dayjs(date);
+  return `${birthDate.format("DD/MM/YYYY")} (${formatAge(date)})`;
+}
+
+export function ageFromBirthdateAsYear(date) {
+  if (!date) return null;
+  const birthDate = dayjs(date);
+  return dayjsInstance().diff(birthDate, "year");
+}
+
+export function ageFromBirthdateAsMonths(date) {
+  if (!date) return null;
+  const birthDate = dayjs(date);
+  return dayjsInstance().diff(birthDate, "month");
 }
 
 export function formatAge(date) {

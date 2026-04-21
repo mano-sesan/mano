@@ -24,7 +24,9 @@ export function filterPerson(person: PersonPopulated, filters: Array<Filter>, co
 
   // Check each filter
   for (const filter of activeFilters) {
-    if (!filter.field || !filter.value) continue;
+    if (!filter.field || !filter.value) {
+      continue;
+    }
 
     // Get the item value (support for nested fields via category)
     const itemValue = filter.category && person[filter.category] ? person[filter.category][filter.field] : person[filter.field];
