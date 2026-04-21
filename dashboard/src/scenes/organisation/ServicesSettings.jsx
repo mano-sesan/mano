@@ -41,12 +41,12 @@ const ServicesSettings = () => {
     }
   };
 
-  const onGroupTitleChange = async (oldGroupTitle, newGroupTitle) => {
+  const onGroupChange = async ({ oldName, newName }) => {
     const newGroupedServices = groupedServices.map((group) => {
-      if (group.groupTitle !== oldGroupTitle) return group;
+      if (group.groupTitle !== oldName) return group;
       return {
         ...group,
-        groupTitle: newGroupTitle,
+        groupTitle: newName,
       };
     });
 
@@ -125,7 +125,7 @@ const ServicesSettings = () => {
       data={dataFormatted}
       addButtonCaption="Ajouter un groupe"
       onAddGroup={onAddGroup}
-      onGroupTitleChange={onGroupTitleChange}
+      onGroupChange={onGroupChange}
       dataItemKey={(cat) => cat}
       ItemComponent={Service}
       NewItemComponent={AddService}

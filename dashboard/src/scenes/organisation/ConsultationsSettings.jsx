@@ -46,16 +46,45 @@ const ConsultationsSettings = () => {
     refresh();
   };
 
-  const onConsultationTypeChange = async (oldName, newName) => {
+  const onDeleteType = async (name) => {
+    const newConsultationFields = consultationFields.filter((type) => type.name !== name);
+
+    const oldOrganisation = organisation;
+    setOrganisation({ ...organisation, consultations: newConsultationFields }); // optimistic UI
+
+    const [error, response] = await tryFetchExpectOk(async () =>
+      API.put({
+        path: `/organisation/${organisation._id}`,
+        body: { consultations: newConsultationFields },
+      })
+    );
+    if (!error) {
+      toast.success("Type de consultation supprimé", { autoclose: 2000 });
+      setOrganisation(response.data);
+      refresh();
+    } else {
+      toast.error(errorMessage(error));
+      setOrganisation(oldOrganisation);
+    }
+  };
+
+  const onGroupChange = async ({ oldName, newName }, teamChange) => {
     if (!newName) {
-      toast.error("Vous devez saisir un nom pour le type de consultation");
+      toast.error("Vous devez saisir un nom pour le groupe de champs personnalisés");
       return;
     }
-    const newConsultationFields = consultationFields.map((type) => {
-      if (type.name !== oldName) return type;
+    const newConsultationFields = consultationFields.map((group) => {
+      if (group.name !== oldName) return group;
       return {
-        ...type,
+        ...group,
         name: newName,
+        fields: !teamChange
+          ? group.fields
+          : group.fields.map((field) => ({
+              ...field,
+              enabled: teamChange.enabled,
+              enabledTeams: teamChange.enabled ? [] : teamChange.enabledTeams,
+            })),
       };
     });
 
@@ -82,60 +111,7 @@ const ConsultationsSettings = () => {
     if (!error) {
       refresh();
       setOrganisation(response.data);
-      toast.success("Consultation mise à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
-    } else {
-      setOrganisation(oldOrganisation);
-      toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
-    }
-  };
-
-  const onDeleteType = async (name) => {
-    const newConsultationFields = consultationFields.filter((type) => type.name !== name);
-
-    const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, consultations: newConsultationFields }); // optimistic UI
-
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      })
-    );
-    if (!error) {
-      toast.success("Type de consultation supprimé", { autoclose: 2000 });
-      setOrganisation(response.data);
-      refresh();
-    } else {
-      toast.error(errorMessage(error));
-      setOrganisation(oldOrganisation);
-    }
-  };
-
-  const onGroupTeamsChange = async (groupTitle, { enabled, enabledTeams }) => {
-    const newConsultationFields = consultationFields.map((group) => {
-      if (group.name !== groupTitle) return group;
-      return {
-        ...group,
-        fields: group.fields.map((field) => ({
-          ...field,
-          enabled,
-          enabledTeams: enabled ? [] : enabledTeams,
-        })),
-      };
-    });
-
-    const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, consultations: newConsultationFields });
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { consultations: newConsultationFields },
-      })
-    );
-    if (!error) {
-      setOrganisation(response.data);
-      refresh();
-      toast.success("Visibilité appliquée à tous les champs du groupe");
+      toast.success("Consultations mise à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
       setOrganisation(oldOrganisation);
       toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
@@ -169,13 +145,13 @@ const ConsultationsSettings = () => {
       data={dataFormatted}
       addButtonCaption="Ajouter un type de consultations"
       onAddGroup={onAddConsultationType}
-      onGroupTitleChange={onConsultationTypeChange}
       dataItemKey={(cat) => cat.name}
       ItemComponent={ConsultationCustomField}
       NewItemComponent={AddField}
       onDeleteGroup={onDeleteType}
       onDragAndDrop={onDragAndDrop}
-      onGroupTeamsChange={onGroupTeamsChange}
+      onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };

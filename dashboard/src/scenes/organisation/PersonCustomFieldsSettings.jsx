@@ -45,37 +45,6 @@ const PersonCustomFieldsSettings = () => {
     refresh();
   };
 
-  const onGroupTitleChange = async (oldName, newName) => {
-    if (!newName) {
-      toast.error("Vous devez saisir un nom pour le groupe de champs personnalisés");
-      return;
-    }
-    const newCustomFieldsPersons = customFieldsPersons.map((type) => {
-      if (type.name !== oldName) return type;
-      return {
-        ...type,
-        name: newName,
-      };
-    });
-
-    const oldOrganisation = organisation;
-    setOrganisation({ ...organisation, customFieldsPersons: newCustomFieldsPersons }); // optimistic UI
-    const [error, response] = await tryFetchExpectOk(async () =>
-      API.put({
-        path: `/organisation/${organisation._id}`,
-        body: { customFieldsPersons: newCustomFieldsPersons },
-      })
-    );
-    if (!error) {
-      refresh();
-      setOrganisation(response.data);
-      toast.success("Groupe mise à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
-    } else {
-      setOrganisation(oldOrganisation);
-      toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
-    }
-  };
-
   const onDeleteGroup = async (name) => {
     const newCustomFieldsPersons = customFieldsPersons.filter((type) => type.name !== name);
 
@@ -97,16 +66,23 @@ const PersonCustomFieldsSettings = () => {
     }
   };
 
-  const onGroupTeamsChange = async (groupTitle, { enabled, enabledTeams }) => {
+  const onGroupChange = async ({ oldName, newName }, teamChange) => {
+    if (!newName) {
+      toast.error("Vous devez saisir un nom pour le groupe de champs personnalisés");
+      return;
+    }
     const newCustomFieldsPersons = customFieldsPersons.map((group) => {
-      if (group.name !== groupTitle) return group;
+      if (group.name !== oldName) return group;
       return {
         ...group,
-        fields: group.fields.map((field) => ({
-          ...field,
-          enabled,
-          enabledTeams: enabled ? [] : enabledTeams,
-        })),
+        name: newName,
+        fields: !teamChange
+          ? group.fields
+          : group.fields.map((field) => ({
+              ...field,
+              enabled: teamChange.enabled,
+              enabledTeams: teamChange.enabled ? [] : teamChange.enabledTeams,
+            })),
       };
     });
 
@@ -121,7 +97,7 @@ const PersonCustomFieldsSettings = () => {
     if (!error) {
       setOrganisation(response.data);
       refresh();
-      toast.success("Visibilité appliquée à tous les champs du groupe");
+      toast.success("Groupe mis à jour. Veuillez notifier vos équipes pour qu'elles rechargent leur app ou leur dashboard");
     } else {
       setOrganisation(oldOrganisation);
       toast.error("Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !");
@@ -154,13 +130,13 @@ const PersonCustomFieldsSettings = () => {
       data={dataFormatted}
       addButtonCaption="Ajouter un groupe de champs personnalisés"
       onAddGroup={onAddGroup}
-      onGroupTitleChange={onGroupTitleChange}
       dataItemKey={(cat) => cat.name}
       ItemComponent={ConsultationCustomField}
       NewItemComponent={AddField}
       onDeleteGroup={onDeleteGroup}
       onDragAndDrop={onDragAndDrop}
-      onGroupTeamsChange={onGroupTeamsChange}
+      onGroupChange={onGroupChange}
+      canChangeTeamsVisibility
     />
   );
 };
