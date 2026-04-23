@@ -25,12 +25,12 @@ Get master key
 
 */
 // (password: string) -> masterKey: b64
-const derivedMasterKey = async (password) => {
+const derivedMasterKey = async (password, customSaltHex = null) => {
   await ready;
   // first b64 encode to get rid of special characters (operation done also in dashboard, to have consistent encoding)
   const password_base64 = rnBase64.encode(password);
   // second b64 because the RN sodium lib accepts base64 only, whereas the dashboard is different
-  const b64salt = Buffer.from("808182838485868788898a8b8c8d8e8f", "hex");
+  const b64salt = customSaltHex ? Buffer.from(customSaltHex, "hex") : Buffer.from("808182838485868788898a8b8c8d8e8f", "hex");
   const b64 = sodium.crypto_pwhash(32, password_base64, b64salt, 2, 65536 << 10, 2);
   return b64;
 };

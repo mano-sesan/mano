@@ -191,12 +191,35 @@ class ApiService {
   delete = (args) => this.execute({ method: "DELETE", ...args });
 
   setOrgEncryptionKey = async (orgEncryptionKey) => {
-    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
+    let salt = null;
+    let mergeSalt = null;
+    if (this.organisation?.customSalt) {
+      try {
+        const response = await this.get({ path: "/user/encryption-salt" });
+        if (response?.ok && response.salt) {
+          salt = response.salt;
+          mergeSalt = response.mergeSalt || null;
+        } else {
+          this.handleError?.(null, "Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+          return false;
+        }
+      } catch (_e) {
+        this.handleError?.(_e, "Impossible de récupérer le sel de chiffrement, veuillez réessayer");
+        return false;
+      }
+    }
+    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey, salt);
     const { encryptedVerificationKey } = this.organisation;
     if (!encryptedVerificationKey) {
       capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
     } else {
-      const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
+      let encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
+      // Si la vérification échoue et qu'un mergeSalt est disponible, on réessaie avec le sel cible.
+      // Cela arrive quand un admin a déjà changé la clé pour préparer une fusion (mergeWithOrgId).
+      if (!encryptionKeyIsValid && mergeSalt) {
+        this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey, mergeSalt);
+        encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
+      }
       if (!encryptionKeyIsValid) {
         this.post({ path: "/user/decrypt-attempt-failure" });
         this.handleWrongKey();
