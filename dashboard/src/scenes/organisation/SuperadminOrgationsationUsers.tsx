@@ -136,7 +136,7 @@ export default function SuperadminOrganisationUsers({
                       )}
                     </div>
                     <div>
-                      {(user.loginAttempts > 12 || user.decryptAttempts > 12) && (
+                      {(user.loginAttempts >= 12 || user.decryptAttempts >= 12) && (
                         <>
                           {isReleasingUser === user._id ? (
                             <div className="tw-flex tw-animate-pulse tw-items-center tw-text-orange-700">Déblocage de l'utilisateur en cours…</div>
