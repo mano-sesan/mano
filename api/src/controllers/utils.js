@@ -48,10 +48,8 @@ router.get("/version", async (req, res) => {
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
-- On peut ajouter un commentaire en cliquant sur une rencontre
-- On peut télécharger et importer des documents pour les territoires
-- On peut archiver des territoires sans perdre les observations
-- Quelques bugs corrigés : email dans la fiche contact, date des traitements, redirection vers le dossier de la personne après création.`,
+- On peut créer un commentaire médical partagé comme sur la version web.
+- Quelques bugs corrigés : filtre par âge, champs oui/non en mode sombre.`,
       [
         { text: "Télécharger", link: downloadLink },
         { text: "Installer", link: installLink },

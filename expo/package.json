@@ -1,6 +1,6 @@
 {
   "name": "mano",
-  "version": "3.21.0",
+  "version": "3.22.0",
   "main": "index.tsx",
   "scripts": {
     "start": "npm run get-ip && expo start --dev-client --clear",
