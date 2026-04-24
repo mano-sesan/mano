@@ -17,9 +17,9 @@ const BackButtonWrapper = ({ onClick, caption }) => {
   );
 };
 
-const BackButton = ({ to }) => {
+const BackButton = () => {
   const history = useHistory();
-  return <BackButtonWrapper onClick={() => (to ? history.push(to) : history.goBack())} caption="Retour" />;
+  return <BackButtonWrapper onClick={() => history.goBack()} caption="Retour" />;
 };
 
 export default BackButton;
