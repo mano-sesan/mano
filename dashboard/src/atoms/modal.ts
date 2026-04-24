@@ -29,6 +29,7 @@ type ModalObservationState = {
   isEditing?: boolean;
   observation?: Partial<TerritoryObservationInstance>;
   rencontresInProgress?: RencontreInstance[];
+  currentTab?: string;
 };
 
 export const defaultModalObservationState = (): ModalObservationState => ({
@@ -37,6 +38,7 @@ export const defaultModalObservationState = (): ModalObservationState => ({
   isEditing: false,
   observation: null,
   rencontresInProgress: [],
+  currentTab: "",
 });
 
 export const modalObservationState = atomWithLocalStorage<ModalObservationState>("modalObservationValue", defaultModalObservationState());
