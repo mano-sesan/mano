@@ -51,6 +51,7 @@ const Team = styled(MyText)<{ backgroundColor: string }>`
   line-height: 18px;
   flex-grow: 0;
   color: #fff;
+  align-self: flex-start;
 `;
 
 export default TeamsTags;

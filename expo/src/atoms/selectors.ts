@@ -61,7 +61,6 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
   const personsObject: Record<PersonInstance["_id"], PersonPopulated> = {};
   for (const person of persons) {
     const age = person.birthdate ? formatAge(person.birthdate) : 0;
-    console.log({ age });
     const nameLowercased = person.name.toLocaleLowerCase();
     // replace all accents with normal letters
     const nameNormalized = nameLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
