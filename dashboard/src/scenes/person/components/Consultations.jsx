@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import { organisationState, userState } from "../../../atoms/auth";
 import { CANCEL, DONE, mappedIdsToLabels } from "../../../atoms/actions";
 import SelectCustom from "../../../components/SelectCustom";
@@ -185,13 +185,15 @@ const ConsultationsTable = ({ filteredData }) => {
             const time = consultation.withTime && consultation.dueAt ? ` ${formatTime(consultation.dueAt)}` : "";
             return (
               <tr key={consultation._id} className={i % 2 ? "tw-bg-sky-800/80 tw-text-white" : "tw-bg-sky-100/80"}>
-                <td>
-                  <div
-                    className={
+                <td aria-label={`Consultation ${consultation.name}`}>
+                  <button
+                    type="button"
+                    className={[
+                      "tw-w-full tw-m-0 tw-border-none  tw-py-2",
                       ["restricted-access"].includes(user.role) || disableConsultationRow(consultation, user)
-                        ? "tw-cursor-not-allowed tw-py-2"
-                        : "tw-cursor-pointer tw-py-2"
-                    }
+                        ? "tw-cursor-not-allowed"
+                        : "tw-cursor-pointer",
+                    ].join(" ")}
                     onClick={() => {
                       if (disableConsultationRow(consultation, user)) return;
                       const searchParams = new URLSearchParams(history.location.search);
@@ -229,11 +231,16 @@ const ConsultationsTable = ({ filteredData }) => {
                         )}
                       </div>
                     </div>
-                    <div className="-tw-mb-2 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs tw-text-gray-500 [overflow-wrap:anywhere]">
+                    <div
+                      className={[
+                        "-tw-mb-2 tw-mt-2 tw-flex tw-basis-full tw-gap-1 tw-text-xs  [overflow-wrap:anywhere]",
+                        i % 2 ? " tw-text-white/80" : "tw-text-gray-500",
+                      ].join(" ")}
+                    >
                       <span>Créée par</span>
                       <UserName id={consultation.user} />
                     </div>
-                  </div>
+                  </button>
                 </td>
               </tr>
             );
