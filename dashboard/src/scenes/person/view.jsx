@@ -44,7 +44,7 @@ export default function View() {
   const currentTab = searchParams.get("tab") || "Résumé";
   const setCurrentTab = (tab) => {
     searchParams.set("tab", tab);
-    history.push(`?${searchParams.toString()}`);
+    history.replace(`?${searchParams.toString()}`);
   };
 
   const { encryptPerson } = usePreparePersonForEncryption();
@@ -86,7 +86,7 @@ export default function View() {
       <div className="tw-sticky tw-top-0 tw-z-50 tw-bg-white tw-pt-2 tw-pb-2">
         <div className="tw-flex tw-w-full tw-justify-between tw-items-center">
           <div>
-            <BackButton to="/person" />
+            <BackButton />
           </div>
           {user.role !== "restricted-access" && (
             <div className="tw-w-full tw-flex tw-justify-center [&>div]:tw-max-w-96 noprint">
