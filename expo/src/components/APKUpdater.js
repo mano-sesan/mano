@@ -93,7 +93,7 @@ const APKUpdater = () => {
   if (downloadProgress === 0) {
     return null;
   }
-  return <ProgressBar loading="Téléchargement de la nouvelle version..." progress={downloadProgress / 100} fullScreen={false} />;
+  return <ProgressBar isLoading loadingText="Téléchargement de la nouvelle version..." progress={downloadProgress} total={100} fullScreen={false} />;
 };
 
 export default APKUpdater;
