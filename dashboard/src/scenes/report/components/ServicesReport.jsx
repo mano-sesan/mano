@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import IncrementorSmall from "../../../components/IncrementorSmall";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
-import { servicesSelector } from "../../../atoms/reports";
+import { servicesSelector, filterServicesForTeam } from "../../../atoms/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
@@ -243,8 +243,15 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
 }
 
 const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
-  const groupedServices = useAtomValue(servicesSelector);
+  const allGroupedServices = useAtomValue(servicesSelector);
+  const groupedServices = useMemo(() => filterServicesForTeam(allGroupedServices, team?._id), [allGroupedServices, team?._id]);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
+
+  useEffect(() => {
+    if (!groupedServices.find((g) => g.groupTitle === selected)) {
+      setSelected(groupedServices[0]?.groupTitle || null);
+    }
+  }, [groupedServices, selected]);
 
   const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];
 
@@ -254,7 +261,7 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
         {groupedServices.map((group, index) => (
           <button
             type="button"
-            key={group + index}
+            key={group.groupTitle + index}
             className={[
               selected === group.groupTitle ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
               "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
@@ -270,15 +277,15 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
       <div key={team._id} className="tw-px-4">
         {selectedServices.map((service) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${service.name}-${services[service.name] || 0}`}
+            key={team._id + " " + service.name}
+            service={service.name}
             team={team._id}
             date={dateString}
             disabled={disabled}
-            count={services[service] || 0}
+            count={services[service.name] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [service.name]: newCount });
             }}
           />
         ))}
