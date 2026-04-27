@@ -40,7 +40,9 @@ const ConsultationRow = ({
 
   const me = useAtomValue(userState)!;
 
-  const name = disableConsultationRow(consultation, me) ? "" : consultation.name || `Consultation ${consultation.type}`;
+  const name = disableConsultationRow(consultation, me)
+    ? ""
+    : consultation.name || (consultation.type ? `Consultation ${consultation.type}` : "Consultation");
   const type = disableConsultationRow(consultation, me) ? "" : consultation.type;
   const status = consultation.status;
   const user = consultation.user;
