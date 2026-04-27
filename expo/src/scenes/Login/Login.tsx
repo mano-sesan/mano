@@ -1,18 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { type NativeStackScreenProps } from "@react-navigation/native-stack";
 import styled from "styled-components/native";
-import {
-  Alert,
-  AlertButton,
-  Keyboard,
-  KeyboardAvoidingView,
-  Linking,
-  ScrollView,
-  StatusBar,
-  TextInput,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Linking, ScrollView, StatusBar, TextInput, TouchableWithoutFeedback, View } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMMKVNumber, useMMKVString } from "react-native-mmkv";
@@ -31,10 +20,9 @@ import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config"
 import { useSetAtom } from "jotai";
 import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../atoms/auth";
 import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
-import { refreshTriggerState } from "../../components/Loader";
 import { useIsFocused } from "@react-navigation/native";
-import useResetAllCachedDataRecoilStates from "../../atoms/reset";
 import { LoginStackParamsList } from "@/types/navigation";
+import { useDataLoader } from "@/services/dataLoader";
 
 type Props = NativeStackScreenProps<LoginStackParamsList, "LOGIN">;
 
@@ -59,8 +47,7 @@ const Login = ({ navigation }: Props) => {
   const setDeletedUsers = useSetAtom(deletedUsersState);
   const setCurrentTeam = useSetAtom(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
-  const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
+  const { startInitialLoad, cleanupLoader, resetMMKVAndAtoms } = useDataLoader();
 
   const isFocused = useIsFocused();
 
@@ -102,7 +89,7 @@ const Login = ({ navigation }: Props) => {
         const { organisation } = user;
         if (!!storageOrganisationId && organisation._id !== storageOrganisationId) {
           await clearCache("not same org");
-          resetAllRecoilStates();
+          resetMMKVAndAtoms();
           setLastRefresh(0);
         }
         setStorageOrganisationId(organisation._id);
@@ -209,7 +196,7 @@ const Login = ({ navigation }: Props) => {
       // We need to reset cache if organisation has changed.
       if (!!storageOrganisationId && response.user.organisation._id !== storageOrganisationId) {
         await clearCache("again not same org");
-        resetAllRecoilStates();
+        resetMMKVAndAtoms();
         setLastRefresh(0);
       }
       setStorageOrganisationId(response.user.organisation._id);
@@ -226,7 +213,7 @@ const Login = ({ navigation }: Props) => {
           navigation.navigate("CHARTE_ACCEPTANCE");
         } else if (response.user?.teams?.length === 1) {
           setCurrentTeam(response.user.teams[0]);
-          setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
+          startInitialLoad().then(() => cleanupLoader());
           navigation.getParent()?.navigate("TABS_STACK");
         } else {
           navigation.navigate("TEAM_SELECTION");

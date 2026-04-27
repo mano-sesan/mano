@@ -1,8 +1,7 @@
-import { useAtom, useAtomValue } from "jotai";
-import React, { useCallback } from "react";
+import { useAtomValue } from "jotai";
+import React from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
-import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyPassages, ListNoMorePassages } from "../../components/ListEmptyContainer";
 import { usePassagesForReport } from "./selectors";
@@ -13,6 +12,7 @@ import BubbleRow from "../../components/BubbleRow";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { PassageInstance } from "@/types/passage";
+import { useDataLoader } from "@/services/dataLoader";
 
 const keyExtractor = (item: PassageInstance) => item._id;
 
@@ -20,13 +20,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "PASSAGES_FOR_REPORT">;
 const PassagesForReport = ({ navigation, route }: Props) => {
   const date = route?.params?.date;
   const passages = usePassagesForReport(date);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const personsObject = useAtomValue(itemsGroupedByPersonSelector);
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
+  const { refresh, isLoading } = useDataLoader();
 
   const renderItem = ({ item: passage }: { item: PassageInstance }) => {
     return (
@@ -46,8 +42,8 @@ const PassagesForReport = ({ navigation, route }: Props) => {
     <SceneContainer backgroundColor="#fff">
       <ScreenTitle title={`Passages \n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={passages}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

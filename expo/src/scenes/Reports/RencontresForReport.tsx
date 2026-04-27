@@ -1,8 +1,7 @@
-import { useAtom, useAtomValue } from "jotai";
-import React, { useCallback } from "react";
+import { useAtomValue } from "jotai";
+import React from "react";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
-import { refreshTriggerState } from "../../components/Loader";
 import { FlashListStyled } from "../../components/Lists";
 import { ListEmptyRencontres, ListNoMoreRencontres } from "../../components/ListEmptyContainer";
 import { useRencontresForReport } from "./selectors";
@@ -13,6 +12,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { RencontreInstance } from "@/types/rencontre";
 import { PersonInstance } from "@/types/person";
+import { useDataLoader } from "@/services/dataLoader";
 
 const keyExtractor = (item: RencontreInstance) => item._id;
 
@@ -20,12 +20,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "RENCONTRES_FOR_REPORT">
 const RencontresForReport = ({ navigation, route }: Props) => {
   const date = route?.params?.date;
   const rencontres = useRencontresForReport(date);
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
   const currentTeam = useAtomValue(currentTeamState)!;
-
-  const onRefresh = useCallback(async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  }, [setRefreshTrigger]);
+  const { refresh, isLoading } = useDataLoader();
 
   const onUpdateRencontre = async (person: PersonInstance, rencontre: RencontreInstance) => {
     navigation.push("RENCONTRE", { person, rencontre });
@@ -45,8 +41,8 @@ const RencontresForReport = ({ navigation, route }: Props) => {
     <SceneContainer backgroundColor="#fff">
       <ScreenTitle title={`Rencontres \n${getPeriodTitle(date, currentTeam?.nightSession)}`} onBack={navigation.goBack} />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={rencontres}
         renderItem={renderItem}
         keyExtractor={keyExtractor}

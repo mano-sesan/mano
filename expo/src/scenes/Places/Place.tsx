@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, View } from "react-native";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -11,7 +11,7 @@ import ButtonDelete from "../../components/ButtonDelete";
 import { placesState, preparePlaceForEncryption } from "../../atoms/places";
 import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
 import API from "../../services/api";
-import { sortByName } from "../../utils/sortByName";
+import { useDataLoader } from "@/services/dataLoader";
 import { userState } from "../../atoms/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
@@ -24,10 +24,11 @@ const Place = ({ navigation, route }: PlaceProps) => {
   const [deleting, setDeleting] = useState(false);
   const user = useAtomValue(userState)!;
 
-  const [places, setPlaces] = useAtom(placesState);
-  const placeDB = useMemo(() => places.find((p) => p._id === route.params.place._id)!, [places, route.params.place._id]);
+  const places = useAtomValue(placesState);
+  const relsPersonPlace = useAtomValue(relsPersonPlaceState);
+  const { refresh } = useDataLoader();
 
-  const [relsPersonPlace, setRelsPersonPlace] = useAtom(relsPersonPlaceState);
+  const placeDB = useMemo(() => places.find((p) => p._id === route.params.place._id)!, [places, route.params.place._id]);
 
   const backRequestHandledRef = useRef(false);
   const handleBeforeRemove = (e: any) => {
@@ -61,14 +62,7 @@ const Place = ({ navigation, route }: PlaceProps) => {
       return false;
     }
     if (response.ok) {
-      setPlaces((places) =>
-        places
-          .map((p) => {
-            if (p._id === placeDB._id) return response.decryptedData;
-            return p;
-          })
-          .sort(sortByName)
-      );
+      await refresh();
       setUpdating(false);
       Alert.alert("Lieu mis à jour !", undefined, [{ text: "OK", onPress: onBack }]);
     }
@@ -102,8 +96,7 @@ const Place = ({ navigation, route }: PlaceProps) => {
       return;
     }
     if (response.ok) {
-      setPlaces((places) => places.filter((p) => p._id !== placeDB._id));
-      setRelsPersonPlace((relsPersonPlace) => relsPersonPlace.filter((rel) => rel.place !== placeDB._id));
+      await refresh();
       Alert.alert("Lieu supprimé !");
       onBack();
     }

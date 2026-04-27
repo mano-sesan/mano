@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
@@ -8,7 +8,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import API from "../../services/api";
-import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption, treatmentsState } from "../../atoms/treatments";
+import { allowedTreatmentFieldsInHistory, prepareTreatmentForEncryption } from "../../atoms/treatments";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import DocumentsManager from "../../components/DocumentsManager";
 import Spacer from "../../components/Spacer";
@@ -26,18 +26,17 @@ import { RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { CommentInstance } from "@/types/comment";
 import { TreatmentInstance } from "@/types/treatment";
-import { refreshTriggerState } from "@/components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { Document } from "@/types/document";
 
 type TreatmentProps = NativeStackScreenProps<RootStackParamList, "TREATMENT">;
 
 const Treatment = ({ navigation, route }: TreatmentProps) => {
-  const setAllTreatments = useSetAtom(treatmentsState);
+  const { refresh } = useDataLoader();
   const personDB = route?.params?.personDB;
   const treatmentDB = route?.params?.treatmentDB;
   const isNew = !treatmentDB?._id;
   const user = useAtomValue(userState)!;
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
 
   const [name, setName] = useState(treatmentDB?.name || "");
   const [dosage, setDosage] = useState(treatmentDB?.dosage || "");
@@ -117,7 +116,7 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
       ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body) })
       : await API.put({ path: `/treatment/${treatmentDB._id}`, body: prepareTreatmentForEncryption(body) });
     if (!treatmentResponse.ok) return false;
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+    await refresh();
     setPosting(false);
     if (goBackOnSave) onBack();
     return true;
@@ -188,7 +187,7 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
       Alert.alert(response.error);
       return;
     }
-    setAllTreatments((all) => all.filter((t) => t._id !== treatmentDB!._id));
+    await refresh();
     Alert.alert("Traitement supprimé !");
     onBack();
   };

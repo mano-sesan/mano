@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import API from "../../services/api";
-import { prepareTerritoryForEncryption, territoriesState } from "../../atoms/territory";
+import { prepareTerritoryForEncryption } from "../../atoms/territory";
 import { userState } from "../../atoms/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
+import { useDataLoader } from "@/services/dataLoader";
 
 type TerritoryNewProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_NEW">;
 
@@ -19,7 +20,7 @@ const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
   const [posting, setPosting] = useState(false);
   const user = useAtomValue(userState);
 
-  const setTerritories = useSetAtom(territoriesState);
+  const { refresh } = useDataLoader();
 
   const onBack = () => {
     backRequestHandledRef.current = true;
@@ -51,7 +52,7 @@ const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
     }
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      setTerritories((territories) => [response.decryptedData, ...territories]);
+      await refresh();
       navigation.replace("TERRITORY", {
         territory: response.decryptedData,
         editable: true,

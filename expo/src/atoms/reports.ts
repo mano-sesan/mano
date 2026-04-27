@@ -3,10 +3,9 @@ import { organisationState } from "./auth";
 import { looseUuidRegex, dateRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
-import { atomWithCache } from "@/utils/atomWithCache";
 import { ReportInstance } from "@/types/report";
 
-export const reportsState = atomWithCache<Array<ReportInstance>>("report", []);
+export const reportsState = atom<Array<ReportInstance>>([]);
 
 export const servicesSelector = atom((get) => {
   const organisation = get(organisationState)!;

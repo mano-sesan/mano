@@ -6,9 +6,8 @@ import Spinner from "../../components/Spinner";
 import { ListEmptyPersons, ListNoMorePersons } from "../../components/ListEmptyContainer";
 import Search from "../../components/Search";
 import { FlashListStyled } from "../../components/Lists";
-import { useAtom, useAtomValue } from "jotai";
 import { usePersonsSearchSelector } from "../../atoms/selectors";
-import { loadingState, refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { PersonInstance } from "@/types/person";
 
 type PersonsSearchProps = {
@@ -19,13 +18,9 @@ type PersonsSearchProps = {
 
 const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: PersonsSearchProps) => {
   const [search, setSearch] = useState("");
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const { refresh, isLoading } = useDataLoader();
 
   const filteredPersons = usePersonsSearchSelector(search) as PersonInstance[];
-
-  const onRefresh = async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  };
 
   const keyExtractor = (person: PersonInstance) => person._id;
   const ListFooterComponent = useMemo(() => {
@@ -41,8 +36,8 @@ const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: Pers
       <ScreenTitle title="Choisissez une personne" onBack={onBack} onAdd={onCreatePersonRequest} />
       <Search placeholder="Rechercher une personne..." onChange={setSearch} />
       <FlashListStyled
-        refreshing={refreshTrigger.status}
-        onRefresh={onRefresh}
+        refreshing={isLoading}
+        onRefresh={refresh}
         data={filteredPersons}
         extraData={filteredPersons}
         renderItem={renderPersonRow}
@@ -55,8 +50,8 @@ const PersonsSearch = ({ onBack, onCreatePersonRequest, onPersonSelected }: Pers
 };
 
 const ListEmptyComponent = () => {
-  const loading = useAtomValue(loadingState);
-  if (loading) return <Spinner />;
+  const { isLoading } = useDataLoader();
+  if (isLoading) return <Spinner />;
   return <ListEmptyPersons />;
 };
 export default PersonsSearch;

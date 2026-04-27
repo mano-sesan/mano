@@ -10,9 +10,9 @@ import Button from "../../components/Button";
 import Title, { SubTitle } from "../../components/Title";
 import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, userState } from "../../atoms/auth";
-import { refreshTriggerState } from "../../components/Loader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LoginStackParamsList } from "@/types/navigation";
+import { useDataLoader } from "@/services/dataLoader";
 
 type CharteAcceptanceProps = NativeStackScreenProps<LoginStackParamsList, "CHARTE_ACCEPTANCE">;
 
@@ -20,7 +20,7 @@ const CharteAcceptance = ({ navigation }: CharteAcceptanceProps) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(userState);
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
+  const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const onAccept = async () => {
     setLoading(true);
@@ -28,7 +28,7 @@ const CharteAcceptance = ({ navigation }: CharteAcceptanceProps) => {
     if (response.ok) {
       if (user?.teams?.length === 1) {
         setCurrentTeam(user.teams[0]);
-        setRefreshTrigger({ status: true, options: { showFullScreen: true, initialLoad: true } });
+        startInitialLoad().then(() => cleanupLoader());
         navigation.getParent()?.navigate("TABS_STACK");
       } else {
         navigation.navigate("TEAM_SELECTION");

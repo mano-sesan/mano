@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Alert } from "react-native";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import API from "../../services/api";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -11,9 +11,9 @@ import { ListEmptyPlaceWithName } from "../../components/ListEmptyContainer";
 import Row from "../../components/Row";
 import Spacer from "../../components/Spacer";
 import { placesState, preparePlaceForEncryption } from "../../atoms/places";
-import { prepareRelPersonPlaceForEncryption, relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { prepareRelPersonPlaceForEncryption } from "../../atoms/relPersonPlace";
 import { userState } from "../../atoms/auth";
-import { refreshTriggerState } from "../../components/Loader";
+import { useDataLoader } from "@/services/dataLoader";
 import { sortByName } from "../../utils/sortByName";
 import { RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -25,8 +25,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
   const [name, setName] = useState("");
   const [posting, setPosting] = useState(false);
 
-  const [places, setPlaces] = useAtom(placesState);
-  const setRelsPersonPlace = useSetAtom(relsPersonPlaceState);
+  const places = useAtomValue(placesState);
   const user = useAtomValue(userState)!;
 
   const data = useMemo(() => {
@@ -36,7 +35,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
 
   const { person } = route.params;
 
-  const [refreshTrigger, setRefreshTrigger] = useAtom(refreshTriggerState);
+  const { refresh, isLoading } = useDataLoader();
 
   const onSubmit = useCallback(
     async (place: PlaceInstance) => {
@@ -58,12 +57,12 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         return;
       }
       if (response.ok) {
-        setRelsPersonPlace((relsPersonPlace) => [response.decryptedData, ...relsPersonPlace]);
-        setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
+        await refresh();
         navigation.goBack();
       }
     },
-    [posting, person.relsPersonPlace, person._id, user._id, setRelsPersonPlace, setRefreshTrigger, navigation]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [posting, person.relsPersonPlace, person._id, user._id, navigation]
   );
 
   const onCreatePlace = useCallback(async () => {
@@ -75,10 +74,11 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
       return;
     }
     if (response.ok) {
-      setPlaces((places) => [response.decryptedData, ...places].sort(sortByName));
+      await refresh();
       onSubmit(response.decryptedData);
     }
-  }, [name, setPlaces, user._id, onSubmit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, user._id, onSubmit]);
 
   const isReadyToSave = !!name?.trim()?.length;
   const keyExtractor = (place: PlaceInstance) => place._id;
@@ -100,7 +100,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
       <FlashListStyled
         data={data}
         key={JSON.stringify(data) + posting}
-        refreshing={refreshTrigger.status}
+        refreshing={isLoading}
         ListHeaderComponent={ListHeaderComponent}
         renderItem={renderRow}
         keyExtractor={keyExtractor}

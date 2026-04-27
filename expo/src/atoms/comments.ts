@@ -1,10 +1,10 @@
-import { atomWithCache } from "@/utils/atomWithCache";
+import { atom } from "jotai";
 import { looseUuidRegex } from "../utils/regex";
 import { capture } from "../services/sentry";
 import { Alert } from "react-native";
 import { CommentInstance } from "@/types/comment";
 
-export const commentsState = atomWithCache<CommentInstance[]>("comment", []);
+export const commentsState = atom<CommentInstance[]>([]);
 
 const encryptedFields = ["comment", "person", "group", "action", "team", "user", "date", "urgent"];
 

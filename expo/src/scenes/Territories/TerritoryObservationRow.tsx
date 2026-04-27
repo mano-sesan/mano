@@ -2,17 +2,18 @@ import React from "react";
 import styled from "styled-components/native";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { Alert, TouchableOpacity } from "react-native";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
 import UserName from "../../components/UserName";
 import API from "../../services/api";
-import { customFieldsObsSelector, territoryObservationsState } from "../../atoms/territoryObservations";
+import { customFieldsObsSelector } from "../../atoms/territoryObservations";
 import { currentTeamState } from "../../atoms/auth";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { CustomField } from "@/types/field";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { TerritoryInstance } from "@/types/territory";
+import { useDataLoader } from "@/services/dataLoader";
 
 const hitSlop = {
   top: 20,
@@ -63,7 +64,7 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
   const currentTeam = useAtomValue(currentTeamState)!;
   const { showActionSheetWithOptions } = useActionSheet();
   const customFieldsObs = useAtomValue(customFieldsObsSelector);
-  const setTerritoryObservations = useSetAtom(territoryObservationsState);
+  const { refresh } = useDataLoader();
 
   const onPressRequest = async () => {
     const options = ["Supprimer", "Annuler"];
@@ -99,7 +100,7 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
     const response = await API.delete({ path: `/territory-observation/${observation._id}` });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
-      setTerritoryObservations((territoryObservations) => territoryObservations.filter((p) => p._id !== observation._id));
+      await refresh();
     }
   };
 

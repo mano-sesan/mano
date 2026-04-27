@@ -22,7 +22,7 @@ import Label from "../../components/Label";
 import Tags, { MyTextForTags } from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../atoms/actions";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
 import API from "../../services/api";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
@@ -30,7 +30,6 @@ import { capture } from "../../services/sentry";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../atoms/groups";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
-import { refreshTriggerState } from "../../components/Loader";
 import { createMaterialTopTabNavigator, MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import DocumentsManager from "../../components/DocumentsManager";
 import { isEmptyValue } from "../../utils";
@@ -43,6 +42,7 @@ import PersonsSearch from "../Persons/PersonsSearch";
 import PersonNew from "../Persons/PersonNew";
 import { type Document, type Folder } from "@/types/document";
 import { CommentInstance } from "@/types/comment";
+import { useDataLoader } from "@/services/dataLoader";
 
 type DocumentOrFolder = Document | Folder;
 
@@ -148,12 +148,11 @@ type ActionMainProps = ActionProps & {
 };
 
 const Action = ({ navigation, route, actionDB, action, actions, setAction, persons, onSearchPerson }: ActionMainProps) => {
-  const setRefreshTrigger = useSetAtom(refreshTriggerState);
-  const setActions = useSetAtom(actionsState);
+  const { refresh } = useDataLoader();
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState);
-  const [comments, setComments] = useAtom(commentsState);
+  const comments = useAtomValue(commentsState);
   const currentTeam = useAtomValue(currentTeamState)!;
   const [hideEditButton, setHideEditButton] = useState(false);
 
@@ -227,10 +226,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
-  const onRefresh = async () => {
-    setRefreshTrigger({ status: true, options: { showFullScreen: false, initialLoad: false } });
-  };
-
   const updateAction = async (action: ActionInstance) => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
@@ -246,7 +241,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     console.log("action._id", action._id);
     if (!oldAction) {
       Alert.alert("Action non trouvée");
-      onRefresh();
+      await refresh();
       setUpdating(false);
       return false;
     }
@@ -283,7 +278,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         body: prepareActionForEncryption(action as ActionInstance),
       });
       if (!response?.ok) return response;
-      onRefresh();
+      await refresh();
       return response;
     } catch (error: any) {
       capture(error, { extra: { message: "error in updating action" } });
@@ -325,7 +320,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       }
       return;
     }
-    onRefresh();
+    await refresh();
     if (actionCancelled) {
       Alert.alert("Cette action est annulée, voulez-vous la dupliquer ?", "Avec une date ultérieure par exemple", [
         { text: "Oui", onPress: onDuplicate },
@@ -374,15 +369,11 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         team: c.team || currentTeam._id,
         organisation: c.organisation,
       };
-      const res = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
-      if (res.ok) {
-        setComments((comments) => [res.decryptedData, ...comments]);
-      }
+      await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
     }
     Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
-    onRefresh();
-    setActions((actions) => [...actions, response.decryptedData]);
+    await refresh();
 
     navigation.replace("ACTION_STACK", {
       action: response.decryptedData,
@@ -413,7 +404,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
     });
-    if (res.ok) onRefresh();
+    if (res.ok) await refresh();
     return res;
   };
 
@@ -527,8 +518,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
                 <ActionComments
                   actionDB={actionDB}
                   actionComments={actionComments}
-                  comments={comments}
-                  setComments={setComments}
                   canComment={canComment}
                   newCommentRef={newCommentRef}
                   setWritingComment={setWritingComment}
@@ -805,14 +794,13 @@ const ActionInformation = ({
 type ActionCommentsProps = {
   actionDB: ActionInstance;
   actionComments: CommentInstance[];
-  comments: CommentInstance[];
-  setComments: React.Dispatch<React.SetStateAction<CommentInstance[]>>;
   canComment: boolean;
   newCommentRef: React.RefObject<View | null>;
   setWritingComment: (writingComment: string) => void;
 };
 
-const ActionComments = ({ actionDB, actionComments, comments, setComments, canComment, newCommentRef, setWritingComment }: ActionCommentsProps) => {
+const ActionComments = ({ actionDB, actionComments, canComment, newCommentRef, setWritingComment }: ActionCommentsProps) => {
+  const { refresh } = useDataLoader();
   return (
     <ScrollContainer noRadius>
       {!!canComment && (
@@ -832,7 +820,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                 return false;
               }
               Keyboard.dismiss();
-              setComments((comments) => [response.decryptedData, ...comments]);
+              await refresh();
               return true;
             }}
           />
@@ -850,7 +838,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                 Alert.alert(response.error);
                 return false;
               }
-              setComments((comments) => comments.filter((p) => p._id !== comment._id));
+              await refresh();
               return true;
             }}
             onUpdate={
@@ -866,12 +854,7 @@ const ActionComments = ({ actionDB, actionComments, comments, setComments, canCo
                       return false;
                     }
                     if (response.ok) {
-                      setComments((comments) =>
-                        comments.map((c) => {
-                          if (c._id === comment._id) return response.decryptedData;
-                          return c;
-                        })
-                      );
+                      await refresh();
                       return true;
                     }
                     return false;

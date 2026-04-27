@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
-import { Alert, InteractionManager, AppState, NativeEventSubscription } from "react-native";
+import { Alert, AppState, NativeEventSubscription } from "react-native";
 import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
@@ -40,7 +40,7 @@ import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
-import { DataLoader, loaderFullScreenState, loadingState, progressState } from "./components/Loader";
+import { useDataLoader, progressState, totalState } from "./services/dataLoader";
 import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
 import DotsIcon from "./icons/DotsIcon";
 import Notifications from "./scenes/Notifications/Notifications";
@@ -58,7 +58,6 @@ import Consultation from "./scenes/Persons/Consultation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { currentTeamState, organisationState, teamsState, userState } from "./atoms/auth";
 import { appCurrentCacheKey, clearCache } from "./services/dataManagement";
-import useResetAllCachedDataRecoilStates from "./atoms/reset";
 import CGUsAcceptance from "./scenes/Login/CGUsAcceptance";
 import Consultations from "./scenes/Reports/Consultations";
 import Passage from "./scenes/Persons/Passage";
@@ -75,9 +74,9 @@ const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
-  const fullScreen = useAtomValue(loaderFullScreenState);
+  const { isLoading, isFullScreen } = useDataLoader();
 
-  if (fullScreen) return null;
+  if (isLoading && isFullScreen) return null;
 
   return (
     <Tab.Navigator
@@ -166,11 +165,9 @@ const App = () => {
   const appState = useRef(AppState.currentState);
   const appStateListener = useRef<NativeEventSubscription | null>(null);
   const navigationRef = useNavigationContainerRef();
-  const loading = useAtomValue(loadingState);
   const progress = useAtomValue(progressState);
-  const fullScreen = useAtomValue(loaderFullScreenState);
-
-  const resetAllRecoilStates = useResetAllCachedDataRecoilStates();
+  const total = useAtomValue(totalState);
+  const { resetMMKVAndAtoms, isFullScreen, isLoading, loadingText } = useDataLoader();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const resetOrganisation = useSetAtom(organisationState);
   const resetUser = useSetAtom(userState);
@@ -216,7 +213,7 @@ const App = () => {
     API.organisation = null;
     if (clearAllRef.current) {
       await clearCache();
-      resetAllRecoilStates();
+      resetMMKVAndAtoms();
       setLastRefresh(0);
     }
     requestIdleCallback(async () => {
@@ -322,8 +319,7 @@ const App = () => {
             </>
           )}
         </AppStack.Navigator>
-        <DataLoader />
-        <ProgressBar loading={loading} progress={progress} fullScreen={fullScreen} />
+        <ProgressBar isLoading={isLoading} loadingText={loadingText} progress={progress} fullScreen={isFullScreen} total={total} />
         <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>
