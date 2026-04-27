@@ -36,8 +36,10 @@ module.exports = (sequelize, DataTypes) => {
     groupsEnabled: { type: DataTypes.BOOLEAN },
     passagesEnabled: { type: DataTypes.BOOLEAN },
     rencontresEnabled: { type: DataTypes.BOOLEAN },
-    groupedServices: {
-      type: DataTypes.JSONB, // example: [{"groupTitle": "injection", services: ["Garrot"]}]
+    groupedServicesWithTeams: {
+      type: DataTypes.JSONB,
+      // example: [{"groupTitle": "injection", "services": [{"name": "Garrot", "enabled": true, "enabledTeams": []}]}]
+      // enabled=true => actif pour toute l'org. enabled=false + enabledTeams=[uuid,…] => actif pour ces équipes uniquement.
     },
     groupedCustomFieldsObs: DataTypes.JSONB,
     fieldsPersonsCustomizableOptions: DataTypes.JSONB,

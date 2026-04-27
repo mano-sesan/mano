@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 const { z } = require("zod");
 const { Op } = require("sequelize");
-const { looseUuidRegex, dateRegex } = require("../utils");
+const { looseUuidRegex, dateRegex, groupedServicesPayloadSchema, normalizeGroupedServicesPayload } = require("../utils");
 const { catchErrors } = require("../errors");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const { capture } = require("../sentry");
@@ -118,11 +118,11 @@ router.get(
 
     const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
 
-    const groupedServices = organisation.groupedServices || [];
+    const groupedServices = organisation.groupedServicesWithTeams || [];
     const servicesIndexedByGroup = {};
     for (const group of groupedServices) {
-      for (const service of group.services) {
-        servicesIndexedByGroup[service] = group.groupTitle;
+      for (const service of group.services || []) {
+        servicesIndexedByGroup[service.name] = group.groupTitle;
       }
     }
 
@@ -252,12 +252,7 @@ router.put(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
-        groupedServices: z.array(
-          z.object({
-            groupTitle: z.string(),
-            services: z.array(z.string()),
-          })
-        ),
+        groupedServices: groupedServicesPayloadSchema,
       }).parse(req.body);
     } catch (e) {
       const error = new Error(`Invalid request in services put: ${e}`);
@@ -269,8 +264,8 @@ router.put(
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     try {
-      const { groupedServices = [] } = req.body;
-      organisation.set({ groupedServices });
+      const groupedServicesWithTeams = normalizeGroupedServicesPayload(req.body.groupedServices || []);
+      organisation.set({ groupedServicesWithTeams });
       await organisation.save({
         context: { userId: req.user._id },
       });

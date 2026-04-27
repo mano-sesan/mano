@@ -36,7 +36,16 @@ const {
 } = require("../db/sequelize");
 const mailservice = require("../utils/mailservice");
 const validateUser = require("../middleware/validateUser");
-const { looseUuidRegex, cryptoHexRegex, customFieldSchema, positiveIntegerRegex, customFieldGroupSchema, folderSchema } = require("../utils");
+const {
+  looseUuidRegex,
+  cryptoHexRegex,
+  customFieldSchema,
+  positiveIntegerRegex,
+  customFieldGroupSchema,
+  folderSchema,
+  groupedServicesPayloadSchema,
+  normalizeGroupedServicesPayload,
+} = require("../utils");
 const { serializeOrganisation, serializeTeams } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
@@ -579,7 +588,7 @@ router.put(
         territoriesGroupedTypes: z.optional(z.array(z.object({ groupTitle: z.string(), types: z.array(z.string().min(1)) }))),
         defaultPersonsFolders: z.optional(z.array(folderSchema)),
         defaultMedicalFolders: z.optional(z.array(folderSchema)),
-        groupedServices: z.optional(z.array(z.object({ groupTitle: z.string(), services: z.array(z.string().min(1)) }))),
+        groupedServices: z.optional(groupedServicesPayloadSchema),
         collaborations: z.optional(z.array(z.string().min(1))),
         groupedCustomFieldsObs: z.optional(z.array(customFieldGroupSchema)),
         fieldsPersonsCustomizableOptions: z.optional(z.array(customFieldSchema)),
@@ -651,7 +660,7 @@ router.put(
       if (req.body.hasOwnProperty("territoriesGroupedTypes")) updateOrg.territoriesGroupedTypes = req.body.territoriesGroupedTypes;
       if (req.body.hasOwnProperty("defaultPersonsFolders")) updateOrg.defaultPersonsFolders = req.body.defaultPersonsFolders;
       if (req.body.hasOwnProperty("defaultMedicalFolders")) updateOrg.defaultMedicalFolders = req.body.defaultMedicalFolders;
-      if (req.body.hasOwnProperty("groupedServices")) updateOrg.groupedServices = req.body.groupedServices;
+      if (req.body.hasOwnProperty("groupedServices")) updateOrg.groupedServicesWithTeams = normalizeGroupedServicesPayload(req.body.groupedServices);
       if (req.body.hasOwnProperty("collaborations")) updateOrg.collaborations = req.body.collaborations;
       if (req.body.hasOwnProperty("groupedCustomFieldsObs"))
         updateOrg.groupedCustomFieldsObs =
@@ -1513,18 +1522,24 @@ router.post(
       // We do not merge defaultPersonsFolders nor defaultMedicalFolders, we keep the main ones.
       // ...
 
-      // groupedServices
-      const mainGroupedServices = structuredClone(mainOrg.groupedServices) || [];
-      const secondaryGroupedServices = structuredClone(secondaryOrg.groupedServices) || [];
-      for (const mainGroup of mainGroupedServices) {
-        const secondaryGroup = secondaryGroupedServices.find((g) => g.groupTitle === mainGroup.groupTitle);
+      // groupedServicesWithTeams
+      const mainGroupedServicesWithTeams = structuredClone(mainOrg.groupedServicesWithTeams) || [];
+      const secondaryGroupedServicesWithTeams = structuredClone(secondaryOrg.groupedServicesWithTeams) || [];
+      for (const mainGroup of mainGroupedServicesWithTeams) {
+        const secondaryGroup = secondaryGroupedServicesWithTeams.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
-        mainGroup.services = Array.from(new Set([...mainGroup.services, ...secondaryGroup.services]));
+        const existingNames = new Set((mainGroup.services || []).map((svc) => svc.name));
+        for (const svc of secondaryGroup.services || []) {
+          if (!existingNames.has(svc.name)) {
+            mainGroup.services.push(svc);
+            existingNames.add(svc.name);
+          }
+        }
       }
       // merge remaining secondary groups
-      for (const secondaryGroup of secondaryGroupedServices) {
-        const mainGroup = mainGroupedServices.find((g) => g.groupTitle === secondaryGroup.groupTitle);
-        if (!mainGroup) mainGroupedServices.push(secondaryGroup);
+      for (const secondaryGroup of secondaryGroupedServicesWithTeams) {
+        const mainGroup = mainGroupedServicesWithTeams.find((g) => g.groupTitle === secondaryGroup.groupTitle);
+        if (!mainGroup) mainGroupedServicesWithTeams.push(secondaryGroup);
       }
 
       // consultations
@@ -1621,7 +1636,7 @@ router.post(
           actionsGroupedCategories: mainActionsGroupedCategories,
           structuresGroupedCategories: mainStructuresGroupedCategories,
           territoriesGroupedTypes: mainTerritoriesGroupedTypes,
-          groupedServices: mainGroupedServices,
+          groupedServicesWithTeams: mainGroupedServicesWithTeams,
           consultations: mainConsultations,
           customFieldsPersons: mainCustomFieldsPersons,
           groupedCustomFieldsObs: mainGroupedCustomFieldsObs,
