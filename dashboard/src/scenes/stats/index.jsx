@@ -42,6 +42,7 @@ import { getPersonSnapshotAtDate } from "../../utils/person-snapshot";
 import { dayjsInstance } from "../../services/date";
 import { filterPersonByAssignedTeamDuringQueryPeriod } from "../../utils/person-merge-assigned-team-periods-with-query-period";
 import { useRestoreScrollPosition } from "../../utils/useRestoreScrollPosition";
+import { createCategoryMatchStates, accumulateActionForCategoryStates, allCategoryStatesMatched } from "./action-category-filter";
 import StatsV2 from "./index-v2";
 import { ArrowsRightLeftIcon } from "@heroicons/react/16/solid";
 
@@ -137,6 +138,8 @@ const itemsForStatsSelector = ({
     "numberOfTreatments",
     "numberOfPassages",
     "numberOfRencontres",
+    "actionCategories",
+    "actionCategoriesCombined",
   ];
 
   const activeFilters = filterPersons.filter(
@@ -149,6 +152,8 @@ const itemsForStatsSelector = ({
   );
   const outOfActiveListFilter = filterPersons.find((f) => f.field === "outOfActiveList")?.value;
   const filterByStartFollowBySelectedTeamDuringPeriod = filterPersons.filter((f) => f.field === "startFollowBySelectedTeamDuringPeriod");
+  const filterByActionCategories = filterPersons.filter((f) => f.field === "actionCategories");
+  const filterByActionCategoriesCombined = filterPersons.filter((f) => f.field === "actionCategoriesCombined");
   const filterByNumberOfActions = filterPersons.filter((f) => f.field === "numberOfActions");
   const filterByNumberOfConsultations = filterPersons.filter((f) => f.field === "numberOfConsultations");
   const filterHasAtLeastOneConsultation = filterPersons.filter((f) => f.field === "hasAtLeastOneConsultation");
@@ -298,12 +303,14 @@ const itemsForStatsSelector = ({
       }
     }
 
+    const categoryStates = createCategoryMatchStates([...filterByActionCategoriesCombined, ...filterByActionCategories]);
     let numberOfActions = 0;
     for (const action of person.actions || []) {
       if (!filterItemByTeam(action, "teams")) continue;
       if (noPeriodSelected) {
         actionsFilteredByPersons[action._id] = action;
         numberOfActions++;
+        accumulateActionForCategoryStates(categoryStates, action);
         // On veut seulement les personnes considérées comme suivies
         // Pour ne pas avoir plus de personnes suivies concernées par les actions que de personnes suivies
         if (personsUpdated[person._id]) personsUpdatedWithActions[person._id] = person;
@@ -326,8 +333,16 @@ const itemsForStatsSelector = ({
       }
       numberOfActions++;
       actionsFilteredByPersons[action._id] = action;
+      accumulateActionForCategoryStates(categoryStates, action);
       // Voir ci-dessus (pourquoi on limite aux personnes suivies)
       if (personsUpdated[person._id]) personsUpdatedWithActions[person._id] = person;
+    }
+    if (categoryStates.length && !allCategoryStatesMatched(categoryStates)) {
+      delete personsUpdated[person._id];
+      delete personsCreated[person._id];
+      delete personsUpdatedWithActions[person._id];
+      for (const action of person.actions || []) delete actionsFilteredByPersons[action._id];
+      continue;
     }
     if (filterByNumberOfActions.length) {
       if (!filterItem(filterByNumberOfActions)({ numberOfActions })) {
