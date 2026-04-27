@@ -63,7 +63,8 @@ const filterEasySearch = (search, items = []) => {
       //  … and that have all words in search (the order does not matter).
       searchTerms.every((e) => item.searchString.includes(e))
   );
-  return [...firstItems, ...secondItems];
+  // Personnes sorties de file active en fin de liste : on est plus susceptible d'accueillir des personnes encore suivies.
+  return [...firstItems, ...secondItems].sort((a, b) => Number(Boolean(a.outOfActiveList)) - Number(Boolean(b.outOfActiveList)));
 };
 
 const SelectAndCreatePersonForReception = ({ value, onChange, inputId, classNamePrefix, showLinkToPerson = true, ...rest }) => {
