@@ -1,13 +1,29 @@
 import { Folder } from "./document";
 import { CustomField, PredefinedField, CustomFieldsGroup } from "./field";
+import { UUIDV4 } from "./uuid";
 
 interface GroupedCategories {
   groupTitle: string;
   categories: string[];
 }
+
+// Legacy shape, exposé en sortie d'API tant que les vieux mobiles ne sont pas tous migrés.
 interface GroupedServices {
   groupTitle: string;
   services: string[];
+}
+
+// Format réel stocké côté backend (cf. `groupedServicesWithTeams`). Chaque service porte sa propre
+// visibilité par équipe, sur le pattern des champs personnalisés filtrés.
+export interface ServiceItem {
+  name: string;
+  enabled: boolean;
+  enabledTeams: UUIDV4[];
+}
+
+export interface ServiceGroup {
+  groupTitle: string;
+  services: ServiceItem[];
 }
 
 interface GroupedTypes {
@@ -45,7 +61,9 @@ export interface OrganisationInstance {
   rencontresEnabled?: boolean;
   checkboxShowAllOrgaPersons?: boolean;
 
+  /** @deprecated Projection legacy émise par l'API ; utiliser `groupedServicesWithTeams`. */
   groupedServices?: GroupedServices[];
+  groupedServicesWithTeams?: ServiceGroup[];
 
   customFieldsObs: CustomField[];
   groupedCustomFieldsObs?: CustomFieldsGroup[];

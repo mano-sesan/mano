@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -9,7 +9,7 @@ import { getPeriodTitle } from "./utils";
 import { currentTeamState, organisationState } from "../../atoms/auth";
 import API from "../../services/api";
 import { Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { servicesSelector } from "../../atoms/reports";
+import { filterServicesForTeam, servicesSelector } from "../../atoms/reports";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { ServiceInstance } from "@/types/service";
@@ -79,13 +79,22 @@ function IncrementorSmall({
 
 type Props = NativeStackScreenProps<RootStackParamList, "SERVICES">;
 const Services = ({ navigation, route }: Props) => {
-  const groupedServices = useAtomValue(servicesSelector);
+  const allGroupedServices = useAtomValue(servicesSelector);
   const { date } = route.params;
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
+  const groupedServices = useMemo(() => filterServicesForTeam(allGroupedServices, currentTeam?._id), [allGroupedServices, currentTeam?._id]);
   const [services, setServices] = useState<Array<ServiceToShow>>([]);
-  const [activeTab, setActiveTab] = useState(groupedServices[0]?.groupTitle || null);
+  const [activeTab, setActiveTab] = useState<string | null>(groupedServices[0]?.groupTitle || null);
   const { refresh, isLoading } = useDataLoader();
+
+  // Si l'équipe change et que l'onglet sélectionné disparaît de la liste filtrée, on retombe sur le
+  // premier groupe disponible pour éviter une liste vide.
+  useEffect(() => {
+    if (!groupedServices.find((g) => g.groupTitle === activeTab)) {
+      setActiveTab(groupedServices[0]?.groupTitle || null);
+    }
+  }, [groupedServices, activeTab]);
 
   useEffect(() => {
     async function initServices() {
@@ -117,9 +126,9 @@ const Services = ({ navigation, route }: Props) => {
 
   if (!organisation.receptionEnabled || !groupedServices.length) return null;
 
-  const selectedServices: Array<ServiceToShow> = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((e) => {
-    const service = (services || []).find((f) => f.service === e);
-    return { service: e, _id: service?._id || e, count: service?.count || 0 };
+  const selectedServices: Array<ServiceToShow> = (groupedServices.find((e) => e.groupTitle === activeTab)?.services || []).map((item) => {
+    const service = (services || []).find((f) => f.service === item.name);
+    return { service: item.name, _id: service?._id || item.name, count: service?.count || 0 };
   });
 
   return (
