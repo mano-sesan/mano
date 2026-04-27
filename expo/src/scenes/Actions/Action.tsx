@@ -16,7 +16,8 @@ import CommentRow from "../Comments/CommentRow";
 import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import UserName from "../../components/UserName";
 import Spacer from "../../components/Spacer";
-import NewCommentInput from "../Comments/NewCommentInput";
+import CommentModal from "../Comments/CommentModal";
+import { buildEmptyComment } from "../Comments/buildEmptyComment";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import Label from "../../components/Label";
 import Tags, { MyTextForTags } from "../../components/Tags";
@@ -33,7 +34,6 @@ import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import { createMaterialTopTabNavigator, MaterialTopTabBarProps } from "@react-navigation/material-top-tabs";
 import DocumentsManager from "../../components/DocumentsManager";
 import { isEmptyValue } from "../../utils";
-import { alertCreateComment } from "../../utils/alert-create-comment";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ActionStackParams, RootStackParamList } from "@/types/navigation";
 import { ActionInstance } from "@/types/action";
@@ -161,7 +161,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   const canComment = !isMultipleActions && ["admin", "normal"].includes(user.role);
 
   const [updating, setUpdating] = useState(false);
-  const [writingComment, setWritingComment] = useState("");
   const [editable, setEditable] = useState(route?.params?.editable || false);
 
   const isUpdateDisabled = useMemo(() => {
@@ -188,10 +187,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       setUpdating(false);
     }
 
-    if (writingComment.length) {
-      const goToNextStep = await alertCreateComment();
-      if (!goToNextStep) return;
-    }
     if (isUpdateDisabled) {
       onBack();
       return true;
@@ -424,8 +419,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
   };
 
-  const newCommentRef = useRef<View>(null);
-
   const isOnePerson = persons ? persons.length === 1 : false;
   const person = !isOnePerson ? null : persons?.[0];
   const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && !!groups.find((group) => group.persons.includes(person._id));
@@ -514,15 +507,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
                 tabBarLabel: `Commentaires${actionComments.length ? ` (${actionComments.length})` : ""}`,
               }}
             >
-              {() => (
-                <ActionComments
-                  actionDB={actionDB}
-                  actionComments={actionComments}
-                  canComment={canComment}
-                  newCommentRef={newCommentRef}
-                  setWritingComment={setWritingComment}
-                />
-              )}
+              {() => <ActionComments actionDB={actionDB} actionComments={actionComments} canComment={canComment} />}
             </ActionTab.Screen>
             <ActionTab.Screen
               name="ACTION_DOCUMENTS"
@@ -795,21 +780,41 @@ type ActionCommentsProps = {
   actionDB: ActionInstance;
   actionComments: CommentInstance[];
   canComment: boolean;
-  newCommentRef: React.RefObject<View | null>;
-  setWritingComment: (writingComment: string) => void;
 };
 
-const ActionComments = ({ actionDB, actionComments, canComment, newCommentRef, setWritingComment }: ActionCommentsProps) => {
+const ActionComments = ({ actionDB, actionComments, canComment }: ActionCommentsProps) => {
   const { refresh } = useDataLoader();
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const user = useAtomValue(userState)!;
+  const organisation = useAtomValue(organisationState)!;
+
+  const [newCommentModalVisible, setNewCommentModalVisible] = useState(false);
+  const [newCommentDB, setNewCommentDB] = useState<CommentInstance>(() =>
+    buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id })
+  );
+
+  const openNewCommentModal = () => {
+    setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id }));
+    setNewCommentModalVisible(true);
+  };
+
   return (
     <ScrollContainer noRadius>
       {!!canComment && (
         <View className="flex-shrink-0 my-2.5">
-          <NewCommentInput
-            forwardRef={newCommentRef}
+          <ButtonsContainer>
+            <Button caption="Ajouter un commentaire" onPress={openNewCommentModal} />
+          </ButtonsContainer>
+          <CommentModal
+            key={newCommentDB._id}
+            visible={newCommentModalVisible}
+            commentDB={newCommentDB}
+            title="Nouveau commentaire"
+            submitCaption="Créer"
+            successMessage="Commentaire créé !"
             canToggleUrgentCheck
-            onCommentWrite={setWritingComment}
-            onCreate={async (newComment) => {
+            onClose={() => setNewCommentModalVisible(false)}
+            onUpdate={async (newComment) => {
               const body = {
                 ...newComment,
                 action: actionDB?._id,

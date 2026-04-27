@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Alert, Linking, Text } from "react-native";
 import styled from "styled-components/native";
 import * as Sentry from "@sentry/react-native";
@@ -15,14 +15,15 @@ import SubList from "../../components/SubList";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import GenderSelect from "../../components/Selects/GenderSelect";
 import Spacer from "../../components/Spacer";
-import NewCommentInput from "../Comments/NewCommentInput";
+import CommentModal from "../Comments/CommentModal";
+import { buildEmptyComment } from "../Comments/buildEmptyComment";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
 import colors from "../../utils/colors";
 import PhoneIcon from "../../icons/PhoneIcon";
 import EmailIcon from "../../icons/EmailIcon";
 import { placesState } from "../../atoms/places";
-import { organisationState, teamsState, userState } from "../../atoms/auth";
+import { organisationState, teamsState, userState, currentTeamState } from "../../atoms/auth";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import RencontreRow from "./RencontreRow";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
@@ -40,6 +41,7 @@ import { RencontreInstance } from "@/types/rencontre";
 import { UUIDV4 } from "@/types/uuid";
 import { PlaceInstance } from "@/types/place";
 import { ActionInstance } from "@/types/action";
+import { CommentInstance } from "@/types/comment";
 import { useEditButtonStatusOnFocused } from "@/utils/hide-edit-button";
 import { useDataLoader } from "@/services/dataLoader";
 
@@ -52,7 +54,6 @@ type PersonSummaryProps = NativeStackScreenProps<RootStackParamList, "PERSON_STA
   onEdit: () => void;
   isUpdateDisabled: boolean;
   backgroundColor: string;
-  onCommentWrite: (comment: string) => void;
   onChange: (newPersonState: Partial<PersonInstance>, forceUpdate?: boolean) => void;
   onDelete: () => Promise<boolean>;
   onBack: () => void;
@@ -70,7 +71,6 @@ const PersonSummary = ({
   onEdit,
   isUpdateDisabled,
   backgroundColor,
-  onCommentWrite,
   onChange,
   onDelete,
   onBack,
@@ -80,11 +80,21 @@ const PersonSummary = ({
   const user = useAtomValue(userState)!;
   const organisation = useAtomValue(organisationState)!;
   const { refresh } = useDataLoader();
+  const currentTeam = useAtomValue(currentTeamState)!;
   const groups = useAtomValue(groupsState)!;
   useEditButtonStatusOnFocused("show");
 
   const scrollViewRef = useRef(null);
-  const newCommentRef = useRef(null);
+
+  const [newCommentModalVisible, setNewCommentModalVisible] = useState(false);
+  const [newCommentDB, setNewCommentDB] = useState<CommentInstance>(() =>
+    buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id })
+  );
+
+  const openNewCommentModal = () => {
+    setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id }));
+    setNewCommentModalVisible(true);
+  };
 
   const onAddRencontre = async () => navigation.push("RENCONTRE", { person: personDB });
   const onUpdateRencontre = async (rencontre: RencontreInstance) => navigation.push("RENCONTRE", { person: personDB, rencontre });
@@ -325,54 +335,61 @@ const PersonSummary = ({
         ifEmpty="Pas encore d'action"
       />
       {["admin", "normal"].includes(user.role) && (
-        <SubList
-          label="Commentaires"
-          data={sortedComments}
-          renderItem={(comment) => (
-            <CommentRow
-              key={comment._id}
-              comment={comment}
-              canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
-              canToggleUrgentCheck
-              onDelete={async () => {
-                const response = await API.delete({ path: `/comment/${comment._id}` });
-                if (response.error) {
-                  Alert.alert(response.error);
-                  return false;
-                }
-                await refresh();
-                return true;
-              }}
-              onUpdate={
-                comment.team
-                  ? async (commentUpdated) => {
-                      commentUpdated.person = personDB?._id;
-                      const response = await API.put({
-                        path: `/comment/${comment._id}`,
-                        body: prepareCommentForEncryption(commentUpdated),
-                      });
-                      if (response.error) {
-                        Alert.alert(response.error);
+        <>
+          <SubList
+            label="Commentaires"
+            onAdd={openNewCommentModal}
+            data={sortedComments}
+            renderItem={(comment) => (
+              <CommentRow
+                key={comment._id}
+                comment={comment}
+                canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
+                canToggleUrgentCheck
+                onDelete={async () => {
+                  const response = await API.delete({ path: `/comment/${comment._id}` });
+                  if (response.error) {
+                    Alert.alert(response.error);
+                    return false;
+                  }
+                  await refresh();
+                  return true;
+                }}
+                onUpdate={
+                  comment.team
+                    ? async (commentUpdated) => {
+                        commentUpdated.person = personDB?._id;
+                        const response = await API.put({
+                          path: `/comment/${comment._id}`,
+                          body: prepareCommentForEncryption(commentUpdated),
+                        });
+                        if (response.error) {
+                          Alert.alert(response.error);
+                          return false;
+                        }
+                        if (response.ok) {
+                          await refresh();
+                          return true;
+                        }
                         return false;
                       }
-                      if (response.ok) {
-                        await refresh();
-                        return true;
-                      }
-                      return false;
-                    }
-                  : undefined
-              }
-            />
-          )}
-          ifEmpty="Pas encore de commentaire"
-        >
-          <NewCommentInput
-            forwardRef={newCommentRef}
-            canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
+                    : undefined
+                }
+              />
+            )}
+            ifEmpty="Pas encore de commentaire"
+          />
+          <CommentModal
+            key={newCommentDB._id}
+            visible={newCommentModalVisible}
+            commentDB={newCommentDB}
+            title="Nouveau commentaire"
+            submitCaption="Créer"
+            successMessage="Commentaire créé !"
             canToggleUrgentCheck
-            onCommentWrite={onCommentWrite}
-            onCreate={async (newComment) => {
+            canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
+            onClose={() => setNewCommentModalVisible(false)}
+            onUpdate={async (newComment) => {
               const body = {
                 ...newComment,
                 person: personDB?._id,
@@ -386,7 +403,7 @@ const PersonSummary = ({
               return true;
             }}
           />
-        </SubList>
+        </>
       )}
       {organisation.rencontresEnabled && (
         <SubList

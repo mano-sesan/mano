@@ -24,6 +24,8 @@ type CommentModalProps = {
   canToggleUrgentCheck?: boolean;
   canToggleGroupCheck?: boolean;
   canToggleShareComment?: boolean;
+  submitCaption?: string;
+  successMessage?: string;
 };
 
 const CommentModal = ({
@@ -36,6 +38,8 @@ const CommentModal = ({
   canToggleUrgentCheck,
   canToggleGroupCheck,
   canToggleShareComment,
+  submitCaption = "Mettre à jour",
+  successMessage = "Commentaire mis à jour !",
 }: CommentModalProps) => {
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
@@ -78,7 +82,7 @@ const CommentModal = ({
     const success = await onUpdate(body);
     Keyboard.dismiss();
     setUpdating(false);
-    if (success) Alert.alert("Commentaire mis à jour !", undefined, [{ text: "OK", onPress: onClose }]);
+    if (success) Alert.alert(successMessage, undefined, [{ text: "OK", onPress: onClose }]);
   };
 
   const onDeleteConfirm = async () => {
@@ -164,7 +168,7 @@ const CommentModal = ({
             )}
             <ButtonsContainer>
               {Boolean(onDelete) && <ButtonDelete onPress={onDeleteRequest} deleting={deleting} />}
-              {Boolean(onUpdate) && <Button caption="Mettre à jour" onPress={onUpdateComment} disabled={isUpdateDisabled} loading={updating} />}
+              {Boolean(onUpdate) && <Button caption={submitCaption} onPress={onUpdateComment} disabled={isUpdateDisabled} loading={updating} />}
             </ButtonsContainer>
           </View>
         </ScrollContainer>
