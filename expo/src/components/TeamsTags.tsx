@@ -22,7 +22,7 @@ const TeamsTags = ({ teams = [] }: TeamsTagsProps) => {
         if (!allTeams?.length) return;
         const team = allTeams.find((t) => t._id === teamId);
         if (!team) return;
-        const backgroundColor = team.color;
+        const backgroundColor = team.color!;
         return (
           <Team key={team?._id} backgroundColor={backgroundColor}>
             {team?.name}

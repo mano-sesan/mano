@@ -19,7 +19,7 @@ import Spacer from "../../components/Spacer";
 import NewCommentInput from "../Comments/NewCommentInput";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import Label from "../../components/Label";
-import Tags from "../../components/Tags";
+import Tags, { MyTextForTags } from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../atoms/actions";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -723,7 +723,7 @@ const ActionInformation = ({
             data={persons || []}
             onChange={(persons) => setAction((a) => ({ ...a, persons }))}
             onAddRequest={onSearchPerson}
-            renderTag={(person) => <MyText>{person?.name}</MyText>}
+            renderTag={(person) => <MyTextForTags>{person?.name}</MyTextForTags>}
           />
         </>
       )}

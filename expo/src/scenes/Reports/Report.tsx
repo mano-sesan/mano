@@ -10,7 +10,7 @@ import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import Spacer from "../../components/Spacer";
-import Tags from "../../components/Tags";
+import Tags, { MyTextForTags } from "../../components/Tags";
 import { CANCEL, DONE, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import { flattenedServicesSelector, prepareReportForEncryption } from "../../atoms/reports";
@@ -221,7 +221,7 @@ const Report = ({ navigation, route }: Props) => {
             onChange={(collaborations) => setReport((r) => ({ ...r, collaborations }))}
             editable={editable}
             onAddRequest={() => navigation.navigate("COLLABORATIONS", { report: reportDB, day })}
-            renderTag={(collaboration) => <MyText>{collaboration}</MyText>}
+            renderTag={(collaboration) => <MyTextForTags>{collaboration}</MyTextForTags>}
           />
         </View>
         <Row

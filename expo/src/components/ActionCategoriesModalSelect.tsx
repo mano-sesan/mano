@@ -5,7 +5,7 @@ import { actionsCategoriesSelector, actionsState, flattenedActionsCategoriesSele
 import Label from "./Label";
 import { MyText } from "./MyText";
 import Row from "./Row";
-import Tags from "./Tags";
+import Tags, { MyTextForTags } from "./Tags";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 import ScrollContainer from "./ScrollContainer";
@@ -91,18 +91,18 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
         onChange={onChange}
         editable={editable}
         onAddRequest={() => setOpen(true)}
-        renderTag={(category) => <MyText>{category}</MyText>}
+        renderTag={(category) => <MyTextForTags>{category}</MyTextForTags>}
       />
       {!!withMostUsed && !!mostUsedCategoriesToShow.length && (
         <ScrollView horizontal className="flex-grow-0 flex-shrink-0 -mt-8 mb-8 -mx-[30px] px-2">
-          <MyText className="self-center">Catégories les plus utilisées: </MyText>
+          <MyText className="self-center">Catégories les plus utilisées : </MyText>
           {mostUsedCategoriesToShow.map((category) => (
             <TouchableOpacity
               onPress={() => onChange([...values, category])}
               className="rounded-full ml-2 px-2 py-1 border border-main"
               key={category}
             >
-              <MyText>{category}</MyText>
+              <MyTextForTags>{category}</MyTextForTags>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -118,7 +118,7 @@ const ActionCategoriesModalSelect = ({ values = [], onChange, editable, withMost
                 disableAdd
                 onChange={onChange}
                 editable
-                renderTag={(category) => <MyText>{category}</MyText>}
+                renderTag={(category) => <MyTextForTags>{category}</MyTextForTags>}
                 className="min-h-0 m-0"
               />
             </ScrollView>

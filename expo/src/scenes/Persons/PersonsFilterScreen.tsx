@@ -5,7 +5,7 @@ import SceneContainer from "@/components/SceneContainer";
 import ScreenTitle from "@/components/ScreenTitle";
 import ScrollContainer from "@/components/ScrollContainer";
 import Search from "@/components/Search";
-import Tags from "@/components/Tags";
+import Tags, { MyTextForTags } from "@/components/Tags";
 import FilterGroup from "@/components/FilterGroup";
 import { personsFiltersState, availablePersonFiltersSelector, customFieldsPersonsSelector } from "@/atoms/persons";
 import { FilterableField } from "@/types/field";
@@ -128,7 +128,7 @@ const PersonsFilterScreen = ({ onBack, onNavigateToConfig }: PersonsFilterScreen
                 editable
                 renderTag={(filter) => {
                   const label = formatFilterLabel(filter, availableFields);
-                  return <MyText>{label}</MyText>;
+                  return <MyTextForTags>{label}</MyTextForTags>;
                 }}
                 listEmptyText="Aucun filtre actif"
               />
