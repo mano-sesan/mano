@@ -14,6 +14,22 @@ const excludeFields = new Set([
 ]);
 const isObject = (variable) => typeof variable === "object" && variable !== null && !Array.isArray(variable);
 
+// Une recherche est considérée comme un numéro de téléphone si elle ne contient
+// que des chiffres et des séparateurs courants (+, -, ., /, (), espaces) et qu'elle
+// comporte au moins 6 chiffres — au-dessus du seuil des codes postaux (5 chiffres).
+const PHONE_LIKE_REGEX = /^[\s+\-./()\d]+$/;
+const looksLikePhoneNumber = (search) => {
+  if (!PHONE_LIKE_REGEX.test(search)) return false;
+  return search.replace(/\D/g, "").length >= 6;
+};
+// Numéros français uniquement : on convertit le préfixe international 0033/+33 en 0.
+const normalizePhoneSearch = (search) => {
+  let digits = search.replace(/\D/g, "");
+  if (digits.startsWith("0033")) digits = "0" + digits.slice(4);
+  else if (digits.startsWith("33") && digits.length === 11) digits = "0" + digits.slice(2);
+  return digits;
+};
+
 const prepareItemForSearch = (item, userSpecificExcludeFields, restrictedFields = null) => {
   if (typeof item === "string") return item;
   if (!item) return "";
@@ -34,11 +50,12 @@ const prepareItemForSearch = (item, userSpecificExcludeFields, restrictedFields 
 };
 
 export const filterBySearch = (search, items = [], userSpecificExcludeFields = [], restrictedFields = null) => {
+  const isPhoneSearch = looksLikePhoneNumber(search);
   const searchLowercased = search.toLocaleLowerCase();
   // replace all accents with normal letters
   const searchNormalized = searchLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  const searchTerms = searchLowercased.split(" ");
-  const searchNormalizedTerms = searchNormalized.split(" ");
+  const searchTerms = isPhoneSearch ? [normalizePhoneSearch(search)] : searchLowercased.split(" ");
+  const searchNormalizedTerms = isPhoneSearch ? searchTerms : searchNormalized.split(" ");
 
   const itemsNameStartWithWord = [];
   const itemsNameStartWithWordWithNoAccent = [];
