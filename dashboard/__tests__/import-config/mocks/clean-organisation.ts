@@ -790,7 +790,7 @@ export const cleanOrganisation: OrganisationInstance = {
       ],
     },
   ],
-  groupedServices: [
+  groupedServicesWithTeams: [
     {
       groupTitle: "Tous mes services",
       services: [],

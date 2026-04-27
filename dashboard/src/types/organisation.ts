@@ -7,14 +7,7 @@ interface GroupedCategories {
   categories: string[];
 }
 
-// Legacy shape, exposé en sortie d'API tant que les vieux mobiles ne sont pas tous migrés.
-interface GroupedServices {
-  groupTitle: string;
-  services: string[];
-}
-
-// Format réel stocké côté backend (cf. `groupedServicesWithTeams`). Chaque service porte sa propre
-// visibilité par équipe, sur le pattern des champs personnalisés filtrés.
+// Chaque service porte sa propre visibilité par équipe, sur le pattern des champs personnalisés filtrés.
 export interface ServiceItem {
   name: string;
   enabled: boolean;
@@ -63,8 +56,6 @@ export interface OrganisationInstance {
   checkboxShowAllOrgaPersons?: boolean;
   statsV2Enabled?: boolean;
 
-  /** @deprecated Projection legacy émise par l'API ; utiliser `groupedServicesWithTeams`. */
-  groupedServices?: GroupedServices[];
   groupedServicesWithTeams?: ServiceGroup[];
 
   customFieldsObs: CustomField[];
