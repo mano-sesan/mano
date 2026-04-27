@@ -194,6 +194,7 @@ const DatePicker = ({
       mode={mode}
       display="spinner"
       is24Hour
+      themeVariant="light"
       onChange={(_, selectedDate) => {
         if (!selectedDate) return onClose();
         selectDate(selectedDate);

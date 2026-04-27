@@ -17,7 +17,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     newArchEnabled: true,
     icon: "./src/assets/icon.png",
     scheme: "mano",
-    userInterfaceStyle: "light",
+    // userInterfaceStyle: "light",
     experiments: {
       tsconfigPaths: true,
     },
@@ -113,6 +113,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           iosPermissions: [],
         },
       ],
+      "@vonovak/react-native-theme-control",
+      "@react-native-community/datetimepicker",
     ],
     extra: {
       SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
