@@ -120,6 +120,7 @@ const OutOfActiveList = ({ person }) => {
   };
 
   const teamsWithAll = [{ _id: "all", name: "Toute l'organisation" }, ...teams.filter((t) => (person.assignedTeams || []).includes(t._id))];
+  const showTeamSelector = teams.length > 1;
 
   return (
     <>
@@ -136,20 +137,22 @@ const OutOfActiveList = ({ person }) => {
             <React.Fragment>
               <ModalBody overflowY={false}>
                 <div className="tw-p-4">
-                  <div className="tw-p-4 tw-grid tw-grid-cols-3 tw-gap-2">
-                    <div>
-                      <label htmlFor="out-of-active-list-team">Sortie de file active de</label>
-                      <SelectCustom
-                        inputId="out-of-active-list-team"
-                        name="team"
-                        options={teamsWithAll}
-                        onChange={(value) => handleChange({ currentTarget: { value: value._id, name: "team" } })}
-                        value={teamsWithAll.find((t) => t._id === values.team)}
-                        getOptionValue={(team) => team._id}
-                        getOptionLabel={(team) => team.name}
-                        isDisabled={false}
-                      />
-                    </div>
+                  <div className={`tw-p-4 tw-grid ${showTeamSelector ? "tw-grid-cols-3" : "tw-grid-cols-2"} tw-gap-2`}>
+                    {showTeamSelector && (
+                      <div>
+                        <label htmlFor="out-of-active-list-team">Sortie de file active de</label>
+                        <SelectCustom
+                          inputId="out-of-active-list-team"
+                          name="team"
+                          options={teamsWithAll}
+                          onChange={(value) => handleChange({ currentTarget: { value: value._id, name: "team" } })}
+                          value={teamsWithAll.find((t) => t._id === values.team)}
+                          getOptionValue={(team) => team._id}
+                          getOptionLabel={(team) => team.name}
+                          isDisabled={false}
+                        />
+                      </div>
+                    )}
                     <div>
                       <label htmlFor="person-select-outOfActiveListReasons">Motif(s) de sortie </label>
                       <SelectCustom
