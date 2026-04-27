@@ -82,7 +82,7 @@
     "tailwindcss": "3.3.2",
     "urijs": "^1.19.11",
     "use-debounce": "^10.0.4",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@expo/metro-runtime": "~6.1.2",
