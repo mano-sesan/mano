@@ -392,92 +392,121 @@ function SharePDFDocument({
       </Page>
 
       {/* Medical Page (if healthcare professional and relevant options selected) */}
-      {user.healthcareProfessional && (options.includeConsultations || options.includeTreatments || options.includeCommentsMedical) && (
-        <Page size="A4" style={styles.page}>
-          <Text style={styles.title}>Dossier médical de {person.name}</Text>
-          <Text style={styles.subtitle}>extrait le {formatDateTimeWithNameOfDay(dayjsInstance())}</Text>
+      {user.healthcareProfessional &&
+        (options.includeConsultations ||
+          options.includeTreatments ||
+          options.includeCommentsMedical ||
+          Object.values(options.medicalFileSections || {}).some((v) => v)) && (
+          <Page size="A4" style={styles.page}>
+            <Text style={styles.title}>Dossier médical de {person.name}</Text>
+            <Text style={styles.subtitle}>extrait le {formatDateTimeWithNameOfDay(dayjsInstance())}</Text>
 
-          {options.headerMedical && (
-            <View style={styles.header}>
-              <Text style={styles.headerText}>{options.headerMedical}</Text>
-            </View>
-          )}
+            {options.headerMedical && (
+              <View style={styles.header}>
+                <Text style={styles.headerText}>{options.headerMedical}</Text>
+              </View>
+            )}
 
-          {/* Medical Comments */}
-          {options.includeCommentsMedical && commentsMedical.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Commentaires médicaux ({commentsMedical.length})</Text>
-              {commentsMedical.map((comment, i) => (
-                <View key={comment._id || i} style={styles.itemBlock}>
-                  <Text style={styles.text}>Date : {formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</Text>
-                  <Text style={styles.text}>Écrit par : {getUserName(comment.user)}</Text>
-                  {comment.urgent && <Text style={styles.text}>Commentaire prioritaire</Text>}
-                  <Text style={styles.text}>{comment.comment}</Text>
+            {/* Champs personnalisés du dossier médical */}
+            {Object.entries(options.medicalFileSections || {}).map(([sectionName, enabled]) => {
+              if (!enabled) return null;
+              const section = organisation.groupedCustomFieldsMedicalFile?.find((s) => s.name === sectionName);
+              if (!section) return null;
+              const enabledFieldsInSection = section.fields.filter(
+                (f) => (f.enabled || f.enabledTeams?.includes(team._id)) && options.medicalFileFields?.[f.name]
+              );
+              if (enabledFieldsInSection.length === 0) return null;
+              const displayName = sectionName === "Groupe par défaut" ? "Dossier médical" : sectionName;
+              return (
+                <View key={sectionName}>
+                  <Text style={styles.sectionTitle}>{displayName}</Text>
+                  {enabledFieldsInSection.map((field) => (
+                    <View key={field.name} style={styles.row}>
+                      <Text style={styles.label}>{field.label}</Text>
+                      <Text style={styles.value}>{formatValue(person.medicalFile?.[field.name], field.type)}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </>
-          )}
+              );
+            })}
 
-          {/* Treatments */}
-          {options.includeTreatments && treatments.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Traitements ({treatments.length})</Text>
-              {treatments.map((treatment, i) => (
-                <View key={treatment._id || i} style={styles.itemBlock}>
-                  {options.treatmentFields.name && <Text style={styles.itemTitle}>{treatment.name}</Text>}
-                  {options.treatmentFields.dosage && treatment.dosage && <Text style={styles.text}>Dosage : {treatment.dosage}</Text>}
-                  {options.treatmentFields.frequency && treatment.frequency && <Text style={styles.text}>Fréquence : {treatment.frequency}</Text>}
-                  {options.treatmentFields.indication && treatment.indication && <Text style={styles.text}>Indication : {treatment.indication}</Text>}
-                  {options.treatmentFields.startDate && treatment.startDate && (
-                    <Text style={styles.text}>Date de début : {formatValue(treatment.startDate, "date")}</Text>
-                  )}
-                  {options.treatmentFields.endDate && treatment.endDate && (
-                    <Text style={styles.text}>Date de fin : {formatValue(treatment.endDate, "date")}</Text>
-                  )}
-                </View>
-              ))}
-            </>
-          )}
-
-          {/* Consultations */}
-          {options.includeConsultations && filteredConsultations.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Consultations ({filteredConsultations.length})</Text>
-              {filteredConsultations.map((consultation, i) => {
-                const consultationType = organisation.consultations?.find((c) => c.name === consultation.type);
-                const consultationFields = consultationType?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)) || [];
-
-                // Get selected fields for this consultation type
-                const selectedFieldsForType = options.consultationFields[consultation.type] || {};
-
-                return (
-                  <View key={consultation._id || i} style={styles.itemBlock}>
-                    <Text style={styles.itemTitle}>{consultation.name || `Consultation ${consultation.type}`}</Text>
-                    <Text style={styles.text}>Type : {consultation.type}</Text>
-                    <Text style={styles.text}>Date : {formatValue(consultation.dueAt, "date-with-time")}</Text>
-                    <Text style={styles.text}>Statut : {consultation.status}</Text>
-                    {consultationFields.map((field) => {
-                      // Only include if this field is selected for this consultation type
-                      if (!selectedFieldsForType[field.name]) return null;
-                      const value = consultation[field.name];
-                      if (value === null || value === undefined || value === "") return null;
-                      return (
-                        <Text key={field.name} style={styles.text}>
-                          {field.label} : {formatValue(value, field.type)}
-                        </Text>
-                      );
-                    })}
-                    <Text style={styles.text}>Créée par : {getUserName(consultation.user)}</Text>
+            {/* Medical Comments */}
+            {options.includeCommentsMedical && commentsMedical.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Commentaires médicaux ({commentsMedical.length})</Text>
+                {commentsMedical.map((comment, i) => (
+                  <View key={comment._id || i} style={styles.itemBlock}>
+                    <Text style={styles.text}>Date : {formatDateTimeWithNameOfDay(comment.date || comment.createdAt)}</Text>
+                    <Text style={styles.text}>Écrit par : {getUserName(comment.user)}</Text>
+                    {comment.urgent && <Text style={styles.text}>Commentaire prioritaire</Text>}
+                    <Text style={styles.text}>{comment.comment}</Text>
                   </View>
-                );
-              })}
-            </>
-          )}
+                ))}
+              </>
+            )}
 
-          <Text style={styles.footer}>{footerText}</Text>
-          <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
-        </Page>
-      )}
+            {/* Treatments */}
+            {options.includeTreatments && treatments.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Traitements ({treatments.length})</Text>
+                {treatments.map((treatment, i) => (
+                  <View key={treatment._id || i} style={styles.itemBlock}>
+                    {options.treatmentFields.name && <Text style={styles.itemTitle}>{treatment.name}</Text>}
+                    {options.treatmentFields.dosage && treatment.dosage && <Text style={styles.text}>Dosage : {treatment.dosage}</Text>}
+                    {options.treatmentFields.frequency && treatment.frequency && <Text style={styles.text}>Fréquence : {treatment.frequency}</Text>}
+                    {options.treatmentFields.indication && treatment.indication && (
+                      <Text style={styles.text}>Indication : {treatment.indication}</Text>
+                    )}
+                    {options.treatmentFields.startDate && treatment.startDate && (
+                      <Text style={styles.text}>Date de début : {formatValue(treatment.startDate, "date")}</Text>
+                    )}
+                    {options.treatmentFields.endDate && treatment.endDate && (
+                      <Text style={styles.text}>Date de fin : {formatValue(treatment.endDate, "date")}</Text>
+                    )}
+                  </View>
+                ))}
+              </>
+            )}
+
+            {/* Consultations */}
+            {options.includeConsultations && filteredConsultations.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>Consultations ({filteredConsultations.length})</Text>
+                {filteredConsultations.map((consultation, i) => {
+                  const consultationType = organisation.consultations?.find((c) => c.name === consultation.type);
+                  const consultationFields = consultationType?.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id)) || [];
+
+                  // Get selected fields for this consultation type
+                  const selectedFieldsForType = options.consultationFields[consultation.type] || {};
+
+                  return (
+                    <View key={consultation._id || i} style={styles.itemBlock}>
+                      <Text style={styles.itemTitle}>{consultation.name || `Consultation ${consultation.type}`}</Text>
+                      <Text style={styles.text}>Type : {consultation.type}</Text>
+                      <Text style={styles.text}>Date : {formatValue(consultation.dueAt, "date-with-time")}</Text>
+                      <Text style={styles.text}>Statut : {consultation.status}</Text>
+                      {consultationFields.map((field) => {
+                        // Only include if this field is selected for this consultation type
+                        if (!selectedFieldsForType[field.name]) return null;
+                        const value = consultation[field.name];
+                        if (value === null || value === undefined || value === "") return null;
+                        return (
+                          <Text key={field.name} style={styles.text}>
+                            {field.label} : {formatValue(value, field.type)}
+                          </Text>
+                        );
+                      })}
+                      <Text style={styles.text}>Créée par : {getUserName(consultation.user)}</Text>
+                    </View>
+                  );
+                })}
+              </>
+            )}
+
+            <Text style={styles.footer}>{footerText}</Text>
+            <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
+          </Page>
+        )}
     </Document>
   );
 }

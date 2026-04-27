@@ -4,6 +4,7 @@ import { ModalContainer, ModalBody, ModalFooter, ModalHeader } from "../../../co
 import { shareModalState, closeShareModal, updateShareOptions } from "../../../atoms/share";
 import { currentTeamAuthentifiedState, organisationAuthentifiedState, userAuthentifiedState, usersState, teamsState } from "../../../atoms/auth";
 import { customFieldsPersonsSelector, flattenedCustomFieldsPersonsSelector } from "../../../atoms/persons";
+import { groupedCustomFieldsMedicalFileSelector } from "../../../atoms/medicalFiles";
 import { flattenedActionsCategoriesSelector } from "../../../atoms/actions";
 import { Accordion } from "../../../components/tailwind/Accordion";
 import SelectCustom from "../../../components/SelectCustom";
@@ -28,6 +29,7 @@ export default function ShareModal() {
   const teams = useAtomValue(teamsState);
   const customFieldsPersonsSections = useAtomValue(customFieldsPersonsSelector);
   const flattenedCustomFieldsPersons = useAtomValue(flattenedCustomFieldsPersonsSelector);
+  const groupedCustomFieldsMedicalFile = useAtomValue(groupedCustomFieldsMedicalFileSelector);
   const flattenedActionsCategories = useAtomValue(flattenedActionsCategoriesSelector);
 
   const [isGenerating, setIsGenerating] = useState(false);
@@ -149,6 +151,43 @@ export default function ShareModal() {
     [options.customFieldsFields, setOptions]
   );
 
+  const toggleMedicalFileSection = useCallback(
+    (sectionName: string) => {
+      const newSections = { ...options.medicalFileSections };
+      const newValue = !newSections[sectionName];
+      newSections[sectionName] = newValue;
+
+      const newFields = { ...options.medicalFileFields };
+      const section = groupedCustomFieldsMedicalFile.find((s) => s.name === sectionName);
+      if (section) {
+        for (const field of section.fields) {
+          if (field.enabled || field.enabledTeams?.includes(team._id)) {
+            newFields[field.name] = newValue;
+          }
+        }
+      }
+
+      setShareModalState((prev) => ({
+        ...prev,
+        options: {
+          ...prev.options,
+          medicalFileSections: newSections,
+          medicalFileFields: newFields,
+        },
+      }));
+    },
+    [options.medicalFileSections, options.medicalFileFields, groupedCustomFieldsMedicalFile, team._id, setShareModalState]
+  );
+
+  const toggleMedicalFileField = useCallback(
+    (fieldName: string) => {
+      const newFields = { ...options.medicalFileFields };
+      newFields[fieldName] = !newFields[fieldName];
+      setOptions({ medicalFileFields: newFields });
+    },
+    [options.medicalFileFields, setOptions]
+  );
+
   const selectAll = useCallback(() => {
     const defaults = getDefaultShareOptions();
     const newSections: Record<string, boolean> = {};
@@ -159,6 +198,20 @@ export default function ShareModal() {
       for (const field of section.fields) {
         if (field.enabled || field.enabledTeams?.includes(team._id)) {
           newFields[field.name] = true;
+        }
+      }
+    }
+
+    // Champs du dossier médical (uniquement pour les pros de santé)
+    const newMedicalFileSections: Record<string, boolean> = {};
+    const newMedicalFileFields: Record<string, boolean> = {};
+    if (isHealthcareProfessional) {
+      for (const section of groupedCustomFieldsMedicalFile) {
+        newMedicalFileSections[section.name] = true;
+        for (const field of section.fields) {
+          if (field.enabled || field.enabledTeams?.includes(team._id)) {
+            newMedicalFileFields[field.name] = true;
+          }
         }
       }
     }
@@ -183,6 +236,8 @@ export default function ShareModal() {
         generalInfoFields: defaults.generalInfoFields,
         customFieldsSections: newSections,
         customFieldsFields: newFields,
+        medicalFileSections: newMedicalFileSections,
+        medicalFileFields: newMedicalFileFields,
         includeActions: true,
         actionCategories: [],
         actionFields: defaults.actionFields,
@@ -199,7 +254,7 @@ export default function ShareModal() {
         rencontreFields: defaults.rencontreFields,
       },
     }));
-  }, [customFieldsPersonsSections, team._id, isHealthcareProfessional, consultationTypes, setShareModalState]);
+  }, [customFieldsPersonsSections, groupedCustomFieldsMedicalFile, team._id, isHealthcareProfessional, consultationTypes, setShareModalState]);
 
   const deselectAll = useCallback(() => {
     setShareModalState((prev) => ({
@@ -210,6 +265,8 @@ export default function ShareModal() {
         generalInfoFields: {},
         customFieldsSections: {},
         customFieldsFields: {},
+        medicalFileSections: {},
+        medicalFileFields: {},
         includeActions: false,
         actionCategories: [],
         actionFields: {},
@@ -560,6 +617,52 @@ export default function ShareModal() {
                     </div>
                   </div>
                 </Accordion>
+
+                {/* Dossier médical — champs personnalisés (si healthcareProfessional) */}
+                {isHealthcareProfessional &&
+                  groupedCustomFieldsMedicalFile.map((section) => {
+                    const enabledFields = section.fields.filter((f) => f.enabled || f.enabledTeams?.includes(team._id));
+                    if (enabledFields.length === 0) return null;
+
+                    const sectionName = section.name === "Groupe par défaut" ? "Dossier Médical" : section.name;
+                    const sectionChecked = options.medicalFileSections[section.name] ?? false;
+
+                    return (
+                      <Accordion
+                        key={`medical-${section.name}`}
+                        title={
+                          // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
+                          <label
+                            className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={sectionChecked}
+                              onChange={() => toggleMedicalFileSection(section.name)}
+                              className="tw-rounded tw-border-gray-300"
+                            />
+                            {sectionName}
+                          </label>
+                        }
+                      >
+                        <div className="tw-space-y-2 tw-ml-4">
+                          {enabledFields.map((field) => (
+                            <label key={field.name} className="tw-flex tw-items-center tw-gap-2 tw-cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={options.medicalFileFields[field.name] ?? false}
+                                onChange={() => toggleMedicalFileField(field.name)}
+                                className="tw-rounded tw-border-gray-300"
+                              />
+                              {field.label}
+                            </label>
+                          ))}
+                        </div>
+                      </Accordion>
+                    );
+                  })}
 
                 {/* Consultations (si healthcareProfessional) */}
                 {isHealthcareProfessional && (

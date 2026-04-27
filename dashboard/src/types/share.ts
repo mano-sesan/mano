@@ -7,6 +7,10 @@ export interface ShareOptions {
   customFieldsSections: Record<string, boolean>;
   customFieldsFields: Record<string, boolean>;
 
+  // Dossier médical — champs personnalisés (si healthcareProfessional)
+  medicalFileSections: Record<string, boolean>;
+  medicalFileFields: Record<string, boolean>;
+
   // Actions
   includeActions: boolean;
   actionCategories: string[];
@@ -126,6 +130,8 @@ export function getDefaultShareOptions(): ShareOptions {
     generalInfoFields,
     customFieldsSections: {},
     customFieldsFields: {},
+    medicalFileSections: {},
+    medicalFileFields: {},
     includeActions: true,
     actionCategories: [],
     actionFields,
