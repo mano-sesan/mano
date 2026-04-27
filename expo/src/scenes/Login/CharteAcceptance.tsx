@@ -20,7 +20,7 @@ const CharteAcceptance = ({ navigation }: CharteAcceptanceProps) => {
   const [loading, setLoading] = useState(false);
   const user = useAtomValue(userState);
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const { startInitialLoad } = useDataLoader();
+  const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const onAccept = async () => {
     setLoading(true);
@@ -28,7 +28,7 @@ const CharteAcceptance = ({ navigation }: CharteAcceptanceProps) => {
     if (response.ok) {
       if (user?.teams?.length === 1) {
         setCurrentTeam(user.teams[0]);
-        startInitialLoad();
+        startInitialLoad().then(() => cleanupLoader());
         navigation.getParent()?.navigate("TABS_STACK");
       } else {
         navigation.navigate("TEAM_SELECTION");

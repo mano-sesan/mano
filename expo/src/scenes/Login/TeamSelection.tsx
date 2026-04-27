@@ -17,11 +17,11 @@ const TeamBody = ({ onSelect }: { onSelect: () => void }) => {
   const [loading, setLoading] = useState<number | undefined>(undefined);
   const user = useAtomValue(userState)!;
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const { startInitialLoad } = useDataLoader();
+  const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const onTeamSelected = async (teamIndex: number) => {
     setLoading(teamIndex);
-    startInitialLoad();
+    startInitialLoad().then(() => cleanupLoader());
     setCurrentTeam(user.teams![teamIndex]!);
     setLoading(undefined);
     onSelect();

@@ -15,10 +15,10 @@ type ForceChangePasswordProps = NativeStackScreenProps<LoginStackParamsList, "FO
 const ForceChangePassword = ({ navigation }: ForceChangePasswordProps) => {
   const user = useAtomValue(userState)!;
   const setCurrentTeam = useSetAtom(currentTeamState);
-  const { startInitialLoad } = useDataLoader();
+  const { startInitialLoad, cleanupLoader } = useDataLoader();
   const onOk = () => {
     if (user.teams?.length === 1) {
-      startInitialLoad();
+      startInitialLoad().then(() => cleanupLoader());
       setCurrentTeam(user.teams[0]);
       navigation.getParent()?.navigate("TABS_STACK");
     } else {
