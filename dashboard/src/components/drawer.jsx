@@ -1,7 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useAtom, useAtomValue } from "jotai";
 import { currentTeamState, organisationState, teamsState, userState } from "../atoms/auth";
-import OpenNewWindowIcon from "./OpenNewWindowIcon";
 import useMinimumWidth from "../services/useMinimumWidth";
 import { deploymentShortCommitSHAState } from "../atoms/version";
 import AddPersons from "./AddPersons";
@@ -19,6 +18,7 @@ import {
   UserIcon,
   MapPinIcon,
 } from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/20/solid";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { getTeamColors } from "./TagTeam";
@@ -52,14 +52,14 @@ const Drawer = () => {
       >
         <Icon className={["tw-shrink-0 tw-transition-all", collapsed ? "tw-h-6 tw-w-6" : "tw-h-4 tw-w-4"].join(" ")} />
         {!collapsed && <span>{label}</span>}
-        {!collapsed && external && <OpenNewWindowIcon />}
+        {!collapsed && external && <ArrowTopRightOnSquareIcon className="tw-h-3.5 tw-w-3.5 tw-shrink-0" aria-hidden="true" />}
       </span>
     );
 
     if (external) {
       return (
         <li id={id}>
-          <a href={to} target="_blank" rel="noreferrer" title={collapsed ? label : undefined}>
+          <a href={to} target="_blank" rel="noreferrer" title={collapsed ? label : undefined} aria-label={`${label} (ouvre dans un nouvel onglet)`}>
             {linkContent}
           </a>
         </li>
