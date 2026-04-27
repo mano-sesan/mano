@@ -147,7 +147,8 @@ export function useDataLoader() {
       stats.relsPersonPlace +
       stats.territoryObservations +
       stats.comments +
-      stats.consultations;
+      stats.consultations +
+      stats.recurrences;
 
     if (["admin", "normal"].includes(latestUser.role)) {
       itemsCount += stats.treatments + stats.medicalFiles;
