@@ -73,6 +73,11 @@ yarn dev    # Next.js dev server
 yarn build  # Production build
 ```
 
+### Typecheck
+
+- **Dashboard** : `cd dashboard && yarn typecheck`
+- **e2e/** : pas de `tsconfig.json`, pas de typecheck dédié — ne pas tenter `npx tsc` (TypeScript n'est pas installé à la racine, `npx` télécharge alors un package squatteur qui affiche `This is not the tsc command you are looking for`)
+
 ## Test Credentials
 
 For E2E tests and local development:
