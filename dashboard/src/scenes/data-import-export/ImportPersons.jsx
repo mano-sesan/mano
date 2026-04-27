@@ -34,6 +34,7 @@ export default function ImportPersons() {
   const [ignoredFields, setIgnoredFields] = useState([]);
   const [reloadKey, setReloadKey] = useState(0); // because input type 'file' doesn't trigger 'onChange' for uploading twice the same file
   const [duplicateNames, setDuplicateNames] = useState([]);
+  const [personsWithoutTeams, setPersonsWithoutTeams] = useState([]);
 
   const importableFields = useMemo(
     () =>
@@ -97,10 +98,20 @@ export default function ImportPersons() {
       const lastRow = parseInt(personsSheet["!ref"].split(":")[1].replace(/\D+/g, ""), 10);
 
       const nameField = importableFields.find((f) => f.name === "name");
+      const assignedTeamsField = importableFields.find((f) => f.name === "assignedTeams");
 
       if (!headerColumnsAndField.find((e) => e[1]?.name === "name")) {
         toast.error(
           `La colonne "${nameField.label}" est requise. Vérifiez votre fichier pour vous assurer que cette colonne existe et est correctement nommée. Vous pouvez vérifier avec le fichier d'exemple que les colonnes sont bien identiques.`,
+          { autoClose: 5000 }
+        );
+        setReloadKey((k) => k + 1);
+        return;
+      }
+
+      if (!headerColumnsAndField.find((e) => e[1]?.name === "assignedTeams")) {
+        toast.error(
+          `La colonne "${assignedTeamsField.label}" est requise : une personne suivie doit être rattachée à au moins une équipe. Vérifiez votre fichier pour vous assurer que cette colonne existe et est correctement nommée.`,
           { autoClose: 5000 }
         );
         setReloadKey((k) => k + 1);
@@ -151,7 +162,10 @@ export default function ImportPersons() {
 
       setDuplicateNames(duplicates);
 
-      if (duplicates.length) {
+      const missingTeams = persons.filter((p) => !p.assignedTeams?.length).map((p) => p.name);
+      setPersonsWithoutTeams(missingTeams);
+
+      if (duplicates.length || missingTeams.length) {
         setShowImportSummary(true);
         setReloadKey((k) => k + 1);
         return;
@@ -200,20 +214,40 @@ export default function ImportPersons() {
       <ModalContainer open={showImportSummary} onClose={() => setShowImportSummary(false)} size="3xl">
         <ModalHeader title="Résumé de l'import de personnes" onClose={() => setShowImportSummary(false)} />
         <ModalBody className="tw-p-4">
-          {Boolean(duplicateNames.length) ? (
+          {duplicateNames.length || personsWithoutTeams.length ? (
             <>
-              <Alert color="danger">
-                Import impossible : certains noms sont en doublon dans votre fichier ou déjà présents dans Mano. Veuillez modifier ces noms dans votre
-                fichier avant d'importer.
-              </Alert>
-              <p>Liste des noms en doublon :</p>
-              <ul>
-                {duplicateNames.map((name, index) => (
-                  <li key={index}>
-                    <code>{name}</code>
-                  </li>
-                ))}
-              </ul>
+              {Boolean(duplicateNames.length) && (
+                <>
+                  <Alert color="danger">
+                    Import impossible : certains noms sont en doublon dans votre fichier ou déjà présents dans Mano. Veuillez modifier ces noms dans
+                    votre fichier avant d'importer.
+                  </Alert>
+                  <p>Liste des noms en doublon :</p>
+                  <ul>
+                    {duplicateNames.map((name, index) => (
+                      <li key={index}>
+                        <code>{name}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {Boolean(personsWithoutTeams.length) && (
+                <>
+                  <Alert color="danger">
+                    Import impossible : une personne suivie doit être rattachée à au moins une équipe. Vérifiez la colonne « Équipes en charge » de
+                    votre fichier pour les personnes ci-dessous (équipes manquantes ou ne correspondant à aucune équipe de votre organisation).
+                  </Alert>
+                  <p>Liste des personnes sans équipe en charge ({personsWithoutTeams.length}) :</p>
+                  <ul>
+                    {personsWithoutTeams.map((name, index) => (
+                      <li key={index}>
+                        <code>{name}</code>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           ) : (
             <>
