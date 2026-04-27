@@ -167,7 +167,7 @@ const App = () => {
   const navigationRef = useNavigationContainerRef();
   const progress = useAtomValue(progressState);
   const total = useAtomValue(totalState);
-  const { resetMMKVAndAtoms, isFullScreen, isLoading } = useDataLoader();
+  const { resetMMKVAndAtoms, isFullScreen, isLoading, loadingText } = useDataLoader();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const resetOrganisation = useSetAtom(organisationState);
   const resetUser = useSetAtom(userState);
@@ -319,7 +319,7 @@ const App = () => {
             </>
           )}
         </AppStack.Navigator>
-        <ProgressBar loading={isLoading} progress={progress} fullScreen={isFullScreen} total={total} />
+        <ProgressBar isLoading={isLoading} loadingText={loadingText} progress={progress} fullScreen={isFullScreen} total={total} />
         <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>

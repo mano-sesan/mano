@@ -10,11 +10,11 @@ function randomIntFromInterval(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-export default function ProgressBar({ loading, progress, fullScreen, total }) {
+export default function ProgressBar({ isLoading, loadingText, progress, fullScreen, total }) {
   const picture = useRef([picture1, picture3, picture2][randomIntFromInterval(0, 2)]);
   const percent = progress > -1 && total > -1 ? progress / total : 0.01;
 
-  if (!loading) return null;
+  if (!isLoading) return null;
 
   return (
     <SafeAreaView
@@ -31,7 +31,7 @@ export default function ProgressBar({ loading, progress, fullScreen, total }) {
           source={picture.current}
         />
       )}
-      <MyText className="text-white p-1.5">{loading}</MyText>
+      <MyText className="text-white p-1.5">{loadingText}</MyText>
       <View
         className={["w-full h-2", fullScreen ? "w-3/4 rounded-lg border border-white overflow-hidden m-3" : ""].join(" ")}
         fullScreen={fullScreen}

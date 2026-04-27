@@ -47,7 +47,7 @@ const Login = ({ navigation }: Props) => {
   const setDeletedUsers = useSetAtom(deletedUsersState);
   const setCurrentTeam = useSetAtom(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
-  const { startInitialLoad, resetMMKVAndAtoms } = useDataLoader();
+  const { startInitialLoad, cleanupLoader, resetMMKVAndAtoms } = useDataLoader();
 
   const isFocused = useIsFocused();
 
@@ -213,7 +213,7 @@ const Login = ({ navigation }: Props) => {
           navigation.navigate("CHARTE_ACCEPTANCE");
         } else if (response.user?.teams?.length === 1) {
           setCurrentTeam(response.user.teams[0]);
-          startInitialLoad();
+          startInitialLoad().then(() => cleanupLoader());
           navigation.getParent()?.navigate("TABS_STACK");
         } else {
           navigation.navigate("TEAM_SELECTION");

@@ -52,7 +52,7 @@ function setMMKVCacheItem(key: string, value: any) {
 export function useDataLoader() {
   const [fullScreen, setFullScreen] = useAtom(fullScreenState);
   const [isLoading, setIsLoading] = useAtom(isLoadingState);
-  const setLoadingText = useSetAtom(loadingTextState);
+  const [loadingText, setLoadingText] = useAtom(loadingTextState);
   const setInitialLoadIsDone = useSetAtom(initialLoadIsDoneState);
   const setProgress = useSetAtom(progressState);
   const setTotal = useSetAtom(totalState);
@@ -93,7 +93,9 @@ export function useDataLoader() {
     const latestUser = userResponse.user;
     const latestTeams = userResponse.user.orgTeams;
     const organisationId = latestOrganisation._id;
-    if (organisation?.encryptionLastUpdateAt !== latestOrganisation.encryptionLastUpdateAt) {
+    // Au tout premier login, `organisation` peut encore être `null` dans la closure (l'atom a été setté
+    // mais ce render-ci ne l'a pas encore vu). On ne compare donc qu'en refresh.
+    if (!isStartingInitialLoad && organisation?.encryptionLastUpdateAt !== latestOrganisation.encryptionLastUpdateAt) {
       Alert.alert(
         "Clé de chiffrement modifiée",
         "La clé de chiffrement a changé ou a été régénérée. Veuillez vous déconnecter et vous reconnecter avec la nouvelle clé."
@@ -694,6 +696,7 @@ export function useDataLoader() {
     resetMMKVAndAtoms,
     isLoading: Boolean(isLoading),
     isFullScreen: Boolean(fullScreen),
+    loadingText,
   };
 }
 
