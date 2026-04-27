@@ -92,7 +92,8 @@ const ExcelParser = ({ scrollContainer }: { scrollContainer: MutableRefObject<HT
                   sheetName === "Infos social et médical" ||
                   sheetName === "Dossier médical" ||
                   sheetName === "Consultation" ||
-                  sheetName === "Observation de territoire";
+                  sheetName === "Observation de territoire" ||
+                  sheetName === "Liste des services";
                 return [...columns, withTeams ? "[Nom d'une équipe]" : ""].filter(Boolean).map((col, i) => (
                   <tr key={i}>
                     <td>{sheetName}</td>
@@ -470,7 +471,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
     }
 
     // Check for services
-    if (organisation.groupedServices?.length) {
+    if (organisation.groupedServicesWithTeams?.length) {
       const importedServices = new Set<string>();
       if (workbook.SheetNames.includes("Liste des services")) {
         const sheet = workbook.Sheets["Liste des services"];
@@ -482,10 +483,10 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
         });
       }
       const existingServices: string[] = [];
-      organisation.groupedServices.forEach((group) => {
-        group.services.forEach((service) => {
-          if (!importedServices.has(service.trim())) {
-            existingServices.push(service.trim());
+      organisation.groupedServicesWithTeams.forEach((group) => {
+        (group.services || []).forEach((service) => {
+          if (!importedServices.has(service.name.trim())) {
+            existingServices.push(service.name.trim());
           }
         });
       });
@@ -575,7 +576,8 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       sheetName === "Infos social et médical" ||
       sheetName === "Dossier médical" ||
       sheetName === "Consultation" ||
-      sheetName === "Observation de territoire";
+      sheetName === "Observation de territoire" ||
+      sheetName === "Liste des services";
     if (!workbook.SheetNames.includes(sheetName)) {
       data[sheetName].globalErrors.push(`La feuille ${sheetName} est manquante`);
       continue;
@@ -812,7 +814,7 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
       }
 
       if (sheetName === "Liste des services") {
-        const [service, groupe] = row;
+        const [service, groupe, ...teamsCrossed] = row;
         if (!service) data[sheetName].errors.push({ line: parseInt(key), col: 0, message: `Le nom du service est manquant` });
         if (!groupe) data[sheetName].errors.push({ line: parseInt(key), col: 1, message: `Le nom du groupe est manquant` });
 
@@ -830,7 +832,9 @@ export function processConfigWorkbook(workbook: WorkBook, teams: Array<TeamInsta
           }
         }
 
-        data[sheetName].data.push(trimAllValues({ service, groupe }));
+        const enabledTeams: Array<TeamInstance> = teamsCrossed.map((teamCrossed, index) => (teamCrossed ? teams[index] : null)).filter(Boolean);
+        data[sheetName].data.push(trimAllValues({ service, groupe, enabledTeams }));
+        data[sheetName].withTeams = true;
       }
 
       if (sheetName === "Catégories d action") {
@@ -1084,18 +1088,29 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
         (acc, curr) => {
           const service = curr.service as string;
           const groupe = curr.groupe as string;
+          const enabledTeamIds = (curr.enabledTeams as TeamInstance[]).map((t) => t._id);
+          const serviceItem = {
+            name: service,
+            // Convention identique aux champs perso : tableau d'équipes vide ⇒ activé pour toute l'org.
+            enabled: !enabledTeamIds.length,
+            enabledTeams: enabledTeamIds,
+          };
           const groupeIndex = acc.findIndex((e) => e.groupTitle === groupe);
 
           if (groupeIndex === -1) {
-            acc.push({ groupTitle: groupe, services: [service] });
+            acc.push({ groupTitle: groupe, services: [serviceItem] });
           } else {
-            acc[groupeIndex].services.push(service);
+            acc[groupeIndex].services.push(serviceItem);
           }
           return acc;
         },
-        [] as { groupTitle: string; services: string[] }[]
+        [] as { groupTitle: string; services: { name: string; enabled: boolean; enabledTeams: string[] }[] }[]
       );
-      if (services.length) updatedOrganisation.groupedServices = services;
+      if (services.length) {
+        // Le backend accepte la nouvelle structure et l'écrira dans `groupedServicesWithTeams`.
+        // On envoie via la clé legacy `groupedServices` car l'endpoint l'attend toujours sous ce nom.
+        updatedOrganisation.groupedServices = services as unknown as OrganisationInstance["groupedServices"];
+      }
     }
 
     if (sheetName === "Catégories d action") {
@@ -1156,7 +1171,7 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   const groupedCustomFieldsMedicalFile = organisation.groupedCustomFieldsMedicalFile;
   const consultationFields = organisation.consultations;
   const groupedCustomFieldsObs = organisation.groupedCustomFieldsObs;
-  const groupedServices = organisation.groupedServices;
+  const groupedServicesWithTeams = organisation.groupedServicesWithTeams || [];
   const actionsGroupedCategories = organisation.actionsGroupedCategories;
 
   // Création de chaque onglet
@@ -1243,9 +1258,17 @@ export function createWorkbookForDownload(organisation: OrganisationInstance, te
   utils.book_append_sheet(
     workbook,
     utils.aoa_to_sheet([
-      ["Liste des services", "Groupe"],
-      ...groupedServices.reduce((acc, curr) => {
-        return [...acc, ...curr.services.map((e: string) => [e, curr.groupTitle])];
+      ["Liste des services", "Groupe", ...teams.map((t) => t.name)],
+      ...groupedServicesWithTeams.reduce((acc, curr) => {
+        return [
+          ...acc,
+          ...(curr.services || []).map((service) => [
+            service.name,
+            curr.groupTitle,
+            // `service.enabled === true` ⇒ activé pour toute l'org : aucune cellule d'équipe cochée.
+            ...teams.map((t) => (!service.enabled && (service.enabledTeams || []).includes(t._id) ? "X" : "")),
+          ]),
+        ];
       }, [] as string[][]),
     ]),
     "Liste des services"

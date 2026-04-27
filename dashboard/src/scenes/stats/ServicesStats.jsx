@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { dayjsInstance } from "../../services/date";
 import { useLocalStorage } from "../../services/useLocalStorage";
 import SelectCustom from "../../components/SelectCustom";
-import { servicesSelector } from "../../atoms/reports";
+import { isServiceVisibleForTeam, servicesSelector } from "../../atoms/reports";
 
 const ServicesStats = ({
   period,
@@ -19,8 +19,26 @@ const ServicesStats = ({
 }) => {
   const groupedServices = useAtomValue(servicesSelector);
   const allServices = useMemo(() => {
-    return groupedServices.reduce((services, group) => [...services, ...group.services], []);
+    return groupedServices.reduce((services, group) => [...services, ...(group.services || []).map((s) => s.name)], []);
   }, [groupedServices]);
+
+  // Un service est "actif" pour la sélection courante si au moins une équipe sélectionnée le voit.
+  // Sinon on l'affiche quand même mais avec une mention "(désactivé)" pour ne pas perdre les comptages
+  // historiques de la légende.
+  const inactiveServices = useMemo(() => {
+    if (!teamIds?.length) return new Set();
+    const inactive = new Set();
+    for (const group of groupedServices) {
+      for (const service of group.services || []) {
+        const visible = teamIds.some((teamId) => isServiceVisibleForTeam(service, teamId));
+        if (!visible) inactive.add(service.name);
+      }
+    }
+    return inactive;
+  }, [groupedServices, teamIds]);
+
+  const labelForService = (name) => (inactiveServices.has(name) ? `${name} (désactivé)` : name);
+
   const [localGroupFilter, setLocalGroupFilter] = useLocalStorage("stats-servicesGroupFilter", []);
   const [localFilter, setLocalFilter] = useLocalStorage("stats-servicesFilter", []);
   const servicesGroupFilter = propsGroupFilter !== undefined ? propsGroupFilter : localGroupFilter;
@@ -60,7 +78,7 @@ const ServicesStats = ({
     if (!servicesGroupFilter?.length) return servicesToConsider;
     const servicesToHide = groupedServices.reduce((services, group) => {
       if (servicesGroupFilter.includes(group.groupTitle)) return services;
-      return [...services, ...group.services];
+      return [...services, ...(group.services || []).map((s) => s.name)];
     }, []);
     return servicesToConsider.filter((service) => !servicesToHide.includes(service));
   }, [servicesFilter, allServices, servicesGroupFilter, groupedServices]);
@@ -70,11 +88,12 @@ const ServicesStats = ({
     return servicesFiltered?.map((service) => {
       return {
         id: service,
-        label: service,
+        label: labelForService(service),
         value: servicesFromDatabase[service] || 0,
       };
     });
-  }, [servicesFiltered, servicesFromDatabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [servicesFiltered, servicesFromDatabase, inactiveServices]);
 
   const groupsData = useMemo(() => {
     if (!servicesFromDatabase) return [];
@@ -82,9 +101,9 @@ const ServicesStats = ({
       .filter((group) => !servicesGroupFilter?.length || servicesGroupFilter.includes(group.groupTitle))
       .map((group) => {
         let totalServices = 0;
-        for (const service of group.services) {
-          if (!servicesFiltered.includes(service)) continue;
-          totalServices = totalServices + (servicesFromDatabase[service] || 0);
+        for (const service of group.services || []) {
+          if (!servicesFiltered.includes(service.name)) continue;
+          totalServices = totalServices + (servicesFromDatabase[service.name] || 0);
         }
         return {
           id: group.groupTitle,
@@ -121,8 +140,8 @@ const ServicesStats = ({
             </label>
             <div className="tw-basis-[500px]">
               <SelectCustom
-                value={servicesFilter?.map((_option) => ({ value: _option, label: _option })) || []}
-                options={allServices.map((_option) => ({ value: _option, label: _option }))}
+                value={servicesFilter?.map((_option) => ({ value: _option, label: labelForService(_option) })) || []}
+                options={allServices.map((_option) => ({ value: _option, label: labelForService(_option) }))}
                 getOptionValue={(s) => s.value}
                 getOptionLabel={(s) => s.label}
                 onChange={(services) => setServicesFilter(services.map((s) => s.value))}

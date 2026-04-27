@@ -4,21 +4,43 @@ import { organisationState } from "./auth";
 import { dateRegex, looseUuidRegex } from "../utils";
 import { toast } from "react-toastify";
 import type { ReportInstance, ReadyToEncryptReportInstance } from "../types/report";
+import type { ServiceGroup, ServiceItem } from "../types/organisation";
 import { encryptItem } from "../services/encryption";
 import { atomWithCache } from "../store";
 
 const collectionName = "report";
 export const reportsState = atomWithCache<ReportInstance[]>(collectionName, []);
 
-export const servicesSelector = atom((get) => {
+export const servicesSelector = atom<ServiceGroup[]>((get) => {
   const organisation = get(organisationState);
-  return organisation?.groupedServices || [];
+  return organisation?.groupedServicesWithTeams || [];
 });
 
-export const flattenedServicesSelector = atom((get) => {
+export const flattenedServicesSelector = atom<ServiceItem[]>((get) => {
   const groupedServices = get(servicesSelector);
-  return groupedServices.reduce((allServices, { services }) => [...allServices, ...services], []);
+  return groupedServices.reduce<ServiceItem[]>((allServices, { services }) => [...allServices, ...(services || [])], []);
 });
+
+// Garde un service si lui-même est marqué activé pour toute l'org ou s'il est explicitement listé
+// pour cette équipe — comportement strictement aligné sur le pattern des champs personnalisés.
+export function isServiceVisibleForTeam(service: ServiceItem, teamId: string | null | undefined): boolean {
+  if (!service) return false;
+  if (service.enabled) return true;
+  if (!teamId) return false;
+  return Array.isArray(service.enabledTeams) && service.enabledTeams.includes(teamId);
+}
+
+// Filtre une config de services pour une équipe donnée. Les groupes qui finissent vides après
+// filtrage sont supprimés pour ne pas pollués les onglets vides côté UI.
+export function filterServicesForTeam(groupedServices: ServiceGroup[], teamId: string | null | undefined): ServiceGroup[] {
+  if (!Array.isArray(groupedServices)) return [];
+  return groupedServices
+    .map((group) => ({
+      ...group,
+      services: (group.services || []).filter((service) => isServiceVisibleForTeam(service, teamId)),
+    }))
+    .filter((group) => group.services.length > 0);
+}
 
 const encryptedFields = ["description", "team", "date", "collaborations", "updatedBy"];
 
