@@ -14,13 +14,17 @@ const excludeFields = new Set([
 ]);
 const isObject = (variable) => typeof variable === "object" && variable !== null && !Array.isArray(variable);
 
-// Une recherche est considérée comme un numéro de téléphone si elle ne contient
-// que des chiffres et des séparateurs courants (+, -, ., /, (), espaces) et qu'elle
-// comporte au moins 6 chiffres — au-dessus du seuil des codes postaux (5 chiffres).
+// Une recherche est considérée comme un numéro de téléphone si :
+// - elle ne contient que des chiffres et des séparateurs courants (+, -, ., /, (), espaces) ;
+// - elle commence par 0 ou + (les numéros français hors préfixe international commencent par 0,
+//   le reste par +33/0033) — exclut numéros de dossier, sécu sociale, codes postaux accolés ;
+// - elle comporte au moins 9 chiffres — exclut les dates type 01/01/2024 (8 chiffres).
 const PHONE_LIKE_REGEX = /^[\s+\-./()\d]+$/;
 const looksLikePhoneNumber = (search) => {
   if (!PHONE_LIKE_REGEX.test(search)) return false;
-  return search.replace(/\D/g, "").length >= 6;
+  const trimmed = search.trim();
+  if (!trimmed.startsWith("0") && !trimmed.startsWith("+")) return false;
+  return search.replace(/\D/g, "").length >= 9;
 };
 // Numéros français uniquement : on convertit le préfixe international 0033/+33 en 0.
 const normalizePhoneSearch = (search) => {
