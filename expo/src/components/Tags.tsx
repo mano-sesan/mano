@@ -111,4 +111,9 @@ const TagInput = styled(MyTextInput)`
   height: 20px;
 `;
 
+export const MyTextForTags = styled(MyText)`
+  border-width: 1px;
+  border-color: transparent;
+`;
+
 export default Tags;

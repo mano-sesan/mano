@@ -7,7 +7,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import Button from "../../components/Button";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import Label from "../../components/Label";
-import Tags from "../../components/Tags";
+import Tags, { MyTextForTags } from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { currentTeamState, userState } from "../../atoms/auth";
 import { rencontresState, prepareRencontreForEncryption } from "../../atoms/rencontres";
@@ -221,7 +221,7 @@ const NewRencontreForm = ({
             onChange={setRencontrePersons}
             editable={canChangePerson}
             onAddRequest={onSearchPerson}
-            renderTag={(person) => <MyText>{person?.name}</MyText>}
+            renderTag={(person) => <MyTextForTags>{person?.name}</MyTextForTags>}
           />
           <DateAndTimeInput
             label="Date"

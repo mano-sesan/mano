@@ -11,7 +11,7 @@ import InputFromSearchList from "../../components/InputFromSearchList";
 import DateAndTimeInput from "../../components/DateAndTimeInput";
 import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import Label from "../../components/Label";
-import Tags from "../../components/Tags";
+import Tags, { MyTextForTags } from "../../components/Tags";
 import { MyText } from "../../components/MyText";
 import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
@@ -336,7 +336,7 @@ const NewActionForm = ({
                   onChange={setActionPersons}
                   editable
                   onAddRequest={onSearchPerson}
-                  renderTag={(person) => <MyText>{person?.name}</MyText>}
+                  renderTag={(person) => <MyTextForTags>{person?.name}</MyTextForTags>}
                 />
               </>
             )}

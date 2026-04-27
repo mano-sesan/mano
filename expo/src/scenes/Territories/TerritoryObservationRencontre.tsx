@@ -8,7 +8,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import ScrollContainer from "../../components/ScrollContainer";
 import Label from "../../components/Label";
 import { MyText } from "../../components/MyText";
-import Tags from "../../components/Tags";
+import Tags, { MyTextForTags } from "../../components/Tags";
 import { RencontreInstance } from "@/types/rencontre";
 import { PersonInstance } from "@/types/person";
 
@@ -44,7 +44,7 @@ const TerritoryObservationRencontre = ({
               }}
               editable
               onAddRequest={onSearchPerson}
-              renderTag={(person) => <MyText>{person?.name}</MyText>}
+              renderTag={(person) => <MyTextForTags>{person?.name}</MyTextForTags>}
             />
           </>
           <DateAndTimeInput

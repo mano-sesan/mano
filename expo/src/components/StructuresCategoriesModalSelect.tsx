@@ -4,7 +4,7 @@ import { TouchableOpacity, View, ScrollView, Modal } from "react-native";
 import Label from "./Label";
 import { MyText } from "./MyText";
 import Row from "./Row";
-import Tags from "./Tags";
+import Tags, { MyTextForTags } from "./Tags";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 import ScrollContainer from "./ScrollContainer";
@@ -55,7 +55,7 @@ const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }: St
         onChange={onChange}
         editable={editable}
         onAddRequest={() => setOpen(true)}
-        renderTag={(category) => <MyText>{category}</MyText>}
+        renderTag={(category) => <MyTextForTags>{category}</MyTextForTags>}
       />
       <Modal animationType="fade" visible={!!open} onRequestClose={() => setOpen(false)}>
         <SceneContainer>
@@ -68,7 +68,7 @@ const StructuresCategoriesModalSelect = ({ values = [], onChange, editable }: St
                 disableAdd
                 onChange={onChange}
                 editable
-                renderTag={(category) => <MyText>{category}</MyText>}
+                renderTag={(category) => <MyTextForTags>{category}</MyTextForTags>}
                 className="min-h-0 m-0"
               />
             </ScrollView>
