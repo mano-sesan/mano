@@ -120,11 +120,25 @@ const ConsultationsSettings = () => {
 
   const onDragAndDrop = useCallback(
     async (newConsultationFields) => {
-      const flattenFields = consultationFields.reduce((allFields, type) => [...allFields, ...type.fields], []);
-      newConsultationFields = newConsultationFields.map((group) => ({
-        name: group.groupTitle,
-        fields: group.items.map((customFieldName) => flattenFields.find((f) => f.name === customFieldName)),
-      }));
+      // Plusieurs types de consultation peuvent contenir un champ avec le même `name`
+      // (typiquement le `description` historiquement présent par défaut dans Psychologique/Infirmier/Médicale).
+      // On cherche donc d'abord dans le groupe d'origine, puis on retombe sur les autres groupes
+      // pour gérer le cas (rare) d'un drag inter-groupes.
+      newConsultationFields = newConsultationFields.map((newGroup) => {
+        const originalGroupFields = consultationFields.find((g) => g.name === newGroup.groupTitle)?.fields || [];
+        const otherGroupsFields = consultationFields
+          .filter((g) => g.name !== newGroup.groupTitle)
+          .reduce((acc, type) => [...acc, ...type.fields], []);
+        return {
+          name: newGroup.groupTitle,
+          fields: newGroup.items
+            .map(
+              (customFieldName) =>
+                originalGroupFields.find((f) => f.name === customFieldName) || otherGroupsFields.find((f) => f.name === customFieldName)
+            )
+            .filter(Boolean),
+        };
+      });
       const [error, res] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/organisation/${organisation._id}`,
