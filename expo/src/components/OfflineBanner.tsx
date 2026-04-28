@@ -6,7 +6,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MyText } from "./MyText";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { offlineQueueCountState } from "@/services/offlineQueue";
-import { processQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
+import { useProcessQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { RootStackParamList } from "@/types/navigation";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -16,6 +16,7 @@ const OfflineBanner = () => {
   const queueCount = useAtomValue(offlineQueueCountState);
   const syncStatus = useAtomValue(syncStatusState);
   const conflicts = useAtomValue(conflictsState);
+  const processQueue = useProcessQueue();
 
   if (!offlineMode && queueCount === 0 && conflicts.length === 0) return null;
 

@@ -4,6 +4,7 @@ import { atomWithCache } from "@/utils/atomWithCache";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
+import { useDataLoader } from "./dataLoader";
 
 export type Conflict = {
   entityType: string;
@@ -23,81 +24,77 @@ export const syncProgressState = atom<{ current: number; total: number }>({ curr
 
 let isSyncing = false;
 
-export async function processQueue(): Promise<void> {
-  if (isSyncing) return;
-  const offlineMode = store.get(offlineModeState);
-  if (offlineMode) return;
+export function useProcessQueue() {
+  const { refresh } = useDataLoader();
+  return async function processQueue(): Promise<void> {
+    if (isSyncing) return;
+    const offlineMode = store.get(offlineModeState);
+    if (offlineMode) return;
 
-  isSyncing = true;
-  store.set(syncStatusState, "syncing");
+    isSyncing = true;
+    store.set(syncStatusState, "syncing");
 
-  try {
-    // Step 1: Check auth
-    const authCheck = await API.get({ path: "/check-auth" });
-    if (!authCheck.ok) {
-      // Token expired — the existing handleLogoutError will show the re-login prompt
-      store.set(syncStatusState, "error");
-      isSyncing = false;
-      return;
-    }
-
-    // Step 2: Check if there are items to process
-    const queue = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "failed");
-    if (queue.length === 0) {
-      store.set(syncStatusState, "idle");
-      isSyncing = false;
-      return;
-    }
-
-    // Step 3: Pull first — trigger incremental sync to get latest server state
-    await pullSync();
-
-    // Step 4: Process queue items
-    store.set(syncProgressState, { current: 0, total: queue.length });
-
-    for (let i = 0; i < queue.length; i++) {
-      const item = queue[i];
-      store.set(syncProgressState, { current: i + 1, total: queue.length });
-
-      // For PUT/DELETE: detect conflicts by checking updatedAt
-      if ((item.method === "PUT" || item.method === "DELETE") && item.entityUpdatedAt) {
-        const conflict = await detectConflict(item);
-        if (conflict) {
-          updateQueueItemStatus(item.id, { status: "conflict" });
-          const conflicts = store.get(conflictsState);
-          store.set(conflictsState, [...conflicts, conflict]);
-          continue;
-        }
-      }
-
-      // Process the mutation
-      const success = await processMutation(item);
-      if (!success) {
-        // Stop processing on hard failure
+    try {
+      // Step 1: Check auth
+      const authCheck = await API.get({ path: "/check-auth" });
+      if (!authCheck.ok) {
+        // Token expired — the existing handleLogoutError will show the re-login prompt
         store.set(syncStatusState, "error");
         isSyncing = false;
         return;
       }
+
+      // Step 2: Check if there are items to process
+      const queue = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "failed");
+      if (queue.length === 0) {
+        store.set(syncStatusState, "idle");
+        isSyncing = false;
+        return;
+      }
+
+      // Step 3: Pull first — trigger incremental sync to get latest server state
+      await refresh();
+
+      // Step 4: Process queue items
+      store.set(syncProgressState, { current: 0, total: queue.length });
+
+      for (let i = 0; i < queue.length; i++) {
+        const item = queue[i];
+        store.set(syncProgressState, { current: i + 1, total: queue.length });
+
+        // For PUT/DELETE: detect conflicts by checking updatedAt
+        if ((item.method === "PUT" || item.method === "DELETE") && item.entityUpdatedAt) {
+          const conflict = await detectConflict(item);
+          if (conflict) {
+            updateQueueItemStatus(item.id, { status: "conflict" });
+            const conflicts = store.get(conflictsState);
+            store.set(conflictsState, [...conflicts, conflict]);
+            continue;
+          }
+        }
+
+        // Process the mutation
+        const success = await processMutation(item);
+        if (!success) {
+          // Stop processing on hard failure
+          store.set(syncStatusState, "error");
+          isSyncing = false;
+          return;
+        }
+      }
+
+      // Step 4: Final sync to confirm state
+      await refresh();
+
+      store.set(syncStatusState, "idle");
+      store.set(syncProgressState, { current: 0, total: 0 });
+    } catch (error) {
+      console.warn("[syncProcessor] error:", error);
+      store.set(syncStatusState, "error");
+    } finally {
+      isSyncing = false;
     }
-
-    // Step 4: Final sync to confirm state
-    await pullSync();
-
-    store.set(syncStatusState, "idle");
-    store.set(syncProgressState, { current: 0, total: 0 });
-  } catch (error) {
-    console.warn("[syncProcessor] error:", error);
-    store.set(syncStatusState, "error");
-  } finally {
-    isSyncing = false;
-  }
-}
-
-// TODO: refactor the loader to simply await it
-async function pullSync(): Promise<void> {
-  return new Promise<void>((resolve) => {
-    // TODO
-  });
+  };
 }
 
 async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {

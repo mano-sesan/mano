@@ -40,7 +40,7 @@ import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
 import { startNetworkListener } from "./services/network";
 import { initQueue, clearQueue } from "./services/offlineQueue";
-import { processQueue } from "./services/syncProcessor";
+import { useProcessQueue } from "./services/syncProcessor";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
@@ -182,6 +182,7 @@ const App = () => {
   const [_, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
   const [resetLoginStackKey, setResetLoginStackKey] = useState(0);
   const clearAllRef = useRef(false);
+  const processQueue = useProcessQueue();
 
   useEffect(() => {
     // Initialize offline infrastructure
