@@ -82,7 +82,6 @@ export const itemsGroupedByPersonSelector = atom((get) => {
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
       ageInMonths: ageFromBirthdateAsMonths(person.birthdate),
-      formattedPhoneNumber: person.phone ? normalizePhoneSearch(person.phone) : undefined,
       interactions,
       assignedTeamsPeriods,
       lastUpdateCheckForGDPR: person.followedSince,
