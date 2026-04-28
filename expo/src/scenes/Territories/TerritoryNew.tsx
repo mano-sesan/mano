@@ -44,7 +44,7 @@ const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
 
   const onCreateTerritory = async () => {
     setPosting(true);
-    const response = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ name, user: user?._id }) });
+    const response = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ name, user: user?._id }), entityType: "territory" });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);

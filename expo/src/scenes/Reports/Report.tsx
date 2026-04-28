@@ -139,10 +139,13 @@ const Report = ({ navigation, route }: Props) => {
       ? await API.put({
           path: `/report/${reportDB?._id}`,
           body: prepareReportForEncryption({ ...reportDB, ...report, updatedBy: user._id }),
+          entityType: "report",
+          entityId: reportDB?._id,
         })
       : await API.post({
           path: "/report",
           body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
+          entityType: "report",
         });
     if (response.error) {
       setUpdating(false);

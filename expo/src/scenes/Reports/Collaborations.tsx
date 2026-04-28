@@ -57,7 +57,12 @@ const Collaborations = ({ route, navigation }: Props) => {
   const onCreateCollaboration = useCallback(async () => {
     setPosting(true);
     const newCollaborations = [...new Set([...collaborations, collaboration])];
-    const response = await API.put({ path: `/organisation/${organisation._id}/collaborations`, body: { collaborations: newCollaborations } });
+    const response = await API.put({
+      path: `/organisation/${organisation._id}/collaborations`,
+      body: { collaborations: newCollaborations },
+      entityType: "organisation",
+      entityId: organisation._id,
+    });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);
@@ -77,10 +82,13 @@ const Collaborations = ({ route, navigation }: Props) => {
       ? await API.put({
           path: `/report/${reportDB?._id}`,
           body: prepareReportForEncryption({ ...reportDB, collaborations, updatedBy: user._id }),
+          entityType: "report",
+          entityId: reportDB?._id,
         })
       : await API.post({
           path: "/report",
           body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations, updatedBy: user._id }),
+          entityType: "report",
         });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {

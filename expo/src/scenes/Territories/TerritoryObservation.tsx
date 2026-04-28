@@ -221,6 +221,7 @@ const TerritoryObservation = ({
         const response = await API.post({
           path: "/rencontre",
           body: prepareRencontreForEncryption({ ...rencontre, person: person._id, observation: obsId }),
+          entityType: "rencontre",
         });
         if (response.error) {
           Alert.alert(response.error);
@@ -245,6 +246,7 @@ const TerritoryObservation = ({
           organisation: organisation._id,
         })
       ),
+      entityType: "territory-observation",
     });
     if (response.code || response.error) {
       setUpdating(false);
@@ -275,6 +277,8 @@ const TerritoryObservation = ({
           organisation: organisation._id,
         })
       ),
+      entityType: "territory-observation",
+      entityId: obsDB._id,
     });
     if (response.error) {
       setUpdating(false);
@@ -308,7 +312,7 @@ const TerritoryObservation = ({
   const [deleting, setDeleting] = useState(false);
   const onDelete = async () => {
     setDeleting(true);
-    const response = await API.delete({ path: `/territory-observation/${obsDB._id}` });
+    const response = await API.delete({ path: `/territory-observation/${obsDB._id}`, entityType: "territory-observation", entityId: obsDB._id });
     setDeleting(false);
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {

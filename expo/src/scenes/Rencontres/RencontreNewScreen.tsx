@@ -160,6 +160,7 @@ const NewRencontreForm = ({
       const response = await API.post({
         path: "/rencontre",
         body: prepareRencontreForEncryption(rencontre),
+        entityType: "rencontre",
       });
 
       if (!response.ok) {

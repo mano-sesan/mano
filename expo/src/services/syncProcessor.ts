@@ -209,6 +209,8 @@ export async function resolveConflict(queueItemId: string, resolvedBody: Record<
       const res = await API.put({
         path: `/${conflict.entityType}/${conflict.entityId}`,
         body: resolvedBody,
+        entityType: conflict.entityType,
+        entityId: conflict.entityId,
       });
       if (!res?.ok) {
         console.warn("[syncProcessor] resolveConflict PUT failed:", res?.error);

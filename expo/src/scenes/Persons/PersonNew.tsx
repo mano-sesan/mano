@@ -71,6 +71,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await API.post({
       path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
+      entityType: "person",
     });
     if (response.ok) {
       await refresh();

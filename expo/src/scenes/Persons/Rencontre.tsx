@@ -53,6 +53,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
     const response = await API.post({
       path: "/rencontre",
       body: prepareRencontreForEncryption(rencontre),
+      entityType: "rencontre",
     });
     if (response.ok) {
       await refresh();
@@ -65,6 +66,8 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
     const response = await API.put({
       path: `/rencontre/${rencontre._id}`,
       body: prepareRencontreForEncryption(rencontre),
+      entityType: "rencontre",
+      entityId: rencontre._id,
     });
     if (response.ok) {
       await refresh();

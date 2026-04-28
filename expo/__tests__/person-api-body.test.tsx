@@ -6,7 +6,9 @@ import { Provider, createStore } from "jotai";
 
 jest.mock("react-native-mmkv", () => ({
   MMKV: class {
-    getString() { return undefined; }
+    getString() {
+      return undefined;
+    }
     set() {}
     delete() {}
     clearAll() {}
@@ -42,14 +44,18 @@ jest.mock("@react-navigation/native", () => ({
   useIsFocused: () => true,
   useFocusEffect: (cb: () => void) => {
     const React = require("react");
-    React.useEffect(() => { cb(); }, []);
+    React.useEffect(() => {
+      cb();
+    }, []);
   },
 }));
 
 jest.mock("@react-navigation/native-stack", () => ({
   createNativeStackNavigator: () => ({
     Navigator: ({ children }: any) => <>{children}</>,
-    Screen: ({ children }: any) => <>{typeof children === "function" ? children({ navigation: { push: jest.fn(), goBack: jest.fn() } }) : children}</>,
+    Screen: ({ children }: any) => (
+      <>{typeof children === "function" ? children({ navigation: { push: jest.fn(), goBack: jest.fn() } }) : children}</>
+    ),
   }),
 }));
 
@@ -101,7 +107,10 @@ jest.mock("@/utils/alert-create-comment", () => ({
 }));
 
 // Global polyfill
-(globalThis as any).requestIdleCallback = (cb: () => void) => { cb(); return 1; };
+(globalThis as any).requestIdleCallback = (cb: () => void) => {
+  cb();
+  return 1;
+};
 
 // ── Imports (after mocks) ──────────────────────────────────────
 import { personsState } from "@/recoil/persons";
@@ -115,7 +124,7 @@ import { treatmentsState } from "@/recoil/treatments";
 import { medicalFileState } from "@/recoil/medicalFiles";
 import { relsPersonPlaceState } from "@/recoil/relPersonPlace";
 import { groupsState } from "@/recoil/groups";
-import { offlineModeState } from "@/recoil/offlineMode";
+import { offlineModeState } from "@/atoms/offlineMode";
 import PersonStackNavigator from "@/scenes/Persons/Person";
 import API from "@/services/api";
 
@@ -251,7 +260,7 @@ describe("Person → API.put body", () => {
     render(
       <Provider store={testStore}>
         <PersonStackNavigator navigation={navigation} route={route} />
-      </Provider>,
+      </Provider>
     );
   }
 

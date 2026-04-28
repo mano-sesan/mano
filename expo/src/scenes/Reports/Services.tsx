@@ -36,12 +36,14 @@ function IncrementorSmall({
     function updateServiceInDatabase(_value) {
       if (_value === initialValue) return;
 
-      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: _value, service: service.service } }).then((res) => {
-        if (res.error) {
-          return Alert.alert("Erreur lors de la mise à jour du service");
+      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: _value, service: service.service }, offlineEnabled: false }).then(
+        (res) => {
+          if (res.error) {
+            return Alert.alert("Erreur lors de la mise à jour du service");
+          }
+          onUpdated(res.data.count);
         }
-        onUpdated(res.data.count);
-      });
+      );
     },
     500,
     { maxWait: 4000 }

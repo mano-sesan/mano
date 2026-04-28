@@ -53,6 +53,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
     const response = await API.post({
       path: "/passage",
       body: preparePassageForEncryption(passage),
+      entityType: "passage",
     });
     if (response.ok) {
       await refresh();
@@ -65,6 +66,8 @@ const Passage = ({ navigation, route }: PassageProps) => {
     const response = await API.put({
       path: `/passage/${passage._id}`,
       body: preparePassageForEncryption(passage),
+      entityType: "passage",
+      entityId: passage._id,
     });
     if (response.ok) {
       await refresh();

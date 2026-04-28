@@ -55,7 +55,7 @@ const PassageRow = ({ onUpdate, passage, itemName, onItemNamePress }: PassageRow
   };
 
   const onPassageDelete = async () => {
-    const response = await API.delete({ path: `/passage/${passage._id}` });
+    const response = await API.delete({ path: `/passage/${passage._id}`, entityType: "passage", entityId: passage._id });
     if (!response.ok) return Alert.alert(response.error);
     await refresh();
   };

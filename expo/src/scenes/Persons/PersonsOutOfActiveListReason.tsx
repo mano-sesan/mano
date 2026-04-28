@@ -52,6 +52,8 @@ const PersonsOutOfActiveListReason = ({ onBack, person }: PersonsOutOfActiveList
     const response = await API.put({
       path: `/person/${person._id}`,
       body: preparePersonForEncryption(newPerson),
+      entityType: "person",
+      entityId: person._id,
     });
     if (response.ok) {
       await refresh();

@@ -86,6 +86,7 @@ class ApiService {
     debug = false,
     batch = null,
     entityType = null,
+    entityId = null,
     offlineEnabled = true,
   } = {}) => {
     try {
@@ -108,14 +109,28 @@ class ApiService {
         if (offlineMode && offlineEnabled !== false) {
           if (method === "POST") {
             body = { ...body, _id: uuidv4() };
+            entityId = body._id;
           }
-          const entityId = body._id;
+          if (!entityId) {
+            Alert.alert(
+              "Impossible d'effectuer cette action hors-ligne",
+              "Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement"
+            );
+            return { ok: false, error: "Entity ID not found" };
+          }
+          if (!entityType) {
+            Alert.alert(
+              "Impossible d'effectuer cette action hors-ligne",
+              "Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement"
+            );
+            return { ok: false, error: "Entity type not found" };
+          }
           const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
           const item = enqueue({
             method: method,
             path: path,
             decryptedBody: body,
-            entityType: entityType || this._extractEntityType(path),
+            entityType,
             entityId,
             entityUpdatedAt: updatedAt,
           });
@@ -252,12 +267,6 @@ class ApiService {
   // Raw execute for sync processor — body is already the pre-encryption payload
   executeRaw = async ({ method, path, body }) => {
     return this.execute({ method, path, body });
-  };
-
-  _extractEntityType = (path) => {
-    // Extract entity type from path like "/person" or "/person/uuid"
-    const parts = path.split("/").filter(Boolean);
-    return parts[0] || "unknown";
   };
 
   // Download a file from a path.

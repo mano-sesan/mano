@@ -100,6 +100,8 @@ const Structure = ({ navigation, route }: Props) => {
     const response = await API.put({
       path: `/structure/${structureDB._id}`,
       body: castToStructure(structure),
+      entityType: "structure",
+      entityId: structureDB._id,
     });
     if (response.error) {
       setUpdating(false);
@@ -123,7 +125,7 @@ const Structure = ({ navigation, route }: Props) => {
 
   const onDelete = async () => {
     setUpdating(true);
-    const response = await API.delete({ path: `/structure/${structureDB._id}` });
+    const response = await API.delete({ path: `/structure/${structureDB._id}`, entityType: "structure", entityId: structureDB._id });
     if (response.error) {
       setUpdating(false);
       Alert.alert(response.error);

@@ -373,7 +373,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                   return;
                 }
                 setIsDeleting(true);
-                await API.delete({ path: deletePath });
+                await API.delete({ path: deletePath, offlineEnabled: false });
                 onDelete(document);
               },
             },

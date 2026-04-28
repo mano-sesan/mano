@@ -97,7 +97,11 @@ const TerritoryObservationRow = ({ onUpdate, observation, territoryToShow, onTer
   };
 
   const onObservationDelete = async () => {
-    const response = await API.delete({ path: `/territory-observation/${observation._id}` });
+    const response = await API.delete({
+      path: `/territory-observation/${observation._id}`,
+      entityType: "territory-observation",
+      entityId: observation._id,
+    });
     if (response.error) return Alert.alert(response.error);
     if (response.ok) {
       await refresh();

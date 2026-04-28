@@ -243,6 +243,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
         completedAt: null,
         history: [],
       }),
+      entityType: "consultation",
     });
     if (!response.ok) {
       Alert.alert("Impossible de dupliquer !");
@@ -311,8 +312,8 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
       });
 
       const consultationResponse = isNew
-        ? await API.post({ path: "/consultation", body })
-        : await API.put({ path: `/consultation/${consultationDB._id}`, body });
+        ? await API.post({ path: "/consultation", body, entityType: "consultation" })
+        : await API.put({ path: `/consultation/${consultationDB._id}`, body, entityType: "consultation", entityId: consultationDB._id });
       if (!consultationResponse.ok) return false;
 
       await refresh();
@@ -366,7 +367,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
 
   const onDelete = async () => {
     setDeleting(true);
-    const response = await API.delete({ path: `/consultation/${consultationDB._id}` });
+    const response = await API.delete({ path: `/consultation/${consultationDB._id}`, entityType: "consultation", entityId: consultationDB._id });
     if (!response.ok) {
       Alert.alert(response.error);
       return;

@@ -200,6 +200,8 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const response = await API.put({
       path: `/person/${personDB._id}`,
       body: preparePersonForEncryption(personToUpdate),
+      entityType: "person",
+      entityId: personDB._id,
     });
     if (response.error) {
       Alert.alert(response.error);
@@ -323,7 +325,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     body.treatmentIdsToDelete = treatments.filter((c) => c.person === personDB._id).map((c) => c._id);
     body.medicalFileIdsToDelete = medicalFiles.filter((c) => c.person === personDB._id).map((c) => c._id);
 
-    const personRes = await API.delete({ path: `/person/${personDB._id}`, body });
+    const personRes = await API.delete({ path: `/person/${personDB._id}`, body, entityType: "person", entityId: personDB._id });
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
       await refresh();

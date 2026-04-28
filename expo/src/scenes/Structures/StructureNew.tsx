@@ -45,6 +45,7 @@ const StructureNew = ({ navigation, route }: Props) => {
     const response = await API.post({
       path: "/structure",
       body: { name },
+      entityType: "structure",
     });
     if (response.error) {
       setPosting(false);

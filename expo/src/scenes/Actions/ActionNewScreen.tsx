@@ -12,11 +12,10 @@ import DateAndTimeInput from "../../components/DateAndTimeInput";
 import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import Label from "../../components/Label";
 import Tags, { MyTextForTags } from "../../components/Tags";
-import { MyText } from "../../components/MyText";
 import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import API from "../../services/api";
-import { offlineModeState } from "@/recoil/offlineMode";
+import { offlineModeState } from "@/atoms/offlineMode";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../atoms/groups";
@@ -192,6 +191,7 @@ const NewActionForm = ({
         const recurrenceResponse = await API.post({
           path: "/recurrence",
           body: recurrenceDataWithDates,
+          entityType: "recurrence",
         });
         if (!recurrenceResponse.ok) {
           setPosting(false);

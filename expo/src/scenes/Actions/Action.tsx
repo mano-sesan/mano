@@ -271,6 +271,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       const response = await API.put({
         path: `/action/${oldAction._id}`,
         body: prepareActionForEncryption(action as ActionInstance),
+        entityType: "action",
+        entityId: oldAction._id,
       });
       if (!response?.ok) return response;
       await refresh();
@@ -364,7 +366,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
         team: c.team || currentTeam._id,
         organisation: c.organisation,
       };
-      await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+      await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
     }
     Sentry.setContext("action", { _id: response.decryptedData._id });
     backRequestHandledRef.current = true;
@@ -398,6 +400,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       body: {
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
+      entityType: "action",
+      entityId: id,
     });
     if (res.ok) await refresh();
     return res;
@@ -819,7 +823,7 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                 ...newComment,
                 action: actionDB?._id,
               };
-              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
               if (!response.ok) {
                 Alert.alert(response.error || response.code);
                 return false;
@@ -838,7 +842,7 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
             comment={comment}
             canToggleUrgentCheck
             onDelete={async () => {
-              const response = await API.delete({ path: `/comment/${comment._id}` });
+              const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
               if (response.error) {
                 Alert.alert(response.error);
                 return false;
@@ -853,6 +857,8 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                     const response = await API.put({
                       path: `/comment/${comment._id}`,
                       body: prepareCommentForEncryption(commentUpdated),
+                      entityType: "comment",
+                      entityId: comment._id,
                     });
                     if (response.error) {
                       Alert.alert(response.error);

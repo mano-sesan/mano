@@ -1,5 +1,5 @@
 import { store } from "@/store";
-import { offlineModeState } from "@/recoil/offlineMode";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { enqueue, offlineQueueState, loadQueueFromStorage, type QueuedMutation } from "@/services/offlineQueue";
 import { processQueue, conflictsState, syncStatusState } from "@/services/syncProcessor";
 
@@ -51,7 +51,7 @@ vi.mock("@/components/Loader", async () => {
       if (update.status) {
         Promise.resolve().then(() => set(base, defaultVal));
       }
-    },
+    }
   );
   return { refreshTriggerState };
 });
