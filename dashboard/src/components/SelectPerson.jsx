@@ -6,7 +6,12 @@ import { formatDateWithFullMonth } from "../services/date";
 
 const sortedPersonsByNameSelector = atom((get) => {
   const persons = get(personsState);
-  return [...persons].sort(sortPersons("name", "ASC"));
+  // Personnes sorties de file active en fin de liste : on est plus susceptible de sélectionner des personnes encore suivies.
+  return [...persons].sort((a, b) => {
+    const outDiff = Number(Boolean(a.outOfActiveList)) - Number(Boolean(b.outOfActiveList));
+    if (outDiff !== 0) return outDiff;
+    return sortPersons("name", "ASC")(a, b);
+  });
 });
 
 const SelectPerson = ({
