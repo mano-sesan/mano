@@ -1,6 +1,6 @@
 // Pour l'historique git, avant le code était ici : dashboard/src/components/DataLoader.jsx
 import { Alert } from "react-native";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { atom, useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useMMKVNumber } from "react-native-mmkv";
 
 import { personsState } from "../atoms/persons";
@@ -25,6 +25,8 @@ import { storage } from "./storage";
 import API from "./api";
 import { capture } from "./sentry";
 import { decryptDBItem } from "./encryption";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { rehydrateOptimisticUpdates } from "./offlineOptimistic";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -77,6 +79,7 @@ export function useDataLoader() {
   const setConsultations = useSetAtom(consultationsState);
   const setTreatments = useSetAtom(treatmentsState);
   const setMedicalFiles = useSetAtom(medicalFileState);
+  const offlineMode = useAtomValue(offlineModeState);
 
   const [lastRefresh, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
 
@@ -84,6 +87,19 @@ export function useDataLoader() {
     setIsLoading(true);
     setFullScreen(isStartingInitialLoad);
     setLoadingText(isStartingInitialLoad ? "Chargement des données" : "Mise à jour des données");
+
+    // Offline cold boot: skip server fetches, rely on atoms already hydrated from MMKV by Navigators mount.
+    // Re-apply queue items on top so pending offline mutations remain visible.
+    if (offlineMode) {
+      rehydrateOptimisticUpdates();
+      setLoadingText("En attente de rafraichissement");
+      setInitialLoadIsDone(true);
+      if (!isStartingInitialLoad) {
+        setProgress(-1);
+        setTotal(-1);
+      }
+      return true;
+    }
 
     const lastLoadValue = lastRefresh ?? 0;
 
@@ -633,6 +649,9 @@ export function useDataLoader() {
     }
 
     setLastRefresh(serverDate);
+    // Re-layer pending offline mutations on top of freshly-synced server data.
+    // Server-confirmed items (matched by _id) win via mergeItems; still-pending items remain visible with `_pendingSync`.
+    rehydrateOptimisticUpdates();
     setLoadingText("En attente de rafraichissement");
     // On ne reset pas les valeurs de progress et total si on est en initial load
     // Car on le fait après la redirection pour éviter un flash de chargement

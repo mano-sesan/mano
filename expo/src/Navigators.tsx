@@ -41,6 +41,7 @@ import API from "./services/api";
 import { startNetworkListener } from "./services/network";
 import { initQueue, clearQueue } from "./services/offlineQueue";
 import { useProcessQueue } from "./services/syncProcessor";
+import { hydrateAtomsFromMMKV, rehydrateOptimisticUpdates } from "./services/offlineOptimistic";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
@@ -187,6 +188,8 @@ const App = () => {
   useEffect(() => {
     // Initialize offline infrastructure
     initQueue();
+    hydrateAtomsFromMMKV();
+    rehydrateOptimisticUpdates();
     const unsubscribeNetworkListener = startNetworkListener();
 
     logEvents.initLogEvents().then(() => {

@@ -33,6 +33,7 @@ import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { enqueue } from "./offlineQueue";
+import { applyMutationToAtoms } from "./offlineOptimistic";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -108,8 +109,8 @@ class ApiService {
           if (method === "POST") {
             body = { ...body, _id: uuidv4() };
           }
-          const entityId = body._id || uuidv4();
-          const updatedAt = method === "PUT" ? body.updatedAt || undefined : undefined;
+          const entityId = body._id;
+          const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
           const item = enqueue({
             method: method,
             path: path,
@@ -118,6 +119,7 @@ class ApiService {
             entityId,
             entityUpdatedAt: updatedAt,
           });
+          applyMutationToAtoms(item);
           // Return optimistic response
           return Promise.resolve({
             ok: true,
