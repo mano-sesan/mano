@@ -26,7 +26,7 @@ const looksLikePhoneNumber = (search) => {
   return search.replace(/\D/g, "").length >= 9;
 };
 // Numéros français uniquement : on convertit le préfixe international 0033/+33 en 0.
-const normalizePhoneSearch = (search) => {
+export const normalizePhoneSearch = (search) => {
   let digits = search.replace(/\D/g, "");
   if (digits.startsWith("0033")) digits = "0" + digits.slice(4);
   else if (digits.startsWith("33") && digits.length === 11) digits = "0" + digits.slice(2);
