@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
 import InputLabelled from "../../components/InputLabelled";
@@ -21,12 +20,13 @@ import TreatmentRow from "../../components/TreatmentRow";
 import DocumentsManager from "../../components/DocumentsManager";
 import { flattenedCustomFieldsPersonsSelector } from "../../atoms/persons";
 import CommentRow from "../Comments/CommentRow";
-import NewCommentInput from "../Comments/NewCommentInput";
+import CommentModal from "../Comments/CommentModal";
+import { buildEmptyComment } from "../Comments/buildEmptyComment";
 import { Alert } from "react-native";
 import { itemsGroupedByPersonSelector } from "../../atoms/selectors";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
-import { alertCreateComment } from "../../utils/alert-create-comment";
+import { CommentInstance } from "@/types/comment";
 import { RootStackParamList } from "@/types/navigation";
 import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
@@ -91,7 +91,15 @@ const MedicalFile = ({
 
   const medicalFileDB = populatedPerson.medicalFile;
   const [medicalFile, setMedicalFile] = useState(populatedPerson.medicalFile);
-  const [writingComment, setWritingComment] = useState("");
+  const [newCommentModalVisible, setNewCommentModalVisible] = useState(false);
+  const [newCommentDB, setNewCommentDB] = useState<CommentInstance>(() =>
+    buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "medical-file" })
+  );
+
+  const openNewCommentModal = () => {
+    setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "medical-file" }));
+    setNewCommentModalVisible(true);
+  };
 
   useEffect(() => {
     if (!medicalFileDB) {
@@ -247,18 +255,12 @@ const MedicalFile = ({
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [consultations, defaultDocuments, medicalFile, treatments, user._id, defaultDocumentsIds]);
 
-  const newCommentRef = useRef(null);
-
   const isMedicalFileUpdateDisabled = useMemo(() => {
     if (JSON.stringify(medicalFileDB) !== JSON.stringify(medicalFile)) return false;
     return true;
   }, [medicalFileDB, medicalFile]);
 
   const onGoBackRequested = async () => {
-    if (writingComment.length) {
-      const goToNextStep = await alertCreateComment();
-      if (!goToNextStep) return;
-    }
     if (isMedicalFileUpdateDisabled) return onBack();
     Alert.alert("Voulez-vous enregistrer ?", undefined, [
       {
@@ -425,6 +427,7 @@ const MedicalFile = ({
         <SubList
           label="Commentaires"
           key={medicalFileDB?._id ?? "" + allMedicalComments.length}
+          onAdd={openNewCommentModal}
           data={allMedicalComments}
           renderItem={(comment) => (
             <CommentRow
@@ -474,20 +477,25 @@ const MedicalFile = ({
             />
           )}
           ifEmpty="Pas encore de commentaire"
-        >
-          <NewCommentInput
-            forwardRef={newCommentRef}
-            onCommentWrite={setWritingComment}
-            onCreate={async (newComment) => {
-              const newComments = [{ ...newComment, type: "medical-file", _id: uuidv4() }, ...(medicalFile!.comments || [])];
-              const medicalFileToSave = { ...medicalFile!, comments: newComments };
-              setMedicalFile(medicalFileToSave); // optimistic UI
-              // need to pass comments as parameters if we want last comment to be taken into account
-              // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-              return await onUpdateRequest(medicalFileToSave);
-            }}
-          />
-        </SubList>
+        />
+        <CommentModal
+          key={newCommentDB._id}
+          visible={newCommentModalVisible}
+          commentDB={newCommentDB}
+          title="Nouveau commentaire"
+          submitCaption="Créer"
+          successMessage="Commentaire créé !"
+          canToggleShareComment
+          onClose={() => setNewCommentModalVisible(false)}
+          onUpdate={async (newComment) => {
+            const newComments = [{ ...newComment, type: "medical-file" }, ...(medicalFile!.comments || [])];
+            const medicalFileToSave = { ...medicalFile!, comments: newComments };
+            setMedicalFile(medicalFileToSave); // optimistic UI
+            // need to pass comments as parameters if we want last comment to be taken into account
+            // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+            return await onUpdateRequest(medicalFileToSave);
+          }}
+        />
         <SubList
           label="Traitements"
           onAdd={() => onGoToTreatment()}

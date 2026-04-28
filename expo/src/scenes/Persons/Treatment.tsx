@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Keyboard, KeyboardAvoidingView, View } from "react-native";
 import { useAtomValue } from "jotai";
-import { v4 as uuidv4 } from "uuid";
 import ScrollContainer from "../../components/ScrollContainer";
 import SceneContainer from "../../components/SceneContainer";
 import ScreenTitle from "../../components/ScreenTitle";
@@ -15,13 +14,13 @@ import Spacer from "../../components/Spacer";
 import Label from "../../components/Label";
 import ButtonDelete from "../../components/ButtonDelete";
 import ButtonsContainer from "../../components/ButtonsContainer";
-import { userState } from "../../atoms/auth";
+import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import SubList from "../../components/SubList";
 import CommentRow from "../Comments/CommentRow";
-import NewCommentInput from "../Comments/NewCommentInput";
+import CommentModal from "../Comments/CommentModal";
+import { buildEmptyComment } from "../Comments/buildEmptyComment";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
-import { alertCreateComment } from "../../utils/alert-create-comment";
 import { RootStackParamList } from "@/types/navigation";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { CommentInstance } from "@/types/comment";
@@ -37,6 +36,8 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
   const treatmentDB = route?.params?.treatmentDB;
   const isNew = !treatmentDB?._id;
   const user = useAtomValue(userState)!;
+  const currentTeam = useAtomValue(currentTeamState)!;
+  const organisation = useAtomValue(organisationState)!;
 
   const [name, setName] = useState(treatmentDB?.name || "");
   const [dosage, setDosage] = useState(treatmentDB?.dosage || "");
@@ -48,7 +49,15 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
   const [comments, setComments] = useState((treatmentDB?.comments || []) as CommentInstance[]);
   const [posting, setPosting] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [writingComment, setWritingComment] = useState("");
+  const [newCommentModalVisible, setNewCommentModalVisible] = useState(false);
+  const [newCommentDB, setNewCommentDB] = useState<CommentInstance>(() =>
+    buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "treatment" })
+  );
+
+  const openNewCommentModal = () => {
+    setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "treatment" }));
+    setNewCommentModalVisible(true);
+  };
 
   const backRequestHandledRef = useRef(false);
   const handleBeforeRemove = (e: any) => {
@@ -141,10 +150,6 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
   };
 
   const onGoBackRequested = async () => {
-    if (writingComment.length) {
-      const goToNextStep = await alertCreateComment();
-      if (!goToNextStep) return;
-    }
     if (isDisabled) return onBack();
     Alert.alert("Voulez-vous enregistrer ce traitement ?", undefined, [
       {
@@ -192,7 +197,6 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
     onBack();
   };
   const scrollViewRef = useRef(null);
-  const newCommentRef = useRef(null);
   return (
     <SceneContainer testID="new-treatment-form">
       <ScreenTitle
@@ -264,6 +268,7 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
           <SubList
             label="Commentaires"
             key={treatmentDB?._id}
+            onAdd={openNewCommentModal}
             data={comments}
             renderItem={(comment) => (
               <CommentRow
@@ -289,22 +294,26 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
               />
             )}
             ifEmpty="Pas encore de commentaire"
-          >
-            <NewCommentInput
-              forwardRef={newCommentRef}
-              onCommentWrite={setWritingComment}
-              onCreate={(newComment) => {
-                const newComments: CommentInstance[] = [{ ...newComment, type: "treatment", _id: uuidv4() }, ...comments];
-                setComments(newComments); // optimistic UI
-                // need to pass comments as parameters if we want last comment to be taken into account
-                // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                return onSaveTreatment({
-                  goBackOnSave: false,
-                  comments: newComments,
-                });
-              }}
-            />
-          </SubList>
+          />
+          <CommentModal
+            key={newCommentDB._id}
+            visible={newCommentModalVisible}
+            commentDB={newCommentDB}
+            title="Nouveau commentaire"
+            submitCaption="Créer"
+            successMessage="Commentaire créé !"
+            onClose={() => setNewCommentModalVisible(false)}
+            onUpdate={async (newComment) => {
+              const newComments: CommentInstance[] = [{ ...newComment, type: "treatment" }, ...comments];
+              setComments(newComments); // optimistic UI
+              // need to pass comments as parameters if we want last comment to be taken into account
+              // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+              return onSaveTreatment({
+                goBackOnSave: false,
+                comments: newComments,
+              });
+            }}
+          />
         </ScrollContainer>
       </KeyboardAvoidingView>
     </SceneContainer>

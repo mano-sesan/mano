@@ -29,11 +29,11 @@ import ButtonDelete from "../../components/ButtonDelete";
 import InputFromSearchList from "../../components/InputFromSearchList";
 import CommentRow from "../Comments/CommentRow";
 import SubList from "../../components/SubList";
-import NewCommentInput from "../Comments/NewCommentInput";
 import { useDataLoader } from "@/services/dataLoader";
+import CommentModal from "../Comments/CommentModal";
+import { buildEmptyComment } from "../Comments/buildEmptyComment";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
-import { alertCreateComment } from "../../utils/alert-create-comment";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ConsultationStackParams, RootStackParamList } from "@/types/navigation";
 import { ConsultationInstance } from "@/types/consultation";
@@ -186,9 +186,17 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
   const { refresh } = useDataLoader();
 
   const isNew = !consultationDB?._id;
-  const [writingComment, setWritingComment] = useState("");
 
   const [posting, setPosting] = useState(false);
+  const [newCommentModalVisible, setNewCommentModalVisible] = useState(false);
+  const [newCommentDB, setNewCommentDB] = useState<CommentInstance>(() =>
+    buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "consultation" })
+  );
+
+  const openNewCommentModal = () => {
+    setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "consultation" }));
+    setNewCommentModalVisible(true);
+  };
   const [editable, setEditable] = useState(!!isNew);
   const [deleting, setDeleting] = useState(false);
 
@@ -381,10 +389,6 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
   };
 
   const onGoBackRequested = async () => {
-    if (writingComment.length) {
-      const goToNextStep = await alertCreateComment();
-      if (!goToNextStep) return;
-    }
     if (isDisabled) return onBack();
     Alert.alert("Voulez-vous enregistrer cette consultation ?", undefined, [
       {
@@ -406,7 +410,6 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
   };
 
   const scrollViewRef = useRef<ScrollView>(null);
-  const newCommentRef = useRef<View>(null);
 
   const canEditAllFields = useMemo(() => {
     return ["normal", "admin"].includes(user.role);
@@ -568,6 +571,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                 <SubList
                   label="Commentaires"
                   key={consultationDB?._id}
+                  onAdd={openNewCommentModal}
                   data={consultation.comments as CommentInstance[]}
                   renderItem={(comment) => (
                     <CommentRow
@@ -602,25 +606,29 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                     />
                   )}
                   ifEmpty="Pas encore de commentaire"
-                >
-                  <NewCommentInput
-                    forwardRef={newCommentRef}
-                    onCommentWrite={setWritingComment}
-                    onCreate={async (newComment) => {
-                      const consultationToSave = {
-                        ...consultation,
-                        comments: [{ ...newComment, type: "consultation", _id: uuidv4() }, ...(consultation.comments || [])],
-                      };
-                      setConsultation(consultationToSave); // optimistic UI
-                      if (!isNew) {
-                        // need to pass `consultationToSave` if we want last comment to be taken into account
-                        // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
-                        return await onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
-                      }
-                      return true;
-                    }}
-                  />
-                </SubList>
+                />
+                <CommentModal
+                  key={newCommentDB._id}
+                  visible={newCommentModalVisible}
+                  commentDB={newCommentDB}
+                  title="Nouveau commentaire"
+                  submitCaption="Créer"
+                  successMessage="Commentaire créé !"
+                  onClose={() => setNewCommentModalVisible(false)}
+                  onUpdate={async (newComment) => {
+                    const consultationToSave = {
+                      ...consultation,
+                      comments: [{ ...newComment, type: "consultation" }, ...(consultation.comments || [])],
+                    };
+                    setConsultation(consultationToSave); // optimistic UI
+                    if (!isNew) {
+                      // need to pass `consultationToSave` if we want last comment to be taken into account
+                      // https://react.dev/reference/react/useState#ive-updated-the-state-but-logging-gives-me-the-old-value
+                      return await onSaveConsultationRequest({ goBackOnSave: false, consultationToSave });
+                    }
+                    return true;
+                  }}
+                />
               </>
             )}
           </View>

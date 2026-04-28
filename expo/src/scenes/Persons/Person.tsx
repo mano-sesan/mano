@@ -29,7 +29,6 @@ import { medicalFileState } from "../../atoms/medicalFiles";
 import { groupsState, prepareGroupForEncryption } from "../../atoms/groups";
 import isEqual from "react-fast-compare";
 import { isEmptyValue } from "../../utils";
-import { alertCreateComment } from "../../utils/alert-create-comment";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PersonInstance } from "@/types/person";
 import PersonsOutOfActiveListReason from "./PersonsOutOfActiveListReason";
@@ -130,7 +129,6 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   );
 
   const [person, setPerson] = useState(castToPerson(personDB));
-  const [writingComment, setWritingComment] = useState("");
   const [editable, setEditable] = useState(route?.params?.editable || false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -348,10 +346,6 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
   };
 
   const onGoBackRequested = async () => {
-    if (writingComment.length) {
-      const goToNextStep = await alertCreateComment();
-      if (!goToNextStep) return;
-    }
     if (isUpdateDisabled) return onBack();
     Alert.alert("Voulez-vous enregistrer les mises-à-jour sur cette personne ?", undefined, [
       {
@@ -404,7 +398,6 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
                     backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
                     onChange={onChange}
                     onUpdatePerson={onUpdatePerson}
-                    onCommentWrite={setWritingComment}
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onBack={onBack}
@@ -447,7 +440,6 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
               backgroundColor={!person?.outOfActiveList ? colors.app.color : colors.app.colorBackgroundDarkGrey}
               onChange={onChange}
               onUpdatePerson={onUpdatePerson}
-              onCommentWrite={setWritingComment}
               onEdit={onEdit}
               onDelete={onDelete}
               onBack={onBack}
