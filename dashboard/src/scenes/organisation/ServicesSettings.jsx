@@ -29,7 +29,7 @@ const ServicesSettings = () => {
       const [error, response] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/service/update-configuration`,
-          body: { groupedServices: newGroupedServices },
+          body: { groupedServicesWithTeams: newGroupedServices },
         })
       );
       if (error) {
@@ -99,7 +99,7 @@ const ServicesSettings = () => {
       const [error, response] = await tryFetchExpectOk(async () =>
         API.put({
           path: `/service/update-configuration`,
-          body: { groupedServices: rebuilt },
+          body: { groupedServicesWithTeams: rebuilt },
         })
       );
       if (!error) {
@@ -159,7 +159,7 @@ const AddService = ({ groupTitle }) => {
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
         path: `/service/update-configuration`,
-        body: { groupedServices: newGroupedServices },
+        body: { groupedServicesWithTeams: newGroupedServices },
       })
     );
     if (!error) {
@@ -251,7 +251,7 @@ const Service = ({ item: service, groupTitle }) => {
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
         path: `/service/update-configuration`,
-        body: { groupedServices: newGroupedServices },
+        body: { groupedServicesWithTeams: newGroupedServices },
       })
     );
     if (!error) {
@@ -291,7 +291,7 @@ const Service = ({ item: service, groupTitle }) => {
     const [error, response] = await tryFetchExpectOk(async () =>
       API.put({
         path: `/service/update-configuration`,
-        body: { groupedServices: newGroupedServices },
+        body: { groupedServicesWithTeams: newGroupedServices },
       })
     );
     if (!error) {

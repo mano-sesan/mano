@@ -1107,9 +1107,7 @@ export function getUpdatedOrganisationFromWorkbookData(organisation: Organisatio
         [] as { groupTitle: string; services: { name: string; enabled: boolean; enabledTeams: string[] }[] }[]
       );
       if (services.length) {
-        // Le backend accepte la nouvelle structure et l'écrira dans `groupedServicesWithTeams`.
-        // On envoie via la clé legacy `groupedServices` car l'endpoint l'attend toujours sous ce nom.
-        updatedOrganisation.groupedServices = services as unknown as OrganisationInstance["groupedServices"];
+        updatedOrganisation.groupedServicesWithTeams = services;
       }
     }
 
