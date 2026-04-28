@@ -3,7 +3,13 @@ const router = express.Router();
 const passport = require("passport");
 const { z } = require("zod");
 const { Op } = require("sequelize");
-const { looseUuidRegex, dateRegex, groupedServicesPayloadSchema, normalizeGroupedServicesPayload } = require("../utils");
+const {
+  looseUuidRegex,
+  dateRegex,
+  groupedServicesPayloadSchema,
+  groupedServicesWithTeamsSchema,
+  normalizeGroupedServicesPayload,
+} = require("../utils");
 const { catchErrors } = require("../errors");
 const validateEncryptionAndMigrations = require("../middleware/validateEncryptionAndMigrations");
 const { capture } = require("../sentry");
@@ -251,9 +257,18 @@ router.put(
   validateUser("admin"),
   catchErrors(async (req, res, next) => {
     try {
+      // Accept both keys during the transition between the legacy and the new payload shape.
+      // - Old dashboards send `groupedServices` (legacy or new shape, normalised by the helper).
+      // - Newer clients can already send `groupedServicesWithTeams` directly. This anticipates the
+      //   moment when the dashboard switches keys, so a non-atomic deployment between API and
+      //   dashboard does not break either side.
       z.object({
-        groupedServices: groupedServicesPayloadSchema,
+        groupedServices: z.optional(groupedServicesPayloadSchema),
+        groupedServicesWithTeams: z.optional(groupedServicesWithTeamsSchema),
       }).parse(req.body);
+      if (!req.body.hasOwnProperty("groupedServices") && !req.body.hasOwnProperty("groupedServicesWithTeams")) {
+        throw new Error("missing groupedServices or groupedServicesWithTeams");
+      }
     } catch (e) {
       const error = new Error(`Invalid request in services put: ${e}`);
       error.status = 400;
@@ -264,7 +279,8 @@ router.put(
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
 
     try {
-      const groupedServicesWithTeams = normalizeGroupedServicesPayload(req.body.groupedServices || []);
+      const payload = req.body.hasOwnProperty("groupedServicesWithTeams") ? req.body.groupedServicesWithTeams : req.body.groupedServices;
+      const groupedServicesWithTeams = normalizeGroupedServicesPayload(payload || []);
       organisation.set({ groupedServicesWithTeams });
       await organisation.save({
         context: { userId: req.user._id },

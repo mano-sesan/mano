@@ -29,6 +29,8 @@ module.exports = {
         // Derive the new column from the legacy one for rows where the new column is still null.
         // Each legacy entry { groupTitle, services: string[] } becomes
         //   { groupTitle, services: [{ name, enabled: true, enabledTeams: [] }] }
+        // The legacy column itself is left in place (frozen snapshot) and will be dropped in a
+        // later cleanup migration once we have stopped reading from it everywhere.
         await queryInterface.sequelize.query(
           `
           UPDATE mano."Organisation"
@@ -60,15 +62,6 @@ module.exports = {
           `,
           { transaction: t }
         );
-
-        // Drop the legacy column once data has been migrated
-        await queryInterface.sequelize.query(
-          `
-          ALTER TABLE "mano"."Organisation"
-          DROP COLUMN IF EXISTS "groupedServices";
-          `,
-          { transaction: t }
-        );
       } else {
         // Legacy column already absent: just ensure rows have a non-null value for the new column
         await queryInterface.sequelize.query(
@@ -84,6 +77,6 @@ module.exports = {
   },
 
   async down() {
-    // No down migration: legacy column structure is lost on the way up.
+    // No down migration: legacy column is preserved untouched, the new column can be dropped manually if needed.
   },
 };
