@@ -21,7 +21,7 @@ import {
 import { formatBirthDate, formatDateTimeWithNameOfDay, formatDateWithFullMonth, formatDateWithNameOfDay } from "../../services/date";
 import { useDataLoader } from "../../services/dataLoader";
 import { placesState } from "../../atoms/places";
-import { filterBySearch } from "./utils";
+import { filterBySearch, normalizePhoneSearch } from "./utils";
 import { commentsState } from "../../atoms/comments";
 import { passagesState } from "../../atoms/passages";
 import { rencontresState } from "../../atoms/rencontres";
@@ -41,18 +41,19 @@ import PersonName from "../../components/PersonName";
 import { reportsState } from "../../atoms/reports";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
 
-const personsWithFormattedBirthDateSelector = atom((get) => {
+const personsWithFormattedFieldsSelector = atom((get) => {
   const persons = get(personsState);
-  const personsWithBirthdateFormatted = persons.map((person) => ({
+  const personsWithFormattedFields = persons.map((person) => ({
     ...person,
     birthDate: formatBirthDate(person.birthDate),
+    formattedPhoneNumber: person.phone ? normalizePhoneSearch(person.phone) : undefined,
   }));
-  return personsWithBirthdateFormatted;
+  return personsWithFormattedFields;
 });
 
 // Hook to filter persons by search (replaces selectorFamily)
 function usePersonsFilteredBySearch(search) {
-  const persons = useAtomValue(personsWithFormattedBirthDateSelector);
+  const persons = useAtomValue(personsWithFormattedFieldsSelector);
   const personsPopulated = useAtomValue(itemsGroupedByPersonSelector);
   const user = useAtomValue(userState);
   return useMemo(() => {
