@@ -1744,6 +1744,10 @@ router.get(
       z.object({
         id: z.string().regex(looseUuidRegex),
       }).parse(req.params);
+      z.object({
+        page: z.coerce.number().int().min(1).optional(),
+        pageSize: z.coerce.number().int().min(1).max(500).optional(),
+      }).parse(req.query);
     } catch (e) {
       const error = new Error(`Invalid request in organisation logs get: ${e}`);
       error.status = 400;
@@ -1751,6 +1755,8 @@ router.get(
     }
 
     const { id } = req.params;
+    const page = req.query.page ? Number(req.query.page) : 1;
+    const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 100;
 
     const organisation = await Organisation.findOne({ where: { _id: id } });
     if (!organisation) {
@@ -1759,7 +1765,7 @@ router.get(
       return next(error);
     }
 
-    const logs = await OrganisationLog.findAll({
+    const { count, rows } = await OrganisationLog.findAndCountAll({
       where: { organisation: id },
       include: [
         {
@@ -1768,12 +1774,16 @@ router.get(
         },
       ],
       order: [["createdAt", "DESC"]],
-      limit: 100, // Limit to last 100 changes
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
     });
 
     return res.status(200).send({
       ok: true,
-      data: logs,
+      data: rows,
+      total: count,
+      page,
+      pageSize,
     });
   })
 );

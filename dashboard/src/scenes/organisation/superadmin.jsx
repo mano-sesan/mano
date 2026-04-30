@@ -742,9 +742,13 @@ const Create = ({ onChange, open, setOpen }) => {
   );
 };
 
+const LOGS_PAGE_SIZE = 100;
+
 const RawDataModal = ({ open, setOpen, organisation }) => {
   const [organisationData, setOrganisationData] = useState(null);
   const [organisationLogs, setOrganisationLogs] = useState(null);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsTotal, setLogsTotal] = useState(0);
   const [tableSizes, setTableSizes] = useState(null);
   const [showLogs, setShowLogs] = useState(false);
   const [showTableSizes, setShowTableSizes] = useState(false);
@@ -759,6 +763,8 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
       if (response.ok) {
         setOrganisationData(response.data);
         setOrganisationLogs(null);
+        setLogsPage(1);
+        setLogsTotal(0);
         setTableSizes(null);
         setShowLogs(false);
         setShowTableSizes(false);
@@ -767,22 +773,28 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
     })();
   }, [organisation]);
 
-  const fetchLogs = async () => {
-    if (!organisation?._id || organisationLogs) return;
+  const fetchLogs = async (page = 1) => {
+    if (!organisation?._id) return;
     setLoadingLogs(true);
     try {
-      const [error, response] = await tryFetchExpectOk(async () => API.get({ path: `/organisation/${organisation._id}/logs` }));
+      const [error, response] = await tryFetchExpectOk(async () =>
+        API.get({ path: `/organisation/${organisation._id}/logs`, query: { page, pageSize: LOGS_PAGE_SIZE } })
+      );
       if (error) {
         toast.error(errorMessage(error));
         return;
       }
       setOrganisationLogs(response.data);
+      setLogsTotal(response.total ?? response.data.length);
+      setLogsPage(response.page ?? page);
     } catch (_err) {
       toast.error("Erreur lors du chargement des logs");
     } finally {
       setLoadingLogs(false);
     }
   };
+
+  const totalLogsPages = Math.max(1, Math.ceil(logsTotal / LOGS_PAGE_SIZE));
 
   const fetchTableSizes = async () => {
     if (!organisation?._id || tableSizes) return;
@@ -802,12 +814,17 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
   };
 
   const handleToggleLogs = () => {
-    if (!showLogs) {
-      fetchLogs();
+    if (!showLogs && !organisationLogs) {
+      fetchLogs(1);
     }
     setShowLogs(!showLogs);
     setShowTableSizes(false);
     setIsDiffMode(false);
+  };
+
+  const goToLogsPage = (page) => {
+    if (page < 1 || page > totalLogsPages || page === logsPage) return;
+    fetchLogs(page);
   };
 
   const handleToggleTableSizes = () => {
@@ -998,9 +1015,42 @@ const RawDataModal = ({ open, setOpen, organisation }) => {
                     </div>
                   )}
                 </div>
-              ) : organisationLogs && organisationLogs.length === 0 ? (
+              ) : organisationLogs && organisationLogs.length === 0 && logsPage === 1 ? (
                 <div className="tw-text-center tw-text-gray-500 tw-py-8">Aucune modification enregistrée pour cette organisation.</div>
               ) : null}
+              {organisationLogs && logsTotal > LOGS_PAGE_SIZE && (
+                <div className="tw-flex tw-items-center tw-justify-between tw-gap-2 tw-mt-4 tw-text-sm">
+                  <div className="tw-text-gray-600">
+                    Page {logsPage} / {totalLogsPages} — {logsTotal} modification{logsTotal > 1 ? "s" : ""} au total
+                  </div>
+                  <div className="tw-flex tw-gap-2">
+                    <button
+                      type="button"
+                      className="tw-px-3 tw-py-1 tw-rounded tw-text-sm tw-bg-gray-200 tw-text-gray-800 disabled:tw-opacity-50"
+                      onClick={() => goToLogsPage(1)}
+                      disabled={loadingLogs || logsPage === 1}
+                    >
+                      « Début
+                    </button>
+                    <button
+                      type="button"
+                      className="tw-px-3 tw-py-1 tw-rounded tw-text-sm tw-bg-gray-200 tw-text-gray-800 disabled:tw-opacity-50"
+                      onClick={() => goToLogsPage(logsPage - 1)}
+                      disabled={loadingLogs || logsPage === 1}
+                    >
+                      ‹ Précédente
+                    </button>
+                    <button
+                      type="button"
+                      className="tw-px-3 tw-py-1 tw-rounded tw-text-sm tw-bg-gray-200 tw-text-gray-800 disabled:tw-opacity-50"
+                      onClick={() => goToLogsPage(logsPage + 1)}
+                      disabled={loadingLogs || logsPage >= totalLogsPages}
+                    >
+                      Suivante ›
+                    </button>
+                  </div>
+                </div>
+              )}
               {loadingLogs && <div className="tw-text-center tw-text-gray-500 tw-py-8">Chargement des logs...</div>}
             </div>
           )}
