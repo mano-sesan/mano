@@ -181,8 +181,8 @@ const Login = ({ navigation }: Props) => {
         return;
       }
       if (showEncryptionKeyInput) {
-        await setOrgEncryptionKey(encryptionKey.trim());
-        const keyIsValid = await checkEncryptedVerificationKey(response.user.organisation.encryptedVerificationKey, encryptionKey.trim());
+        const hashedOrgEncryptionKey = await setOrgEncryptionKey(encryptionKey.trim());
+        const keyIsValid = await checkEncryptedVerificationKey(response.user.organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
         if (!keyIsValid) {
           resetOrgEncryptionKey();
           Alert.alert(

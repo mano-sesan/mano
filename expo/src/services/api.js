@@ -1,6 +1,6 @@
 import URI from "urijs";
 import { HOST, SCHEME, VERSION } from "../config";
-import { encryptFile, decryptFile, decryptDBItem, encryptItem } from "./encryption";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
@@ -213,7 +213,7 @@ class ApiService {
     }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
-    const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
+    const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
     // In your download method around line 269-276
     const cacheDir = FileSystem.Paths.cache;
 
@@ -234,7 +234,7 @@ class ApiService {
   // Upload a file to a path.
   upload = async ({ file, path }) => {
     // Prepare file.
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
     // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
 
