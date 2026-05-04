@@ -21,7 +21,7 @@ export function getHashedOrgEncryptionKey() {
 
 export const setOrgEncryptionKey = async (orgEncryptionKey) => {
   hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
-  return orgEncryptionKey;
+  return hashedOrgEncryptionKey;
 };
 
 export const resetOrgEncryptionKey = () => {
