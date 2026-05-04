@@ -244,7 +244,28 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
 
 const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
   const allGroupedServices = useAtomValue(servicesSelector);
-  const groupedServices = useMemo(() => filterServicesForTeam(allGroupedServices, team?._id), [allGroupedServices, team?._id]);
+  // On filtre par équipe pour la saisie courante, mais on rajoute les services qui ont des
+  // comptages historiques même s'ils ne sont plus activés pour cette équipe : sinon l'utilisateur
+  // ne peut plus revoir ni corriger ces anciennes saisies sur un rapport rétrospectif.
+  const groupedServices = useMemo(() => {
+    const visible = filterServicesForTeam(allGroupedServices, team?._id);
+    const visibleNames = new Set(visible.flatMap((g) => (g.services || []).map((s) => s.name)));
+    const orphanNames = Object.keys(services || {}).filter((name) => Number(services[name]) > 0 && !visibleNames.has(name));
+    if (!orphanNames.length) return visible;
+    const result = visible.map((g) => ({ ...g, services: [...(g.services || [])] }));
+    for (const name of orphanNames) {
+      const sourceGroup = allGroupedServices.find((g) => (g.services || []).some((s) => s.name === name));
+      const sourceService = sourceGroup?.services.find((s) => s.name === name) || { name, enabled: false, enabledTeams: [] };
+      const groupTitle = sourceGroup?.groupTitle ?? "Anciens services";
+      let target = result.find((g) => g.groupTitle === groupTitle);
+      if (!target) {
+        target = { groupTitle, services: [] };
+        result.push(target);
+      }
+      target.services.push(sourceService);
+    }
+    return result;
+  }, [allGroupedServices, team?._id, services]);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
 
   useEffect(() => {
