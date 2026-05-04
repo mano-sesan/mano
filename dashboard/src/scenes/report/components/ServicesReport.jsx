@@ -242,7 +242,11 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
   );
 }
 
-const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
+// Référence stable pour la valeur par défaut, sinon `{}` recrée un nouvel objet à chaque render
+// et invalide le `useMemo` ci-dessous quand `services` est `undefined`.
+const EMPTY_SERVICES = {};
+
+const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = EMPTY_SERVICES, onUpdateServices: setServices }) => {
   const allGroupedServices = useAtomValue(servicesSelector);
   // On filtre par équipe pour la saisie courante, mais on rajoute les services qui ont des
   // comptages historiques même s'ils ne sont plus activés pour cette équipe : sinon l'utilisateur
