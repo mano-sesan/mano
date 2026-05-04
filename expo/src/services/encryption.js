@@ -238,10 +238,10 @@ const decryptDBItem = async (item, { path } = {}) => {
     //     path,
     //   },
     // });
-    Alert.alert(
-      "Désolé, un élément n'a pas pu être déchiffré",
-      "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
-    );
+    // Alert.alert(
+    //   "Désolé, un élément n'a pas pu être déchiffré",
+    //   "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
+    // );
   }
   return item;
 };
