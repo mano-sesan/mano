@@ -18,24 +18,3 @@ export const initCacheAndcheckIfExpired = () => {
   storage.set("mano-currentCacheKey", appCurrentCacheKey);
 };
 initCacheAndcheckIfExpired();
-
-// Get data from cache or fetch from server.
-export async function getData({
-  collectionName,
-  setProgress = () => {},
-  lastRefresh = 0,
-}: {
-  collectionName: string;
-  setProgress?: (batch: number) => void;
-  lastRefresh?: number;
-}) {
-  const response = await API.get({
-    path: `/${collectionName}`,
-    batch: 5000,
-    setProgress,
-    query: { after: lastRefresh, withDeleted: Boolean(lastRefresh) },
-  });
-  if (!response.ok) throw { message: `Error getting ${collectionName} data`, response };
-
-  return response.decryptedData;
-}
