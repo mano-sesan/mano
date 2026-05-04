@@ -48,8 +48,8 @@ router.get("/version", async (req, res) => {
       `La nouvelle version ${MOBILE_APP_VERSION} de Mano est disponible !`,
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
-- On peut créer un commentaire médical partagé comme sur la version web.
-- Quelques bugs corrigés : filtre par âge, champs oui/non en mode sombre.`,
+- La création des commentaires est revue pour être plus complète.
+- Quelques bugs corrigés : affichage du sélecteur de date, des actégories d'action, des noms de consultation, tri alphabétique des territoires, etc.`,
       [
         { text: "Télécharger", link: downloadLink },
         { text: "Installer", link: installLink },
