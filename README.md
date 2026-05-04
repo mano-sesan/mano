@@ -1,6 +1,6 @@
 # Mano
 
-![Mobile version](https://img.shields.io/badge/mobile%20app%20version-3.22.0-blue)
+![Mobile version](https://img.shields.io/badge/mobile%20app%20version-3.22.1-blue)
 
 Code source de [Mano](https://mano.sesan.fr/), organisé en plusieurs services :
 
