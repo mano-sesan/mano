@@ -1530,16 +1530,25 @@ router.post(
       // ...
 
       // groupedServicesWithTeams
+      // Quand un service du même nom existe dans les deux organisations, on fusionne sa visibilité
+      // de manière conservative : si l'une des deux versions est activée pour toute l'organisation,
+      // on garde l'activation globale ; sinon on prend l'union des `enabledTeams`. Objectif : ne
+      // jamais retirer silencieusement l'accès d'une équipe à un service qu'elle utilisait avant la
+      // fusion.
       const mainGroupedServicesWithTeams = structuredClone(mainOrg.groupedServicesWithTeams) || [];
       const secondaryGroupedServicesWithTeams = structuredClone(secondaryOrg.groupedServicesWithTeams) || [];
       for (const mainGroup of mainGroupedServicesWithTeams) {
         const secondaryGroup = secondaryGroupedServicesWithTeams.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
-        const existingNames = new Set((mainGroup.services || []).map((svc) => svc.name));
         for (const svc of secondaryGroup.services || []) {
-          if (!existingNames.has(svc.name)) {
+          const existing = (mainGroup.services || []).find((s) => s.name === svc.name);
+          if (!existing) {
             mainGroup.services.push(svc);
-            existingNames.add(svc.name);
+          } else if (svc.enabled || existing.enabled) {
+            existing.enabled = true;
+            existing.enabledTeams = [];
+          } else {
+            existing.enabledTeams = Array.from(new Set([...(existing.enabledTeams || []), ...(svc.enabledTeams || [])]));
           }
         }
       }
