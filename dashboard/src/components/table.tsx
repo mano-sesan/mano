@@ -92,20 +92,14 @@ const Table = <T extends { [key: string]: any } & RootItem>({
   if (!data.length && noData) {
     return (
       <table className={[className, "table-selego"].join(" ")}>
-        <thead>
-          {!!title && (
-            <tr>
-              <td className="title" colSpan={columns.length}>
-                {title}
-              </td>
-            </tr>
-          )}
+        {!!title && <caption className="title">{title}</caption>}
+        <tbody>
           <tr className="tw-cursor-default">
-            <td colSpan={columns.length}>
+            <td colSpan={columns.length || 1}>
               <p className="tw-m-0 tw-mb-5 tw-text-center">{noData}</p>
             </td>
           </tr>
-        </thead>
+        </tbody>
       </table>
     );
   }
@@ -113,14 +107,8 @@ const Table = <T extends { [key: string]: any } & RootItem>({
   if (isDesktop || !renderCellSmallDevices) {
     return (
       <table className={[className, "table-selego"].join(" ")}>
+        {!!title && <caption className="title">{title}</caption>}
         <thead className="tw-hidden sm:tw-table-header-group tw-border-b tw-border-gray-200">
-          {!!title && (
-            <tr>
-              <td tabIndex={0} aria-label={title} className="title" colSpan={columns.length}>
-                {title}
-              </td>
-            </tr>
-          )}
           <tr>
             {withCheckbox && (
               <th scope="col" className="tw-whitespace-nowrap tw-cursor-default">
@@ -141,34 +129,44 @@ const Table = <T extends { [key: string]: any } & RootItem>({
             )}
             {columns.map((column) => {
               const { onSortBy, onSortOrder, sortBy, sortOrder, sortableKey, dataKey } = column;
+              const isActiveSort = !!onSortBy && (sortBy === sortableKey || sortBy === dataKey);
               const onNameClick = () => {
-                if (sortBy === sortableKey || sortBy === dataKey) {
+                if (isActiveSort) {
                   onSortOrder(sortOrder === "ASC" ? "DESC" : "ASC");
                   return;
                 }
                 onSortBy(sortableKey || dataKey);
               };
+              const ariaSort = !onSortBy ? undefined : isActiveSort ? (sortOrder === "ASC" ? "ascending" : "descending") : "none";
               return (
                 <th
                   scope="col"
+                  aria-sort={ariaSort}
                   className={["tw-whitespace-nowrap", column.className || "", onSortBy ? "tw-cursor-pointer" : "tw-cursor-default"].join(" ")}
                   style={column.style || {}}
                   key={String(dataKey) + String(column.title)}
                 >
                   {onSortBy ? (
-                    <button aria-label="Changer l'ordre de tri" type="button" onClick={onNameClick}>
+                    <button
+                      type="button"
+                      onClick={onNameClick}
+                      aria-label={
+                        isActiveSort
+                          ? `Trier par ${column.title}, tri actuel ${sortOrder === "ASC" ? "ascendant" : "descendant"}`
+                          : `Trier par ${column.title}`
+                      }
+                    >
                       {column.title}
+                      {isActiveSort && (
+                        <span aria-hidden="true" className="tw-mx-1">
+                          {sortOrder === "ASC" ? ` ↓` : ` ↑`}
+                        </span>
+                      )}
                     </button>
                   ) : (
                     <span>{column.title}</span>
                   )}
                   {column.help && <>{column.help}</>}
-                  {!!onSortBy && (sortBy === sortableKey || sortBy === dataKey) && (
-                    <button onClick={onSortBy ? onNameClick : null} type="button" aria-label="Changer l'ordre de tri">
-                      {sortOrder === "ASC" && <span className="tw-mx-1">{`\u00A0\u2193`}</span>}
-                      {sortOrder === "DESC" && <span className="tw-mx-1">{`\u00A0\u2191`}</span>}
-                    </button>
-                  )}
                 </th>
               );
             })}

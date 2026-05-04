@@ -134,7 +134,7 @@ table.table-selego {
     text-transform: uppercase;
   }
 
-  thead .title {
+  caption.title {
     caption-side: top;
     font-weight: bold;
     font-size: 24px;
@@ -143,6 +143,7 @@ table.table-selego {
     width: 100%;
     color: #1d2021;
     text-transform: none;
+    text-align: left;
   }
 
   tbody td {
