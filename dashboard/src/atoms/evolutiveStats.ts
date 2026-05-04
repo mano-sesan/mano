@@ -180,6 +180,14 @@ export function computeEvolutiveStatsForPersons({
       if (historyDate <= initSnapshotDate) continue;
       if (historyDate > queryEndDateFormatted) break;
 
+      // Advance cursor past any period that ended strictly before this history date.
+      while (periodCursor < formattedPeriods.length && historyDate > formattedPeriods[periodCursor].end) {
+        periodCursor++; // so the maximum value of periodCursor is formattedPeriods.length...
+      }
+      // ...and if periodCursor is equal to formattedPeriods.length, formattedPeriods[periodCursor] === undefined,
+      // we are past the last period, so we break the loop, nothing to check anymore.
+      if (periodCursor === formattedPeriods.length) break;
+
       // Shallow copy is sufficient: the loop below only reassigns top-level fields and never mutates
       // nested values. A deep clone would be a major perf sink (see the previous commit).
       let nextPerson = { ...currentPerson };
@@ -215,11 +223,7 @@ export function computeEvolutiveStatsForPersons({
       const nextRawValue = getValueByField(indicatorFieldName, indicatorFieldType, nextPerson[indicatorFieldName ?? ""]);
       const nextValue = Array.isArray(nextRawValue) ? nextRawValue : [nextRawValue].filter(Boolean);
 
-      // Advance cursor past any period that ended strictly before this history date.
-      while (periodCursor < formattedPeriods.length && historyDate > formattedPeriods[periodCursor].end) {
-        periodCursor++;
-      }
-      const inSelectedTeamPeriod = periodCursor < formattedPeriods.length && historyDate >= formattedPeriods[periodCursor].start;
+      const inSelectedTeamPeriod = historyDate >= formattedPeriods[periodCursor].start;
 
       if (inSelectedTeamPeriod && historyDate >= queryStartDateFormatted) {
         if (currentValue.includes(valueStart)) {
