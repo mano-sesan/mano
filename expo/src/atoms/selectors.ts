@@ -6,7 +6,7 @@ import { personsState } from "./persons";
 import { placesState } from "./places";
 import { relsPersonPlaceState } from "./relPersonPlace";
 import { isComingInDays, isPassed, isToday } from "../services/date";
-import { filterBySearch } from "../utils/search";
+import { filterBySearch, normalizePhoneSearch } from "../utils/search";
 import { consultationsState } from "./consultations";
 import { rencontresState } from "./rencontres";
 import { treatmentsState } from "./treatments";
@@ -73,8 +73,7 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
       age: ageFromBirthdateAsYear(person.birthdate) ?? undefined,
       ageInMonths: ageFromBirthdateAsMonths(person.birthdate) ?? undefined,
       followSinceMonths,
-      // remove anything that is not a number
-      formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
+      formattedPhoneNumber: person.phone ? normalizePhoneSearch(person.phone) : undefined,
       // Initialize counters for filters
       numberOfActions: 0,
       numberOfConsultations: 0,

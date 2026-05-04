@@ -16,6 +16,7 @@ import { rencontresState } from "./rencontres";
 import { groupsState } from "./groups";
 import { territoriesState } from "./territory";
 import { extractInfosFromHistory } from "../utils/person-history";
+import { normalizePhoneSearch } from "../scenes/search/utils";
 
 export const usersObjectSelector = atom((get) => {
   const users = get(usersState);
@@ -81,7 +82,6 @@ export const itemsGroupedByPersonSelector = atom((get) => {
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
       ageInMonths: ageFromBirthdateAsMonths(person.birthdate),
-      formattedPhoneNumber: person.phone?.replace(/\D/g, ""),
       interactions,
       assignedTeamsPeriods,
       lastUpdateCheckForGDPR: person.followedSince,

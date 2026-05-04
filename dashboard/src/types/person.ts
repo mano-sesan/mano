@@ -94,7 +94,6 @@ export interface PersonPopulated extends PersonInstance {
   formattedBirthDate: string;
   age: number;
   followSinceMonths: number;
-  formattedPhoneNumber: string;
   interactions: Date[];
   lastUpdateCheckForGDPR: Date;
   group?: GroupInstance;
