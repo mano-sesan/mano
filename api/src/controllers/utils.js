@@ -49,7 +49,7 @@ router.get("/version", async (req, res) => {
       `Vous avez la version ${req.headers.version} actuellement sur votre téléphone.
 Nouveautés :
 - La création des commentaires est revue pour être plus complète.
-- Quelques bugs corrigés : affichage du sélecteur de date, des actégories d'action, des noms de consultation, tri alphabétique des territoires, etc.`,
+- Quelques bugs corrigés : affichage du sélecteur de date, des catégories d'action, des noms de consultation, tri alphabétique des territoires, etc.`,
       [
         { text: "Télécharger", link: downloadLink },
         { text: "Installer", link: installLink },
