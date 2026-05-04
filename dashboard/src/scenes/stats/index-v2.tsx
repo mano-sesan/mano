@@ -771,10 +771,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   return (
     <>
-      <div>
+      <div className="tw-relative">
         <button
           type="button"
-          className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
+          className="tw-absolute tw-right-4 !tw-p-0 -tw-top-8 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-500 hover:tw-text-zinc-700 tw-transition-colors tw-cursor-pointer"
           onClick={onSwitchVersion}
         >
           <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
@@ -792,7 +792,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
           - {formatPeriod({ period, preset })}
         </div>
         {/* Line 1: Title + switch button */}
-        <div className="noprint tw-flex tw-items-center tw-mt-8 tw-mb-4">
+        <div className="noprint tw-flex tw-items-center tw-mt-10 tw-mb-4">
           <h1 className="tw-grow tw-text-xl tw-font-normal">Statistiques</h1>
           <div className="tw-flex tw-items-center tw-gap-4">
             <ButtonCustom type="button" color="link" title="Imprimer" onClick={window.print} />

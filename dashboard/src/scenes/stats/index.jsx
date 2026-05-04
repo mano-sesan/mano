@@ -856,7 +856,17 @@ const Stats = ({ onSwitchVersion }) => {
 
   return (
     <>
-      <div>
+      <div className="tw-relative">
+        {!!onSwitchVersion && (
+          <button
+            type="button"
+            className="tw-absolute tw-right-4 !tw-p-0 -tw-top-8 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-500 hover:tw-text-zinc-700 tw-transition-colors tw-cursor-pointer"
+            onClick={onSwitchVersion}
+          >
+            <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
+            Essayer la nouvelle version
+          </button>
+        )}
         <div className="printonly tw-px-8 tw-py-4 tw-text-2xl tw-font-bold" aria-hidden>
           Statistiques{" "}
           {viewAllOrganisationData ? (
@@ -872,16 +882,7 @@ const Stats = ({ onSwitchVersion }) => {
           <h1 className="tw-block tw-text-xl tw-min-w-64 tw-full tw-font-normal">
             <span>Statistiques {viewAllOrganisationData ? <>globales</> : <>{selectedTeams.length > 1 ? "des équipes" : "de l'équipe"}</>}</span>
           </h1>
-          {!!onSwitchVersion && (
-            <button
-              type="button"
-              className="tw-absolute tw-right-4 !tw-p-0 tw-top-4 tw-text-xs tw-flex tw-gap-1 tw-text-zinc-400 hover:tw-text-zinc-600 tw-transition-colors tw-cursor-pointer"
-              onClick={onSwitchVersion}
-            >
-              <ArrowsRightLeftIcon className="tw-w-4 tw-h-4" />
-              Essayer la nouvelle version
-            </button>
-          )}
+
           <div className="tw-ml-4 tw-min-w-96">
             <SelectTeamMultiple
               onChange={(teamsId) => {
