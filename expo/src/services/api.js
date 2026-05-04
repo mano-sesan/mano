@@ -28,6 +28,8 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { store } from "@/store";
+import { organisationState } from "@/atoms/auth";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -58,6 +60,19 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
+  organisationEncryptionStatus() {
+    const organisation = store.get(organisationState) || {
+      encryptionLastUpdateAt: undefined,
+      encryptionEnabled: undefined,
+      migrationLastUpdateAt: undefined,
+    };
+    return {
+      encryptionLastUpdateAt: organisation.encryptionLastUpdateAt,
+      encryptionEnabled: organisation.encryptionEnabled,
+      migrationLastUpdateAt: organisation.migrationLastUpdateAt,
+    };
+  }
+
   execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
@@ -76,11 +91,9 @@ class ApiService {
         options.body = JSON.stringify(await encryptItem(body));
       }
 
-      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+      if (["PUT", "POST", "DELETE"].includes(method)) {
         query = {
-          encryptionLastUpdateAt: this.organisation?.encryptionLastUpdateAt,
-          encryptionEnabled: this.organisation?.encryptionEnabled,
-          migrationLastUpdateAt: this.organisation?.migrationLastUpdateAt,
+          ...this.organisationEncryptionStatus(),
           ...query,
         };
       }
@@ -98,13 +111,15 @@ class ApiService {
 
       if (!response.ok && response.status === 401) {
         if (this.logout) this.logout("401");
-        if (this.handleLogoutError) this.handleLogoutError();
+        if (API.showTokenExpiredError) {
+          Alert.alert("Votre session a expiré, veuillez vous reconnecter");
+          API.showTokenExpiredError = false;
+        }
         return response;
       }
 
       try {
         const res = await response.json();
-        if (!response.ok && this.handleApiError) this.handleApiError(res);
         if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
           const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
           if (!actions || !actions.length) return Alert.alert(title, subTitle);
@@ -154,7 +169,7 @@ class ApiService {
           headers,
         },
       });
-      if (this.handleError) this.handleError(errorExecuteApi, "Désolé une erreur est survenue");
+      Alert.alert(errorExecuteApi.message, "Désolé une erreur est survenue");
       throw errorExecuteApi;
     }
   };
@@ -263,17 +278,8 @@ class ApiService {
   token = "";
   onLogIn = () => {};
   logout = async (_clearAll) => {};
-  handleLogoutError = () => {};
-  handleApiError = () => {};
-  handleError = () => {};
-  handleWrongKey = () => {};
   downloadAndInstallUpdate = (_link) => {};
   updateLink = "";
-  navigation = null;
-  enableEncrypt = null;
-  hashedOrgEncryptionKey = null;
-  orgEncryptionKey = null;
-  organisation = null;
   showTokenExpiredError = false;
   platform = Platform.OS;
   packageId = Application.applicationId;

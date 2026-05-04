@@ -18,13 +18,8 @@ let hashedOrgEncryptionKey = null;
 export function getHashedOrgEncryptionKey() {
   return hashedOrgEncryptionKey;
 }
-export const setOrgEncryptionKey = async (orgEncryptionKey, { needDerivation = true } = {}) => {
-  const newHashedOrgEncryptionKey = needDerivation ? await derivedMasterKey(orgEncryptionKey) : orgEncryptionKey;
-  hashedOrgEncryptionKey = newHashedOrgEncryptionKey;
-  return newHashedOrgEncryptionKey;
-};
 
-setOrgEncryptionKey = async (orgEncryptionKey) => {
+export const setOrgEncryptionKey = async (orgEncryptionKey) => {
   hashedOrgEncryptionKey = orgEncryptionKey;
   return orgEncryptionKey;
 };

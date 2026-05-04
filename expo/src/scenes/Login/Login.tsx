@@ -172,7 +172,6 @@ const Login = ({ navigation }: Props) => {
       API.onLogIn();
       await AsyncStorage.setItem("persistent_token", response.token);
       API.showTokenExpiredError = true;
-      API.organisation = response.user.organisation;
       setUser(response.user);
 
       setOrganisation(response.user.organisation);
