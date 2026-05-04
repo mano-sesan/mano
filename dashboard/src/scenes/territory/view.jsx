@@ -17,7 +17,6 @@ import { errorMessage } from "../../utils";
 import { ModalBody, ModalContainer, ModalFooter, ModalHeader } from "../../components/tailwind/Modal";
 import SelectTerritory from "../../components/SelectTerritory";
 import ConfirmModal from "../../components/ConfirmModal";
-import { DISABLED_FEATURES } from "../../config";
 import TerritoryDocuments from "../../components/document/TerritoryDocuments";
 
 const View = () => {
