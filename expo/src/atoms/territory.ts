@@ -67,13 +67,15 @@ const territoriesWithObservations = atom((get) => {
     }
     observationsByTerritory[obs.territory!].push(obs);
   }
-  return territories.map((t) => ({
-    ...t,
-    observations: observationsByTerritory[t._id] || [],
-    lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort(
-      (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-    )?.[0]?.createdAt,
-  }));
+  return territories
+    .map((t) => ({
+      ...t,
+      observations: observationsByTerritory[t._id] || [],
+      lastObservationDate: structuredClone(observationsByTerritory[t._id])?.sort(
+        (a: TerritoryObservationInstance, b: TerritoryObservationInstance) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+      )?.[0]?.createdAt,
+    }))
+    .sort((a, b) => (a.name || "").localeCompare(b.name));
 });
 
 export function useTerritoriesWithObservationsSearchSelector(search: string, showArchived: boolean = false) {
