@@ -8,6 +8,24 @@ const SelectDraggableAndEditable = ({ onChange, classNamePrefix, value, onEditCh
   const [editingChoice, setEditingChoice] = useState("");
   const [newChoice, setNewChoice] = useState("");
 
+  // Suppression des espaces des nouveaux choix uniquement (pour ne pas modifier les choix existants)
+  // Plus bas, on fait la même chose pour le renommage des choix existants
+  // (puisqu'on renomme, on peut supprimer les espaces dans le nouveau nom)
+  const trimNewChoices = useCallback(
+    (newValue) => {
+      const trimmed = (newValue || []).map((item) => {
+        if (!item?.__isNew__) return item;
+        return {
+          ...item,
+          label: typeof item.label === "string" ? item.label.trim() : item.label,
+          value: typeof item.value === "string" ? item.value.trim() : item.value,
+        };
+      });
+      onChange(trimmed);
+    },
+    [onChange]
+  );
+
   const onDragAndDrop = useCallback(async () => {
     const grid = gridRef.current;
     const items = grid.querySelectorAll(`.${classNamePrefix}__multi-value__label`);
@@ -82,7 +100,7 @@ const SelectDraggableAndEditable = ({ onChange, classNamePrefix, value, onEditCh
           },
         }}
         classNamePrefix={classNamePrefix}
-        onChange={onChange}
+        onChange={trimNewChoices}
         value={value}
         options={options}
         {...props}
@@ -129,16 +147,17 @@ const SelectDraggableAndEditable = ({ onChange, classNamePrefix, value, onEditCh
             form="edit-choice-form"
             onClick={(e) => {
               e.preventDefault();
-              if (newChoice === editingChoice) {
+              const trimmedNewChoice = newChoice.trim();
+              if (trimmedNewChoice === editingChoice) {
                 setEditingChoice("");
                 setNewChoice("");
                 return;
               }
-              if (options.map((option) => option.label).includes(newChoice)) {
+              if (options.map((option) => option.label).includes(trimmedNewChoice)) {
                 alert("Ce choix existe déjà");
                 return;
               }
-              onEditChoice({ newChoice, oldChoice: editingChoice, options });
+              onEditChoice({ newChoice: trimmedNewChoice, oldChoice: editingChoice, options });
               setEditingChoice("");
               setNewChoice("");
             }}
