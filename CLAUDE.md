@@ -78,6 +78,7 @@ yarn build  # Production build
 - **Dashboard** : `cd dashboard && yarn typecheck`
 - **Mobile (expo)** : `cd expo && yarn typecheck`
 - **e2e/** : pas de `tsconfig.json`, pas de typecheck dédié — ne pas tenter `npx tsc` (TypeScript n'est pas installé à la racine, `npx` télécharge alors un package squatteur qui affiche `This is not the tsc command you are looking for`)
+- **Sortie attendue** : `tsc` est lancé avec `noEmit: true`, donc **aucune sortie = succès**. Si la commande se termine sans rien afficher avec un code de sortie 0, le typecheck a réussi — ne pas relancer en boucle en pensant que la sortie a été tronquée
 
 ## Test Credentials
 
