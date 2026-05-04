@@ -250,7 +250,10 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
   const groupedServices = useMemo(() => {
     const visible = filterServicesForTeam(allGroupedServices, team?._id);
     const visibleNames = new Set(visible.flatMap((g) => (g.services || []).map((s) => s.name)));
-    const orphanNames = Object.keys(services || {}).filter((name) => Number(services[name]) > 0 && !visibleNames.has(name));
+    // Une clé présente dans `services` signifie qu'une row Service existe en base pour cette
+    // équipe/date — y compris pour des saisies ramenées à 0. On les inclut toutes pour permettre
+    // la relecture/correction.
+    const orphanNames = Object.keys(services || {}).filter((name) => !visibleNames.has(name));
     if (!orphanNames.length) return visible;
     const result = visible.map((g) => ({ ...g, services: [...(g.services || [])] }));
     for (const name of orphanNames) {
