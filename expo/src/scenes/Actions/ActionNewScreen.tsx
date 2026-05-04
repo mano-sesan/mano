@@ -31,6 +31,7 @@ import PersonsSearch from "../Persons/PersonsSearch";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import PersonNew from "../Persons/PersonNew";
 import { useDataLoader } from "@/services/dataLoader";
+import { encryptItem } from "@/services/encryption";
 
 const ActionNewStack = createNativeStackNavigator<ActionNewStackParams>();
 type NewActionScreenProps = NativeStackScreenProps<RootStackParamList, "ACTION_NEW_STACK">;
@@ -240,7 +241,7 @@ const NewActionForm = ({
 
     const response = await API.post({
       path: "/action/multiple",
-      body: await Promise.all(actions.map(API.encryptItem)),
+      body: await Promise.all(actions.map(encryptItem)),
     });
 
     refresh();

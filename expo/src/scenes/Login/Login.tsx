@@ -23,6 +23,7 @@ import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
 import { useIsFocused } from "@react-navigation/native";
 import { LoginStackParamsList } from "@/types/navigation";
 import { useDataLoader } from "@/services/dataLoader";
+import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "@/services/encryption";
 
 type Props = NativeStackScreenProps<LoginStackParamsList, "LOGIN">;
 
@@ -181,11 +182,19 @@ const Login = ({ navigation }: Props) => {
         return;
       }
       if (showEncryptionKeyInput) {
-        const keyIsValid = await API.setOrgEncryptionKey(encryptionKey);
+        await setOrgEncryptionKey(encryptionKey.trim());
+        const keyIsValid = await checkEncryptedVerificationKey(response.user.organisation.encryptedVerificationKey, encryptionKey.trim());
         if (!keyIsValid) {
+          resetOrgEncryptionKey();
+          Alert.alert(
+            "La clé de chiffrement ne semble pas être correcte",
+            "Veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
+          );
+          await API.post({ path: "/user/decrypt-attempt-failure" });
           setLoading(false);
           return;
         }
+        await API.post({ path: "/user/decrypt-attempt-success" });
       }
       await AsyncStorage.setItem("persistent_email", email);
       const { data: teams } = await API.get({ path: "/team" });

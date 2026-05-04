@@ -1,6 +1,6 @@
 import URI from "urijs";
 import { HOST, SCHEME, VERSION } from "../config";
-import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
@@ -73,7 +73,7 @@ class ApiService {
         },
       };
       if (body) {
-        options.body = JSON.stringify(await this.encryptItem(body));
+        options.body = JSON.stringify(await encryptItem(body));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
@@ -129,14 +129,14 @@ class ApiService {
         if (!!res.data && Array.isArray(res.data)) {
           const decryptedData = [];
           for (const item of res.data) {
-            const decryptedItem = await this.decryptDBItem(item, { debug, path });
+            const decryptedItem = await decryptDBItem(item, { debug, path });
             decryptedData.push(decryptedItem);
           }
           res.decryptedData = decryptedData;
           return res;
         }
         if (res.data) {
-          res.decryptedData = await this.decryptDBItem(res.data, { debug, path });
+          res.decryptedData = await decryptDBItem(res.data, { debug, path });
           return res;
         }
         return res;
@@ -189,84 +189,6 @@ class ApiService {
   };
   put = (args) => this.execute({ method: "PUT", ...args });
   delete = (args) => this.execute({ method: "DELETE", ...args });
-
-  setOrgEncryptionKey = async (orgEncryptionKey) => {
-    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
-    const { encryptedVerificationKey } = this.organisation;
-    if (!encryptedVerificationKey) {
-      capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
-    } else {
-      const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
-      if (!encryptionKeyIsValid) {
-        this.post({ path: "/user/decrypt-attempt-failure" });
-        this.handleWrongKey();
-        return false;
-      } else {
-        this.post({ path: "/user/decrypt-attempt-success" });
-      }
-    }
-    this.enableEncrypt = true;
-    this.orgEncryptionKey = orgEncryptionKey;
-    return true;
-  };
-
-  encryptItem = async (item) => {
-    if (!this.enableEncrypt) return item;
-    if (item.decrypted) {
-      if (!item.entityKey) item.entityKey = await generateEntityKey();
-      const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, this.hashedOrgEncryptionKey);
-
-      item.encrypted = encryptedContent;
-      item.encryptedEntityKey = encryptedEntityKey;
-      delete item.decrypted;
-      delete item.entityKey;
-    }
-    return item;
-  };
-
-  decryptDBItem = async (item, { path } = {}) => {
-    if (!this.enableEncrypt) return item;
-    if (!item.encrypted) return item;
-    if (!!item.deletedAt) return item;
-    if (!item.encryptedEntityKey) return item;
-    try {
-      const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, this.hashedOrgEncryptionKey);
-
-      delete item.encrypted;
-
-      try {
-        JSON.parse(content);
-      } catch (errorDecryptParsing) {
-        if (this.handleError) this.handleError(errorDecryptParsing, "Désolé une erreur est survenue lors du déchiffrement");
-        capture("ERROR PARSING CONTENT", {
-          extra: { errorDecryptParsing, encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10) },
-          tags: { _id: item._id },
-        });
-      }
-
-      const decryptedItem = {
-        ...item,
-        ...JSON.parse(content),
-        entityKey,
-      };
-      return decryptedItem;
-    } catch (errorDecrypt) {
-      // capture(errorDecrypt, {
-      //   extra: {
-      //     message: 'ERROR DECRYPTING ITEM',
-      //     item,
-      //     path,
-      //   },
-      // });
-      // if (this.handleError) {
-      //   this.handleError(
-      //     "Désolé, un élément n'a pas pu être déchiffré",
-      //     "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
-      //   );
-      // }
-    }
-    return item;
-  };
 
   // Download a file from a path.
   download = async ({ path, encryptedEntityKey, document }) => {
