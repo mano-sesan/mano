@@ -1538,10 +1538,11 @@ router.post(
       const mainGroupedServicesWithTeams = structuredClone(mainOrg.groupedServicesWithTeams) || [];
       const secondaryGroupedServicesWithTeams = structuredClone(secondaryOrg.groupedServicesWithTeams) || [];
       for (const mainGroup of mainGroupedServicesWithTeams) {
+        if (!Array.isArray(mainGroup.services)) mainGroup.services = [];
         const secondaryGroup = secondaryGroupedServicesWithTeams.find((g) => g.groupTitle === mainGroup.groupTitle);
         if (!secondaryGroup) continue;
         for (const svc of secondaryGroup.services || []) {
-          const existing = (mainGroup.services || []).find((s) => s.name === svc.name);
+          const existing = mainGroup.services.find((s) => s.name === svc.name);
           if (!existing) {
             mainGroup.services.push(svc);
           } else if (svc.enabled || existing.enabled) {
