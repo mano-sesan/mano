@@ -294,6 +294,29 @@ router.post(
           }
         }
 
+        // Process groupedServicesWithTeams
+        if (organisation.groupedServicesWithTeams) {
+          const updated = structuredClone(organisation.groupedServicesWithTeams);
+          let changed = false;
+          for (const group of updated) {
+            if (group.services) {
+              for (const service of group.services) {
+                if (service.enabledTeams?.includes(teamToDeleteId)) {
+                  service.enabledTeams = service.enabledTeams.filter((team) => team !== teamToDeleteId);
+                  if (!service.enabledTeams.includes(targetTeamId)) {
+                    service.enabledTeams.push(targetTeamId);
+                  }
+                  changed = true;
+                }
+              }
+            }
+          }
+          if (changed) {
+            updateOrg.groupedServicesWithTeams = updated;
+            hasChanges = true;
+          }
+        }
+
         if (hasChanges) {
           organisation.set(updateOrg);
           await organisation.save({ transaction: tx, context: { userId: req.user._id } });

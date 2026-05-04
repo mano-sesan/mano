@@ -1,6 +1,7 @@
 const { defaultMedicalFileCustomFields } = require("./custom-fields/medicalFile");
 const { defaultObservationFields } = require("./custom-fields/observation");
 const { fieldsPersonsCustomizableOptions, personFields } = require("./custom-fields/person");
+const { projectGroupedServicesToLegacy } = require("../utils");
 
 function serializeOrganisation(organisation) {
   const defaultGroupedMedicalFileCustomFields = [
@@ -68,10 +69,17 @@ function serializeOrganisation(organisation) {
     defaultMedicalFolders: organisation.defaultMedicalFolders || [],
 
     /* services settings */
-    groupedServices: organisation.groupedServices || [],
-    // On doit le garder jusqu'à ce que l'app soit release et installée par tout le monde.
-    // À virer dans 6 mois, donc à partir de juin 2026.
-    services: (organisation.groupedServices || []).reduce((flattenedServices, group) => [...flattenedServices, ...group.services], []),
+    groupedServicesWithTeams: organisation.groupedServicesWithTeams || [],
+    // Projection legacy pour les clients (mobile en particulier) qui n'ont pas encore intégré
+    // `groupedServicesWithTeams`. Le filtrage par équipe n'existe pas dans cette projection : les
+    // vieux clients ne le faisaient pas non plus, donc le comportement reste celui d'aujourd'hui.
+    // À virer une fois la version mobile minimum suffisamment haute.
+    groupedServices: projectGroupedServicesToLegacy(organisation.groupedServicesWithTeams),
+    // Encore plus ancienne projection conservée pour la même raison. À virer également plus tard.
+    services: projectGroupedServicesToLegacy(organisation.groupedServicesWithTeams).reduce(
+      (flattenedServices, group) => [...flattenedServices, ...group.services],
+      []
+    ),
 
     /* collaborations */
     collaborations: organisation.collaborations,
