@@ -117,9 +117,9 @@ export const formatConsultation = (consultation: ConsultationInstance) => {
   return { ...consultation, ...defaultConsultationFields };
 };
 
-export const disableConsultationRow = (actionOrConsultation: any, user: UserInstance) => {
+export const disableConsultationRow = (actionOrConsultation: any, user: UserInstance | null) => {
   if (!actionOrConsultation.isConsultation) return false;
-  if (!user.healthcareProfessional) return true;
+  if (!user?.healthcareProfessional) return true;
   if (!actionOrConsultation.onlyVisibleBy?.length) return false;
   return !actionOrConsultation.onlyVisibleBy.includes(user._id);
 };
