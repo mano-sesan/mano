@@ -269,6 +269,7 @@ const Group: React.FC<GroupProps> = ({
   const [groupTeamsEnabledTeams, setGroupTeamsEnabledTeams] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newGroupTitle, setNewGroupTitle] = useState(groupTitle);
+  const [didChangeTeamVisibility, setDidChangeTeamVisibility] = useState(false);
 
   useEffect(() => {
     if (listRef.current) {
@@ -292,7 +293,7 @@ const Group: React.FC<GroupProps> = ({
         return false;
       }
     }
-    if (canChangeTeamsVisibility) {
+    if (canChangeTeamsVisibility && didChangeTeamVisibility) {
       if (!groupTeamsEnabled && groupTeamsEnabledTeams.length === 0) {
         toast.error("Veuillez sélectionner au moins une équipe ou activer pour toute l'organisation");
         return false;
@@ -305,7 +306,7 @@ const Group: React.FC<GroupProps> = ({
           oldName: oldGroupTitle,
           newName: newGroupTitle?.trim(),
         },
-        canChangeTeamsVisibility
+        canChangeTeamsVisibility && didChangeTeamVisibility
           ? {
               enabled: groupTeamsEnabled,
               enabledTeams: groupTeamsEnabledTeams,
@@ -356,6 +357,7 @@ const Group: React.FC<GroupProps> = ({
                     setGroupTeamsEnabled(allEnabled);
                     setGroupTeamsEnabledTeams(allSameTeams && !allEnabled ? groupItems[0].enabledTeams || [] : []);
                     setIsEditingGroupTitle(true);
+                    setDidChangeTeamVisibility(false);
                   }}
                 >
                   ✏️
@@ -413,7 +415,10 @@ const Group: React.FC<GroupProps> = ({
                     <SelectTeamMultiple
                       inputId="groupEnabledTeams"
                       classNamePrefix="groupEnabledTeams"
-                      onChange={(teamIds: string[]) => setGroupTeamsEnabledTeams(teamIds)}
+                      onChange={(teamIds: string[]) => {
+                        setDidChangeTeamVisibility(true);
+                        setGroupTeamsEnabledTeams(teamIds);
+                      }}
                       value={groupTeamsEnabled ? [] : groupTeamsEnabledTeams}
                       isDisabled={groupTeamsEnabled}
                     />
@@ -423,7 +428,10 @@ const Group: React.FC<GroupProps> = ({
                           type="checkbox"
                           className="tw-mr-2 tw-mt-2"
                           checked={groupTeamsEnabled}
-                          onChange={(e) => setGroupTeamsEnabled(e.target.checked)}
+                          onChange={(e) => {
+                            setDidChangeTeamVisibility(true);
+                            setGroupTeamsEnabled(e.target.checked);
+                          }}
                         />
                         <span>Activé pour toute l'organisation</span>
                       </label>
