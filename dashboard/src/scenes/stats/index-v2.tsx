@@ -106,7 +106,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const groupsCategories = useAtomValue(actionsCategoriesSelector);
 
   const groupedServices = useAtomValue(servicesSelector);
-  const allServices = useMemo(() => groupedServices.reduce((services, group) => [...services, ...group.services], []), [groupedServices]);
+  const allServices = useMemo(() => groupedServices.reduce((services, group) => [...services, ...group.services.map((s) => s.name)], []), [groupedServices]);
 
   const [activeTab, setActiveTab] = useLocalStorage("stats-v2-tabCaption", "Général");
   const [personType, setPersonType] = useLocalStorage("stats-v2-personType", "followed");
