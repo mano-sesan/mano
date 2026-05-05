@@ -151,10 +151,10 @@ function usePersonsFilteredBySearchSelector(filters: Array<any>, search: string)
 
     // Then apply search
     const restrictedFields =
-      user.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : emptyArray;
+      user?.role === "restricted-access" ? ["name", "phone", "otherNames", "gender", "formattedBirthDate", "assignedTeams", "email"] : emptyArray;
 
     const personsfilteredBySearch = filterBySearch(search, personsFiltered, restrictedFields);
 
     return personsfilteredBySearch;
-  }, [filters, search, persons, user.role, filterContext]);
+  }, [filters, search, persons, user?.role, filterContext]);
 }
