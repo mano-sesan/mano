@@ -103,11 +103,19 @@ function abortRequests() {
   // Source: https://stackoverflow.com/a/73783869/978690
   try {
     API.abortController.abort(new DOMException("Aborted by navigation", "BeforeUnloadAbortError"));
-    // reset new abort controller ?
-    // API.abortController = new AbortController();
   } catch (e) {
     console.log("Aborting requests failed", e);
     console.error(e);
+  }
+}
+
+// Au retour depuis le bfcache (Chrome restaure une page gelée après un "Précédent"),
+// le state JS reprend là où il était, AbortController inclus — donc encore aborté
+// par le précédent `beforeunload`. Sans réinitialisation ici, toutes les requêtes
+// abortables échouent silencieusement jusqu'au prochain rechargement complet.
+function resetAbortControllerOnBfcacheRestore(event) {
+  if (event.persisted) {
+    API.abortController = new AbortController();
   }
 }
 
@@ -120,8 +128,10 @@ const App = () => {
   // Abort all pending requests (that listen to this signal)
   useEffect(() => {
     window.addEventListener("beforeunload", abortRequests);
+    window.addEventListener("pageshow", resetAbortControllerOnBfcacheRestore);
     return () => {
       window.removeEventListener("beforeunload", abortRequests);
+      window.removeEventListener("pageshow", resetAbortControllerOnBfcacheRestore);
     };
   }, []);
 
