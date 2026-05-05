@@ -107,7 +107,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
 
   const groupedServices = useAtomValue(servicesSelector);
   const allServices = useMemo(
-    () => groupedServices.reduce((services, group) => [...services, ...group.services.map((s) => s.name)], []),
+    () => groupedServices.reduce<string[]>((services, group) => [...services, ...(group.services || []).map((s) => s.name)], []),
     [groupedServices]
   );
 
