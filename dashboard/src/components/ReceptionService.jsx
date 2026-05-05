@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { servicesSelector, flattenedServicesSelector } from "../atoms/reports";
+import { useState, useEffect, useMemo } from "react";
+import { servicesSelector, filterServicesForTeam } from "../atoms/reports";
 import { useAtomValue } from "jotai";
 import API, { tryFetchExpectOk } from "../services/api";
 import { toast } from "react-toastify";
@@ -7,9 +7,18 @@ import IncrementorSmall from "./IncrementorSmall";
 import { capture } from "../services/sentry";
 
 const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", services, onUpdateServices: setServices }) => {
-  const groupedServices = useAtomValue(servicesSelector);
-  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const allGroupedServices = useAtomValue(servicesSelector);
+  const groupedServices = useMemo(() => filterServicesForTeam(allGroupedServices, team?._id), [allGroupedServices, team?._id]);
+  const flattenedServices = useMemo(() => groupedServices.reduce((acc, group) => [...acc, ...(group.services || [])], []), [groupedServices]);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
+
+  // Si l'équipe change et que l'onglet précédemment sélectionné n'existe plus pour la nouvelle équipe,
+  // on retombe sur le premier groupe disponible.
+  useEffect(() => {
+    if (!groupedServices.find((g) => g.groupTitle === selected)) {
+      setSelected(groupedServices[0]?.groupTitle || null);
+    }
+  }, [groupedServices, selected]);
 
   useEffect(
     // Init services for a team. We need to fetch services from database.
@@ -27,10 +36,9 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
           acc[service.service] = (acc[service.service] || 0) + service.count;
           return acc;
         }, {});
-        const mergedServices = Object.fromEntries(
-          // We need to initialize all services from organisation.
-          flattenedServices.map((key) => [key, servicesFromDatabase[key] || 0])
-        );
+        // On n'initialise que les services visibles pour cette équipe ; les comptages historiques pour
+        // un service désormais désactivé restent en base mais ne s'affichent pas ici.
+        const mergedServices = Object.fromEntries(flattenedServices.map(({ name }) => [name, servicesFromDatabase[name] || 0]));
         setServices(mergedServices);
       });
     },
@@ -48,7 +56,7 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
         {groupedServices.map((group, index) => (
           <button
             type="button"
-            key={group + index}
+            key={group.groupTitle + index}
             className={
               selected === group.groupTitle
                 ? "tw-mb-[-1px] tw-rounded-t tw-border tw-border-slate-300 tw-border-b-[#f8f8f8] tw-px-4 tw-py-2"
@@ -65,14 +73,14 @@ const ReceptionService = ({ report, team, dateString, dataTestIdPrefix = "", ser
       <div key={team._id}>
         {selectedServices.map((service) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${service.name}-${services[service.name] || 0}`}
+            key={team._id + " " + service.name}
+            service={service.name}
             team={team._id}
             date={dateString}
-            count={services[service] || 0}
+            count={services[service.name] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [service.name]: newCount });
             }}
           />
         ))}

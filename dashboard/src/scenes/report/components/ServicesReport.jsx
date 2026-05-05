@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import IncrementorSmall from "../../../components/IncrementorSmall";
 import API, { tryFetchExpectOk } from "../../../services/api";
 import { formatPeriod } from "../../../components/DateRangePickerWithPresets";
-import { servicesSelector } from "../../../atoms/reports";
+import { servicesSelector, filterServicesForTeam } from "../../../atoms/reports";
 import dayjs from "dayjs";
 import { FullScreenIcon } from "../../../assets/icons/FullScreenIcon";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
@@ -242,9 +242,44 @@ function ServicesFullScreen({ open, onClose, period, isSingleDay, teamIds, servi
   );
 }
 
-const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = {}, onUpdateServices: setServices }) => {
-  const groupedServices = useAtomValue(servicesSelector);
+// Référence stable pour la valeur par défaut, sinon `{}` recrée un nouvel objet à chaque render
+// et invalide le `useMemo` ci-dessous quand `services` est `undefined`.
+const EMPTY_SERVICES = {};
+
+const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", services = EMPTY_SERVICES, onUpdateServices: setServices }) => {
+  const allGroupedServices = useAtomValue(servicesSelector);
+  // On filtre par équipe pour la saisie courante, mais on rajoute les services qui ont des
+  // comptages historiques même s'ils ne sont plus activés pour cette équipe : sinon l'utilisateur
+  // ne peut plus revoir ni corriger ces anciennes saisies sur un rapport rétrospectif.
+  const groupedServices = useMemo(() => {
+    const visible = filterServicesForTeam(allGroupedServices, team?._id);
+    const visibleNames = new Set(visible.flatMap((g) => (g.services || []).map((s) => s.name)));
+    // Une clé présente dans `services` signifie qu'une row Service existe en base pour cette
+    // équipe/date — y compris pour des saisies ramenées à 0. On les inclut toutes pour permettre
+    // la relecture/correction.
+    const orphanNames = Object.keys(services || {}).filter((name) => !visibleNames.has(name));
+    if (!orphanNames.length) return visible;
+    const result = visible.map((g) => ({ ...g, services: [...(g.services || [])] }));
+    for (const name of orphanNames) {
+      const sourceGroup = allGroupedServices.find((g) => (g.services || []).some((s) => s.name === name));
+      const sourceService = sourceGroup?.services.find((s) => s.name === name) || { name, enabled: false, enabledTeams: [] };
+      const groupTitle = sourceGroup?.groupTitle ?? "Anciens services";
+      let target = result.find((g) => g.groupTitle === groupTitle);
+      if (!target) {
+        target = { groupTitle, services: [] };
+        result.push(target);
+      }
+      target.services.push(sourceService);
+    }
+    return result;
+  }, [allGroupedServices, team?._id, services]);
   const [selected, setSelected] = useState(groupedServices[0]?.groupTitle || null);
+
+  useEffect(() => {
+    if (!groupedServices.find((g) => g.groupTitle === selected)) {
+      setSelected(groupedServices[0]?.groupTitle || null);
+    }
+  }, [groupedServices, selected]);
 
   const selectedServices = groupedServices.find((e) => e.groupTitle === selected)?.services || [];
 
@@ -254,7 +289,7 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
         {groupedServices.map((group, index) => (
           <button
             type="button"
-            key={group + index}
+            key={group.groupTitle + index}
             className={[
               selected === group.groupTitle ? "tw-bg-main/10 tw-text-black" : "tw-hover:text-gray-700 tw-text-main",
               "tw-rounded-md tw-px-3 tw-py-2 tw-text-sm tw-font-medium",
@@ -270,15 +305,15 @@ const ServiceByTeam = ({ team, disabled, dateString, dataTestIdPrefix = "", serv
       <div key={team._id} className="tw-px-4">
         {selectedServices.map((service) => (
           <IncrementorSmall
-            dataTestId={`${dataTestIdPrefix}${service}-${services[service] || 0}`}
-            key={team._id + " " + service}
-            service={service}
+            dataTestId={`${dataTestIdPrefix}${service.name}-${services[service.name] || 0}`}
+            key={team._id + " " + service.name}
+            service={service.name}
             team={team._id}
             date={dateString}
             disabled={disabled}
-            count={services[service] || 0}
+            count={services[service.name] || 0}
             onUpdated={(newCount) => {
-              setServices({ ...services, [service]: newCount });
+              setServices({ ...services, [service.name]: newCount });
             }}
           />
         ))}
