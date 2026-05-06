@@ -147,7 +147,7 @@ class ApiService {
       }
 
       if (body) {
-        options.body = JSON.stringify(await this.encryptItem(body));
+        options.body = JSON.stringify(await encryptItem(body));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
