@@ -658,3 +658,75 @@ describe("S12. Item en conflict ne re-déclenche pas une mutation", () => {
     expect(queue[0].status).toBe("conflict");
   });
 });
+
+describe("S13. Action avec recurrence en offline : champ top-level préservé jusqu'au POST", () => {
+  // Régression nommée d'un bug réel : une action créée offline avec un UUID de récurrence
+  // doit transporter ce champ jusqu'au POST envoyé au serveur. `recurrence` est un champ
+  // TOP-LEVEL (pas dans `decrypted`), particularité du modèle Action — donc piégeux
+  // si quelqu'un refactore `flattenDecryptedBody` ou la dedup en pensant que tout est dans decrypted.
+  it("POST /action avec recurrence : la valeur arrive intacte au serveur après sync", async () => {
+    enqueue({
+      method: "POST",
+      path: "/action/multiple",
+      decryptedBody: {
+        _id: "act-1",
+        organisation: "org-1",
+        status: "A FAIRE",
+        dueAt: "2026-02-01T00:00:00.000Z",
+        completedAt: null,
+        recurrence: "rec-uuid-123", // top-level, comme le modèle Action côté serveur
+        decrypted: { name: "Visite récurrente", person: "p-1" },
+        entityKey: "ek-1",
+      },
+      entityType: "action",
+      entityId: "act-1",
+    });
+
+    mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
+    mockApi.post.mockResolvedValueOnce({ ok: true });
+    await processQueue(mockRefresh);
+
+    expect(mockApi.post).toHaveBeenCalledTimes(1);
+    const sent = mockApi.post.mock.calls[0][0];
+    expect(sent.body.recurrence).toBe("rec-uuid-123");
+    // Sanity : le champ decrypted.name est aussi là
+    expect(sent.body.decrypted.name).toBe("Visite récurrente");
+  });
+
+  it("PUT /action après dedup PUT+PUT : recurrence du premier PUT préservé si le 2e ne le précise pas", () => {
+    // Cas piégeux : si le user édite l'action 2 fois (une avec recurrence, une sans),
+    // la dedup shallow merge top-level → recurrence du premier doit être conservé.
+    enqueue({
+      method: "PUT",
+      path: "/action/act-1",
+      decryptedBody: {
+        _id: "act-1",
+        recurrence: "rec-original",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        decrypted: { name: "First edit" },
+        entityKey: "ek-1",
+      },
+      entityType: "action",
+      entityId: "act-1",
+      entityUpdatedAt: "2026-01-01T00:00:00.000Z",
+    });
+    enqueue({
+      method: "PUT",
+      path: "/action/act-1",
+      decryptedBody: {
+        _id: "act-1",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        decrypted: { name: "Second edit" },
+        entityKey: "ek-1",
+      },
+      entityType: "action",
+      entityId: "act-1",
+      entityUpdatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    const queue = loadQueueFromStorage();
+    expect(queue).toHaveLength(1);
+    expect(queue[0].decryptedBody?.recurrence).toBe("rec-original");
+    expect(queue[0].decryptedBody?.decrypted.name).toBe("Second edit");
+  });
+});

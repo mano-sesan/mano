@@ -88,7 +88,7 @@ export const entityFixtures: EntityFixture[] = [
       completedAt: null,
       dueAt: "2026-02-01T00:00:00.000Z",
       status: "A FAIRE",
-      recurrence: null,
+      recurrence: "recurrence-001",
       decrypted: {
         name: "Visite à domicile",
         description: "Suivi mensuel",
@@ -109,7 +109,7 @@ export const entityFixtures: EntityFixture[] = [
       completedAt: null,
       dueAt: "2026-02-01T00:00:00.000Z",
       status: "A FAIRE",
-      recurrence: null,
+      recurrence: "recurrence-001",
       decrypted: {
         description: "Suivi hebdomadaire",
         urgent: true,
@@ -123,7 +123,7 @@ export const entityFixtures: EntityFixture[] = [
       completedAt: null,
       dueAt: "2026-02-01T00:00:00.000Z",
       status: "A FAIRE",
-      recurrence: null,
+      recurrence: "recurrence-001",
       decrypted: {
         name: "Visite à domicile",
         person: "person-001",
