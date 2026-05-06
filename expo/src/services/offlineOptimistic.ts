@@ -3,7 +3,7 @@ import type { PrimitiveAtom } from "jotai";
 import { store } from "@/store";
 import { storage } from "./storage";
 import { offlineQueueState, QueuedMutation } from "./offlineQueue";
-import { mergeItems } from "./dataLoader";
+import mergeItems from "@/utils/mergeItems";
 
 import { personsState } from "../atoms/persons";
 import { groupsState } from "../atoms/groups";
