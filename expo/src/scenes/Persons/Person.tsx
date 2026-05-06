@@ -328,7 +328,8 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const personRes = await API.delete({ path: `/person/${personDB._id}`, body, entityType: "person", entityId: personDB._id });
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
-      await refresh();
+      refresh();
+      onBack();
     }
     return true;
   };
