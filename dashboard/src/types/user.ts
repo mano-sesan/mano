@@ -8,7 +8,7 @@ export type UserInstance = {
   name: string;
   email: string;
   organisation: UUIDV4;
-  organisationPopulated?: OrganisationInstance;
+  organisationPopulated?: OrganisationInstance; // only for superadmin usage
   lastLoginAt: Date | null;
   termsAccepted: Date | null;
   cgusAccepted: Date | null;
@@ -21,4 +21,5 @@ export type UserInstance = {
   decryptAttempts?: number;
   disabledAt?: Date | null;
   loginAttempts?: number;
+  lastChangePasswordAt;
 };

@@ -26,6 +26,7 @@ router.post(
         status: z.enum(STATUS),
         dueAt: z.preprocess((input) => new Date(input), z.date()),
         ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
+        recurrence: z.optional(z.string().regex(looseUuidRegex)),
         encrypted: z.string(),
         encryptedEntityKey: z.string(),
       }).parse(req.body);
@@ -35,13 +36,14 @@ router.post(
       return next(error);
     }
 
-    const { _id, status, dueAt, completedAt, encrypted, encryptedEntityKey } = req.body;
+    const { _id, status, dueAt, completedAt, recurrence, encrypted, encryptedEntityKey } = req.body;
     const action = {
       _id: _id || undefined,
       organisation: req.user.organisation,
       status,
       dueAt,
       completedAt: completedAt || null,
+      recurrence: recurrence || null,
       encrypted,
       encryptedEntityKey,
     };
