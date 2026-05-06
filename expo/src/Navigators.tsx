@@ -69,6 +69,7 @@ import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./type
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
 import { store } from "./store";
+import { resetOrgEncryptionKey } from "./services/encryption";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
@@ -207,10 +208,7 @@ const App = () => {
   const onLogout = async () => {
     API.token = "";
     AsyncStorage.removeItem("persistent_token");
-    API.enableEncrypt = null;
-    API.hashedOrgEncryptionKey = null;
-    API.orgEncryptionKey = null;
-    API.organisation = null;
+    resetOrgEncryptionKey();
     if (clearAllRef.current) {
       await clearCache();
       resetMMKVAndAtoms();
@@ -245,8 +243,6 @@ const App = () => {
       <NavigationContainer
         ref={navigationRef}
         onReady={() => {
-          // @ts-expect-error - Property 'navigation' does not exist on type 'ApiService'.ts(2339)
-          API.navigation = navigationRef;
           SplashScreen.hide();
           NavigationBar.setButtonStyleAsync("dark");
         }}

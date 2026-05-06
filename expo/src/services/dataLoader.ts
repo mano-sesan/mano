@@ -24,6 +24,7 @@ import { appCurrentCacheKey, clearCache } from "./dataManagement";
 import { storage } from "./storage";
 import API from "./api";
 import { capture } from "./sentry";
+import { decryptDBItem } from "./encryption";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -543,7 +544,7 @@ export function useDataLoader() {
       setMMKVCacheItem("consultation", mergedEncrypted);
       const allDecrypted: any[] = [];
       for (const item of mergedEncrypted) {
-        const d = await API.decryptDBItem(item);
+        const d = await decryptDBItem(item);
         if (d) allDecrypted.push(d);
       }
       setConsultations(allDecrypted.map(formatConsultation));
@@ -581,7 +582,7 @@ export function useDataLoader() {
         setMMKVCacheItem("treatment", mergedEncrypted);
         const allDecrypted: any[] = [];
         for (const item of mergedEncrypted) {
-          const d = await API.decryptDBItem(item);
+          const d = await decryptDBItem(item);
           if (d) allDecrypted.push(d);
         }
         setTreatments(allDecrypted);
@@ -620,7 +621,7 @@ export function useDataLoader() {
         setMMKVCacheItem("medical-file", mergedEncrypted);
         const allDecrypted: any[] = [];
         for (const item of mergedEncrypted) {
-          const d = await API.decryptDBItem(item);
+          const d = await decryptDBItem(item);
           if (d) allDecrypted.push(d);
         }
         setMedicalFiles(allDecrypted);

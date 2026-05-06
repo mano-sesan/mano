@@ -1,6 +1,6 @@
 import URI from "urijs";
 import { HOST, SCHEME, VERSION } from "../config";
-import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
@@ -28,6 +28,8 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { store } from "@/store";
+import { organisationState } from "@/atoms/auth";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -58,6 +60,19 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
+  organisationEncryptionStatus() {
+    const organisation = store.get(organisationState) || {
+      encryptionLastUpdateAt: undefined,
+      encryptionEnabled: undefined,
+      migrationLastUpdateAt: undefined,
+    };
+    return {
+      encryptionLastUpdateAt: organisation.encryptionLastUpdateAt,
+      encryptionEnabled: organisation.encryptionEnabled,
+      migrationLastUpdateAt: organisation.migrationLastUpdateAt,
+    };
+  }
+
   execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
@@ -73,14 +88,12 @@ class ApiService {
         },
       };
       if (body) {
-        options.body = JSON.stringify(await this.encryptItem(body));
+        options.body = JSON.stringify(await encryptItem(body));
       }
 
-      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+      if (["PUT", "POST", "DELETE"].includes(method)) {
         query = {
-          encryptionLastUpdateAt: this.organisation?.encryptionLastUpdateAt,
-          encryptionEnabled: this.organisation?.encryptionEnabled,
-          migrationLastUpdateAt: this.organisation?.migrationLastUpdateAt,
+          ...this.organisationEncryptionStatus(),
           ...query,
         };
       }
@@ -98,13 +111,15 @@ class ApiService {
 
       if (!response.ok && response.status === 401) {
         if (this.logout) this.logout("401");
-        if (this.handleLogoutError) this.handleLogoutError();
+        if (API.showTokenExpiredError) {
+          Alert.alert("Votre session a expiré, veuillez vous reconnecter");
+          API.showTokenExpiredError = false;
+        }
         return response;
       }
 
       try {
         const res = await response.json();
-        if (!response.ok && this.handleApiError) this.handleApiError(res);
         if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
           const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
           if (!actions || !actions.length) return Alert.alert(title, subTitle);
@@ -129,14 +144,14 @@ class ApiService {
         if (!!res.data && Array.isArray(res.data)) {
           const decryptedData = [];
           for (const item of res.data) {
-            const decryptedItem = await this.decryptDBItem(item, { debug, path });
+            const decryptedItem = await decryptDBItem(item, { debug, path });
             decryptedData.push(decryptedItem);
           }
           res.decryptedData = decryptedData;
           return res;
         }
         if (res.data) {
-          res.decryptedData = await this.decryptDBItem(res.data, { debug, path });
+          res.decryptedData = await decryptDBItem(res.data, { debug, path });
           return res;
         }
         return res;
@@ -154,7 +169,7 @@ class ApiService {
           headers,
         },
       });
-      if (this.handleError) this.handleError(errorExecuteApi, "Désolé une erreur est survenue");
+      Alert.alert(errorExecuteApi.message, "Désolé une erreur est survenue");
       throw errorExecuteApi;
     }
   };
@@ -190,84 +205,6 @@ class ApiService {
   put = (args) => this.execute({ method: "PUT", ...args });
   delete = (args) => this.execute({ method: "DELETE", ...args });
 
-  setOrgEncryptionKey = async (orgEncryptionKey) => {
-    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
-    const { encryptedVerificationKey } = this.organisation;
-    if (!encryptedVerificationKey) {
-      capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
-    } else {
-      const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
-      if (!encryptionKeyIsValid) {
-        this.post({ path: "/user/decrypt-attempt-failure" });
-        this.handleWrongKey();
-        return false;
-      } else {
-        this.post({ path: "/user/decrypt-attempt-success" });
-      }
-    }
-    this.enableEncrypt = true;
-    this.orgEncryptionKey = orgEncryptionKey;
-    return true;
-  };
-
-  encryptItem = async (item) => {
-    if (!this.enableEncrypt) return item;
-    if (item.decrypted) {
-      if (!item.entityKey) item.entityKey = await generateEntityKey();
-      const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, this.hashedOrgEncryptionKey);
-
-      item.encrypted = encryptedContent;
-      item.encryptedEntityKey = encryptedEntityKey;
-      delete item.decrypted;
-      delete item.entityKey;
-    }
-    return item;
-  };
-
-  decryptDBItem = async (item, { path } = {}) => {
-    if (!this.enableEncrypt) return item;
-    if (!item.encrypted) return item;
-    if (!!item.deletedAt) return item;
-    if (!item.encryptedEntityKey) return item;
-    try {
-      const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, this.hashedOrgEncryptionKey);
-
-      delete item.encrypted;
-
-      try {
-        JSON.parse(content);
-      } catch (errorDecryptParsing) {
-        if (this.handleError) this.handleError(errorDecryptParsing, "Désolé une erreur est survenue lors du déchiffrement");
-        capture("ERROR PARSING CONTENT", {
-          extra: { errorDecryptParsing, encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10) },
-          tags: { _id: item._id },
-        });
-      }
-
-      const decryptedItem = {
-        ...item,
-        ...JSON.parse(content),
-        entityKey,
-      };
-      return decryptedItem;
-    } catch (errorDecrypt) {
-      // capture(errorDecrypt, {
-      //   extra: {
-      //     message: 'ERROR DECRYPTING ITEM',
-      //     item,
-      //     path,
-      //   },
-      // });
-      // if (this.handleError) {
-      //   this.handleError(
-      //     "Désolé, un élément n'a pas pu être déchiffré",
-      //     "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
-      //   );
-      // }
-    }
-    return item;
-  };
-
   // Download a file from a path.
   download = async ({ path, encryptedEntityKey, document }) => {
     const url = this.getUrl(path);
@@ -276,7 +213,7 @@ class ApiService {
     }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
-    const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
+    const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
     // In your download method around line 269-276
     const cacheDir = FileSystem.Paths.cache;
 
@@ -297,7 +234,7 @@ class ApiService {
   // Upload a file to a path.
   upload = async ({ file, path }) => {
     // Prepare file.
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
     // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
 
@@ -341,17 +278,8 @@ class ApiService {
   token = "";
   onLogIn = () => {};
   logout = async (_clearAll) => {};
-  handleLogoutError = () => {};
-  handleApiError = () => {};
-  handleError = () => {};
-  handleWrongKey = () => {};
   downloadAndInstallUpdate = (_link) => {};
   updateLink = "";
-  navigation = null;
-  enableEncrypt = null;
-  hashedOrgEncryptionKey = null;
-  orgEncryptionKey = null;
-  organisation = null;
   showTokenExpiredError = false;
   platform = Platform.OS;
   packageId = Application.applicationId;

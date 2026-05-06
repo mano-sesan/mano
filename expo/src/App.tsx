@@ -1,5 +1,4 @@
 import "react-native-gesture-handler";
-import "./services/api-interface-with-app";
 import "./services/encryption";
 import "./global.css";
 import "react-native-get-random-values";
