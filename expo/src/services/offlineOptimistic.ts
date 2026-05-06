@@ -4,7 +4,6 @@ import { store } from "@/store";
 import { storage } from "./storage";
 import { offlineQueueState, QueuedMutation } from "./offlineQueue";
 import { mergeItems } from "./dataLoader";
-import API from "./api";
 
 import { personsState } from "../atoms/persons";
 import { groupsState } from "../atoms/groups";
@@ -21,6 +20,7 @@ import { commentsState } from "../atoms/comments";
 import { consultationsState, formatConsultation } from "../atoms/consultations";
 import { treatmentsState } from "../atoms/treatments";
 import { medicalFileState } from "../atoms/medicalFiles";
+import { decryptDBItem, getHashedOrgEncryptionKey } from "./encryption";
 
 type EntityRegistryEntry = {
   atom: PrimitiveAtom<any[]>;
@@ -118,11 +118,11 @@ export async function hydrateAtomsFromMMKV(): Promise<void> {
       store.set(entry.atom, cached);
       continue;
     }
-    if (!API.enableEncrypt) continue;
+    if (!getHashedOrgEncryptionKey()) continue;
     const encryptedCache = getMMKVCacheItem<any[]>(entry.mmkvKey, []);
     const decrypted: any[] = [];
     for (const enc of encryptedCache) {
-      const d = await API.decryptDBItem(enc);
+      const d = await decryptDBItem(enc);
       if (d) decrypted.push(d);
     }
     const finalList = entry.formatFn ? decrypted.map(entry.formatFn) : decrypted;
