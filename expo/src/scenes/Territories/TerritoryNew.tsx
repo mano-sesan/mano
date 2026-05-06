@@ -12,6 +12,7 @@ import { userState } from "../../atoms/auth";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
 import { useDataLoader } from "@/services/dataLoader";
+import { TerritoryInstance } from "@/types/territory";
 
 type TerritoryNewProps = NativeStackScreenProps<RootStackParamList, "TERRITORY_NEW">;
 
@@ -54,7 +55,7 @@ const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
       await refresh();
       navigation.replace("TERRITORY", {
-        territory: response.decryptedData,
+        territory: response.decryptedData as TerritoryInstance,
         editable: true,
       });
       setTimeout(() => setPosting(false), 250);

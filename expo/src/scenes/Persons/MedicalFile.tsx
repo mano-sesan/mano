@@ -111,7 +111,7 @@ const MedicalFile = ({
         });
         if (!response.ok) return;
         await refresh();
-        setMedicalFile(response.decryptedData);
+        setMedicalFile(response.decryptedData as MedicalFileInstance);
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -308,7 +308,7 @@ const MedicalFile = ({
     });
     if (!response.ok) return false;
     await refresh();
-    setMedicalFile(response.decryptedData);
+    setMedicalFile(response.decryptedData as MedicalFileInstance);
     const personResponse = await onUpdatePerson();
     if (!personResponse) return false;
     return true;
@@ -331,7 +331,7 @@ const MedicalFile = ({
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 
@@ -349,7 +349,7 @@ const MedicalFile = ({
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 
@@ -367,7 +367,7 @@ const MedicalFile = ({
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 

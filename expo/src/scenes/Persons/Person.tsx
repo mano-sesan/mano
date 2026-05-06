@@ -210,7 +210,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     }
     const newPerson = response.decryptedData;
     await refresh();
-    setPerson(castToPerson(newPerson));
+    setPerson(castToPerson(newPerson as PersonInstance));
     if (alert) Alert.alert("Personne mise à jour !");
     setUpdating(false);
     setEditable(false);

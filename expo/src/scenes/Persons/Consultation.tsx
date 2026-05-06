@@ -253,7 +253,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
     backRequestHandledRef.current = true;
     navigation.replace("CONSULTATION_STACK", {
       personDB: person,
-      consultationDB: response.decryptedData,
+      consultationDB: response.decryptedData as ConsultationInstance,
       editable: true,
       duplicate: true,
     });
@@ -329,7 +329,9 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
                 onBack();
               } else {
                 setPosting(false);
-                setConsultation(castToConsultation(consultationResponse.decryptedData, organisation, person?._id, user._id));
+                setConsultation(
+                  castToConsultation(consultationResponse.decryptedData as Partial<ConsultationInstance>, organisation, person?._id, user._id)
+                );
                 return true;
               }
             },
@@ -343,7 +345,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
         onBack();
       } else {
         setPosting(false);
-        setConsultation(castToConsultation(consultationResponse.decryptedData, organisation, person?._id, user._id));
+        setConsultation(castToConsultation(consultationResponse.decryptedData as ConsultationInstance, organisation, person?._id, user._id));
       }
       return true;
     },
@@ -369,7 +371,7 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
     setDeleting(true);
     const response = await API.delete({ path: `/consultation/${consultationDB._id}`, entityType: "consultation", entityId: consultationDB._id });
     if (!response.ok) {
-      Alert.alert(response.error);
+      Alert.alert(response.error!);
       return;
     }
     await refresh();

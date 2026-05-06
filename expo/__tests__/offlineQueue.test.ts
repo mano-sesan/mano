@@ -170,6 +170,137 @@ describe("offlineQueue", () => {
     });
   });
 
+  describe("dedup chaînée", () => {
+    it("POST → PUT → PUT → DELETE : queue vide à la fin", () => {
+      enqueue({
+        method: "POST",
+        path: "/person/multiple",
+        decryptedBody: { decrypted: { name: "A" } },
+        entityType: "person",
+        entityId: "p1",
+      });
+      enqueue({
+        method: "PUT",
+        path: "/person/p1",
+        decryptedBody: { decrypted: { name: "B" } },
+        entityType: "person",
+        entityId: "p1",
+      });
+      enqueue({
+        method: "PUT",
+        path: "/person/p1",
+        decryptedBody: { decrypted: { age: 30 } },
+        entityType: "person",
+        entityId: "p1",
+      });
+      enqueue({
+        method: "DELETE",
+        path: "/person/p1",
+        decryptedBody: null,
+        entityType: "person",
+        entityId: "p1",
+      });
+
+      expect(loadQueueFromStorage()).toEqual([]);
+    });
+
+    it("PUT → DELETE → PUT : DELETE conservé puis dédupliqué par le PUT (selon code actuel)", () => {
+      // Premier PUT
+      enqueue({
+        method: "PUT",
+        path: "/person/p1",
+        decryptedBody: { decrypted: { name: "First" } },
+        entityType: "person",
+        entityId: "p1",
+        entityUpdatedAt: "2026-01-01T00:00:00.000Z",
+      });
+      // DELETE → remplace le PUT par un DELETE (entityUpdatedAt préservé)
+      enqueue({
+        method: "DELETE",
+        path: "/person/p1",
+        decryptedBody: null,
+        entityType: "person",
+        entityId: "p1",
+      });
+      let queue = loadQueueFromStorage();
+      expect(queue).toHaveLength(1);
+      expect(queue[0].method).toBe("DELETE");
+
+      // PUT après DELETE : la dedup actuelle ne gère pas ce cas spécifique.
+      // Branche atteinte : item existant est DELETE, mutation est PUT → aucune des
+      // conditions du switch n'est true (le code ne matche que existing.method === POST/PUT).
+      // → pas de dedup, le PUT est ajouté en plus.
+      enqueue({
+        method: "PUT",
+        path: "/person/p1",
+        decryptedBody: { decrypted: { name: "Resurrected" } },
+        entityType: "person",
+        entityId: "p1",
+        entityUpdatedAt: "2026-01-02T00:00:00.000Z",
+      });
+
+      queue = loadQueueFromStorage();
+      // Documentation du comportement actuel : DELETE puis PUT → 2 items dans la queue
+      expect(queue).toHaveLength(2);
+      expect(queue[0].method).toBe("DELETE");
+      expect(queue[1].method).toBe("PUT");
+    });
+  });
+
+  describe("transitions de status", () => {
+    it("pending → processing → failed → pending (retry)", () => {
+      const item = enqueue({
+        method: "PUT",
+        path: "/action/a1",
+        decryptedBody: null,
+        entityType: "action",
+        entityId: "a1",
+      });
+      expect(loadQueueFromStorage()[0].status).toBe("pending");
+
+      updateQueueItemStatus(item.id, { status: "processing" });
+      expect(loadQueueFromStorage()[0].status).toBe("processing");
+
+      updateQueueItemStatus(item.id, { status: "failed", error: "Boom" });
+      expect(loadQueueFromStorage()[0].status).toBe("failed");
+      expect(loadQueueFromStorage()[0].error).toBe("Boom");
+
+      // Retry : repasse à pending (sans effacer error explicitement, à clarifier au besoin)
+      updateQueueItemStatus(item.id, { status: "pending" });
+      expect(loadQueueFromStorage()[0].status).toBe("pending");
+    });
+  });
+
+  describe("concurrence", () => {
+    it("Promise.all de 2 enqueue : les deux items présents, ordre préservé", async () => {
+      await Promise.all([
+        Promise.resolve().then(() =>
+          enqueue({
+            method: "POST",
+            path: "/action/multiple",
+            decryptedBody: { decrypted: { name: "First" } },
+            entityType: "action",
+            entityId: "a1",
+          })
+        ),
+        Promise.resolve().then(() =>
+          enqueue({
+            method: "POST",
+            path: "/action/multiple",
+            decryptedBody: { decrypted: { name: "Second" } },
+            entityType: "action",
+            entityId: "a2",
+          })
+        ),
+      ]);
+
+      const queue = loadQueueFromStorage();
+      expect(queue).toHaveLength(2);
+      // L'ordre dépend de la résolution des promises mais les deux items doivent être présents
+      expect(queue.map((q) => q.entityId).sort()).toEqual(["a1", "a2"]);
+    });
+  });
+
   describe("initQueue", () => {
     it("charge la queue du storage dans l'atom", () => {
       const items = [

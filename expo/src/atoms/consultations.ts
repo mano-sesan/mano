@@ -117,14 +117,14 @@ export const formatConsultation = (consultation: ConsultationInstance) => {
   return { ...consultation, ...defaultConsultationFields };
 };
 
-export const disableConsultationRow = (actionOrConsultation: any, user: UserInstance | null) => {
+export const disableConsultationRow = (actionOrConsultation: any, user: Pick<UserInstance, "_id" | "healthcareProfessional"> | null) => {
   if (!actionOrConsultation.isConsultation) return false;
   if (!user?.healthcareProfessional) return true;
   if (!actionOrConsultation.onlyVisibleBy?.length) return false;
   return !actionOrConsultation.onlyVisibleBy.includes(user._id);
 };
 
-export const consultationIsVisibleByMe = (consultation: ConsultationInstance, me: UserInstance) => {
+export const consultationIsVisibleByMe = (consultation: ConsultationInstance, me: Pick<UserInstance, "_id" | "healthcareProfessional">) => {
   if (!me?.healthcareProfessional) return false;
   if (!consultation?.onlyVisibleBy?.length) return true;
   return consultation.onlyVisibleBy.includes(me._id);

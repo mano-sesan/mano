@@ -5,17 +5,21 @@ import { conflictsState, syncStatusState, processQueue, resolveConflict, discard
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // vi.hoisted runs before vi.mock hoisting — safe to reference in mock factories
-const { mockStorage, mockApi } = vi.hoisted(() => ({
+const { mockStorage, mockApi, mockRefresh } = vi.hoisted(() => ({
   mockStorage: new Map<string, string>(),
   mockApi: {
     get: vi.fn(),
     put: vi.fn(),
     post: vi.fn(),
     delete: vi.fn(),
-    executeRaw: vi.fn(),
     _doUpload: vi.fn(),
   },
+  mockRefresh: vi.fn(async () => {}),
 }));
+
+function totalMutationCalls() {
+  return mockApi.post.mock.calls.length + mockApi.put.mock.calls.length + mockApi.delete.mock.calls.length;
+}
 
 vi.mock("react-native-mmkv", () => ({
   MMKV: class {
@@ -34,27 +38,22 @@ vi.mock("react-native-mmkv", () => ({
   },
 }));
 
+vi.mock("react-native", () => ({
+  Alert: { alert: vi.fn() },
+  Platform: { OS: "ios", select: (obj: any) => obj.ios ?? obj.default },
+  StyleSheet: { create: (s: any) => s },
+}));
+vi.mock("@sentry/react-native", () => ({
+  setUser: vi.fn(),
+  setContext: vi.fn(),
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
+  withScope: vi.fn((cb: any) => cb({ setExtras: vi.fn(), setTag: vi.fn() })),
+}));
+vi.mock("@/services/dataLoader", () => ({ useDataLoader: vi.fn(() => ({ refresh: vi.fn() })) }));
 vi.mock("uuid", () => ({ v4: () => "mock-uuid" }));
 vi.mock("@/services/sentry", () => ({ capture: vi.fn() }));
 vi.mock("@/services/api", () => ({ default: mockApi }));
-
-// Mock pullSync — the real pullSync sets status:true then waits for status:false.
-// This mock atom auto-resets to false on the next microtask to simulate sync completion.
-vi.mock("@/components/Loader", async () => {
-  const { atom } = await import("jotai");
-  const defaultVal = { status: false, options: { showFullScreen: false, initialLoad: false } };
-  const base = atom(defaultVal);
-  const refreshTriggerState = atom(
-    (get) => get(base),
-    (_get, set, update: typeof defaultVal) => {
-      set(base, update);
-      if (update.status) {
-        Promise.resolve().then(() => set(base, defaultVal));
-      }
-    }
-  );
-  return { refreshTriggerState };
-});
 
 function seedQueue(items: QueuedMutation[]) {
   mockStorage.set("mano-offline-queue", JSON.stringify(items));
@@ -91,7 +90,7 @@ describe("syncProcessor", () => {
       store.set(offlineModeState, true);
       seedQueue([makeQueueItem()]);
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       expect(mockApi.get).not.toHaveBeenCalled();
       expect(store.get(syncStatusState)).toBe("idle");
@@ -100,20 +99,20 @@ describe("syncProcessor", () => {
     it("passe à idle si la queue est vide", async () => {
       mockApi.get.mockResolvedValueOnce({ ok: true }); // check-auth
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       expect(store.get(syncStatusState)).toBe("idle");
-      expect(mockApi.executeRaw).not.toHaveBeenCalled();
+      expect(totalMutationCalls()).toBe(0);
     });
 
     it("s'arrête si l'auth échoue", async () => {
       seedQueue([makeQueueItem()]);
       mockApi.get.mockResolvedValueOnce({ ok: false }); // check-auth fails
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       expect(store.get(syncStatusState)).toBe("error");
-      expect(mockApi.executeRaw).not.toHaveBeenCalled();
+      expect(totalMutationCalls()).toBe(0);
     });
 
     it("traite une mutation PUT sans conflit et la supprime de la queue", async () => {
@@ -128,15 +127,15 @@ describe("syncProcessor", () => {
         data: { _id: "entity-1", updatedAt: "2026-01-01T00:00:00.000Z" },
         decryptedData: { _id: "entity-1", updatedAt: "2026-01-01T00:00:00.000Z" },
       });
-      // executeRaw
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
+      // PUT mutation
+      mockApi.put.mockResolvedValueOnce({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      expect(mockApi.executeRaw).toHaveBeenCalledWith({
-        method: "PUT",
+      expect(mockApi.put).toHaveBeenCalledWith({
         path: "/action/entity-1",
         body: { decrypted: { name: "Updated action" } },
+        offlineEnabled: false,
       });
 
       // Queue should be empty after processing
@@ -155,16 +154,16 @@ describe("syncProcessor", () => {
       seedQueue([item]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // check-auth
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
+      mockApi.post.mockResolvedValueOnce({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       // POST should not trigger conflict detection (no GET for entity)
       expect(mockApi.get).toHaveBeenCalledTimes(1); // only check-auth
-      expect(mockApi.executeRaw).toHaveBeenCalledWith({
-        method: "POST",
+      expect(mockApi.post).toHaveBeenCalledWith({
         path: "/action/multiple",
         body: { decrypted: { name: "Updated action" } },
+        offlineEnabled: false,
       });
     });
 
@@ -182,10 +181,10 @@ describe("syncProcessor", () => {
         decryptedData: { _id: "entity-1", updatedAt: "2026-01-02T00:00:00.000Z", name: "Server version" },
       });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      // Should NOT have called executeRaw for the conflicting item
-      expect(mockApi.executeRaw).not.toHaveBeenCalled();
+      // Should NOT have called any mutation method for the conflicting item
+      expect(totalMutationCalls()).toBe(0);
 
       // Queue item should be marked as conflict
       const queue = JSON.parse(mockStorage.get("mano-offline-queue")!);
@@ -201,14 +200,14 @@ describe("syncProcessor", () => {
       });
     });
 
-    it("marque comme failed si executeRaw échoue", async () => {
+    it("marque comme failed si la mutation échoue", async () => {
       const item = makeQueueItem({ entityUpdatedAt: undefined, method: "POST" });
       seedQueue([item]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // check-auth
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: false, error: "Server error" });
+      mockApi.post.mockResolvedValueOnce({ ok: false, error: "Server error" });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       expect(store.get(syncStatusState)).toBe("error");
       const queue = JSON.parse(mockStorage.get("mano-offline-queue")!);
@@ -222,11 +221,11 @@ describe("syncProcessor", () => {
       seedQueue([item1, item2]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // check-auth
-      mockApi.executeRaw.mockResolvedValue({ ok: true });
+      mockApi.post.mockResolvedValue({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      expect(mockApi.executeRaw).toHaveBeenCalledTimes(2);
+      expect(mockApi.post).toHaveBeenCalledTimes(2);
       const remaining = JSON.parse(mockStorage.get("mano-offline-queue") || "[]");
       expect(remaining).toHaveLength(0);
     });
@@ -255,10 +254,114 @@ describe("syncProcessor", () => {
       expect(mockApi.put).toHaveBeenCalledWith({
         path: "/action/entity-1",
         body: { name: "Merged version" },
+        entityType: "action",
+        entityId: "entity-1",
       });
       expect(store.get(conflictsState)).toHaveLength(0);
       const queue = JSON.parse(mockStorage.get("mano-offline-queue") || "[]");
       expect(queue).toHaveLength(0);
+    });
+  });
+
+  describe("batch mixte", () => {
+    it("1 succès + 1 conflict + 1 fail : queue finit avec [conflict, failed], status error", async () => {
+      const okItem = makeQueueItem({ id: "q-ok", entityId: "ok-1", method: "POST", path: "/action/multiple", entityUpdatedAt: undefined });
+      const conflictItem = makeQueueItem({ id: "q-conflict", entityId: "conflict-1" });
+      const failItem = makeQueueItem({ id: "q-fail", entityId: "fail-1", method: "POST", path: "/action/multiple", entityUpdatedAt: undefined });
+      seedQueue([okItem, conflictItem, failItem]);
+
+      mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
+      // okItem POST → no conflict detection, success
+      mockApi.post.mockResolvedValueOnce({ ok: true });
+      // conflictItem PUT → detectConflict triggers, server has different updatedAt
+      mockApi.get.mockResolvedValueOnce({
+        ok: true,
+        data: { _id: "conflict-1", updatedAt: "2099-01-01T00:00:00.000Z" },
+        decryptedData: { _id: "conflict-1", updatedAt: "2099-01-01T00:00:00.000Z" },
+      });
+      // failItem POST → failure
+      mockApi.post.mockResolvedValueOnce({ ok: false, error: "Server boom" });
+
+      await processQueue(mockRefresh);
+
+      expect(store.get(syncStatusState)).toBe("error");
+      const remaining = JSON.parse(mockStorage.get("mano-offline-queue") || "[]");
+      expect(remaining).toHaveLength(2);
+      const byId = Object.fromEntries(remaining.map((it: any) => [it.id, it]));
+      expect(byId["q-conflict"].status).toBe("conflict");
+      expect(byId["q-fail"].status).toBe("failed");
+      expect(byId["q-fail"].error).toBe("Server boom");
+    });
+  });
+
+  describe("régression: pull avant push (commit 38e420340)", () => {
+    it("refresh appelé avant la première mutation", async () => {
+      const callOrder: string[] = [];
+      mockRefresh.mockImplementation(async () => {
+        callOrder.push("refresh");
+      });
+      mockApi.get.mockImplementation(async (req: any) => {
+        if (req.path === "/check-auth") {
+          callOrder.push("auth");
+          return { ok: true };
+        }
+        callOrder.push(`get:${req.path}`);
+        return { ok: true, data: { updatedAt: "2026-01-01T00:00:00.000Z" }, decryptedData: { updatedAt: "2026-01-01T00:00:00.000Z" } };
+      });
+      mockApi.put.mockImplementation(async () => {
+        callOrder.push("mutation");
+        return { ok: true };
+      });
+
+      seedQueue([makeQueueItem()]);
+
+      await processQueue(mockRefresh);
+
+      const refreshIdx = callOrder.indexOf("refresh");
+      const mutIdx = callOrder.indexOf("mutation");
+      expect(refreshIdx).toBeGreaterThan(-1);
+      expect(mutIdx).toBeGreaterThan(-1);
+      expect(refreshIdx).toBeLessThan(mutIdx);
+    });
+  });
+
+  describe("sync concurrent", () => {
+    it("second appel pendant qu'un sync est en cours : no-op", async () => {
+      seedQueue([makeQueueItem()]);
+
+      // Auth resolves but slowly, so we can call processQueue again before completion
+      let resolveAuth: (val: any) => void;
+      mockApi.get.mockReturnValueOnce(new Promise((r) => (resolveAuth = r)));
+
+      const p1 = processQueue(mockRefresh);
+      const p2 = processQueue(mockRefresh); // should no-op
+
+      // Drain the second call
+      await p2;
+      // The second call returned without doing anything: no mutation, no refresh
+      expect(totalMutationCalls()).toBe(0);
+
+      // Now finish the first call
+      resolveAuth!({ ok: false }); // we don't care about the rest, just need to settle
+      await p1;
+    });
+  });
+
+  describe("erreur réseau (promise rejection)", () => {
+    it("mutation throw → status failed avec message capturé", async () => {
+      const item = makeQueueItem({ method: "POST", path: "/action/multiple", entityUpdatedAt: undefined });
+      seedQueue([item]);
+
+      mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
+      mockApi.post.mockRejectedValueOnce(new Error("ECONNRESET"));
+
+      await processQueue(mockRefresh);
+
+      const queue = JSON.parse(mockStorage.get("mano-offline-queue") || "[]");
+      expect(queue).toHaveLength(1);
+      expect(queue[0].status).toBe("failed");
+      expect(queue[0].error).toBe("ECONNRESET");
+      expect(store.get(syncStatusState)).toBe("error");
     });
   });
 

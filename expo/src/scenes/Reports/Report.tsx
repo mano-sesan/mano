@@ -105,7 +105,7 @@ const Report = ({ navigation, route }: Props) => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${day}` });
       if (response.error) return Alert.alert(response.error);
-      setServicesCount(response.data?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
+      setServicesCount((response.data as ServiceInstance[])?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
     }
     initServices();
   }, [currentTeam._id, day]);
@@ -154,7 +154,7 @@ const Report = ({ navigation, route }: Props) => {
     }
     if (response.ok) {
       await refresh();
-      setReport(castToReport(response.decryptedData));
+      setReport(castToReport(response.decryptedData as ReportInstance));
       Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);
       setEditable(false);

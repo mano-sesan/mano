@@ -165,11 +165,11 @@ const NewRencontreForm = ({
 
       if (!response.ok) {
         setPosting(false);
-        Alert.alert(response.error || response.code);
+        Alert.alert(response.error!);
         return;
       }
 
-      newRencontres.push(response.decryptedData);
+      newRencontres.push(response.decryptedData as RencontreInstance);
     }
 
     await refresh();

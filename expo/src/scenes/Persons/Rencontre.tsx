@@ -106,7 +106,7 @@ const Rencontre = ({ navigation, route }: RencontreProps) => {
                 const response = isNewRencontre ? await createRencontre() : await updateRencontre();
                 setSubmitting(false);
                 if (!response.ok) {
-                  Alert.alert("Erreur", response.error || response.code || "Une erreur est survenue lors de l'enregistrement de la rencontre");
+                  Alert.alert("Erreur", response.error || "Une erreur est survenue lors de l'enregistrement de la rencontre");
                   return;
                 }
                 await refresh();

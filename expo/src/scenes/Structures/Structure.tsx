@@ -112,11 +112,11 @@ const Structure = ({ navigation, route }: Props) => {
       Alert.alert("Contact mis à jour !");
       setStructures((structures) =>
         structures.map((s) => {
-          if (s._id === response.data._id) return response.data;
+          if (s._id === (response.data as StructureInstance)._id) return response.data as StructureInstance;
           return s;
         })
       );
-      setStructureDB(response.data);
+      setStructureDB(response.data as StructureInstance);
       setUpdating(false);
       setEditable(false);
       return true;

@@ -17,13 +17,16 @@ import InputLabelled from "../../components/InputLabelled";
 import EyeIcon from "../../icons/EyeIcon";
 import Title, { SubTitle } from "../../components/Title";
 import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../atoms/auth";
 import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
 import { useIsFocused } from "@react-navigation/native";
 import { LoginStackParamsList } from "@/types/navigation";
 import { useDataLoader } from "@/services/dataLoader";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "@/services/encryption";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { UserInstance } from "@/types/user";
+import { TeamInstance } from "@/types/team";
 
 type Props = NativeStackScreenProps<LoginStackParamsList, "LOGIN">;
 
@@ -49,7 +52,7 @@ const Login = ({ navigation }: Props) => {
   const setCurrentTeam = useSetAtom(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
   const { startInitialLoad, cleanupLoader, resetMMKVAndAtoms } = useDataLoader();
-
+  const offlineMode = useAtomValue(offlineModeState);
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -59,7 +62,7 @@ const Login = ({ navigation }: Props) => {
       const response = await API.get({ path: "/version" });
       if (!response.ok) {
         SplashScreen.hide();
-        const [title, subTitle, actions = [], options = {}] = response.inAppMessage;
+        const [title, subTitle, actions = [], options = {}] = response.inAppMessage!;
         if (!actions || !actions.length) return Alert.alert(title, subTitle);
         const actionsWithNavigation = actions
           .map((action: { text: string; link: string; onPress: () => void }) => {
@@ -154,7 +157,7 @@ const Login = ({ navigation }: Props) => {
       setLoading(false);
       return;
     }
-    if (["stats-only"].includes(response?.user?.role)) {
+    if (["stats-only"].includes(response?.user?.role!)) {
       Alert.alert("Vous n'avez pas accès à l'application mobile Mano");
       setLoading(false);
       return;
@@ -162,57 +165,61 @@ const Login = ({ navigation }: Props) => {
     if (response.ok) {
       Keyboard.dismiss();
 
-      if (response.user.organisation.disabledAt) {
+      if (response.user!.organisation.disabledAt) {
         setLoading(false);
         navigation.navigate("ORGANISATION_DESACTIVEE");
         return;
       }
 
-      API.token = response.token;
+      API.token = response.token!;
       API.onLogIn();
-      await AsyncStorage.setItem("persistent_token", response.token);
+      await AsyncStorage.setItem("persistent_token", response.token!);
       API.showTokenExpiredError = true;
-      setUser(response.user);
+      setUser(response.user!);
 
-      setOrganisation(response.user.organisation);
-      if (!!response.user.organisation?.encryptionEnabled && !showEncryptionKeyInput) {
+      setOrganisation(response.user!.organisation);
+      if (!!response.user!.organisation?.encryptionEnabled && !showEncryptionKeyInput) {
         setLoading(false);
         setShowEncryptionKeyInput(true);
         return;
       }
       if (showEncryptionKeyInput) {
         const hashedOrgEncryptionKey = await setOrgEncryptionKey(encryptionKey.trim());
-        const keyIsValid = await checkEncryptedVerificationKey(response.user.organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
+        const keyIsValid = await checkEncryptedVerificationKey(response.user!.organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
         if (!keyIsValid) {
           resetOrgEncryptionKey();
           Alert.alert(
             "La clé de chiffrement ne semble pas être correcte",
             "Veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
           );
-          await API.post({ path: "/user/decrypt-attempt-failure" });
+          if (!offlineMode) {
+            await API.post({ path: "/user/decrypt-attempt-failure" });
+          }
           setLoading(false);
           return;
         }
-        await API.post({ path: "/user/decrypt-attempt-success" });
+        if (!offlineMode) {
+          await API.post({ path: "/user/decrypt-attempt-success" });
+        }
       }
       await AsyncStorage.setItem("persistent_email", email);
       const { data: teams } = await API.get({ path: "/team" });
       const { data: users } = await API.get({ path: "/user", query: { minimal: true } });
       const { data: deletedUsers } = await API.get({ path: "/user/deleted-users" });
-      setUser(response.user);
-      setOrganisation(response.user.organisation);
+      setUser(response.user!);
+      setOrganisation(response.user!.organisation);
       // We need to reset cache if organisation has changed.
-      if (!!storageOrganisationId && response.user.organisation._id !== storageOrganisationId) {
+      if (!!storageOrganisationId && response.user!.organisation._id !== storageOrganisationId) {
         await clearCache("again not same org");
         resetMMKVAndAtoms();
         setLastRefresh(0);
       }
-      setStorageOrganisationId(response.user.organisation._id);
-      setUsers(users);
-      setDeletedUsers(deletedUsers);
-      setTeams(teams);
+      setStorageOrganisationId(response.user!.organisation._id);
+      setUsers(users as UserInstance[]);
+      setDeletedUsers(deletedUsers as UserInstance[]);
+      setTeams(teams as TeamInstance[]);
       // getting teams before going to team selection
-      if (!__DEV__ && !response.user.lastChangePasswordAt) {
+      if (!__DEV__ && !response.user!.lastChangePasswordAt) {
         navigation.navigate("FORCE_CHANGE_PASSWORD");
       } else {
         if (!response.user?.cgusAccepted) {

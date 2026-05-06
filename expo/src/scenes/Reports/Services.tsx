@@ -41,7 +41,7 @@ function IncrementorSmall({
           if (res.error) {
             return Alert.alert("Erreur lors de la mise à jour du service");
           }
-          onUpdated(res.data.count);
+          onUpdated((res.data as ServiceToShow).count);
         }
       );
     },
@@ -102,7 +102,7 @@ const Services = ({ navigation, route }: Props) => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${date}` });
       if (response.error) return Alert.alert(response.error);
-      setServices(response.data);
+      setServices(response.data as ServiceToShow[]);
     }
     initServices();
   }, [currentTeam._id, date]);

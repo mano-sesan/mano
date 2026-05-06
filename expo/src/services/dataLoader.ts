@@ -107,10 +107,10 @@ export function useDataLoader() {
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const userResponse = await API.get({ path: "/user/me" });
     if (!userResponse.ok) return resetLoaderOnError();
-    const latestOrganisation = userResponse.user.organisation;
-    const latestUser = userResponse.user;
-    const latestTeams = userResponse.user.orgTeams;
-    const organisationId = latestOrganisation._id;
+    const latestOrganisation = userResponse.user!.organisation;
+    const latestUser = userResponse.user!;
+    const latestTeams = userResponse.user!.teams!;
+    const organisationId = latestOrganisation!._id;
     // Au tout premier login, `organisation` peut encore être `null` dans la closure (l'atom a été setté
     // mais ce render-ci ne l'a pas encore vu). On ne compare donc qu'en refresh.
     if (!isStartingInitialLoad && organisation?.encryptionLastUpdateAt !== latestOrganisation.encryptionLastUpdateAt) {
@@ -153,7 +153,7 @@ export function useDataLoader() {
 
     if (!statsResponse.ok) return false;
 
-    const stats = statsResponse.data;
+    const stats: Record<string, number> = statsResponse.data as Record<string, number>;
     let itemsCount =
       0 +
       stats.persons +
@@ -190,8 +190,8 @@ export function useDataLoader() {
       async function loadPersons(page = 0) {
         const res = await API.get({ path: "/person", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newPersons.push(...decryptedData);
         if (res.hasMore) return loadPersons(page + 1);
         return true;
@@ -219,8 +219,8 @@ export function useDataLoader() {
       async function loadGroups(page = 0) {
         const res = await API.get({ path: "/group", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newGroups.push(...decryptedData);
         if (res.hasMore) return loadGroups(page + 1);
         return true;
@@ -248,8 +248,8 @@ export function useDataLoader() {
       async function loadReports(page = 0) {
         const res = await API.get({ path: "/report", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newReports.push(...decryptedData);
         if (res.hasMore) return loadReports(page + 1);
         return true;
@@ -279,8 +279,8 @@ export function useDataLoader() {
       async function loadPassages(page = 0) {
         const res = await API.get({ path: "/passage", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newPassages.push(...decryptedData);
         if (res.hasMore) return loadPassages(page + 1);
         return true;
@@ -308,8 +308,8 @@ export function useDataLoader() {
       async function loadRencontres(page = 0) {
         const res = await API.get({ path: "/rencontre", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newRencontres.push(...decryptedData);
         if (res.hasMore) return loadRencontres(page + 1);
         return true;
@@ -337,8 +337,8 @@ export function useDataLoader() {
       async function loadActions(page = 0) {
         const res = await API.get({ path: "/action", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newActions.push(...decryptedData);
         if (res.hasMore) return loadActions(page + 1);
         return true;
@@ -366,8 +366,8 @@ export function useDataLoader() {
       async function loadRecurrences(page = 0) {
         const res = await API.get({ path: "/recurrence", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newRecurrences.push(...decryptedData);
         if (res.hasMore) return loadRecurrences(page + 1);
         return true;
@@ -395,8 +395,8 @@ export function useDataLoader() {
       async function loadTerritories(page = 0) {
         const res = await API.get({ path: "/territory", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newTerritories.push(...decryptedData);
         if (res.hasMore) return loadTerritories(page + 1);
         return true;
@@ -424,8 +424,8 @@ export function useDataLoader() {
       async function loadPlaces(page = 0) {
         const res = await API.get({ path: "/place", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newPlaces.push(...decryptedData);
         if (res.hasMore) return loadPlaces(page + 1);
         return true;
@@ -453,8 +453,8 @@ export function useDataLoader() {
       async function loadRelsPersonPlace(page = 0) {
         const res = await API.get({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newRelsPersonPlace.push(...decryptedData);
         if (res.hasMore) return loadRelsPersonPlace(page + 1);
         return true;
@@ -482,8 +482,8 @@ export function useDataLoader() {
       async function loadObservations(page = 0) {
         const res = await API.get({ path: "/territory-observation", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newTerritoryObservations.push(...decryptedData);
         if (res.hasMore) return loadObservations(page + 1);
         return true;
@@ -511,8 +511,8 @@ export function useDataLoader() {
       async function loadComments(page = 0) {
         const res = await API.get({ path: "/comment", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newComments.push(...decryptedData);
         if (res.hasMore) return loadComments(page + 1);
         return true;
@@ -545,9 +545,9 @@ export function useDataLoader() {
           query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
         });
         if (!res.ok) return resetLoaderOnError();
-        newConsultationsRaw.push(...res.data);
-        const decryptedData = res.decryptedData.filter((e: any) => e);
-        setProgress((p) => p + res.data.length);
+        newConsultationsRaw.push(...(res.data as any[]));
+        const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+        setProgress((p) => p + (res.data as any[]).length);
         newConsultations.push(...decryptedData);
         if (res.hasMore) return loadConsultations(page + 1);
         return true;
@@ -582,9 +582,9 @@ export function useDataLoader() {
             query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
           });
           if (!res.ok) return resetLoaderOnError();
-          newTreatmentsRaw.push(...res.data);
-          const decryptedData = res.decryptedData.filter((e: any) => e);
-          setProgress((p) => p + res.data.length);
+          newTreatmentsRaw.push(...(res.data as any[]));
+          const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+          setProgress((p) => p + (res.data as any[]).length);
           newTreatments.push(...decryptedData);
           if (res.hasMore) return loadTreatments(page + 1);
           return true;
@@ -621,9 +621,9 @@ export function useDataLoader() {
             query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
           });
           if (!res.ok) return resetLoaderOnError();
-          newMedicalFilesRaw.push(...res.data);
-          const decryptedData = res.decryptedData.filter((e: any) => e);
-          setProgress((p) => p + res.data.length);
+          newMedicalFilesRaw.push(...(res.data as any[]));
+          const decryptedData = (res.decryptedData as any[]).filter((e: any) => e);
+          setProgress((p) => p + (res.data as any[]).length);
           newMedicalFiles.push(...decryptedData);
           if (res.hasMore) return loadMedicalFiles(page + 1);
           return true;
@@ -649,7 +649,7 @@ export function useDataLoader() {
       }
     }
 
-    setLastRefresh(serverDate);
+    setLastRefresh(serverDate as number);
     // Re-layer pending offline mutations on top of freshly-synced server data.
     // Server-confirmed items (matched by _id) win via mergeItems; still-pending items remain visible with `_pendingSync`.
     rehydrateOptimisticUpdates();

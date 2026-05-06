@@ -40,7 +40,7 @@ const Menu = ({ navigation }: MenuProps) => {
               API.logout(clearAll);
             },
           },
-        ],
+        ]
       );
       return;
     }
@@ -81,7 +81,7 @@ const Menu = ({ navigation }: MenuProps) => {
         <Row withNextButton caption={`Changer d'équipe (actuellement ${currentTeam?.name})`} onPress={() => navigateRootStack("CHANGE_TEAM")} />
         <Row withNextButton caption="Changer le mot de passe" onPress={() => navigateRootStack("CHANGE_PASSWORD")} />
         <Spacer height={30} />
-        <Row withNextButton caption="Télécharger Mano" onPress={() => Linking.openURL(MANO_DOWNLOAD_URL)} />
+        <Row withNextButton caption="Télécharger Mano" onPress={() => Linking.openURL(MANO_DOWNLOAD_URL!)} />
         {API.updateLink && (
           <Row withNextButton caption="Mettre à jour la dernière version" onPress={() => API.downloadAndInstallUpdate(API.updateLink)} />
         )}

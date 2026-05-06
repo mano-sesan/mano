@@ -209,8 +209,8 @@ const App = () => {
 
     API.onLogIn = () => setIsLoggedIn(true);
 
-    API.logout = async (clearAll: boolean) => {
-      clearAllRef.current = clearAll;
+    API.logout = async (clearAll?: boolean) => {
+      clearAllRef.current = clearAll ?? false;
       setIsLoggedIn(false);
     };
 

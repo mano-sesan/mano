@@ -14,7 +14,7 @@ import Label from "../../components/Label";
 import Tags, { MyTextForTags } from "../../components/Tags";
 import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
 import { offlineModeState } from "@/atoms/offlineMode";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
@@ -195,10 +195,10 @@ const NewActionForm = ({
         });
         if (!recurrenceResponse.ok) {
           setPosting(false);
-          Alert.alert(recurrenceResponse.error || recurrenceResponse.code);
+          Alert.alert(recurrenceResponse.error!);
           return;
         }
-        recurrencesIds.push(recurrenceResponse.data._id);
+        recurrencesIds.push((recurrenceResponse.data as Recurrence)._id!);
       }
     }
 
@@ -245,29 +245,29 @@ const NewActionForm = ({
 
     if (offlineMode) {
       // In offline mode, enqueue each action individually (the offline queue can't handle array bodies)
-      const results = [];
+      const results: Array<ActionInstance> = [];
       for (const action of actions) {
         const res = await API.post({ path: "/action", body: action, entityType: "action" });
         if (!res.ok) {
           setPosting(false);
-          Alert.alert(res.error || res.code);
+          Alert.alert(res.error!);
           return;
         }
-        results.push(res.decryptedData || res.data);
+        results.push((res.decryptedData || res.data) as ActionInstance);
       }
       response = { ok: true, decryptedData: results };
     } else {
-      response = await API.post({
+      response = (await API.post({
         path: "/action/multiple",
         body: await Promise.all(actions.map(encryptItem)),
         offlineEnabled: false,
-      });
+      })) as ApiResponse & { decryptedData: ActionInstance[] };
     }
 
     refresh();
     setPosting(false);
     if (!response.ok) {
-      if (response.status !== 401) Alert.alert(response.error || response.code || "Erreur inconnue");
+      if (response.status !== 401) Alert.alert(response.error || "Erreur inconnue");
       return;
     }
 

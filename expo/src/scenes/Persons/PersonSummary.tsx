@@ -398,7 +398,7 @@ const PersonSummary = ({
               };
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
               if (!response.ok) {
-                Alert.alert(response.error || response.code);
+                Alert.alert(response.error!);
                 return false;
               }
               await refresh();

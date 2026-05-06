@@ -90,7 +90,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
     }
     if (response.ok) {
       await refresh();
-      setTerritoryDB(response.decryptedData);
+      setTerritoryDB(response.decryptedData as TerritoryInstance);
       Alert.alert("Territoire mis à jour !");
       setUpdating(false);
       setEditable(false);

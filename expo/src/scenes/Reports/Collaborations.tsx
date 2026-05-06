@@ -17,6 +17,7 @@ import { currentTeamReportsSelector } from "./selectors";
 import { useDataLoader } from "@/services/dataLoader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
+import { OrganisationInstance } from "@/types/organisation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "COLLABORATIONS">;
 const Collaborations = ({ route, navigation }: Props) => {
@@ -69,7 +70,7 @@ const Collaborations = ({ route, navigation }: Props) => {
       return;
     }
     if (response.ok) {
-      setOrganisation(response.data);
+      setOrganisation(response.data as OrganisationInstance);
       onSubmit(collaboration);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

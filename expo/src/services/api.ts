@@ -34,11 +34,12 @@ import { organisationState } from "@/atoms/auth";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { enqueue } from "./offlineQueue";
 import { applyMutationToAtoms } from "./offlineOptimistic";
+import { UserResponseData } from "@/types/user";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
 class ApiService {
-  getUrl = (path, query = {}) => {
+  getUrl = (path: string, query: Query = {}) => {
     return new URI().scheme(SCHEME).host(HOST).path(path).setSearch(query).toString();
   };
 
@@ -64,7 +65,7 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  organisationEncryptionStatus() {
+  organisationEncryptionStatus(): Record<string, string | boolean | Date | undefined> {
     const organisation = store.get(organisationState) || {
       encryptionLastUpdateAt: undefined,
       encryptionEnabled: undefined,
@@ -80,18 +81,27 @@ class ApiService {
   execute = async ({
     method,
     path = "",
-    body = null,
+    body = undefined,
     query = {},
     headers = {},
     debug = false,
-    batch = null,
-    entityType = null,
-    entityId = null,
+    entityType = undefined,
+    entityId = undefined,
     offlineEnabled = true,
-  } = {}) => {
+  }: {
+    method: RequestInit["method"];
+    path?: string;
+    body?: any;
+    query?: Query;
+    headers?: Record<string, string>;
+    debug?: boolean;
+    entityType?: string;
+    entityId?: string;
+    offlineEnabled?: boolean;
+  }): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
-      const options = {
+      const options: RequestInit = {
         method,
         headers: {
           ...headers,
@@ -99,7 +109,7 @@ class ApiService {
           Accept: "application/json",
           platform: this.platform,
           version: VERSION,
-          packageid: Application.applicationId,
+          packageid: Application.applicationId!,
         },
       };
 
@@ -111,35 +121,37 @@ class ApiService {
             body = { ...body, _id: uuidv4() };
             entityId = body._id;
           }
-          if (!entityId) {
-            Alert.alert(
-              "Impossible d'effectuer cette action hors-ligne",
-              "Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement"
-            );
-            return { ok: false, error: "Entity ID not found" };
-          }
           if (!entityType) {
             Alert.alert(
               "Impossible d'effectuer cette action hors-ligne",
-              "Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement"
+              `Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement.\n${path}`
             );
             return { ok: false, error: "Entity type not found" };
           }
           const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
-          const item = enqueue({
-            method: method,
+          console.log("BEFORE ENQUEUE", {
+            method: method as "POST" | "PUT" | "DELETE",
             path: path,
             decryptedBody: body,
             entityType,
-            entityId,
+            entityId: entityId!,
             entityUpdatedAt: updatedAt,
           });
+          const item = enqueue({
+            method: method as "POST" | "PUT" | "DELETE",
+            path: path,
+            decryptedBody: body,
+            entityType,
+            entityId: entityId!,
+            entityUpdatedAt: updatedAt,
+          });
+          console.log("AFTER ENQUEUE", item);
           applyMutationToAtoms(item);
           // Return optimistic response
           return Promise.resolve({
             ok: true,
-            data: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
-            decryptedData: { _id: entityId, ...body.decrypted, updatedAt, _pendingSync: true },
+            data: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
+            decryptedData: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
             _offlineQueued: true,
             _queueItemId: item.id,
           });
@@ -150,7 +162,7 @@ class ApiService {
         options.body = JSON.stringify(await encryptItem(body));
       }
 
-      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+      if (["PUT", "POST", "DELETE"].includes(method)) {
         query = {
           ...this.organisationEncryptionStatus(),
           ...query,
@@ -169,7 +181,7 @@ class ApiService {
           : await fetch(url, options);
 
       if (!response.ok && response.status === 401) {
-        if (this.logout) this.logout("401");
+        if (this.logout) this.logout();
         if (API.showTokenExpiredError) {
           Alert.alert("Votre session a expiré, veuillez vous reconnecter");
           API.showTokenExpiredError = false;
@@ -178,10 +190,13 @@ class ApiService {
       }
 
       try {
-        const res = await response.json();
+        const res: ApiResponse = await response.json();
         if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
-          const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
-          if (!actions || !actions.length) return Alert.alert(title, subTitle);
+          const [title, subTitle, actions = [], options = {}] = res.inAppMessage!;
+          if (!actions || !actions.length) {
+            Alert.alert(title, subTitle);
+            return res;
+          }
           const actionsWithNavigation = actions
             .map((action) => {
               if (action.text === "Installer") {
@@ -218,7 +233,7 @@ class ApiService {
         capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
         return { ok: false, error: "Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !" };
       }
-    } catch (errorExecuteApi) {
+    } catch (errorExecuteApi: any) {
       capture(errorExecuteApi, {
         extra: {
           path,
@@ -233,44 +248,21 @@ class ApiService {
     }
   };
 
-  post = (args) => this.execute({ method: "POST", ...args });
-  get = async (args) => {
-    if (args.batch) {
-      let hasMore = true;
-      let page = 0;
-      let limit = args.batch;
-      let data = [];
-      let decryptedData = [];
-      while (hasMore) {
-        let query = { ...args.query, limit, page };
-        const response = await this.execute({ method: "GET", ...args, query });
-        if (!response.ok) {
-          capture("error getting batch", { extra: { response } });
-          return { ok: false, data: [] };
-        }
-        data.push(...response.data);
-        decryptedData.push(...(response.decryptedData || []));
-        hasMore = response.hasMore;
-        page = response.hasMore ? page + 1 : page;
-        // at least 1 for showing progress
-        if (args.setProgress) args.setProgress(response.decryptedData.length || 1);
-        await new Promise((res) => setTimeout(res, 50));
-      }
-      return { ok: true, data, decryptedData };
-    } else {
-      return this.execute({ method: "GET", ...args });
-    }
-  };
-  put = (args) => this.execute({ method: "PUT", ...args });
-  delete = (args) => this.execute({ method: "DELETE", ...args });
-
-  // Raw execute for sync processor — body is already the pre-encryption payload
-  executeRaw = async ({ method, path, body }) => {
-    return this.execute({ method, path, body });
-  };
+  post = (args: PostApiArgs) => this.execute({ ...args, method: "POST" });
+  get = async (args: GetApiArgs) => this.execute({ ...args, method: "GET" });
+  put = (args: PutApiArgs) => this.execute({ ...args, method: "PUT" });
+  delete = (args: DeleteApiArgs) => this.execute({ ...args, method: "DELETE" });
 
   // Download a file from a path.
-  download = async ({ path, encryptedEntityKey, document }) => {
+  download = async ({
+    path,
+    encryptedEntityKey,
+    document,
+  }: {
+    path: string;
+    encryptedEntityKey: string;
+    document: { file: { originalname: string } };
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
@@ -296,8 +288,8 @@ class ApiService {
   };
 
   // Upload a file to a path.
-  upload = async ({ file, path }) => {
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+  upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
+    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
     const offlineMode = store.get(offlineModeState);
 
@@ -308,7 +300,19 @@ class ApiService {
     return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
   };
 
-  _doUpload = async ({ name, type, path, encryptedEntityKey, encryptedFile }) => {
+  _doUpload = async ({
+    name,
+    type,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    name: string;
+    type: string;
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -330,12 +334,22 @@ class ApiService {
     return { ...json, encryptedEntityKey };
   };
 
-  _queueFileUpload = ({ file, path, encryptedEntityKey, encryptedFile }) => {
+  _queueFileUpload = ({
+    file,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    file: { fileName: string; type: string };
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
     const entityId = uuidv4();
     enqueue({
       method: "POST",
       path,
-      body: null,
+      decryptedBody: null,
       entityType: "file_upload",
       entityId,
       fileUpload: {
@@ -357,8 +371,8 @@ class ApiService {
   };
   token = "";
   onLogIn = () => {};
-  logout = async (_clearAll) => {};
-  downloadAndInstallUpdate = (_link) => {};
+  logout = async (_clearAll?: boolean) => {};
+  downloadAndInstallUpdate = (_link: string) => {};
   updateLink = "";
   showTokenExpiredError = false;
   platform = Platform.OS;
@@ -367,3 +381,66 @@ class ApiService {
 
 const API = new ApiService();
 export default API;
+
+type RequestInit = {
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  headers: Record<string, string>;
+  body?: string;
+};
+
+type ApiArgs = {
+  method: RequestInit["method"];
+  path: string;
+  body?: Record<string, any>;
+  query?: Query;
+  headers?: RequestInit["headers"];
+  debug?: boolean;
+  entityType?: string;
+  entityId?: string;
+  offlineEnabled?: boolean;
+};
+
+interface PostApiArgs extends Omit<ApiArgs, "method"> {
+  body?: Record<string, any>;
+}
+
+interface GetApiArgs extends Omit<ApiArgs, "method"> {
+  query?: Query;
+}
+
+interface PutApiArgs extends Omit<ApiArgs, "method"> {
+  body: Record<string, any>;
+}
+
+type DeleteApiArgs = Omit<ApiArgs, "method">;
+
+type Query = Record<string, string | Date | boolean | undefined | number>;
+
+export type ApiResponse = {
+  ok: boolean;
+  user?: UserResponseData;
+  token?: string;
+  data?: unknown;
+  decryptedData?: unknown;
+  code?: string;
+  error?: string;
+  hasMore?: boolean;
+  message?: string;
+  inAppMessage?: [
+    string,
+    string,
+    {
+      text: string;
+      link: string;
+      onPress: () => void;
+    }[],
+    {
+      [key: string]: any;
+    },
+  ];
+};
+
+export type OfflineApiResponse = ApiResponse & {
+  _offlineQueued: boolean;
+  _queueItemId: string;
+};

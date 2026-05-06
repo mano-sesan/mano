@@ -227,7 +227,7 @@ const TerritoryObservation = ({
           Alert.alert(response.error);
           continue;
         }
-        newRencontres.push(response.decryptedData);
+        newRencontres.push(response.decryptedData as RencontreInstance);
       }
       await refresh();
       setRencontresForObs((rencontresForObs) => [...rencontresForObs, ...newRencontres]);
@@ -250,14 +250,14 @@ const TerritoryObservation = ({
     });
     if (response.code || response.error) {
       setUpdating(false);
-      Alert.alert(response.error || response.code);
+      Alert.alert(response.error!);
       return false;
     }
 
     await refresh();
-    setObs(castToTerritoryObservation(response.decryptedData));
-    setObsDB(response.decryptedData);
-    await saveRencontres(response.decryptedData._id);
+    setObs(castToTerritoryObservation(response.decryptedData as TerritoryObservationInstance));
+    setObsDB(response.decryptedData as TerritoryObservationInstance);
+    await saveRencontres((response.decryptedData as TerritoryObservationInstance)._id);
     Alert.alert("Nouvelle observation créée !");
     setUpdating(false);
     setEditable(false);
@@ -286,10 +286,10 @@ const TerritoryObservation = ({
       return false;
     }
     await refresh();
-    setObs(castToTerritoryObservation(response.decryptedData));
-    setObsDB(response.decryptedData);
+    setObs(castToTerritoryObservation(response.decryptedData as TerritoryObservationInstance));
+    setObsDB(response.decryptedData as TerritoryObservationInstance);
     Alert.alert("Observation mise à jour !");
-    await saveRencontres(response.decryptedData._id);
+    await saveRencontres((response.decryptedData as TerritoryObservationInstance)._id);
     setUpdating(false);
     setEditable(false);
     return true;

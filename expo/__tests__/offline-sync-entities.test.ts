@@ -6,17 +6,21 @@ import { processQueue, conflictsState, syncStatusState } from "@/services/syncPr
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { entityFixtures, type EntityFixture } from "./fixtures/entityFixtures";
 
-const { mockStorage, mockApi } = vi.hoisted(() => ({
+const { mockStorage, mockApi, mockRefresh } = vi.hoisted(() => ({
   mockStorage: new Map<string, string>(),
   mockApi: {
     get: vi.fn(),
     put: vi.fn(),
     post: vi.fn(),
     delete: vi.fn(),
-    executeRaw: vi.fn(),
     _doUpload: vi.fn(),
   },
+  mockRefresh: vi.fn(async () => {}),
 }));
+
+function totalMutationCalls() {
+  return mockApi.post.mock.calls.length + mockApi.put.mock.calls.length + mockApi.delete.mock.calls.length;
+}
 
 vi.mock("react-native-mmkv", () => ({
   MMKV: class {
@@ -36,25 +40,22 @@ vi.mock("react-native-mmkv", () => ({
 }));
 
 let uuidCounter = 0;
+vi.mock("react-native", () => ({
+  Alert: { alert: vi.fn() },
+  Platform: { OS: "ios", select: (obj: any) => obj.ios ?? obj.default },
+  StyleSheet: { create: (s: any) => s },
+}));
+vi.mock("@sentry/react-native", () => ({
+  setUser: vi.fn(),
+  setContext: vi.fn(),
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
+  withScope: vi.fn((cb: any) => cb({ setExtras: vi.fn(), setTag: vi.fn() })),
+}));
+vi.mock("@/services/dataLoader", () => ({ useDataLoader: vi.fn(() => ({ refresh: vi.fn() })) }));
 vi.mock("uuid", () => ({ v4: () => `uuid-${++uuidCounter}` }));
 vi.mock("@/services/sentry", () => ({ capture: vi.fn() }));
 vi.mock("@/services/api", () => ({ default: mockApi }));
-
-vi.mock("@/components/Loader", async () => {
-  const { atom } = await import("jotai");
-  const defaultVal = { status: false, options: { showFullScreen: false, initialLoad: false } };
-  const base = atom(defaultVal);
-  const refreshTriggerState = atom(
-    (get) => get(base),
-    (_get, set, update: typeof defaultVal) => {
-      set(base, update);
-      if (update.status) {
-        Promise.resolve().then(() => set(base, defaultVal));
-      }
-    }
-  );
-  return { refreshTriggerState };
-});
 
 function seedQueue(items: QueuedMutation[]) {
   mockStorage.set("mano-offline-queue", JSON.stringify(items));
@@ -243,7 +244,7 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
   });
 
   describe("sync (processQueue)", () => {
-    it("sync sans conflit : executeRaw appelé quand le updatedAt serveur correspond", async () => {
+    it("sync sans conflit : PUT appelé quand le updatedAt serveur correspond", async () => {
       seedQueue([makeItem(fixture)]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
@@ -252,14 +253,14 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
         data: { _id: fixture.entityId, updatedAt: fixture.putBody.updatedAt },
         decryptedData: { ...fixture.serverEntity, updatedAt: fixture.putBody.updatedAt },
       });
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
+      mockApi.put.mockResolvedValueOnce({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      expect(mockApi.executeRaw).toHaveBeenCalledWith({
-        method: "PUT",
+      expect(mockApi.put).toHaveBeenCalledWith({
         path: `${fixture.apiPath}/${fixture.entityId}`,
         body: fixture.putBody,
+        offlineEnabled: false,
       });
       expect(loadQueueFromStorage()).toHaveLength(0);
       expect(store.get(syncStatusState)).toBe("idle");
@@ -276,9 +277,9 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
         decryptedData: { ...fixture.serverEntity, updatedAt: serverUpdatedAt },
       });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      expect(mockApi.executeRaw).not.toHaveBeenCalled();
+      expect(totalMutationCalls()).toBe(0);
 
       const conflicts = store.get(conflictsState);
       expect(conflicts).toHaveLength(1);
@@ -295,7 +296,7 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
       expect(queue[0].status).toBe("conflict");
     });
 
-    it("POST : pas de détection de conflit, executeRaw appelé directement", async () => {
+    it("POST : pas de détection de conflit, POST appelé directement", async () => {
       seedQueue([
         makeItem(fixture, {
           method: "POST",
@@ -306,13 +307,13 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
       ]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // auth seulement
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
+      mockApi.post.mockResolvedValueOnce({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
       // Seul le check auth, pas de GET pour vérifier l'entité
       expect(mockApi.get).toHaveBeenCalledTimes(1);
-      expect(mockApi.executeRaw).toHaveBeenCalledTimes(1);
+      expect(mockApi.post).toHaveBeenCalledTimes(1);
       expect(loadQueueFromStorage()).toHaveLength(0);
     });
 
@@ -323,12 +324,12 @@ describe.each(entityFixtures)("$entityType", (fixture) => {
       seedQueue([makeItem(fixture, { entityUpdatedAt: undefined })]);
 
       mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
-      mockApi.executeRaw.mockResolvedValueOnce({ ok: true });
+      mockApi.put.mockResolvedValueOnce({ ok: true });
 
-      await processQueue();
+      await processQueue(mockRefresh);
 
-      // executeRaw est appelé sans détection de conflit
-      expect(mockApi.executeRaw).toHaveBeenCalledTimes(1);
+      // PUT est appelé sans détection de conflit
+      expect(mockApi.put).toHaveBeenCalledTimes(1);
       // Seul le check auth, pas de GET pour l'entité
       expect(mockApi.get).toHaveBeenCalledTimes(1);
     });
