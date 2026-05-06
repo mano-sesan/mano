@@ -24,7 +24,7 @@ export const syncProgressState = atom<{ current: number; total: number }>({ curr
 
 let isSyncing = false;
 
-export async function processQueue(refresh: () => Promise<any>): Promise<void> {
+async function processQueue(refresh: () => Promise<any>): Promise<void> {
   if (isSyncing) return;
   const offlineMode = store.get(offlineModeState);
   if (offlineMode) return;
@@ -158,7 +158,7 @@ async function processMutation(item: QueuedMutation): Promise<boolean> {
         response = await API.put({ path: item.path, body: item.decryptedBody!, offlineEnabled: false });
         break;
       case "DELETE":
-        response = await API.delete({ path: item.path, offlineEnabled: false });
+        response = await API.delete({ path: item.path, body: item.decryptedBody!, offlineEnabled: false });
         break;
     }
 

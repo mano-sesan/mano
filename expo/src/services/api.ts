@@ -129,14 +129,6 @@ class ApiService {
             return { ok: false, error: "Entity type not found" };
           }
           const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
-          console.log("BEFORE ENQUEUE", {
-            method: method as "POST" | "PUT" | "DELETE",
-            path: path,
-            decryptedBody: body,
-            entityType,
-            entityId: entityId!,
-            entityUpdatedAt: updatedAt,
-          });
           const item = enqueue({
             method: method as "POST" | "PUT" | "DELETE",
             path: path,
@@ -145,7 +137,6 @@ class ApiService {
             entityId: entityId!,
             entityUpdatedAt: updatedAt,
           });
-          console.log("AFTER ENQUEUE", item);
           applyMutationToAtoms(item);
           // Return optimistic response
           return Promise.resolve({
@@ -412,7 +403,9 @@ interface PutApiArgs extends Omit<ApiArgs, "method"> {
   body: Record<string, any>;
 }
 
-type DeleteApiArgs = Omit<ApiArgs, "method">;
+type DeleteApiArgs = Omit<ApiArgs, "method"> & {
+  body?: Record<string, any>;
+};
 
 type Query = Record<string, string | Date | boolean | undefined | number>;
 
