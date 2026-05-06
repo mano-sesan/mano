@@ -230,14 +230,14 @@ const decryptDBItem = async (item, { path } = {}) => {
     };
     return decryptedItem;
   } catch (errorDecrypt) {
-    // we dont capture the error here because we handle it in dashboard and we trust the algo to work properly in the app
-    // capture(errorDecrypt, {
-    //   extra: {
-    //     message: 'ERROR DECRYPTING ITEM',
-    //     item,
-    //     path,
-    //   },
-    // });
+    capture(errorDecrypt, {
+      extra: {
+        message: "ERROR DECRYPTING ITEM",
+        item,
+        path,
+      },
+    });
+    // we dont display the alert because it would be too many alerts potentially, and kill the UX and maybe the app too
     // Alert.alert(
     //   "Désolé, un élément n'a pas pu être déchiffré",
     //   "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
