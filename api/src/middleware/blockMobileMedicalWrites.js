@@ -11,7 +11,7 @@ module.exports = (req, res, next) => {
 
   return res.status(400).send({
     ok: false,
-    message: "Veuillez mettre à jour votre application!", // because in-app message is handled in api.js
+    message: "Veuillez mettre à jour votre application!", // because in-app message is triggered only by this message, thank you Arnaud
     inAppMessage: [
       "Fonctionnalité temporairement désactivée",
       "Pour éviter une perte de données, la modification des consultations, traitements et dossiers médicaux est temporairement désactivée sur cette version de l'application. Merci de mettre à jour pour retrouver l'accès complet.",
