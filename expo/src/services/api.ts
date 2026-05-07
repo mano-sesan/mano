@@ -34,6 +34,7 @@ import { organisationState } from "@/atoms/auth";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { enqueue, loadQueueFromStorage } from "./offlineQueue";
 import { applyMutationToAtoms } from "./offlineOptimistic";
+import { stripOfflineAddedFlag } from "./offlineFlags";
 import { UserResponseData } from "@/types/user";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
@@ -150,7 +151,10 @@ class ApiService {
       }
 
       if (body) {
-        options.body = JSON.stringify(await encryptItem(body));
+        // Strippe les flags client-only (`_offlineAdded`) avant chiffrement →
+        // ils n'arrivent jamais côté serveur, même en mode online.
+        const cleanBody = stripOfflineAddedFlag(body);
+        options.body = JSON.stringify(await encryptItem(cleanBody));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {

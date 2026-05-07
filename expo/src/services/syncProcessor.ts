@@ -13,12 +13,16 @@ import { medicalFileState } from "@/atoms/medicalFiles";
 import { actionsState } from "@/atoms/actions";
 import { territoryObservationsState } from "@/atoms/territoryObservations";
 import { mergeDocuments } from "./documentsMerge";
+import { mergeComments } from "./commentsMerge";
+import { mergeHistory } from "./historyMerge";
+import { stripOfflineAddedFlag } from "./offlineFlags";
 import type { PrimitiveAtom } from "jotai";
 
-// Champs ignorés pour décider s'il reste un conflit "réel" après merge auto
-// du tableau `documents`. Doit rester aligné avec HIDDEN_FIELDS de
-// ConflictResolution.tsx — ce sont les mêmes critères : champs techniques
-// ou auto-mergés qui ne doivent pas, à eux seuls, ouvrir l'UI de résolution.
+// Champs ignorés pour décider s'il reste un conflit "réel" après auto-merge
+// (documents, comments, history). Doit rester aligné avec HIDDEN_FIELDS de
+// ConflictResolution.tsx. `assignedTeams` n'est PAS dans cette liste : c'est
+// un champ que l'utilisateur peut éditer et dont les conflits doivent être
+// résolus manuellement dans l'UI.
 const FIELDS_NOT_TRIGGERING_CONFLICT = new Set([
   "updatedAt",
   "createdAt",
@@ -26,7 +30,6 @@ const FIELDS_NOT_TRIGGERING_CONFLICT = new Set([
   "entityKey",
   "entityUpdatedAt",
   "history",
-  "assignedTeams",
   "documents",
   "comments",
   "_id",
@@ -192,19 +195,40 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
     if (serverUpdatedAt !== localUpdatedAt) {
       const localBody = item.decryptedBody || {};
 
-      // Auto-merge du champ `documents` (présent sur person, action, consultation,
-      // treatment, medical-file). Sans ça, le PUT offline écraserait silencieusement
-      // les ajouts/suppressions effectués côté serveur pendant la session offline.
-      // Le helper applique : (1) base = serveur, (2) ajouts offline taggés, (3)
-      // re-parentage des orphelins. Voir documentsMerge.ts pour le détail.
+      // Auto-merge des champs tableau qui ne devraient JAMAIS être en conflit
+      // utilisateur — sans ça, le PUT offline écraserait silencieusement les
+      // ajouts/suppressions effectués côté serveur pendant la session offline.
+      //
+      //  - documents : merge par _id avec tag `_offlineAdded`, re-parentage des
+      //    orphelins. Voir documentsMerge.ts.
+      //  - comments  : merge par _id avec tag `_offlineAdded`. Voir commentsMerge.ts.
+      //  - history   : append-only log, dédup par contenu (pas de tag requis).
+      let bodyMutated = false;
       const localDocs = localBody.decrypted?.documents;
       const serverDocs = serverEntity.documents;
       if (Array.isArray(localDocs) || Array.isArray(serverDocs)) {
         const merged = mergeDocuments(localDocs, serverDocs);
         if (localBody.decrypted) localBody.decrypted.documents = merged;
         serverEntity.documents = merged;
-        persistQueueItemBody(item.id, localBody);
+        bodyMutated = true;
       }
+      const localComments = localBody.decrypted?.comments;
+      const serverComments = serverEntity.comments;
+      if (Array.isArray(localComments) || Array.isArray(serverComments)) {
+        const merged = mergeComments(localComments, serverComments);
+        if (localBody.decrypted) localBody.decrypted.comments = merged;
+        serverEntity.comments = merged;
+        bodyMutated = true;
+      }
+      const localHistory = localBody.decrypted?.history;
+      const serverHistory = serverEntity.history;
+      if (Array.isArray(localHistory) || Array.isArray(serverHistory)) {
+        const merged = mergeHistory(localHistory, serverHistory);
+        if (localBody.decrypted) localBody.decrypted.history = merged;
+        serverEntity.history = merged;
+        bodyMutated = true;
+      }
+      if (bodyMutated) persistQueueItemBody(item.id, localBody);
 
       // Si tous les champs locaux sont soit identiques au serveur soit ignorés
       // (HIDDEN_FIELDS / champs techniques), c'était un conflit purement
@@ -235,20 +259,6 @@ async function detectConflict(item: QueuedMutation): Promise<Conflict | null> {
   }
 
   return null;
-}
-
-// Strippe le flag transitoire `_offlineAdded` des documents avant l'envoi serveur.
-// Le flag n'a de sens que côté client (signal pour mergeDocuments) ; il ne doit
-// jamais être persisté côté serveur où il pourrait survivre indéfiniment dans le
-// blob chiffré et polluer les futurs round-trips.
-function stripOfflineAddedFlag(body: Record<string, any> | null): Record<string, any> | null {
-  if (!body?.decrypted?.documents || !Array.isArray(body.decrypted.documents)) return body;
-  const documents = body.decrypted.documents.map((doc: any) => {
-    if (!doc || !("_offlineAdded" in doc)) return doc;
-    const { _offlineAdded, ...rest } = doc;
-    return rest;
-  });
-  return { ...body, decrypted: { ...body.decrypted, documents } };
 }
 
 async function processMutation(item: QueuedMutation): Promise<boolean> {

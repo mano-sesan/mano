@@ -45,8 +45,8 @@ const HIDDEN_FIELDS = [
   "updatedBy",
   "entityKey",
   "entityUpdatedAt",
+  // history, documents, comments : auto-mergés par syncProcessor.detectConflict, jamais surfacés
   "history",
-  "assignedTeams",
   "documents",
   "comments",
   "_id",

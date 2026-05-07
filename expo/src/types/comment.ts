@@ -20,4 +20,6 @@ export interface CommentInstance {
   deletedAt?: Date;
   entityKey?: string;
   _pendingSync?: boolean;
+  // Transitoire : posé à la création offline, retiré par mergeComments (et au send côté API)
+  _offlineAdded?: boolean;
 }
