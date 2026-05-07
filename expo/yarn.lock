@@ -2093,13 +2093,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-picker/picker@npm:2.11.1":
-  version: 2.11.1
-  resolution: "@react-native-picker/picker@npm:2.11.1"
+"@react-native-picker/picker@npm:2.11.4":
+  version: 2.11.4
+  resolution: "@react-native-picker/picker@npm:2.11.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: d2e9aeb32ae80f2ab56fa025f1afd6d8ff8051e7078bfd17c6794ff0cc1538d4a2f548098826eb652e6cb64d998070b0111777c78de4dcb468cb71e7e4d93097
+  checksum: 3c9947c1a3022ffa35008cc479b718585b106ff70a5fb0f24c4117bf2eaaf5f60795cba20271af50a01d3a878d5dc06661ea1c1315664898524e291e7412a18f
   languageName: node
   linkType: hard
 
@@ -2852,6 +2852,15 @@ __metadata:
   version: 1.2.0
   resolution: "@types/ungap__structured-clone@npm:1.2.0"
   checksum: 52f341ded16708603e5631769b26acf0e9ed7c556ce81abb4e55962110b30442576c631c8f7e298b561b8ff77c7823f0edc9f5e313e1c5e1441825a590e5b0f3
+  languageName: node
+  linkType: hard
+
+"@types/uuid@npm:^11.0.0":
+  version: 11.0.0
+  resolution: "@types/uuid@npm:11.0.0"
+  dependencies:
+    uuid: "npm:*"
+  checksum: 6ebf1448d8fdc78d348a8a84389b74083f2f58bed75a5a6cf3be8419d33dcf757735c8b2de746b066ff8ef07f4384d02549774dc84195ffa46b24745471e9d8e
   languageName: node
   linkType: hard
 
@@ -5940,35 +5949,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hermes-estree@npm:0.29.1":
-  version: 0.29.1
-  resolution: "hermes-estree@npm:0.29.1"
-  checksum: e6b01f79ba708697d61a74b871d5ebae5f863c6d782657d8e2d2256eb838f1eb86ff9c34773a81d9cc69e54be3a5059c686e0ab54a4afba903b40dde92dd0ccb
+"hermes-estree@npm:0.36.0":
+  version: 0.36.0
+  resolution: "hermes-estree@npm:0.36.0"
+  checksum: fe27f57b0f8c3921e9dc48c517e25f4399609ca386353f90e04d3f859bacbee93184af80a6b930db5e981e8953a5c4083147556b21b19519917e131e7533b27c
   languageName: node
   linkType: hard
 
-"hermes-estree@npm:0.32.0":
-  version: 0.32.0
-  resolution: "hermes-estree@npm:0.32.0"
-  checksum: 3b67d1fe44336240ef7f9c40ecbf363279ba263d51efe120570c3862cc109e652fc09aebddfe6b73d0f0246610bee130e4064c359f1f4cbf002bdb1d99717ef2
-  languageName: node
-  linkType: hard
-
-"hermes-parser@npm:0.29.1, hermes-parser@npm:^0.29.1":
-  version: 0.29.1
-  resolution: "hermes-parser@npm:0.29.1"
+"hermes-parser@npm:0.36.0":
+  version: 0.36.0
+  resolution: "hermes-parser@npm:0.36.0"
   dependencies:
-    hermes-estree: "npm:0.29.1"
-  checksum: 7f40d9bdfb5acaa700f333a24c644b17f5f8d0e823b1e7a9fb6dcf253a54d54716ae63c74effa023688ee4f09013c80188c40d601570fee256a44954e04c2926
-  languageName: node
-  linkType: hard
-
-"hermes-parser@npm:0.32.0":
-  version: 0.32.0
-  resolution: "hermes-parser@npm:0.32.0"
-  dependencies:
-    hermes-estree: "npm:0.32.0"
-  checksum: 5902d2c5d347c0629fba07a47eaad5569590ac69bc8bfb2e454e08d2dfbe1ebd989d88518dca2cba64061689b5eac5960ae6bd15a4a66600bbf377498a3234b7
+    hermes-estree: "npm:0.36.0"
+  checksum: 76e726366ac2ea91e9464853f439d582ddee9c07ccb84cac35297ce1a5d197bf96b84ab030423a22940b55a0fa5bb191bc0ebeebd95f8e34116900decdccdb86
   languageName: node
   linkType: hard
 
@@ -7134,7 +7127,7 @@ __metadata:
     "@react-native-documents/picker": "npm:^11.0.3"
     "@react-native-documents/viewer": "npm:^3.0.0"
     "@react-native-masked-view/masked-view": "npm:^0.3.1"
-    "@react-native-picker/picker": "npm:2.11.1"
+    "@react-native-picker/picker": "npm:2.11.4"
     "@react-navigation/bottom-tabs": "npm:^7.1.1"
     "@react-navigation/elements": "npm:^2.2.3"
     "@react-navigation/material-top-tabs": "npm:^7.2.11"
@@ -7146,6 +7139,7 @@ __metadata:
     "@types/react": "npm:~19.1.10"
     "@types/semver": "npm:^7"
     "@types/ungap__structured-clone": "npm:^1.2.0"
+    "@types/uuid": "npm:^11.0.0"
     "@ungap/structured-clone": "npm:^1.2.0"
     "@vonovak/react-native-theme-control": "npm:^7.0.2"
     base-64: "npm:^1.0.0"
@@ -7196,6 +7190,7 @@ __metadata:
     typescript: "npm:~5.9.2"
     urijs: "npm:^1.19.11"
     use-debounce: "npm:^10.0.4"
+    uuid: "npm:^14.0.0"
   languageName: unknown
   linkType: soft
 
@@ -10463,6 +10458,15 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: 02ba649de1b7ca8854bfe20a82f1dfbdda3fb57a22ab4a8972a63a34553cf7aa51bc9081cf7e001b035b88186d23689d69e71b510e610a09a4c66f68aa95b672
+  languageName: node
+  linkType: hard
+
+"uuid@npm:*, uuid@npm:^14.0.0":
+  version: 14.0.0
+  resolution: "uuid@npm:14.0.0"
+  bin:
+    uuid: dist-node/bin/uuid
+  checksum: a57ae7794c45005c1a9208989196c5baf79a7679c30f43c1bee9033a2c4d113a2cea216fa6fcc9663b08b0d55635df1a7c6eb7e7f3d21c3e50688c698fa39a50
   languageName: node
   linkType: hard
 
