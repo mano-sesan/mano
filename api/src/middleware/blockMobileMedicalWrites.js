@@ -9,9 +9,9 @@ module.exports = (req, res, next) => {
   const platform = req.headers.platform;
   if (platform === "dashboard" || platform === "website") return next();
 
-  return res.status(403).send({
+  return res.status(400).send({
     ok: false,
-    message: "Fonctionnalité temporairement désactivée",
+    message: "Veuillez mettre à jour votre application!", // because in-app message is handled in api.js
     inAppMessage: [
       "Fonctionnalité temporairement désactivée",
       "Pour éviter une perte de données, la modification des consultations, traitements et dossiers médicaux est temporairement désactivée sur cette version de l'application. Merci de mettre à jour pour retrouver l'accès complet.",
