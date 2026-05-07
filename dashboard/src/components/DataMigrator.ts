@@ -82,7 +82,7 @@ export default function useDataMigrator() {
 
         if (personsToUpdate.length > 0) {
           const encryptedPersonsToUpdate = await Promise.all(
-            personsToUpdate.map((p) => preparePersonForEncryption(p, { checkRequiredFields: false })).map(encryptItem)
+            personsToUpdate.map((p) => preparePersonForEncryption(p, { checkRequiredFields: !!p.deletedAt })).map(encryptItem)
           );
           const response = await API.put({
             path: `/migration/set-followed-since-from-created-at-2`,
