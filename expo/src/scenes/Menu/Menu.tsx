@@ -17,12 +17,12 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 type MenuProps = BottomTabScreenProps<TabsParamsList, "MENU">;
 
 const Menu = ({ navigation }: MenuProps) => {
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [loggingOut, setLoggingOut] = useState<null | "normal" | "clearAll">(null);
   const organisation = useAtomValue(organisationState)!;
   const currentTeam = useAtomValue(currentTeamState)!;
 
   const onLogoutRequest = async (clearAll = false) => {
-    setIsLoggingOut(true);
+    setLoggingOut(clearAll ? "clearAll" : "normal");
     API.logout(clearAll);
   };
 
@@ -74,8 +74,20 @@ const Menu = ({ navigation }: MenuProps) => {
             <Spacer height={30} />
           </>
         )}
-        <Row caption="Se déconnecter" color="#F00" loading={isLoggingOut} onPress={() => onLogoutRequest()} />
-        <Row caption="Se déconnecter et vider le cache" color="#F00" loading={isLoggingOut} onPress={() => onLogoutRequest(true)} />
+        <Row
+          caption="Se déconnecter"
+          color="#F00"
+          loading={loggingOut === "normal"}
+          disabled={loggingOut === "clearAll"}
+          onPress={() => onLogoutRequest()}
+        />
+        <Row
+          caption="Se déconnecter et vider le cache"
+          color="#F00"
+          loading={loggingOut === "clearAll"}
+          disabled={loggingOut === "normal"}
+          onPress={() => onLogoutRequest(true)}
+        />
         <Spacer height={30} />
       </ScrollContainer>
     </SceneContainer>
