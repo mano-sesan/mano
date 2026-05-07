@@ -133,4 +133,4 @@ questionnaire.json
 
 .env.local
 
-expo/tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo

@@ -11,6 +11,11 @@ export function useGroupSelector(personId: string) {
 
 const encryptedFields: Array<keyof GroupInstance> = ["persons", "relations"];
 
+export const allowedGroupFieldsInHistory = [
+  { name: "persons", label: "Personnes", type: "multi-choice" },
+  { name: "relations", label: "Relations" },
+];
+
 // @type Relation: { persons: uuid[], description: string, createdAt: Date, updatedAt: Date, user: uuid };
 
 export const prepareGroupForEncryption = (group: GroupInstance) => {

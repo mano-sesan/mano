@@ -42,6 +42,15 @@ export function filterServicesForTeam(groupedServices: ServiceGroup[], teamId: s
 
 const encryptedFields: Array<keyof ReportInstance> = ["description", "team", "date", "collaborations", "updatedBy"];
 
+export const allowedReportFieldsInHistory = [
+  { name: "description", label: "Description", type: "textarea" },
+  { name: "team", label: "Équipe" },
+  { name: "date", label: "Date", type: "date" },
+  { name: "collaborations", label: "Collaborations", type: "multi-choice" },
+  { name: "updatedBy", label: "Modifié par" },
+  { name: "services", label: "Services" },
+];
+
 export const prepareReportForEncryption = (report: Partial<ReportInstance>) => {
   try {
     if (!looseUuidRegex.test(report.team!)) {

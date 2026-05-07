@@ -11,7 +11,16 @@ import colors from "../../utils/colors";
 import { conflictsState, resolveConflict, discardConflict, type Conflict } from "../../services/syncProcessor";
 import { personFieldsIncludingCustomFieldsSelector } from "../../atoms/persons";
 import { consultationsFieldsIncludingCustomFieldsSelector, flattenedCustomFieldsConsultationsSelector } from "../../atoms/consultations";
-import { customFieldsObsSelector } from "../../atoms/territoryObservations";
+import { groupedCustomFieldsObsSelector } from "../../atoms/territoryObservations";
+import { allowedActionFieldsInHistory } from "../../atoms/actions";
+import { allowedTreatmentFieldsInHistory } from "../../atoms/treatments";
+import { allowedCommentFieldsInHistory } from "../../atoms/comments";
+import { allowedPassageFieldsInHistory } from "../../atoms/passages";
+import { allowedRencontreFieldsInHistory } from "../../atoms/rencontres";
+import { allowedReportFieldsInHistory } from "../../atoms/reports";
+import { allowedPlaceFieldsInHistory } from "../../atoms/places";
+import { allowedRelPersonPlaceFieldsInHistory } from "../../atoms/relPersonPlace";
+import { allowedGroupFieldsInHistory } from "../../atoms/groups";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { RootStackParamList } from "@/types/navigation";
 
@@ -30,82 +39,36 @@ const ENTITY_LABELS: Record<string, string> = {
   report: "Compte rendu",
 };
 
-const HIDDEN_FIELDS = ["updatedAt", "createdAt", "entityKey", "entityUpdatedAt", "history", "assignedTeams", "documents", "comments"];
+const HIDDEN_FIELDS = [
+  "updatedAt",
+  "createdAt",
+  "entityKey",
+  "entityUpdatedAt",
+  "history",
+  "assignedTeams",
+  "documents",
+  "comments",
+  "_id",
+  "organisation",
+  "encrypted",
+  "encryptedEntityKey",
+  "deletedAt",
+  "_pendingSync",
+  "_queueItemId",
+];
 
 type FieldMeta = { label: string; type?: string };
 
-const ENTITY_FIELD_DEFAULTS: Record<string, Record<string, FieldMeta>> = {
-  action: {
-    name: { label: "Nom de l'action", type: "text" },
-    description: { label: "Description", type: "textarea" },
-    categories: { label: "Catégorie(s)", type: "multi-choice" },
-    category: { label: "Catégorie", type: "text" },
-    person: { label: "Personne suivie" },
-    teams: { label: "Équipe(s) en charge", type: "multi-choice" },
-    team: { label: "Équipe" },
-    urgent: { label: "Action urgente", type: "boolean" },
-    completedAt: { label: "Faite le", type: "date-with-time" },
-    dueAt: { label: "À faire le", type: "date-with-time" },
-    status: { label: "Statut" },
-    withTime: { label: "Avec heure", type: "boolean" },
-    user: { label: "Créée par" },
-    group: { label: "Action familiale", type: "boolean" },
-    structure: { label: "Structure" },
-  },
-  treatment: {
-    person: { label: "Personne suivie" },
-    name: { label: "Nom du traitement", type: "text" },
-    startDate: { label: "Date de début", type: "date" },
-    endDate: { label: "Date de fin", type: "date" },
-    dosage: { label: "Dosage", type: "text" },
-    frequency: { label: "Fréquence", type: "text" },
-    indication: { label: "Indication", type: "textarea" },
-    user: { label: "Créé par" },
-  },
-  comment: {
-    comment: { label: "Commentaire", type: "textarea" },
-    person: { label: "Personne" },
-    action: { label: "Action" },
-    group: { label: "Famille" },
-    team: { label: "Équipe" },
-    user: { label: "Auteur" },
-    date: { label: "Date", type: "date-with-time" },
-    urgent: { label: "Urgent", type: "boolean" },
-  },
-  passage: {
-    person: { label: "Personne" },
-    team: { label: "Équipe" },
-    user: { label: "Auteur" },
-    date: { label: "Date", type: "date-with-time" },
-    comment: { label: "Commentaire", type: "textarea" },
-  },
-  rencontre: {
-    person: { label: "Personne" },
-    team: { label: "Équipe" },
-    user: { label: "Auteur" },
-    date: { label: "Date", type: "date-with-time" },
-    comment: { label: "Commentaire", type: "textarea" },
-  },
-  report: {
-    description: { label: "Description", type: "textarea" },
-    services: { label: "Services" },
-    collaborations: { label: "Collaborations" },
-    date: { label: "Date", type: "date" },
-    team: { label: "Équipe" },
-  },
-  place: {
-    name: { label: "Nom", type: "text" },
-    user: { label: "Créé par" },
-  },
-  relPersonPlace: {
-    person: { label: "Personne" },
-    place: { label: "Lieu" },
-    user: { label: "Créé par" },
-  },
-  group: {
-    persons: { label: "Personnes", type: "multi-choice" },
-    relations: { label: "Relations" },
-  },
+const STATIC_FIELDS_BY_ENTITY: Record<string, Array<{ name: string; label: string; type?: string }>> = {
+  action: allowedActionFieldsInHistory,
+  treatment: allowedTreatmentFieldsInHistory,
+  comment: allowedCommentFieldsInHistory,
+  passage: allowedPassageFieldsInHistory,
+  rencontre: allowedRencontreFieldsInHistory,
+  report: allowedReportFieldsInHistory,
+  place: allowedPlaceFieldsInHistory,
+  relPersonPlace: allowedRelPersonPlaceFieldsInHistory,
+  group: allowedGroupFieldsInHistory,
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "CONFLICT_RESOLUTION">;
@@ -170,7 +133,10 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
     conflict.entityId.slice(0, 8);
 
   const visibleFields = useMemo(() => {
-    return conflict.changedFields.filter((field) => {
+    const localKeys = Object.keys(conflict.localVersion?.decrypted || {});
+    const serverKeys = Object.keys(conflict.serverVersion || {});
+    const union = Array.from(new Set([...localKeys, ...serverKeys]));
+    return union.filter((field) => {
       if (HIDDEN_FIELDS.includes(field)) return false;
       const localVal = conflict.localVersion?.decrypted?.[field] ?? conflict.localVersion?.[field];
       const serverVal = conflict.serverVersion?.[field];
@@ -179,7 +145,14 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
   }, [conflict]);
 
   const [selections, setSelections] = useState<Record<string, "local" | "server">>(() =>
-    Object.fromEntries(visibleFields.map((f) => [f, "local"]))
+    Object.fromEntries(
+      visibleFields.map((field) => {
+        const localVal = conflict.localVersion?.decrypted?.[field] ?? conflict.localVersion?.[field];
+        const serverVal = conflict.serverVersion?.[field];
+        const defaultSide: "local" | "server" = isEmpty(localVal) && !isEmpty(serverVal) ? "server" : "local";
+        return [field, defaultSide];
+      })
+    )
   );
 
   const setAll = (side: "local" | "server") => {
@@ -188,16 +161,16 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
 
   const handleConfirm = () => {
     const resolved: Record<string, any> = { ...conflict.localVersion };
-    if (conflict.localVersion?.decrypted) {
-      resolved.decrypted = { ...conflict.localVersion.decrypted };
-    }
+    resolved.decrypted = { ...(conflict.localVersion?.decrypted || {}) };
     for (const field of visibleFields) {
       if (selections[field] === "server") {
         const serverVal = conflict.serverVersion?.[field];
-        if (resolved.decrypted && field in resolved.decrypted) {
+        if (field in (conflict.localVersion?.decrypted || {})) {
           resolved.decrypted[field] = serverVal;
-        } else {
+        } else if (field in (conflict.localVersion || {})) {
           resolved[field] = serverVal;
+        } else {
+          resolved.decrypted[field] = serverVal;
         }
       }
     }
@@ -311,32 +284,43 @@ function ValueOption({ label, value, type, selected, onPress }: ValueOptionProps
 }
 
 function useFieldMetaResolver(): (entityType: string, fieldName: string) => FieldMeta {
-  const personFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
-  const consultationFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
-  const customConsultationFields = useAtomValue(flattenedCustomFieldsConsultationsSelector);
-  const obsFields = useAtomValue(customFieldsObsSelector);
+  const personFieldsIncludingCustomFields = useAtomValue(personFieldsIncludingCustomFieldsSelector);
+  const consultationsFieldsIncludingCustomFields = useAtomValue(consultationsFieldsIncludingCustomFieldsSelector);
+  const flattenedCustomFieldsConsultations = useAtomValue(flattenedCustomFieldsConsultationsSelector);
+  const groupedCustomFieldsObs = useAtomValue(groupedCustomFieldsObsSelector);
 
   return useMemo(() => {
-    return (entityType: string, fieldName: string) => {
+    const flatObsFields = groupedCustomFieldsObs.flatMap((g: any) => g.fields || []);
+    return (entityType: string, fieldName: string): FieldMeta => {
       if (entityType === "person") {
-        const f = personFields.find((field: any) => field.name === fieldName);
+        const f = personFieldsIncludingCustomFields.find((field: any) => field.name === fieldName);
         if (f) return { label: f.label || fieldName, type: f.type };
       }
       if (entityType === "consultation") {
-        const cf = customConsultationFields.find((field: any) => field.name === fieldName);
+        const cf = flattenedCustomFieldsConsultations.find((field: any) => field.name === fieldName);
         if (cf) return { label: cf.label || fieldName, type: cf.type };
-        const f = consultationFields.find((field: any) => field.name === fieldName);
+        const f = consultationsFieldsIncludingCustomFields.find((field: any) => field.name === fieldName);
         if (f) return { label: f.label || fieldName };
       }
       if (entityType === "territory-observation") {
-        const f = obsFields.find((field: any) => field.name === fieldName);
+        const f = flatObsFields.find((field: any) => field.name === fieldName);
         if (f) return { label: f.label || fieldName, type: f.type };
       }
-      const def = ENTITY_FIELD_DEFAULTS[entityType]?.[fieldName];
-      if (def) return def;
+      const staticFields = STATIC_FIELDS_BY_ENTITY[entityType];
+      if (staticFields) {
+        const f = staticFields.find((field) => field.name === fieldName);
+        if (f) return { label: f.label || fieldName, type: (f as any).type };
+      }
       return { label: fieldName };
     };
-  }, [personFields, consultationFields, customConsultationFields, obsFields]);
+  }, [personFieldsIncludingCustomFields, consultationsFieldsIncludingCustomFields, flattenedCustomFieldsConsultations, groupedCustomFieldsObs]);
+}
+
+function isEmpty(val: unknown): boolean {
+  if (val === undefined || val === null) return true;
+  if (typeof val === "string" && val === "") return true;
+  if (Array.isArray(val) && val.length === 0) return true;
+  return false;
 }
 
 function valuesEqual(a: unknown, b: unknown): boolean {

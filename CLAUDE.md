@@ -124,6 +124,18 @@ All sensitive data is encrypted client-side with libsodium before transmission.
 
 Organizations can define custom fields for persons, actions, consultations, etc. These are stored as JSON and handled specially throughout the codebase.
 
+**Ne jamais hardcoder les labels/types des champs d'entité.** Utiliser les sélecteurs Jotai existants — ils sont la source de vérité (org-driven, donc différents par organisation) :
+
+- Mobile (`expo/src/atoms/`) :
+  - `personFieldsIncludingCustomFieldsSelector` (built-in + customizable + custom)
+  - `flattenedCustomFieldsPersonsSelector` (custom uniquement)
+  - `consultationsFieldsIncludingCustomFieldsSelector` + `flattenedCustomFieldsConsultationsSelector`
+  - `groupedCustomFieldsObsSelector` (territory observation, groupé) / `customFieldsObsSelector` (à plat)
+  - `allowedActionFieldsInHistory` (export statique avec labels actions)
+- Dashboard : sélecteurs équivalents dans `dashboard/src/recoil/`
+
+Si un sélecteur manque pour un type d'entité, l'ajouter aux `atoms/` plutôt que de dupliquer un mapping local.
+
 ## Environment Variables
 
 - **API**: Reads secrets from files (Docker secrets pattern) in `api/src/config.js`
