@@ -31,7 +31,7 @@ import PersonsSearch from "../Persons/PersonsSearch";
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack";
 import PersonNew from "../Persons/PersonNew";
 import { useDataLoader } from "@/services/dataLoader";
-import { encryptItem } from "@/services/encryption";
+import { decryptDBItem, encryptItem } from "@/services/encryption";
 
 const ActionNewStack = createNativeStackNavigator<ActionNewStackParams>();
 type NewActionScreenProps = NativeStackScreenProps<RootStackParamList, "ACTION_NEW_STACK">;
@@ -251,14 +251,19 @@ const NewActionForm = ({
       return;
     }
 
+    const decryptedData = [];
+    for (const item of response.data) {
+      const decryptedItem = await decryptDBItem(item, { path: "/action/multiple" });
+      decryptedData.push(decryptedItem);
+    }
     backRequestHandledRef.current = true;
 
     if (!hasRecurrence) {
       onBack();
     } else {
-      const actionToRedirect = response.decryptedData[0];
+      const actionToRedirect = decryptedData[0];
       Sentry.setContext("action", { _id: actionToRedirect._id });
-      onActionCreated(response.decryptedData[0]);
+      onActionCreated(decryptedData[0]);
       setTimeout(() => setPosting(false), 250);
     }
   };

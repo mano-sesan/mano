@@ -151,8 +151,13 @@ vi.mock("fetch-retry", () => ({
 // The dataLoader runs api.js (real) AND calls decryptDBItem itself in the medical
 // branches; both code paths use this stub.
 vi.mock("@/services/encryption", () => ({
+  // Mirrors the real early-return cascade in encryption.js (deletedAt and missing
+  // entityKey items pass through unchanged) so tests covering deletedAt items
+  // exercise the same code paths as production.
   decryptDBItem: vi.fn(async (item: any) => {
     if (!item.encrypted) return item;
+    if (item.deletedAt) return item;
+    if (!item.encryptedEntityKey) return item;
     delete item.encrypted;
     // `team` and `date` keep reports past the dataLoader's filter
     // (filterNewItemsFunction: (r) => !!r.team && !!r.date). Harmless for others.
@@ -204,6 +209,7 @@ import { commentsState } from "@/atoms/comments";
 import { consultationsState } from "@/atoms/consultations";
 import { treatmentsState } from "@/atoms/treatments";
 import { medicalFileState } from "@/atoms/medicalFiles";
+import { organisationState, userState, teamsState } from "@/atoms/auth";
 
 // =============================================================================
 // Per-entity table — drives both fetch routing and assertions.
@@ -237,37 +243,44 @@ const ENTITIES: EntityCfg[] = [
 ];
 
 // =============================================================================
-// fetch routing — picks a handler per pathname.
+// fetch routing — picks a handler per pathname; handler receives the URL so it
+// can react to query params (e.g. pagination via `page=`).
 // =============================================================================
-function makeFetch(routes: Record<string, () => any>) {
+type RouteHandler = (url: URL) => any;
+
+function makeFetch(routes: Record<string, RouteHandler>) {
   return vi.fn(async (url: string) => {
     const u = new URL(url);
-    const path = u.pathname;
-    const handler = routes[path];
-    if (!handler) throw new Error(`unmocked path: ${path}`);
+    const handler = routes[u.pathname];
+    if (!handler) throw new Error(`unmocked path: ${u.pathname}`);
     return {
       ok: true,
       status: 200,
-      json: async () => handler(),
+      json: async () => handler(u),
     };
   });
 }
 
-function buildRoutes(): Record<string, () => any> {
+function buildRoutes(opts: {
+  stats?: Partial<Record<string, number>>;
+  overrides?: Record<string, RouteHandler>;
+  userResponse?: any;
+} = {}): Record<string, RouteHandler> {
   const stats: Record<string, number> = {};
-  for (const e of ENTITIES) stats[e.statsKey] = 1;
+  for (const e of ENTITIES) stats[e.statsKey] = opts.stats?.[e.statsKey] ?? 1;
 
-  const routes: Record<string, () => any> = {
-    "/user/me": () => ({
-      ok: true,
-      user: {
-        _id: "u1",
-        role: "admin",
-        email: "test@example.org",
-        organisation: { _id: "o1", encryptionLastUpdateAt: 1, disabledAt: null },
-        orgTeams: [],
+  const routes: Record<string, RouteHandler> = {
+    "/user/me": () =>
+      opts.userResponse ?? {
+        ok: true,
+        user: {
+          _id: "u1",
+          role: "admin",
+          email: "test@example.org",
+          organisation: { _id: "o1", encryptionLastUpdateAt: 1, disabledAt: null },
+          orgTeams: [],
+        },
       },
-    }),
     "/now": () => ({ ok: true, data: 1700000000 }),
     "/organisation/stats": () => ({ ok: true, data: stats }),
   };
@@ -280,7 +293,38 @@ function buildRoutes(): Record<string, () => any> {
     });
   }
 
+  Object.assign(routes, opts.overrides ?? {});
   return routes;
+}
+
+function statsForOnly(entityName: string, count = 1): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const e of ENTITIES) result[e.statsKey] = e.name === entityName ? count : 0;
+  return result;
+}
+
+function entityCfg(name: string): EntityCfg {
+  const e = ENTITIES.find((x) => x.name === name);
+  if (!e) throw new Error(`unknown entity ${name}`);
+  return e;
+}
+
+function readAtom(ref: any): any {
+  const setter = __atomSetters.get(ref);
+  if (!setter) return __atomStore.get(ref);
+  const lastCall = setter.mock.calls.at(-1);
+  if (!lastCall) return __atomStore.get(ref);
+  const arg = lastCall[0];
+  return typeof arg === "function" ? arg(__atomStore.get(ref) ?? []) : arg;
+}
+
+function readCache(key: string): any[] {
+  const raw = __mmkvStore.get(key);
+  return raw ? JSON.parse(raw) : [];
+}
+
+function seedAtom(ref: any, value: any) {
+  __atomStore.set(ref, value);
 }
 
 // =============================================================================
@@ -345,5 +389,230 @@ describe("useDataLoader().startInitialLoad — full data load across all entity 
       expect(value).toHaveLength(1);
       expect(value[0].__decrypted, `atom ${e.name} should hold a decrypted item`).toBe(true);
     }
+  });
+});
+
+describe("useDataLoader().startInitialLoad — edge cases", () => {
+  it("skips entity loaders when stats indicate 0 items, and writes empty caches", async () => {
+    const allZeroStats: Record<string, number> = {};
+    for (const e of ENTITIES) allZeroStats[e.statsKey] = 0;
+
+    const fetchSpy = makeFetch(buildRoutes({ stats: allZeroStats }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    const loader = useDataLoader();
+    await loader.startInitialLoad();
+
+    const calledPaths = fetchSpy.mock.calls.map((c: any) => new URL(c[0]).pathname);
+    for (const e of ENTITIES) {
+      expect(calledPaths, `should NOT fetch ${e.apiPath}`).not.toContain(e.apiPath);
+    }
+    // Initial load still writes an empty array to MMKV for every entity.
+    for (const e of ENTITIES) {
+      expect(readCache(e.mmkvKey), `${e.mmkvKey} cache should be empty array`).toEqual([]);
+    }
+  });
+
+  it("paginates entity loaders while hasMore is true", async () => {
+    const fetchSpy = makeFetch(
+      buildRoutes({
+        stats: statsForOnly("persons", 2),
+        overrides: {
+          "/person": (u) =>
+            u.searchParams.get("page") === "0"
+              ? { ok: true, data: [{ _id: "p-page-0", encrypted: "ENC", encryptedEntityKey: "EEK" }], hasMore: true }
+              : { ok: true, data: [{ _id: "p-page-1", encrypted: "ENC", encryptedEntityKey: "EEK" }], hasMore: false },
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await useDataLoader().startInitialLoad();
+
+    const cached = readCache("person");
+    expect(cached).toHaveLength(2);
+    expect(cached.map((p: any) => p._id).sort()).toEqual(["p-page-0", "p-page-1"]);
+
+    const personPages = fetchSpy.mock.calls
+      .map((c: any) => new URL(c[0]))
+      .filter((u: URL) => u.pathname === "/person")
+      .map((u: URL) => u.searchParams.get("page"));
+    expect(personPages).toEqual(["0", "1"]);
+  });
+
+  it("removes deletedAt items from cache via mergeItems (non-medical)", async () => {
+    // Pre-seed cache with an existing person; API sends back the same _id but with deletedAt.
+    __mmkvStore.set("person", JSON.stringify([{ _id: "p1", name: "old", __decrypted: true }]));
+
+    vi.stubGlobal(
+      "fetch",
+      makeFetch(
+        buildRoutes({
+          stats: statsForOnly("persons", 1),
+          overrides: {
+            "/person": () => ({
+              ok: true,
+              data: [{ _id: "p1", deletedAt: "2024-01-01", encrypted: "ENC", encryptedEntityKey: "EEK" }],
+              hasMore: false,
+            }),
+          },
+        }),
+      ),
+    );
+
+    await useDataLoader().startInitialLoad();
+
+    expect(readCache("person")).toEqual([]);
+    expect(readAtom(personsState)).toEqual([]);
+  });
+
+  it("removes deletedAt items from MMKV cache for medical entities", async () => {
+    __mmkvStore.set(
+      "consultation",
+      JSON.stringify([{ _id: "c1", encrypted: "OLD-ENC", encryptedEntityKey: "OLD-EEK" }]),
+    );
+
+    vi.stubGlobal(
+      "fetch",
+      makeFetch(
+        buildRoutes({
+          stats: statsForOnly("consultations", 1),
+          overrides: {
+            "/consultation": () => ({
+              ok: true,
+              data: [{ _id: "c1", deletedAt: "2024-01-01", encrypted: "ENC", encryptedEntityKey: "EEK" }],
+              hasMore: false,
+            }),
+          },
+        }),
+      ),
+    );
+
+    await useDataLoader().startInitialLoad();
+
+    expect(readCache("consultation")).toEqual([]);
+  });
+
+  it("calls resetLoaderOnError when /user/me returns ok:false", async () => {
+    const { Alert } = await import("react-native");
+    (Alert.alert as any).mockClear();
+
+    const fetchSpy = makeFetch(buildRoutes({ userResponse: { ok: false, error: "boom" } }));
+    vi.stubGlobal("fetch", fetchSpy);
+
+    await useDataLoader().startInitialLoad();
+
+    expect((Alert.alert as any)).toHaveBeenCalled();
+    expect((Alert.alert as any).mock.calls[0][0]).toBe("Erreur");
+
+    // No entity endpoint should have been hit after the auth failure.
+    const calledPaths = fetchSpy.mock.calls.map((c: any) => new URL(c[0]).pathname);
+    for (const e of ENTITIES) {
+      expect(calledPaths).not.toContain(e.apiPath);
+    }
+  });
+
+  it("calls resetLoaderOnError when an entity endpoint returns ok:false", async () => {
+    const { Alert } = await import("react-native");
+    (Alert.alert as any).mockClear();
+
+    vi.stubGlobal(
+      "fetch",
+      makeFetch(
+        buildRoutes({
+          stats: statsForOnly("persons", 1),
+          overrides: { "/person": () => ({ ok: false, error: "server fail" }) },
+        }),
+      ),
+    );
+
+    await useDataLoader().startInitialLoad();
+
+    expect((Alert.alert as any).mock.calls[0][0]).toBe("Erreur");
+  });
+});
+
+describe("useDataLoader().refresh — refresh path", () => {
+  it("merges new items with existing atom + cache state (non-medical)", async () => {
+    // organisationState must match latestOrganisation.encryptionLastUpdateAt or the
+    // refresh bails out with an "encryption key changed" alert.
+    seedAtom(organisationState, { _id: "o1", encryptionLastUpdateAt: 1 });
+    seedAtom(userState, { _id: "u1", role: "admin" });
+    seedAtom(teamsState, []);
+
+    const existing = { _id: "p-existing", name: "old", __decrypted: true };
+    seedAtom(personsState, [existing]);
+    __mmkvStore.set("person", JSON.stringify([existing]));
+
+    vi.stubGlobal(
+      "fetch",
+      makeFetch(
+        buildRoutes({
+          stats: statsForOnly("persons", 1),
+          overrides: {
+            "/person": () => ({
+              ok: true,
+              data: [{ _id: "p-new", encrypted: "ENC", encryptedEntityKey: "EEK" }],
+              hasMore: false,
+            }),
+          },
+        }),
+      ),
+    );
+
+    await useDataLoader().refresh();
+
+    const cached = readCache("person");
+    expect(cached.map((c: any) => c._id).sort()).toEqual(["p-existing", "p-new"]);
+    const newItem = cached.find((c: any) => c._id === "p-new");
+    expect(newItem.__decrypted).toBe(true);
+
+    const atomVal = readAtom(personsState);
+    expect(atomVal.map((p: any) => p._id).sort()).toEqual(["p-existing", "p-new"]);
+  });
+
+  it("preserves encrypted blobs in MMKV cache on medical refresh", async () => {
+    seedAtom(organisationState, { _id: "o1", encryptionLastUpdateAt: 1 });
+    seedAtom(userState, { _id: "u1", role: "admin" });
+    seedAtom(teamsState, []);
+
+    // The medical refresh path calls `setConsultations((prev) => mergeItems(prev, ...))`
+    // BEFORE updating MMKV — if `prev` is undefined the reducer throws and the cache
+    // update never runs. Seeding the atom mirrors what real React state looks like.
+    const existingDecrypted = { _id: "c-existing", __decrypted: true, name: "old", isConsultation: true };
+    seedAtom(consultationsState, [existingDecrypted]);
+
+    const existingEncrypted = { _id: "c-existing", encrypted: "OLD-ENC", encryptedEntityKey: "OLD-EEK" };
+    __mmkvStore.set("consultation", JSON.stringify([existingEncrypted]));
+
+    vi.stubGlobal(
+      "fetch",
+      makeFetch(
+        buildRoutes({
+          stats: statsForOnly("consultations", 1),
+          overrides: {
+            "/consultation": () => ({
+              ok: true,
+              data: [{ _id: "c-new", encrypted: "NEW-ENC", encryptedEntityKey: "NEW-EEK" }],
+              hasMore: false,
+            }),
+          },
+        }),
+      ),
+    );
+
+    await useDataLoader().refresh();
+
+    const cached = readCache("consultation");
+    expect(cached).toHaveLength(2);
+    const newCached = cached.find((c: any) => c._id === "c-new");
+    expect(newCached.encrypted, "new medical item must be cached encrypted").toBe("NEW-ENC");
+    expect(newCached.encryptedEntityKey).toBe("NEW-EEK");
+    const oldCached = cached.find((c: any) => c._id === "c-existing");
+    expect(oldCached.encrypted, "pre-existing encrypted blob must be preserved").toBe("OLD-ENC");
+
+    // Atom should also have both items.
+    const atomVal = readAtom(consultationsState);
+    expect(atomVal.map((c: any) => c._id).sort()).toEqual(["c-existing", "c-new"]);
   });
 });
