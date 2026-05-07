@@ -3,7 +3,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, AppState, NativeEventSubscription } from "react-native";
-import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
+import { NavigationContainer, useNavigationContainerRef, DefaultTheme, useIsFocused } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -38,7 +38,6 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
-import { startNetworkListener } from "./services/network";
 import { initQueue, clearQueue } from "./services/offlineQueue";
 import { useProcessQueue } from "./services/syncProcessor";
 import { hydrateAtomsFromMMKV, rehydrateOptimisticUpdates } from "./services/offlineOptimistic";
@@ -76,12 +75,16 @@ import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
 import ConflictResolution from "./scenes/Conflicts/ConflictResolution";
 import { store } from "./store";
 import { resetOrgEncryptionKey } from "./services/encryption";
+import { useNetworkListener } from "./services/network";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const { isLoading, isFullScreen } = useDataLoader();
+
+  const isFocused = useIsFocused();
+  useNetworkListener(isFocused);
 
   if (isLoading && isFullScreen) return null;
 
@@ -190,7 +193,6 @@ const App = () => {
     initQueue();
     hydrateAtomsFromMMKV();
     rehydrateOptimisticUpdates();
-    const unsubscribeNetworkListener = startNetworkListener();
 
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
@@ -217,7 +219,6 @@ const App = () => {
     return () => {
       logEvents.logAppClose();
       appStateListener.current?.remove();
-      unsubscribeNetworkListener?.();
     };
   }, []);
 

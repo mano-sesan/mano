@@ -2,6 +2,7 @@ import NetInfo, { NetInfoState } from "@react-native-community/netinfo";
 import { Alert } from "react-native";
 import { store } from "@/store";
 import { offlineModeState } from "@/atoms/offlineMode";
+import { useEffect } from "react";
 // Manual offline mode toggle (user-controlled, persisted)
 
 let alertShown = false;
@@ -48,4 +49,15 @@ function handleNetInfoChange(state: NetInfoState) {
 export function startNetworkListener() {
   NetInfo.fetch().then(handleNetInfoChange);
   return NetInfo.addEventListener(handleNetInfoChange);
+}
+
+export function useNetworkListener(isFocused: boolean) {
+  useEffect(() => {
+    if (isFocused) {
+      const unsubscribeNetworkListener = startNetworkListener();
+      return () => {
+        unsubscribeNetworkListener?.();
+      };
+    }
+  }, [isFocused]);
 }

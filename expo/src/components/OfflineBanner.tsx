@@ -9,6 +9,7 @@ import { offlineQueueCountState } from "@/services/offlineQueue";
 import { useProcessQueue, syncStatusState, conflictsState } from "@/services/syncProcessor";
 import { RootStackParamList } from "@/types/navigation";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getHashedOrgEncryptionKey } from "@/services/encryption";
 
 const OfflineBanner = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -41,16 +42,24 @@ const OfflineBanner = () => {
 
   const handlePress = () => {
     if (offlineMode) {
-      Alert.alert("Voulez-vous désactiver le mode hors ligne ?", undefined, [
-        { text: "Non", style: "cancel" },
-        {
-          text: "Oui",
-          onPress: () => {
-            setOfflineMode(false);
-            handleSync();
+      if (!getHashedOrgEncryptionKey()) {
+        Alert.alert(
+          "Vous devez d'abord rentrer votre clé de chiffrement",
+          "Authentifiez-vous avant de synchroniser vos données enregistrées hors-ligne",
+          [{ text: "OK", style: "cancel" }]
+        );
+      } else {
+        Alert.alert("Voulez-vous désactiver le mode hors ligne ?", undefined, [
+          { text: "Non", style: "cancel" },
+          {
+            text: "Oui",
+            onPress: () => {
+              setOfflineMode(false);
+              handleSync();
+            },
           },
-        },
-      ]);
+        ]);
+      }
     } else {
       handleSync();
     }
