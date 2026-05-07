@@ -76,13 +76,13 @@ const Search = ({
     const query: Record<string, string> = { search };
     if (withOrg) query.organisation = organisation._id;
     searchTimeout.current = setTimeout(async () => {
-      const response = await API.execute({ path, query });
+      const response = await API.get({ path, query });
       if (response.error) {
         Alert.alert(response.error);
         onSearchComplete([]);
       }
       if (response.ok) {
-        onSearchComplete(response.data);
+        onSearchComplete(response.data as any);
       }
     }, 300);
   };

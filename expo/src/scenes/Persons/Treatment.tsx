@@ -100,6 +100,8 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
       documents,
       comments,
       user: treatmentDB?.user ?? user._id,
+      updatedAt: treatmentDB?.updatedAt,
+      createdAt: treatmentDB?.createdAt,
     };
 
     if (!isNew) {
@@ -122,8 +124,13 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
     }
 
     const treatmentResponse = isNew
-      ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body) })
-      : await API.put({ path: `/treatment/${treatmentDB._id}`, body: prepareTreatmentForEncryption(body) });
+      ? await API.post({ path: "/treatment", body: prepareTreatmentForEncryption(body), entityType: "treatment" })
+      : await API.put({
+          path: `/treatment/${treatmentDB._id}`,
+          body: prepareTreatmentForEncryption(body),
+          entityType: "treatment",
+          entityId: treatmentDB._id,
+        });
     if (!treatmentResponse.ok) return false;
     await refresh();
     setPosting(false);
@@ -187,9 +194,9 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
 
   const onDelete = async () => {
     setDeleting(true);
-    const response = await API.delete({ path: `/treatment/${treatmentDB!._id}` });
+    const response = await API.delete({ path: `/treatment/${treatmentDB!._id}`, entityType: "treatment", entityId: treatmentDB!._id });
     if (!response.ok) {
-      Alert.alert(response.error);
+      Alert.alert(response.error!);
       return;
     }
     await refresh();

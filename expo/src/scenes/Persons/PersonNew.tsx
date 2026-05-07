@@ -54,8 +54,8 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await onCreatePerson();
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      Sentry.setContext("person", { _id: response.data._id });
-      onPersonCreated(response.decryptedData);
+      Sentry.setContext("person", { _id: (response.data as PersonInstance)._id });
+      onPersonCreated(response.decryptedData as PersonInstance);
       setTimeout(() => setPosting(false), 250);
     }
   };
@@ -66,11 +66,12 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     if (existingPerson) {
       Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       setPosting(false);
-      return false;
+      return { ok: false };
     }
     const response = await API.post({
       path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
+      entityType: "person",
     });
     if (response.ok) {
       await refresh();
@@ -80,9 +81,9 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       if (response.code === "USER_ALREADY_EXIST") {
         Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       } else {
-        Alert.alert(response.error);
+        Alert.alert(response.error!);
       }
-      return false;
+      return { ok: false };
     }
     return response;
   };

@@ -107,10 +107,11 @@ const MedicalFile = ({
         const response = await API.post({
           path: "/medical-file",
           body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ person: personDB?._id, documents: [], organisation: organisation._id }),
+          entityType: "medical-file",
         });
         if (!response.ok) return;
         await refresh();
-        setMedicalFile(response.decryptedData);
+        setMedicalFile(response.decryptedData as MedicalFileInstance);
       })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -302,10 +303,12 @@ const MedicalFile = ({
     const response = await API.put({
       path: `/medical-file/${medicalFileDB!._id}`,
       body: prepareMedicalFileForEncryption(customFieldsMedicalFile)({ ...medicalFileDB, ...latestMedicalFile }),
+      entityType: "medical-file",
+      entityId: medicalFileDB!._id,
     });
     if (!response.ok) return false;
     await refresh();
-    setMedicalFile(response.decryptedData);
+    setMedicalFile(response.decryptedData as MedicalFileInstance);
     const personResponse = await onUpdatePerson();
     if (!personResponse) return false;
     return true;
@@ -319,11 +322,16 @@ const MedicalFile = ({
       ...medicalFile,
       documents: [...(medicalFile!.documents || []), doc],
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
+    const medicalFileResponse = await API.put({
+      path: `/medical-file/${medicalFile!._id}`,
+      body,
+      entityType: "medical-file",
+      entityId: medicalFile!._id,
+    });
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 
@@ -332,11 +340,16 @@ const MedicalFile = ({
       ...medicalFile,
       documents: medicalFile!.documents.map((d) => (d.type === "document" && d?.file?.filename === doc.file.filename ? doc : d)),
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
+    const medicalFileResponse = await API.put({
+      path: `/medical-file/${medicalFile!._id}`,
+      body,
+      entityType: "medical-file",
+      entityId: medicalFile!._id,
+    });
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 
@@ -345,11 +358,16 @@ const MedicalFile = ({
       ...medicalFile,
       documents: medicalFile!.documents.filter((d) => d.type === "document" && d?.file?.filename !== (doc as Document).file.filename),
     });
-    const medicalFileResponse = await API.put({ path: `/medical-file/${medicalFile!._id}`, body });
+    const medicalFileResponse = await API.put({
+      path: `/medical-file/${medicalFile!._id}`,
+      body,
+      entityType: "medical-file",
+      entityId: medicalFile!._id,
+    });
 
     if (medicalFileResponse.ok) {
       await refresh();
-      setMedicalFile(medicalFileResponse.decryptedData);
+      setMedicalFile(medicalFileResponse.decryptedData as MedicalFileInstance);
     }
   };
 

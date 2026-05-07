@@ -34,6 +34,8 @@ const castToStructure = (structure: Partial<StructureInstance>) => ({
   phone: structure?.phone?.trim() || "",
   email: structure?.email?.trim() || "",
   categories: structure?.categories?.length ? structure.categories : [],
+  updatedAt: structure?.updatedAt || "",
+  createdAt: structure?.createdAt || "",
 });
 
 type Props = NativeStackScreenProps<RootStackParamList, "STRUCTURE">;
@@ -98,6 +100,8 @@ const Structure = ({ navigation, route }: Props) => {
     const response = await API.put({
       path: `/structure/${structureDB._id}`,
       body: castToStructure(structure),
+      entityType: "structure",
+      entityId: structureDB._id,
     });
     if (response.error) {
       setUpdating(false);
@@ -108,11 +112,11 @@ const Structure = ({ navigation, route }: Props) => {
       Alert.alert("Contact mis à jour !");
       setStructures((structures) =>
         structures.map((s) => {
-          if (s._id === response.data._id) return response.data;
+          if (s._id === (response.data as StructureInstance)._id) return response.data as StructureInstance;
           return s;
         })
       );
-      setStructureDB(response.data);
+      setStructureDB(response.data as StructureInstance);
       setUpdating(false);
       setEditable(false);
       return true;
@@ -121,7 +125,7 @@ const Structure = ({ navigation, route }: Props) => {
 
   const onDelete = async () => {
     setUpdating(true);
-    const response = await API.delete({ path: `/structure/${structureDB._id}` });
+    const response = await API.delete({ path: `/structure/${structureDB._id}`, entityType: "structure", entityId: structureDB._id });
     if (response.error) {
       setUpdating(false);
       Alert.alert(response.error);

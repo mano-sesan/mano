@@ -28,7 +28,7 @@ const Structures = ({ navigation }: Props) => {
     setRefreshing(false);
     setLoading(false);
     if (response.error) Alert.alert(response.error);
-    if (response.ok) setStructures(response.data);
+    if (response.ok) setStructures(response.data as StructureInstance[]);
   };
 
   useEffect(() => {

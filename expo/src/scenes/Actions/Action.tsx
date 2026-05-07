@@ -25,7 +25,7 @@ import { MyText } from "../../components/MyText";
 import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../atoms/actions";
 import { useAtomValue } from "jotai";
 import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
@@ -221,16 +221,16 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
-  const updateAction = async (action: ActionInstance) => {
+  const updateAction = async (action: ActionInstance): Promise<ApiResponse> => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
       setUpdating(false);
-      return false;
+      return { ok: false };
     }
     if (!action.dueAt) {
       Alert.alert("Vous devez rentrer une date d'échéance");
       setUpdating(false);
-      return false;
+      return { ok: false };
     }
     const oldAction = actions.find((a) => a._id === action._id);
     console.log("action._id", action._id);
@@ -238,7 +238,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       Alert.alert("Action non trouvée");
       await refresh();
       setUpdating(false);
-      return false;
+      return { ok: false };
     }
     const statusChanged = action.status && oldAction.status !== action.status;
     try {
@@ -271,6 +271,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       const response = await API.put({
         path: `/action/${oldAction._id}`,
         body: prepareActionForEncryption(action as ActionInstance),
+        entityType: "action",
+        entityId: oldAction._id,
       });
       if (!response?.ok) return response;
       await refresh();
@@ -293,7 +295,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
           })
         );
         if (!response.ok) {
-          Alert.alert(response.error);
+          Alert.alert(response.error!);
           setUpdating(false);
           return;
         }
@@ -309,9 +311,9 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       })
     );
     setUpdating(false);
-    if (!response.ok) {
-      if (response.error) {
-        Alert.alert(response.error);
+    if (!response?.ok) {
+      if (response?.error) {
+        Alert.alert(response.error!);
       }
       return;
     }
@@ -333,14 +335,17 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable, action.status, isMultipleActions]);
 
+  const isOnePerson = persons ? persons.length === 1 : false;
+  const person = !isOnePerson ? null : persons?.[0];
+
   const onDuplicate = async () => {
     setUpdating(true);
-    const { name, person, dueAt, withTime, description, categories, urgent } = action;
+    const { name, dueAt, withTime, description, categories, urgent } = action;
     const response = await API.post({
       path: "/action",
       body: prepareActionForEncryption({
         name,
-        person,
+        person: action.person,
         teams: [currentTeam._id],
         user: user._id,
         dueAt,
@@ -359,20 +364,20 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     for (let c of comments.filter((c) => c.action === actionDB._id)) {
       const body = {
         comment: c.comment,
-        action: response.decryptedData._id,
+        action: (response.decryptedData as ActionInstance)._id,
         user: c.user || user._id,
         team: c.team || currentTeam._id,
         organisation: c.organisation,
       };
-      await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+      await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
     }
-    Sentry.setContext("action", { _id: response.decryptedData._id });
+    Sentry.setContext("action", { _id: (response.decryptedData as ActionInstance)._id });
     backRequestHandledRef.current = true;
     await refresh();
 
     navigation.replace("ACTION_STACK", {
-      action: response.decryptedData,
-      person: response.decryptedData.person,
+      action: response.decryptedData as ActionInstance,
+      person: person!,
       editable: true,
       duplicate: true,
     });
@@ -398,6 +403,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       body: {
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
+      entityType: "action",
+      entityId: id,
     });
     if (res.ok) await refresh();
     return res;
@@ -412,15 +419,13 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     } else {
       response = await deleteAction(actionDB._id);
     }
-    if (response.error) return Alert.alert(response.error);
-    if (response.ok) {
+    if (response?.error) return Alert.alert(response.error!);
+    if (response?.ok) {
       Alert.alert(isMultipleActions ? "Actions supprimées !" : "Action supprimée !");
       onBack();
     }
   };
 
-  const isOnePerson = persons ? persons.length === 1 : false;
-  const person = !isOnePerson ? null : persons?.[0];
   const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && !!groups.find((group) => group.persons.includes(person._id));
 
   const { name, categories, group } = action;
@@ -819,9 +824,9 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                 ...newComment,
                 action: actionDB?._id,
               };
-              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+              const response = (await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" })) as ApiResponse;
               if (!response.ok) {
-                Alert.alert(response.error || response.code);
+                Alert.alert(response.error!);
                 return false;
               }
               Keyboard.dismiss();
@@ -838,7 +843,7 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
             comment={comment}
             canToggleUrgentCheck
             onDelete={async () => {
-              const response = await API.delete({ path: `/comment/${comment._id}` });
+              const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
               if (response.error) {
                 Alert.alert(response.error);
                 return false;
@@ -853,6 +858,8 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                     const response = await API.put({
                       path: `/comment/${comment._id}`,
                       body: prepareCommentForEncryption(commentUpdated),
+                      entityType: "comment",
+                      entityId: comment._id,
                     });
                     if (response.error) {
                       Alert.alert(response.error);
@@ -895,6 +902,7 @@ const castToAction = (action: Partial<ActionInstance>): ActionInstanceWithoutId 
     teams: action.teams || (action.team ? [action.team!] : []),
     history: action.history || [],
     documents: action.documents || [],
+    createdAt: action.createdAt,
     updatedAt: action.updatedAt,
     deletedAt: action.deletedAt,
     organisation: action.organisation!,

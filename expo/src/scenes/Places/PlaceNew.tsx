@@ -50,6 +50,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
       const response = await API.post({
         path: "/relPersonPlace",
         body: prepareRelPersonPlaceForEncryption({ place: place._id, person: person._id, user: user._id }),
+        entityType: "relPersonPlace",
       });
       if (response.error) {
         setPosting(false);
@@ -67,7 +68,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
 
   const onCreatePlace = useCallback(async () => {
     setPosting(true);
-    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });
+    const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }), entityType: "place" });
     if (response.error) {
       setPosting(false);
       Alert.alert(response.error);
@@ -75,7 +76,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
     }
     if (response.ok) {
       await refresh();
-      onSubmit(response.decryptedData);
+      onSubmit(response.decryptedData as PlaceInstance);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, user._id, onSubmit]);

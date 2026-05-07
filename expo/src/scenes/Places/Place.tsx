@@ -54,7 +54,11 @@ const Place = ({ navigation, route }: PlaceProps) => {
         _id: placeDB._id,
         user: placeDB.user || user._id,
         entityKey: placeDB.entityKey,
+        createdAt: placeDB.createdAt,
+        updatedAt: placeDB.updatedAt,
       }),
+      entityType: "place",
+      entityId: placeDB._id,
     });
     if (response.error) {
       setUpdating(false);
@@ -89,6 +93,8 @@ const Place = ({ navigation, route }: PlaceProps) => {
       body: {
         relsPersonPlaceIds: relsPersonPlace.filter((rel) => rel.place === placeDB._id).map((rel) => rel._id),
       },
+      entityType: "place",
+      entityId: placeDB._id,
     });
     setDeleting(false);
     if (response.error) {

@@ -28,13 +28,18 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { v4 as uuidv4 } from "uuid";
 import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { enqueue } from "./offlineQueue";
+import { applyMutationToAtoms } from "./offlineOptimistic";
+import { UserResponseData } from "@/types/user";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
 class ApiService {
-  getUrl = (path, query = {}) => {
+  getUrl = (path: string, query: Query = {}) => {
     return new URI().scheme(SCHEME).host(HOST).path(path).setSearch(query).toString();
   };
 
@@ -60,7 +65,7 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  organisationEncryptionStatus() {
+  organisationEncryptionStatus(): Record<string, string | boolean | Date | undefined> {
     const organisation = store.get(organisationState) || {
       encryptionLastUpdateAt: undefined,
       encryptionEnabled: undefined,
@@ -73,10 +78,30 @@ class ApiService {
     };
   }
 
-  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  execute = async ({
+    method,
+    path = "",
+    body = undefined,
+    query = {},
+    headers = {},
+    debug = false,
+    entityType = undefined,
+    entityId = undefined,
+    offlineEnabled = true,
+  }: {
+    method: RequestInit["method"];
+    path?: string;
+    body?: any;
+    query?: Query;
+    headers?: Record<string, string>;
+    debug?: boolean;
+    entityType?: string;
+    entityId?: string;
+    offlineEnabled?: boolean;
+  }): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
-      const options = {
+      const options: RequestInit = {
         method,
         headers: {
           ...headers,
@@ -84,9 +109,46 @@ class ApiService {
           Accept: "application/json",
           platform: this.platform,
           version: VERSION,
-          packageid: Application.applicationId,
+          packageid: Application.applicationId!,
         },
       };
+
+      if (["PUT", "POST", "DELETE"].includes(method)) {
+        const offlineMode = store.get(offlineModeState);
+        // Skip offline queueing for non-entity paths (auth, logs, etc.)
+        if (offlineMode && offlineEnabled !== false) {
+          if (method === "POST") {
+            body = { ...body, _id: uuidv4() };
+            entityId = body._id;
+          }
+          if (!entityType) {
+            Alert.alert(
+              "Impossible d'effectuer cette action hors-ligne",
+              `Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement.\n${path}`
+            );
+            return { ok: false, error: "Entity type not found" };
+          }
+          const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
+          const item = enqueue({
+            method: method as "POST" | "PUT" | "DELETE",
+            path: path,
+            decryptedBody: body,
+            entityType,
+            entityId: entityId!,
+            entityUpdatedAt: updatedAt,
+          });
+          applyMutationToAtoms(item);
+          // Return optimistic response
+          return Promise.resolve({
+            ok: true,
+            data: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
+            decryptedData: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
+            _offlineQueued: true,
+            _queueItemId: item.id,
+          });
+        }
+      }
+
       if (body) {
         options.body = JSON.stringify(await encryptItem(body));
       }
@@ -110,7 +172,7 @@ class ApiService {
           : await fetch(url, options);
 
       if (!response.ok && response.status === 401) {
-        if (this.logout) this.logout("401");
+        if (this.logout) this.logout();
         if (API.showTokenExpiredError) {
           Alert.alert("Votre session a expiré, veuillez vous reconnecter");
           API.showTokenExpiredError = false;
@@ -119,10 +181,13 @@ class ApiService {
       }
 
       try {
-        const res = await response.json();
+        const res: ApiResponse = await response.json();
         if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
-          const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
-          if (!actions || !actions.length) return Alert.alert(title, subTitle);
+          const [title, subTitle, actions = [], options = {}] = res.inAppMessage!;
+          if (!actions || !actions.length) {
+            Alert.alert(title, subTitle);
+            return res;
+          }
           const actionsWithNavigation = actions
             .map((action) => {
               if (action.text === "Installer") {
@@ -159,7 +224,7 @@ class ApiService {
         capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
         return { ok: false, error: "Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !" };
       }
-    } catch (errorExecuteApi) {
+    } catch (errorExecuteApi: any) {
       capture(errorExecuteApi, {
         extra: {
           path,
@@ -174,39 +239,21 @@ class ApiService {
     }
   };
 
-  post = (args) => this.execute({ method: "POST", ...args });
-  get = async (args) => {
-    if (args.batch) {
-      let hasMore = true;
-      let page = 0;
-      let limit = args.batch;
-      let data = [];
-      let decryptedData = [];
-      while (hasMore) {
-        let query = { ...args.query, limit, page };
-        const response = await this.execute({ method: "GET", ...args, query });
-        if (!response.ok) {
-          capture("error getting batch", { extra: { response } });
-          return { ok: false, data: [] };
-        }
-        data.push(...response.data);
-        decryptedData.push(...(response.decryptedData || []));
-        hasMore = response.hasMore;
-        page = response.hasMore ? page + 1 : page;
-        // at least 1 for showing progress
-        if (args.setProgress) args.setProgress(response.decryptedData.length || 1);
-        await new Promise((res) => setTimeout(res, 50));
-      }
-      return { ok: true, data, decryptedData };
-    } else {
-      return this.execute({ method: "GET", ...args });
-    }
-  };
-  put = (args) => this.execute({ method: "PUT", ...args });
-  delete = (args) => this.execute({ method: "DELETE", ...args });
+  post = (args: PostApiArgs) => this.execute({ ...args, method: "POST" });
+  get = async (args: GetApiArgs) => this.execute({ ...args, method: "GET" });
+  put = (args: PutApiArgs) => this.execute({ ...args, method: "PUT" });
+  delete = (args: DeleteApiArgs) => this.execute({ ...args, method: "DELETE" });
 
   // Download a file from a path.
-  download = async ({ path, encryptedEntityKey, document }) => {
+  download = async ({
+    path,
+    encryptedEntityKey,
+    document,
+  }: {
+    path: string;
+    encryptedEntityKey: string;
+    document: { file: { originalname: string } };
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
@@ -232,12 +279,31 @@ class ApiService {
   };
 
   // Upload a file to a path.
-  upload = async ({ file, path }) => {
-    // Prepare file.
+  upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
-    // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
+    const offlineMode = store.get(offlineModeState);
 
+    if (offlineMode) {
+      return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
+    }
+
+    return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
+  };
+
+  _doUpload = async ({
+    name,
+    type,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    name: string;
+    type: string;
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -249,36 +315,55 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-        // custom content type
-        // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
-        // // part file from storage
-        // { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: ReactNativeBlobUtil.wrap(path_to_a_file) },
-        // // elements without property `filename` will be sent as plain text
-        // { name: 'name', data: 'user' },
-        // {
-        //   name: 'info',
-        //   data: JSON.stringify({
-        //     mail: 'example@example.com',
-        //     tel: '12345678',
-        //   }),
-        // },
-      ]
+      [{ name: "file", filename: name, mime: type, type: type, data: encryptedFile }]
     );
 
     const json = await response.json();
-    // Si erreur (ok: false), on retourne les infos d'erreur du backend
     if (!json.ok) {
       return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
     }
     return { ...json, encryptedEntityKey };
   };
+
+  _queueFileUpload = ({
+    file,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    file: { fileName: string; type: string };
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
+    const entityId = uuidv4();
+    enqueue({
+      method: "POST",
+      path,
+      decryptedBody: null,
+      entityType: "file_upload",
+      entityId,
+      fileUpload: {
+        fileName: file.fileName,
+        fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
+      },
+    });
+
+    // Return a placeholder — the caller builds document metadata from this
+    return {
+      ok: true,
+      data: { filename: `pending-${entityId}` },
+      encryptedEntityKey: encryptedEntityKey,
+      encryptedFile: encryptedFile,
+      _offlineQueued: true,
+    };
+  };
   token = "";
   onLogIn = () => {};
-  logout = async (_clearAll) => {};
-  downloadAndInstallUpdate = (_link) => {};
+  logout = async (_clearAll?: boolean) => {};
+  downloadAndInstallUpdate = (_link: string) => {};
   updateLink = "";
   showTokenExpiredError = false;
   platform = Platform.OS;
@@ -287,3 +372,68 @@ class ApiService {
 
 const API = new ApiService();
 export default API;
+
+type RequestInit = {
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  headers: Record<string, string>;
+  body?: string;
+};
+
+type ApiArgs = {
+  method: RequestInit["method"];
+  path: string;
+  body?: Record<string, any>;
+  query?: Query;
+  headers?: RequestInit["headers"];
+  debug?: boolean;
+  entityType?: string;
+  entityId?: string;
+  offlineEnabled?: boolean;
+};
+
+interface PostApiArgs extends Omit<ApiArgs, "method"> {
+  body?: Record<string, any>;
+}
+
+interface GetApiArgs extends Omit<ApiArgs, "method"> {
+  query?: Query;
+}
+
+interface PutApiArgs extends Omit<ApiArgs, "method"> {
+  body: Record<string, any>;
+}
+
+type DeleteApiArgs = Omit<ApiArgs, "method"> & {
+  body?: Record<string, any>;
+};
+
+type Query = Record<string, string | Date | boolean | undefined | number>;
+
+export type ApiResponse = {
+  ok: boolean;
+  user?: UserResponseData;
+  token?: string;
+  data?: unknown;
+  decryptedData?: unknown;
+  code?: string;
+  error?: string;
+  hasMore?: boolean;
+  message?: string;
+  inAppMessage?: [
+    string,
+    string,
+    {
+      text: string;
+      link: string;
+      onPress: () => void;
+    }[],
+    {
+      [key: string]: any;
+    },
+  ];
+};
+
+export type OfflineApiResponse = ApiResponse & {
+  _offlineQueued: boolean;
+  _queueItemId: string;
+};

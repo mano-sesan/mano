@@ -24,10 +24,28 @@ const Passage = ({ navigation, route }: PassageProps) => {
   const isNewPassage = !route.params?.passage?._id;
   const currentTeam = useAtomValue(currentTeamState)!;
   const user = useAtomValue(userState)!;
-  const [passage, setPassage] = useState(
-    () =>
-      route.params?.passage || ({ date: dayjsInstance().toISOString(), user: user._id, team: currentTeam._id, person: personId } as PassageInstance)
-  );
+  const [passage, setPassage] = useState(() => {
+    if (route.params?.passage) {
+      return {
+        _id: route.params?.passage._id,
+        organisation: route.params?.passage.organisation,
+        entityKey: route.params?.passage.entityKey,
+        date: route.params?.passage.date,
+        comment: route.params?.passage.comment,
+        user: route.params?.passage.user,
+        team: route.params?.passage.team,
+        person: route.params?.passage.person,
+        createdAt: route.params?.passage.createdAt,
+        updatedAt: route.params?.passage.updatedAt,
+      };
+    }
+    return {
+      date: dayjsInstance().toISOString(),
+      user: user._id,
+      team: currentTeam._id,
+      person: personId,
+    } as PassageInstance;
+  });
   const [submitting, setSubmitting] = useState(false);
   const { refresh } = useDataLoader();
 
@@ -35,6 +53,7 @@ const Passage = ({ navigation, route }: PassageProps) => {
     const response = await API.post({
       path: "/passage",
       body: preparePassageForEncryption(passage),
+      entityType: "passage",
     });
     if (response.ok) {
       await refresh();
@@ -47,6 +66,8 @@ const Passage = ({ navigation, route }: PassageProps) => {
     const response = await API.put({
       path: `/passage/${passage._id}`,
       body: preparePassageForEncryption(passage),
+      entityType: "passage",
+      entityId: passage._id,
     });
     if (response.ok) {
       await refresh();

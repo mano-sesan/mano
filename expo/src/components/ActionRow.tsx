@@ -16,6 +16,7 @@ import UserName from "./UserName";
 import { ActionInstance } from "@/types/action";
 import { PersonInstance } from "@/types/person";
 import { dayjsInstance } from "@/services/dateDayjs";
+import PendingSyncIndicator from "./PendingSyncIndicator";
 
 type ActionRowProps = {
   onActionPress: (action: ActionInstance) => void;
@@ -64,6 +65,7 @@ const ActionRow = ({ onActionPress, onPseudoPress, showStatus, action, withTeamN
             </View>
           )}
           <Name bold>{name}</Name>
+          <PendingSyncIndicator pendingSync={action._pendingSync} />
         </View>
         {!!withTeamName && <TeamsTags teams={Array.isArray(action.teams) ? action.teams! : [action.team!]} />}
         {showStatus ? (

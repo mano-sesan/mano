@@ -37,6 +37,7 @@ const castToReport = (report?: ReportInstance) =>
   ({
     description: report?.description?.trim() || "",
     collaborations: report?.collaborations || [],
+    updatedAt: report?.updatedAt || "",
   }) as ReportInstance;
 
 type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
@@ -104,7 +105,7 @@ const Report = ({ navigation, route }: Props) => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${day}` });
       if (response.error) return Alert.alert(response.error);
-      setServicesCount(response.data?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
+      setServicesCount((response.data as ServiceInstance[])?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
     }
     initServices();
   }, [currentTeam._id, day]);
@@ -138,10 +139,13 @@ const Report = ({ navigation, route }: Props) => {
       ? await API.put({
           path: `/report/${reportDB?._id}`,
           body: prepareReportForEncryption({ ...reportDB, ...report, updatedBy: user._id }),
+          entityType: "report",
+          entityId: reportDB?._id,
         })
       : await API.post({
           path: "/report",
           body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
+          entityType: "report",
         });
     if (response.error) {
       setUpdating(false);
@@ -150,7 +154,7 @@ const Report = ({ navigation, route }: Props) => {
     }
     if (response.ok) {
       await refresh();
-      setReport(castToReport(response.decryptedData));
+      setReport(castToReport(response.decryptedData as ReportInstance));
       Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);
       setEditable(false);

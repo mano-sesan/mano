@@ -136,7 +136,7 @@ const Notifications = ({ navigation }: NotificationsProps) => {
           onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.actionPopulated!) : onPseudoPress(comment.personPopulated!))}
           canToggleUrgentCheck
           onDelete={async () => {
-            const response = await API.delete({ path: `/comment/${comment._id}` });
+            const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
             if (response.error) {
               Alert.alert(response.error);
               return false;
@@ -152,6 +152,8 @@ const Notifications = ({ navigation }: NotificationsProps) => {
                   const response = await API.put({
                     path: `/comment/${comment._id}`,
                     body: prepareCommentForEncryption(commentUpdated),
+                    entityType: "comment",
+                    entityId: comment._id,
                   });
                   if (response.error) {
                     Alert.alert(response.error);

@@ -31,6 +31,7 @@ const userBase: UserInstance = {
   createdAt: new Date(),
   lastLoginAt: new Date(),
   phone: "0123456789",
+  lastChangePasswordAt: new Date(),
 };
 
 export const personPopulated: PersonPopulated = {

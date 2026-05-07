@@ -1,7 +1,7 @@
 import * as Application from "expo-application";
 
-const SCHEME = process.env.EXPO_PUBLIC_SCHEME;
-const HOST = process.env.EXPO_PUBLIC_HOST;
+const SCHEME = process.env.EXPO_PUBLIC_SCHEME || "https";
+const HOST = process.env.EXPO_PUBLIC_HOST || "api.mano.fr";
 const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV;
 const MANO_DOWNLOAD_URL = process.env.EXPO_PUBLIC_MANO_DOWNLOAD_URL;
 const MANO_TEST_ORGANISATION_ID = process.env.EXPO_PUBLIC_MANO_TEST_ORGANISATION_ID;

@@ -54,8 +54,8 @@ const RencontreRow = ({ onUpdate, rencontre, onPersonPress }: RencontreRowProps)
   };
 
   const onRencontreDelete = async () => {
-    const response = await API.delete({ path: `/rencontre/${rencontre._id}` });
-    if (!response.ok) return Alert.alert(response.error);
+    const response = await API.delete({ path: `/rencontre/${rencontre._id}`, entityType: "rencontre", entityId: rencontre._id });
+    if (!response.ok) return Alert.alert(response.error!);
     await refresh();
   };
 
