@@ -96,6 +96,8 @@ const MedicalFile = ({
     buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "medical-file" })
   );
 
+  console.log({ medicalFileDB });
+
   const openNewCommentModal = () => {
     setNewCommentDB(buildEmptyComment({ team: currentTeam._id, user: user._id, organisation: organisation._id, type: "medical-file" }));
     setNewCommentModalVisible(true);

@@ -141,19 +141,6 @@ class ApiService {
           Alert.alert(title, subTitle, actionsWithNavigation, options);
           return res;
         }
-        if (!!res.data && Array.isArray(res.data)) {
-          const decryptedData = [];
-          for (const item of res.data) {
-            const decryptedItem = await decryptDBItem(item, { debug, path });
-            decryptedData.push(decryptedItem);
-          }
-          res.decryptedData = decryptedData;
-          return res;
-        }
-        if (res.data) {
-          res.decryptedData = await decryptDBItem(res.data, { debug, path });
-          return res;
-        }
         return res;
       } catch (errorFromJson) {
         capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
