@@ -5,6 +5,14 @@ import { offlineModeState } from "@/atoms/offlineMode";
 import { loadQueueFromStorage, removeQueueItem, persistQueue, updateQueueItemStatus, type QueuedMutation, clearQueue } from "./offlineQueue";
 import API from "./api";
 import { useDataLoader } from "./dataLoader";
+import { storage } from "./storage";
+import { personsState } from "@/atoms/persons";
+import { consultationsState } from "@/atoms/consultations";
+import { treatmentsState } from "@/atoms/treatments";
+import { medicalFileState } from "@/atoms/medicalFiles";
+import { actionsState } from "@/atoms/actions";
+import { territoryObservationsState } from "@/atoms/territoryObservations";
+import type { PrimitiveAtom } from "jotai";
 
 export type Conflict = {
   entityType: string;
@@ -61,7 +69,10 @@ export async function processQueue(refresh: () => Promise<any>): Promise<void> {
     store.set(syncProgressState, { current: 0, total: queue.length });
 
     for (let i = 0; i < queue.length; i++) {
-      const item = queue[i];
+      // Re-read from storage: a previous file_upload may have rewritten this
+      // item's body to substitute its pending- placeholder with the real filename.
+      const item = loadQueueFromStorage().find((m) => m.id === queue[i].id);
+      if (!item) continue;
       store.set(syncProgressState, { current: i + 1, total: queue.length });
 
       // For PUT/DELETE: detect conflicts by checking updatedAt
@@ -195,7 +206,9 @@ async function processFileUpload(item: QueuedMutation): Promise<boolean> {
     if (response?.ok) {
       const fileMetadata = response.data;
       if (fileMetadata?.filename) {
-        substitutePendingFilenameInQueue(`pending-${item.entityId}`, fileMetadata);
+        const placeholder = `pending-${item.entityId}`;
+        substitutePendingFilenameInQueue(placeholder, fileMetadata);
+        substitutePendingFilenameInAtoms(placeholder, fileMetadata);
       }
       removeQueueItem(item.id);
       return true;
@@ -238,7 +251,60 @@ function substitutePendingFilenameInQueue(placeholder: string, fileMetadata: Rec
     }
   }
 
+  console.log("[sync] substitutePendingFilenameInQueue", { placeholder, realFilename, changed, queueSize: queue.length });
   if (changed) persistQueue(queue);
+}
+
+const atomsWithDocuments: Array<{ atom: PrimitiveAtom<any[]>; mmkvKey: string | null }> = [
+  { atom: personsState as PrimitiveAtom<any[]>, mmkvKey: "person" },
+  { atom: consultationsState as PrimitiveAtom<any[]>, mmkvKey: null },
+  { atom: treatmentsState as PrimitiveAtom<any[]>, mmkvKey: null },
+  { atom: medicalFileState as PrimitiveAtom<any[]>, mmkvKey: null },
+  { atom: actionsState as PrimitiveAtom<any[]>, mmkvKey: "action" },
+  { atom: territoryObservationsState as PrimitiveAtom<any[]>, mmkvKey: "territory-observation" },
+];
+
+// Mirrors the queue substitution onto the in-memory atoms (and their MMKV cache),
+// so the UI reflects the real filename immediately — without waiting for the
+// post-sync refresh — and a tap during sync doesn't fall back into _downloadFromQueue.
+function substitutePendingFilenameInAtoms(placeholder: string, fileMetadata: Record<string, any>) {
+  const realFilename: string = fileMetadata.filename;
+  let totalChanged = 0;
+
+  for (const { atom: entityAtom, mmkvKey } of atomsWithDocuments) {
+    const list = store.get(entityAtom) as any[] | undefined;
+    if (!Array.isArray(list)) continue;
+    let entityChanged = false;
+
+    const next = list.map((entity) => {
+      if (!Array.isArray(entity?.documents)) return entity;
+      let docsChanged = false;
+      const documents = entity.documents.map((doc: any) => {
+        if (!doc) return doc;
+        const docHasPlaceholder = doc._id === placeholder || doc.file?.filename === placeholder;
+        if (!docHasPlaceholder) return doc;
+        docsChanged = true;
+        const updated = { ...doc };
+        if (updated._id === placeholder) updated._id = realFilename;
+        if (updated.file?.filename === placeholder) updated.file = { ...updated.file, ...fileMetadata };
+        if (typeof updated.downloadPath === "string" && updated.downloadPath.endsWith(`/${placeholder}`)) {
+          updated.downloadPath = updated.downloadPath.slice(0, -placeholder.length) + realFilename;
+        }
+        return updated;
+      });
+      if (!docsChanged) return entity;
+      entityChanged = true;
+      return { ...entity, documents };
+    });
+
+    if (entityChanged) {
+      totalChanged++;
+      store.set(entityAtom, next);
+      if (mmkvKey) storage.set(mmkvKey, JSON.stringify(next));
+    }
+  }
+
+  console.log("[sync] substitutePendingFilenameInAtoms", { placeholder, realFilename, atomsUpdated: totalChanged });
 }
 
 export async function resolveConflict(queueItemId: string, resolvedBody: Record<string, any>) {
