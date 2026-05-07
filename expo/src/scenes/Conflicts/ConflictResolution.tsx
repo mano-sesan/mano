@@ -42,6 +42,7 @@ const ENTITY_LABELS: Record<string, string> = {
 const HIDDEN_FIELDS = [
   "updatedAt",
   "createdAt",
+  "updatedBy",
   "entityKey",
   "entityUpdatedAt",
   "history",

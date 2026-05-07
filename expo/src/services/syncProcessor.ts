@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { store } from "@/store";
 import { atomWithCache } from "@/utils/atomWithCache";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { loadQueueFromStorage, removeQueueItem, persistQueue, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
+import { loadQueueFromStorage, removeQueueItem, persistQueue, updateQueueItemStatus, type QueuedMutation, clearQueue } from "./offlineQueue";
 import API from "./api";
 import { useDataLoader } from "./dataLoader";
 
@@ -45,8 +45,11 @@ export async function processQueue(refresh: () => Promise<any>): Promise<void> {
 
     // Step 2: Check if there are items to process
     const queue = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "failed");
+    console.log("queue", queue);
     if (queue.length === 0) {
       store.set(syncStatusState, "idle");
+      store.set(syncProgressState, { current: 0, total: 0 });
+      clearQueue();
       isSyncing = false;
       return;
     }

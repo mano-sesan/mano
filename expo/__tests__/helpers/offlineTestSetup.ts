@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import { store } from "@/store";
 import { offlineQueueState, type QueuedMutation } from "@/services/offlineQueue";
-import { conflictsState, syncStatusState } from "@/services/syncProcessor";
+import { conflictsState, syncProgressState, syncStatusState } from "@/services/syncProcessor";
 import { offlineModeState } from "@/atoms/offlineMode";
 
 export const QUEUE_STORAGE_KEY = "mano-offline-queue";
@@ -97,5 +97,6 @@ export function resetOfflineState(mockStorage: Map<string, string>) {
   store.set(offlineQueueState, []);
   store.set(conflictsState, []);
   store.set(syncStatusState, "idle");
+  store.set(syncProgressState, { current: 0, total: 0 });
   store.set(offlineModeState, false);
 }

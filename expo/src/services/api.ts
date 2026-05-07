@@ -289,7 +289,7 @@ class ApiService {
     return this._writeDecryptedToCache(decrypted, document.file.originalname);
   };
 
-  _writeDecryptedToCache = (decrypted: string, originalname: string) => {
+  _writeDecryptedToCache = (decrypted: string | undefined, originalname: string) => {
     const cacheDir = FileSystem.Paths.cache;
     const file = new FileSystem.File(cacheDir, originalname);
     file.create({ overwrite: true });

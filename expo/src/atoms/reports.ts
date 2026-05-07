@@ -47,7 +47,6 @@ export const allowedReportFieldsInHistory = [
   { name: "team", label: "Équipe" },
   { name: "date", label: "Date", type: "date" },
   { name: "collaborations", label: "Collaborations", type: "multi-choice" },
-  { name: "updatedBy", label: "Modifié par" },
   { name: "services", label: "Services" },
 ];
 
