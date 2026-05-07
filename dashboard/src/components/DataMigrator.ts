@@ -59,11 +59,11 @@ export default function useDataMigrator() {
         // migrations faites pour les organisations affectées par le bug
         // on garde encore ici si y'en a d'autres qui arriveraient
       }
-      if (!organisation.migrations?.includes("set-followed-since-from-created-at")) {
+      if (!organisation.migrations?.includes("set-followed-since-from-created-at-2")) {
         setLoadingText(LOADING_TEXT);
         const personsRes = await API.get({
           path: "/person",
-          query: { organisation: organisationId, after: "0", withDeleted: false },
+          query: { organisation: organisationId, after: "0", withDeleted: true },
         });
         if (!personsRes.ok) {
           return false;
@@ -83,7 +83,7 @@ export default function useDataMigrator() {
         if (personsToUpdate.length > 0) {
           const encryptedPersonsToUpdate = await Promise.all(personsToUpdate.map((p) => preparePersonForEncryption(p)).map(encryptItem));
           const response = await API.put({
-            path: `/migration/set-followed-since-from-created-at`,
+            path: `/migration/set-followed-since-from-created-at-2`,
             body: { encryptedPersons: encryptedPersonsToUpdate },
             query: { migrationLastUpdateAt },
           });
@@ -96,7 +96,7 @@ export default function useDataMigrator() {
         } else {
           // No persons to update, but still mark the migration as done
           const response = await API.put({
-            path: `/migration/set-followed-since-from-created-at`,
+            path: `/migration/set-followed-since-from-created-at-2`,
             body: { encryptedPersons: [] },
             query: { migrationLastUpdateAt },
           });
