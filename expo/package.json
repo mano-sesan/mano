@@ -16,6 +16,7 @@
     "build-local:android-apk-nantes": "eas build -p android --local --output ./mano-nantes.apk --profile production-nantes",
     "build-local:android-apks": "npm run build-local:android-apk-standard && npm run build-local:android-apk-niort && npm run build-local:android-apk-nantes",
     "publish-releases-to-github": "node publish-releases-to-github.js",
+    "test": "vitest run",
     "typecheck": "tsc -b",
     "android": "expo run:android",
     "ios": "expo run:ios"
@@ -89,12 +90,15 @@
     "@types/react": "~19.1.10",
     "@types/semver": "^7",
     "@types/ungap__structured-clone": "^1.2.0",
+    "@types/urijs": "^1.19.26",
     "@types/uuid": "^11.0.0",
     "chalk": "^5.6.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "libsodium-wrappers-sumo": "^0.8.4",
     "semver": "^7.7.3",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.2"
   },
   "resolutions": {
     "react-native-safe-area-context": "5.6.2",
