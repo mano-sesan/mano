@@ -51,8 +51,17 @@ export async function processQueue(refresh: () => Promise<any>): Promise<void> {
       return;
     }
 
-    // Step 2: Check if there are items to process
-    const queue = loadQueueFromStorage().filter((m) => m.status === "pending" || m.status === "failed");
+    // Step 2: Check if there are items to process. Process file_uploads first so
+    // their real server filename is substituted into any queued entity mutation
+    // (person POST/PUT, etc.) that references the pending- placeholder before
+    // that mutation is sent.
+    const queue = loadQueueFromStorage()
+      .filter((m) => m.status === "pending" || m.status === "failed")
+      .sort((a, b) => {
+        const aIsUpload = a.entityType === "file_upload" ? 0 : 1;
+        const bIsUpload = b.entityType === "file_upload" ? 0 : 1;
+        return aIsUpload - bIsUpload;
+      });
     console.log("queue", queue);
     if (queue.length === 0) {
       store.set(syncStatusState, "idle");
