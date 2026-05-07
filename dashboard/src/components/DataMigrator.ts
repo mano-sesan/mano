@@ -70,10 +70,16 @@ export default function useDataMigrator() {
           if (!personsRes.ok) {
             return false;
           }
-          const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "person" })))).filter((e) => e);
+          const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { decryptDeleted: true, type: "person" })))).filter(
+            (e) => e
+          );
 
           const personsToUpdate: typeof decryptedPersons = [];
           for (const person of decryptedPersons) {
+            // Si entityKey n'est pas posée, c'est que decryptItem a court-circuité sans déchiffrer
+            // (pas de clé d'org, pas de blob chiffré, pas d'entityKey chiffrée). Re-chiffrer dans ce
+            // cas générerait une nouvelle entityKey et écraserait les données existantes.
+            if (!person.entityKey) continue;
             if (!person.followedSince && person.createdAt) {
               personsToUpdate.push({
                 ...person,
