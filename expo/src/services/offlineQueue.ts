@@ -28,7 +28,7 @@ export interface QueuedMutation {
 export const offlineQueueState = atom<QueuedMutation[]>([]);
 export const offlineQueueCountState = atom<number>((get) => get(offlineQueueState).length);
 
-function persistQueue(queue: QueuedMutation[]) {
+export function persistQueue(queue: QueuedMutation[]) {
   storage.set(QUEUE_KEY, JSON.stringify(queue));
   store.set(offlineQueueState, queue);
 }
@@ -53,9 +53,7 @@ export function enqueue(mutation: Omit<QueuedMutation, "id" | "timestamp" | "sta
 
   // Deduplicate: merge with existing pending item for the same entity
   if (mutation.entityId && mutation.entityType) {
-    const existingIndex = queue.findIndex(
-      (m) => m.status === "pending" && m.entityId === mutation.entityId && m.entityType === mutation.entityType,
-    );
+    const existingIndex = queue.findIndex((m) => m.status === "pending" && m.entityId === mutation.entityId && m.entityType === mutation.entityType);
 
     if (existingIndex !== -1) {
       const existing = queue[existingIndex];

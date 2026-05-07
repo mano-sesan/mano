@@ -32,7 +32,7 @@ import { v4 as uuidv4 } from "uuid";
 import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { enqueue } from "./offlineQueue";
+import { enqueue, loadQueueFromStorage } from "./offlineQueue";
 import { applyMutationToAtoms } from "./offlineOptimistic";
 import { UserResponseData } from "@/types/user";
 
@@ -252,8 +252,14 @@ class ApiService {
   }: {
     path: string;
     encryptedEntityKey: string;
-    document: { file: { originalname: string } };
+    document: { file: { originalname: string; filename?: string } };
   }) => {
+    // Document still queued for upload — decrypt the cached blob locally
+    const filename = document.file?.filename;
+    if (typeof filename === "string" && filename.startsWith("pending-")) {
+      return this._downloadFromQueue({ filename, encryptedEntityKey, document });
+    }
+
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
@@ -261,20 +267,35 @@ class ApiService {
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
-    // In your download method around line 269-276
+    return this._writeDecryptedToCache(decrypted, document.file.originalname);
+  };
+
+  _downloadFromQueue = async ({
+    filename,
+    encryptedEntityKey,
+    document,
+  }: {
+    filename: string;
+    encryptedEntityKey: string;
+    document: { file: { originalname: string } };
+  }) => {
+    const entityId = filename.slice("pending-".length);
+    const item = loadQueueFromStorage().find((m) => m.entityType === "file_upload" && m.entityId === entityId && !!m.fileUpload);
+    if (!item?.fileUpload?.encryptedFile) {
+      Alert.alert("Document non disponible", "Ce document n'a pas encore été synchronisé.");
+      throw new Error("Pending document not found in queue");
+    }
+    const decrypted = await decryptFile(item.fileUpload.encryptedFile, encryptedEntityKey, getHashedOrgEncryptionKey());
+    return this._writeDecryptedToCache(decrypted, document.file.originalname);
+  };
+
+  _writeDecryptedToCache = (decrypted: string, originalname: string) => {
     const cacheDir = FileSystem.Paths.cache;
-
-    // Create file instance
-    const file = new FileSystem.File(cacheDir, document.file.originalname);
-
-    // Create the file on disk first (required before writing)
+    const file = new FileSystem.File(cacheDir, originalname);
     file.create({ overwrite: true });
-
     if (decrypted) {
-      // Write the decrypted data as base64 (decode from base64 string to binary)
       file.write(decrypted, { encoding: "base64" });
     }
-
     return { path: file.uri, decrypted };
   };
 
@@ -351,10 +372,17 @@ class ApiService {
       },
     });
 
-    // Return a placeholder — the caller builds document metadata from this
+    // Shape mirrors the backend's upload response. The pending- filename is
+    // rewritten to the real server filename when the queued upload syncs.
     return {
       ok: true,
-      data: { filename: `pending-${entityId}` },
+      data: {
+        filename: `pending-${entityId}`,
+        originalname: file.fileName,
+        mimetype: file.type,
+        size: encryptedFile.length,
+        encoding: "7bit",
+      },
       encryptedEntityKey: encryptedEntityKey,
       encryptedFile: encryptedFile,
       _offlineQueued: true,

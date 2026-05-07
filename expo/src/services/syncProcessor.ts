@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import { store } from "@/store";
 import { atomWithCache } from "@/utils/atomWithCache";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { loadQueueFromStorage, removeQueueItem, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
+import { loadQueueFromStorage, removeQueueItem, persistQueue, updateQueueItemStatus, type QueuedMutation } from "./offlineQueue";
 import API from "./api";
 import { useDataLoader } from "./dataLoader";
 
@@ -190,6 +190,10 @@ async function processFileUpload(item: QueuedMutation): Promise<boolean> {
     });
 
     if (response?.ok) {
+      const fileMetadata = response.data;
+      if (fileMetadata?.filename) {
+        substitutePendingFilenameInQueue(`pending-${item.entityId}`, fileMetadata);
+      }
       removeQueueItem(item.id);
       return true;
     }
@@ -200,6 +204,38 @@ async function processFileUpload(item: QueuedMutation): Promise<boolean> {
     updateQueueItemStatus(item.id, { status: "failed", error: error?.message || "File upload error" });
     return false;
   }
+}
+
+// When a queued file_upload completes, the server assigns a final filename. Any
+// queued PUT/POST that already references the placeholder (e.g. a person update
+// containing the new document) must be rewritten before it's sent, otherwise
+// the synced entity points to a file that doesn't exist on the server.
+function substitutePendingFilenameInQueue(placeholder: string, fileMetadata: Record<string, any>) {
+  const realFilename: string = fileMetadata.filename;
+  const queue = loadQueueFromStorage();
+  let changed = false;
+
+  for (const item of queue) {
+    const documents = item.decryptedBody?.decrypted?.documents;
+    if (!Array.isArray(documents)) continue;
+    for (const doc of documents) {
+      if (!doc) continue;
+      if (doc._id === placeholder) {
+        doc._id = realFilename;
+        changed = true;
+      }
+      if (doc.file?.filename === placeholder) {
+        doc.file = { ...doc.file, ...fileMetadata };
+        changed = true;
+      }
+      if (typeof doc.downloadPath === "string" && doc.downloadPath.endsWith(`/${placeholder}`)) {
+        doc.downloadPath = doc.downloadPath.slice(0, -placeholder.length) + realFilename;
+        changed = true;
+      }
+    }
+  }
+
+  if (changed) persistQueue(queue);
 }
 
 export async function resolveConflict(queueItemId: string, resolvedBody: Record<string, any>) {
