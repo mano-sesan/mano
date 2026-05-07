@@ -7,6 +7,7 @@ import { encryptObs } from "../atoms/territoryObservations";
 import { OrganisationInstance } from "../types/organisation";
 import API from "../services/api";
 import { decryptItem, encryptItem } from "../services/encryption";
+import { capture } from "../services/sentry";
 
 const LOADING_TEXT = "Mise à jour des données de votre organisation…";
 
@@ -22,9 +23,10 @@ export default function useDataMigrator() {
     // One "if" for each migration.
     // `migrationLastUpdateAt` should be set after each migration and send in every PUT/POST/PATCH request to server.
     migrateData: async (organisation: OrganisationInstance) => {
-      const organisationId = organisation?._id;
-      let migrationLastUpdateAt = organisation.migrationLastUpdateAt;
-      /*
+      try {
+        const organisationId = organisation?._id;
+        let migrationLastUpdateAt = organisation.migrationLastUpdateAt;
+        /*
       // Example of migration:
       if (!organisation.migrations?.includes("fix-custom-field-divergence-after-import")) {
       setLoadingText(LOADING_TEXT);
@@ -55,62 +57,66 @@ export default function useDataMigrator() {
       }
       // End of example of migration.
       */
-      if (!organisation.migrations?.includes("fix-custom-field-divergence-after-import")) {
-        // migrations faites pour les organisations affectées par le bug
-        // on garde encore ici si y'en a d'autres qui arriveraient
-      }
-      if (!organisation.migrations?.includes("set-followed-since-from-created-at-2")) {
-        setLoadingText(LOADING_TEXT);
-        const personsRes = await API.get({
-          path: "/person",
-          query: { organisation: organisationId, after: "0", withDeleted: true },
-        });
-        if (!personsRes.ok) {
-          return false;
+        if (!organisation.migrations?.includes("fix-custom-field-divergence-after-import")) {
+          // migrations faites pour les organisations affectées par le bug
+          // on garde encore ici si y'en a d'autres qui arriveraient
         }
-        const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "person" })))).filter((e) => e);
+        if (!organisation.migrations?.includes("set-followed-since-from-created-at-2")) {
+          setLoadingText(LOADING_TEXT);
+          const personsRes = await API.get({
+            path: "/person",
+            query: { organisation: organisationId, after: "0", withDeleted: true },
+          });
+          if (!personsRes.ok) {
+            return false;
+          }
+          const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { type: "person" })))).filter((e) => e);
 
-        const personsToUpdate: typeof decryptedPersons = [];
-        for (const person of decryptedPersons) {
-          if (!person.followedSince && person.createdAt) {
-            personsToUpdate.push({
-              ...person,
-              followedSince: person.createdAt,
+          const personsToUpdate: typeof decryptedPersons = [];
+          for (const person of decryptedPersons) {
+            if (!person.followedSince && person.createdAt) {
+              personsToUpdate.push({
+                ...person,
+                followedSince: person.createdAt,
+              });
+            }
+          }
+
+          if (personsToUpdate.length > 0) {
+            const encryptedPersonsToUpdate = await Promise.all(
+              personsToUpdate.map((p) => preparePersonForEncryption(p, { checkRequiredFields: !p.deletedAt })).map(encryptItem)
+            );
+            const response = await API.put({
+              path: `/migration/set-followed-since-from-created-at-2`,
+              body: { encryptedPersons: encryptedPersonsToUpdate },
+              query: { migrationLastUpdateAt },
             });
+            if (response.ok) {
+              setOrganisation(response.organisation);
+              migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
+            } else {
+              return false;
+            }
+          } else {
+            // No persons to update, but still mark the migration as done
+            const response = await API.put({
+              path: `/migration/set-followed-since-from-created-at-2`,
+              body: { encryptedPersons: [] },
+              query: { migrationLastUpdateAt },
+            });
+            if (response.ok) {
+              setOrganisation(response.organisation);
+              migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
+            } else {
+              return false;
+            }
           }
         }
-
-        if (personsToUpdate.length > 0) {
-          const encryptedPersonsToUpdate = await Promise.all(
-            personsToUpdate.map((p) => preparePersonForEncryption(p, { checkRequiredFields: !p.deletedAt })).map(encryptItem)
-          );
-          const response = await API.put({
-            path: `/migration/set-followed-since-from-created-at-2`,
-            body: { encryptedPersons: encryptedPersonsToUpdate },
-            query: { migrationLastUpdateAt },
-          });
-          if (response.ok) {
-            setOrganisation(response.organisation);
-            migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
-          } else {
-            return false;
-          }
-        } else {
-          // No persons to update, but still mark the migration as done
-          const response = await API.put({
-            path: `/migration/set-followed-since-from-created-at-2`,
-            body: { encryptedPersons: [] },
-            query: { migrationLastUpdateAt },
-          });
-          if (response.ok) {
-            setOrganisation(response.organisation);
-            migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
-          } else {
-            return false;
-          }
-        }
+        return true;
+      } catch (error) {
+        capture(error, { extra: { context: "DataMigrator.migrateData" } });
+        return false;
       }
-      return true;
     },
   };
 }
