@@ -353,10 +353,14 @@ const MedicalFile = ({
     }
   };
 
-  const onDelete = async (doc: Document | Folder) => {
+  const onDelete = async (item: Document | Folder) => {
     const body = prepareMedicalFileForEncryption(customFieldsMedicalFile)({
       ...medicalFile,
-      documents: medicalFile!.documents.filter((d) => d.type === "document" && d?.file?.filename !== (doc as Document).file.filename),
+      documents: medicalFile!.documents.filter((d) => {
+        if (item.type === "folder") return d._id !== item._id;
+        if (d.type === "document") return d?.file?.filename !== (item as Document).file.filename;
+        return true;
+      }),
     });
     const medicalFileResponse = await API.put({
       path: `/medical-file/${medicalFile!._id}`,

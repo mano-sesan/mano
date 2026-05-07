@@ -56,9 +56,12 @@ const Documents = ({ personDB, navigation, onUpdatePerson, backgroundColor }) =>
               documents: [...personDB.documents.filter((d) => d?.file?.filename !== document.file.filename), document],
             })
           }
-          onDelete={(document) => {
+          onDelete={(item) => {
             onUpdatePerson(true, {
-              documents: personDB.documents.filter((d) => d?.file?.filename !== document.file.filename),
+              documents: personDB.documents.filter((d) => {
+                if (item.type === "folder") return d._id !== item._id;
+                return d?.file?.filename !== item.file.filename;
+              }),
             });
           }}
           documents={documents}
