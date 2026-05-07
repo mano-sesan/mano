@@ -16,6 +16,7 @@ export type UserInstance = {
   role: "normal" | "admin" | "superadmin" | "restricted-access" | "stats-only";
   team?: Array<TeamInstance["_id"]>;
   teams?: Array<TeamInstance>;
+  orgTeams?: Array<TeamInstance>;
   createdAt?: Date;
   decryptAttempts?: number;
   disabledAt?: Date | null;

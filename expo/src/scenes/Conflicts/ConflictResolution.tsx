@@ -23,6 +23,7 @@ import { allowedRelPersonPlaceFieldsInHistory } from "../../atoms/relPersonPlace
 import { allowedGroupFieldsInHistory } from "../../atoms/groups";
 import { dayjsInstance } from "../../services/dateDayjs";
 import { RootStackParamList } from "@/types/navigation";
+import TeamsTags from "@/components/TeamsTags";
 
 const ENTITY_LABELS: Record<string, string> = {
   person: "Personne",
@@ -128,10 +129,7 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
   const getFieldMeta = useFieldMetaResolver();
   const entityLabel = ENTITY_LABELS[conflict.entityType] || conflict.entityType;
   const entityName =
-    conflict.localVersion?.name ||
-    conflict.serverVersion?.name ||
-    conflict.localVersion?.decrypted?.name ||
-    conflict.entityId.slice(0, 8);
+    conflict.localVersion?.name || conflict.serverVersion?.name || conflict.localVersion?.decrypted?.name || conflict.entityId.slice(0, 8);
 
   const visibleFields = useMemo(() => {
     const localKeys = Object.keys(conflict.localVersion?.decrypted || {});
@@ -214,31 +212,33 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
             </TouchableOpacity>
           </View>
 
-          {visibleFields.map((field) => {
-            const meta = getFieldMeta(conflict.entityType, field);
-            const localVal = conflict.localVersion?.decrypted?.[field] ?? conflict.localVersion?.[field];
-            const serverVal = conflict.serverVersion?.[field];
-            const selected = selections[field] || "local";
+          {visibleFields.map((fieldName) => {
+            const meta = getFieldMeta(conflict.entityType, fieldName);
+            const localVal = conflict.localVersion?.decrypted?.[fieldName] ?? conflict.localVersion?.[fieldName];
+            const serverVal = conflict.serverVersion?.[fieldName];
+            const selected = selections[fieldName] || "local";
             return (
-              <View key={field} className="mb-3">
+              <View key={fieldName} className="mb-3">
                 <MyText bold className="text-sm mb-1.5 text-[#0d5b54]">
-                  {meta.label || field}
+                  {meta.label || fieldName}
                 </MyText>
                 <View className="flex-row">
                   <ValueOption
                     label="Ma version"
+                    fieldName={fieldName}
                     value={localVal}
                     type={meta.type}
                     selected={selected === "local"}
-                    onPress={() => setSelections((prev) => ({ ...prev, [field]: "local" }))}
+                    onPress={() => setSelections((prev) => ({ ...prev, [fieldName]: "local" }))}
                   />
                   <View className="w-2" />
                   <ValueOption
                     label="Serveur"
+                    fieldName={fieldName}
                     value={serverVal}
                     type={meta.type}
                     selected={selected === "server"}
-                    onPress={() => setSelections((prev) => ({ ...prev, [field]: "server" }))}
+                    onPress={() => setSelections((prev) => ({ ...prev, [fieldName]: "server" }))}
                   />
                 </View>
               </View>
@@ -256,18 +256,18 @@ function ConflictCard({ conflict, expanded, onToggle, onResolve, onDismiss }: Co
 
 type ValueOptionProps = {
   label: string;
+  fieldName: string;
   value: unknown;
   type?: string;
   selected: boolean;
   onPress: () => void;
 };
 
-function ValueOption({ label, value, type, selected, onPress }: ValueOptionProps) {
+function ValueOption({ label, fieldName, value, type, selected, onPress }: ValueOptionProps) {
+  console.log({ fieldName });
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7} className="flex-1">
-      <View
-        className={["rounded-[6px] p-2 border-2 min-h-[60px]", selected ? "border-main bg-main25" : "border-transparent bg-[#f5f5f5]"].join(" ")}
-      >
+      <View className={["rounded-[6px] p-2 border-2 min-h-[60px]", selected ? "border-main bg-main25" : "border-transparent bg-[#f5f5f5]"].join(" ")}>
         <View className="flex-row items-center justify-between mb-1">
           <MyText bold className="text-[11px] text-[#8C9294] uppercase">
             {label}
@@ -278,7 +278,15 @@ function ValueOption({ label, value, type, selected, onPress }: ValueOptionProps
             </MyText>
           )}
         </View>
-        <MyText className="text-sm">{formatValue(value, type)}</MyText>
+        {fieldName.toLocaleLowerCase().includes("teams") ? (
+          Array.isArray(value) ? (
+            <TeamsTags teams={value as string[]} />
+          ) : (
+            <TeamsTags teams={(value as string).split(", ")} />
+          )
+        ) : (
+          <MyText className="text-sm">{formatValue(value, type)}</MyText>
+        )}
       </View>
     </TouchableOpacity>
   );

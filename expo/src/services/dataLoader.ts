@@ -109,7 +109,7 @@ export function useDataLoader() {
     if (!userResponse.ok) return resetLoaderOnError();
     const latestOrganisation = userResponse.user!.organisation;
     const latestUser = userResponse.user!;
-    const latestTeams = userResponse.user!.teams!;
+    const latestTeams = userResponse.user!.orgTeams!;
     const organisationId = latestOrganisation!._id;
     // Au tout premier login, `organisation` peut encore être `null` dans la closure (l'atom a été setté
     // mais ce render-ci ne l'a pas encore vu). On ne compare donc qu'en refresh.
