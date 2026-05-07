@@ -141,6 +141,24 @@ class ApiService {
           Alert.alert(title, subTitle, actionsWithNavigation, options);
           return res;
         }
+        if (!!res.data && Array.isArray(res.data)) {
+          /* 
+          NOTE: pour coller au plus près du loader du dashboard, on ne déchiffre pas les données ici mais dans `dataLoader.ts`
+          */
+          // const decryptedData = [];
+          // for (const item of res.data) {
+          //   const decryptedItem = await decryptDBItem(item, { debug, path });
+          //   decryptedData.push(decryptedItem);
+          // }
+          // res.decryptedData = decryptedData;
+          return res;
+        }
+        /* Note 2 : on garde le déchiffrement ici temporairement parce que cette logique est adoptée partout dans l'app */
+        /* FIXME: retirer cette logique pour ne conserver que la gestion des données via le `dataLoader.ts` */
+        if (res.data) {
+          res.decryptedData = await decryptDBItem(res.data, { debug, path });
+          return res;
+        }
         return res;
       } catch (errorFromJson) {
         capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
@@ -162,33 +180,7 @@ class ApiService {
   };
 
   post = (args) => this.execute({ method: "POST", ...args });
-  get = async (args) => {
-    if (args.batch) {
-      let hasMore = true;
-      let page = 0;
-      let limit = args.batch;
-      let data = [];
-      let decryptedData = [];
-      while (hasMore) {
-        let query = { ...args.query, limit, page };
-        const response = await this.execute({ method: "GET", ...args, query });
-        if (!response.ok) {
-          capture("error getting batch", { extra: { response } });
-          return { ok: false, data: [] };
-        }
-        data.push(...response.data);
-        decryptedData.push(...(response.decryptedData || []));
-        hasMore = response.hasMore;
-        page = response.hasMore ? page + 1 : page;
-        // at least 1 for showing progress
-        if (args.setProgress) args.setProgress(response.decryptedData.length || 1);
-        await new Promise((res) => setTimeout(res, 50));
-      }
-      return { ok: true, data, decryptedData };
-    } else {
-      return this.execute({ method: "GET", ...args });
-    }
-  };
+  get = async (args) => this.execute({ method: "GET", ...args });
   put = (args) => this.execute({ method: "PUT", ...args });
   delete = (args) => this.execute({ method: "DELETE", ...args });
 

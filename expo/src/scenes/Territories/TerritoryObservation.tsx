@@ -281,10 +281,7 @@ const TerritoryObservation = ({
       return false;
     }
     await refresh();
-    setObs(castToTerritoryObservation(response.decryptedData));
-    setObsDB(response.decryptedData);
     Alert.alert("Observation mise à jour !");
-    await saveRencontres(response.decryptedData._id);
     setUpdating(false);
     setEditable(false);
     return true;
