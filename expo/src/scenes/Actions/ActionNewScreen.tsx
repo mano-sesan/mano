@@ -12,10 +12,10 @@ import DateAndTimeInput from "../../components/DateAndTimeInput";
 import ActionStatusSelect from "../../components/Selects/ActionStatusSelect";
 import Label from "../../components/Label";
 import Tags, { MyTextForTags } from "../../components/Tags";
-import { MyText } from "../../components/MyText";
 import { DONE, prepareActionForEncryption, TODO } from "../../atoms/actions";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
+import { offlineModeState } from "@/atoms/offlineMode";
 import ActionCategoriesModalSelect from "../../components/ActionCategoriesModalSelect";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
 import { groupsState } from "../../atoms/groups";
@@ -115,6 +115,7 @@ const NewActionForm = ({
   const organisation = useAtomValue(organisationState)!;
   const groups = useAtomValue(groupsState)!;
   const user = useAtomValue(userState)!;
+  const offlineMode = useAtomValue(offlineModeState);
   const navigation = useNavigation();
   const [name, setName] = useState("");
   const [dueAt, setDueAt] = useState<PossibleDate | null>(null);
@@ -190,6 +191,7 @@ const NewActionForm = ({
         const recurrenceResponse = await API.post({
           path: "/recurrence",
           body: recurrenceDataWithDates,
+          entityType: "recurrence",
         });
         if (!recurrenceResponse.ok) {
           setPosting(false);
@@ -198,7 +200,7 @@ const NewActionForm = ({
           }
           return;
         }
-        recurrencesIds.push(recurrenceResponse.data._id);
+        recurrencesIds.push((recurrenceResponse.data as Recurrence)._id!);
       }
     }
 
@@ -241,10 +243,28 @@ const NewActionForm = ({
       }
     });
 
-    const response = await API.post({
-      path: "/action/multiple",
-      body: await Promise.all(actions.map(encryptItem)),
-    });
+    let response: { ok: boolean; decryptedData?: any[]; data?: any; error?: string; code?: string; status?: number };
+
+    if (offlineMode) {
+      // In offline mode, enqueue each action individually (the offline queue can't handle array bodies)
+      const results: Array<ActionInstance> = [];
+      for (const action of actions) {
+        const res = await API.post({ path: "/action", body: action, entityType: "action" });
+        if (!res.ok) {
+          setPosting(false);
+          Alert.alert(res.error!);
+          return;
+        }
+        results.push((res.decryptedData || res.data) as ActionInstance);
+      }
+      response = { ok: true, decryptedData: results };
+    } else {
+      response = (await API.post({
+        path: "/action/multiple",
+        body: await Promise.all(actions.map(encryptItem)),
+        offlineEnabled: false,
+      })) as ApiResponse & { decryptedData: ActionInstance[] };
+    }
 
     refresh();
     setPosting(false);

@@ -67,7 +67,7 @@ const CommentsForReport = ({ navigation, route }: Props) => {
         }
         onItemNamePress={() => (comment.type === "action" ? onActionPress(comment.actionPopulated!) : onPseudoPress(comment.personPopulated!))}
         onDelete={async () => {
-          const response = await API.delete({ path: `/comment/${comment._id}` });
+          const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
           if (!response.ok) {
             if (response.error) {
               Alert.alert(response.error);
@@ -85,6 +85,8 @@ const CommentsForReport = ({ navigation, route }: Props) => {
                 const response = await API.put({
                   path: `/comment/${comment._id}`,
                   body: prepareCommentForEncryption(commentUpdated),
+                  entityType: "comment",
+                  entityId: comment._id,
                 });
                 if (!response.ok) {
                   if (response.error) {

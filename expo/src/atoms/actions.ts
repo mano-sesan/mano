@@ -36,16 +36,19 @@ const encryptedFields: Array<keyof ActionInstance> = [
 ];
 
 export const allowedActionFieldsInHistory = [
-  { name: "categories", label: "Catégorie(s)" },
+  { name: "categories", label: "Catégorie(s)", type: "multi-choice" },
   { name: "person", label: "Personne suivie" },
-  { name: "group", label: "Action familiale" },
-  { name: "name", label: "Nom de l'action" },
-  { name: "description", label: "Description" },
-  { name: "teams", label: "Équipe(s) en charge" },
-  { name: "urgent", label: "Action urgente" },
-  { name: "completedAt", label: "Faite le" },
-  { name: "dueAt", label: "À faire le" },
-  { name: "status", label: "Status" },
+  { name: "group", label: "Action familiale", type: "boolean" },
+  { name: "name", label: "Nom de l'action", type: "text" },
+  { name: "description", label: "Description", type: "textarea" },
+  { name: "teams", label: "Équipe(s) en charge", type: "multi-choice" },
+  { name: "urgent", label: "Action urgente", type: "boolean" },
+  { name: "completedAt", label: "Faite le", type: "date-with-time" },
+  { name: "dueAt", label: "À faire le", type: "date-with-time" },
+  { name: "status", label: "Statut" },
+  { name: "structure", label: "Structure" },
+  { name: "user", label: "Créée par" },
+  { name: "withTime", label: "Avec heure", type: "boolean" },
 ];
 
 export const prepareActionForEncryption = (action: Partial<ActionInstance>) => {

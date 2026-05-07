@@ -28,8 +28,13 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { v4 as uuidv4 } from "uuid";
 import { store } from "@/store";
 import { organisationState } from "@/atoms/auth";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { enqueue, loadQueueFromStorage } from "./offlineQueue";
+import { applyMutationToAtoms } from "./offlineOptimistic";
+import { stripOfflineAddedFlag } from "./offlineFlags";
 import { UserResponseData } from "@/types/user";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
@@ -81,6 +86,9 @@ class ApiService {
     query = {},
     headers = {},
     debug = false,
+    entityType = undefined,
+    entityId = undefined,
+    offlineEnabled = true,
   }: {
     method: RequestInit["method"];
     path?: string;
@@ -88,6 +96,9 @@ class ApiService {
     query?: Query;
     headers?: Record<string, string>;
     debug?: boolean;
+    entityType?: string;
+    entityId?: string;
+    offlineEnabled?: boolean;
   }): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
@@ -103,8 +114,47 @@ class ApiService {
         },
       };
 
+      if (["PUT", "POST", "DELETE"].includes(method)) {
+        const offlineMode = store.get(offlineModeState);
+        // Skip offline queueing for non-entity paths (auth, logs, etc.)
+        if (offlineMode && offlineEnabled !== false) {
+          if (method === "POST") {
+            body = { ...body, _id: uuidv4() };
+            entityId = body._id;
+          }
+          if (!entityType) {
+            Alert.alert(
+              "Impossible d'effectuer cette action hors-ligne",
+              `Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement.\n${path}`
+            );
+            return { ok: false, error: "Entity type not found" };
+          }
+          const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
+          const item = enqueue({
+            method: method as "POST" | "PUT" | "DELETE",
+            path: path,
+            decryptedBody: body,
+            entityType,
+            entityId: entityId!,
+            entityUpdatedAt: updatedAt,
+          });
+          applyMutationToAtoms(item);
+          // Return optimistic response
+          return Promise.resolve({
+            ok: true,
+            data: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
+            decryptedData: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
+            _offlineQueued: true,
+            _queueItemId: item.id,
+          });
+        }
+      }
+
       if (body) {
-        options.body = JSON.stringify(await encryptItem(body));
+        // Strippe les flags client-only (`_offlineAdded`) avant chiffrement →
+        // ils n'arrivent jamais côté serveur, même en mode online.
+        const cleanBody = stripOfflineAddedFlag(body);
+        options.body = JSON.stringify(await encryptItem(cleanBody));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {
@@ -214,6 +264,12 @@ class ApiService {
     encryptedEntityKey: string;
     document: { file: { originalname: string; filename?: string } };
   }) => {
+    // Document still queued for upload — decrypt the cached blob locally
+    const filename = document.file?.filename;
+    if (typeof filename === "string" && filename.startsWith("pending-")) {
+      return this._downloadFromQueue({ filename, encryptedEntityKey, document });
+    }
+
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
@@ -221,31 +277,64 @@ class ApiService {
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
-    // In your download method around line 269-276
+    return this._writeDecryptedToCache(decrypted, document.file.originalname);
+  };
+
+  _downloadFromQueue = async ({
+    filename,
+    encryptedEntityKey,
+    document,
+  }: {
+    filename: string;
+    encryptedEntityKey: string;
+    document: { file: { originalname: string } };
+  }) => {
+    const entityId = filename.slice("pending-".length);
+    const item = loadQueueFromStorage().find((m) => m.entityType === "file_upload" && m.entityId === entityId && !!m.fileUpload);
+    if (!item?.fileUpload?.encryptedFile) {
+      Alert.alert("Document non disponible", "Ce document n'a pas encore été synchronisé.");
+      throw new Error("Pending document not found in queue");
+    }
+    const decrypted = await decryptFile(item.fileUpload.encryptedFile, encryptedEntityKey, getHashedOrgEncryptionKey());
+    return this._writeDecryptedToCache(decrypted, document.file.originalname);
+  };
+
+  _writeDecryptedToCache = (decrypted: string | undefined, originalname: string) => {
     const cacheDir = FileSystem.Paths.cache;
-
-    // Create file instance
-    const file = new FileSystem.File(cacheDir, document.file.originalname);
-
-    // Create the file on disk first (required before writing)
+    const file = new FileSystem.File(cacheDir, originalname);
     file.create({ overwrite: true });
-
     if (decrypted) {
-      // Write the decrypted data as base64 (decode from base64 string to binary)
       file.write(decrypted, { encoding: "base64" });
     }
-
     return { path: file.uri, decrypted };
   };
 
   // Upload a file to a path.
-  // Upload a file to a path.
   upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
-    // Prepare file.
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
-    // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
+    const offlineMode = store.get(offlineModeState);
 
+    if (offlineMode) {
+      return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
+    }
+
+    return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
+  };
+
+  _doUpload = async ({
+    name,
+    type,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    name: string;
+    type: string;
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -257,35 +346,61 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-        // custom content type
-        // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
-        // // part file from storage
-        // { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: ReactNativeBlobUtil.wrap(path_to_a_file) },
-        // // elements without property `filename` will be sent as plain text
-        // { name: 'name', data: 'user' },
-        // {
-        //   name: 'info',
-        //   data: JSON.stringify({
-        //     mail: 'example@example.com',
-        //     tel: '12345678',
-        //   }),
-        // },
-      ]
+      [{ name: "file", filename: name, mime: type, type: type, data: encryptedFile }]
     );
 
     const json = await response.json();
-    // Si erreur (ok: false), on retourne les infos d'erreur du backend
     if (!json.ok) {
       return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
     }
     return { ...json, encryptedEntityKey };
   };
+
+  _queueFileUpload = ({
+    file,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    file: { fileName: string; type: string };
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
+    const entityId = uuidv4();
+    enqueue({
+      method: "POST",
+      path,
+      decryptedBody: null,
+      entityType: "file_upload",
+      entityId,
+      fileUpload: {
+        fileName: file.fileName,
+        fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
+      },
+    });
+
+    // Shape mirrors the backend's upload response. The pending- filename is
+    // rewritten to the real server filename when the queued upload syncs.
+    return {
+      ok: true,
+      data: {
+        filename: `pending-${entityId}`,
+        originalname: file.fileName,
+        mimetype: file.type,
+        size: encryptedFile.length,
+        encoding: "7bit",
+      },
+      encryptedEntityKey: encryptedEntityKey,
+      encryptedFile: encryptedFile,
+      _offlineQueued: true,
+    };
+  };
   token = "";
   onLogIn = () => {};
-  logout = async (_clearAll: boolean) => {};
+  logout = async (_clearAll?: boolean) => {};
   downloadAndInstallUpdate = (_link: string) => {};
   updateLink = "";
   showTokenExpiredError = false;

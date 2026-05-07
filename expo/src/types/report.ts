@@ -16,6 +16,7 @@ export type ReportInstance = {
   description?: string;
   collaborations?: Array<string>;
   updatedBy?: UUIDV4;
+  _pendingSync?: boolean;
 };
 
 export type ReadyToEncryptReportInstance = {

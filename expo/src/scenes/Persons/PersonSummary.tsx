@@ -347,7 +347,7 @@ const PersonSummary = ({
                 canToggleGroupCheck={!!organisation.groupsEnabled && !!groups.find((group) => group.persons.includes(personDB?._id))}
                 canToggleUrgentCheck
                 onDelete={async () => {
-                  const response = await API.delete({ path: `/comment/${comment._id}` });
+                  const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
                   if (!response.ok) {
                     if (response.error) {
                       Alert.alert(response.error);
@@ -364,6 +364,8 @@ const PersonSummary = ({
                         const response = await API.put({
                           path: `/comment/${comment._id}`,
                           body: prepareCommentForEncryption(commentUpdated),
+                          entityType: "comment",
+                          entityId: comment._id,
                         });
                         if (!response.ok) {
                           if (response.error) {
@@ -398,7 +400,7 @@ const PersonSummary = ({
                 ...newComment,
                 person: personDB?._id,
               };
-              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
               if (!response.ok) {
                 if (response.error) {
                   Alert.alert(response.error);

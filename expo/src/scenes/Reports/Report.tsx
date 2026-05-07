@@ -37,6 +37,7 @@ const castToReport = (report?: ReportInstance) =>
   ({
     description: report?.description?.trim() || "",
     collaborations: report?.collaborations || [],
+    updatedAt: report?.updatedAt || "",
   }) as ReportInstance;
 
 type Props = NativeStackScreenProps<RootStackParamList, "COMPTE_RENDU">;
@@ -143,10 +144,13 @@ const Report = ({ navigation, route }: Props) => {
       ? await API.put({
           path: `/report/${reportDB?._id}`,
           body: prepareReportForEncryption({ ...reportDB, ...report, updatedBy: user._id }),
+          entityType: "report",
+          entityId: reportDB?._id,
         })
       : await API.post({
           path: "/report",
           body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
+          entityType: "report",
         });
     if (!response.ok) {
       setUpdating(false);
@@ -157,7 +161,7 @@ const Report = ({ navigation, route }: Props) => {
     }
     if (response.ok) {
       await refresh();
-      setReport(castToReport(response.decryptedData));
+      setReport(castToReport(response.decryptedData as ReportInstance));
       Alert.alert("Compte-rendu mis à jour !");
       setUpdating(false);
       setEditable(false);

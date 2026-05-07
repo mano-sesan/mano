@@ -169,6 +169,7 @@ const TerritoryObservation = ({
         ...toReturn,
         observedAt: territoryObservation.observedAt || (territoryObservation.createdAt! as Date) || new Date(),
         createdAt: territoryObservation.createdAt,
+        updatedAt: territoryObservation.updatedAt,
         user: territoryObservation.user || "",
         entityKey: territoryObservation.entityKey || "",
         documents: territoryObservation.documents || [],
@@ -220,6 +221,7 @@ const TerritoryObservation = ({
         const response = await API.post({
           path: "/rencontre",
           body: prepareRencontreForEncryption({ ...rencontre, person: person._id, observation: obsId }),
+          entityType: "rencontre",
         });
         if (!response.ok) {
           if (response.error) {
@@ -227,7 +229,7 @@ const TerritoryObservation = ({
           }
           continue;
         }
-        newRencontres.push(response.decryptedData);
+        newRencontres.push(response.decryptedData as RencontreInstance);
       }
       await refresh();
       setRencontresForObs((rencontresForObs) => [...rencontresForObs, ...newRencontres]);
@@ -246,6 +248,7 @@ const TerritoryObservation = ({
           organisation: organisation._id,
         })
       ),
+      entityType: "territory-observation",
     });
     if (!response.ok) {
       setUpdating(false);
@@ -256,9 +259,9 @@ const TerritoryObservation = ({
     }
 
     await refresh();
-    setObs(castToTerritoryObservation(response.decryptedData));
-    setObsDB(response.decryptedData);
-    await saveRencontres(response.decryptedData._id);
+    setObs(castToTerritoryObservation(response.decryptedData as TerritoryObservationInstance));
+    setObsDB(response.decryptedData as TerritoryObservationInstance);
+    await saveRencontres((response.decryptedData as TerritoryObservationInstance)._id);
     Alert.alert("Nouvelle observation créée !");
     setUpdating(false);
     setEditable(false);
@@ -278,6 +281,8 @@ const TerritoryObservation = ({
           organisation: organisation._id,
         })
       ),
+      entityType: "territory-observation",
+      entityId: obsDB._id,
     });
     if (!response.ok) {
       setUpdating(false);
@@ -287,10 +292,10 @@ const TerritoryObservation = ({
       return false;
     }
     await refresh();
-    setObs(castToTerritoryObservation(response.decryptedData));
-    setObsDB(response.decryptedData);
+    setObs(castToTerritoryObservation(response.decryptedData as TerritoryObservationInstance));
+    setObsDB(response.decryptedData as TerritoryObservationInstance);
     Alert.alert("Observation mise à jour !");
-    await saveRencontres(response.decryptedData._id);
+    await saveRencontres((response.decryptedData as TerritoryObservationInstance)._id);
     setUpdating(false);
     setEditable(false);
     return true;
@@ -313,7 +318,7 @@ const TerritoryObservation = ({
   const [deleting, setDeleting] = useState(false);
   const onDelete = async () => {
     setDeleting(true);
-    const response = await API.delete({ path: `/territory-observation/${obsDB._id}` });
+    const response = await API.delete({ path: `/territory-observation/${obsDB._id}`, entityType: "territory-observation", entityId: obsDB._id });
     setDeleting(false);
     if (!response.ok) {
       if (response.error) {

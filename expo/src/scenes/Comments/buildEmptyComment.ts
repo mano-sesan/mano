@@ -10,6 +10,8 @@ type BuildEmptyCommentArgs = {
   type?: string;
 };
 
+// _offlineAdded : signal explicite pour mergeComments lors de la synchro post-offline.
+// Le flag est strippé avant l'envoi serveur (côté API et au moment du sync).
 export const buildEmptyComment = ({ team, user, organisation, type }: BuildEmptyCommentArgs): CommentInstance => ({
   _id: uuidv4(),
   comment: "",
@@ -21,4 +23,5 @@ export const buildEmptyComment = ({ team, user, organisation, type }: BuildEmpty
   user,
   organisation,
   type,
+  _offlineAdded: true,
 });

@@ -7,6 +7,7 @@ import Button from "./Button";
 import API from "../services/api";
 import { capture } from "../services/sentry";
 import { userState } from "../atoms/auth";
+import { offlineModeState } from "../atoms/offlineMode";
 import SceneContainer from "./SceneContainer";
 import ScreenTitle from "./ScreenTitle";
 import InputLabelled from "./InputLabelled";
@@ -86,12 +87,48 @@ const renderTree = (node, personId, onDelete, onUpdate, level = 0) => {
           style={[{ paddingLeft: (level - 1) * 10 }]}
         />
       ) : level > 0 ? (
-        <Text key={node._id + "folder"} className="py-2 text-base" style={[{ paddingLeft: (level - 1) * 10 }]}>
-          {node.type === "folder" ? "📂" : "📄"} {node.name}
-        </Text>
+        <Folder key={node._id + "folder"} folder={node} onDelete={onDelete} style={[{ paddingLeft: (level - 1) * 10 }]} />
       ) : null}
       {node.children && node.children.length > 0 && node.children.map((child) => renderTree(child, personId, onDelete, onUpdate, level + 1))}
     </View>
+  );
+};
+
+const Folder = ({ folder, onDelete, style }) => {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const offlineMode = useAtomValue(offlineModeState);
+  const isDeletable = onDelete && folder.movable !== false;
+
+  const onMorePress = () => {
+    const options = ["Supprimer", "Annuler"];
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: 1,
+        destructiveButtonIndex: 0,
+      },
+      async (buttonIndex) => {
+        if (options[buttonIndex] !== "Supprimer") return;
+        if (offlineMode) {
+          Alert.alert("Action indisponible", "Impossible de supprimer un dossier hors-ligne.");
+          return;
+        }
+        Alert.alert("Voulez-vous vraiment supprimer ce dossier ?", undefined, [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Supprimer",
+            style: "destructive",
+            onPress: () => onDelete(folder),
+          },
+        ]);
+      }
+    );
+  };
+
+  return (
+    <TouchableOpacity style={style} onLongPress={isDeletable ? onMorePress : undefined} disabled={!isDeletable}>
+      <Text className="py-2 text-base">📂 {folder.name}</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -257,6 +294,9 @@ const DocumentsManager = ({
       return;
     }
     const { data: file, encryptedEntityKey } = uploadResponse;
+    // _offlineAdded : signal explicite pour mergeDocuments lors de la synchro post-offline.
+    // Le flag est strippé avant l'envoi serveur. En mode online, le doc est uploadé immédiatement
+    // et remplacé par la version canonique du serveur — donc le flag ne fuit pas.
     await onAddDocument({
       _id: file.filename,
       name: newName,
@@ -266,6 +306,8 @@ const DocumentsManager = ({
       parentId: selectedFolder,
       downloadPath: `${basePath}/${file.filename}`,
       file,
+      type: "document",
+      _offlineAdded: true,
     });
     reset();
   };
@@ -373,7 +415,7 @@ const Document = ({ personId, document, onDelete, onUpdate, style }) => {
                   return;
                 }
                 setIsDeleting(true);
-                await API.delete({ path: deletePath });
+                await API.delete({ path: deletePath, offlineEnabled: false });
                 onDelete(document);
               },
             },

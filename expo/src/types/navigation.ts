@@ -61,6 +61,7 @@ export type RootStackParamList = {
   PRIVACY: undefined;
   CGU: undefined;
   CHARTE: undefined;
+  CONFLICT_RESOLUTION: undefined;
 };
 
 export type TabsParamsList = {

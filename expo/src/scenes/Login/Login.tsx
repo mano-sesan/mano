@@ -17,13 +17,16 @@ import InputLabelled from "../../components/InputLabelled";
 import EyeIcon from "../../icons/EyeIcon";
 import Title, { SubTitle } from "../../components/Title";
 import { DEVMODE_ENCRYPTION_KEY, DEVMODE_PASSWORD, VERSION } from "../../config";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { currentTeamState, deletedUsersState, organisationState, teamsState, usersState, userState } from "../../atoms/auth";
 import { clearCache, appCurrentCacheKey } from "../../services/dataManagement";
 import { useIsFocused } from "@react-navigation/native";
 import { LoginStackParamsList } from "@/types/navigation";
 import { useDataLoader } from "@/services/dataLoader";
 import { checkEncryptedVerificationKey, resetOrgEncryptionKey, setOrgEncryptionKey } from "@/services/encryption";
+import { offlineModeState } from "@/atoms/offlineMode";
+import { UserInstance } from "@/types/user";
+import { TeamInstance } from "@/types/team";
 
 type Props = NativeStackScreenProps<LoginStackParamsList, "LOGIN">;
 
@@ -49,7 +52,7 @@ const Login = ({ navigation }: Props) => {
   const setCurrentTeam = useSetAtom(currentTeamState);
   const [storageOrganisationId, setStorageOrganisationId] = useMMKVString("organisationId");
   const { startInitialLoad, cleanupLoader, resetMMKVAndAtoms } = useDataLoader();
-
+  const offlineMode = useAtomValue(offlineModeState);
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -140,8 +143,8 @@ const Login = ({ navigation }: Props) => {
     setLoading(true);
     const userDebugInfos = await API.getUserDebugInfos();
     const response = authViaCookie
-      ? await API.get({ path: "/user/signin-token" })
-      : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos } });
+      ? await API.get({ path: "/user/signin-token", offlineEnabled: false })
+      : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos }, offlineEnabled: false });
     if (!response.ok) {
       if (response.error) {
         Alert.alert(
@@ -204,11 +207,15 @@ const Login = ({ navigation }: Props) => {
             "La clé de chiffrement ne semble pas être correcte",
             "Veuillez réessayer ou demander à un membre de votre organisation de vous aider (les équipes ne mano ne la connaissent pas)"
           );
-          await API.post({ path: "/user/decrypt-attempt-failure" });
+          if (!offlineMode) {
+            await API.post({ path: "/user/decrypt-attempt-failure" });
+          }
           setLoading(false);
           return;
         }
-        await API.post({ path: "/user/decrypt-attempt-success" });
+        if (!offlineMode) {
+          await API.post({ path: "/user/decrypt-attempt-success" });
+        }
       }
       await AsyncStorage.setItem("persistent_email", email);
       const { data: teams } = await API.get({ path: "/team" });

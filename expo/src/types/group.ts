@@ -23,6 +23,7 @@ export interface GroupInstance extends EncryptedGroupFields {
   updatedAt?: Date | string;
   deletedAt?: Date | string;
   entityKey?: string;
+  _pendingSync?: boolean;
 }
 
 export type GroupToBeEncrypted = Omit<GroupInstance, EncryptedGroupKeys> & {

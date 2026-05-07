@@ -32,6 +32,8 @@ export interface Document {
   movable?: boolean;
   // type is always equal to 'document'
   type: "document";
+  // Transitoire : posé à la création offline, retiré par mergeDocuments avant l'envoi au serveur
+  _offlineAdded?: boolean;
 }
 
 export interface Folder {
@@ -44,6 +46,8 @@ export interface Folder {
   movable?: boolean;
   // type is always equal to 'folder'
   type: "folder";
+  // Transitoire : posé à la création offline, retiré par mergeDocuments avant l'envoi au serveur
+  _offlineAdded?: boolean;
 }
 
 export interface DocumentWithLinkedItem extends Document {

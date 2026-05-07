@@ -55,7 +55,11 @@ const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps
   };
 
   const onRelPersonPlaceDelete = async () => {
-    const response = await API.delete({ path: `/relPersonPlace/${relPersonPlace?._id}` });
+    const response = await API.delete({
+      path: `/relPersonPlace/${relPersonPlace?._id}`,
+      entityType: "relPersonPlace",
+      entityId: relPersonPlace?._id,
+    });
     if (response.ok) {
       await refresh();
     }

@@ -54,8 +54,8 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await onCreatePerson();
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      Sentry.setContext("person", { _id: response.data._id });
-      onPersonCreated(response.decryptedData);
+      Sentry.setContext("person", { _id: (response.data as PersonInstance)._id });
+      onPersonCreated(response.decryptedData as PersonInstance);
       setTimeout(() => setPosting(false), 250);
     }
   };
@@ -71,6 +71,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await API.post({
       path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
+      entityType: "person",
     });
     if (response.ok) {
       await refresh();
@@ -84,9 +85,6 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       }
       return { ok: false, error: response.error! };
     }
-    return response;
-  };
-
   const isReadyToSave = useMemo(() => {
     if (!name || !name.length || !name.trim().length) return false;
     return true;

@@ -84,7 +84,7 @@ const Search = ({
         onSearchComplete([]);
       }
       if (response.ok) {
-        onSearchComplete(response.data);
+        onSearchComplete(response.data as any);
       }
     }, 300);
   };
