@@ -243,11 +243,6 @@ const NewActionForm = ({
       path: "/action/multiple",
       body: await Promise.all(actions.map(encryptItem)),
     });
-    const decryptedData = [];
-    for (const item of response.data) {
-      const decryptedItem = await decryptDBItem(item, { path: "/action/multiple" });
-      decryptedData.push(decryptedItem);
-    }
 
     refresh();
     setPosting(false);
@@ -256,6 +251,11 @@ const NewActionForm = ({
       return;
     }
 
+    const decryptedData = [];
+    for (const item of response.data) {
+      const decryptedItem = await decryptDBItem(item, { path: "/action/multiple" });
+      decryptedData.push(decryptedItem);
+    }
     backRequestHandledRef.current = true;
 
     if (!hasRecurrence) {
