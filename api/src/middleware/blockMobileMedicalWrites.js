@@ -15,7 +15,7 @@ module.exports = (req, res, next) => {
   for (let i = 0; i < 3; i++) {
     if (appVer[i] > MINIMUM_MOBILE_APP_VERSION[i]) {
       return next();
-    } else {
+    } else if (appVer[i] < MINIMUM_MOBILE_APP_VERSION[i]) {
       return res.status(400).send({
         ok: false,
         message: "Veuillez mettre à jour votre application!", // because in-app message is triggered only by this message, thank you Arnaud
@@ -26,4 +26,5 @@ module.exports = (req, res, next) => {
       });
     }
   }
+  return next();
 };

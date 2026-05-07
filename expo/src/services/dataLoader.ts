@@ -604,7 +604,7 @@ export function useDataLoader() {
             query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
           });
           if (!res.ok) return resetLoaderOnError();
-          newMedicalFilesRaw.push(...res.data);
+          newMedicalFilesRaw.push(...res.data); // <-- we assume res.data has items with `encrypted` property, but actually not
           const decryptedData = res.decryptedData.filter((e: any) => e);
           setProgress((p) => p + res.data.length);
           newMedicalFiles.push(...decryptedData);
@@ -617,18 +617,18 @@ export function useDataLoader() {
 
       if (isStartingInitialLoad) {
         const encryptedCache = getMMKVCacheItem("medical-file", []);
-        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache;
+        const mergedEncrypted = newMedicalFilesRaw.length ? mergeItems(encryptedCache, newMedicalFilesRaw) : encryptedCache; // <-- we assume newMedicalFilesRaw has items with `encrypted` property, but actually not
         setMMKVCacheItem("medical-file", mergedEncrypted);
         const allDecrypted: any[] = [];
         for (const item of mergedEncrypted) {
-          const d = await decryptDBItem(item);
+          const d = await decryptDBItem(item); // <-- we try to decrypt here but item is mutated and `encrypted` is already deleted
           if (d) allDecrypted.push(d);
         }
         setMedicalFiles(allDecrypted);
       } else if (newMedicalFiles.length) {
         setMedicalFiles((prev) => mergeItems(prev, newMedicalFiles));
         const encryptedCache = getMMKVCacheItem("medical-file", []);
-        setMMKVCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw));
+        setMMKVCacheItem("medical-file", mergeItems(encryptedCache, newMedicalFilesRaw)); // <-- we assume newMedicalFilesRaw has items with `encrypted` property, but actually not
       }
     }
 
