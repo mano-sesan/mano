@@ -62,7 +62,8 @@ export default function useDataMigrator() {
           // on garde encore ici si y'en a d'autres qui arriveraient
         }
         if (!organisation.migrations?.includes("set-followed-since-from-created-at-2")) {
-          setLoadingText(LOADING_TEXT);
+          // We had too many issues on the day we launched it : we postpone it to a later date, when we fill more confident
+          /*     setLoadingText(LOADING_TEXT);
           const personsRes = await API.get({
             path: "/person",
             query: { organisation: organisationId, after: "0", withDeleted: true },
@@ -116,7 +117,7 @@ export default function useDataMigrator() {
             } else {
               return false;
             }
-          }
+          } */
         }
         return true;
       } catch (error) {
