@@ -1,0 +1,15 @@
+.github
+.husky
+.server
+.vscode
+.yarn
+build
+node_modules
+playwright-report
+test-results
+.cache_ggshield
+.env
+*.yarnrc.yml
+*.index.html
+*.public
+*.src/assets/Lato/font-face.css
