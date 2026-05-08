@@ -188,7 +188,7 @@ const Treatment = ({ navigation, route }: TreatmentProps) => {
   const onDelete = async () => {
     setDeleting(true);
     const response = await API.delete({ path: `/treatment/${treatmentDB!._id}` });
-    if (!response.ok) {
+    if (response.error) {
       Alert.alert(response.error);
       return;
     }

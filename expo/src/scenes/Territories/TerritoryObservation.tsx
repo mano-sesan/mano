@@ -245,9 +245,9 @@ const TerritoryObservation = ({
         })
       ),
     });
-    if (response.code || response.error) {
+    if (response.error) {
       setUpdating(false);
-      Alert.alert(response.error || response.code);
+      Alert.alert(response.error);
       return false;
     }
 

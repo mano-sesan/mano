@@ -162,9 +162,9 @@ const NewRencontreForm = ({
         body: prepareRencontreForEncryption(rencontre),
       });
 
-      if (!response.ok) {
+      if (response.error) {
         setPosting(false);
-        Alert.alert(response.error || response.code);
+        Alert.alert(response.error);
         return;
       }
 

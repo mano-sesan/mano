@@ -191,9 +191,9 @@ const NewActionForm = ({
           path: "/recurrence",
           body: recurrenceDataWithDates,
         });
-        if (!recurrenceResponse.ok) {
+        if (recurrenceResponse.error) {
           setPosting(false);
-          Alert.alert(recurrenceResponse.error || recurrenceResponse.code);
+          Alert.alert(recurrenceResponse.error);
           return;
         }
         recurrencesIds.push(recurrenceResponse.data._id);
@@ -246,8 +246,8 @@ const NewActionForm = ({
 
     refresh();
     setPosting(false);
-    if (!response.ok) {
-      if (response.status !== 401) Alert.alert(response.error || response.code);
+    if (response.error) {
+      Alert.alert(response.error);
       return;
     }
 
