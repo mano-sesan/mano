@@ -193,7 +193,9 @@ const NewActionForm = ({
         });
         if (!recurrenceResponse.ok) {
           setPosting(false);
-          Alert.alert(recurrenceResponse.error || recurrenceResponse.code);
+          if (recurrenceResponse.error) {
+            Alert.alert(recurrenceResponse.error);
+          }
           return;
         }
         recurrencesIds.push(recurrenceResponse.data._id);
@@ -247,7 +249,9 @@ const NewActionForm = ({
     refresh();
     setPosting(false);
     if (!response.ok) {
-      if (response.status !== 401) Alert.alert(response.error || response.code);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
 

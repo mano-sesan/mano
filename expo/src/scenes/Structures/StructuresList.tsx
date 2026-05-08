@@ -27,7 +27,12 @@ const Structures = ({ navigation }: Props) => {
     const response = await API.get({ path: "/structure" });
     setRefreshing(false);
     setLoading(false);
-    if (response.error) Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
+    }
     if (response.ok) setStructures(response.data);
   };
 

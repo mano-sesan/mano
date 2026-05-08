@@ -51,10 +51,12 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
         path: "/relPersonPlace",
         body: prepareRelPersonPlaceForEncryption({ place: place._id, person: person._id, user: user._id }),
       });
-      if (response.error) {
+      if (!response.ok) {
         setPosting(false);
-        Alert.alert(response.error);
-        return;
+        if (response.error) {
+          Alert.alert(response.error);
+        }
+        return false;
       }
       if (response.ok) {
         await refresh();
@@ -68,9 +70,11 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
   const onCreatePlace = useCallback(async () => {
     setPosting(true);
     const response = await API.post({ path: "/place", body: preparePlaceForEncryption({ name, user: user._id }) });
-    if (response.error) {
+    if (!response.ok) {
       setPosting(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     if (response.ok) {

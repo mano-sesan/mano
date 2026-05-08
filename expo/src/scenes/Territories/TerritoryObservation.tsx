@@ -221,8 +221,10 @@ const TerritoryObservation = ({
           path: "/rencontre",
           body: prepareRencontreForEncryption({ ...rencontre, person: person._id, observation: obsId }),
         });
-        if (response.error) {
-          Alert.alert(response.error);
+        if (!response.ok) {
+          if (response.error) {
+            Alert.alert(response.error);
+          }
           continue;
         }
         newRencontres.push(response.decryptedData);
@@ -245,9 +247,11 @@ const TerritoryObservation = ({
         })
       ),
     });
-    if (response.code || response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error || response.code);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
 
@@ -275,9 +279,11 @@ const TerritoryObservation = ({
         })
       ),
     });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     await refresh();
@@ -309,7 +315,12 @@ const TerritoryObservation = ({
     setDeleting(true);
     const response = await API.delete({ path: `/territory-observation/${obsDB._id}` });
     setDeleting(false);
-    if (response.error) return Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
+    }
     if (response.ok) {
       await refresh();
       Alert.alert("Observation supprimée !");

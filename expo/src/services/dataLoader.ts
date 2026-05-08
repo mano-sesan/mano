@@ -90,9 +90,9 @@ export function useDataLoader() {
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const userResponse = await API.get({ path: "/user/me" });
     if (!userResponse.ok) return resetLoaderOnError();
-    const latestOrganisation = userResponse.user.organisation;
-    const latestUser = userResponse.user;
-    const latestTeams = userResponse.user.orgTeams;
+    const latestUser = userResponse.user!;
+    const latestOrganisation = latestUser.organisation;
+    const latestTeams = latestUser.orgTeams!;
     const organisationId = latestOrganisation._id;
     // Au tout premier login, `organisation` peut encore être `null` dans la closure (l'atom a été setté
     // mais ce render-ci ne l'a pas encore vu). On ne compare donc qu'en refresh.
@@ -104,7 +104,7 @@ export function useDataLoader() {
       return false;
     }
     if (latestOrganisation.disabledAt) {
-      API.logout();
+      API.logout(true);
       return false;
     }
     if (JSON.stringify(latestOrganisation) !== JSON.stringify(organisation)) {

@@ -59,24 +59,26 @@ const Login = ({ navigation }: Props) => {
       const response = await API.get({ path: "/version" });
       if (!response.ok) {
         SplashScreen.hide();
-        const [title, subTitle, actions = [], options = {}] = response.inAppMessage;
-        if (!actions || !actions.length) return Alert.alert(title, subTitle);
-        const actionsWithNavigation = actions
-          .map((action: { text: string; link: string; onPress: () => void }) => {
-            if (action.text === "Installer") {
-              API.updateLink = action.link as unknown as string;
-              action.onPress = () => {
-                API.downloadAndInstallUpdate(action.link);
-              };
-            } else if (action.link) {
-              action.onPress = () => {
-                Linking.openURL(action.link);
-              };
-            }
-            return action;
-          })
-          .filter(Boolean);
-        Alert.alert(title, subTitle, actionsWithNavigation, options);
+        if (response.inAppMessage) {
+          const [title, subTitle, actions = [], options = {}] = response.inAppMessage;
+          if (!actions || !actions.length) return Alert.alert(title, subTitle);
+          const actionsWithNavigation = actions
+            .map((action: { text: string; link: string; onPress: () => void }) => {
+              if (action.text === "Installer") {
+                API.updateLink = action.link as unknown as string;
+                action.onPress = () => {
+                  API.downloadAndInstallUpdate(action.link);
+                };
+              } else if (action.link) {
+                action.onPress = () => {
+                  Linking.openURL(action.link);
+                };
+              }
+              return action;
+            })
+            .filter(Boolean);
+          Alert.alert(title, subTitle, actionsWithNavigation, options);
+        }
         return;
       }
       // check token
@@ -140,21 +142,34 @@ const Login = ({ navigation }: Props) => {
     const response = authViaCookie
       ? await API.get({ path: "/user/signin-token" })
       : await API.post({ path: "/user/signin", body: { password, email, ...userDebugInfos } });
-    if (response.error) {
-      Alert.alert(response.error, undefined, [{ text: "OK", onPress: () => passwordRef.current?.focus() }], {
-        cancelable: true,
-        onDismiss: () => passwordRef.current?.focus(),
-      });
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(
+          response.error,
+          undefined,
+          [
+            {
+              text: "OK",
+              onPress: () => passwordRef.current?.focus(),
+            },
+          ],
+          {
+            cancelable: true,
+            onDismiss: () => passwordRef.current?.focus(),
+          }
+        );
+      }
       setLoading(false);
       setPassword("");
       return;
     }
-    if (response?.user?.role === "superadmin") {
+    const responseUser = response.user!;
+    if (responseUser.role === "superadmin") {
       Alert.alert("Vous n'avez pas d'organisation dans Mano");
       setLoading(false);
       return;
     }
-    if (["stats-only"].includes(response?.user?.role)) {
+    if (["stats-only"].includes(responseUser.role)) {
       Alert.alert("Vous n'avez pas accès à l'application mobile Mano");
       setLoading(false);
       return;
@@ -162,27 +177,27 @@ const Login = ({ navigation }: Props) => {
     if (response.ok) {
       Keyboard.dismiss();
 
-      if (response.user.organisation.disabledAt) {
+      if (responseUser.organisation.disabledAt) {
         setLoading(false);
         navigation.navigate("ORGANISATION_DESACTIVEE");
         return;
       }
 
-      API.token = response.token;
+      API.token = response.token!;
       API.onLogIn();
-      await AsyncStorage.setItem("persistent_token", response.token);
+      await AsyncStorage.setItem("persistent_token", response.token!);
       API.showTokenExpiredError = true;
-      setUser(response.user);
+      setUser(responseUser);
 
-      setOrganisation(response.user.organisation);
-      if (!!response.user.organisation?.encryptionEnabled && !showEncryptionKeyInput) {
+      setOrganisation(responseUser.organisation);
+      if (!!responseUser.organisation?.encryptionEnabled && !showEncryptionKeyInput) {
         setLoading(false);
         setShowEncryptionKeyInput(true);
         return;
       }
       if (showEncryptionKeyInput) {
         const hashedOrgEncryptionKey = await setOrgEncryptionKey(encryptionKey.trim());
-        const keyIsValid = await checkEncryptedVerificationKey(response.user.organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
+        const keyIsValid = await checkEncryptedVerificationKey(responseUser.organisation.encryptedVerificationKey, hashedOrgEncryptionKey);
         if (!keyIsValid) {
           resetOrgEncryptionKey();
           Alert.alert(
@@ -199,28 +214,28 @@ const Login = ({ navigation }: Props) => {
       const { data: teams } = await API.get({ path: "/team" });
       const { data: users } = await API.get({ path: "/user", query: { minimal: true } });
       const { data: deletedUsers } = await API.get({ path: "/user/deleted-users" });
-      setUser(response.user);
-      setOrganisation(response.user.organisation);
+      setUser(responseUser);
+      setOrganisation(responseUser.organisation);
       // We need to reset cache if organisation has changed.
-      if (!!storageOrganisationId && response.user.organisation._id !== storageOrganisationId) {
+      if (!!storageOrganisationId && responseUser.organisation._id !== storageOrganisationId) {
         await clearCache("again not same org");
         resetMMKVAndAtoms();
         setLastRefresh(0);
       }
-      setStorageOrganisationId(response.user.organisation._id);
+      setStorageOrganisationId(responseUser.organisation._id);
       setUsers(users);
       setDeletedUsers(deletedUsers);
       setTeams(teams);
       // getting teams before going to team selection
-      if (!__DEV__ && !response.user.lastChangePasswordAt) {
+      if (!__DEV__ && !responseUser.lastChangePasswordAt) {
         navigation.navigate("FORCE_CHANGE_PASSWORD");
       } else {
-        if (!response.user?.cgusAccepted) {
+        if (!responseUser?.cgusAccepted) {
           navigation.navigate("CGUS_ACCEPTANCE");
-        } else if (!response.user?.termsAccepted) {
+        } else if (!responseUser?.termsAccepted) {
           navigation.navigate("CHARTE_ACCEPTANCE");
-        } else if (response.user?.teams?.length === 1) {
-          setCurrentTeam(response.user.teams[0]);
+        } else if (responseUser?.teams?.length === 1) {
+          setCurrentTeam(responseUser.teams[0]);
           startInitialLoad().then(() => cleanupLoader());
           navigation.getParent()?.navigate("TABS_STACK");
         } else {

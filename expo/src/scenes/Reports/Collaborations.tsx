@@ -58,9 +58,11 @@ const Collaborations = ({ route, navigation }: Props) => {
     setPosting(true);
     const newCollaborations = [...new Set([...collaborations, collaboration])];
     const response = await API.put({ path: `/organisation/${organisation._id}/collaborations`, body: { collaborations: newCollaborations } });
-    if (response.error) {
+    if (!response.ok) {
       setPosting(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     if (response.ok) {
@@ -82,7 +84,12 @@ const Collaborations = ({ route, navigation }: Props) => {
           path: "/report",
           body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations, updatedBy: user._id }),
         });
-    if (response.error) return Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
+    }
     if (response.ok) {
       await refresh();
       onBack();

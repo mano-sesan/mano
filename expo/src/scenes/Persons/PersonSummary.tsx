@@ -348,8 +348,10 @@ const PersonSummary = ({
                 canToggleUrgentCheck
                 onDelete={async () => {
                   const response = await API.delete({ path: `/comment/${comment._id}` });
-                  if (response.error) {
-                    Alert.alert(response.error);
+                  if (!response.ok) {
+                    if (response.error) {
+                      Alert.alert(response.error);
+                    }
                     return false;
                   }
                   await refresh();
@@ -363,8 +365,10 @@ const PersonSummary = ({
                           path: `/comment/${comment._id}`,
                           body: prepareCommentForEncryption(commentUpdated),
                         });
-                        if (response.error) {
-                          Alert.alert(response.error);
+                        if (!response.ok) {
+                          if (response.error) {
+                            Alert.alert(response.error);
+                          }
                           return false;
                         }
                         if (response.ok) {
@@ -396,7 +400,9 @@ const PersonSummary = ({
               };
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
-                Alert.alert(response.error || response.code);
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               await refresh();
