@@ -74,7 +74,10 @@ vi.mock("@/config", () => ({
 // returning a function that always calls globalThis.fetch at call time, so the
 // `vi.stubGlobal("fetch", ...)` in each test takes effect.
 vi.mock("fetch-retry", () => ({
-  default: () => (...args: any[]) => (globalThis.fetch as any)(...args),
+  default:
+    () =>
+    (...args: any[]) =>
+      (globalThis.fetch as any)(...args),
 }));
 
 // Pinned by __tests__/encryption.test.ts: decryptDBItem currently mutates the
@@ -125,7 +128,7 @@ describe("API.get — array response (e.g. /consultation)", () => {
         ok: true,
         data: [{ _id: "c1", encrypted: "ENC", encryptedEntityKey: "EEK" }],
         hasMore: false,
-      }),
+      })
     );
 
     const res = await API.get({ path: "/consultation" });
@@ -143,7 +146,7 @@ describe("API.get — array response (e.g. /consultation)", () => {
         ok: true,
         data: [{ _id: "c1", encrypted: "ENC", encryptedEntityKey: "EEK" }],
         hasMore: false,
-      }),
+      })
     );
 
     const res = await API.get({ path: "/consultation" });
@@ -159,7 +162,7 @@ describe("API.get — single-item response (control: behavior unchanged)", () =>
       mockFetch({
         ok: true,
         data: { _id: "single", encrypted: "ENC", encryptedEntityKey: "EEK" },
-      }),
+      })
     );
 
     const res = await API.get({ path: "/some/single-resource" });

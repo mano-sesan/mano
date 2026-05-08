@@ -233,13 +233,41 @@ const ENTITIES: EntityCfg[] = [
   { name: "recurrences", apiPath: "/recurrence", mmkvKey: "recurrence", statsKey: "recurrences", cache: "decrypted", atomRef: recurrencesState },
   { name: "territories", apiPath: "/territory", mmkvKey: "territory", statsKey: "territories", cache: "decrypted", atomRef: territoriesState },
   { name: "places", apiPath: "/place", mmkvKey: "place", statsKey: "places", cache: "decrypted", atomRef: placesState },
-  { name: "relsPersonPlace", apiPath: "/relPersonPlace", mmkvKey: "relPersonPlace", statsKey: "relsPersonPlace", cache: "decrypted", atomRef: relsPersonPlaceState },
-  { name: "territoryObservations", apiPath: "/territory-observation", mmkvKey: "territory-observation", statsKey: "territoryObservations", cache: "decrypted", atomRef: territoryObservationsState },
+  {
+    name: "relsPersonPlace",
+    apiPath: "/relPersonPlace",
+    mmkvKey: "relPersonPlace",
+    statsKey: "relsPersonPlace",
+    cache: "decrypted",
+    atomRef: relsPersonPlaceState,
+  },
+  {
+    name: "territoryObservations",
+    apiPath: "/territory-observation",
+    mmkvKey: "territory-observation",
+    statsKey: "territoryObservations",
+    cache: "decrypted",
+    atomRef: territoryObservationsState,
+  },
   { name: "comments", apiPath: "/comment", mmkvKey: "comment", statsKey: "comments", cache: "decrypted", atomRef: commentsState },
   // Medical: cached encrypted in MMKV; reports report has been generated for full coverage of the bug.
-  { name: "consultations", apiPath: "/consultation", mmkvKey: "consultation", statsKey: "consultations", cache: "encrypted", atomRef: consultationsState },
+  {
+    name: "consultations",
+    apiPath: "/consultation",
+    mmkvKey: "consultation",
+    statsKey: "consultations",
+    cache: "encrypted",
+    atomRef: consultationsState,
+  },
   { name: "treatments", apiPath: "/treatment", mmkvKey: "treatment", statsKey: "treatments", cache: "encrypted", atomRef: treatmentsState },
-  { name: "medicalFiles", apiPath: "/medical-file", mmkvKey: "medical-file", statsKey: "medicalFiles", cache: "encrypted", atomRef: medicalFileState },
+  {
+    name: "medicalFiles",
+    apiPath: "/medical-file",
+    mmkvKey: "medical-file",
+    statsKey: "medicalFiles",
+    cache: "encrypted",
+    atomRef: medicalFileState,
+  },
 ];
 
 // =============================================================================
@@ -261,11 +289,13 @@ function makeFetch(routes: Record<string, RouteHandler>) {
   });
 }
 
-function buildRoutes(opts: {
-  stats?: Partial<Record<string, number>>;
-  overrides?: Record<string, RouteHandler>;
-  userResponse?: any;
-} = {}): Record<string, RouteHandler> {
+function buildRoutes(
+  opts: {
+    stats?: Partial<Record<string, number>>;
+    overrides?: Record<string, RouteHandler>;
+    userResponse?: any;
+  } = {}
+): Record<string, RouteHandler> {
   const stats: Record<string, number> = {};
   for (const e of ENTITIES) stats[e.statsKey] = opts.stats?.[e.statsKey] ?? 1;
 
@@ -423,7 +453,7 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
               ? { ok: true, data: [{ _id: "p-page-0", encrypted: "ENC", encryptedEntityKey: "EEK" }], hasMore: true }
               : { ok: true, data: [{ _id: "p-page-1", encrypted: "ENC", encryptedEntityKey: "EEK" }], hasMore: false },
         },
-      }),
+      })
     );
     vi.stubGlobal("fetch", fetchSpy);
 
@@ -456,8 +486,8 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
               hasMore: false,
             }),
           },
-        }),
-      ),
+        })
+      )
     );
 
     await useDataLoader().startInitialLoad();
@@ -467,10 +497,7 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
   });
 
   it("removes deletedAt items from MMKV cache for medical entities", async () => {
-    __mmkvStore.set(
-      "consultation",
-      JSON.stringify([{ _id: "c1", encrypted: "OLD-ENC", encryptedEntityKey: "OLD-EEK" }]),
-    );
+    __mmkvStore.set("consultation", JSON.stringify([{ _id: "c1", encrypted: "OLD-ENC", encryptedEntityKey: "OLD-EEK" }]));
 
     vi.stubGlobal(
       "fetch",
@@ -484,8 +511,8 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
               hasMore: false,
             }),
           },
-        }),
-      ),
+        })
+      )
     );
 
     await useDataLoader().startInitialLoad();
@@ -502,7 +529,7 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
 
     await useDataLoader().startInitialLoad();
 
-    expect((Alert.alert as any)).toHaveBeenCalled();
+    expect(Alert.alert as any).toHaveBeenCalled();
     expect((Alert.alert as any).mock.calls[0][0]).toBe("Erreur");
 
     // No entity endpoint should have been hit after the auth failure.
@@ -522,8 +549,8 @@ describe("useDataLoader().startInitialLoad — edge cases", () => {
         buildRoutes({
           stats: statsForOnly("persons", 1),
           overrides: { "/person": () => ({ ok: false, error: "server fail" }) },
-        }),
-      ),
+        })
+      )
     );
 
     await useDataLoader().startInitialLoad();
@@ -556,8 +583,8 @@ describe("useDataLoader().refresh — refresh path", () => {
               hasMore: false,
             }),
           },
-        }),
-      ),
+        })
+      )
     );
 
     await useDataLoader().refresh();
@@ -597,8 +624,8 @@ describe("useDataLoader().refresh — refresh path", () => {
               hasMore: false,
             }),
           },
-        }),
-      ),
+        })
+      )
     );
 
     await useDataLoader().refresh();
