@@ -23,4 +23,5 @@ export interface ConsultationInstance {
   createdAt: PossibleDate;
   updatedAt: Date;
   [key: string]: any;
+  _pendingSync?: boolean;
 }

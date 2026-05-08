@@ -8,6 +8,14 @@ export const passagesState = atom<PassageInstance[]>([]);
 
 const encryptedFields = ["person", "team", "user", "date", "comment"];
 
+export const allowedPassageFieldsInHistory = [
+  { name: "person", label: "Personne" },
+  { name: "team", label: "Équipe" },
+  { name: "user", label: "Auteur" },
+  { name: "date", label: "Date", type: "date-with-time" },
+  { name: "comment", label: "Commentaire", type: "textarea" },
+];
+
 export const preparePassageForEncryption = (passage: Partial<PassageInstance>) => {
   try {
     // we don't check the presence of a person because passage can be anonymous

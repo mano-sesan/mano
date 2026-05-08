@@ -15,6 +15,7 @@ export interface PassageInstance {
   persons?: Array<UUIDV4>;
   user: UUIDV4;
   team: UUIDV4;
+  _pendingSync?: boolean;
 }
 
 export interface ReadyToEncryptPassageInstance {

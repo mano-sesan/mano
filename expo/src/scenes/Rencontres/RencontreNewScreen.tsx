@@ -160,6 +160,7 @@ const NewRencontreForm = ({
       const response = await API.post({
         path: "/rencontre",
         body: prepareRencontreForEncryption(rencontre),
+        entityType: "rencontre",
       });
 
       if (!response.ok) {
@@ -170,7 +171,7 @@ const NewRencontreForm = ({
         return;
       }
 
-      newRencontres.push(response.decryptedData);
+      newRencontres.push(response.decryptedData as RencontreInstance);
     }
 
     await refresh();

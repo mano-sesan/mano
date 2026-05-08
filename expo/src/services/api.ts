@@ -1,11 +1,6 @@
 import URI from "urijs";
-import { HOST, SCHEME, VERSION } from "../config";
-import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "./encryption";
-import { capture } from "./sentry";
-import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
 import fetchRetry from "fetch-retry";
-import * as Application from "expo-application";
 import {
   getApiLevel,
   getBrand,
@@ -27,10 +22,28 @@ import {
   getUserAgent,
   isTablet,
 } from "react-native-device-info";
+import ReactNativeBlobUtil from "react-native-blob-util";
+import * as Application from "expo-application";
 import { Alert, Linking, Platform } from "react-native";
+import { HOST, SCHEME, VERSION } from "@/config";
 import { store } from "@/store";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "@/services/encryption";
+import { capture } from "@/services/sentry";
+import { offlineModeState } from "@/atoms/offlineMode";
 import { organisationState } from "@/atoms/auth";
-import { UserResponseData } from "@/types/user";
+import { stripOfflineAddedFlag, interceptMutation, queueFileUpload, findPendingFile } from "@/services/offline/offlineInterceptor";
+import type {
+  ApiArgs,
+  Query,
+  ApiResponse,
+  OfflineApiResponse,
+  PostApiArgs,
+  GetApiArgs,
+  PutApiArgs,
+  DeleteApiArgs,
+  RequestInit,
+  MutateMethod,
+} from "@/types/api";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -81,14 +94,10 @@ class ApiService {
     query = {},
     headers = {},
     debug = false,
-  }: {
-    method: RequestInit["method"];
-    path?: string;
-    body?: any;
-    query?: Query;
-    headers?: Record<string, string>;
-    debug?: boolean;
-  }): Promise<ApiResponse | OfflineApiResponse> => {
+    entityType = undefined,
+    entityId = undefined,
+    offlineEnabled = true,
+  }: ApiArgs): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options: RequestInit = {
@@ -103,8 +112,21 @@ class ApiService {
         },
       };
 
+      if (["PUT", "POST", "DELETE"].includes(method) && offlineEnabled !== false) {
+        method = method as MutateMethod;
+        if (store.get(offlineModeState)) {
+          return interceptMutation({
+            method,
+            path,
+            body,
+            entityType,
+            entityId,
+          });
+        }
+      }
+
       if (body) {
-        options.body = JSON.stringify(await encryptItem(body));
+        options.body = JSON.stringify(await encryptItem(stripOfflineAddedFlag(body)));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {
@@ -115,7 +137,7 @@ class ApiService {
       }
 
       const url = this.getUrl(path, query);
-      console.log({ url });
+      if (process.env.NODE_ENV === "development") console.log({ url });
       const response =
         method === "GET"
           ? await fetchWithFetchRetry(url, {
@@ -162,7 +184,7 @@ class ApiService {
           return res;
         }
         if (!!res.data && Array.isArray(res.data)) {
-          /* 
+          /*
           NOTE: pour coller au plus près du loader du dashboard, on ne déchiffre pas les données ici mais dans `dataLoader.ts`
           */
           // const decryptedData = [];
@@ -214,6 +236,19 @@ class ApiService {
     encryptedEntityKey: string;
     document: { file: { originalname: string; filename?: string } };
   }) => {
+    // Document still queued for upload — decrypt the cached blob locally
+    const filename = document.file?.filename;
+    if (typeof filename === "string" && filename.startsWith("pending-")) {
+      const entityId = filename.slice("pending-".length);
+      const pending = findPendingFile(entityId);
+      if (!pending?.encryptedFile) {
+        Alert.alert("Document non disponible", "Ce document n'a pas encore été synchronisé.");
+        throw new Error("Pending document not found in queue");
+      }
+      const decrypted = await decryptFile(pending.encryptedFile, encryptedEntityKey, getHashedOrgEncryptionKey());
+      return this._writeDecryptedToCache(decrypted, document.file.originalname);
+    }
+
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
@@ -221,31 +256,49 @@ class ApiService {
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
-    // In your download method around line 269-276
+    return this._writeDecryptedToCache(decrypted, document.file.originalname);
+  };
+
+  _writeDecryptedToCache = (decrypted: string | undefined, originalname: string) => {
     const cacheDir = FileSystem.Paths.cache;
-
-    // Create file instance
-    const file = new FileSystem.File(cacheDir, document.file.originalname);
-
-    // Create the file on disk first (required before writing)
+    const file = new FileSystem.File(cacheDir, originalname);
     file.create({ overwrite: true });
-
     if (decrypted) {
-      // Write the decrypted data as base64 (decode from base64 string to binary)
       file.write(decrypted, { encoding: "base64" });
     }
-
     return { path: file.uri, decrypted };
   };
 
   // Upload a file to a path.
-  // Upload a file to a path.
   upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
-    // Prepare file.
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
-    // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
+    if (store.get(offlineModeState)) {
+      return queueFileUpload({
+        fileName: file.fileName,
+        fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
+        path,
+      });
+    }
 
+    return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
+  };
+
+  _doUpload = async ({
+    name,
+    type,
+    path,
+    encryptedEntityKey,
+    encryptedFile,
+  }: {
+    name: string;
+    type: string;
+    path: string;
+    encryptedEntityKey: string;
+    encryptedFile: string;
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.fetch(
       "POST",
@@ -257,32 +310,16 @@ class ApiService {
         platform: this.platform,
         version: VERSION,
       },
-      [
-        // element with property `filename` will be transformed into `file` in form data
-        { name: "file", filename: file.fileName, mime: file.type, type: file.type, data: encryptedFile },
-        // custom content type
-        // { name: 'avatar-png', filename: 'avatar-png.png', type: 'image/png', data: binaryDataInBase64 },
-        // // part file from storage
-        // { name: 'avatar-foo', filename: 'avatar-foo.png', type: 'image/foo', data: ReactNativeBlobUtil.wrap(path_to_a_file) },
-        // // elements without property `filename` will be sent as plain text
-        // { name: 'name', data: 'user' },
-        // {
-        //   name: 'info',
-        //   data: JSON.stringify({
-        //     mail: 'example@example.com',
-        //     tel: '12345678',
-        //   }),
-        // },
-      ]
+      [{ name: "file", filename: name, mime: type, type: type, data: encryptedFile }]
     );
 
     const json = await response.json();
-    // Si erreur (ok: false), on retourne les infos d'erreur du backend
     if (!json.ok) {
       return { ok: false, error: json.error, encryptedEntityKey: null, data: null };
     }
     return { ...json, encryptedEntityKey };
   };
+
   token = "";
   onLogIn = () => {};
   logout = async (_clearAll: boolean) => {};
@@ -295,68 +332,3 @@ class ApiService {
 
 const API = new ApiService();
 export default API;
-
-type RequestInit = {
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  headers: Record<string, string>;
-  body?: string;
-};
-
-type ApiArgs = {
-  method: RequestInit["method"];
-  path: string;
-  body?: Record<string, any>;
-  query?: Query;
-  headers?: RequestInit["headers"];
-  debug?: boolean;
-  entityType?: string;
-  entityId?: string;
-  offlineEnabled?: boolean;
-};
-
-interface PostApiArgs extends Omit<ApiArgs, "method"> {
-  body?: Record<string, any>;
-}
-
-interface GetApiArgs extends Omit<ApiArgs, "method"> {
-  query?: Query;
-}
-
-interface PutApiArgs extends Omit<ApiArgs, "method"> {
-  body: Record<string, any>;
-}
-
-type DeleteApiArgs = Omit<ApiArgs, "method"> & {
-  body?: Record<string, any>;
-};
-
-type Query = Record<string, string | Date | boolean | undefined | number>;
-
-export type ApiResponse = {
-  ok: boolean;
-  user?: UserResponseData;
-  token?: string;
-  data?: any;
-  decryptedData?: any;
-  error?: string;
-  code?: string;
-  hasMore?: boolean;
-  message?: string;
-  inAppMessage?: [
-    string,
-    string,
-    {
-      text: string;
-      link: string;
-      onPress: () => void;
-    }[],
-    {
-      [key: string]: any;
-    },
-  ];
-};
-
-export type OfflineApiResponse = ApiResponse & {
-  _offlineQueued: boolean;
-  _queueItemId: string;
-};

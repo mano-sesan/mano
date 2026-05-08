@@ -17,6 +17,7 @@ import { currentTeamReportsSelector } from "./selectors";
 import { useDataLoader } from "@/services/dataLoader";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { RootStackParamList } from "@/types/navigation";
+import { OrganisationInstance } from "@/types/organisation";
 
 type Props = NativeStackScreenProps<RootStackParamList, "COLLABORATIONS">;
 const Collaborations = ({ route, navigation }: Props) => {
@@ -57,7 +58,12 @@ const Collaborations = ({ route, navigation }: Props) => {
   const onCreateCollaboration = useCallback(async () => {
     setPosting(true);
     const newCollaborations = [...new Set([...collaborations, collaboration])];
-    const response = await API.put({ path: `/organisation/${organisation._id}/collaborations`, body: { collaborations: newCollaborations } });
+    const response = await API.put({
+      path: `/organisation/${organisation._id}/collaborations`,
+      body: { collaborations: newCollaborations },
+      entityType: "organisation",
+      entityId: organisation._id,
+    });
     if (!response.ok) {
       setPosting(false);
       if (response.error) {
@@ -66,7 +72,7 @@ const Collaborations = ({ route, navigation }: Props) => {
       return;
     }
     if (response.ok) {
-      setOrganisation(response.data);
+      setOrganisation(response.data as OrganisationInstance);
       onSubmit(collaboration);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,10 +85,13 @@ const Collaborations = ({ route, navigation }: Props) => {
       ? await API.put({
           path: `/report/${reportDB?._id}`,
           body: prepareReportForEncryption({ ...reportDB, collaborations, updatedBy: user._id }),
+          entityType: "report",
+          entityId: reportDB?._id,
         })
       : await API.post({
           path: "/report",
           body: prepareReportForEncryption({ team: currentTeam._id, date: day, collaborations, updatedBy: user._id }),
+          entityType: "report",
         });
     if (!response.ok) {
       if (response.error) {

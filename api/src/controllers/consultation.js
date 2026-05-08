@@ -22,6 +22,7 @@ router.post(
   catchErrors(async (req, res, next) => {
     try {
       z.object({
+        _id: z.optional(z.string().regex(looseUuidRegex)),
         status: z.enum(STATUS),
         dueAt: z.preprocess((input) => new Date(input), z.date()),
         ...([DONE, CANCEL].includes(req.body.status) ? { completedAt: z.preprocess((input) => new Date(input), z.date()) } : {}),
@@ -35,8 +36,9 @@ router.post(
       return next(error);
     }
 
-    const { status, dueAt, completedAt, encrypted, encryptedEntityKey, onlyVisibleBy } = req.body;
+    const { _id, status, dueAt, completedAt, encrypted, encryptedEntityKey, onlyVisibleBy } = req.body;
     const consultation = {
+      _id: _id || undefined,
       organisation: req.user.organisation,
       status,
       dueAt,

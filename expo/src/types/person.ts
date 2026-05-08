@@ -74,6 +74,7 @@ export interface PersonInstance extends PersonInstanceBase {
   updatedAt: Date;
   deletedAt?: Date;
   history?: Array<PersonHistoryEntry>;
+  _pendingSync?: boolean;
   [key: CustomField["name"]]: any;
 }
 

@@ -3,7 +3,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { Alert, AppState, NativeEventSubscription } from "react-native";
-import { NavigationContainer, useNavigationContainerRef, DefaultTheme } from "@react-navigation/native";
+import { NavigationContainer, useNavigationContainerRef, DefaultTheme, useIsFocused } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useMMKVNumber } from "react-native-mmkv";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -38,9 +38,13 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
+import { initQueue, clearQueue } from "./services/offline/offlineQueue";
+import { useProcessQueue } from "./services/offline/syncProcessor";
+import { hydrateAtomsFromMMKV, rehydrateOptimisticUpdates } from "./services/offline/offlineOptimistic";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
+import OfflineBanner from "./components/OfflineBanner";
 import BellWithNotifications from "./scenes/Notifications/BellWithNotifications";
 import DotsIcon from "./icons/DotsIcon";
 import Notifications from "./scenes/Notifications/Notifications";
@@ -68,14 +72,19 @@ import OrganisationDesactivee from "./scenes/Login/OrganisationDesactivee";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "./types/navigation";
 import ActionNewScreen from "./scenes/Actions/ActionNewScreen";
 import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
+import ConflictResolution from "./scenes/Conflicts/ConflictResolution";
 import { store } from "./store";
 import { resetOrgEncryptionKey } from "./services/encryption";
+import { useNetworkListener } from "./services/offline/network";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {
   const user = useAtomValue(userState);
   const organisation = useAtomValue(organisationState);
   const { isLoading, isFullScreen } = useDataLoader();
+
+  const isFocused = useIsFocused();
+  useNetworkListener(isFocused);
 
   if (isLoading && isFullScreen) return null;
 
@@ -177,13 +186,21 @@ const App = () => {
   const [_, setLastRefresh] = useMMKVNumber(appCurrentCacheKey);
   const [resetLoginStackKey, setResetLoginStackKey] = useState(0);
   const clearAllRef = useRef(false);
+  const processQueue = useProcessQueue();
 
   useEffect(() => {
+    // Initialize offline infrastructure
+    initQueue();
+    hydrateAtomsFromMMKV();
+    rehydrateOptimisticUpdates();
+
     logEvents.initLogEvents().then(() => {
       logEvents.logAppVisit();
       appStateListener.current = AppState.addEventListener("change", (nextAppState) => {
         if (appState.current.match(/inactive|background/) && nextAppState === "active") {
           if (API.token) API.get({ path: "/check-auth" }); // will force logout if session is expired
+          // Also try to process offline queue on app foreground
+          if (API.token) processQueue().catch(() => {});
           logEvents.logAppVisit();
         } else {
           logEvents.logAppClose();
@@ -194,8 +211,8 @@ const App = () => {
 
     API.onLogIn = () => setIsLoggedIn(true);
 
-    API.logout = async (clearAll: boolean) => {
-      clearAllRef.current = clearAll;
+    API.logout = async (clearAll?: boolean) => {
+      clearAllRef.current = clearAll ?? false;
       setIsLoggedIn(false);
     };
 
@@ -210,6 +227,7 @@ const App = () => {
     AsyncStorage.removeItem("persistent_token");
     resetOrgEncryptionKey();
     if (clearAllRef.current) {
+      clearQueue();
       await clearCache();
       resetMMKVAndAtoms();
       setLastRefresh(0);
@@ -258,6 +276,7 @@ const App = () => {
           ],
         }}
       >
+        <OfflineBanner />
         <AppStack.Navigator initialRouteName="LOGIN_STACK" screenOptions={{ gestureEnabled: false, headerShown: false }}>
           <AppStack.Screen name="LOGIN_STACK" component={LoginNavigator} key={resetLoginStackKey} />
           {!!isLoggedIn && (
@@ -312,10 +331,13 @@ const App = () => {
               <AppStack.Screen name="PRIVACY" component={Privacy} />
               <AppStack.Screen name="CGU" component={Cgu} />
               <AppStack.Screen name="CHARTE" component={Charte} />
+              {/* Conflicts */}
+              <AppStack.Screen name="CONFLICT_RESOLUTION" component={ConflictResolution} />
             </>
           )}
         </AppStack.Navigator>
         <ProgressBar isLoading={isLoading} loadingText={loadingText} progress={progress} fullScreen={isFullScreen} total={total} />
+        {isLoggedIn && <OfflineBanner />}
         <APKUpdater />
         <EnvironmentIndicator />
       </NavigationContainer>

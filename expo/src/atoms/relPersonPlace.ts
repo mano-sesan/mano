@@ -8,6 +8,12 @@ export const relsPersonPlaceState = atom<RelPersonPlaceInstance[]>([]);
 
 const encryptedFields = ["place", "person", "user"];
 
+export const allowedRelPersonPlaceFieldsInHistory = [
+  { name: "place", label: "Lieu" },
+  { name: "person", label: "Personne" },
+  { name: "user", label: "Créé par" },
+];
+
 export const prepareRelPersonPlaceForEncryption = (relPersonPlace: Partial<RelPersonPlaceInstance>) => {
   try {
     if (!looseUuidRegex.test(relPersonPlace.person!)) {

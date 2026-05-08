@@ -11,4 +11,6 @@ export type StructureInstance = {
   email?: string;
   description?: string;
   categories?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 };

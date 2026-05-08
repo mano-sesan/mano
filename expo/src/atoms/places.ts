@@ -8,6 +8,11 @@ export const placesState = atom<PlaceInstance[]>([]);
 
 const encryptedFields = ["user", "name"];
 
+export const allowedPlaceFieldsInHistory = [
+  { name: "name", label: "Nom", type: "text" },
+  { name: "user", label: "Créé par" },
+];
+
 export const preparePlaceForEncryption = (place: Partial<PlaceInstance>) => {
   try {
     if (!place.name!) {

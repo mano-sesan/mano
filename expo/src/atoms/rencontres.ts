@@ -8,6 +8,15 @@ export const rencontresState = atom<RencontreInstance[]>([]);
 
 const encryptedFields = ["person", "team", "user", "date", "observation", "comment"];
 
+export const allowedRencontreFieldsInHistory = [
+  { name: "person", label: "Personne" },
+  { name: "team", label: "Équipe" },
+  { name: "user", label: "Auteur" },
+  { name: "date", label: "Date", type: "date-with-time" },
+  { name: "observation", label: "Observation", type: "textarea" },
+  { name: "comment", label: "Commentaire", type: "textarea" },
+];
+
 export const prepareRencontreForEncryption = (rencontre: Partial<RencontreInstance>) => {
   try {
     if (!looseUuidRegex.test(rencontre.person!)) {

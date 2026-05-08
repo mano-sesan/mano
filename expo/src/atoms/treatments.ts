@@ -22,12 +22,13 @@ const encryptedFields: Array<keyof TreatmentInstance> = [
 
 export const allowedTreatmentFieldsInHistory = [
   { name: "person", label: "Personne suivie" },
-  { name: "name", label: "Nom de l'action" },
-  { name: "startDate", label: "Faite le" },
-  { name: "endDate", label: "Faite le" },
-  { name: "dosage", label: "Faite le" },
-  { name: "frequency", label: "Faite le" },
-  { name: "indication", label: "Faite le" },
+  { name: "name", label: "Nom du traitement", type: "text" },
+  { name: "startDate", label: "Date de début", type: "date" },
+  { name: "endDate", label: "Date de fin", type: "date" },
+  { name: "dosage", label: "Dosage", type: "text" },
+  { name: "frequency", label: "Fréquence", type: "text" },
+  { name: "indication", label: "Indication", type: "textarea" },
+  { name: "user", label: "Créé par" },
 ];
 
 export const prepareTreatmentForEncryption = (treatment: Partial<TreatmentInstance>) => {

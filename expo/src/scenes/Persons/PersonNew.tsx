@@ -9,7 +9,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import { personsState, usePreparePersonForEncryption } from "../../atoms/persons";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
 import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
 import { currentTeamState, teamsState, userState } from "../../atoms/auth";
 import { PersonInstance } from "@/types/person";
@@ -54,8 +54,8 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await onCreatePerson();
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered
-      Sentry.setContext("person", { _id: response.data._id });
-      onPersonCreated(response.decryptedData);
+      Sentry.setContext("person", { _id: (response.data as PersonInstance)._id });
+      onPersonCreated(response.decryptedData as PersonInstance);
       setTimeout(() => setPosting(false), 250);
     }
   };
@@ -71,6 +71,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     const response = await API.post({
       path: "/person",
       body: preparePersonForEncryption({ name, followedSince: dayjs().toDate(), assignedTeams, user: user._id }),
+      entityType: "person",
     });
     if (response.ok) {
       await refresh();

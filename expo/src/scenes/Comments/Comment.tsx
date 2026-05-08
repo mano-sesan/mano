@@ -52,6 +52,7 @@ const Comment = ({ navigation, route }: CommentProps) => {
         team: currentTeam?._id,
         urgent,
       }),
+      entityType: "comment",
     });
 
     if (!response.ok) {

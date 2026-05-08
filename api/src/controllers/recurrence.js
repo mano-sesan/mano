@@ -22,6 +22,7 @@ router.post(
     }
 
     Recurrence.create({
+      _id: req.body._id || undefined,
       startDate: req.body.startDate,
       endDate: req.body.endDate,
       timeInterval: req.body.timeUnit === "year" ? 1 : req.body.timeInterval,

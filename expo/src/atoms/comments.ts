@@ -8,6 +8,17 @@ export const commentsState = atom<CommentInstance[]>([]);
 
 const encryptedFields = ["comment", "person", "group", "action", "team", "user", "date", "urgent"];
 
+export const allowedCommentFieldsInHistory = [
+  { name: "comment", label: "Commentaire", type: "textarea" },
+  { name: "person", label: "Personne" },
+  { name: "group", label: "Famille" },
+  { name: "action", label: "Action" },
+  { name: "team", label: "Équipe" },
+  { name: "user", label: "Auteur" },
+  { name: "date", label: "Date", type: "date-with-time" },
+  { name: "urgent", label: "Urgent", type: "boolean" },
+];
+
 export const prepareCommentForEncryption = (comment: Partial<CommentInstance>) => {
   try {
     if (!looseUuidRegex.test(comment.person!) && !looseUuidRegex.test(comment.action!)) {

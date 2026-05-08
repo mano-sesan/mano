@@ -106,6 +106,32 @@ vi.mock("@sentry/react-native", () => ({
   captureMessage: vi.fn(),
 }));
 
+vi.mock("@/store", () => ({
+  store: { get: vi.fn(), set: vi.fn() },
+}));
+
+vi.mock("@/atoms/auth", () => ({
+  organisationState: Symbol("organisationState"),
+}));
+
+vi.mock("@/atoms/offlineMode", () => ({
+  offlineModeState: Symbol("offlineModeState"),
+}));
+
+vi.mock("@/services/offlineQueue", () => ({
+  enqueue: vi.fn(),
+  loadQueueFromStorage: vi.fn(() => []),
+  offlineQueueState: Symbol("offlineQueueState"),
+}));
+
+vi.mock("@/services/offlineOptimistic", () => ({
+  applyMutationToAtoms: vi.fn(),
+}));
+
+vi.mock("@/services/offlineFlags", () => ({
+  stripOfflineAddedFlag: (body: any) => body,
+}));
+
 import API from "@/services/api";
 
 function mockFetch(body: any, status = 200) {

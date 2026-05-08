@@ -22,9 +22,7 @@ import { dayjsInstance } from "@/services/dateDayjs";
 import { TerritoryObservationInstance } from "@/types/territoryObs";
 import { useDataLoader } from "@/services/dataLoader";
 
-const castToTerritory = (
-  territory: Partial<TerritoryInstance> = {}
-): Omit<TerritoryInstance, "_id" | "organisation" | "createdAt" | "updatedAt"> => ({
+const castToTerritory = (territory: Partial<TerritoryInstance> = {}): Omit<TerritoryInstance, "_id" | "organisation"> => ({
   name: territory.name?.trim() || "",
   user: territory.user || "",
   types: territory.types || [],
@@ -32,6 +30,8 @@ const castToTerritory = (
   description: territory.description?.trim() || "",
   entityKey: territory.entityKey || "",
   documents: territory.documents || [],
+  updatedAt: territory.updatedAt || "",
+  createdAt: territory.createdAt || "",
 });
 
 type TerritoryProps = NativeStackScreenProps<RootStackParamList, "TERRITORY">;
@@ -80,6 +80,8 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
     const response = await API.put({
       path: `/territory/${territoryDB._id}`,
       body: prepareTerritoryForEncryption({ ...castToTerritory(territory), user: territory.user || user._id }),
+      entityType: "territory",
+      entityId: territoryDB._id,
     });
     if (!response.ok) {
       setUpdating(false);
@@ -90,7 +92,7 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
     }
     if (response.ok) {
       await refresh();
-      setTerritoryDB(response.decryptedData);
+      setTerritoryDB(response.decryptedData as TerritoryInstance);
       Alert.alert("Territoire mis à jour !");
       setUpdating(false);
       setEditable(false);
@@ -104,6 +106,8 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
       body: {
         observationIds: territoryObservations.filter((o) => o.territory === territoryDB._id).map((o) => o._id),
       },
+      entityType: "territory",
+      entityId: territoryDB._id,
     });
     if (!response.ok) {
       if (response.error) {
@@ -212,7 +216,11 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                       {
                         text: "Archiver",
                         onPress: async () => {
-                          const response = await API.post({ path: `/territory/${territoryDB._id}/archive` });
+                          const response = await API.post({
+                            path: `/territory/${territoryDB._id}/archive`,
+                            entityType: "territory",
+                            entityId: territoryDB._id,
+                          });
                           if (!response.ok) {
                             if (response.error) {
                               Alert.alert(response.error);
@@ -232,7 +240,11 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
               <Button
                 caption="Désarchiver"
                 onPress={async () => {
-                  const response = await API.post({ path: `/territory/${territoryDB._id}/unarchive` });
+                  const response = await API.post({
+                    path: `/territory/${territoryDB._id}/unarchive`,
+                    entityType: "territory",
+                    entityId: territoryDB._id,
+                  });
                   if (!response.ok) {
                     if (response.error) {
                       Alert.alert(response.error);

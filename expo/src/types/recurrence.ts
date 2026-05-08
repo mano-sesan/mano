@@ -3,6 +3,7 @@ type RecurrenceTypeForMonthAndYear = "absolute" | "relative" | "relativeLast";
 export const days = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
 export type Recurrence = {
+  _id?: string;
   startDate: Date;
   endDate: Date;
   timeInterval: number;

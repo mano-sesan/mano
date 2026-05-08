@@ -100,6 +100,7 @@ const ChangePasswordBody = ({ onOK, children }: ChangePasswordBodyProps) => {
     const response = await API.post({
       path: "/user/reset_password",
       body: { newPassword: newPassword.trim(), verifyPassword: verifyPassword.trim(), password: password.trim() },
+      offlineEnabled: false,
     });
     if (!response.ok) {
       setLoading(false);

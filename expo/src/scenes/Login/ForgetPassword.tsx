@@ -28,7 +28,7 @@ const ForgetPassword = ({ navigation }: ForgetPasswordProps) => {
       return;
     }
     setLoading(true);
-    const response = await API.post({ path: "/user/forgot_password", body: { email } });
+    const response = await API.post({ path: "/user/forgot_password", body: { email }, offlineEnabled: false });
     if (!response.ok) {
       setLoading(false);
       if (response.error) {

@@ -112,6 +112,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         wanderingAt: person.wanderingAt,
         followedSince: person.followedSince,
         createdAt: person.createdAt,
+        updatedAt: person.updatedAt,
         gender: person.gender,
         phone: person.phone?.trim(),
         email: person.email?.trim(),
@@ -199,6 +200,8 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     const response = await API.put({
       path: `/person/${personDB._id}`,
       body: preparePersonForEncryption(personToUpdate),
+      entityType: "person",
+      entityId: personDB._id,
     });
     if (!response.ok) {
       setUpdating(false);
@@ -209,7 +212,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     }
     const newPerson = response.decryptedData;
     await refresh();
-    setPerson(castToPerson(newPerson));
+    setPerson(castToPerson(newPerson as PersonInstance));
     if (alert) Alert.alert("Personne mise à jour !");
     setUpdating(false);
     setEditable(false);
@@ -324,10 +327,11 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
     body.treatmentIdsToDelete = treatments.filter((c) => c.person === personDB._id).map((c) => c._id);
     body.medicalFileIdsToDelete = medicalFiles.filter((c) => c.person === personDB._id).map((c) => c._id);
 
-    const personRes = await API.delete({ path: `/person/${personDB._id}`, body });
+    const personRes = await API.delete({ path: `/person/${personDB._id}`, body, entityType: "person", entityId: personDB._id });
     if (personRes?.ok) {
       Alert.alert("Personne supprimée !");
-      await refresh();
+      refresh();
+      onBack();
     }
     return true;
   };

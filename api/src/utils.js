@@ -56,6 +56,7 @@ const customFieldSchema = z
 
 const recurrenceSchema = z
   .object({
+    _id: z.optional(z.string().regex(looseUuidRegex)),
     startDate: z.preprocess((input) => (input ? new Date(input) : null), z.date()),
     endDate: z.preprocess((input) => (input ? new Date(input) : null), z.date()),
     timeUnit: z.enum(["day", "week", "month", "year"]),

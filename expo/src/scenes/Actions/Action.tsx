@@ -25,7 +25,7 @@ import { MyText } from "../../components/MyText";
 import { actionsState, DONE, CANCEL, TODO, prepareActionForEncryption, allowedActionFieldsInHistory } from "../../atoms/actions";
 import { useAtomValue } from "jotai";
 import { commentsState, prepareCommentForEncryption } from "../../atoms/comments";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
 import { currentTeamState, organisationState, userState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
 import CheckboxLabelled from "../../components/CheckboxLabelled";
@@ -127,7 +127,7 @@ const ActionScreen = (props: ActionProps) => {
         {(stackProps) => (
           <PersonNew
             onBack={() => stackProps.navigation.goBack()}
-            onPersonCreated={(person) => {
+            onPersonCreated={(person: PersonInstance) => {
               stackProps.navigation.goBack();
               setAction((a) => ({ ...a, person: person._id }));
             }}
@@ -271,6 +271,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       const response = await API.put({
         path: `/action/${oldAction._id}`,
         body: prepareActionForEncryption(action as ActionInstance),
+        entityType: "action",
+        entityId: oldAction._id,
       });
       if (!response?.ok) return response;
       await refresh();
@@ -335,14 +337,17 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable, action.status, isMultipleActions]);
 
+  const isOnePerson = persons ? persons.length === 1 : false;
+  const person = !isOnePerson ? null : persons?.[0];
+
   const onDuplicate = async () => {
     setUpdating(true);
-    const { name, person, dueAt, withTime, description, categories, urgent } = action;
+    const { name, dueAt, withTime, description, categories, urgent } = action;
     const response = await API.post({
       path: "/action",
       body: prepareActionForEncryption({
         name,
-        person,
+        person: action.person,
         teams: [currentTeam._id],
         user: user._id,
         dueAt,
@@ -361,20 +366,20 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     for (let c of comments.filter((c) => c.action === actionDB._id)) {
       const body = {
         comment: c.comment,
-        action: response.decryptedData._id,
+        action: (response.decryptedData as ActionInstance)._id,
         user: c.user || user._id,
         team: c.team || currentTeam._id,
         organisation: c.organisation,
       };
-      await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+      await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" });
     }
-    Sentry.setContext("action", { _id: response.decryptedData._id });
+    Sentry.setContext("action", { _id: (response.decryptedData as ActionInstance)._id });
     backRequestHandledRef.current = true;
     await refresh();
 
     navigation.replace("ACTION_STACK", {
-      action: response.decryptedData,
-      person: response.decryptedData.person,
+      action: response.decryptedData as ActionInstance,
+      person: person!,
       editable: true,
       duplicate: true,
     });
@@ -400,6 +405,8 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       body: {
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
+      entityType: "action",
+      entityId: id,
     });
     if (response.ok) await refresh();
     return response;
@@ -426,8 +433,6 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     }
   };
 
-  const isOnePerson = persons ? persons.length === 1 : false;
-  const person = !isOnePerson ? null : persons?.[0];
   const canToggleGroupCheck = !!organisation.groupsEnabled && !!person && !!groups.find((group) => group.persons.includes(person._id));
 
   const { name, categories, group } = action;
@@ -826,7 +831,7 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                 ...newComment,
                 action: actionDB?._id,
               };
-              const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
+              const response = (await API.post({ path: "/comment", body: prepareCommentForEncryption(body), entityType: "comment" })) as ApiResponse;
               if (!response.ok) {
                 if (response.error) {
                   Alert.alert(response.error);
@@ -847,7 +852,7 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
             comment={comment}
             canToggleUrgentCheck
             onDelete={async () => {
-              const response = await API.delete({ path: `/comment/${comment._id}` });
+              const response = await API.delete({ path: `/comment/${comment._id}`, entityType: "comment", entityId: comment._id });
               if (!response.ok) {
                 if (response.error) {
                   Alert.alert(response.error);
@@ -864,6 +869,8 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                     const response = await API.put({
                       path: `/comment/${comment._id}`,
                       body: prepareCommentForEncryption(commentUpdated),
+                      entityType: "comment",
+                      entityId: comment._id,
                     });
                     if (!response.ok) {
                       if (response.error) {
@@ -908,6 +915,7 @@ const castToAction = (action: Partial<ActionInstance>): ActionInstanceWithoutId 
     teams: action.teams || (action.team ? [action.team!] : []),
     history: action.history || [],
     documents: action.documents || [],
+    createdAt: action.createdAt,
     updatedAt: action.updatedAt,
     deletedAt: action.deletedAt,
     organisation: action.organisation!,
