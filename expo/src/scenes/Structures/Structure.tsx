@@ -99,9 +99,11 @@ const Structure = ({ navigation, route }: Props) => {
       path: `/structure/${structureDB._id}`,
       body: castToStructure(structure),
     });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     if (response.ok) {
@@ -122,11 +124,13 @@ const Structure = ({ navigation, route }: Props) => {
   const onDelete = async () => {
     setUpdating(true);
     const response = await API.delete({ path: `/structure/${structureDB._id}` });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return false;
     }
-    if (!response.ok) return false;
     Alert.alert("Structure supprimée !");
     setStructures((structures) => structures.filter((s) => s._id !== structureDB._id));
     setUpdating(false);

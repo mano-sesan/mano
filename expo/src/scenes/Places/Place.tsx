@@ -56,9 +56,11 @@ const Place = ({ navigation, route }: PlaceProps) => {
         entityKey: placeDB.entityKey,
       }),
     });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     if (response.ok) {
@@ -91,8 +93,10 @@ const Place = ({ navigation, route }: PlaceProps) => {
       },
     });
     setDeleting(false);
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     if (response.ok) {

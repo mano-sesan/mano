@@ -77,8 +77,10 @@ const Search = ({
     if (withOrg) query.organisation = organisation._id;
     searchTimeout.current = setTimeout(async () => {
       const response = await API.get({ path, query });
-      if (response.error) {
-        Alert.alert(response.error);
+      if (!response.ok) {
+        if (response.error) {
+          Alert.alert(response.error);
+        }
         onSearchComplete([]);
       }
       if (response.ok) {

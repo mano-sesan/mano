@@ -101,9 +101,11 @@ const ChangePasswordBody = ({ onOK, children }: ChangePasswordBodyProps) => {
       path: "/user/reset_password",
       body: { newPassword: newPassword.trim(), verifyPassword: verifyPassword.trim(), password: password.trim() },
     });
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
       setLoading(false);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     if (response.ok) {

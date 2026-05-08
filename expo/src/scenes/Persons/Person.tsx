@@ -200,9 +200,11 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       path: `/person/${personDB._id}`,
       body: preparePersonForEncryption(personToUpdate),
     });
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
       setUpdating(false);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     const newPerson = response.decryptedData;

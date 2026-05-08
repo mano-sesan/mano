@@ -246,8 +246,10 @@ const NewActionForm = ({
 
     refresh();
     setPosting(false);
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
 

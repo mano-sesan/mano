@@ -45,10 +45,12 @@ const NewTerritoryForm = ({ navigation, route }: TerritoryNewProps) => {
   const onCreateTerritory = async () => {
     setPosting(true);
     const response = await API.post({ path: "/territory", body: prepareTerritoryForEncryption({ name, user: user?._id }) });
-    if (response.error) {
+    if (!response.ok) {
       setPosting(false);
-      Alert.alert(response.error);
-      return;
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return false;
     }
     if (response.ok) {
       backRequestHandledRef.current = true; // because when we go back from Action to ActionsList, we don't want the Back popup to be triggered

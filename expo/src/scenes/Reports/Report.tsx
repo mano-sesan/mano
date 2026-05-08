@@ -103,7 +103,12 @@ const Report = ({ navigation, route }: Props) => {
   useEffect(() => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${day}` });
-      if (response.error) return Alert.alert(response.error);
+      if (!response.ok) {
+        if (response.error) {
+          Alert.alert(response.error);
+        }
+        return;
+      }
       setServicesCount(response.data?.map((s: ServiceInstance) => s.count).reduce((a: number, b: number) => a + b, 0));
     }
     initServices();
@@ -143,9 +148,11 @@ const Report = ({ navigation, route }: Props) => {
           path: "/report",
           body: prepareReportForEncryption({ ...report, team: currentTeam._id, date: day, updatedBy: user._id }),
         });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     if (response.ok) {

@@ -54,10 +54,12 @@ const Comment = ({ navigation, route }: CommentProps) => {
       }),
     });
 
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
-      return false;
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
     }
     if (response.ok) {
       setUpdating(false);

@@ -46,10 +46,12 @@ const StructureNew = ({ navigation, route }: Props) => {
       path: "/structure",
       body: { name },
     });
-    if (response.error) {
+    if (!response.ok) {
       setPosting(false);
-      Alert.alert(response.error);
-      return;
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return false;
     }
     const newStructure = response.data as StructureInstance;
     if (response.ok) {

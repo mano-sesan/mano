@@ -29,9 +29,11 @@ const ForgetPassword = ({ navigation }: ForgetPasswordProps) => {
     }
     setLoading(true);
     const response = await API.post({ path: "/user/forgot_password", body: { email } });
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
       setLoading(false);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     if (response.ok) {

@@ -292,8 +292,10 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
             teams: Array.isArray(a.teams) && a.teams.length ? a.teams : [a.team],
           })
         );
-        if (response.error) {
-          Alert.alert(response.error);
+        if (!response.ok) {
+          if (response.error) {
+            Alert.alert(response.error);
+          }
           setUpdating(false);
           return;
         }
@@ -393,14 +395,14 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   };
 
   const deleteAction = async (id: string) => {
-    const res = await API.delete({
+    const response = await API.delete({
       path: `/action/${id}`,
       body: {
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
     });
-    if (res.ok) await refresh();
-    return res;
+    if (response.ok) await refresh();
+    return response;
   };
 
   const onDelete = async () => {
@@ -820,8 +822,10 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                 action: actionDB?._id,
               };
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
-              if (response.error) {
-                Alert.alert(response.error);
+              if (!response.ok) {
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               Keyboard.dismiss();
@@ -839,8 +843,10 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
             canToggleUrgentCheck
             onDelete={async () => {
               const response = await API.delete({ path: `/comment/${comment._id}` });
-              if (response.error) {
-                Alert.alert(response.error);
+              if (!response.ok) {
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               await refresh();
@@ -854,8 +860,10 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                       path: `/comment/${comment._id}`,
                       body: prepareCommentForEncryption(commentUpdated),
                     });
-                    if (response.error) {
-                      Alert.alert(response.error);
+                    if (!response.ok) {
+                      if (response.error) {
+                        Alert.alert(response.error);
+                      }
                       return false;
                     }
                     if (response.ok) {

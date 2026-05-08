@@ -14,7 +14,12 @@ const StructureSelect = ({ value, onSelect, editable }) => {
 
   const getStructures = async () => {
     const response = await API.get({ path: "/structure" });
-    if (response.error) return Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
+    }
     const structures = response.data;
     structures.unshift(initStructure);
     setStructures(structures);
