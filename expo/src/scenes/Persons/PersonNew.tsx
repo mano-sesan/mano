@@ -9,7 +9,7 @@ import ScreenTitle from "../../components/ScreenTitle";
 import InputLabelled from "../../components/InputLabelled";
 import Button from "../../components/Button";
 import { personsState, usePreparePersonForEncryption } from "../../atoms/persons";
-import API from "../../services/api";
+import API, { ApiResponse } from "../../services/api";
 import TeamsMultiCheckBoxes from "../../components/MultiCheckBoxes/TeamsMultiCheckBoxes";
 import { currentTeamState, teamsState, userState } from "../../atoms/auth";
 import { PersonInstance } from "@/types/person";
@@ -85,6 +85,9 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       }
       return { ok: false, error: response.error! };
     }
+    return response;
+  };
+
   const isReadyToSave = useMemo(() => {
     if (!name || !name.length || !name.trim().length) return false;
     return true;

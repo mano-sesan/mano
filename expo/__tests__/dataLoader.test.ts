@@ -35,6 +35,7 @@ vi.mock("jotai", () => {
       return ref;
     },
     useAtom: (ref: any) => [__atomStore.get(ref), getOrCreateSetter(ref)],
+    useAtomValue: (ref: any) => __atomStore.get(ref),
     useSetAtom: (ref: any) => getOrCreateSetter(ref),
     createStore: () => ({ get: vi.fn(), set: vi.fn() }),
   };

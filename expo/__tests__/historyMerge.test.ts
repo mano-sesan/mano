@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeHistory } from "@/services/historyMerge";
+import { mergeHistory } from "@/services/offline/historyMerge";
 
 const entry = (date: string, user: string, data: Record<string, any> = {}) => ({ date, user, data });
 

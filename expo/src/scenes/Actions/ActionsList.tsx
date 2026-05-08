@@ -29,6 +29,7 @@ type ActionsListProps =
 
 export default function ActionsList({ navigation, route }: ActionsListProps) {
   const filters = useAtomValue(actionsFiltersState);
+
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
 

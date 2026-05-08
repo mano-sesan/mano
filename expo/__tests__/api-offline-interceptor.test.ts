@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { store } from "@/store";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { offlineQueueState, loadQueueFromStorage } from "@/services/offlineQueue";
+import { offlineQueueState, loadQueueFromStorage } from "@/services/offline/offlineQueue";
 import { personsState } from "@/atoms/persons";
 import API, { type OfflineApiResponse } from "@/services/api";
 

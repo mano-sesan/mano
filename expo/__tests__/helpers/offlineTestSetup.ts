@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 import { store } from "@/store";
-import { offlineQueueState, type QueuedMutation } from "@/services/offlineQueue";
-import { conflictsState, syncProgressState, syncStatusState } from "@/services/syncProcessor";
+import { offlineQueueState, type QueuedMutation } from "@/services/offline/offlineQueue";
+import { conflictsState, syncProgressState, syncStatusState } from "@/services/offline/syncProcessor";
 import { offlineModeState } from "@/atoms/offlineMode";
 
 export const QUEUE_STORAGE_KEY = "mano-offline-queue";

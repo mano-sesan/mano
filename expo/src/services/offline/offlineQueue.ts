@@ -2,12 +2,13 @@ import { atom } from "jotai";
 import { v4 as uuidv4 } from "uuid";
 import { storage } from "@/services/storage";
 import { store } from "@/store";
+import type { MutateMethod } from "@/types/api";
 
 const QUEUE_KEY = "mano-offline-queue";
 
 export interface QueuedMutation {
   id: string;
-  method: "POST" | "PUT" | "DELETE";
+  method: MutateMethod;
   path: string;
   decryptedBody: Record<string, any> | null;
   entityType: string;

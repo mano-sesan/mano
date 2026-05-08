@@ -38,9 +38,9 @@ import Territory from "./scenes/Territories/Territory";
 import TerritoryObservation from "./scenes/Territories/TerritoryObservation";
 import EnvironmentIndicator from "./components/EnvironmentIndicator";
 import API from "./services/api";
-import { initQueue, clearQueue } from "./services/offlineQueue";
-import { useProcessQueue } from "./services/syncProcessor";
-import { hydrateAtomsFromMMKV, rehydrateOptimisticUpdates } from "./services/offlineOptimistic";
+import { initQueue, clearQueue } from "./services/offline/offlineQueue";
+import { useProcessQueue } from "./services/offline/syncProcessor";
+import { hydrateAtomsFromMMKV, rehydrateOptimisticUpdates } from "./services/offline/offlineOptimistic";
 import Charte from "./scenes/Menu/Charte";
 import CharteAcceptance from "./scenes/Login/CharteAcceptance";
 import { useDataLoader, progressState, totalState } from "./services/dataLoader";
@@ -75,7 +75,7 @@ import RencontreNewScreen from "./scenes/Rencontres/RencontreNewScreen";
 import ConflictResolution from "./scenes/Conflicts/ConflictResolution";
 import { store } from "./store";
 import { resetOrgEncryptionKey } from "./services/encryption";
-import { useNetworkListener } from "./services/network";
+import { useNetworkListener } from "./services/offline/network";
 
 const Tab = createBottomTabNavigator<TabsParamsList>();
 const TabNavigator = () => {

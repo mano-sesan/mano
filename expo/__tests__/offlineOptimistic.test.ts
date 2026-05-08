@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { store } from "@/store";
-import { offlineQueueState, type QueuedMutation } from "@/services/offlineQueue";
+import { offlineQueueState, type QueuedMutation } from "@/services/offline/offlineQueue";
 import { personsState } from "@/atoms/persons";
 import { actionsState } from "@/atoms/actions";
 import { consultationsState } from "@/atoms/consultations";
@@ -48,7 +48,7 @@ vi.mock("@sentry/react-native", () => ({
 vi.mock("@/services/sentry", () => ({ capture: vi.fn() }));
 vi.mock("@/services/encryption", () => mockEncryption);
 
-import { applyMutationToAtoms, rehydrateOptimisticUpdates, hydrateAtomsFromMMKV } from "@/services/offlineOptimistic";
+import { applyMutationToAtoms, rehydrateOptimisticUpdates, hydrateAtomsFromMMKV } from "@/services/offline/offlineOptimistic";
 
 function makeItem(overrides: Partial<QueuedMutation> = {}): QueuedMutation {
   return {

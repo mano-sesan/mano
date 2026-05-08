@@ -80,7 +80,7 @@ const PlaceNew = ({ route, navigation }: PlaceNewProps) => {
     }
     if (response.ok) {
       await refresh();
-      onSubmit(response.decryptedData as PlaceInstance);
+      onSubmit(response.decryptedData);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, user._id, onSubmit]);

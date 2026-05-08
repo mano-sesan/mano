@@ -127,7 +127,7 @@ const ActionScreen = (props: ActionProps) => {
         {(stackProps) => (
           <PersonNew
             onBack={() => stackProps.navigation.goBack()}
-            onPersonCreated={(person) => {
+            onPersonCreated={(person: PersonInstance) => {
               stackProps.navigation.goBack();
               setAction((a) => ({ ...a, person: person._id }));
             }}
@@ -221,7 +221,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route?.params?.person]);
 
-  const updateAction = async (action: ActionInstance): Promise<ApiResponse> => {
+  const updateAction = async (action: ActionInstance) => {
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
       setUpdating(false);
@@ -313,9 +313,9 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       })
     );
     setUpdating(false);
-    if (!response?.ok) {
-      if (response?.error) {
-        Alert.alert(response.error!);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
       }
       return;
     }

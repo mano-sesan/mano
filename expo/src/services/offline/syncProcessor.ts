@@ -3,9 +3,9 @@ import { store } from "@/store";
 import { atomWithCache } from "@/utils/atomWithCache";
 import { offlineModeState } from "@/atoms/offlineMode";
 import { loadQueueFromStorage, removeQueueItem, persistQueue, updateQueueItemStatus, type QueuedMutation, clearQueue } from "./offlineQueue";
-import API from "./api";
-import { useDataLoader } from "./dataLoader";
-import { storage } from "./storage";
+import API from "../api";
+import { useDataLoader } from "../dataLoader";
+import { storage } from "../storage";
 import { personsState } from "@/atoms/persons";
 import { consultationsState } from "@/atoms/consultations";
 import { treatmentsState } from "@/atoms/treatments";
@@ -89,7 +89,7 @@ export async function processQueue(refresh: () => Promise<any>): Promise<void> {
         const bIsUpload = b.entityType === "file_upload" ? 0 : 1;
         return aIsUpload - bIsUpload;
       });
-    console.log("queue", queue);
+    // console.log("queue", queue);
     if (queue.length === 0) {
       store.set(syncStatusState, "idle");
       store.set(syncProgressState, { current: 0, total: 0 });

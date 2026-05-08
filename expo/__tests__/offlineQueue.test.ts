@@ -6,7 +6,7 @@ import {
   clearQueue,
   initQueue,
   offlineQueueState,
-} from "@/services/offlineQueue";
+} from "@/services/offline/offlineQueue";
 import { store } from "@/store";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 

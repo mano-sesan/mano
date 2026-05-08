@@ -1,11 +1,6 @@
 import URI from "urijs";
-import { HOST, SCHEME, VERSION } from "../config";
-import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "./encryption";
-import { capture } from "./sentry";
-import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
 import fetchRetry from "fetch-retry";
-import * as Application from "expo-application";
 import {
   getApiLevel,
   getBrand,
@@ -27,15 +22,28 @@ import {
   getUserAgent,
   isTablet,
 } from "react-native-device-info";
+import ReactNativeBlobUtil from "react-native-blob-util";
+import * as Application from "expo-application";
 import { Alert, Linking, Platform } from "react-native";
-import { v4 as uuidv4 } from "uuid";
+import { HOST, SCHEME, VERSION } from "@/config";
 import { store } from "@/store";
-import { organisationState } from "@/atoms/auth";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "@/services/encryption";
+import { capture } from "@/services/sentry";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { enqueue, loadQueueFromStorage } from "./offlineQueue";
-import { applyMutationToAtoms } from "./offlineOptimistic";
-import { stripOfflineAddedFlag } from "./offlineFlags";
-import { UserResponseData } from "@/types/user";
+import { organisationState } from "@/atoms/auth";
+import { stripOfflineAddedFlag, interceptMutation, queueFileUpload, findPendingFile } from "@/services/offline/offlineInterceptor";
+import type {
+  ApiArgs,
+  Query,
+  ApiResponse,
+  OfflineApiResponse,
+  PostApiArgs,
+  GetApiArgs,
+  PutApiArgs,
+  DeleteApiArgs,
+  RequestInit,
+  MutateMethod,
+} from "@/types/api";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
@@ -89,17 +97,7 @@ class ApiService {
     entityType = undefined,
     entityId = undefined,
     offlineEnabled = true,
-  }: {
-    method: RequestInit["method"];
-    path?: string;
-    body?: any;
-    query?: Query;
-    headers?: Record<string, string>;
-    debug?: boolean;
-    entityType?: string;
-    entityId?: string;
-    offlineEnabled?: boolean;
-  }): Promise<ApiResponse | OfflineApiResponse> => {
+  }: ApiArgs): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
       const options: RequestInit = {
@@ -114,47 +112,21 @@ class ApiService {
         },
       };
 
-      if (["PUT", "POST", "DELETE"].includes(method)) {
-        const offlineMode = store.get(offlineModeState);
-        // Skip offline queueing for non-entity paths (auth, logs, etc.)
-        if (offlineMode && offlineEnabled !== false) {
-          if (method === "POST") {
-            body = { ...body, _id: uuidv4() };
-            entityId = body._id;
-          }
-          if (!entityType) {
-            Alert.alert(
-              "Impossible d'effectuer cette action hors-ligne",
-              `Nous en sommes désolé. Veuillez en parler avec votre chargé de déploiement.\n${path}`
-            );
-            return { ok: false, error: "Entity type not found" };
-          }
-          const updatedAt = method === "PUT" ? body?.updatedAt || undefined : undefined;
-          const item = enqueue({
-            method: method as "POST" | "PUT" | "DELETE",
-            path: path,
-            decryptedBody: body,
+      if (["PUT", "POST", "DELETE"].includes(method) && offlineEnabled !== false) {
+        method = method as MutateMethod;
+        if (store.get(offlineModeState)) {
+          return interceptMutation({
+            method,
+            path,
+            body,
             entityType,
-            entityId: entityId!,
-            entityUpdatedAt: updatedAt,
-          });
-          applyMutationToAtoms(item);
-          // Return optimistic response
-          return Promise.resolve({
-            ok: true,
-            data: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
-            decryptedData: { _id: entityId, ...(body?.decrypted ?? {}), updatedAt, _pendingSync: true },
-            _offlineQueued: true,
-            _queueItemId: item.id,
+            entityId,
           });
         }
       }
 
       if (body) {
-        // Strippe les flags client-only (`_offlineAdded`) avant chiffrement →
-        // ils n'arrivent jamais côté serveur, même en mode online.
-        const cleanBody = stripOfflineAddedFlag(body);
-        options.body = JSON.stringify(await encryptItem(cleanBody));
+        options.body = JSON.stringify(await encryptItem(stripOfflineAddedFlag(body)));
       }
 
       if (["PUT", "POST", "DELETE"].includes(method)) {
@@ -165,7 +137,7 @@ class ApiService {
       }
 
       const url = this.getUrl(path, query);
-      console.log({ url });
+      if (process.env.NODE_ENV === "development") console.log({ url });
       const response =
         method === "GET"
           ? await fetchWithFetchRetry(url, {
@@ -212,7 +184,7 @@ class ApiService {
           return res;
         }
         if (!!res.data && Array.isArray(res.data)) {
-          /* 
+          /*
           NOTE: pour coller au plus près du loader du dashboard, on ne déchiffre pas les données ici mais dans `dataLoader.ts`
           */
           // const decryptedData = [];
@@ -267,7 +239,14 @@ class ApiService {
     // Document still queued for upload — decrypt the cached blob locally
     const filename = document.file?.filename;
     if (typeof filename === "string" && filename.startsWith("pending-")) {
-      return this._downloadFromQueue({ filename, encryptedEntityKey, document });
+      const entityId = filename.slice("pending-".length);
+      const pending = findPendingFile(entityId);
+      if (!pending?.encryptedFile) {
+        Alert.alert("Document non disponible", "Ce document n'a pas encore été synchronisé.");
+        throw new Error("Pending document not found in queue");
+      }
+      const decrypted = await decryptFile(pending.encryptedFile, encryptedEntityKey, getHashedOrgEncryptionKey());
+      return this._writeDecryptedToCache(decrypted, document.file.originalname);
     }
 
     const url = this.getUrl(path);
@@ -277,25 +256,6 @@ class ApiService {
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
     const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
-    return this._writeDecryptedToCache(decrypted, document.file.originalname);
-  };
-
-  _downloadFromQueue = async ({
-    filename,
-    encryptedEntityKey,
-    document,
-  }: {
-    filename: string;
-    encryptedEntityKey: string;
-    document: { file: { originalname: string } };
-  }) => {
-    const entityId = filename.slice("pending-".length);
-    const item = loadQueueFromStorage().find((m) => m.entityType === "file_upload" && m.entityId === entityId && !!m.fileUpload);
-    if (!item?.fileUpload?.encryptedFile) {
-      Alert.alert("Document non disponible", "Ce document n'a pas encore été synchronisé.");
-      throw new Error("Pending document not found in queue");
-    }
-    const decrypted = await decryptFile(item.fileUpload.encryptedFile, encryptedEntityKey, getHashedOrgEncryptionKey());
     return this._writeDecryptedToCache(decrypted, document.file.originalname);
   };
 
@@ -313,10 +273,14 @@ class ApiService {
   upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
     const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
-    const offlineMode = store.get(offlineModeState);
-
-    if (offlineMode) {
-      return this._queueFileUpload({ file, path, encryptedEntityKey, encryptedFile });
+    if (store.get(offlineModeState)) {
+      return queueFileUpload({
+        fileName: file.fileName,
+        fileType: file.type,
+        encryptedEntityKey,
+        encryptedFile,
+        path,
+      });
     }
 
     return this._doUpload({ name: file.fileName, type: file.type, path, encryptedEntityKey, encryptedFile });
@@ -356,51 +320,9 @@ class ApiService {
     return { ...json, encryptedEntityKey };
   };
 
-  _queueFileUpload = ({
-    file,
-    path,
-    encryptedEntityKey,
-    encryptedFile,
-  }: {
-    file: { fileName: string; type: string };
-    path: string;
-    encryptedEntityKey: string;
-    encryptedFile: string;
-  }) => {
-    const entityId = uuidv4();
-    enqueue({
-      method: "POST",
-      path,
-      decryptedBody: null,
-      entityType: "file_upload",
-      entityId,
-      fileUpload: {
-        fileName: file.fileName,
-        fileType: file.type,
-        encryptedEntityKey,
-        encryptedFile,
-      },
-    });
-
-    // Shape mirrors the backend's upload response. The pending- filename is
-    // rewritten to the real server filename when the queued upload syncs.
-    return {
-      ok: true,
-      data: {
-        filename: `pending-${entityId}`,
-        originalname: file.fileName,
-        mimetype: file.type,
-        size: encryptedFile.length,
-        encoding: "7bit",
-      },
-      encryptedEntityKey: encryptedEntityKey,
-      encryptedFile: encryptedFile,
-      _offlineQueued: true,
-    };
-  };
   token = "";
   onLogIn = () => {};
-  logout = async (_clearAll?: boolean) => {};
+  logout = async (_clearAll: boolean) => {};
   downloadAndInstallUpdate = (_link: string) => {};
   updateLink = "";
   showTokenExpiredError = false;
@@ -410,68 +332,3 @@ class ApiService {
 
 const API = new ApiService();
 export default API;
-
-type RequestInit = {
-  method: "GET" | "POST" | "PUT" | "DELETE";
-  headers: Record<string, string>;
-  body?: string;
-};
-
-type ApiArgs = {
-  method: RequestInit["method"];
-  path: string;
-  body?: Record<string, any>;
-  query?: Query;
-  headers?: RequestInit["headers"];
-  debug?: boolean;
-  entityType?: string;
-  entityId?: string;
-  offlineEnabled?: boolean;
-};
-
-interface PostApiArgs extends Omit<ApiArgs, "method"> {
-  body?: Record<string, any>;
-}
-
-interface GetApiArgs extends Omit<ApiArgs, "method"> {
-  query?: Query;
-}
-
-interface PutApiArgs extends Omit<ApiArgs, "method"> {
-  body: Record<string, any>;
-}
-
-type DeleteApiArgs = Omit<ApiArgs, "method"> & {
-  body?: Record<string, any>;
-};
-
-type Query = Record<string, string | Date | boolean | undefined | number>;
-
-export type ApiResponse = {
-  ok: boolean;
-  user?: UserResponseData;
-  token?: string;
-  data?: any;
-  decryptedData?: any;
-  error?: string;
-  code?: string;
-  hasMore?: boolean;
-  message?: string;
-  inAppMessage?: [
-    string,
-    string,
-    {
-      text: string;
-      link: string;
-      onPress: () => void;
-    }[],
-    {
-      [key: string]: any;
-    },
-  ];
-};
-
-export type OfflineApiResponse = ApiResponse & {
-  _offlineQueued: boolean;
-  _queueItemId: string;
-};

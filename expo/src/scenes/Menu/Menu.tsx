@@ -10,7 +10,7 @@ import { MANO_DOWNLOAD_URL, MANO_TEST_ORGANISATION_ID } from "../../config";
 import { useAtom, useAtomValue } from "jotai";
 import { currentTeamState, organisationState } from "../../atoms/auth";
 import { capture } from "../../services/sentry";
-import { loadQueueFromStorage } from "../../services/offlineQueue";
+import { loadQueueFromStorage } from "../../services/offline/offlineQueue";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LoginStackParamsList, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -81,7 +81,7 @@ const Menu = ({ navigation }: MenuProps) => {
         <Row withNextButton caption={`Changer d'équipe (actuellement ${currentTeam?.name})`} onPress={() => navigateRootStack("CHANGE_TEAM")} />
         <Row withNextButton caption="Changer le mot de passe" onPress={() => navigateRootStack("CHANGE_PASSWORD")} />
         <Spacer height={30} />
-        <Row withNextButton caption="Télécharger Mano" onPress={() => Linking.openURL(MANO_DOWNLOAD_URL!)} />
+        <Row withNextButton caption="Télécharger Mano" onPress={() => Linking.openURL(MANO_DOWNLOAD_URL)} />
         {API.updateLink && (
           <Row withNextButton caption="Mettre à jour la dernière version" onPress={() => API.downloadAndInstallUpdate(API.updateLink)} />
         )}

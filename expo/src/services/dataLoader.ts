@@ -26,7 +26,7 @@ import API from "./api";
 import { capture } from "./sentry";
 import { decryptDBItem } from "./encryption";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { rehydrateOptimisticUpdates } from "./offlineOptimistic";
+import { rehydrateOptimisticUpdates } from "./offline/offlineOptimistic";
 import mergeItems from "@/utils/mergeItems";
 
 // Update to flush cache.

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeDocuments } from "@/services/documentsMerge";
+import { mergeDocuments } from "@/services/offline/documentsMerge";
 import type { Document, Folder } from "@/types/document";
 
 type DocOrFolder = Document | Folder;

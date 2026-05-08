@@ -8,7 +8,7 @@ import ScrollContainer from "../../components/ScrollContainer";
 import Button from "../../components/Button";
 import { MyText } from "../../components/MyText";
 import colors from "../../utils/colors";
-import { conflictsState, resolveConflict, discardConflict, type Conflict } from "../../services/syncProcessor";
+import { conflictsState, resolveConflict, discardConflict, type Conflict } from "../../services/offline/syncProcessor";
 import { personFieldsIncludingCustomFieldsSelector } from "../../atoms/persons";
 import { consultationsFieldsIncludingCustomFieldsSelector, flattenedCustomFieldsConsultationsSelector } from "../../atoms/consultations";
 import { groupedCustomFieldsObsSelector } from "../../atoms/territoryObservations";

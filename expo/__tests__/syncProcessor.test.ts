@@ -1,7 +1,7 @@
 import { store } from "@/store";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { offlineQueueState, type QueuedMutation } from "../src/services/offlineQueue";
-import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "../src/services/syncProcessor";
+import { offlineQueueState, type QueuedMutation } from "../src/services/offline/offlineQueue";
+import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "../src/services/offline/syncProcessor";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 // vi.hoisted runs before vi.mock hoisting — safe to reference in mock factories

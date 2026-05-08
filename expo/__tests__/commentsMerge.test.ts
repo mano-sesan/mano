@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeComments } from "@/services/commentsMerge";
+import { mergeComments } from "@/services/offline/commentsMerge";
 import type { CommentInstance } from "@/types/comment";
 
 const cmt = (id: string, overrides: Partial<CommentInstance> = {}): CommentInstance => ({

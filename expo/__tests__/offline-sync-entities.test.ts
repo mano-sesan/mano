@@ -1,7 +1,7 @@
 import { store } from "@/store";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { enqueue, offlineQueueState, loadQueueFromStorage, type QueuedMutation } from "@/services/offlineQueue";
-import { processQueue, conflictsState, syncStatusState } from "@/services/syncProcessor";
+import { enqueue, offlineQueueState, loadQueueFromStorage, type QueuedMutation } from "@/services/offline/offlineQueue";
+import { processQueue, conflictsState, syncStatusState } from "@/services/offline/syncProcessor";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { entityFixtures, type EntityFixture } from "./fixtures/entityFixtures";

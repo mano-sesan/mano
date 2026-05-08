@@ -1,26 +1,26 @@
 import type { PrimitiveAtom } from "jotai";
 
 import { store } from "@/store";
-import { storage } from "./storage";
+import { storage } from "../storage";
 import { offlineQueueState, QueuedMutation } from "./offlineQueue";
 import mergeItems from "@/utils/mergeItems";
 
-import { personsState } from "../atoms/persons";
-import { groupsState } from "../atoms/groups";
-import { reportsState } from "../atoms/reports";
-import { passagesState } from "../atoms/passages";
-import { rencontresState } from "../atoms/rencontres";
-import { actionsState } from "../atoms/actions";
-import { recurrencesState } from "../atoms/recurrences";
-import { territoriesState } from "../atoms/territory";
-import { placesState } from "../atoms/places";
-import { relsPersonPlaceState } from "../atoms/relPersonPlace";
-import { territoryObservationsState } from "../atoms/territoryObservations";
-import { commentsState } from "../atoms/comments";
-import { consultationsState, formatConsultation } from "../atoms/consultations";
-import { treatmentsState } from "../atoms/treatments";
-import { medicalFileState } from "../atoms/medicalFiles";
-import { decryptDBItem, getHashedOrgEncryptionKey } from "./encryption";
+import { personsState } from "../../atoms/persons";
+import { groupsState } from "../../atoms/groups";
+import { reportsState } from "../../atoms/reports";
+import { passagesState } from "../../atoms/passages";
+import { rencontresState } from "../../atoms/rencontres";
+import { actionsState } from "../../atoms/actions";
+import { recurrencesState } from "../../atoms/recurrences";
+import { territoriesState } from "../../atoms/territory";
+import { placesState } from "../../atoms/places";
+import { relsPersonPlaceState } from "../../atoms/relPersonPlace";
+import { territoryObservationsState } from "../../atoms/territoryObservations";
+import { commentsState } from "../../atoms/comments";
+import { consultationsState, formatConsultation } from "../../atoms/consultations";
+import { treatmentsState } from "../../atoms/treatments";
+import { medicalFileState } from "../../atoms/medicalFiles";
+import { decryptDBItem, getHashedOrgEncryptionKey } from "../encryption";
 
 type EntityRegistryEntry = {
   atom: PrimitiveAtom<any[]>;

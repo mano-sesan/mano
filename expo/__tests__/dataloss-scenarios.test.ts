@@ -8,9 +8,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { store } from "@/store";
 import { offlineModeState } from "@/atoms/offlineMode";
-import { offlineQueueState, enqueue, loadQueueFromStorage, type QueuedMutation } from "@/services/offlineQueue";
-import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "@/services/syncProcessor";
-import { applyMutationToAtoms, rehydrateOptimisticUpdates, hydrateAtomsFromMMKV } from "@/services/offlineOptimistic";
+import { offlineQueueState, enqueue, loadQueueFromStorage, type QueuedMutation } from "@/services/offline/offlineQueue";
+import { conflictsState, syncStatusState, processQueue, resolveConflict, discardConflict } from "@/services/offline/syncProcessor";
+import { applyMutationToAtoms, rehydrateOptimisticUpdates, hydrateAtomsFromMMKV } from "@/services/offline/offlineOptimistic";
 import { personsState } from "@/atoms/persons";
 
 const { mockStorage, mockApi, mockEncryption, mockRefresh } = vi.hoisted(() => ({

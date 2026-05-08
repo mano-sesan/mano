@@ -48,7 +48,7 @@ vi.mock("@react-native-community/netinfo", () => ({
   __esModule: true,
 }));
 
-import { startNetworkListener } from "@/services/network";
+import { startNetworkListener } from "@/services/offline/network";
 
 // On démarre une seule fois — le module garde son état alertShown.
 // Les tests sont conçus pour fonctionner indépendamment de cet état module-level :
