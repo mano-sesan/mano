@@ -126,7 +126,8 @@ class ApiService {
           : await fetch(url, options);
 
       if (!response.ok && response.status === 401) {
-        if (this.logout) this.logout(false);
+        // FIXME: should be this.logout(false) ? brainstorm required
+        if (this.logout) this.logout(true);
         if (API.showTokenExpiredError) {
           Alert.alert("Votre session a expiré, veuillez vous reconnecter");
           API.showTokenExpiredError = false;
