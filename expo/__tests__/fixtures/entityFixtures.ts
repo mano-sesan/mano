@@ -740,7 +740,7 @@ export const entityFixtures: EntityFixture[] = [
         documents: [],
         comments: [],
         history: [],
-        "structureMedicale": "Hôpital",
+        structureMedicale: "Hôpital",
       },
       entityKey: "ek-medical-file-001",
     },
@@ -751,7 +751,7 @@ export const entityFixtures: EntityFixture[] = [
       createdAt: CREATED_AT,
       updatedAt: UPDATED_AT,
       decrypted: {
-        "structureMedicale": "Hôpital — service spécialisé",
+        structureMedicale: "Hôpital — service spécialisé",
       },
       entityKey: "ek-medical-file-001",
     },

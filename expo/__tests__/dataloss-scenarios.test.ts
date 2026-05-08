@@ -335,10 +335,7 @@ describe("S5. Crash mid-sync : pas de double-execution, pas de perte", () => {
 
     // Premier sync : 2 succès, 3e renvoie un échec dur
     mockApi.get.mockResolvedValueOnce({ ok: true }); // auth
-    mockApi.post
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({ ok: true })
-      .mockResolvedValueOnce({ ok: false, error: "Network down" });
+    mockApi.post.mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: true }).mockResolvedValueOnce({ ok: false, error: "Network down" });
 
     await processQueue(mockRefresh);
 

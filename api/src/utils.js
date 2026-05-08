@@ -78,7 +78,7 @@ const existingRecurrenceSchema = z.intersection(
   recurrenceSchema,
   z.object({
     _id: z.string().regex(looseUuidRegex),
-  }),
+  })
 );
 
 const customFieldGroupSchema = z

@@ -36,7 +36,7 @@ router.post(
         data,
       });
     });
-  }),
+  })
 );
 
 router.put(
@@ -74,7 +74,7 @@ router.put(
       ok: true,
       data: recurrence,
     });
-  }),
+  })
 );
 
 router.get(
@@ -126,7 +126,7 @@ router.get(
       ],
     });
     return res.status(200).send({ ok: true, data, hasMore: data.length === Number(limit), total });
-  }),
+  })
 );
 
 module.exports = router;
