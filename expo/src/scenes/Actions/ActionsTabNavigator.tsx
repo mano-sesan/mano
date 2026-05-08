@@ -12,11 +12,56 @@ import { useAtomValue } from "jotai";
 import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList, TabsParamsList } from "@/types/navigation";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import FloatAddButton from "@/components/FloatAddButton";
+import { organisationState, userState } from "@/atoms/auth";
+import { flattenedServicesSelector } from "@/atoms/reports";
+import { useActionSheet } from "@expo/react-native-action-sheet";
+import { dayjsInstance } from "@/services/dateDayjs";
 
 type ActionsTabNavigatorProps = BottomTabScreenProps<TabsParamsList, "AGENDA">;
 export default function ActionsTabNavigator({ navigation }: ActionsTabNavigatorProps) {
   const actionsFilters = useAtomValue(actionsFiltersState);
   const numberOfFilters = actionsFilters.categories?.length || 0;
+  const { showActionSheetWithOptions } = useActionSheet();
+  const flattenedServices = useAtomValue(flattenedServicesSelector);
+  const organisation = useAtomValue(organisationState)!;
+  const user = useAtomValue(userState)!;
+  const onPressFloatingButton = async () => {
+    const isConsultationButtonEnabled = user.healthcareProfessional;
+    const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
+    const isRencontreButtonEnabled = organisation.rencontresEnabled;
+    if (!isConsultationButtonEnabled && !isServiceButtonEnabled && !isRencontreButtonEnabled) {
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
+      return;
+    }
+
+    const options = ["Ajouter une action"];
+    if (isConsultationButtonEnabled) options.push("Ajouter une consultation");
+    if (isRencontreButtonEnabled) options.push("Ajouter une rencontre");
+    if (isServiceButtonEnabled) options.push("Ajouter un service");
+    options.push("Annuler");
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: options.length - 1,
+      },
+      async (buttonIndex) => {
+        if (options[buttonIndex!] === "Ajouter une action") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
+        }
+        if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK");
+        }
+        if (isRencontreButtonEnabled && options[buttonIndex!] === "Ajouter une rencontre") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("RENCONTRE_NEW_STACK");
+        }
+        if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
+          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
+        }
+      }
+    );
+  };
+
   return (
     <SceneContainer>
       <TopTab.Navigator
@@ -57,6 +102,7 @@ export default function ActionsTabNavigator({ navigation }: ActionsTabNavigatorP
           }}
         />
       </TopTab.Navigator>
+      <FloatAddButton onPress={onPressFloatingButton} />
     </SceneContainer>
   );
 }
