@@ -23,7 +23,6 @@ import PersonName from "./PersonName";
 import TagTeam from "./TagTeam";
 import UserName from "./UserName";
 import { useLocation } from "react-router-dom";
-import { DISABLED_FEATURES } from "../config";
 import DocumentsListSimple from "./document/DocumentsListSimple";
 import type { DocumentWithLinkedItem } from "../types/document";
 
@@ -100,7 +99,10 @@ function ObservationContent({
   const fieldsGroupNames = useMemo(() => visibleGroupedCustomFieldsObs.map((g) => g.name).filter((n) => n), [visibleGroupedCustomFieldsObs]);
   const [isRencontreModalOpen, setIsRencontreModalOpen] = useState(false);
   const [rencontre, setRencontre] = useState<RencontreInstance>();
-  const [activeTab, setActiveTab] = useState<string | undefined>(undefined);
+  const activeTab = modalObservation.currentTab;
+  const setActiveTab = (tab: string) => {
+    setModalObservation((modalObservation) => ({ ...modalObservation, currentTab: tab }));
+  };
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [deleteRencontresChecked, setDeleteRencontresChecked] = useState(true);
 
