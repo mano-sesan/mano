@@ -136,7 +136,7 @@ class ApiService {
 
       try {
         const res: ApiResponse = await response.json();
-        if (res.inAppMessage) {
+        if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
           const [title, subTitle, actions = [], options = {}] = res.inAppMessage!;
           if (!actions || !actions.length) {
             Alert.alert(title, subTitle);
