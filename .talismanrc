@@ -45,6 +45,8 @@ fileignoreconfig:
   checksum: b9d39e6becb9b67bed07c43c300cab4fc1ebc1f13b3da65ee345ad5959abd6b2
 - filename: website/.yarnrc.yml
   checksum: 67aa1e699cae0e970cd67128e0d83e792c2d589d96df8a1d2dd5e6cc8d40b64d
+- filename: website/style/font-poppins.css
+  checksum: 4c79a8b8ee3b460676df290fe7c939fe151b490f3d74135f01ffadd1dc12b745
 scopeconfig:
 - scope: node
 threshold: high

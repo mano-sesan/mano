@@ -1,9 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "local>SocialGouv/renovate-config",
-    ":semanticCommits"
-  ],
+  "extends": ["local>SocialGouv/renovate-config", ":semanticCommits"],
   "lockFileMaintenance": {
     "enabled": false
   }

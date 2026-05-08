@@ -31,11 +31,7 @@ import {
 async function makeEncryptedItem(payload: object) {
   const masterKey = getHashedOrgEncryptionKey();
   const entityKey = await generateEntityKey();
-  const { encryptedContent, encryptedEntityKey } = await encrypt(
-    JSON.stringify(payload),
-    entityKey,
-    masterKey,
-  );
+  const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(payload), entityKey, masterKey);
   return { _id: "x", encrypted: encryptedContent, encryptedEntityKey } as any;
 }
 

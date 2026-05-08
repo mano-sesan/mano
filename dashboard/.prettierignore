@@ -4,3 +4,4 @@ build
 index.html
 public
 src/assets/Lato/font-face.css
+src-tauri/target
