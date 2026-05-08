@@ -22,6 +22,8 @@ import ActionsSortableList from "../../../components/ActionsSortableList";
 import CommentIcon from "../../../components/CommentIcon";
 import DocumentIcon from "../../../components/DocumentIcon";
 import { UserGroupIcon } from "@heroicons/react/16/solid";
+import HoverableInfo from "../../../components/HoverableInfo";
+import { truncate } from "../../../utils";
 
 // Hook to filter person actions (replaces selectorFamily)
 function useFilteredPersonActions({ personId, filterCategories, filterStatus, filterTeamIds }) {
@@ -250,13 +252,61 @@ const ActionsTable = ({ filteredData }) => {
                 >
                   <div className="tw-flex">
                     <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
-                      {action.urgent ? <ExclamationMarkButton /> : null}
+                      {action.urgent ? (
+                        <HoverableInfo className="tw-inline-flex" tooltip="Action urgente">
+                          <ExclamationMarkButton />
+                        </HoverableInfo>
+                      ) : null}
                       {!!organisation.groupsEnabled && !!action.group && (
-                        <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" title="Action familiale" />
+                        <HoverableInfo className="tw-inline-flex" tooltip="Action familiale">
+                          <UserGroupIcon className="tw-w-6 tw-h-6 tw-text-main" aria-label="Action familiale" />
+                        </HoverableInfo>
                       )}
-                      {action.description ? <DescriptionIcon /> : null}
-                      {action.documents?.length ? <DocumentIcon count={action.documents.length} /> : null}
-                      {action.comments?.length ? <CommentIcon count={action.comments.length} /> : null}
+                      {action.description ? (
+                        <HoverableInfo
+                          className="tw-inline-flex"
+                          tooltip={
+                            <>
+                              <div className="tw-font-semibold">Description</div>
+                              <div className="tw-whitespace-pre-wrap">{truncate(action.description, 400)}</div>
+                            </>
+                          }
+                        >
+                          <DescriptionIcon />
+                        </HoverableInfo>
+                      ) : null}
+                      {action.documents?.length ? (
+                        <HoverableInfo
+                          className="tw-inline-flex"
+                          tooltip={
+                            <>
+                              <div className="tw-font-semibold">Documents ({action.documents.length})</div>
+                              {action.documents.map((d, i) => (
+                                <div key={i}>• {d.name || "(sans nom)"}</div>
+                              ))}
+                            </>
+                          }
+                        >
+                          <DocumentIcon count={action.documents.length} />
+                        </HoverableInfo>
+                      ) : null}
+                      {action.comments?.length ? (
+                        <HoverableInfo
+                          className="tw-inline-flex"
+                          tooltip={
+                            <>
+                              {action.name ? <div className="tw-font-semibold">{action.name}</div> : null}
+                              {action.categories?.length ? <div>Catégories : {action.categories.join(", ")}</div> : null}
+                              <div className="tw-mt-1 tw-font-semibold">Commentaires ({action.comments.length})</div>
+                              {action.comments.map((c, i) => (
+                                <div key={i}>• {truncate((c.comment || "").replace(/\n+/g, " "), 120)}</div>
+                              ))}
+                            </>
+                          }
+                        >
+                          <CommentIcon count={action.comments.length} />
+                        </HoverableInfo>
+                      ) : null}
                       <div>{`${date}${time}`}</div>
                     </div>
                     <div>

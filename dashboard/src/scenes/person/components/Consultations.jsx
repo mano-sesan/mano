@@ -19,6 +19,8 @@ import ActionStatusSelect from "../../../components/ActionStatusSelect";
 import DocumentIcon from "../../../components/DocumentIcon";
 import CommentIcon from "../../../components/CommentIcon";
 import ActionsSortableList from "../../../components/ActionsSortableList";
+import HoverableInfo from "../../../components/HoverableInfo";
+import { truncate } from "../../../utils";
 
 export const Consultations = ({ person }) => {
   const [fullScreen, setFullScreen] = useState(false);
@@ -203,9 +205,51 @@ const ConsultationsTable = ({ filteredData }) => {
                   >
                     <div className="tw-flex">
                       <div className="tw-flex tw-flex-1 tw-items-center tw-gap-x-2">
-                        {consultation.description ? <DescriptionIcon /> : null}
-                        {consultation.documents?.length ? <DocumentIcon count={consultation.documents.length} /> : null}
-                        {consultation.comments?.length ? <CommentIcon count={consultation.comments.length} /> : null}
+                        {consultation.description ? (
+                          <HoverableInfo
+                            className="tw-inline-flex"
+                            tooltip={
+                              <>
+                                <div className="tw-font-semibold">Description</div>
+                                <div className="tw-whitespace-pre-wrap">{truncate(consultation.description, 400)}</div>
+                              </>
+                            }
+                          >
+                            <DescriptionIcon />
+                          </HoverableInfo>
+                        ) : null}
+                        {consultation.documents?.length ? (
+                          <HoverableInfo
+                            className="tw-inline-flex"
+                            tooltip={
+                              <>
+                                <div className="tw-font-semibold">Documents ({consultation.documents.length})</div>
+                                {consultation.documents.map((d, i) => (
+                                  <div key={i}>• {d.name || "(sans nom)"}</div>
+                                ))}
+                              </>
+                            }
+                          >
+                            <DocumentIcon count={consultation.documents.length} />
+                          </HoverableInfo>
+                        ) : null}
+                        {consultation.comments?.length ? (
+                          <HoverableInfo
+                            className="tw-inline-flex"
+                            tooltip={
+                              <>
+                                {consultation.name ? <div className="tw-font-semibold">{consultation.name}</div> : null}
+                                {consultation.type ? <div>Type : {consultation.type}</div> : null}
+                                <div className="tw-mt-1 tw-font-semibold">Commentaires ({consultation.comments.length})</div>
+                                {consultation.comments.map((c, i) => (
+                                  <div key={i}>• {truncate((c.comment || "").replace(/\n+/g, " "), 120)}</div>
+                                ))}
+                              </>
+                            }
+                          >
+                            <CommentIcon count={consultation.comments.length} />
+                          </HoverableInfo>
+                        ) : null}
                         <div>{`${date}${time}`}</div>
                       </div>
                       <div>

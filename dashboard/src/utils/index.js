@@ -59,3 +59,8 @@ export function errorMessage(e) {
 }
 
 export const isEmptyValue = (value) => !value || (Array.isArray(value) && value.length === 0);
+
+export function truncate(str, max) {
+  if (!str) return "";
+  return str.length > max ? `${str.slice(0, max)}…` : str;
+}
