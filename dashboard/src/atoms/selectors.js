@@ -76,15 +76,14 @@ export const itemsGroupedByPersonSelector = atom((get) => {
     const { interactions, assignedTeamsPeriods } = extractInfosFromHistory(person);
     personsObject[person._id] = {
       ...person,
-      // followedSince est toujours présent via extractInfosFromHistory, pas besoin de faire un fallback sur createdAt.
-      followSinceMonths: dayjsInstance().diff(person.followedSince, "months"),
+      followSinceMonths: dayjsInstance().diff(person.followedSince || person.createdAt, "months"),
       userPopulated: usersObject[person.user],
       formattedBirthDate: formatBirthDate(person.birthdate),
       age: ageFromBirthdateAsYear(person.birthdate),
       ageInMonths: ageFromBirthdateAsMonths(person.birthdate),
       interactions,
       assignedTeamsPeriods,
-      lastUpdateCheckForGDPR: person.followedSince, // TODO: vérifier pourquoi on utilise followedSince pour le GDPR.
+      lastUpdateCheckForGDPR: person.followedSince || person.createdAt, // valeur initiale écrasée plus bas par la dernière interaction passée
       numberOfActions: 0,
       numberOfConsultations: 0,
       numberOfTreatments: 0,
