@@ -392,10 +392,11 @@ export default function Poubelle() {
               sortOrder,
               sortBy,
               render: (p) => {
+                const followedSince = p.followedSince || p.createdAt;
                 return (
                   <>
-                    {formatDateWithFullMonth(p.followedSince)}
-                    <div className="tw-text-gray-500 tw-text-xs">il y a {p.createdAt ? formatAge(p.createdAt) : "un certain temps"}</div>
+                    {formatDateWithFullMonth(followedSince)}
+                    <div className="tw-text-gray-500 tw-text-xs">il y a {followedSince ? formatAge(followedSince) : "un certain temps"}</div>
                   </>
                 );
               },

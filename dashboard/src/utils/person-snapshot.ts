@@ -1,5 +1,4 @@
 import structuredClone from "@ungap/structured-clone";
-import { capture } from "../services/sentry";
 import type { PersonPopulated } from "../types/person";
 import type { CustomOrPredefinedField } from "../types/field";
 import { dayjsInstance } from "../services/date";

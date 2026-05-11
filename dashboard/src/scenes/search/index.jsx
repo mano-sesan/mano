@@ -489,7 +489,7 @@ const Persons = ({ persons }) => {
           onSortBy: setSortBy,
           sortOrder,
           sortBy,
-          render: (p) => formatDateWithFullMonth(p.followedSince),
+          render: (p) => formatDateWithFullMonth(p.followedSince || p.createdAt),
         },
       ].filter((c) => organisation.groupsEnabled || c.dataKey !== "group")}
     />
