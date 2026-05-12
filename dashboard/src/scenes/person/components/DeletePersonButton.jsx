@@ -17,7 +17,12 @@ export default function DeletePersonButton({ person }) {
       roles={["normal", "admin", "superadmin"]}
       roleErrorMessage="Désolé, seules les personnes autorisées peuvent supprimer des personnes"
       onConfirm={async () => {
-        const [_error, response] = await deletePerson(person._id);
+        const [error, response] = await deletePerson(person._id);
+        if (error) {
+          toast.error("Erreur lors de la suppression de la personne");
+          return;
+        }
+        if (!response) return;
         if (response.ok) {
           setLastPersonsViewed(lastPersonsViewed.filter((id) => id !== person._id));
           toast.success("Suppression réussie");
