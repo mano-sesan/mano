@@ -33,6 +33,9 @@ router.put(
 
     const organisation = await Organisation.findOne({ where: { _id: req.user.organisation } });
     if (!organisation) return res.status(404).send({ ok: false, error: "Not Found" });
+    if (organisation.migrations?.includes(req.params.migrationName)) {
+      return res.status(409).send({ ok: false, error: "Migration already applied" });
+    }
     organisation.set({ migrating: true });
     await organisation.save({
       context: { userId: req.user._id },
