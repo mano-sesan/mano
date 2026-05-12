@@ -113,12 +113,11 @@ const ExportData = () => {
     }
 
     const persons = allPersons.map((p) => {
-      const personWithLabelledCustomFields = {
-        followedSince: p.followedSince,
-      };
+      const personWithLabelledCustomFields = {};
       for (const key of Object.keys(p)) {
         personWithLabelledCustomFields[customFields[key] || key] = p[key];
       }
+      personWithLabelledCustomFields.followedSince = p.followedSince || p.createdAt;
       return personWithLabelledCustomFields;
     });
 

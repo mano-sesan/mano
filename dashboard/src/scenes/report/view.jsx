@@ -77,7 +77,7 @@ function useItemsForReports({ period, viewAllOrganisationData, selectedTeamsObje
 
     for (let person of allPersons) {
       // get persons for reports for period
-      const createdDate = person.followedSince;
+      const createdDate = person.followedSince || person.createdAt; // TODO: Ce nom de variable est trompeur
 
       const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
         viewAllOrganisationData,

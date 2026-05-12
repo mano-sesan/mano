@@ -65,7 +65,7 @@ export const itemsGroupedByPersonSelector = atom<Record<PersonInstance["_id"], P
     // replace all accents with normal letters
     const nameNormalized = nameLowercased.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     // Calculate follow since months
-    const followSinceMonths = Math.abs(dayjsInstance().diff(person.followedSince, "months"));
+    const followSinceMonths = Math.abs(dayjsInstance().diff(person.followedSince || person.createdAt, "months"));
     personsObject[person._id] = {
       ...person,
       nameNormalized,

@@ -40,7 +40,7 @@ export function InfosMain({ person, isMedicalFile }) {
             </div>
             <div>
               <b>Suivi·e depuis le : </b>
-              {dayjsInstance(person.followedSince).format("DD/MM/YYYY")}
+              {dayjsInstance(person.followedSince || person.createdAt).format("DD/MM/YYYY")}
             </div>
             {person.wanderingAt ? (
               <div>

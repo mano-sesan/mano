@@ -191,7 +191,7 @@ const PersonSummary = ({
           label="Suivi(e) depuis / Créé(e) le"
           // @ts-expect-error Type 'PossibleDate' is not assignable to type 'Date | undefined'.
           setDate={(followedSince) => onChange({ followedSince })}
-          date={person.followedSince}
+          date={person.followedSince || person.createdAt}
           editable={editable}
           showYear
           required
@@ -199,7 +199,7 @@ const PersonSummary = ({
       ) : (
         <InputLabelled
           label="Suivi(e) depuis / Créé(e) il y a"
-          value={`${getRelativeTimeFrench(dayjs(), person.followedSince)} (${dayjs(person.followedSince).format("DD/MM/YYYY")})`}
+          value={`${getRelativeTimeFrench(dayjs(), person.followedSince || person.createdAt)} (${dayjs(person.followedSince || person.createdAt).format("DD/MM/YYYY")})`}
           placeholder="JJ-MM-AAAA"
           editable={false}
         />

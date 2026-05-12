@@ -192,7 +192,8 @@ export const itemsForStatsV2Selector = ({
     }
 
     // get persons for stats for period
-    const createdDate = person.followedSince ? dayjsInstance(person.followedSince).startOf("day").toISOString() : null;
+    const followedSince = person.followedSince || person.createdAt;
+    const createdDate = followedSince ? dayjsInstance(followedSince).startOf("day").toISOString() : null;
 
     const personIsInAssignedTeamDuringPeriod = filterPersonByAssignedTeamDuringQueryPeriod({
       viewAllOrganisationData,
@@ -239,7 +240,7 @@ export const itemsForStatsV2Selector = ({
         }
       }
 
-      // 4. "created" — followedSince in period OR first assignment to a selected team during period
+      // 4. "created" — followedSince (or createdAt) in period OR first assignment to a selected team during period
       if (noPeriodSelected) {
         isCreated = true;
       } else {

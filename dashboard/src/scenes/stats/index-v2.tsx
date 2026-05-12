@@ -79,7 +79,7 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
     });
     return {
       ...snapshotAtDate,
-      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince, "months"),
+      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince || person.createdAt, "months"),
     };
   });
 
