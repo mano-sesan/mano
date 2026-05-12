@@ -124,6 +124,28 @@ All sensitive data is encrypted client-side with libsodium before transmission.
 
 Organizations can define custom fields for persons, actions, consultations, etc. These are stored as JSON and handled specially throughout the codebase.
 
+## ⚠️ DataMigrator — Migrations clientes de données (`dashboard/src/components/DataMigrator.ts`)
+
+**Toute modification ici a un blast radius énorme.** Cette logique tourne au login de chaque utilisateur, marque l'org comme migrée définitivement, et peut réécrire des milliers d'enregistrements chiffrés en une transaction. Si Claude doit toucher ce fichier, **il doit le signaler explicitement à l'utilisateur** et faire valider l'approche avant d'écrire le code et pendant la review.
+
+### Deux modes d'échec à éviter à tout prix
+
+**1. Corrompre le chargement pour tous les utilisateurs.** Toute exception non capturée dans `migrateData` peut provoquer un état instable du dashboard (échec de migration suivi d'un déchiffrement/chargement des données partiel). Le code doit toujours être enveloppé dans un `try/catch` qui retourne `false` au lieu de throw, et toute opération qui peut échouer (déchiffrement, encryption, PUT) doit être gérée individuellement.
+
+**2. Corrompre les données chiffrées.** Le couple `decryptItem` → modification → `encryptItem` est piégeux :
+
+- `decryptItem` court-circuite **sans déchiffrer** dans 4 cas (clé d'org absente, `encrypted` absent, `deletedAt && !decryptDeleted`, `encryptedEntityKey` absent) et retourne l'item tel quel. **L'absence de `entityKey` sur l'objet retourné est la signature qu'aucun déchiffrement n'a eu lieu.**
+- `encryptItem` accepte tout objet avec un champ `decrypted` et génère une **nouvelle `entityKey`** si elle manque. Combiné au cas précédent, ça écrase silencieusement le blob original avec un blob quasi-vide chiffré sous une clé que personne ne possède.
+- Garde-fou minimum sur toute boucle de re-chiffrement : `if (!person.entityKey) continue;` (ou équivalent pour les autres entités). Et utiliser `decryptDeleted: true` si la migration cible aussi les supprimés.
+
+### Checklist obligatoire avant de proposer une migration
+
+- [ ] Le code est dans un `try/catch` qui retourne `false`
+- [ ] Les items qui n'ont pas été réellement déchiffrés sont skippés (`if (!entity.entityKey) continue`) ou traités en conséquence
+- [ ] Si `withDeleted: true` dans le fetch, alors `decryptDeleted: true` dans `decryptItem`
+- [ ] La migration a été testée sur des données contenant : actifs, supprimés (`deletedAt`), entrées corrompues (sans `encrypted` ou sans `encryptedEntityKey`)
+- [ ] Demander à l'utilisateur s'il a bien testé manuellement cette migration
+
 ## Environment Variables
 
 - **API**: Reads secrets from files (Docker secrets pattern) in `api/src/config.js`
