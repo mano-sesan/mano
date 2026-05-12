@@ -104,6 +104,9 @@ app.use(versionCheck);
 require("./passport")(app);
 
 app.use("/", require("./controllers/utils"));
+// Monté avant /user pour que /user/psc/* soit pris par psc.js, pas par
+// les handlers génériques de /user (notamment GET /:_id qui matche le tronc).
+app.use("/user/psc", require("./controllers/psc"));
 app.use("/user", require("./controllers/user"));
 app.use("/person", require("./controllers/person"));
 app.use("/action", require("./controllers/action"));

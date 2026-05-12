@@ -6,7 +6,7 @@ const crypto = require("crypto");
 const { Op } = require("sequelize");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
-const { validatePassword, looseUuidRegex, jwtRegex, sanitizeAll, headerJwtRegex } = require("../utils");
+const { validatePassword, looseUuidRegex, jwtRegex, sanitizeAll, headerJwtRegex, hashPscSubjectNameId } = require("../utils");
 const mailservice = require("../utils/mailservice");
 const config = require("../config");
 const { comparePassword } = require("../utils");
@@ -778,6 +778,7 @@ router.get(
         decryptAttempts: user.decryptAttempts,
         disabledAt: user.disabledAt,
         loginAttempts: user.loginAttempts,
+        hasPscLink: !!user.pscSubjectNameIdHash,
         team: team.map((t) => t._id),
       },
     });
@@ -962,6 +963,9 @@ router.put(
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
           role: z.optional(z.enum(["admin", "normal", "restricted-access", "stats-only"])),
+          // Identifiant ANS reçu en clair, hashé immédiatement avant stockage.
+          // Chaîne vide = délier le compte.
+          pscSubjectNameId: z.optional(z.string()),
           ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
         }),
       }).parse(req);
@@ -973,6 +977,10 @@ router.put(
 
     const _id = req.params._id;
     const { name, email, team, role, healthcareProfessional, phone } = req.body;
+    // pscSubjectNameId est en clair dans req.body — extrait et retiré du body
+    // pour éviter sa capture par Sentry (DEFAULT_REQUEST_INCLUDES inclut 'data').
+    const pscSubjectNameIdRaw = req.body.pscSubjectNameId;
+    delete req.body.pscSubjectNameId;
     const organisationId = req.user.role === "superadmin" ? req.body.organisation : req.user.organisation;
 
     const user = await User.findOne({ where: { _id, organisation: organisationId } });
@@ -991,6 +999,15 @@ router.put(
     if (role) user.set({ role });
     if (["stats-only", "restricted-access"].includes(user.role)) {
       user.set({ healthcareProfessional: false });
+    }
+    if (pscSubjectNameIdRaw !== undefined) {
+      const trimmed = (pscSubjectNameIdRaw || "").trim();
+      const hash = trimmed === "" ? null : hashPscSubjectNameId(trimmed);
+      if (hash) {
+        const existing = await User.findOne({ where: { pscSubjectNameIdHash: hash, _id: { [Op.ne]: _id } } });
+        if (existing) return res.status(400).send({ ok: false, error: "Cet identifiant Pro Santé Connect est déjà associé à un autre utilisateur" });
+      }
+      user.set({ pscSubjectNameIdHash: hash });
     }
     const tx = await User.sequelize.transaction();
     if (team && Array.isArray(team)) {
@@ -1027,6 +1044,7 @@ router.put(
         termsAccepted: user.termsAccepted,
         cgusAccepted: user.cgusAccepted,
         gaveFeedbackSep2025: user.gaveFeedbackSep2025,
+        hasPscLink: !!user.pscSubjectNameIdHash,
         team: (await user.getTeams({ raw: true, attributes: ["_id"], order: [["name", "ASC"]] })).map((t) => t._id),
       },
     });
@@ -1055,6 +1073,10 @@ const clearUserData = async (user) => {
     otp: null,
     lastOtpAt: null,
     disabledAt: null,
+    // Libère le binding PSC pour que l'identifiant ANS puisse être réutilisé.
+    // L'index UNIQUE en base s'applique même aux soft-deleted (PostgreSQL ne
+    // fait pas d'exception pour les NULL, mais un NULL ne viole pas UNIQUE).
+    pscSubjectNameIdHash: null,
   });
   return user;
 };

@@ -10,6 +10,9 @@ let deploymentDate = null;
 
 module.exports = async ({ path, headers: { version, platform, packageid } }, res, next) => {
   if (path.startsWith("/public")) return next();
+  // Top-level navigation depuis le bouton "Se connecter avec PSC" : pas
+  // d'en-tête platform possible, on bypass.
+  if (path === "/user/psc/login") return next();
   if (platform === "website") return next();
   if (platform === "dashboard") {
     if (deploymentCommit === null) {

@@ -6,7 +6,8 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { detect } from "detect-browser";
 import { MoonIcon } from "@heroicons/react/24/solid";
 import ButtonCustom from "../../components/ButtonCustom";
-import { DEFAULT_ORGANISATION_KEY } from "../../config";
+import { DEFAULT_ORGANISATION_KEY, HOST, SCHEME } from "../../config";
+import pscButtonImg from "../../assets/psc-sidentifier.svg";
 import PasswordInput from "../../components/PasswordInput";
 import { getTeamColors } from "../../components/TagTeam";
 import {
@@ -58,6 +59,11 @@ const SignIn = () => {
   const { startInitialLoad, cleanupLoader } = useDataLoader();
 
   const isDisconnected = new URLSearchParams(location.search).get("disconnected");
+  const pscActivatedInUrl = new URLSearchParams(location.search).get("psc") === "1";
+  if (pscActivatedInUrl) window.sessionStorage.setItem("psc_enabled", "1");
+  const pscEnabled = window.sessionStorage.getItem("psc_enabled") === "1";
+  const pscSuccess = new URLSearchParams(location.search).get("psc_success") === "1";
+  const pscErrorParam = new URLSearchParams(location.search).get("psc_error");
 
   const deploymentCommit = useAtomValue(deploymentShortCommitSHAState);
   const setEncryptionKeyLength = useSetAtom(encryptionKeyLengthState);
@@ -76,6 +82,22 @@ const SignIn = () => {
       history.replace("/auth");
     }
   }, [isDisconnected, history]);
+
+  useEffect(() => {
+    if (!pscErrorParam) return;
+    const messages = {
+      PSC_USER_NOT_FOUND:
+        "Aucun compte Mano n'est associé à cette identité Pro Santé Connect. Demandez à votre administrateur d'associer votre identifiant ANS à votre compte, ou connectez-vous avec votre email et votre mot de passe.",
+      PSC_SUPERADMIN_FORBIDDEN: "La connexion via Pro Santé Connect n'est pas disponible pour les comptes superadmin.",
+      PSC_ACCOUNT_DISABLED: "Votre compte a été désactivé, veuillez contacter l'administrateur de votre organisation.",
+      PSC_ORGANISATION_DISABLED: "Cette organisation a été temporairement désactivée.",
+      PSC_ACCOUNT_LOCKED: "Trop de tentatives de connexions infructueuses, le compte n'est plus accessible.",
+      PSC_NO_SUBJECT_ID: "Votre identité Pro Santé Connect ne contient pas l'identifiant attendu.",
+      PSC_FLOW_ERROR: "Une erreur est survenue lors de la connexion via Pro Santé Connect. Veuillez réessayer.",
+    };
+    toast.error(messages[pscErrorParam] ?? messages.PSC_FLOW_ERROR);
+    history.replace("/auth");
+  }, [pscErrorParam, history]);
 
   // Show a one-time message passed via localStorage (shared across tabs), then clear it.
   useEffect(() => {
@@ -172,7 +194,10 @@ const SignIn = () => {
 
   useEffect(() => {
     (async () => {
-      if (!window.localStorage.getItem("previously-logged-in")) return setLoading(false);
+      // pscSuccess = arrivée depuis le callback PSC : le cookie jwt vient d'être
+      // posé par l'API, on doit hydrater l'état comme pour un reconnect classique
+      // même si "previously-logged-in" n'est pas encore en localStorage.
+      if (!window.localStorage.getItem("previously-logged-in") && !pscSuccess) return setLoading(false);
       const [error, response] = await tryFetch(() => API.getSigninToken());
       if (error) {
         // Pas besoin d'afficher un message d'erreur si on était en train de quitter la page pendant le chargement.
@@ -188,6 +213,10 @@ const SignIn = () => {
         setUserName(user.name);
         setUser(user);
         if (!!organisation.encryptionEnabled && !["superadmin"].includes(user.role)) setShowEncryption(true);
+        if (pscSuccess) {
+          window.localStorage.setItem("previously-logged-in", "true");
+          history.replace("/auth");
+        }
       }
       return setLoading(false);
     })();
@@ -624,6 +653,21 @@ const SignIn = () => {
           onClick={handleSubmit}
           className="tw-m-auto !tw-mt-8 !tw-w-56 tw-font-[Helvetica] !tw-text-base tw-font-medium"
         />
+        {pscEnabled && !authViaCookie && !showEncryption && !showOtp && (
+          <div className="tw-mt-6 tw-flex tw-flex-col tw-items-center tw-gap-2">
+            <span className="tw-text-xs tw-text-gray-500">ou</span>
+            <button
+              type="button"
+              aria-label="S'identifier avec Pro Santé Connect"
+              onClick={() => {
+                window.location.href = `${SCHEME}://${HOST}/user/psc/login`;
+              }}
+              className="tw-rounded tw-bg-transparent tw-p-0 tw-border-0 hover:tw-opacity-90 tw-cursor-pointer"
+            >
+              <img src={pscButtonImg} alt="S'identifier avec Pro Santé Connect" className="tw-h-12" />
+            </button>
+          </div>
+        )}
         {!!authViaCookie && (
           <ButtonCustom
             color="link"

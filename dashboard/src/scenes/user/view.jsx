@@ -14,6 +14,7 @@ import useTitle from "../../services/useTitle";
 import DeleteButtonAndConfirmModal from "../../components/DeleteButtonAndConfirmModal";
 import { emailRegex, errorMessage } from "../../utils";
 import BackButton from "../../components/backButton";
+import pscPictoImg from "../../assets/psc-picto.svg";
 
 const View = () => {
   const [localUser, setLocalUser] = useState(null);
@@ -24,6 +25,11 @@ const View = () => {
   const setDeletedUsers = useSetAtom(deletedUsersState);
   const organisation = useAtomValue(organisationState);
   const [isReactivatingUser, setIsReactivatingUser] = useState(false);
+
+  // État du champ PSC, hors Formik pour ne PAS envoyer un effacement
+  // silencieux du binding à chaque save du formulaire principal.
+  const [pscInput, setPscInput] = useState("");
+  const [pscModified, setPscModified] = useState(false);
 
   useTitle(`Utilisateur ${user?.name}`);
 
@@ -69,6 +75,9 @@ const View = () => {
               return toast.error("Vous ne pouvez pas modifier votre rôle : déconnectez-vous et demandez à un autre administrateur de le faire");
             }
             body.organisation = organisation._id;
+            // PSC : on n'envoie le champ que si l'admin l'a explicitement
+            // modifié, pour éviter de délier un compte par inadvertance.
+            if (pscModified) body.pscSubjectNameId = pscInput.trim();
             const [error, response] = await tryFetch(() => API.put({ path: `/user/${id}`, body }));
             if (error) {
               actions.setSubmitting(false);
@@ -83,6 +92,8 @@ const View = () => {
               setUser(meResponse.data);
             }
             setLocalUser(response.user);
+            setPscInput("");
+            setPscModified(false);
             actions.setSubmitting(false);
             toast.success("Mis à jour !");
           } catch (errorUpdatingUser) {
@@ -153,6 +164,52 @@ const View = () => {
                   </div>
                 </div>
               )}
+              <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
+                <label htmlFor="pscSubjectNameId" className="tw-flex tw-items-center tw-gap-2" style={{ marginBottom: "0.25rem" }}>
+                  <img src={pscPictoImg} alt="" aria-hidden="true" className="tw-h-5 tw-w-5" />
+                  Pro Santé Connect
+                </label>
+                {localUser.hasPscLink && !pscModified ? (
+                  <div className="tw-flex tw-items-center tw-gap-3 tw-text-sm">
+                    <span className="tw-text-green-700">✓ Compte lié à Pro Santé Connect</span>
+                    <button
+                      type="button"
+                      className="tw-text-red-600 tw-underline"
+                      onClick={() => {
+                        setPscInput("");
+                        setPscModified(true);
+                      }}
+                    >
+                      Délier
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <input
+                      className="tailwindui"
+                      autoComplete="off"
+                      type="text"
+                      name="pscSubjectNameId"
+                      id="pscSubjectNameId"
+                      placeholder="Ex. ANSXXXXXXXXX"
+                      value={pscInput}
+                      onChange={(e) => {
+                        setPscInput(e.target.value);
+                        setPscModified(true);
+                      }}
+                    />
+                    <small className="text-muted">
+                      Identifiant ANS de l'identité Pro Santé Connect de l'utilisateur (récupérable depuis son application e-CPS ou son compte sur
+                      esante.gouv.fr).
+                    </small>
+                    {localUser.hasPscLink && pscModified && (
+                      <small className="tw-text-orange-700">
+                        Compte actuellement lié. Laisser vide et enregistrer pour délier, ou saisir un nouvel identifiant pour remplacer.
+                      </small>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
             <div className="tw-flex tw-justify-end tw-gap-4">
               {localUser.disabledAt && (

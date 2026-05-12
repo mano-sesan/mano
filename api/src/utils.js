@@ -1,7 +1,9 @@
+const crypto = require("crypto");
 const passwordValidator = require("password-validator");
 const bcrypt = require("bcryptjs");
 const { z } = require("zod");
 const sanitizeHtml = require("sanitize-html");
+const config = require("./config");
 const { capture } = require("./sentry");
 
 function validatePassword(password) {
@@ -27,6 +29,14 @@ async function comparePassword(password, expected) {
 
 function hashPassword(password) {
   return bcrypt.hash(password, 10);
+}
+
+// HMAC déterministe pour stocker l'identifiant PSC en base sans cleartext.
+// Lookup possible via le même hash à la connexion. Si SECRET tourne, les
+// bindings PSC sont invalidés en même temps que les JWTs — comportement
+// volontaire.
+function hashPscSubjectNameId(subjectNameId) {
+  return crypto.createHmac("sha256", config.SECRET).update(String(subjectNameId)).digest("hex");
 }
 
 const looseUuidRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/;
@@ -268,6 +278,7 @@ module.exports = {
   validatePassword,
   comparePassword,
   hashPassword,
+  hashPscSubjectNameId,
   looseUuidRegex,
   positiveIntegerRegex,
   cryptoHexRegex,

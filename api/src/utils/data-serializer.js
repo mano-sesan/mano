@@ -141,6 +141,7 @@ function serializeUserWithTeamsAndOrganisation(user, teams, organisation, orgTea
     termsAccepted: user.termsAccepted,
     cgusAccepted: user.cgusAccepted,
     gaveFeedbackSep2025: user.gaveFeedbackSep2025,
+    hasPscLink: !!user.pscSubjectNameIdHash,
     teams: serializeTeams(teams),
     orgTeams: serializeTeams(orgTeams),
     organisation: serializeOrganisation(organisation),
