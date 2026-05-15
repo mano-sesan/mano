@@ -88,8 +88,10 @@ const Passage = ({ passage, personId, onFinished }) => {
             let totalCount = 1;
 
             if (body.anonymous) {
-              totalCount = body.anonymousNumberOfPassages;
-              for (let i = 0; i < body.anonymousNumberOfPassages; i++) {
+              // L'input type="number" renvoie un string via Formik handleChange,
+              // on convertit pour que la comparaison successCount === totalCount reste fiable.
+              totalCount = Number(body.anonymousNumberOfPassages);
+              for (let i = 0; i < totalCount; i++) {
                 const [error] = await tryFetchExpectOk(async () =>
                   API.post({
                     path: "/passage",
