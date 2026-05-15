@@ -48,25 +48,30 @@ const MOBILE_APP_VERSION = mobileAppVersion;
 
 const STORAGE_DIRECTORY = process.env.STORAGE_DIRECTORY;
 
-// Pro Santé Connect (OIDC). PSC_CLIENT_ID vide = intégration désactivée.
-const PSC_ISSUER = process.env.PSC_ISSUER || "https://auth.bas.psc.esante.gouv.fr/auth/realms/esante-wallet";
-const PSC_CLIENT_ID = process.env.PSC_CLIENT_ID || null;
-
-let PSC_CLIENT_SECRET = null;
-if (process.env.PSC_CLIENT_SECRET_FILE && fs.existsSync(process.env.PSC_CLIENT_SECRET_FILE)) {
-  PSC_CLIENT_SECRET = fs.readFileSync(process.env.PSC_CLIENT_SECRET_FILE, "utf8").trim().replace(/\n/g, "") || null;
-} else {
-  PSC_CLIENT_SECRET = process.env.PSC_CLIENT_SECRET || null;
+// Pro Santé Connect (OIDC). Toutes les valeurs supportent le pattern
+// `_FILE` (Docker secrets) avec fallback env-var puis default. PSC_CLIENT_ID
+// vide / null = intégration désactivée (pscEnabled() returns false).
+function readFileOrEnv(fileEnvKey, envKey, defaultValue) {
+  const filePath = process.env[fileEnvKey];
+  if (filePath && fs.existsSync(filePath)) {
+    return fs.readFileSync(filePath, "utf8").trim().replace(/\n/g, "") || defaultValue;
+  }
+  return process.env[envKey] || defaultValue;
 }
 
+const PSC_CLIENT_ID = readFileOrEnv("PSC_CLIENT_ID_FILE", "PSC_CLIENT_ID", null);
+const PSC_CLIENT_SECRET = readFileOrEnv("PSC_CLIENT_SECRET_FILE", "PSC_CLIENT_SECRET", null);
+const PSC_ISSUER = readFileOrEnv("PSC_ISSUER_FILE", "PSC_ISSUER", "https://auth.bas.psc.esante.gouv.fr/auth/realms/esante-wallet");
 // URL du portail wallet PSC (UX user-facing pour le choix du mode d'auth).
 // Différent de l'authorization_endpoint Keycloak natif (auth.bas.psc...) qui
 // fonctionne aussi, mais la doc ANS recommande le wallet.
-const PSC_AUTH_URL = process.env.PSC_AUTH_URL || "https://wallet.bas.psc.esante.gouv.fr/auth";
+const PSC_AUTH_URL = readFileOrEnv("PSC_AUTH_URL_FILE", "PSC_AUTH_URL", "https://wallet.bas.psc.esante.gouv.fr/auth");
+const PSC_REDIRECT_URI = readFileOrEnv("PSC_REDIRECT_URI_FILE", "PSC_REDIRECT_URI", "http://localhost:8083/auth/psc/callback");
 
-const PSC_REDIRECT_URI = process.env.PSC_REDIRECT_URI || "http://localhost:8083/auth/psc/callback";
-const PSC_SCOPE = process.env.PSC_SCOPE || "openid scope_all";
-const PSC_ACR_VALUES = process.env.PSC_ACR_VALUES || "eidas1";
+// Constantes vraies pour tous les environnements — pas besoin de les rendre
+// configurables.
+const PSC_SCOPE = "openid scope_all";
+const PSC_ACR_VALUES = "eidas1";
 
 module.exports = {
   PORT,
