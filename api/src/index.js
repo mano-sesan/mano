@@ -24,7 +24,7 @@ const blockMobileMedicalWrites = require("./middleware/blockMobileMedicalWrites"
 
 // Put together a schema
 const app = express();
-app.set("trust proxy", 1);
+app.set("trust proxy", 2);
 if (["development", "test"].includes(process.env.NODE_ENV)) {
   app.use(logger("dev"));
 }
@@ -58,24 +58,6 @@ app.get("/healthz", async (req, res) => {
 app.get("/sentry-check", async (req, res) => {
   capture("sentry-check");
   res.send(`Sentry checked!`);
-});
-
-// Endpoint temporaire de diagnostic IP — à supprimer une fois le chaînage X-Forwarded-For validé
-app.get("/debug-ip", async (req, res) => {
-  // up
-  res.json({
-    "req.ip": req.ip,
-    "req.ips": req.ips,
-    "req.socket.remoteAddress": req.socket?.remoteAddress || null,
-    "trust proxy setting": app.get("trust proxy"),
-    headers: {
-      "x-forwarded-for": req.headers["x-forwarded-for"] || null,
-      "x-real-ip": req.headers["x-real-ip"] || null,
-      "x-forwarded-proto": req.headers["x-forwarded-proto"] || null,
-      "x-forwarded-host": req.headers["x-forwarded-host"] || null,
-      forwarded: req.headers["forwarded"] || null,
-    },
-  });
 });
 
 app.get("/", async (req, res) => {
