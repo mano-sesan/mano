@@ -190,8 +190,35 @@ export const checkEncryptedVerificationKey = async (encryptedVerificationKey, ma
   return false;
 };
 
-export const encryptItem = async (item) => {
+// Garde-fou contre l'écrasement silencieux d'un item chiffré.
+// Le couple decryptItem -> modification -> encryptItem est piégeux : si l'item passé
+// a un updatedAt (donc vient du serveur) mais pas d'entityKey, c'est que decryptItem
+// a court-circuité sans déchiffrer. Dans ce cas, sans ce garde-fou, encryptItem
+// génèrerait une nouvelle entityKey et écraserait le blob serveur avec un contenu
+// quasi-vide. Voir le warning DataMigrator dans CLAUDE.md.
+// L'option `allowMissingEntityKey` est réservée à l'outil admin "Données en erreur"
+// (scenes/organisation/Errors.jsx) qui regénère volontairement la clé après recovery.
+export const encryptItem = async (item, { allowMissingEntityKey = false } = {}) => {
   if (item.decrypted) {
+    if (!allowMissingEntityKey && item.updatedAt && !item.entityKey) {
+      const error = new Error(`encryptItem: missing entityKey on existing item (_id=${item._id})`);
+      capture(error, {
+        fingerprint: ["encrypt-item-missing-entity-key"],
+        tags: { _id: item._id },
+        extra: {
+          hasDecrypted: Boolean(item.decrypted),
+          decryptedKeys: item.decrypted ? Object.keys(item.decrypted) : [],
+          hasUpdatedAt: Boolean(item.updatedAt),
+          hasCreatedAt: Boolean(item.createdAt),
+        },
+      });
+      toast.error(
+        "Impossible d'enregistrer les données : une incohérence de chiffrement a été détectée pour cet élément. " +
+          "Vous pouvez recharger la page, ou, si le problème persiste, utiliser « Se déconnecter et vider le cache » dans le menu utilisateur.",
+        { autoClose: false, toastId: "encrypt-missing-entity-key" }
+      );
+      throw error;
+    }
     if (!item.entityKey) item.entityKey = await generateEntityKey();
     const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, hashedOrgEncryptionKey);
     item.encrypted = encryptedContent;
@@ -202,15 +229,52 @@ export const encryptItem = async (item) => {
   return item;
 };
 
+// Phase observation des short-circuits de decryptItem.
+// Chacune des 4 branches plus bas a une raison documentée (cf. blame), mais
+// on ne sait pas à quelle fréquence elles se déclenchent en prod ni si elles
+// polluent vraiment le state des utilisateurs. On log dans Sentry pour mesurer
+// avant de durcir le comportement. On dédupe par session pour éviter le spam.
+const decryptItemShortCircuitsSeen = new Set();
+function logDecryptItemShortCircuit(reason, item, type) {
+  // deleted-skipped est volontaire et massif (chaque refresh, tous les items soft-deleted),
+  // pas la peine de remonter ça dans Sentry.
+  if (reason === "deleted-skipped") return;
+  const key = `${reason}|${type}|${item?._id ?? "no-id"}`;
+  if (decryptItemShortCircuitsSeen.has(key)) return;
+  decryptItemShortCircuitsSeen.add(key);
+  capture(new Error(`decryptItem short-circuit: ${reason}`), {
+    level: "warning",
+    fingerprint: [`decrypt-item-short-circuit-${reason}`, type || "item"],
+    tags: { reason, type: type || "item", _id: item?._id },
+    extra: {
+      hasEncrypted: Boolean(item?.encrypted),
+      hasEncryptedEntityKey: Boolean(item?.encryptedEntityKey),
+      deletedAt: item?.deletedAt ?? null,
+    },
+  });
+}
+
 // On retourne null si l'item n'a pas pu être déchiffré
 // Cela permet de ne pas stocker en cache ou dans le state des données non déchiffrées
 // Qui du coup ne se mettraient plus à jour correctement.
 // Par contre quand on appelle cette fonction, il faut vérifier si l'item est null et ne pas l'utiliser.
 export const decryptItem = async (item, { decryptDeleted = false, type = "" } = {}) => {
-  if (!getHashedOrgEncryptionKey()) return item;
-  if (!item.encrypted) return item;
-  if (item.deletedAt && !decryptDeleted) return item;
-  if (!item.encryptedEntityKey) return item;
+  if (!getHashedOrgEncryptionKey()) {
+    logDecryptItemShortCircuit("no-key", item, type);
+    return item;
+  }
+  if (!item.encrypted) {
+    logDecryptItemShortCircuit("no-encrypted", item, type);
+    return item;
+  }
+  if (item.deletedAt && !decryptDeleted) {
+    logDecryptItemShortCircuit("deleted-skipped", item, type);
+    return item;
+  }
+  if (!item.encryptedEntityKey) {
+    logDecryptItemShortCircuit("no-entityKey", item, type);
+    return item;
+  }
 
   let decryptedItem = {};
   try {
