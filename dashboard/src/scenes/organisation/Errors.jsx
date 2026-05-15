@@ -476,7 +476,9 @@ function ModalRepair({ open, setOpen, setData, item }) {
     delete itemData.encrypted;
     delete itemData.encryptedEntityKey;
     delete itemData.entityKey;
-    const encryptedItem = await encryptItem(itemData);
+    // L'outil de récupération regénère volontairement la clé d'entité après le déchiffrement
+    // manuel avec une ancienne clé. Le garde-fou de encryptItem doit être désactivé ici.
+    const encryptedItem = await encryptItem(itemData, { allowMissingEntityKey: true });
 
     if (item.type === "person") {
       await API.put({ path: `/person/${itemData._id}`, body: encryptedItem });
