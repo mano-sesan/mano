@@ -31,7 +31,6 @@ const PscCallback = () => {
       }
       history.replace("/auth?psc_success=1");
     })();
-    // On veut exécuter ce bloc une seule fois au mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

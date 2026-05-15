@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { createRemoteJWKSet, jwtVerify } = require("jose");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const { z } = require("zod");
 const { catchErrors } = require("../errors");
 const config = require("../config");
@@ -45,6 +46,30 @@ function pscEnabled() {
   return !!(config.PSC_CLIENT_ID && config.PSC_CLIENT_SECRET);
 }
 
+// `/login` ne fait pas de fetch sortant mais génère un state cookie signé à
+// chaque appel — limite raisonnable pour un user qui hésite vs un attaquant
+// qui essaie de récolter des cookies de state valides.
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  keyGenerator: ipKeyGenerator,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Trop de tentatives, veuillez réessayer plus tard." },
+});
+
+// `/exchange` déclenche un fetch sortant vers PSC à chaque appel valide. Sans
+// limite, un attaquant peut épuiser nos sockets sortants, faire throttler
+// notre client_id par l'ANS, ou nous coûter de la quota Sentry sur les échecs.
+const exchangeRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  keyGenerator: ipKeyGenerator,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "PSC_FLOW_ERROR" },
+});
+
 // Public — le dashboard interroge cet endpoint pour savoir s'il doit afficher
 // le bouton "Se connecter avec Pro Santé Connect".
 router.get("/discovery", (req, res) => {
@@ -55,6 +80,7 @@ router.get("/discovery", (req, res) => {
 // signé court-vivant, et redirige le navigateur vers le portail PSC.
 router.get(
   "/login",
+  loginRateLimiter,
   catchErrors(async (req, res) => {
     if (!pscEnabled()) {
       return res.status(503).send({ ok: false, error: "PSC not configured" });
@@ -84,6 +110,7 @@ router.get(
 // /auth/psc/callback avec le code et le state reçus de PSC.
 router.get(
   "/exchange",
+  exchangeRateLimiter,
   catchErrors(async (req, res) => {
     if (!pscEnabled()) {
       return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
@@ -99,7 +126,6 @@ router.get(
     }
     const { code, state } = req.query;
 
-    // 1. Vérification du state cookie
     const stateCookie = req.cookies?.[PSC_STATE_COOKIE];
     if (!stateCookie) {
       return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
@@ -116,7 +142,6 @@ router.get(
       return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
     }
 
-    // 2. Échange code → tokens
     let tokens;
     try {
       const tokenRes = await fetch(`${config.PSC_ISSUER}/protocol/openid-connect/token`, {
@@ -132,8 +157,13 @@ router.get(
         }),
       });
       if (!tokenRes.ok) {
-        const txt = await tokenRes.text();
-        capture(new Error(`PSC token exchange failed: ${tokenRes.status} ${txt}`));
+        // Les 4xx du token endpoint sont attendus (code expiré, déjà consommé,
+        // bogus) — pas la peine de polluer Sentry. On capture pour les 5xx
+        // PSC qui indiquent une panne réelle de leur côté.
+        if (tokenRes.status >= 500) {
+          const txt = await tokenRes.text();
+          capture(new Error(`PSC token exchange failed: ${tokenRes.status} ${txt}`));
+        }
         return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
       }
       tokens = await tokenRes.json();
@@ -146,9 +176,8 @@ router.get(
       return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
     }
 
-    // 3. Validation cryptographique de l'id_token (signature, iss, aud, exp).
-    // requiredClaims force la présence de `exp` (jose ne vérifie l'expiration
-    // que s'il est présent) et `acr` (qu'on revalide ensuite).
+    // jose ne vérifie l'expiration que si `exp` est présent — on force sa
+    // présence (ainsi que `acr` qu'on revalide ensuite) via requiredClaims.
     let idTokenPayload;
     try {
       const verified = await jwtVerify(tokens.id_token, getJwks(), {
@@ -173,29 +202,25 @@ router.get(
       return res.status(200).send({ ok: false, error: "PSC_FLOW_ERROR" });
     }
 
-    // 4. Extraction de l'identifiant national PS. On n'accepte QUE
-    // `SubjectNameID` (identifiant national stable). `preferred_username` peut
-    // diverger selon le mode d'auth PSC (compte délégué, etc.) — pas fiable
-    // pour le binding.
+    // `preferred_username` peut diverger de l'identifiant national selon le
+    // mode d'auth (compte délégué, etc.) — on n'accepte que `SubjectNameID`.
     const subjectNameId = idTokenPayload.SubjectNameID;
     if (!subjectNameId || typeof subjectNameId !== "string") {
       return res.status(200).send({ ok: false, error: "PSC_NO_SUBJECT_ID" });
     }
 
-    // 5. Lookup du user Mano via le hash
     const hash = hashPscSubjectNameId(subjectNameId);
     const user = await User.findOne({ where: { pscSubjectNameIdHash: hash } });
     if (!user) {
       return res.status(200).send({ ok: false, error: "PSC_USER_NOT_FOUND" });
     }
 
-    // 6. Vérifs métier (mêmes guards que /signin et /signin-token)
     if (user.disabledAt) {
       return res.status(200).send({ ok: false, error: "PSC_ACCOUNT_DISABLED" });
     }
     if (user.role === "superadmin") {
-      // v1 : PSC interdit pour superadmin (l'OTP requise par /signin-token
-      // ne serait pas satisfaite par PSC seul). À revoir si besoin.
+      // /signin-token exige une OTP récente pour les superadmin, que PSC ne
+      // peut pas satisfaire seul. On refuse au lieu de bypasser l'OTP.
       return res.status(200).send({ ok: false, error: "PSC_SUPERADMIN_FORBIDDEN" });
     }
 
@@ -215,7 +240,6 @@ router.get(
       return res.status(200).send({ ok: false, error: "PSC_ACCOUNT_LOCKED" });
     }
 
-    // 7. Création de la session Mano (mime /signin lignes 279-302)
     user.lastLoginAt = now;
     user.lastDeactivationWarningAt = null;
     user.nextLoginAttemptAt = null;
