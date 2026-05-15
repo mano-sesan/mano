@@ -399,6 +399,7 @@ __metadata:
     express: "npm:^4.20.0"
     express-rate-limit: "npm:^8.2.2"
     helmet: "npm:^4.0.0"
+    jose: "npm:^6.2.3"
     morgan: "npm:^1.10.0"
     multer: "npm:^2.1.1"
     nodemailer: "npm:^8.0.5"
@@ -1999,6 +2000,13 @@ __metadata:
     "@pkgjs/parseargs":
       optional: true
   checksum: 6acc10d139eaefdbe04d2f679e6191b3abf073f111edf10b1de5302c97ec93fffeb2fdd8681ed17f16268aa9dd4f8c588ed9d1d3bffbbfa6e8bf897cbb3149b9
+  languageName: node
+  linkType: hard
+
+"jose@npm:^6.2.3":
+  version: 6.2.3
+  resolution: "jose@npm:6.2.3"
+  checksum: aa91bccba22cc84d86308f833749bcb0b00441e35c24e0ac79abeac5f76dc62d47bdef9c1da6a0c609f5da6478595f52b252085888b89dbdb163861e40ea4188
   languageName: node
   linkType: hard
 

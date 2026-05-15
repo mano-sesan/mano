@@ -49,6 +49,13 @@ services:
       STORAGE_DIRECTORY: /data
       SECRET: /run/secrets/secret
       MANO_API_IS_PRODUCTION: "true"
+      # Pro Santé Connect — Tant que `psc_client_id` est vide, l'intégration  se désactive d'elle-même côté API (pscEnabled() retourne false).
+      # Pour activer en prod : écrire les valeurs dans les 5 fichiers et relancer le container. Pas de modifs docker-compose nécessaires.
+      PSC_CLIENT_ID_FILE: /run/secrets/psc_client_id
+      PSC_CLIENT_SECRET_FILE: /run/secrets/psc_client_secret
+      PSC_ISSUER_FILE: /run/secrets/psc_issuer
+      PSC_AUTH_URL_FILE: /run/secrets/psc_auth_url
+      PSC_REDIRECT_URI_FILE: /run/secrets/psc_redirect_uri
       no_proxy: ad.sesan.fr,.gcsidf.local,localhost,127.0.0.1
       https_proxy: http://sesclaprx-vip.grita.fr:3128
       http_proxy: http://sesclaprx-vip.grita.fr:3128
@@ -60,6 +67,11 @@ services:
       - pguser
       - secret
       - database
+      - psc_client_id
+      - psc_client_secret
+      - psc_issuer
+      - psc_auth_url
+      - psc_redirect_uri
   metabase:
     restart: always
     image: metabase/metabase
@@ -103,3 +115,13 @@ secrets:
     file: ./.secrets/mb_db_user
   mb_db_password:
     file: ./.secrets/mb_db_password
+  psc_client_id:
+    file: ./.secrets/psc_client_id
+  psc_client_secret:
+    file: ./.secrets/psc_client_secret
+  psc_issuer:
+    file: ./.secrets/psc_issuer
+  psc_auth_url:
+    file: ./.secrets/psc_auth_url
+  psc_redirect_uri:
+    file: ./.secrets/psc_redirect_uri
