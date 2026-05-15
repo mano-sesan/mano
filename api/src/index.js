@@ -62,6 +62,7 @@ app.get("/sentry-check", async (req, res) => {
 
 // Endpoint temporaire de diagnostic IP — à supprimer une fois le chaînage X-Forwarded-For validé
 app.get("/debug-ip", async (req, res) => {
+  // up
   res.json({
     "req.ip": req.ip,
     "req.ips": req.ips,
