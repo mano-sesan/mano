@@ -59,7 +59,12 @@ const PlaceRow = ({ place, relPersonPlace, personDB, navigation }: PlaceRowProps
     if (response.ok) {
       await refresh();
     }
-    if (!response.ok) return Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
+      return;
+    }
   };
 
   return (

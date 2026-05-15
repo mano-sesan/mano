@@ -36,11 +36,14 @@ function IncrementorSmall({
     function updateServiceInDatabase(_value) {
       if (_value === initialValue) return;
 
-      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: _value, service: service.service } }).then((res) => {
-        if (res.error) {
-          return Alert.alert("Erreur lors de la mise à jour du service");
+      API.post({ path: `/service/team/${team}/date/${date}`, body: { count: _value, service: service.service } }).then((response) => {
+        if (!response.ok) {
+          if (response.error) {
+            Alert.alert("Erreur lors de la mise à jour du service");
+          }
+          return;
         }
-        onUpdated(res.data.count);
+        onUpdated(response.data.count);
       });
     },
     500,
@@ -99,7 +102,12 @@ const Services = ({ navigation, route }: Props) => {
   useEffect(() => {
     async function initServices() {
       const response = await API.get({ path: `/service/team/${currentTeam._id}/date/${date}` });
-      if (response.error) return Alert.alert(response.error);
+      if (!response.ok) {
+        if (response.error) {
+          Alert.alert(response.error);
+        }
+        return;
+      }
       setServices(response.data);
     }
     initServices();

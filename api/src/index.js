@@ -20,10 +20,11 @@ require("./utils/desactivateUsers");
 require("./utils/cleanOrphanedFiles");
 
 const versionCheck = require("./middleware/versionCheck");
+const blockMobileMedicalWrites = require("./middleware/blockMobileMedicalWrites");
 
 // Put together a schema
 const app = express();
-app.set("trust proxy", 1);
+app.set("trust proxy", 2);
 if (["development", "test"].includes(process.env.NODE_ENV)) {
   app.use(logger("dev"));
 }
@@ -125,10 +126,10 @@ app.use("/service", require("./controllers/service"));
 app.use("/custom-field", require("./controllers/custom-field"));
 app.use("/migration", require("./controllers/migration"));
 app.use("/merge", require("./controllers/merge"));
-app.use("/consultation", require("./controllers/consultation"));
-app.use("/treatment", require("./controllers/treatment"));
+app.use("/consultation", blockMobileMedicalWrites, require("./controllers/consultation"));
+app.use("/treatment", blockMobileMedicalWrites, require("./controllers/treatment"));
 app.use("/group", require("./controllers/group"));
-app.use("/medical-file", require("./controllers/medicalFile"));
+app.use("/medical-file", blockMobileMedicalWrites, require("./controllers/medicalFile"));
 app.use("/recurrence", require("./controllers/recurrence"));
 app.use("/document-share", require("./controllers/documentShare"));
 app.use("/transfer-team", require("./controllers/transferTeam"));

@@ -1,10 +1,32 @@
 import "fast-text-encoding"; // for TextEncoder
 import sodium, { ready } from "react-native-libsodium";
 import rnBase64 from "react-native-base64";
+import { Alert } from "react-native";
+import { capture } from "./sentry";
 const Buffer = require("buffer").Buffer;
 // https://github.com/serenity-kit/react-native-libsodium?tab=readme-ov-file#usage
 // the lib doesn't export this value, so we need to define it manually
 sodium.crypto_secretbox_MACBYTES = 16;
+
+/*
+
+Get/set/reset org encryption key
+
+*/
+let hashedOrgEncryptionKey = null;
+
+export function getHashedOrgEncryptionKey() {
+  return hashedOrgEncryptionKey;
+}
+
+export const setOrgEncryptionKey = async (orgEncryptionKey) => {
+  hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
+  return hashedOrgEncryptionKey;
+};
+
+export const resetOrgEncryptionKey = () => {
+  hashedOrgEncryptionKey = null;
+};
 
 /*
 
@@ -24,6 +46,7 @@ const _appendBuffer = function (buffer1, buffer2) {
 Get master key
 
 */
+
 // (password: string) -> masterKey: b64
 const derivedMasterKey = async (password) => {
   await ready;
@@ -137,6 +160,20 @@ export const _encrypt_and_prepend_nonce_uint8array = async (message_string_or_ui
   return arrayBites;
 };
 
+export const encryptItem = async (item) => {
+  if (!getHashedOrgEncryptionKey()) return item;
+  if (item.decrypted) {
+    if (!item.entityKey) item.entityKey = await generateEntityKey();
+    const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, getHashedOrgEncryptionKey());
+
+    item.encrypted = encryptedContent;
+    item.encryptedEntityKey = encryptedEntityKey;
+    delete item.decrypted;
+    delete item.entityKey;
+  }
+  return item;
+};
+
 // Encrypt a file with the master key + entity key, and return the encrypted file and the entity key
 const encryptFile = async (fileInBase64, masterKey) => {
   await ready;
@@ -166,6 +203,49 @@ const checkEncryptedVerificationKey = async (encryptedVerificationKey, masterKey
   return false;
 };
 
+const decryptDBItem = async (item, { path } = {}) => {
+  if (!getHashedOrgEncryptionKey()) return item;
+  if (!item.encrypted) return item;
+  if (!!item.deletedAt) return item;
+  if (!item.encryptedEntityKey) return item;
+  try {
+    const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, getHashedOrgEncryptionKey());
+
+    delete item.encrypted;
+
+    try {
+      JSON.parse(content);
+    } catch (errorDecryptParsing) {
+      Alert.alert(errorDecryptParsing.message, "Désolé une erreur est survenue lors du déchiffrement");
+      capture("ERROR PARSING CONTENT", {
+        extra: { errorDecryptParsing, encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10) },
+        tags: { _id: item._id },
+      });
+    }
+
+    const decryptedItem = {
+      ...item,
+      ...JSON.parse(content),
+      entityKey,
+    };
+    return decryptedItem;
+  } catch (errorDecrypt) {
+    capture(errorDecrypt, {
+      extra: {
+        message: "ERROR DECRYPTING ITEM",
+        item,
+        path,
+      },
+    });
+    // we dont display the alert because it would be too many alerts potentially, and kill the UX and maybe the app too
+    // Alert.alert(
+    //   "Désolé, un élément n'a pas pu être déchiffré",
+    //   "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
+    // );
+  }
+  return item;
+};
+
 // Decrypt a file with the master key + entity key, and return the decrypted file
 // (file: File, masterKey: Uint8Array, entityKey: Uint8Array) => Promise<File>
 const decryptFile = async (fileAsBase64, encryptedEntityKey, masterKey) => {
@@ -192,4 +272,14 @@ const _decrypt_after_extracting_nonce_uint8array = async (nonce_and_cypher_uint8
   return sodium.crypto_secretbox_open_easy(ciphertext_uint8array, nonce_uint8array, key_b64);
 };
 
-export { decryptFile, derivedMasterKey, generateEntityKey, encrypt, decrypt, encryptVerificationKey, checkEncryptedVerificationKey, encryptFile };
+export {
+  decryptFile,
+  derivedMasterKey,
+  generateEntityKey,
+  encrypt,
+  decrypt,
+  encryptVerificationKey,
+  checkEncryptedVerificationKey,
+  encryptFile,
+  decryptDBItem,
+};

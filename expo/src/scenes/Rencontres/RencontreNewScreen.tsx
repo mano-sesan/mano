@@ -164,7 +164,9 @@ const NewRencontreForm = ({
 
       if (!response.ok) {
         setPosting(false);
-        Alert.alert(response.error || response.code);
+        if (response.error) {
+          Alert.alert(response.error);
+        }
         return;
       }
 

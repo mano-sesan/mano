@@ -366,7 +366,9 @@ const ConsultationForm = ({ navigation, route, consultationDB, consultation, set
     setDeleting(true);
     const response = await API.delete({ path: `/consultation/${consultationDB._id}` });
     if (!response.ok) {
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return;
     }
     await refresh();

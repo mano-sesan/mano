@@ -1,20 +1,15 @@
 import React, { useCallback, useMemo, useState } from "react";
 import * as Sentry from "@sentry/react-native";
 import { useAtomValue } from "jotai";
-import { useActionSheet } from "@expo/react-native-action-sheet";
 import ActionRow from "../../components/ActionRow";
 import Spinner from "../../components/Spinner";
 import { ListEmptyActions, ListNoMoreActions } from "../../components/ListEmptyContainer";
-import FloatAddButton from "../../components/FloatAddButton";
 import { FlashListStyled } from "../../components/Lists";
 import { actionsFiltersState, TODO } from "../../atoms/actions";
 import { useActionsByStatusAndTimeframeSelector, useTotalActionsByStatusSelector } from "../../atoms/selectors";
 import Button from "../../components/Button";
 import ConsultationRow from "../../components/ConsultationRow";
-import { organisationState, userState } from "../../atoms/auth";
 import { Dimensions, View } from "react-native";
-import { dayjsInstance } from "../../services/dateDayjs";
-import { flattenedServicesSelector } from "../../atoms/reports";
 import { ActionsScreenSubTabParams, ActionsScreenTopTabParams, RootStackParamList } from "@/types/navigation";
 import { MaterialTopTabScreenProps } from "@react-navigation/material-top-tabs";
 import { ActionInstance } from "@/types/action";
@@ -33,11 +28,7 @@ type ActionsListProps =
   | MaterialTopTabScreenProps<ActionsScreenTopTabParams, "FAIT" | "ANNULEE">;
 
 export default function ActionsList({ navigation, route }: ActionsListProps) {
-  const { showActionSheetWithOptions } = useActionSheet();
-  const flattenedServices = useAtomValue(flattenedServicesSelector);
-  const organisation = useAtomValue(organisationState)!;
   const filters = useAtomValue(actionsFiltersState);
-  const user = useAtomValue(userState)!;
 
   const { status, timeframe } = route.params;
   const [limit, setLimit] = useState(limitSteps);
@@ -51,42 +42,6 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
 
   const { refresh, isLoading } = useDataLoader();
   useRefreshOnFocus();
-
-  const onPressFloatingButton = async () => {
-    const isConsultationButtonEnabled = user.healthcareProfessional;
-    const isServiceButtonEnabled = organisation.receptionEnabled && Boolean(flattenedServices?.length);
-    const isRencontreButtonEnabled = organisation.rencontresEnabled;
-    if (!isConsultationButtonEnabled && !isServiceButtonEnabled && !isRencontreButtonEnabled) {
-      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
-      return;
-    }
-
-    const options = ["Ajouter une action"];
-    if (isConsultationButtonEnabled) options.push("Ajouter une consultation");
-    if (isRencontreButtonEnabled) options.push("Ajouter une rencontre");
-    if (isServiceButtonEnabled) options.push("Ajouter un service");
-    options.push("Annuler");
-    showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex: options.length - 1,
-      },
-      async (buttonIndex) => {
-        if (options[buttonIndex!] === "Ajouter une action") {
-          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("ACTION_NEW_STACK");
-        }
-        if (isConsultationButtonEnabled && options[buttonIndex!] === "Ajouter une consultation") {
-          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().push("CONSULTATION_STACK");
-        }
-        if (isRencontreButtonEnabled && options[buttonIndex!] === "Ajouter une rencontre") {
-          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("RENCONTRE_NEW_STACK");
-        }
-        if (isServiceButtonEnabled && options[buttonIndex!] === "Ajouter un service") {
-          navigation.getParent<NativeStackNavigationProp<RootStackParamList>>().navigate("SERVICES", { date: dayjsInstance().format("YYYY-MM-DD") });
-        }
-      }
-    );
-  };
 
   const FlatListFooterComponent = useMemo(() => {
     if (hasMore) return <Button caption="Montrer plus d'actions" onPress={() => setLimit((l) => l + limitSteps)} testID="show-more-actions" />;
@@ -149,7 +104,6 @@ export default function ActionsList({ navigation, route }: ActionsListProps) {
         onEndReachedThreshold={0.3}
         ListFooterComponent={FlatListFooterComponent}
       />
-      <FloatAddButton onPress={onPressFloatingButton} />
     </View>
   );
 }

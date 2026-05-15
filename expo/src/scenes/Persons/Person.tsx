@@ -36,6 +36,7 @@ import { PersonStackParams, RootStackParamList } from "@/types/navigation";
 import { hideEditButtonAtom } from "@/utils/hide-edit-button";
 import { useDataLoader } from "@/services/dataLoader";
 import useRefreshOnFocus from "@/utils/refresh-on-focus";
+import { encryptItem } from "@/services/encryption";
 
 const PersonStack = createNativeStackNavigator<PersonStackParams>();
 
@@ -109,7 +110,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
         birthdate: person.birthdate,
         alertness: person.alertness,
         wanderingAt: person.wanderingAt,
-        followedSince: person.followedSince,
+        followedSince: person.followedSince || person.createdAt,
         createdAt: person.createdAt,
         gender: person.gender,
         phone: person.phone?.trim(),
@@ -199,9 +200,11 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       path: `/person/${personDB._id}`,
       body: preparePersonForEncryption(personToUpdate),
     });
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
       setUpdating(false);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     const newPerson = response.decryptedData;
@@ -278,7 +281,7 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
       if (updatedGroup.relations.length === 0) {
         body.groupIdToDelete = group._id;
       } else {
-        body.groupToUpdate = await API.encryptItem(prepareGroupForEncryption(updatedGroup));
+        body.groupToUpdate = await encryptItem(prepareGroupForEncryption(updatedGroup));
       }
 
       if (personTransferId) {
@@ -292,14 +295,14 @@ const Person = ({ route, navigation, onRemoveFromActiveList, onAddActionRequest 
                 user: action.user || user._id,
               });
             })
-            .map(API.encryptItem)
+            .map(encryptItem)
         );
 
         body.commentsToTransfer = await Promise.all(
           comments
             .filter((c) => c.person === personDB._id && c.group === true)
             .map((comment) => prepareCommentForEncryption({ ...comment, person: personTransferId }))
-            .map(API.encryptItem)
+            .map(encryptItem)
         );
       }
     }

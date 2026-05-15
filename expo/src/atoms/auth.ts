@@ -1,16 +1,15 @@
-import { atom } from "jotai";
+import { atom, type WritableAtom, type SetStateAction } from "jotai";
 import { OrganisationInstance } from "@/types/organisation";
 import { TeamInstance } from "@/types/team";
-import { UserInstance } from "@/types/user";
+import { UserInstance, UserResponseData } from "@/types/user";
 import * as Sentry from "@sentry/react-native";
-import { SetStateAction, WritableAtom } from "jotai";
 
 // User state with Sentry side effect
-const userBaseAtom = atom<UserInstance | null>(null);
-export const userState: WritableAtom<UserInstance | null, [SetStateAction<UserInstance | null>], void> = atom(
+const userBaseAtom = atom<UserResponseData | null>(null);
+export const userState: WritableAtom<UserResponseData | null, [SetStateAction<UserResponseData | null>], void> = atom(
   (get) => get(userBaseAtom),
-  (get, set, update: SetStateAction<UserInstance | null>) => {
-    const user = typeof update === "function" ? (update as (prev: UserInstance | null) => UserInstance | null)(get(userBaseAtom)) : update;
+  (get, set, update: SetStateAction<UserResponseData | null>) => {
+    const user = typeof update === "function" ? (update as (prev: UserResponseData | null) => UserResponseData | null)(get(userBaseAtom)) : update;
     set(userBaseAtom as any, user);
     Sentry.setUser({
       id: user?._id,

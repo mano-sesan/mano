@@ -81,9 +81,11 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
       path: `/territory/${territoryDB._id}`,
       body: prepareTerritoryForEncryption({ ...castToTerritory(territory), user: territory.user || user._id }),
     });
-    if (response.error) {
+    if (!response.ok) {
       setUpdating(false);
-      Alert.alert(response.error);
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     if (response.ok) {
@@ -103,8 +105,10 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
         observationIds: territoryObservations.filter((o) => o.territory === territoryDB._id).map((o) => o._id),
       },
     });
-    if (response.error) {
-      Alert.alert(response.error);
+    if (!response.ok) {
+      if (response.error) {
+        Alert.alert(response.error);
+      }
       return false;
     }
     if (!response.ok) return false;
@@ -209,7 +213,12 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                         text: "Archiver",
                         onPress: async () => {
                           const response = await API.post({ path: `/territory/${territoryDB._id}/archive` });
-                          if (response.error) return Alert.alert(response.error);
+                          if (!response.ok) {
+                            if (response.error) {
+                              Alert.alert(response.error);
+                            }
+                            return;
+                          }
                           await refresh();
                           setTerritoryDB((t) => ({ ...t, archivedAt: new Date().toISOString() }));
                           Alert.alert("Territoire archivé");
@@ -224,7 +233,12 @@ const Territory = ({ route, navigation }: TerritoryProps) => {
                 caption="Désarchiver"
                 onPress={async () => {
                   const response = await API.post({ path: `/territory/${territoryDB._id}/unarchive` });
-                  if (response.error) return Alert.alert(response.error);
+                  if (!response.ok) {
+                    if (response.error) {
+                      Alert.alert(response.error);
+                    }
+                    return;
+                  }
                   await refresh();
                   setTerritoryDB((t) => ({ ...t, archivedAt: null }));
                   Alert.alert("Territoire désarchivé");

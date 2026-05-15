@@ -191,7 +191,7 @@ const PersonSummary = ({
           label="Suivi(e) depuis / Créé(e) le"
           // @ts-expect-error Type 'PossibleDate' is not assignable to type 'Date | undefined'.
           setDate={(followedSince) => onChange({ followedSince })}
-          date={person.followedSince}
+          date={person.followedSince || person.createdAt}
           editable={editable}
           showYear
           required
@@ -199,7 +199,7 @@ const PersonSummary = ({
       ) : (
         <InputLabelled
           label="Suivi(e) depuis / Créé(e) il y a"
-          value={`${getRelativeTimeFrench(dayjs(), person.followedSince)} (${dayjs(person.followedSince).format("DD/MM/YYYY")})`}
+          value={`${getRelativeTimeFrench(dayjs(), person.followedSince || person.createdAt)} (${dayjs(person.followedSince || person.createdAt).format("DD/MM/YYYY")})`}
           placeholder="JJ-MM-AAAA"
           editable={false}
         />
@@ -348,8 +348,10 @@ const PersonSummary = ({
                 canToggleUrgentCheck
                 onDelete={async () => {
                   const response = await API.delete({ path: `/comment/${comment._id}` });
-                  if (response.error) {
-                    Alert.alert(response.error);
+                  if (!response.ok) {
+                    if (response.error) {
+                      Alert.alert(response.error);
+                    }
                     return false;
                   }
                   await refresh();
@@ -363,8 +365,10 @@ const PersonSummary = ({
                           path: `/comment/${comment._id}`,
                           body: prepareCommentForEncryption(commentUpdated),
                         });
-                        if (response.error) {
-                          Alert.alert(response.error);
+                        if (!response.ok) {
+                          if (response.error) {
+                            Alert.alert(response.error);
+                          }
                           return false;
                         }
                         if (response.ok) {
@@ -396,7 +400,9 @@ const PersonSummary = ({
               };
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
-                Alert.alert(response.error || response.code);
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               await refresh();

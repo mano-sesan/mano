@@ -225,12 +225,12 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     if (!action.name.trim()?.length && !action.categories.length) {
       Alert.alert("L'action doit avoir au moins un nom ou une catégorie");
       setUpdating(false);
-      return false;
+      return { ok: false, error: "L'action doit avoir au moins un nom ou une catégorie" };
     }
     if (!action.dueAt) {
       Alert.alert("Vous devez rentrer une date d'échéance");
       setUpdating(false);
-      return false;
+      return { ok: false, error: "Vous devez rentrer une date d'échéance" };
     }
     const oldAction = actions.find((a) => a._id === action._id);
     console.log("action._id", action._id);
@@ -238,7 +238,7 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
       Alert.alert("Action non trouvée");
       await refresh();
       setUpdating(false);
-      return false;
+      return { ok: false, error: "Action non trouvée" };
     }
     const statusChanged = action.status && oldAction.status !== action.status;
     try {
@@ -293,7 +293,9 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
           })
         );
         if (!response.ok) {
-          Alert.alert(response.error);
+          if (response.error) {
+            Alert.alert(response.error);
+          }
           setUpdating(false);
           return;
         }
@@ -393,18 +395,18 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
   };
 
   const deleteAction = async (id: string) => {
-    const res = await API.delete({
+    const response = await API.delete({
       path: `/action/${id}`,
       body: {
         commentIdsToDelete: comments.filter((c) => c.action === id).map((c) => c._id),
       },
     });
-    if (res.ok) await refresh();
-    return res;
+    if (response.ok) await refresh();
+    return response;
   };
 
   const onDelete = async () => {
-    let response;
+    let response: Awaited<ReturnType<typeof API.delete>> | undefined;
     if (isMultipleActions) {
       for (const a of multipleActions!) {
         response = await deleteAction(a._id);
@@ -412,8 +414,13 @@ const Action = ({ navigation, route, actionDB, action, actions, setAction, perso
     } else {
       response = await deleteAction(actionDB._id);
     }
-    if (response.error) return Alert.alert(response.error);
-    if (response.ok) {
+    if (!response!.ok) {
+      if (response!.error) {
+        Alert.alert(response!.error);
+      }
+      return;
+    }
+    if (response!.ok) {
       Alert.alert(isMultipleActions ? "Actions supprimées !" : "Action supprimée !");
       onBack();
     }
@@ -821,7 +828,9 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
               };
               const response = await API.post({ path: "/comment", body: prepareCommentForEncryption(body) });
               if (!response.ok) {
-                Alert.alert(response.error || response.code);
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               Keyboard.dismiss();
@@ -839,8 +848,10 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
             canToggleUrgentCheck
             onDelete={async () => {
               const response = await API.delete({ path: `/comment/${comment._id}` });
-              if (response.error) {
-                Alert.alert(response.error);
+              if (!response.ok) {
+                if (response.error) {
+                  Alert.alert(response.error);
+                }
                 return false;
               }
               await refresh();
@@ -854,8 +865,10 @@ const ActionComments = ({ actionDB, actionComments, canComment }: ActionComments
                       path: `/comment/${comment._id}`,
                       body: prepareCommentForEncryption(commentUpdated),
                     });
-                    if (response.error) {
-                      Alert.alert(response.error);
+                    if (!response.ok) {
+                      if (response.error) {
+                        Alert.alert(response.error);
+                      }
                       return false;
                     }
                     if (response.ok) {

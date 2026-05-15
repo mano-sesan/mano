@@ -19,22 +19,21 @@ Les étapes à suivre sont
 
 1. dans `./eas.json`, remplacez `{nouveau-nom}` par ce que vous voulez (exemple : `niort`)
 
-  ```json
-  "production-{nouveau-nom}": {
-      "extends": "production",
-      "env": {
-        "PACKAGE_ID": "com.sesan.mano.{nouveau-nom}",
-        "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-{nouveau-nom}"
-      }
+```json
+"production-{nouveau-nom}": {
+    "extends": "production",
+    "env": {
+      "PACKAGE_ID": "com.sesan.mano.{nouveau-nom}",
+      "EXPO_PUBLIC_MANO_DOWNLOAD_URL": "https://mano.sesan.fr/download-{nouveau-nom}"
     }
-  ```
+  }
+```
 
 2. dans `./package.json`, ajoutez un script
 
-
-  ```json
-  "build-local:android-apk-{nouveau-nom}": "eas build -p android --local --profile production-{nouveau-nom} && node rename-apk.js --append={nouveau-nom}",
-  ```
+```json
+"build-local:android-apk-{nouveau-nom}": "eas build -p android --local --profile production-{nouveau-nom} && node rename-apk.js --append={nouveau-nom}",
+```
 
 3. adaptez `./publish-releases-to-github.js` pour que la release soit faite pour ce `{nouveau-nom}`
 
@@ -49,7 +48,6 @@ Les étapes à suivre sont
 Suivre les instructions de Detox, et tâtonner avec les Java et autre `ANDROID_HOME`...
 -> https://wix.github.io/Detox/docs/introduction/getting-started/
 -> https://wix.github.io/Detox/docs/introduction/android-dev-env
-
 
 ## Développement
 
@@ -87,10 +85,9 @@ Suivre les instructions de Detox, et tâtonner avec les Java et autre `ANDROID_H
   yarn start
   ```
 
-
 ## Compile for production
 
-- Just run 
+- Just run
 
   ```sh
   yarn build-local:android-aab

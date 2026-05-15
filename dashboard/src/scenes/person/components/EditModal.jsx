@@ -489,7 +489,7 @@ export default function EditModal({ person, selectedPanel, onClose, isMedicalFil
                             <DatePicker
                               id="person-followedSince"
                               name="followedSince"
-                              defaultValue={personFormData.followedSince}
+                              defaultValue={personFormData.followedSince || personFormData.createdAt}
                               onChange={handlePersonChange}
                             />
                           </div>

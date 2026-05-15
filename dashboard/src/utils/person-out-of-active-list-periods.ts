@@ -80,9 +80,8 @@ export function extractOutOfActiveListPeriods(
   }
 
   // Fill any remaining null start dates with followedSince (earliest possible date)
-  const fallbackStart = person.followedSince
-    ? dayjsInstance(person.followedSince).startOf("day").toISOString()
-    : dayjsInstance("1970-01-01").toISOString();
+  const followedSince = person.followedSince || person.createdAt;
+  const fallbackStart = followedSince ? dayjsInstance(followedSince).startOf("day").toISOString() : dayjsInstance("1970-01-01").toISOString();
 
   for (const period of periods) {
     if (period.isoStartDate === null) {

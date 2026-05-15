@@ -1,6 +1,6 @@
 {
   "name": "mano",
-  "version": "3.22.1",
+  "version": "3.22.2",
   "main": "index.tsx",
   "scripts": {
     "start": "npm run get-ip && expo start --dev-client --clear",
@@ -16,6 +16,7 @@
     "build-local:android-apk-nantes": "eas build -p android --local --output ./mano-nantes.apk --profile production-nantes",
     "build-local:android-apks": "npm run build-local:android-apk-standard && npm run build-local:android-apk-niort && npm run build-local:android-apk-nantes",
     "publish-releases-to-github": "node publish-releases-to-github.js",
+    "test": "vitest run",
     "typecheck": "tsc -b",
     "android": "expo run:android",
     "ios": "expo run:ios"
@@ -28,7 +29,7 @@
     "@react-native-documents/picker": "^11.0.3",
     "@react-native-documents/viewer": "^3.0.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
-    "@react-native-picker/picker": "2.11.1",
+    "@react-native-picker/picker": "2.11.4",
     "@react-navigation/bottom-tabs": "^7.1.1",
     "@react-navigation/elements": "^2.2.3",
     "@react-navigation/material-top-tabs": "^7.2.11",
@@ -89,15 +90,19 @@
     "@types/react": "~19.1.10",
     "@types/semver": "^7",
     "@types/ungap__structured-clone": "^1.2.0",
+    "@types/urijs": "^1.19.26",
     "@types/uuid": "^11.0.0",
     "chalk": "^5.6.2",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "libsodium-wrappers-sumo": "^0.8.4",
     "semver": "^7.7.3",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "vitest": "^4.1.2"
   },
   "resolutions": {
-    "react-native-safe-area-context": "5.6.2"
+    "react-native-safe-area-context": "5.6.2",
+    "hermes-parser": "0.36.0"
   },
   "expo": {
     "doctor": {

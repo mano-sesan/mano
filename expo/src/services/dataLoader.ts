@@ -2,7 +2,7 @@
 import { Alert } from "react-native";
 import { atom, useAtom, useSetAtom } from "jotai";
 import { useMMKVNumber } from "react-native-mmkv";
-
+import structuredClone from "@ungap/structured-clone";
 import { personsState } from "../atoms/persons";
 import { groupsState } from "../atoms/groups";
 import { treatmentsState } from "../atoms/treatments";
@@ -24,6 +24,7 @@ import { appCurrentCacheKey, clearCache } from "./dataManagement";
 import { storage } from "./storage";
 import API from "./api";
 import { capture } from "./sentry";
+import { decryptDBItem } from "./encryption";
 
 // Update to flush cache.
 export const isLoadingState = atom(false);
@@ -89,9 +90,9 @@ export function useDataLoader() {
     // Refresh organisation (and user), to get the latest organisation fields and the latest user roles
     const userResponse = await API.get({ path: "/user/me" });
     if (!userResponse.ok) return resetLoaderOnError();
-    const latestOrganisation = userResponse.user.organisation;
-    const latestUser = userResponse.user;
-    const latestTeams = userResponse.user.orgTeams;
+    const latestUser = userResponse.user!;
+    const latestOrganisation = latestUser.organisation;
+    const latestTeams = latestUser.orgTeams!;
     const organisationId = latestOrganisation._id;
     // Au tout premier login, `organisation` peut encore être `null` dans la closure (l'atom a été setté
     // mais ce render-ci ne l'a pas encore vu). On ne compare donc qu'en refresh.
@@ -103,7 +104,7 @@ export function useDataLoader() {
       return false;
     }
     if (latestOrganisation.disabledAt) {
-      API.logout();
+      API.logout(true);
       return false;
     }
     if (JSON.stringify(latestOrganisation) !== JSON.stringify(organisation)) {
@@ -172,7 +173,7 @@ export function useDataLoader() {
       async function loadPersons(page = 0) {
         const res = await API.get({ path: "/person", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "persons" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPersons.push(...decryptedData);
         if (res.hasMore) return loadPersons(page + 1);
@@ -201,7 +202,7 @@ export function useDataLoader() {
       async function loadGroups(page = 0) {
         const res = await API.get({ path: "/group", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "groups" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newGroups.push(...decryptedData);
         if (res.hasMore) return loadGroups(page + 1);
@@ -230,7 +231,7 @@ export function useDataLoader() {
       async function loadReports(page = 0) {
         const res = await API.get({ path: "/report", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "reports" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newReports.push(...decryptedData);
         if (res.hasMore) return loadReports(page + 1);
@@ -261,7 +262,7 @@ export function useDataLoader() {
       async function loadPassages(page = 0) {
         const res = await API.get({ path: "/passage", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "passages" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPassages.push(...decryptedData);
         if (res.hasMore) return loadPassages(page + 1);
@@ -290,7 +291,7 @@ export function useDataLoader() {
       async function loadRencontres(page = 0) {
         const res = await API.get({ path: "/rencontre", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "rencontres" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRencontres.push(...decryptedData);
         if (res.hasMore) return loadRencontres(page + 1);
@@ -319,7 +320,7 @@ export function useDataLoader() {
       async function loadActions(page = 0) {
         const res = await API.get({ path: "/action", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "actions" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newActions.push(...decryptedData);
         if (res.hasMore) return loadActions(page + 1);
@@ -348,7 +349,7 @@ export function useDataLoader() {
       async function loadRecurrences(page = 0) {
         const res = await API.get({ path: "/recurrence", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "recurrences" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRecurrences.push(...decryptedData);
         if (res.hasMore) return loadRecurrences(page + 1);
@@ -377,7 +378,7 @@ export function useDataLoader() {
       async function loadTerritories(page = 0) {
         const res = await API.get({ path: "/territory", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "territories" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritories.push(...decryptedData);
         if (res.hasMore) return loadTerritories(page + 1);
@@ -406,7 +407,7 @@ export function useDataLoader() {
       async function loadPlaces(page = 0) {
         const res = await API.get({ path: "/place", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "places" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newPlaces.push(...decryptedData);
         if (res.hasMore) return loadPlaces(page + 1);
@@ -435,7 +436,7 @@ export function useDataLoader() {
       async function loadRelsPersonPlace(page = 0) {
         const res = await API.get({ path: "/relPersonPlace", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "relsPersonPlace" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newRelsPersonPlace.push(...decryptedData);
         if (res.hasMore) return loadRelsPersonPlace(page + 1);
@@ -464,7 +465,7 @@ export function useDataLoader() {
       async function loadObservations(page = 0) {
         const res = await API.get({ path: "/territory-observation", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "territoryObservations" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newTerritoryObservations.push(...decryptedData);
         if (res.hasMore) return loadObservations(page + 1);
@@ -493,7 +494,7 @@ export function useDataLoader() {
       async function loadComments(page = 0) {
         const res = await API.get({ path: "/comment", query: { ...query, page: String(page) } });
         if (!res.ok) return resetLoaderOnError();
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "comments" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newComments.push(...decryptedData);
         if (res.hasMore) return loadComments(page + 1);
@@ -527,8 +528,8 @@ export function useDataLoader() {
           query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
         });
         if (!res.ok) return resetLoaderOnError();
-        newConsultationsRaw.push(...res.data);
-        const decryptedData = res.decryptedData.filter((e: any) => e);
+        newConsultationsRaw.push(...structuredClone(res.data));
+        const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "consultation" })))).filter((e) => e);
         setProgress((p) => p + res.data.length);
         newConsultations.push(...decryptedData);
         if (res.hasMore) return loadConsultations(page + 1);
@@ -543,7 +544,7 @@ export function useDataLoader() {
       setMMKVCacheItem("consultation", mergedEncrypted);
       const allDecrypted: any[] = [];
       for (const item of mergedEncrypted) {
-        const d = await API.decryptDBItem(item);
+        const d = await decryptDBItem(item);
         if (d) allDecrypted.push(d);
       }
       setConsultations(allDecrypted.map(formatConsultation));
@@ -564,8 +565,8 @@ export function useDataLoader() {
             query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
           });
           if (!res.ok) return resetLoaderOnError();
-          newTreatmentsRaw.push(...res.data);
-          const decryptedData = res.decryptedData.filter((e: any) => e);
+          newTreatmentsRaw.push(...structuredClone(res.data));
+          const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "treatments" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newTreatments.push(...decryptedData);
           if (res.hasMore) return loadTreatments(page + 1);
@@ -581,7 +582,7 @@ export function useDataLoader() {
         setMMKVCacheItem("treatment", mergedEncrypted);
         const allDecrypted: any[] = [];
         for (const item of mergedEncrypted) {
-          const d = await API.decryptDBItem(item);
+          const d = await decryptDBItem(item);
           if (d) allDecrypted.push(d);
         }
         setTreatments(allDecrypted);
@@ -603,8 +604,8 @@ export function useDataLoader() {
             query: { ...query, page: String(page), after: isStartingInitialLoad ? 0 : lastLoadValue },
           });
           if (!res.ok) return resetLoaderOnError();
-          newMedicalFilesRaw.push(...res.data);
-          const decryptedData = res.decryptedData.filter((e: any) => e);
+          newMedicalFilesRaw.push(...structuredClone(res.data));
+          const decryptedData = (await Promise.all(res.data.map((p: any) => decryptDBItem(p, { type: "medical-file" })))).filter((e) => e);
           setProgress((p) => p + res.data.length);
           newMedicalFiles.push(...decryptedData);
           if (res.hasMore) return loadMedicalFiles(page + 1);
@@ -620,7 +621,7 @@ export function useDataLoader() {
         setMMKVCacheItem("medical-file", mergedEncrypted);
         const allDecrypted: any[] = [];
         for (const item of mergedEncrypted) {
-          const d = await API.decryptDBItem(item);
+          const d = await decryptDBItem(item);
           if (d) allDecrypted.push(d);
         }
         setMedicalFiles(allDecrypted);

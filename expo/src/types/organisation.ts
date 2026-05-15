@@ -33,7 +33,7 @@ export interface OrganisationInstance {
 
   createdAt?: Date;
   updatedAt?: Date;
-
+  disabledAt?: Date | null;
   lockedForEncryption?: boolean;
 
   collaborations?: string[];

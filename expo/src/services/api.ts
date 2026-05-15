@@ -1,6 +1,6 @@
 import URI from "urijs";
 import { HOST, SCHEME, VERSION } from "../config";
-import { decrypt, derivedMasterKey, encrypt, generateEntityKey, checkEncryptedVerificationKey, encryptFile, decryptFile } from "./encryption";
+import { encryptFile, decryptFile, decryptDBItem, encryptItem, getHashedOrgEncryptionKey } from "./encryption";
 import { capture } from "./sentry";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as FileSystem from "expo-file-system";
@@ -28,11 +28,14 @@ import {
   isTablet,
 } from "react-native-device-info";
 import { Alert, Linking, Platform } from "react-native";
+import { store } from "@/store";
+import { organisationState } from "@/atoms/auth";
+import { UserResponseData } from "@/types/user";
 
 const fetchWithFetchRetry = fetchRetry(fetch);
 
 class ApiService {
-  getUrl = (path, query = {}) => {
+  getUrl = (path: string, query: Query = {}) => {
     return new URI().scheme(SCHEME).host(HOST).path(path).setSearch(query).toString();
   };
 
@@ -58,10 +61,37 @@ class ApiService {
     tablet: isTablet(), // false
   });
 
-  execute = async ({ method, path = "", body = null, query = {}, headers = {}, debug = false, batch = null } = {}) => {
+  organisationEncryptionStatus(): Record<string, string | boolean | Date | undefined> {
+    const organisation = store.get(organisationState) || {
+      encryptionLastUpdateAt: undefined,
+      encryptionEnabled: undefined,
+      migrationLastUpdateAt: undefined,
+    };
+    return {
+      encryptionLastUpdateAt: organisation.encryptionLastUpdateAt,
+      encryptionEnabled: organisation.encryptionEnabled,
+      migrationLastUpdateAt: organisation.migrationLastUpdateAt,
+    };
+  }
+
+  execute = async ({
+    method,
+    path = "",
+    body = undefined,
+    query = {},
+    headers = {},
+    debug = false,
+  }: {
+    method: RequestInit["method"];
+    path?: string;
+    body?: any;
+    query?: Query;
+    headers?: Record<string, string>;
+    debug?: boolean;
+  }): Promise<ApiResponse | OfflineApiResponse> => {
     try {
       if (this.token) headers.Authorization = `JWT ${this.token}`;
-      const options = {
+      const options: RequestInit = {
         method,
         headers: {
           ...headers,
@@ -69,18 +99,17 @@ class ApiService {
           Accept: "application/json",
           platform: this.platform,
           version: VERSION,
-          packageid: Application.applicationId,
+          packageid: Application.applicationId!,
         },
       };
+
       if (body) {
-        options.body = JSON.stringify(await this.encryptItem(body));
+        options.body = JSON.stringify(await encryptItem(body));
       }
 
-      if (["PUT", "POST", "DELETE"].includes(method) && this.enableEncrypt) {
+      if (["PUT", "POST", "DELETE"].includes(method)) {
         query = {
-          encryptionLastUpdateAt: this.organisation?.encryptionLastUpdateAt,
-          encryptionEnabled: this.organisation?.encryptionEnabled,
-          migrationLastUpdateAt: this.organisation?.migrationLastUpdateAt,
+          ...this.organisationEncryptionStatus(),
           ...query,
         };
       }
@@ -97,17 +126,23 @@ class ApiService {
           : await fetch(url, options);
 
       if (!response.ok && response.status === 401) {
-        if (this.logout) this.logout("401");
-        if (this.handleLogoutError) this.handleLogoutError();
+        // FIXME: should be this.logout(false) ? brainstorm required
+        if (this.logout) this.logout(true);
+        if (API.showTokenExpiredError) {
+          Alert.alert("Votre session a expiré, veuillez vous reconnecter");
+          API.showTokenExpiredError = false;
+        }
         return response;
       }
 
       try {
-        const res = await response.json();
-        if (!response.ok && this.handleApiError) this.handleApiError(res);
+        const res: ApiResponse = await response.json();
         if (res?.message && res.message === "Veuillez mettre à jour votre application!") {
-          const [title, subTitle, actions = [], options = {}] = res.inAppMessage;
-          if (!actions || !actions.length) return Alert.alert(title, subTitle);
+          const [title, subTitle, actions = [], options = {}] = res.inAppMessage!;
+          if (!actions || !actions.length) {
+            Alert.alert(title, subTitle);
+            return res;
+          }
           const actionsWithNavigation = actions
             .map((action) => {
               if (action.text === "Installer") {
@@ -127,16 +162,21 @@ class ApiService {
           return res;
         }
         if (!!res.data && Array.isArray(res.data)) {
-          const decryptedData = [];
-          for (const item of res.data) {
-            const decryptedItem = await this.decryptDBItem(item, { debug, path });
-            decryptedData.push(decryptedItem);
-          }
-          res.decryptedData = decryptedData;
+          /* 
+          NOTE: pour coller au plus près du loader du dashboard, on ne déchiffre pas les données ici mais dans `dataLoader.ts`
+          */
+          // const decryptedData = [];
+          // for (const item of res.data) {
+          //   const decryptedItem = await decryptDBItem(item, { debug, path });
+          //   decryptedData.push(decryptedItem);
+          // }
+          // res.decryptedData = decryptedData;
           return res;
         }
+        /* Note 2 : on garde le déchiffrement ici temporairement parce que cette logique est adoptée partout dans l'app */
+        /* FIXME: retirer cette logique pour ne conserver que la gestion des données via le `dataLoader.ts` */
         if (res.data) {
-          res.decryptedData = await this.decryptDBItem(res.data, { debug, path });
+          res.decryptedData = await decryptDBItem(res.data, { debug, path });
           return res;
         }
         return res;
@@ -144,7 +184,7 @@ class ApiService {
         capture(errorFromJson, { extra: { message: "error parsing response", response, path, query } });
         return { ok: false, error: "Une erreur inattendue est survenue, l'équipe technique a été prévenue. Désolé !" };
       }
-    } catch (errorExecuteApi) {
+    } catch (errorExecuteApi: any) {
       capture(errorExecuteApi, {
         extra: {
           path,
@@ -154,129 +194,33 @@ class ApiService {
           headers,
         },
       });
-      if (this.handleError) this.handleError(errorExecuteApi, "Désolé une erreur est survenue");
+      Alert.alert(errorExecuteApi.message, "Désolé une erreur est survenue");
       throw errorExecuteApi;
     }
   };
 
-  post = (args) => this.execute({ method: "POST", ...args });
-  get = async (args) => {
-    if (args.batch) {
-      let hasMore = true;
-      let page = 0;
-      let limit = args.batch;
-      let data = [];
-      let decryptedData = [];
-      while (hasMore) {
-        let query = { ...args.query, limit, page };
-        const response = await this.execute({ method: "GET", ...args, query });
-        if (!response.ok) {
-          capture("error getting batch", { extra: { response } });
-          return { ok: false, data: [] };
-        }
-        data.push(...response.data);
-        decryptedData.push(...(response.decryptedData || []));
-        hasMore = response.hasMore;
-        page = response.hasMore ? page + 1 : page;
-        // at least 1 for showing progress
-        if (args.setProgress) args.setProgress(response.decryptedData.length || 1);
-        await new Promise((res) => setTimeout(res, 50));
-      }
-      return { ok: true, data, decryptedData };
-    } else {
-      return this.execute({ method: "GET", ...args });
-    }
-  };
-  put = (args) => this.execute({ method: "PUT", ...args });
-  delete = (args) => this.execute({ method: "DELETE", ...args });
-
-  setOrgEncryptionKey = async (orgEncryptionKey) => {
-    this.hashedOrgEncryptionKey = await derivedMasterKey(orgEncryptionKey);
-    const { encryptedVerificationKey } = this.organisation;
-    if (!encryptedVerificationKey) {
-      capture("encryptedVerificationKey not setup yet", { extra: { organisation: this.organisation } });
-    } else {
-      const encryptionKeyIsValid = await checkEncryptedVerificationKey(encryptedVerificationKey, this.hashedOrgEncryptionKey);
-      if (!encryptionKeyIsValid) {
-        this.post({ path: "/user/decrypt-attempt-failure" });
-        this.handleWrongKey();
-        return false;
-      } else {
-        this.post({ path: "/user/decrypt-attempt-success" });
-      }
-    }
-    this.enableEncrypt = true;
-    this.orgEncryptionKey = orgEncryptionKey;
-    return true;
-  };
-
-  encryptItem = async (item) => {
-    if (!this.enableEncrypt) return item;
-    if (item.decrypted) {
-      if (!item.entityKey) item.entityKey = await generateEntityKey();
-      const { encryptedContent, encryptedEntityKey } = await encrypt(JSON.stringify(item.decrypted), item.entityKey, this.hashedOrgEncryptionKey);
-
-      item.encrypted = encryptedContent;
-      item.encryptedEntityKey = encryptedEntityKey;
-      delete item.decrypted;
-      delete item.entityKey;
-    }
-    return item;
-  };
-
-  decryptDBItem = async (item, { path } = {}) => {
-    if (!this.enableEncrypt) return item;
-    if (!item.encrypted) return item;
-    if (!!item.deletedAt) return item;
-    if (!item.encryptedEntityKey) return item;
-    try {
-      const { content, entityKey } = await decrypt(item.encrypted, item.encryptedEntityKey, this.hashedOrgEncryptionKey);
-
-      delete item.encrypted;
-
-      try {
-        JSON.parse(content);
-      } catch (errorDecryptParsing) {
-        if (this.handleError) this.handleError(errorDecryptParsing, "Désolé une erreur est survenue lors du déchiffrement");
-        capture("ERROR PARSING CONTENT", {
-          extra: { errorDecryptParsing, encryptedEntityKey: item?.encryptedEntityKey?.slice?.(0, 10) },
-          tags: { _id: item._id },
-        });
-      }
-
-      const decryptedItem = {
-        ...item,
-        ...JSON.parse(content),
-        entityKey,
-      };
-      return decryptedItem;
-    } catch (errorDecrypt) {
-      // capture(errorDecrypt, {
-      //   extra: {
-      //     message: 'ERROR DECRYPTING ITEM',
-      //     item,
-      //     path,
-      //   },
-      // });
-      // if (this.handleError) {
-      //   this.handleError(
-      //     "Désolé, un élément n'a pas pu être déchiffré",
-      //     "L'équipe technique a été prévenue, nous reviendrons vers vous dans les meilleurs délais."
-      //   );
-      // }
-    }
-    return item;
-  };
+  post = (args: PostApiArgs) => this.execute({ ...args, method: "POST" });
+  get = async (args: GetApiArgs) => this.execute({ ...args, method: "GET" });
+  put = (args: PutApiArgs) => this.execute({ ...args, method: "PUT" });
+  delete = (args: DeleteApiArgs) => this.execute({ ...args, method: "DELETE" });
 
   // Download a file from a path.
-  download = async ({ path, encryptedEntityKey, document }) => {
+  download = async ({
+    path,
+    encryptedEntityKey,
+    document,
+  }: {
+    path: string;
+    encryptedEntityKey: string;
+    document: { file: { originalname: string; filename?: string } };
+  }) => {
     const url = this.getUrl(path);
     const response = await ReactNativeBlobUtil.config({
       fileCache: true,
     }).fetch("GET", url, { Authorization: `JWT ${this.token}`, "Content-Type": "application/json", platform: this.platform, version: VERSION });
     const responsePath = response.path();
     const res = await ReactNativeBlobUtil.fs.readFile(responsePath, "base64");
-    const decrypted = await decryptFile(res, encryptedEntityKey, this.hashedOrgEncryptionKey);
+    const decrypted = await decryptFile(res, encryptedEntityKey, getHashedOrgEncryptionKey());
     // In your download method around line 269-276
     const cacheDir = FileSystem.Paths.cache;
 
@@ -295,9 +239,10 @@ class ApiService {
   };
 
   // Upload a file to a path.
-  upload = async ({ file, path }) => {
+  // Upload a file to a path.
+  upload = async ({ file, path }: { file: { base64: string; fileName: string; type: string }; path: string }) => {
     // Prepare file.
-    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, this.hashedOrgEncryptionKey);
+    const { encryptedEntityKey, encryptedFile } = await encryptFile(file.base64, getHashedOrgEncryptionKey());
 
     // https://github.com/RonRadtke/react-native-blob-util#multipartform-data-example-post-form-data-with-file-and-data
 
@@ -340,18 +285,9 @@ class ApiService {
   };
   token = "";
   onLogIn = () => {};
-  logout = async (_clearAll) => {};
-  handleLogoutError = () => {};
-  handleApiError = () => {};
-  handleError = () => {};
-  handleWrongKey = () => {};
-  downloadAndInstallUpdate = (_link) => {};
+  logout = async (_clearAll: boolean) => {};
+  downloadAndInstallUpdate = (_link: string) => {};
   updateLink = "";
-  navigation = null;
-  enableEncrypt = null;
-  hashedOrgEncryptionKey = null;
-  orgEncryptionKey = null;
-  organisation = null;
   showTokenExpiredError = false;
   platform = Platform.OS;
   packageId = Application.applicationId;
@@ -359,3 +295,68 @@ class ApiService {
 
 const API = new ApiService();
 export default API;
+
+type RequestInit = {
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  headers: Record<string, string>;
+  body?: string;
+};
+
+type ApiArgs = {
+  method: RequestInit["method"];
+  path: string;
+  body?: Record<string, any>;
+  query?: Query;
+  headers?: RequestInit["headers"];
+  debug?: boolean;
+  entityType?: string;
+  entityId?: string;
+  offlineEnabled?: boolean;
+};
+
+interface PostApiArgs extends Omit<ApiArgs, "method"> {
+  body?: Record<string, any>;
+}
+
+interface GetApiArgs extends Omit<ApiArgs, "method"> {
+  query?: Query;
+}
+
+interface PutApiArgs extends Omit<ApiArgs, "method"> {
+  body: Record<string, any>;
+}
+
+type DeleteApiArgs = Omit<ApiArgs, "method"> & {
+  body?: Record<string, any>;
+};
+
+type Query = Record<string, string | Date | boolean | undefined | number>;
+
+export type ApiResponse = {
+  ok: boolean;
+  user?: UserResponseData;
+  token?: string;
+  data?: any;
+  decryptedData?: any;
+  error?: string;
+  code?: string;
+  hasMore?: boolean;
+  message?: string;
+  inAppMessage?: [
+    string,
+    string,
+    {
+      text: string;
+      link: string;
+      onPress: () => void;
+    }[],
+    {
+      [key: string]: any;
+    },
+  ];
+};
+
+export type OfflineApiResponse = ApiResponse & {
+  _offlineQueued: boolean;
+  _queueItemId: string;
+};

@@ -79,7 +79,7 @@ const personsForStatsSelector = (period, allRawPersons, personTypesByFieldsNames
     });
     return {
       ...snapshotAtDate,
-      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince, "months"),
+      followSinceMonths: dayjsInstance(snapshotDate).diff(person.followedSince || person.createdAt, "months"),
     };
   });
 
@@ -119,7 +119,7 @@ const StatsV2 = ({ onSwitchVersion }) => {
   const [period, setPeriod] = useLocalStorage("period", { startDate: null, endDate: null });
   const [preset, setPreset, removePreset] = useLocalStorage("stats-date-preset", null);
   const [manuallySelectedTeams, setSelectedTeams] = useLocalStorage<Array<TeamInstance>>("stats-teams", [currentTeam]);
-  const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses", DONE);
+  const [actionsStatuses, setActionsStatuses] = useLocalStorage("stats-actionsStatuses-v2", [DONE]);
   const [actionsCategoriesGroups, setActionsCategoriesGroups] = useLocalStorage<Array<Array<string>>>("stats-catGroups-v2", []);
   const [actionsCategories, setActionsCategories] = useLocalStorage<Array<Array<string>>>("stats-categories-v2", []);
   const [consultationsStatuses, setConsultationsStatuses] = useLocalStorage("stats-consultationsStatuses", []);
@@ -534,11 +534,10 @@ const StatsV2 = ({ onSwitchVersion }) => {
   // === Tab-specific chip filters (derived from state) ===
   const actionsChipFilters = useMemo(() => {
     const filters = [];
-    const statusesArray = Array.isArray(actionsStatuses) ? actionsStatuses : actionsStatuses ? [actionsStatuses] : [];
-    if (statusesArray.length) {
+    if (actionsStatuses.length) {
       filters.push({
         field: "status",
-        value: statusesArray.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
+        value: actionsStatuses.map((id) => mappedIdsToLabels.find((s) => s._id === id)?.name).filter(Boolean),
       });
     }
     if (actionsCategoriesGroups.length) {
@@ -697,8 +696,9 @@ const StatsV2 = ({ onSwitchVersion }) => {
     },
     [
       simpleFilterTab,
-      simpleFilterEditingIndex,
       setActionsStatuses,
+      simpleFilterEditingIndex,
+      actionsChipFilters,
       setActionsCategoriesGroups,
       setActionsCategories,
       setServicesGroupFilter,

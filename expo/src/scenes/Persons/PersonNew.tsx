@@ -66,7 +66,7 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
     if (existingPerson) {
       Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       setPosting(false);
-      return false;
+      return { ok: false, error: "Une personne suivie existe déjà avec ce nom" };
     }
     const response = await API.post({
       path: "/person",
@@ -80,9 +80,9 @@ const PersonNew = ({ onPersonCreated, onBack: onBackProp }: PersonNewProps) => {
       if (response.code === "USER_ALREADY_EXIST") {
         Alert.alert("Une personne suivie existe déjà avec ce nom", "Veuillez choisir un autre nom");
       } else {
-        Alert.alert(response.error);
+        Alert.alert(response.error!);
       }
-      return false;
+      return { ok: false, error: response.error! };
     }
     return response;
   };
