@@ -87,15 +87,7 @@ const customFieldGroupSchema = z
   })
   .strict();
 
-// Legacy shape kept until every mobile client is on >= 3.23.0.
-const groupedServicesLegacySchema = z.array(
-  z.object({
-    groupTitle: z.string(),
-    services: z.array(z.string().min(1)),
-  })
-);
-
-// New shape: each service carries enabled/enabledTeams to allow per-team filtering.
+// Each service carries enabled/enabledTeams to allow per-team filtering.
 // Mirrors the convention used by customFieldsPersons, groupedCustomFieldsObs, etc.
 const groupedServicesWithTeamsSchema = z.array(
   z.object({
@@ -109,36 +101,6 @@ const groupedServicesWithTeamsSchema = z.array(
     ),
   })
 );
-
-// Accepts either shape on the wire. Used while the dashboard rolls out the new format.
-const groupedServicesPayloadSchema = z.union([groupedServicesWithTeamsSchema, groupedServicesLegacySchema]);
-
-// Normalize an incoming payload (either shape) into the new shape stored in DB.
-function normalizeGroupedServicesPayload(payload) {
-  if (!Array.isArray(payload)) return [];
-  return payload.map((group) => ({
-    groupTitle: group.groupTitle,
-    services: (group.services || []).map((svc) => {
-      if (typeof svc === "string") {
-        return { name: svc, enabled: true, enabledTeams: [] };
-      }
-      return {
-        name: svc.name,
-        enabled: typeof svc.enabled === "boolean" ? svc.enabled : true,
-        enabledTeams: Array.isArray(svc.enabledTeams) ? svc.enabledTeams : [],
-      };
-    }),
-  }));
-}
-
-// Project the stored shape back to the legacy shape for clients that haven't migrated yet.
-function projectGroupedServicesToLegacy(groupedServicesWithTeams) {
-  if (!Array.isArray(groupedServicesWithTeams)) return [];
-  return groupedServicesWithTeams.map((group) => ({
-    groupTitle: group.groupTitle,
-    services: (group.services || []).map((svc) => svc.name),
-  }));
-}
 
 function sanitizeAll(text) {
   return sanitizeHtml(text || "", { allowedTags: [], allowedAttributes: {} });
@@ -277,11 +239,7 @@ module.exports = {
   isoDateRegex,
   customFieldSchema,
   customFieldGroupSchema,
-  groupedServicesLegacySchema,
   groupedServicesWithTeamsSchema,
-  groupedServicesPayloadSchema,
-  normalizeGroupedServicesPayload,
-  projectGroupedServicesToLegacy,
   recurrenceSchema,
   existingRecurrenceSchema,
   sanitizeAll,

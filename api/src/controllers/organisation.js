@@ -43,9 +43,7 @@ const {
   positiveIntegerRegex,
   customFieldGroupSchema,
   folderSchema,
-  groupedServicesPayloadSchema,
   groupedServicesWithTeamsSchema,
-  normalizeGroupedServicesPayload,
 } = require("../utils");
 const { serializeOrganisation, serializeTeams } = require("../utils/data-serializer");
 const { defaultSocialCustomFields, defaultMedicalCustomFields } = require("../utils/custom-fields/person");
@@ -589,7 +587,6 @@ router.put(
         territoriesGroupedTypes: z.optional(z.array(z.object({ groupTitle: z.string(), types: z.array(z.string().min(1)) }))),
         defaultPersonsFolders: z.optional(z.array(folderSchema)),
         defaultMedicalFolders: z.optional(z.array(folderSchema)),
-        groupedServices: z.optional(groupedServicesPayloadSchema),
         groupedServicesWithTeams: z.optional(groupedServicesWithTeamsSchema),
         collaborations: z.optional(z.array(z.string().min(1))),
         groupedCustomFieldsObs: z.optional(z.array(customFieldGroupSchema)),
@@ -662,12 +659,7 @@ router.put(
       if (req.body.hasOwnProperty("territoriesGroupedTypes")) updateOrg.territoriesGroupedTypes = req.body.territoriesGroupedTypes;
       if (req.body.hasOwnProperty("defaultPersonsFolders")) updateOrg.defaultPersonsFolders = req.body.defaultPersonsFolders;
       if (req.body.hasOwnProperty("defaultMedicalFolders")) updateOrg.defaultMedicalFolders = req.body.defaultMedicalFolders;
-      // Accept either the legacy `groupedServices` key or the new `groupedServicesWithTeams` key
-      // during the transition; both are normalised into the new shape stored in DB.
-      if (req.body.hasOwnProperty("groupedServicesWithTeams"))
-        updateOrg.groupedServicesWithTeams = normalizeGroupedServicesPayload(req.body.groupedServicesWithTeams);
-      else if (req.body.hasOwnProperty("groupedServices"))
-        updateOrg.groupedServicesWithTeams = normalizeGroupedServicesPayload(req.body.groupedServices);
+      if (req.body.hasOwnProperty("groupedServicesWithTeams")) updateOrg.groupedServicesWithTeams = req.body.groupedServicesWithTeams;
       if (req.body.hasOwnProperty("collaborations")) updateOrg.collaborations = req.body.collaborations;
       if (req.body.hasOwnProperty("groupedCustomFieldsObs"))
         updateOrg.groupedCustomFieldsObs =
