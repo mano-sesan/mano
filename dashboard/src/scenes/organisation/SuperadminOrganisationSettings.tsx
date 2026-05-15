@@ -143,21 +143,6 @@ export default function SuperadminOrganisationSettings({
                 />
               </div>
             </div>
-            <div className="tw-flex tw-basis-full tw-flex-col tw-px-4 tw-py-2">
-              <div className="tw-mb-4 tw-flex tw-items-center">
-                <input
-                  type="checkbox"
-                  className="tw-mr-2"
-                  name="statsV2Enabled"
-                  id="statsV2Enabled"
-                  checked={data.statsV2Enabled || false}
-                  onChange={(e) => setData({ ...data, statsV2Enabled: e.target.checked })}
-                />
-                <label className="!tw-mb-0" htmlFor="statsV2Enabled">
-                  Activer les statistiques v2
-                </label>
-              </div>
-            </div>
           </form>
         )}
       </ModalBody>
