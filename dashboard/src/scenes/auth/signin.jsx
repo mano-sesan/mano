@@ -122,7 +122,6 @@ const SignIn = () => {
         if (navigator?.storage?.persist) {
           const isPersisted = await navigator.storage.persist();
           console.info(`[storage] persist request result: ${isPersisted ? "granted" : "denied"}`);
-          if (!isPersisted) capture(new Error("Persist request denied"));
         } else {
           console.info("[storage] persist not supported");
         }
