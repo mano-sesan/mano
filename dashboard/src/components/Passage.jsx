@@ -84,41 +84,50 @@ const Passage = ({ passage, personId, onFinished }) => {
               comment: body.comment,
             };
 
-            // TODO: traiter les erreurs dans tous ces cas
+            let success = true;
+            let totalCount = 1;
+
             if (body.anonymous) {
+              totalCount = body.anonymousNumberOfPassages;
               for (let i = 0; i < body.anonymousNumberOfPassages; i++) {
-                await API.post({
-                  path: "/passage",
-                  body: await encryptPassage(newPassage),
-                });
+                const [error] = await tryFetchExpectOk(async () =>
+                  API.post({
+                    path: "/passage",
+                    body: await encryptPassage(newPassage),
+                  })
+                );
+                if (error) success = false;
               }
             } else if (showMultiSelect) {
+              totalCount = body.persons.length;
               for (const person of body.persons) {
-                const [passageError] = await tryFetchExpectOk(async () =>
+                const [error] = await tryFetchExpectOk(async () =>
                   API.post({
                     path: "/passage",
                     body: await encryptPassage({ ...newPassage, person }),
                   })
                 );
-                if (passageError) {
-                  toast.error("Erreur lors de l'enregistrement du passage");
-                }
+                if (error) success = false;
               }
             } else {
-              const [passageError] = await tryFetchExpectOk(async () =>
+              const [error] = await tryFetchExpectOk(async () =>
                 API.post({
                   path: "/passage",
                   body: await encryptPassage({ ...newPassage, person: body.person }),
                 })
               );
-              if (passageError) {
-                toast.error("Erreur lors de l'enregistrement du passage");
-              }
+              if (error) success = false;
             }
 
             await refresh();
             setOpen(false);
-            toast.success(body.person?.length > 1 ? "Passage enregistré !" : "Passages enregistrés !");
+            if (success) {
+              toast.success(totalCount > 1 ? "Passages enregistrés !" : "Passage enregistré !");
+            } else {
+              toast.error(
+                totalCount > 1 ? "Erreur lors de l'enregistrement d'un ou plusieurs passages" : "Erreur lors de l'enregistrement du passage"
+              );
+            }
             return;
           }
           const [error] = await tryFetchExpectOk(async () =>
