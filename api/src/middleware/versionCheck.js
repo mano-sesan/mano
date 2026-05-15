@@ -13,6 +13,7 @@ module.exports = async ({ path, headers: { version, platform, packageid } }, res
   // Top-level navigation depuis le bouton "Se connecter avec PSC" : pas
   // d'en-tête platform possible, on bypass.
   if (path === "/user/psc/login") return next();
+  if (path === "/debug-ip") return next();
   if (platform === "website") return next();
   if (platform === "dashboard") {
     if (deploymentCommit === null) {
