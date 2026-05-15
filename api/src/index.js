@@ -24,7 +24,7 @@ const blockMobileMedicalWrites = require("./middleware/blockMobileMedicalWrites"
 
 // Put together a schema
 const app = express();
-app.set("trust proxy", 1);
+app.set("trust proxy", 2);
 if (["development", "test"].includes(process.env.NODE_ENV)) {
   app.use(logger("dev"));
 }
