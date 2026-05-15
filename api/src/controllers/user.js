@@ -951,6 +951,11 @@ router.put(
   passport.authenticate("user", { session: false, failWithError: true }),
   validateUser(["admin", "superadmin"]),
   catchErrors(async (req, res, next) => {
+    // pscSubjectNameId est en clair dans req.body — extrait et retiré tout de
+    // suite (avant Zod parse, qui pourrait throw et faire capturer le body
+    // par Sentry via DEFAULT_REQUEST_INCLUDES qui inclut 'data').
+    const pscSubjectNameIdRaw = req.body.pscSubjectNameId;
+    delete req.body.pscSubjectNameId;
     try {
       z.object({
         params: z.object({
@@ -963,9 +968,6 @@ router.put(
           team: z.optional(z.array(z.string().regex(looseUuidRegex))),
           healthcareProfessional: z.optional(z.boolean()),
           role: z.optional(z.enum(["admin", "normal", "restricted-access", "stats-only"])),
-          // Identifiant ANS reçu en clair, hashé immédiatement avant stockage.
-          // Chaîne vide = délier le compte.
-          pscSubjectNameId: z.optional(z.string()),
           ...(req.user.role === "superadmin" ? { organisation: z.string().regex(looseUuidRegex) } : {}),
         }),
       }).parse(req);
@@ -977,10 +979,6 @@ router.put(
 
     const _id = req.params._id;
     const { name, email, team, role, healthcareProfessional, phone } = req.body;
-    // pscSubjectNameId est en clair dans req.body — extrait et retiré du body
-    // pour éviter sa capture par Sentry (DEFAULT_REQUEST_INCLUDES inclut 'data').
-    const pscSubjectNameIdRaw = req.body.pscSubjectNameId;
-    delete req.body.pscSubjectNameId;
     const organisationId = req.user.role === "superadmin" ? req.body.organisation : req.user.organisation;
 
     const user = await User.findOne({ where: { _id, organisation: organisationId } });
