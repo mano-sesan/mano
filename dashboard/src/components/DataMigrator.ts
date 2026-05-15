@@ -62,62 +62,7 @@ export default function useDataMigrator() {
           // on garde encore ici si y'en a d'autres qui arriveraient
         }
         if (!organisation.migrations?.includes("set-followed-since-from-created-at-2")) {
-          // We had too many issues on the day we launched it : we postpone it to a later date, when we fill more confident
-          /*     setLoadingText(LOADING_TEXT);
-          const personsRes = await API.get({
-            path: "/person",
-            query: { organisation: organisationId, after: "0", withDeleted: true },
-          });
-          if (!personsRes.ok) {
-            return false;
-          }
-          const decryptedPersons = (await Promise.all(personsRes.data.map((p) => decryptItem(p, { decryptDeleted: true, type: "person" })))).filter(
-            (e) => e
-          );
-
-          const personsToUpdate: typeof decryptedPersons = [];
-          for (const person of decryptedPersons) {
-            // Si entityKey n'est pas posée, c'est que decryptItem a court-circuité sans déchiffrer
-            // (pas de clé d'org, pas de blob chiffré, pas d'entityKey chiffrée). Re-chiffrer dans ce
-            // cas générerait une nouvelle entityKey et écraserait les données existantes.
-            if (!person.entityKey) continue;
-            if (!person.followedSince && person.createdAt) {
-              personsToUpdate.push({
-                ...person,
-                followedSince: person.createdAt,
-              });
-            }
-          }
-
-          if (personsToUpdate.length > 0) {
-            const encryptedPersonsToUpdate = await Promise.all(
-              personsToUpdate.map((p) => preparePersonForEncryption(p, { checkRequiredFields: !p.deletedAt })).map(encryptItem)
-            );
-            const response = await API.put({
-              path: `/migration/set-followed-since-from-created-at-2`,
-              body: { encryptedPersons: encryptedPersonsToUpdate },
-              query: { migrationLastUpdateAt },
-            });
-            if (response.ok) {
-              setOrganisation(response.organisation);
-              migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
-            } else {
-              return false;
-            }
-          } else {
-            // No persons to update, but still mark the migration as done
-            const response = await API.put({
-              path: `/migration/set-followed-since-from-created-at-2`,
-              body: { encryptedPersons: [] },
-              query: { migrationLastUpdateAt },
-            });
-            if (response.ok) {
-              setOrganisation(response.organisation);
-              migrationLastUpdateAt = response.organisation.migrationLastUpdateAt;
-            } else {
-              return false;
-            }
-          } */
+          // We had too many issues on the day we launched it : we abandon it.
         }
         return true;
       } catch (error) {
