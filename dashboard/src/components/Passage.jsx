@@ -84,7 +84,7 @@ const Passage = ({ passage, personId, onFinished }) => {
               comment: body.comment,
             };
 
-            let success = true;
+            let successCount = 0;
             let totalCount = 1;
 
             if (body.anonymous) {
@@ -96,7 +96,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                     body: await encryptPassage(newPassage),
                   })
                 );
-                if (error) success = false;
+                if (!error) successCount++;
               }
             } else if (showMultiSelect) {
               totalCount = body.persons.length;
@@ -107,7 +107,7 @@ const Passage = ({ passage, personId, onFinished }) => {
                     body: await encryptPassage({ ...newPassage, person }),
                   })
                 );
-                if (error) success = false;
+                if (!error) successCount++;
               }
             } else {
               const [error] = await tryFetchExpectOk(async () =>
@@ -116,17 +116,21 @@ const Passage = ({ passage, personId, onFinished }) => {
                   body: await encryptPassage({ ...newPassage, person: body.person }),
                 })
               );
-              if (error) success = false;
+              if (!error) successCount++;
             }
 
             await refresh();
-            setOpen(false);
-            if (success) {
+            // On garde la modale ouverte uniquement si rien n'a été enregistré, pour permettre
+            // un retry sans ressaisie. En cas de succès partiel sur un lot, on ferme — sinon
+            // un retry recréerait des doublons pour les passages déjà sauvegardés.
+            if (successCount === totalCount) {
+              setOpen(false);
               toast.success(totalCount > 1 ? "Passages enregistrés !" : "Passage enregistré !");
+            } else if (successCount === 0) {
+              toast.error(totalCount > 1 ? "Erreur lors de l'enregistrement des passages" : "Erreur lors de l'enregistrement du passage");
             } else {
-              toast.error(
-                totalCount > 1 ? "Erreur lors de l'enregistrement d'un ou plusieurs passages" : "Erreur lors de l'enregistrement du passage"
-              );
+              setOpen(false);
+              toast.error(`${successCount} passage(s) enregistré(s) sur ${totalCount}. Veuillez vérifier et compléter si besoin.`);
             }
             return;
           }
