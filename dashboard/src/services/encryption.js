@@ -230,15 +230,36 @@ export const encryptItem = async (item, { allowMissingEntityKey = false } = {}) 
 };
 
 // Phase observation des short-circuits de decryptItem.
-// Chacune des 4 branches plus bas a une raison documentée (cf. blame), mais
+// Chacune des branches plus bas a une raison documentée (cf. blame), mais
 // on ne sait pas à quelle fréquence elles se déclenchent en prod ni si elles
 // polluent vraiment le state des utilisateurs. On log dans Sentry pour mesurer
 // avant de durcir le comportement. On dédupe par session pour éviter le spam.
+//
+// Contrôle de volume :
+// - "no-key" : volume potentiellement massif (lors d'un verrouillage de session, tous
+//   les items d'un refresh tombent dedans), on dédupe par type seulement (max ~15
+//   events par session). Le _id du premier item rencontré sert d'exemple en `extra`.
+// - "no-encrypted" et "no-entityKey" : volume attendu très faible, on dédupe par
+//   _id pour avoir la liste précise des items concernés.
 const decryptItemShortCircuitsSeen = new Set();
+const noKeyLoggedTypes = new Set();
 function logDecryptItemShortCircuit(reason, item, type) {
-  // deleted-skipped est volontaire et massif (chaque refresh, tous les items soft-deleted),
-  // pas la peine de remonter ça dans Sentry.
-  if (reason === "deleted-skipped") return;
+  if (reason === "no-key") {
+    const typeKey = type || "item";
+    if (noKeyLoggedTypes.has(typeKey)) return;
+    noKeyLoggedTypes.add(typeKey);
+    capture(new Error(`decryptItem short-circuit: no-key`), {
+      level: "warning",
+      fingerprint: ["decrypt-item-short-circuit-no-key", typeKey],
+      tags: { reason: "no-key", type: typeKey },
+      extra: {
+        sampleItemId: item?._id,
+        note: "Logged once per type per session to control volume.",
+      },
+    });
+    return;
+  }
+
   const key = `${reason}|${type}|${item?._id ?? "no-id"}`;
   if (decryptItemShortCircuitsSeen.has(key)) return;
   decryptItemShortCircuitsSeen.add(key);
@@ -267,10 +288,8 @@ export const decryptItem = async (item, { decryptDeleted = false, type = "" } = 
     logDecryptItemShortCircuit("no-encrypted", item, type);
     return item;
   }
-  if (item.deletedAt && !decryptDeleted) {
-    logDecryptItemShortCircuit("deleted-skipped", item, type);
-    return item;
-  }
+  // Volontaire et massif (chaque refresh re-passe tous les soft-deleted), pas de log.
+  if (item.deletedAt && !decryptDeleted) return item;
   if (!item.encryptedEntityKey) {
     logDecryptItemShortCircuit("no-entityKey", item, type);
     return item;
