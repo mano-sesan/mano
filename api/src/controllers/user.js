@@ -18,6 +18,34 @@ const { serializeUserWithTeamsAndOrganisation, serializeTeams } = require("../ut
 const { mailBienvenueHtml } = require("../utils/mail-bienvenue");
 const dayjs = require("dayjs");
 const getClientInfo = require("../utils/getClientInfo");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
+
+const signinRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  keyGenerator: ipKeyGenerator,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Trop de tentatives de connexion, veuillez réessayer dans quelques minutes." },
+});
+
+const forgotPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  keyGenerator: ipKeyGenerator,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Trop de demandes de réinitialisation, veuillez réessayer dans quelques minutes." },
+});
+
+const forgotPasswordResetRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  keyGenerator: ipKeyGenerator,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { ok: false, error: "Trop de requêtes, veuillez réessayer dans quelques minutes." },
+});
 
 const EMAIL_OR_PASSWORD_INVALID = "EMAIL_OR_PASSWORD_INVALID";
 const PASSWORD_NOT_VALIDATED = "PASSWORD_NOT_VALIDATED";
@@ -179,6 +207,7 @@ router.post(
 
 router.post(
   "/signin",
+  signinRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
@@ -376,6 +405,7 @@ router.get(
 
 router.post(
   "/forgot_password",
+  forgotPasswordRateLimiter,
   catchErrors(async (req, res, next) => {
     const {
       body: { email },
@@ -429,6 +459,7 @@ Si vous en êtes à l'origine, vous pouvez cliquer sur ce lien: ${link}`;
 
 router.post(
   "/forgot_password_reset",
+  forgotPasswordResetRateLimiter,
   catchErrors(async (req, res, next) => {
     try {
       z.object({
