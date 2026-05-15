@@ -10,6 +10,7 @@ let deploymentDate = null;
 
 module.exports = async ({ path, headers: { version, platform, packageid } }, res, next) => {
   if (path.startsWith("/public")) return next();
+  if (path === "/debug-ip") return next();
   if (platform === "website") return next();
   if (platform === "dashboard") {
     if (deploymentCommit === null) {
